@@ -4,7 +4,7 @@ import { Copy, SquarePen, Trash2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
-import { DataTableColumnHeader } from "@/components/ui/data-table/data-table-column-header";
+import { DataTableColumnHeader } from "@/components/projects/data-table/data-table-column-header";
 
 export const createProjectItemsColumns = (onEdit, onDuplicate, onDelete) => [
   {

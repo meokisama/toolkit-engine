@@ -3,10 +3,11 @@ import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 import { useProjectDetail } from "@/contexts/project-detail-context";
 import { ProjectItemDialog } from "./project-item-dialog";
-import { ConfirmDialog } from "@/components/ui/confirm-dialog";
-import { DataTable } from "@/components/ui/data-table/data-table";
-import { DataTableToolbar } from "@/components/ui/data-table/data-table-toolbar";
-import { DataTablePagination } from "@/components/ui/data-table/data-table-pagination";
+import { ConfirmDialog } from "@/components/projects/confirm-dialog";
+import { DataTable } from "@/components/projects/data-table/data-table";
+import { DataTableToolbar } from "@/components/projects/data-table/data-table-toolbar";
+import { DataTablePagination } from "@/components/projects/data-table/data-table-pagination";
+import { DataTableSkeleton } from "@/components/projects/table-skeleton";
 import { createProjectItemsColumns } from "./columns/project-items-columns";
 
 export function ProjectItemsTable({ category, items, loading }) {
@@ -121,11 +122,7 @@ export function ProjectItemsTable({ category, items, loading }) {
   );
 
   if (loading) {
-    return (
-      <div className="flex items-center justify-center h-32">
-        <div className="text-muted-foreground">Loading...</div>
-      </div>
-    );
+    return <DataTableSkeleton rows={5} />;
   }
 
   return (

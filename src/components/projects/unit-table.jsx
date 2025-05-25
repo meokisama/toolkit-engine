@@ -1,0 +1,255 @@
+import React, { useState, useEffect } from "react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Plus, Search, Database, Network, GitCompare } from "lucide-react";
+import { useProjectDetail } from "@/contexts/project-detail-context";
+import { UnitDialog } from "./unit-dialog";
+import { ConfirmDialog } from "@/components/projects/confirm-dialog";
+import { DataTable } from "@/components/projects/data-table/data-table";
+import { DataTableToolbar } from "@/components/projects/data-table/data-table-toolbar";
+import { DataTablePagination } from "@/components/projects/data-table/data-table-pagination";
+import { DataTableSkeleton } from "@/components/projects/table-skeleton";
+import { createUnitColumns } from "./columns/unit-columns";
+
+export function UnitTable() {
+  const { projectItems, deleteItem, duplicateItem, loading } =
+    useProjectDetail();
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [dialogMode, setDialogMode] = useState("create");
+  const [editingItem, setEditingItem] = useState(null);
+  const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
+  const [itemToDelete, setItemToDelete] = useState(null);
+  const [deleteLoading, setDeleteLoading] = useState(false);
+  const [databaseTable, setDatabaseTable] = useState(null);
+  const [networkTable, setNetworkTable] = useState(null);
+  const [selectedRowsCount, setSelectedRowsCount] = useState(0);
+  const [networkUnits] = useState([]); // Placeholder for network units
+  const [scanLoading, setScanLoading] = useState(false);
+
+  const units = projectItems.unit || [];
+
+  const handleCreateItem = () => {
+    setEditingItem(null);
+    setDialogMode("create");
+    setDialogOpen(true);
+  };
+
+  const handleEditItem = (item) => {
+    setEditingItem(item);
+    setDialogMode("edit");
+    setDialogOpen(true);
+  };
+
+  const handleDuplicateItem = async (item) => {
+    try {
+      await duplicateItem("unit", item.id);
+    } catch (error) {
+      console.error("Failed to duplicate unit:", error);
+    }
+  };
+
+  const handleDeleteItem = (item) => {
+    setItemToDelete(item);
+    setConfirmDialogOpen(true);
+  };
+
+  const confirmDeleteItem = async () => {
+    if (!itemToDelete) return;
+
+    setDeleteLoading(true);
+    try {
+      await deleteItem("unit", itemToDelete.id);
+      setConfirmDialogOpen(false);
+      setItemToDelete(null);
+    } catch (error) {
+      console.error("Failed to delete unit:", error);
+    } finally {
+      setDeleteLoading(false);
+    }
+  };
+
+  const handleBulkDelete = async (selectedRows) => {
+    try {
+      const deletePromises = selectedRows.map((row) =>
+        deleteItem("unit", row.original.id)
+      );
+      await Promise.all(deletePromises);
+
+      if (table) {
+        table.resetRowSelection();
+      }
+    } catch (error) {
+      console.error("Failed to bulk delete units:", error);
+    }
+  };
+
+  const handleScanNetwork = async () => {
+    setScanLoading(true);
+    try {
+      // Placeholder for network scanning functionality
+      // This will be implemented later
+      console.log("Scanning network for units...");
+      await new Promise((resolve) => setTimeout(resolve, 2000)); // Simulate scan
+    } catch (error) {
+      console.error("Failed to scan network:", error);
+    } finally {
+      setScanLoading(false);
+    }
+  };
+
+  const handleAddNetworkUnit = async (networkUnit) => {
+    // Placeholder for adding network unit to database
+    console.log("Adding network unit to database:", networkUnit);
+  };
+
+  // Update selected rows count when table changes
+  useEffect(() => {
+    if (databaseTable) {
+      const updateSelectedCount = () => {
+        const rowSelection = databaseTable.getState().rowSelection;
+        const selectedCount = Object.keys(rowSelection).filter(
+          (id) => rowSelection[id]
+        ).length;
+        setSelectedRowsCount(selectedCount);
+      };
+
+      updateSelectedCount();
+      const interval = setInterval(updateSelectedCount, 100);
+      return () => clearInterval(interval);
+    }
+  }, [databaseTable]);
+
+  // Create columns with handlers
+  const columns = createUnitColumns(
+    handleEditItem,
+    handleDuplicateItem,
+    handleDeleteItem
+  );
+
+  if (loading) {
+    return <DataTableSkeleton rows={5} />;
+  }
+
+  return (
+    <>
+      <div className="space-y-4 h-full">
+        {/* Two cards side by side */}
+        <div className="flex flex-col gap-4 h-full">
+          {/* Database Units Card */}
+          <Card className="h-full">
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <CardTitle className="flex items-center gap-2">
+                  <Database className="h-5 w-5" />
+                  Database Units
+                </CardTitle>
+              </div>
+            </CardHeader>
+            <CardContent className="h-full">
+              {units.length === 0 ? (
+                <div className="text-center text-muted-foreground flex flex-col justify-center items-center h-full -mt-8">
+                  <Database className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                  <p>No units found.</p>
+                  <p className="text-sm mb-8">
+                    Click "Add Unit" to create your first unit.
+                  </p>
+                  <Button
+                    onClick={handleCreateItem}
+                    className="flex items-center gap-2"
+                  >
+                    <Plus className="h-4 w-4" />
+                    Add Unit
+                  </Button>
+                </div>
+              ) : (
+                <div className="space-y-4 h-full">
+                  {databaseTable && (
+                    <DataTableToolbar
+                      table={databaseTable}
+                      searchColumn="name"
+                      searchPlaceholder="Search units..."
+                      onBulkDelete={handleBulkDelete}
+                      selectedRowsCount={selectedRowsCount}
+                      onAddItem={handleCreateItem}
+                      addItemLabel="Add Unit"
+                    />
+                  )}
+                  <DataTable
+                    key={`database-unit-${units.length}`}
+                    columns={columns}
+                    data={units}
+                    onTableReady={setDatabaseTable}
+                  />
+                  {databaseTable && (
+                    <DataTablePagination table={databaseTable} />
+                  )}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Network Units Card */}
+          <Card className="h-full">
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <CardTitle className="flex items-center gap-2">
+                  <Network className="h-5 w-5" />
+                  Network Units
+                </CardTitle>
+                <Button
+                  onClick={handleScanNetwork}
+                  disabled={scanLoading}
+                  className="flex items-center gap-2"
+                >
+                  <Search className="h-4 w-4" />
+                  {scanLoading ? "Scanning..." : "Scan"}
+                </Button>
+              </div>
+            </CardHeader>
+            <CardContent className="h-full">
+              {networkUnits.length === 0 ? (
+                <div className="text-center text-muted-foreground py-8 flex flex-col justify-center items-center h-full -mt-8">
+                  <Network className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                  <p>No network units found.</p>
+                  <p className="text-sm">
+                    Click "Scan Network" to discover units on your network.
+                  </p>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {/* Network units table will be displayed here */}
+                  <DataTable
+                    key={`network-unit-${networkUnits.length}`}
+                    columns={columns}
+                    data={networkUnits}
+                    onTableReady={setNetworkTable}
+                  />
+                  {networkTable && <DataTablePagination table={networkTable} />}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+
+      <UnitDialog
+        open={dialogOpen}
+        onOpenChange={setDialogOpen}
+        item={editingItem}
+        mode={dialogMode}
+      />
+
+      <ConfirmDialog
+        open={confirmDialogOpen}
+        onOpenChange={setConfirmDialogOpen}
+        title="Delete Unit"
+        description={`Are you sure you want to delete "${itemToDelete?.name}"? This action cannot be undone.`}
+        confirmText="Delete"
+        cancelText="Cancel"
+        variant="destructive"
+        onConfirm={confirmDeleteItem}
+        loading={deleteLoading}
+      />
+    </>
+  );
+}

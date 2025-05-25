@@ -80,7 +80,12 @@ class DatabaseService {
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         project_id INTEGER NOT NULL,
         name TEXT NOT NULL,
-        address TEXT,
+        type TEXT,
+        serial_no TEXT,
+        ip_address TEXT,
+        id_can TEXT,
+        mode TEXT,
+        firmware_version TEXT,
         description TEXT,
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
         updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
@@ -248,13 +253,28 @@ class DatabaseService {
       const items = originalItems[category] || [];
 
       items.forEach(item => {
-        const itemData = {
-          name: item.name,
-          address: item.address,
-          description: item.description
-        };
-
-        this.createProjectItem(newProjectId, itemData, category);
+        if (category === 'unit') {
+          // Special handling for unit items
+          const itemData = {
+            name: item.name,
+            type: item.type,
+            serial_no: item.serial_no,
+            ip_address: item.ip_address,
+            id_can: item.id_can,
+            mode: item.mode,
+            firmware_version: item.firmware_version,
+            description: item.description
+          };
+          this.createUnitItem(newProjectId, itemData);
+        } else {
+          // Standard handling for other categories
+          const itemData = {
+            name: item.name,
+            address: item.address,
+            description: item.description
+          };
+          this.createProjectItem(newProjectId, itemData, category);
+        }
       });
     });
   }
@@ -422,17 +442,79 @@ class DatabaseService {
     return this.duplicateProjectItem(id, 'aircon');
   }
 
-  // Unit
+  // Unit - Special handling for unit table structure
   getUnitItems(projectId) {
     return this.getProjectItems(projectId, 'unit');
   }
 
   createUnitItem(projectId, itemData) {
-    return this.createProjectItem(projectId, itemData, 'unit');
+    try {
+      const {
+        name,
+        type,
+        serial_no,
+        ip_address,
+        id_can,
+        mode,
+        firmware_version,
+        description
+      } = itemData;
+
+      const stmt = this.db.prepare(`
+        INSERT INTO unit (
+          project_id, name, type, serial_no, ip_address,
+          id_can, mode, firmware_version, description
+        )
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+      `);
+
+      const result = stmt.run(
+        projectId, name, type, serial_no, ip_address,
+        id_can, mode, firmware_version, description
+      );
+
+      return this.getProjectItemById(result.lastInsertRowid, 'unit');
+    } catch (error) {
+      console.error('Failed to create unit item:', error);
+      throw error;
+    }
   }
 
   updateUnitItem(id, itemData) {
-    return this.updateProjectItem(id, itemData, 'unit');
+    try {
+      const {
+        name,
+        type,
+        serial_no,
+        ip_address,
+        id_can,
+        mode,
+        firmware_version,
+        description
+      } = itemData;
+
+      const stmt = this.db.prepare(`
+        UPDATE unit
+        SET name = ?, type = ?, serial_no = ?, ip_address = ?,
+            id_can = ?, mode = ?, firmware_version = ?, description = ?,
+            updated_at = CURRENT_TIMESTAMP
+        WHERE id = ?
+      `);
+
+      const result = stmt.run(
+        name, type, serial_no, ip_address,
+        id_can, mode, firmware_version, description, id
+      );
+
+      if (result.changes === 0) {
+        throw new Error('Unit item not found');
+      }
+
+      return this.getProjectItemById(id, 'unit');
+    } catch (error) {
+      console.error('Failed to update unit item:', error);
+      throw error;
+    }
   }
 
   deleteUnitItem(id) {
@@ -440,7 +522,29 @@ class DatabaseService {
   }
 
   duplicateUnitItem(id) {
-    return this.duplicateProjectItem(id, 'unit');
+    try {
+      const originalItem = this.getProjectItemById(id, 'unit');
+
+      if (!originalItem) {
+        throw new Error('Unit item not found');
+      }
+
+      const duplicatedItem = {
+        name: `${originalItem.name} (Copy)`,
+        type: originalItem.type,
+        serial_no: originalItem.serial_no,
+        ip_address: originalItem.ip_address,
+        id_can: originalItem.id_can,
+        mode: originalItem.mode,
+        firmware_version: originalItem.firmware_version,
+        description: originalItem.description
+      };
+
+      return this.createUnitItem(originalItem.project_id, duplicatedItem);
+    } catch (error) {
+      console.error('Failed to duplicate unit item:', error);
+      throw error;
+    }
   }
 
   // Curtain

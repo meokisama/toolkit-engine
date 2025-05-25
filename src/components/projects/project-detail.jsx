@@ -1,14 +1,10 @@
 import React from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { useProjectDetail } from "@/contexts/project-detail-context";
 import { ProjectItemsTable } from "./project-items-table";
+import { UnitTable } from "./unit-table";
+import { TabContentSkeleton } from "@/components/projects/tab-content-skeleton";
 import { Lightbulb, Wind, Cpu, Blinds, Palette } from "lucide-react";
 
 const tabConfig = {
@@ -56,6 +52,11 @@ export function ProjectDetail() {
     );
   }
 
+  // Show skeleton when project is selected but data is still loading
+  if (loading && selectedProject) {
+    return <TabContentSkeleton />;
+  }
+
   return (
     <div className="flex flex-1 flex-col gap-4 p-4 pt-0">
       <Tabs value={activeTab} onValueChange={setActiveTab} className="h-full">
@@ -74,19 +75,23 @@ export function ProjectDetail() {
             );
           })}
         </TabsList>
-        <Card className="flex-1 mt-2">
-          <CardContent className="h-full">
-            {Object.entries(tabConfig).map(([key, config]) => (
-              <TabsContent key={key} value={key} className="h-full">
-                <ProjectItemsTable
-                  category={key}
-                  items={projectItems[key] || []}
-                  loading={loading}
-                />
-              </TabsContent>
-            ))}
-          </CardContent>
-        </Card>
+        {Object.entries(tabConfig).map(([key]) => (
+          <TabsContent key={key} value={key} className="flex-1 mt-2">
+            {key === "unit" ? (
+              <UnitTable />
+            ) : (
+              <Card className="h-full">
+                <CardContent className="h-full">
+                  <ProjectItemsTable
+                    category={key}
+                    items={projectItems[key] || []}
+                    loading={loading}
+                  />
+                </CardContent>
+              </Card>
+            )}
+          </TabsContent>
+        ))}
       </Tabs>
     </div>
   );

@@ -21,17 +21,18 @@ import {
   SidebarMenuAction,
   SidebarMenuButton,
   SidebarMenuItem,
+  SidebarMenuSkeleton,
   useSidebar,
 } from "@/components/ui/sidebar";
 import { Button } from "@/components/ui/button";
 import { useProjects } from "@/contexts/project-context";
 import { useProjectDetail } from "@/contexts/project-detail-context";
 import { ProjectDialog } from "@/components/projects/project-dialog";
-import { ConfirmDialog } from "@/components/ui/confirm-dialog";
+import { ConfirmDialog } from "@/components/projects/confirm-dialog";
 
 export function NavProjects() {
   const { isMobile } = useSidebar();
-  const { projects, deleteProject, duplicateProject } = useProjects();
+  const { projects, loading, deleteProject, duplicateProject } = useProjects();
   const { selectProject, selectedProject } = useProjectDetail();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingProject, setEditingProject] = useState(null);
@@ -96,7 +97,12 @@ export function NavProjects() {
           </Button>
         </div>
         <SidebarMenu>
-          {projects.length === 0 ? (
+          {loading ? (
+            // Show skeleton while loading
+            Array.from({ length: 3 }).map((_, index) => (
+              <SidebarMenuSkeleton key={index} showIcon />
+            ))
+          ) : projects.length === 0 ? (
             <div className="px-2 py-4 text-xs text-muted-foreground text-center italic">
               No projects found.
             </div>
