@@ -19,11 +19,6 @@ const tabConfig = {
     icon: Wind,
     description: "Manage air conditioning systems",
   },
-  unit: {
-    label: "Unit",
-    icon: Cpu,
-    description: "Manage control units and devices",
-  },
   curtain: {
     label: "Curtain",
     icon: Blinds,
@@ -33,6 +28,11 @@ const tabConfig = {
     label: "Scene",
     icon: Palette,
     description: "Manage lighting and automation scenes",
+  },
+  unit: {
+    label: "Unit",
+    icon: Cpu,
+    description: "Manage control units and devices",
   },
 };
 

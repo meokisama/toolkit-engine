@@ -24,6 +24,10 @@ export function DataTable({ columns, data, onTableReady }) {
   const [columnFilters, setColumnFilters] = React.useState([]);
   const [columnVisibility, setColumnVisibility] = React.useState({});
   const [rowSelection, setRowSelection] = React.useState({});
+  const [pagination, setPagination] = React.useState({
+    pageIndex: 0,
+    pageSize: 10,
+  });
 
   // Reset row selection when data length changes (e.g., after deleting items)
   React.useEffect(() => {
@@ -37,6 +41,7 @@ export function DataTable({ columns, data, onTableReady }) {
       columns,
       onSortingChange: setSorting,
       onColumnFiltersChange: setColumnFilters,
+      onPaginationChange: setPagination,
       getCoreRowModel: getCoreRowModel(),
       getPaginationRowModel: getPaginationRowModel(),
       getSortedRowModel: getSortedRowModel(),
@@ -48,9 +53,18 @@ export function DataTable({ columns, data, onTableReady }) {
         columnFilters,
         columnVisibility,
         rowSelection,
+        pagination,
       },
     }),
-    [data, columns, sorting, columnFilters, columnVisibility, rowSelection]
+    [
+      data,
+      columns,
+      sorting,
+      columnFilters,
+      columnVisibility,
+      rowSelection,
+      pagination,
+    ]
   );
 
   const table = useReactTable(tableConfig);
@@ -72,7 +86,7 @@ export function DataTable({ columns, data, onTableReady }) {
         <Table>
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
-              <TableRow key={headerGroup.id}>
+              <TableRow key={headerGroup.id} className="bg-muted/50">
                 {headerGroup.headers.map((header) => {
                   return (
                     <TableHead key={header.id}>

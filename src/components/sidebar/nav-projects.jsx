@@ -15,6 +15,13 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import {
+  ContextMenu,
+  ContextMenuContent,
+  ContextMenuItem,
+  ContextMenuSeparator,
+  ContextMenuTrigger,
+} from "@/components/ui/context-menu";
+import {
   SidebarGroup,
   SidebarGroupLabel,
   SidebarMenu,
@@ -114,15 +121,44 @@ export function NavProjects() {
             projects.map((project) => {
               return (
                 <SidebarMenuItem key={project.id}>
-                  <SidebarMenuButton
-                    className={`text-gray-700 ${
-                      selectedProject?.id === project.id ? "bg-accent" : ""
-                    }`}
-                    onClick={() => selectProject(project)}
-                  >
-                    <Folder />
-                    <span>{project.name}</span>
-                  </SidebarMenuButton>
+                  <ContextMenu>
+                    <ContextMenuTrigger asChild>
+                      <SidebarMenuButton
+                        className={`text-gray-700 cursor-pointer ${
+                          selectedProject?.id === project.id ? "bg-accent" : ""
+                        }`}
+                        onClick={() => selectProject(project)}
+                      >
+                        <Folder />
+                        <span>{project.name}</span>
+                      </SidebarMenuButton>
+                    </ContextMenuTrigger>
+                    <ContextMenuContent className="w-48 text-gray-700">
+                      <ContextMenuItem
+                        onClick={() => handleEditProject(project)}
+                        className="cursor-pointer"
+                      >
+                        <SquarePen className="text-muted-foreground" />
+                        <span>Edit Project</span>
+                      </ContextMenuItem>
+                      <ContextMenuItem
+                        onClick={() => handleDuplicateProject(project)}
+                        className="cursor-pointer"
+                      >
+                        <Copy className="text-muted-foreground" />
+                        <span>Duplicate Project</span>
+                      </ContextMenuItem>
+                      <ContextMenuSeparator />
+                      <ContextMenuItem
+                        onClick={() => handleDeleteProject(project)}
+                        className="cursor-pointer"
+                        variant="destructive"
+                      >
+                        <Trash2 />
+                        <span>Delete Project</span>
+                      </ContextMenuItem>
+                    </ContextMenuContent>
+                  </ContextMenu>
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                       <SidebarMenuAction showOnHover>

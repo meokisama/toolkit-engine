@@ -48,7 +48,7 @@ export const createProjectItemsColumns = (onEdit, onDuplicate, onDelete) => [
     ),
     cell: ({ row }) => {
       const address = row.getValue("address");
-      return <div>{address || "-"}</div>;
+      return <div>{address.toString().padStart(3, "0") || "-"}</div>;
     },
     enableSorting: true,
     enableHiding: true,
@@ -60,7 +60,11 @@ export const createProjectItemsColumns = (onEdit, onDuplicate, onDelete) => [
     ),
     cell: ({ row }) => {
       const description = row.getValue("description");
-      return <div className="max-w-[200px] truncate">{description || "-"}</div>;
+      return (
+        <div className="max-w-[200px] truncate text-muted-foreground">
+          {description || "No description."}
+        </div>
+      );
     },
     enableSorting: true,
     enableHiding: true,
@@ -79,6 +83,7 @@ export const createProjectItemsColumns = (onEdit, onDuplicate, onDelete) => [
             size="icon"
             onClick={() => onEdit(item)}
             title="Edit"
+            className="cursor-pointer"
           >
             <SquarePen className="h-4 w-4" />
           </Button>
@@ -87,6 +92,7 @@ export const createProjectItemsColumns = (onEdit, onDuplicate, onDelete) => [
             size="icon"
             onClick={() => onDuplicate(item)}
             title="Duplicate"
+            className="cursor-pointer"
           >
             <Copy className="h-4 w-4" />
           </Button>
@@ -95,6 +101,7 @@ export const createProjectItemsColumns = (onEdit, onDuplicate, onDelete) => [
             size="icon"
             onClick={() => onDelete(item)}
             title="Delete"
+            className="cursor-pointer"
           >
             <Trash2 className="h-4 w-4" />
           </Button>
