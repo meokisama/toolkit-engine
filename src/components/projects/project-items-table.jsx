@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback, memo } from "react";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 import { useProjectDetail } from "@/contexts/project-detail-context";
@@ -10,7 +10,8 @@ import { DataTablePagination } from "@/components/projects/data-table/data-table
 import { DataTableSkeleton } from "@/components/projects/table-skeleton";
 import { createProjectItemsColumns } from "./columns/project-items-columns";
 
-export function ProjectItemsTable({ category, items, loading }) {
+// Memoized component to prevent unnecessary rerenders
+function ProjectItemsTableComponent({ category, items, loading }) {
   const { deleteItem, duplicateItem } = useProjectDetail();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingItem, setEditingItem] = useState(null);
@@ -24,30 +25,34 @@ export function ProjectItemsTable({ category, items, loading }) {
   const [bulkDeleteLoading, setBulkDeleteLoading] = useState(false);
   const [selectedRowsCount, setSelectedRowsCount] = useState(0);
 
-  const handleCreateItem = () => {
+  // Memoize handlers to prevent unnecessary rerenders
+  const handleCreateItem = useCallback(() => {
     setEditingItem(null);
     setDialogMode("create");
     setDialogOpen(true);
-  };
+  }, []);
 
-  const handleEditItem = (item) => {
+  const handleEditItem = useCallback((item) => {
     setEditingItem(item);
     setDialogMode("edit");
     setDialogOpen(true);
-  };
+  }, []);
 
-  const handleDeleteItem = (item) => {
+  const handleDeleteItem = useCallback((item) => {
     setItemToDelete(item);
     setConfirmDialogOpen(true);
-  };
+  }, []);
 
-  const handleDuplicateItem = async (item) => {
-    try {
-      await duplicateItem(category, item.id);
-    } catch (error) {
-      console.error("Failed to duplicate item:", error);
-    }
-  };
+  const handleDuplicateItem = useCallback(
+    async (item) => {
+      try {
+        await duplicateItem(category, item.id);
+      } catch (error) {
+        console.error("Failed to duplicate item:", error);
+      }
+    },
+    [duplicateItem, category]
+  );
 
   const confirmDeleteItem = async () => {
     if (!itemToDelete) return;
@@ -94,25 +99,16 @@ export function ProjectItemsTable({ category, items, loading }) {
     }
   };
 
-  // Update selected rows count when table changes
+  // Update selected rows count when table row selection changes - optimized
   useEffect(() => {
     if (table) {
-      const updateSelectedCount = () => {
-        const rowSelection = table.getState().rowSelection;
-        const selectedCount = Object.keys(rowSelection).filter(
-          (id) => rowSelection[id]
-        ).length;
-        setSelectedRowsCount(selectedCount);
-      };
-
-      // Initial update
-      updateSelectedCount();
-
-      // Set up a listener for row selection changes
-      const interval = setInterval(updateSelectedCount, 100);
-      return () => clearInterval(interval);
+      const rowSelection = table.getState().rowSelection;
+      const selectedCount = Object.keys(rowSelection).filter(
+        (id) => rowSelection[id]
+      ).length;
+      setSelectedRowsCount(selectedCount);
     }
-  }, [table]);
+  }, [table, table?.getState().rowSelection]);
 
   // Create columns with handlers after they are defined
   const columns = createProjectItemsColumns(
@@ -203,3 +199,16 @@ export function ProjectItemsTable({ category, items, loading }) {
     </>
   );
 }
+
+// Export memoized component with custom comparison function
+export const ProjectItemsTable = memo(
+  ProjectItemsTableComponent,
+  (prevProps, nextProps) => {
+    // Only rerender if category, items array reference, or loading state changes
+    return (
+      prevProps.category === nextProps.category &&
+      prevProps.items === nextProps.items &&
+      prevProps.loading === nextProps.loading
+    );
+  }
+);

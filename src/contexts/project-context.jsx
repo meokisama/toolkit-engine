@@ -1,12 +1,19 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
-import { toast } from 'sonner';
+import React, {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  useCallback,
+  useMemo,
+} from "react";
+import { toast } from "sonner";
 
 const ProjectContext = createContext();
 
 export function useProjects() {
   const context = useContext(ProjectContext);
   if (!context) {
-    throw new Error('useProjects must be used within a ProjectProvider');
+    throw new Error("useProjects must be used within a ProjectProvider");
   }
   return context;
 }
@@ -16,106 +23,122 @@ export function ProjectProvider({ children }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // Load projects from database
-  const loadProjects = async () => {
+  // Load projects from database - memoized to prevent recreating on every render
+  const loadProjects = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
       const projectsData = await window.electronAPI.projects.getAll();
       setProjects(projectsData);
     } catch (err) {
-      console.error('Failed to load projects:', err);
-      setError('Failed to load projects');
-      toast.error('Failed to load projects');
+      console.error("Failed to load projects:", err);
+      setError("Failed to load projects");
+      toast.error("Failed to load projects");
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
-  // Create new project
-  const createProject = async (projectData) => {
+  // Create new project - memoized to prevent recreating on every render
+  const createProject = useCallback(async (projectData) => {
     try {
       const newProject = await window.electronAPI.projects.create(projectData);
-      setProjects(prev => [newProject, ...prev]);
-      toast.success('Project created successfully');
+      setProjects((prev) => [newProject, ...prev]);
+      toast.success("Project created successfully");
       return newProject;
     } catch (err) {
-      console.error('Failed to create project:', err);
-      toast.error('Failed to create project');
+      console.error("Failed to create project:", err);
+      toast.error("Failed to create project");
       throw err;
     }
-  };
+  }, []);
 
-  // Update project
-  const updateProject = async (id, projectData) => {
+  // Update project - memoized to prevent recreating on every render
+  const updateProject = useCallback(async (id, projectData) => {
     try {
-      const updatedProject = await window.electronAPI.projects.update(id, projectData);
-      setProjects(prev => 
-        prev.map(project => 
-          project.id === id ? updatedProject : project
-        )
+      const updatedProject = await window.electronAPI.projects.update(
+        id,
+        projectData
       );
-      toast.success('Project updated successfully');
+      setProjects((prev) =>
+        prev.map((project) => (project.id === id ? updatedProject : project))
+      );
+      toast.success("Project updated successfully");
       return updatedProject;
     } catch (err) {
-      console.error('Failed to update project:', err);
-      toast.error('Failed to update project');
+      console.error("Failed to update project:", err);
+      toast.error("Failed to update project");
       throw err;
     }
-  };
+  }, []);
 
-  // Delete project
-  const deleteProject = async (id) => {
+  // Delete project - memoized to prevent recreating on every render
+  const deleteProject = useCallback(async (id) => {
     try {
       await window.electronAPI.projects.delete(id);
-      setProjects(prev => prev.filter(project => project.id !== id));
-      toast.success('Project deleted successfully');
+      setProjects((prev) => prev.filter((project) => project.id !== id));
+      toast.success("Project deleted successfully");
     } catch (err) {
-      console.error('Failed to delete project:', err);
-      toast.error('Failed to delete project');
+      console.error("Failed to delete project:", err);
+      toast.error("Failed to delete project");
       throw err;
     }
-  };
+  }, []);
 
-  // Duplicate project
-  const duplicateProject = async (id) => {
+  // Duplicate project - memoized to prevent recreating on every render
+  const duplicateProject = useCallback(async (id) => {
     try {
       const duplicatedProject = await window.electronAPI.projects.duplicate(id);
-      setProjects(prev => [duplicatedProject, ...prev]);
-      toast.success('Project duplicated successfully');
+      setProjects((prev) => [duplicatedProject, ...prev]);
+      toast.success("Project duplicated successfully");
       return duplicatedProject;
     } catch (err) {
-      console.error('Failed to duplicate project:', err);
-      toast.error('Failed to duplicate project');
+      console.error("Failed to duplicate project:", err);
+      toast.error("Failed to duplicate project");
       throw err;
     }
-  };
+  }, []);
 
-  // Get project by ID
-  const getProjectById = (id) => {
-    return projects.find(project => project.id === id);
-  };
+  // Get project by ID - memoized to prevent recreating on every render
+  const getProjectById = useCallback(
+    (id) => {
+      return projects.find((project) => project.id === id);
+    },
+    [projects]
+  );
 
   // Load projects on mount
   useEffect(() => {
     loadProjects();
-  }, []);
+  }, [loadProjects]);
 
-  const value = {
-    projects,
-    loading,
-    error,
-    loadProjects,
-    createProject,
-    updateProject,
-    deleteProject,
-    duplicateProject,
-    getProjectById,
-  };
+  // Memoize context value to prevent unnecessary rerenders
+  const value = useMemo(
+    () => ({
+      projects,
+      loading,
+      error,
+      loadProjects,
+      createProject,
+      updateProject,
+      deleteProject,
+      duplicateProject,
+      getProjectById,
+    }),
+    [
+      projects,
+      loading,
+      error,
+      loadProjects,
+      createProject,
+      updateProject,
+      deleteProject,
+      duplicateProject,
+      getProjectById,
+    ]
+  );
 
   return (
-    <ProjectContext.Provider value={value}>
-      {children}
-    </ProjectContext.Provider>
+    <ProjectContext.Provider value={value}>{children}</ProjectContext.Provider>
   );
 }

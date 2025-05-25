@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useMemo } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent } from "@/components/ui/card";
 import { useProjectDetail } from "@/contexts/project-detail-context";
@@ -7,6 +7,7 @@ import { UnitTable } from "./unit-table";
 import { TabContentSkeleton } from "@/components/projects/tab-content-skeleton";
 import { Lightbulb, Wind, Cpu, Blinds, Palette } from "lucide-react";
 
+// Memoize tab config outside component to prevent recreating on every render
 const tabConfig = {
   lighting: {
     label: "Lighting",
@@ -39,6 +40,9 @@ export function ProjectDetail() {
   const { selectedProject, activeTab, setActiveTab, projectItems, loading } =
     useProjectDetail();
 
+  // Memoize tab entries to prevent recreating on every render
+  const tabEntries = useMemo(() => Object.entries(tabConfig), []);
+
   if (!selectedProject) {
     return (
       <div className="flex flex-1 flex-col gap-4 p-4 pt-0">
@@ -61,7 +65,7 @@ export function ProjectDetail() {
     <div className="flex flex-1 flex-col gap-4 p-4 pt-0">
       <Tabs value={activeTab} onValueChange={setActiveTab} className="h-full">
         <TabsList className="grid w-full grid-cols-5">
-          {Object.entries(tabConfig).map(([key, config]) => {
+          {tabEntries.map(([key, config]) => {
             const Icon = config.icon;
             return (
               <TabsTrigger
@@ -75,7 +79,7 @@ export function ProjectDetail() {
             );
           })}
         </TabsList>
-        {Object.entries(tabConfig).map(([key]) => (
+        {tabEntries.map(([key]) => (
           <TabsContent key={key} value={key} className="flex-1 mt-2">
             {key === "unit" ? (
               <UnitTable />

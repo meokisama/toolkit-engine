@@ -30,31 +30,41 @@ export function DataTable({ columns, data, onTableReady }) {
     setRowSelection({});
   }, [data.length]);
 
-  const table = useReactTable({
-    data,
-    columns,
-    onSortingChange: setSorting,
-    onColumnFiltersChange: setColumnFilters,
-    getCoreRowModel: getCoreRowModel(),
-    getPaginationRowModel: getPaginationRowModel(),
-    getSortedRowModel: getSortedRowModel(),
-    getFilteredRowModel: getFilteredRowModel(),
-    onColumnVisibilityChange: setColumnVisibility,
-    onRowSelectionChange: setRowSelection,
-    state: {
-      sorting,
-      columnFilters,
-      columnVisibility,
-      rowSelection,
-    },
-  });
+  // Memoize table configuration to prevent unnecessary recreations
+  const tableConfig = React.useMemo(
+    () => ({
+      data,
+      columns,
+      onSortingChange: setSorting,
+      onColumnFiltersChange: setColumnFilters,
+      getCoreRowModel: getCoreRowModel(),
+      getPaginationRowModel: getPaginationRowModel(),
+      getSortedRowModel: getSortedRowModel(),
+      getFilteredRowModel: getFilteredRowModel(),
+      onColumnVisibilityChange: setColumnVisibility,
+      onRowSelectionChange: setRowSelection,
+      state: {
+        sorting,
+        columnFilters,
+        columnVisibility,
+        rowSelection,
+      },
+    }),
+    [data, columns, sorting, columnFilters, columnVisibility, rowSelection]
+  );
 
-  // Pass table instance to parent component
-  React.useEffect(() => {
+  const table = useReactTable(tableConfig);
+
+  // Pass table instance to parent component - memoized callback
+  const memoizedOnTableReady = React.useCallback(() => {
     if (onTableReady) {
       onTableReady(table);
     }
   }, [table, onTableReady]);
+
+  React.useEffect(() => {
+    memoizedOnTableReady();
+  }, [memoizedOnTableReady]);
 
   return (
     <div className="w-full">

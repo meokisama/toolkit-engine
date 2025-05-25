@@ -102,22 +102,16 @@ export function UnitTable() {
     console.log("Adding network unit to database:", networkUnit);
   };
 
-  // Update selected rows count when table changes
+  // Update selected rows count when table row selection changes - optimized
   useEffect(() => {
     if (databaseTable) {
-      const updateSelectedCount = () => {
-        const rowSelection = databaseTable.getState().rowSelection;
-        const selectedCount = Object.keys(rowSelection).filter(
-          (id) => rowSelection[id]
-        ).length;
-        setSelectedRowsCount(selectedCount);
-      };
-
-      updateSelectedCount();
-      const interval = setInterval(updateSelectedCount, 100);
-      return () => clearInterval(interval);
+      const rowSelection = databaseTable.getState().rowSelection;
+      const selectedCount = Object.keys(rowSelection).filter(
+        (id) => rowSelection[id]
+      ).length;
+      setSelectedRowsCount(selectedCount);
     }
-  }, [databaseTable]);
+  }, [databaseTable, databaseTable?.getState().rowSelection]);
 
   // Create columns with handlers
   const columns = createUnitColumns(

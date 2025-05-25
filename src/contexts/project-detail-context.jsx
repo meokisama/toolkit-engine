@@ -1,4 +1,10 @@
-import React, { createContext, useContext, useState } from "react";
+import React, {
+  createContext,
+  useContext,
+  useState,
+  useCallback,
+  useMemo,
+} from "react";
 import { toast } from "sonner";
 
 const ProjectDetailContext = createContext();
@@ -26,8 +32,8 @@ export function ProjectDetailProvider({ children }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  // Load all items for a project (optimized single call)
-  const loadProjectItems = async (projectId) => {
+  // Load all items for a project (optimized single call) - memoized
+  const loadProjectItems = useCallback(async (projectId) => {
     if (!projectId) return;
 
     try {
@@ -47,47 +53,53 @@ export function ProjectDetailProvider({ children }) {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
-  // Select a project and load its items
-  const selectProject = async (project) => {
-    setSelectedProject(project);
-    if (project) {
-      await loadProjectItems(project.id);
-    } else {
-      setProjectItems({
-        lighting: [],
-        aircon: [],
-        unit: [],
-        curtain: [],
-        scene: [],
-      });
-    }
-  };
+  // Select a project and load its items - memoized
+  const selectProject = useCallback(
+    async (project) => {
+      setSelectedProject(project);
+      if (project) {
+        await loadProjectItems(project.id);
+      } else {
+        setProjectItems({
+          lighting: [],
+          aircon: [],
+          unit: [],
+          curtain: [],
+          scene: [],
+        });
+      }
+    },
+    [loadProjectItems]
+  );
 
-  // Generic item operations
-  const createItem = async (category, itemData) => {
-    if (!selectedProject) return;
+  // Generic item operations - memoized
+  const createItem = useCallback(
+    async (category, itemData) => {
+      if (!selectedProject) return;
 
-    try {
-      const newItem = await window.electronAPI[category].create(
-        selectedProject.id,
-        itemData
-      );
-      setProjectItems((prev) => ({
-        ...prev,
-        [category]: [...prev[category], newItem],
-      }));
-      toast.success(`${category} item created successfully`);
-      return newItem;
-    } catch (err) {
-      console.error(`Failed to create ${category} item:`, err);
-      toast.error(`Failed to create ${category} item`);
-      throw err;
-    }
-  };
+      try {
+        const newItem = await window.electronAPI[category].create(
+          selectedProject.id,
+          itemData
+        );
+        setProjectItems((prev) => ({
+          ...prev,
+          [category]: [...prev[category], newItem],
+        }));
+        toast.success(`${category} item created successfully`);
+        return newItem;
+      } catch (err) {
+        console.error(`Failed to create ${category} item:`, err);
+        toast.error(`Failed to create ${category} item`);
+        throw err;
+      }
+    },
+    [selectedProject]
+  );
 
-  const updateItem = async (category, id, itemData) => {
+  const updateItem = useCallback(async (category, id, itemData) => {
     try {
       const updatedItem = await window.electronAPI[category].update(
         id,
@@ -106,9 +118,9 @@ export function ProjectDetailProvider({ children }) {
       toast.error(`Failed to update ${category} item`);
       throw err;
     }
-  };
+  }, []);
 
-  const deleteItem = async (category, id) => {
+  const deleteItem = useCallback(async (category, id) => {
     try {
       await window.electronAPI[category].delete(id);
       setProjectItems((prev) => ({
@@ -121,9 +133,9 @@ export function ProjectDetailProvider({ children }) {
       toast.error(`Failed to delete ${category} item`);
       throw err;
     }
-  };
+  }, []);
 
-  const duplicateItem = async (category, id) => {
+  const duplicateItem = useCallback(async (category, id) => {
     try {
       const duplicatedItem = await window.electronAPI[category].duplicate(id);
       setProjectItems((prev) => ({
@@ -137,24 +149,40 @@ export function ProjectDetailProvider({ children }) {
       toast.error(`Failed to duplicate ${category} item`);
       throw err;
     }
-  };
+  }, []);
 
   // Note: loadProjectItems is called directly in selectProject, no need for useEffect
 
-  const value = {
-    selectedProject,
-    activeTab,
-    setActiveTab,
-    projectItems,
-    loading,
-    error,
-    selectProject,
-    loadProjectItems,
-    createItem,
-    updateItem,
-    deleteItem,
-    duplicateItem,
-  };
+  // Memoize context value to prevent unnecessary rerenders
+  const value = useMemo(
+    () => ({
+      selectedProject,
+      activeTab,
+      setActiveTab,
+      projectItems,
+      loading,
+      error,
+      selectProject,
+      loadProjectItems,
+      createItem,
+      updateItem,
+      deleteItem,
+      duplicateItem,
+    }),
+    [
+      selectedProject,
+      activeTab,
+      projectItems,
+      loading,
+      error,
+      selectProject,
+      loadProjectItems,
+      createItem,
+      updateItem,
+      deleteItem,
+      duplicateItem,
+    ]
+  );
 
   return (
     <ProjectDetailContext.Provider value={value}>

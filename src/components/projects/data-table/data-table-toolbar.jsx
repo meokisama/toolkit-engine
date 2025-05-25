@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useCallback } from "react";
 import { Search, X, Trash2, Plus } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -19,27 +19,31 @@ export function DataTableToolbar({
   const selectedRows = table.getFilteredSelectedRowModel().rows;
   const hasSelectedRows = selectedRowsCount > 0;
 
-  const handleSearch = () => {
+  // Memoize handlers to prevent unnecessary rerenders
+  const handleSearch = useCallback(() => {
     table.getColumn(searchColumn)?.setFilterValue(searchValue);
-  };
+  }, [table, searchColumn, searchValue]);
 
-  const handleKeyPress = (event) => {
-    if (event.key === "Enter") {
-      handleSearch();
-    }
-  };
+  const handleKeyPress = useCallback(
+    (event) => {
+      if (event.key === "Enter") {
+        handleSearch();
+      }
+    },
+    [handleSearch]
+  );
 
-  const handleClearSearch = () => {
+  const handleClearSearch = useCallback(() => {
     setSearchValue("");
     table.getColumn(searchColumn)?.setFilterValue("");
-  };
+  }, [table, searchColumn]);
 
-  const handleBulkDelete = () => {
+  const handleBulkDelete = useCallback(() => {
     if (onBulkDelete && hasSelectedRows) {
       const selectedItems = selectedRows.map((row) => row.original);
       onBulkDelete(selectedItems);
     }
-  };
+  }, [onBulkDelete, selectedRows]);
 
   return (
     <div className="flex items-center justify-between">

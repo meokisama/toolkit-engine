@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useCallback } from "react";
 import {
   Folder,
   MoreHorizontal,
@@ -41,32 +41,36 @@ export function NavProjects() {
   const [projectToDelete, setProjectToDelete] = useState(null);
   const [deleteLoading, setDeleteLoading] = useState(false);
 
-  const handleCreateProject = () => {
+  // Memoize handlers to prevent unnecessary rerenders
+  const handleCreateProject = useCallback(() => {
     setEditingProject(null);
     setDialogMode("create");
     setDialogOpen(true);
-  };
+  }, []);
 
-  const handleEditProject = (project) => {
+  const handleEditProject = useCallback((project) => {
     setEditingProject(project);
     setDialogMode("edit");
     setDialogOpen(true);
-  };
+  }, []);
 
-  const handleDuplicateProject = async (project) => {
-    try {
-      await duplicateProject(project.id);
-    } catch (error) {
-      console.error("Failed to duplicate project:", error);
-    }
-  };
+  const handleDuplicateProject = useCallback(
+    async (project) => {
+      try {
+        await duplicateProject(project.id);
+      } catch (error) {
+        console.error("Failed to duplicate project:", error);
+      }
+    },
+    [duplicateProject]
+  );
 
-  const handleDeleteProject = (project) => {
+  const handleDeleteProject = useCallback((project) => {
     setProjectToDelete(project);
     setConfirmDialogOpen(true);
-  };
+  }, []);
 
-  const confirmDeleteProject = async () => {
+  const confirmDeleteProject = useCallback(async () => {
     if (!projectToDelete) return;
 
     setDeleteLoading(true);
@@ -79,7 +83,7 @@ export function NavProjects() {
     } finally {
       setDeleteLoading(false);
     }
-  };
+  }, [projectToDelete, deleteProject]);
 
   return (
     <>
