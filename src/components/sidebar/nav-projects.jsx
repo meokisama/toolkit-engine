@@ -1,4 +1,4 @@
-import { Folder, MoreHorizontal, Share, Trash2 } from "lucide-react";
+import { Folder, MoreHorizontal, SquarePen, Trash2, Copy } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -48,8 +48,12 @@ export function NavProjects({ projects }) {
                   <span>View Project</span>
                 </DropdownMenuItem>
                 <DropdownMenuItem>
-                  <Share className="text-muted-foreground" />
-                  <span>Share Project</span>
+                  <SquarePen className="text-muted-foreground" />
+                  <span>Edit Project</span>
+                </DropdownMenuItem>
+                <DropdownMenuItem>
+                  <Copy className="text-muted-foreground" />
+                  <span>Duplicate Project</span>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem>

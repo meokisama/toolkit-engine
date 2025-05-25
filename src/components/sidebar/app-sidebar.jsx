@@ -3,10 +3,8 @@ import {
   BookOpen,
   Bot,
   Command,
-  Frame,
+  Folder,
   LifeBuoy,
-  Map,
-  PieChart,
   Send,
   Settings2,
   SquareTerminal,
@@ -135,17 +133,17 @@ const data = {
     {
       name: "Design Engineering",
       url: "#",
-      icon: Frame,
+      icon: Folder,
     },
     {
       name: "Sales & Marketing",
       url: "#",
-      icon: PieChart,
+      icon: Folder,
     },
     {
       name: "Travel",
       url: "#",
-      icon: Map,
+      icon: Folder,
     },
   ],
 };
