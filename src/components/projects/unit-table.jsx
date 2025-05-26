@@ -191,31 +191,33 @@ export function UnitTable() {
                   </Button>
                 </div>
               ) : (
-                <div className="space-y-4 h-full">
-                  {databaseTable && (
-                    <DataTableToolbar
-                      table={databaseTable}
-                      searchColumn="name"
-                      searchPlaceholder="Search units..."
-                      onBulkDelete={handleBulkDelete}
-                      selectedRowsCount={selectedRowsCount}
-                      onAddItem={handleCreateItem}
-                      addItemLabel="Add Unit"
-                      onExport={handleExport}
-                      onImport={handleImport}
-                      category="unit"
-                      columnVisibility={columnVisibility}
+                <div className="space-y-4 h-full flex flex-col justify-between">
+                  <div className="space-y-4">
+                    {databaseTable && (
+                      <DataTableToolbar
+                        table={databaseTable}
+                        searchColumn="name"
+                        searchPlaceholder="Search units..."
+                        onBulkDelete={handleBulkDelete}
+                        selectedRowsCount={selectedRowsCount}
+                        onAddItem={handleCreateItem}
+                        addItemLabel="Add Unit"
+                        onExport={handleExport}
+                        onImport={handleImport}
+                        category="unit"
+                        columnVisibility={columnVisibility}
+                      />
+                    )}
+                    <DataTable
+                      key={`database-unit-${units.length}`}
+                      columns={columns}
+                      data={units}
+                      onTableReady={setDatabaseTable}
+                      onRowSelectionChange={handleRowSelectionChange}
+                      onColumnVisibilityChange={handleColumnVisibilityChange}
+                      onPaginationChange={handlePaginationChange}
                     />
-                  )}
-                  <DataTable
-                    key={`database-unit-${units.length}`}
-                    columns={columns}
-                    data={units}
-                    onTableReady={setDatabaseTable}
-                    onRowSelectionChange={handleRowSelectionChange}
-                    onColumnVisibilityChange={handleColumnVisibilityChange}
-                    onPaginationChange={handlePaginationChange}
-                  />
+                  </div>
                   {databaseTable && (
                     <DataTablePagination
                       table={databaseTable}
@@ -255,7 +257,7 @@ export function UnitTable() {
                   </p>
                 </div>
               ) : (
-                <div className="space-y-4">
+                <div className="space-y-4 flex flex-col h-full justify-between">
                   {/* Network units table will be displayed here */}
                   <DataTable
                     key={`network-unit-${networkUnits.length}`}

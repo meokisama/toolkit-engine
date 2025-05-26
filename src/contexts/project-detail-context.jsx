@@ -8,6 +8,10 @@ import React, {
 import { toast } from "sonner";
 import { exportImportService } from "@/services/export-import";
 
+function capitalizeFirstLetter(str) {
+  return str.charAt(0).toUpperCase() + str.slice(1);
+}
+
 const ProjectDetailContext = createContext();
 
 export function useProjectDetail() {
@@ -91,7 +95,9 @@ export function ProjectDetailProvider({ children }) {
           ...prev,
           [category]: [...prev[category], newItem],
         }));
-        toast.success(`${category} item created successfully`);
+        toast.success(
+          `${capitalizeFirstLetter(category)} item created successfully`
+        );
         return newItem;
       } catch (err) {
         console.error(`Failed to create ${category} item:`, err);
@@ -114,7 +120,9 @@ export function ProjectDetailProvider({ children }) {
           item.id === id ? updatedItem : item
         ),
       }));
-      toast.success(`${category} item updated successfully`);
+      toast.success(
+        `${capitalizeFirstLetter(category)} item updated successfully`
+      );
       return updatedItem;
     } catch (err) {
       console.error(`Failed to update ${category} item:`, err);
@@ -130,7 +138,9 @@ export function ProjectDetailProvider({ children }) {
         ...prev,
         [category]: prev[category].filter((item) => item.id !== id),
       }));
-      toast.success(`${category} item deleted successfully`);
+      toast.success(
+        `${capitalizeFirstLetter(category)} item deleted successfully`
+      );
     } catch (err) {
       console.error(`Failed to delete ${category} item:`, err);
       toast.error(`Failed to delete ${category} item`);
@@ -145,7 +155,9 @@ export function ProjectDetailProvider({ children }) {
         ...prev,
         [category]: [...prev[category], duplicatedItem],
       }));
-      toast.success(`${category} item duplicated successfully`);
+      toast.success(
+        `${capitalizeFirstLetter(category)} item duplicated successfully`
+      );
       return duplicatedItem;
     } catch (err) {
       console.error(`Failed to duplicate ${category} item:`, err);

@@ -169,31 +169,33 @@ function ProjectItemsTableComponent({ category, items, loading }) {
             </Button>
           </div>
         ) : (
-          <div className="space-y-4">
-            {table && (
-              <DataTableToolbar
-                table={table}
-                searchColumn="name"
-                searchPlaceholder={`Search ${category} items...`}
-                onBulkDelete={handleBulkDelete}
-                selectedRowsCount={selectedRowsCount}
-                onAddItem={handleCreateItem}
-                addItemLabel="Add"
-                onExport={handleExport}
-                onImport={handleImport}
-                category={category}
-                columnVisibility={columnVisibility}
+          <div className="space-y-4 flex flex-col justify-between h-full">
+            <div className="space-y-4">
+              {table && (
+                <DataTableToolbar
+                  table={table}
+                  searchColumn="name"
+                  searchPlaceholder={`Search ${category} items...`}
+                  onBulkDelete={handleBulkDelete}
+                  selectedRowsCount={selectedRowsCount}
+                  onAddItem={handleCreateItem}
+                  addItemLabel="Add"
+                  onExport={handleExport}
+                  onImport={handleImport}
+                  category={category}
+                  columnVisibility={columnVisibility}
+                />
+              )}
+              <DataTable
+                key={`${category}-${items.length}`}
+                columns={columns}
+                data={items}
+                onTableReady={setTable}
+                onRowSelectionChange={handleRowSelectionChange}
+                onColumnVisibilityChange={handleColumnVisibilityChange}
+                onPaginationChange={handlePaginationChange}
               />
-            )}
-            <DataTable
-              key={`${category}-${items.length}`}
-              columns={columns}
-              data={items}
-              onTableReady={setTable}
-              onRowSelectionChange={handleRowSelectionChange}
-              onColumnVisibilityChange={handleColumnVisibilityChange}
-              onPaginationChange={handlePaginationChange}
-            />
+            </div>
             {table && (
               <DataTablePagination table={table} pagination={pagination} />
             )}

@@ -69,7 +69,7 @@ export default function App() {
             </header>
             <ProjectDetail />
           </SidebarInset>
-          <Toaster />
+          <Toaster richColors />
         </SidebarProvider>
       </ProjectDetailProvider>
     </ProjectProvider>
