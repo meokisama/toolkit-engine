@@ -18,11 +18,7 @@ export function DataTableRow({ row, onEdit, onDuplicate, onDelete }) {
   return (
     <ContextMenu>
       <ContextMenuTrigger asChild>
-        <TableRow
-          key={row.id}
-          data-state={row.getIsSelected() && "selected"}
-          className="cursor-pointer"
-        >
+        <TableRow key={row.id} data-state={row.getIsSelected() && "selected"}>
           {row.getVisibleCells().map((cell) => (
             <TableCell key={cell.id}>
               {flexRender(cell.column.columnDef.cell, cell.getContext())}

@@ -4,8 +4,9 @@ import { Copy, SquarePen, Trash2, MoreHorizontal } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Badge } from "@/components/ui/badge";
 import { DataTableColumnHeader } from "@/components/projects/data-table/data-table-column-header";
+import { EditableCell } from "@/components/projects/data-table/editable-cell";
+import { EditableSelectCell } from "@/components/projects/data-table/editable-select-cell";
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -14,7 +15,13 @@ import {
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
 
-export const createUnitColumns = (onEdit, onDuplicate, onDelete) => [
+export const createUnitColumns = (
+  onEdit,
+  onDuplicate,
+  onDelete,
+  onCellEdit,
+  getEffectiveValue
+) => [
   {
     id: "select",
     header: ({ table }) => (
@@ -36,6 +43,9 @@ export const createUnitColumns = (onEdit, onDuplicate, onDelete) => [
     ),
     enableSorting: false,
     enableHiding: false,
+    meta: {
+      className: "w-[3%]",
+    },
   },
   {
     accessorKey: "name",
@@ -44,10 +54,21 @@ export const createUnitColumns = (onEdit, onDuplicate, onDelete) => [
     ),
     cell: ({ row }) => {
       const name = row.getValue("name");
-      return <div className="font-medium">{name}</div>;
+      const effectiveValue = getEffectiveValue(row.original.id, "name", name);
+      return (
+        <EditableCell
+          value={effectiveValue}
+          type="text"
+          onSave={(newValue) => onCellEdit(row.original.id, "name", newValue)}
+          className="font-medium"
+        />
+      );
     },
     enableSorting: true,
     enableHiding: true,
+    meta: {
+      className: "w-[10%]",
+    },
   },
   {
     accessorKey: "type",
@@ -56,16 +77,55 @@ export const createUnitColumns = (onEdit, onDuplicate, onDelete) => [
     ),
     cell: ({ row }) => {
       const type = row.getValue("type");
-      return type ? (
-        <Badge variant="secondary" className="text-xs">
-          {type}
-        </Badge>
-      ) : (
-        <div className="text-muted-foreground">-</div>
+      const effectiveValue = getEffectiveValue(row.original.id, "type", type);
+      const UNIT_TYPES = [
+        { value: "RLC-416", label: "RLC-416" },
+        { value: "RLC-420", label: "RLC-420" },
+        { value: "Bedado-17T", label: "Bedado-17T" },
+        { value: "RLC-520", label: "RLC-520" },
+        { value: "BSP_R14_OL", label: "BSP_R14_OL" },
+        { value: "Bedado-12T", label: "Bedado-12T" },
+        { value: "RCU-35L-2440", label: "RCU-35L-2440" },
+        { value: "RCU-32A0", label: "RCU-32A0" },
+        { value: "RCU-24RL-840", label: "RCU-24RL-840" },
+        { value: "RCU-16RL-1840", label: "RCU-16RL-1840" },
+        { value: "RCU-21N-8RL", label: "RCU-21N-8RL" },
+        { value: "RCU-21N-16RL-1A0", label: "RCU-21N-16RL-1A0" },
+        { value: "RCU-21N-8RL-4AI", label: "RCU-21N-8RL-4AI" },
+        { value: "RCU-21N-16RL-5DL", label: "RCU-21N-16RL-5DL" },
+        { value: "RCU-21N-16RL", label: "RCU-21N-16RL" },
+        { value: "RCU-48N-32A0", label: "RCU-48N-32A0" },
+        { value: "RCU-48N-16RL", label: "RCU-48N-16RL" },
+        { value: "RCU-48N-16RL-1A0", label: "RCU-48N-16RL-1A0" },
+        { value: "RCU-48N-16RL-5AI", label: "RCU-48N-16RL-5AI" },
+        { value: "RCU-48N-16RL-5DL", label: "RCU-48N-16RL-5DL" },
+        { value: "GNT-EXT-32L", label: "GNT-EXT-32L" },
+        { value: "GNT-EXT-8RL", label: "GNT-EXT-8RL" },
+        { value: "GNT-EXT-16RL", label: "GNT-EXT-16RL" },
+        { value: "GNT-EXT-20RL", label: "GNT-EXT-20RL" },
+        { value: "GNT-EXT-32RL", label: "GNT-EXT-32RL" },
+        { value: "GNT-EXT-28A0", label: "GNT-EXT-28A0" },
+        { value: "GNT-EXT-20RL-12A0", label: "GNT-EXT-20RL-12A0" },
+        { value: "GNT-EXT-24IN", label: "GNT-EXT-24IN" },
+        { value: "GNT-EXT-48IN", label: "GNT-EXT-48IN" },
+      ];
+
+      return (
+        <EditableSelectCell
+          value={effectiveValue}
+          options={UNIT_TYPES}
+          onSave={(newValue) => onCellEdit(row.original.id, "type", newValue)}
+          placeholder="Choose unit type"
+          renderBadge={false}
+          badgeVariant="secondary"
+        />
       );
     },
     enableSorting: true,
     enableHiding: true,
+    meta: {
+      className: "w-[10%]",
+    },
   },
   {
     accessorKey: "serial_no",
@@ -74,10 +134,28 @@ export const createUnitColumns = (onEdit, onDuplicate, onDelete) => [
     ),
     cell: ({ row }) => {
       const serialNo = row.getValue("serial_no");
-      return <div className="font-mono text-sm">{serialNo || "-"}</div>;
+      const effectiveValue = getEffectiveValue(
+        row.original.id,
+        "serial_no",
+        serialNo
+      );
+      return (
+        <EditableCell
+          value={effectiveValue}
+          type="text"
+          onSave={(newValue) =>
+            onCellEdit(row.original.id, "serial_no", newValue)
+          }
+          className="font-mono text-sm"
+          placeholder="-"
+        />
+      );
     },
     enableSorting: true,
     enableHiding: true,
+    meta: {
+      className: "w-[15%]",
+    },
   },
   {
     accessorKey: "ip_address",
@@ -86,10 +164,28 @@ export const createUnitColumns = (onEdit, onDuplicate, onDelete) => [
     ),
     cell: ({ row }) => {
       const ipAddress = row.getValue("ip_address");
-      return <div className="font-mono text-sm">{ipAddress || "-"}</div>;
+      const effectiveValue = getEffectiveValue(
+        row.original.id,
+        "ip_address",
+        ipAddress
+      );
+      return (
+        <EditableCell
+          value={effectiveValue}
+          type="text"
+          onSave={(newValue) =>
+            onCellEdit(row.original.id, "ip_address", newValue)
+          }
+          className="font-mono text-sm"
+          placeholder="-"
+        />
+      );
     },
     enableSorting: true,
     enableHiding: true,
+    meta: {
+      className: "w-[15%]",
+    },
   },
   {
     accessorKey: "id_can",
@@ -98,10 +194,26 @@ export const createUnitColumns = (onEdit, onDuplicate, onDelete) => [
     ),
     cell: ({ row }) => {
       const idCan = row.getValue("id_can");
-      return <div className="font-mono text-sm">{idCan || "-"}</div>;
+      const effectiveValue = getEffectiveValue(
+        row.original.id,
+        "id_can",
+        idCan
+      );
+      return (
+        <EditableCell
+          value={effectiveValue}
+          type="text"
+          onSave={(newValue) => onCellEdit(row.original.id, "id_can", newValue)}
+          className="font-mono text-sm"
+          placeholder="-"
+        />
+      );
     },
     enableSorting: true,
     enableHiding: true,
+    meta: {
+      className: "w-[15%]",
+    },
   },
   {
     accessorKey: "mode",
@@ -110,7 +222,12 @@ export const createUnitColumns = (onEdit, onDuplicate, onDelete) => [
     ),
     cell: ({ row }) => {
       const mode = row.getValue("mode");
-      if (!mode) return <div className="text-muted-foreground">-</div>;
+      const effectiveValue = getEffectiveValue(row.original.id, "mode", mode);
+      const UNIT_MODES = [
+        { value: "Slave", label: "Slave" },
+        { value: "Master", label: "Master" },
+        { value: "Stand Alone", label: "Stand Alone" },
+      ];
 
       const getVariant = (mode) => {
         switch (mode) {
@@ -126,13 +243,21 @@ export const createUnitColumns = (onEdit, onDuplicate, onDelete) => [
       };
 
       return (
-        <Badge variant={getVariant(mode)} className="text-xs">
-          {mode}
-        </Badge>
+        <EditableSelectCell
+          value={effectiveValue}
+          options={UNIT_MODES}
+          onSave={(newValue) => onCellEdit(row.original.id, "mode", newValue)}
+          placeholder="Choose mode"
+          renderBadge={false}
+          badgeVariant={getVariant(effectiveValue)}
+        />
       );
     },
     enableSorting: true,
     enableHiding: true,
+    meta: {
+      className: "w-[10%]",
+    },
   },
   {
     accessorKey: "firmware_version",
@@ -141,10 +266,28 @@ export const createUnitColumns = (onEdit, onDuplicate, onDelete) => [
     ),
     cell: ({ row }) => {
       const firmwareVersion = row.getValue("firmware_version");
-      return <div className="font-mono text-sm">{firmwareVersion || "-"}</div>;
+      const effectiveValue = getEffectiveValue(
+        row.original.id,
+        "firmware_version",
+        firmwareVersion
+      );
+      return (
+        <EditableCell
+          value={effectiveValue}
+          type="text"
+          onSave={(newValue) =>
+            onCellEdit(row.original.id, "firmware_version", newValue)
+          }
+          className="font-mono text-sm"
+          placeholder="-"
+        />
+      );
     },
     enableSorting: true,
     enableHiding: true,
+    meta: {
+      className: "w-[10%]",
+    },
   },
   {
     accessorKey: "description",
@@ -153,10 +296,28 @@ export const createUnitColumns = (onEdit, onDuplicate, onDelete) => [
     ),
     cell: ({ row }) => {
       const description = row.getValue("description");
-      return <div className="max-w-[150px] truncate">{description || "-"}</div>;
+      const effectiveValue = getEffectiveValue(
+        row.original.id,
+        "description",
+        description
+      );
+      return (
+        <EditableCell
+          value={effectiveValue}
+          type="text"
+          onSave={(newValue) =>
+            onCellEdit(row.original.id, "description", newValue)
+          }
+          className="max-w-[150px]"
+          placeholder="-"
+        />
+      );
     },
     enableSorting: true,
     enableHiding: true,
+    meta: {
+      className: "w-[30%]",
+    },
   },
   {
     id: "actions",
@@ -208,5 +369,8 @@ export const createUnitColumns = (onEdit, onDuplicate, onDelete) => [
     },
     enableSorting: false,
     enableHiding: false,
+    meta: {
+      className: "w-[10%]",
+    },
   },
 ];

@@ -1,19 +1,16 @@
-"use client";
-
-import { Copy, SquarePen, Trash2, MoreHorizontal } from "lucide-react";
-
+import { Copy, SquarePen, Trash2, Sun, Layers, FilePen } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { DataTableColumnHeader } from "@/components/projects/data-table/data-table-column-header";
-import {
-  DropdownMenu,
-  DropdownMenuTrigger,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-} from "@/components/ui/dropdown-menu";
+import { EditableCell } from "@/components/projects/data-table/editable-cell";
 
-export const createProjectItemsColumns = (onEdit, onDuplicate, onDelete) => [
+export const createProjectItemsColumns = (
+  onEdit,
+  onDuplicate,
+  onDelete,
+  onCellEdit,
+  getEffectiveValue
+) => [
   {
     id: "select",
     header: ({ table }) => (
@@ -35,46 +32,98 @@ export const createProjectItemsColumns = (onEdit, onDuplicate, onDelete) => [
     ),
     enableSorting: false,
     enableHiding: false,
+    meta: {
+      className: "w-[3%]",
+    },
   },
   {
     accessorKey: "name",
     header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Name" />
+      <DataTableColumnHeader column={column} title="Name" className="pl-1" />
     ),
     cell: ({ row }) => {
       const name = row.getValue("name");
-      return <div className="font-medium">{name}</div>;
-    },
-    enableSorting: true,
-    enableHiding: true,
-  },
-  {
-    accessorKey: "address",
-    header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Address" />
-    ),
-    cell: ({ row }) => {
-      const address = row.getValue("address");
-      return <div>{address.toString().padStart(3, "0") || "-"}</div>;
-    },
-    enableSorting: true,
-    enableHiding: true,
-  },
-  {
-    accessorKey: "description",
-    header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Description" />
-    ),
-    cell: ({ row }) => {
-      const description = row.getValue("description");
+      const effectiveValue = getEffectiveValue(row.original.id, "name", name);
       return (
-        <div className="max-w-[200px] truncate text-muted-foreground">
-          {description || "No description."}
-        </div>
+        <EditableCell
+          value={effectiveValue}
+          type="text"
+          onSave={(newValue) => onCellEdit(row.original.id, "name", newValue)}
+          className="font-medium"
+          icon={Sun}
+        />
       );
     },
     enableSorting: true,
     enableHiding: true,
+    meta: {
+      className: "w-[25%]",
+    },
+  },
+  {
+    accessorKey: "address",
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title="Address" className="pl-1" />
+    ),
+    cell: ({ row }) => {
+      const address = row.getValue("address");
+      const effectiveValue = getEffectiveValue(
+        row.original.id,
+        "address",
+        address
+      );
+      return (
+        <EditableCell
+          value={effectiveValue}
+          type="number"
+          className="text-center font-semibold"
+          onSave={(newValue) =>
+            onCellEdit(row.original.id, "address", newValue)
+          }
+          displayValue={effectiveValue ? effectiveValue : "-"}
+          icon={Layers}
+        />
+      );
+    },
+    enableSorting: true,
+    enableHiding: true,
+    meta: {
+      className: "w-[3%]",
+    },
+  },
+  {
+    accessorKey: "description",
+    header: ({ column }) => (
+      <DataTableColumnHeader
+        column={column}
+        title="Description"
+        className="pl-1"
+      />
+    ),
+    cell: ({ row }) => {
+      const description = row.getValue("description");
+      const effectiveValue = getEffectiveValue(
+        row.original.id,
+        "description",
+        description
+      );
+      return (
+        <EditableCell
+          value={effectiveValue}
+          type="text"
+          onSave={(newValue) =>
+            onCellEdit(row.original.id, "description", newValue)
+          }
+          placeholder="No description."
+          icon={FilePen}
+        />
+      );
+    },
+    enableSorting: true,
+    enableHiding: true,
+    meta: {
+      className: "w-[45%]",
+    },
   },
 
   {
@@ -84,48 +133,44 @@ export const createProjectItemsColumns = (onEdit, onDuplicate, onDelete) => [
       const item = row.original;
 
       return (
-        <div className="flex items-center justify-end">
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-8 w-8 p-0"
-                title="More actions"
-              >
-                <MoreHorizontal className="h-4 w-4" />
-                <span className="sr-only">More</span>
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent className="w-48" align="end">
-              <DropdownMenuItem
-                onClick={() => onEdit(item)}
-                className="cursor-pointer"
-              >
-                <SquarePen className="text-muted-foreground" />
-                <span>Edit</span>
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                onClick={() => onDuplicate(item)}
-                className="cursor-pointer"
-              >
-                <Copy className="text-muted-foreground" />
-                <span>Duplicate</span>
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem
-                onClick={() => onDelete(item)}
-                className="cursor-pointer text-red-600 focus:text-red-600"
-              >
-                <Trash2 className="text-red-600" />
-                <span>Delete</span>
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+        <div className="flex items-center justify-end gap-1">
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={() => onEdit(item)}
+            className="cursor-pointer"
+            title="Edit"
+          >
+            <SquarePen />
+            <span className="sr-only">Edit</span>
+          </Button>
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={() => onDuplicate(item)}
+            className="cursor-pointer"
+            title="Duplicate"
+          >
+            <Copy />
+            <span className="sr-only">Duplicate</span>
+          </Button>
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={() => onDelete(item)}
+            className="cursor-pointer hover:bg-destructive/10 hover:text-destructive hover:border-destructive/30"
+            title="Delete"
+          >
+            <Trash2 />
+            <span className="sr-only">Delete</span>
+          </Button>
         </div>
       );
     },
     enableSorting: false,
     enableHiding: false,
+    meta: {
+      className: "w-[5%]",
+    },
   },
 ];

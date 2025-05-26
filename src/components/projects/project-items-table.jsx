@@ -13,7 +13,7 @@ import { ImportItemsDialog } from "@/components/projects/import-items-dialog";
 
 // Memoized component to prevent unnecessary rerenders
 function ProjectItemsTableComponent({ category, items, loading }) {
-  const { deleteItem, duplicateItem, exportItems, importItems } =
+  const { deleteItem, duplicateItem, exportItems, importItems, updateItem } =
     useProjectDetail();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingItem, setEditingItem] = useState(null);
@@ -29,6 +29,51 @@ function ProjectItemsTableComponent({ category, items, loading }) {
   const [selectedRowsCount, setSelectedRowsCount] = useState(0);
   const [columnVisibility, setColumnVisibility] = useState({});
   const [pagination, setPagination] = useState({ pageIndex: 0, pageSize: 10 });
+  const [pendingChanges, setPendingChanges] = useState(new Map());
+  const [saveLoading, setSaveLoading] = useState(false);
+
+  // Handle inline cell editing
+  const handleCellEdit = useCallback((itemId, field, newValue) => {
+    setPendingChanges((prev) => {
+      const newChanges = new Map(prev);
+      const itemChanges = newChanges.get(itemId) || {};
+      itemChanges[field] = newValue;
+      newChanges.set(itemId, itemChanges);
+      return newChanges;
+    });
+  }, []);
+
+  // Get effective value (pending change or original value)
+  const getEffectiveValue = useCallback(
+    (itemId, field, originalValue) => {
+      const itemChanges = pendingChanges.get(itemId);
+      return itemChanges && itemChanges.hasOwnProperty(field)
+        ? itemChanges[field]
+        : originalValue;
+    },
+    [pendingChanges]
+  );
+
+  // Save all pending changes
+  const handleSaveChanges = useCallback(async () => {
+    if (pendingChanges.size === 0) return;
+
+    setSaveLoading(true);
+    try {
+      for (const [itemId, changes] of pendingChanges) {
+        const item = items.find((i) => i.id === itemId);
+        if (item) {
+          const updatedItem = { ...item, ...changes };
+          await updateItem(category, updatedItem.id, updatedItem);
+        }
+      }
+      setPendingChanges(new Map());
+    } catch (error) {
+      console.error("Failed to save changes:", error);
+    } finally {
+      setSaveLoading(false);
+    }
+  }, [pendingChanges, items, updateItem, category]);
 
   // Memoize handlers to prevent unnecessary rerenders
   const handleCreateItem = useCallback(() => {
@@ -147,7 +192,9 @@ function ProjectItemsTableComponent({ category, items, loading }) {
   const columns = createProjectItemsColumns(
     handleEditItem,
     handleDuplicateItem,
-    handleDeleteItem
+    handleDeleteItem,
+    handleCellEdit,
+    getEffectiveValue
   );
 
   if (loading) {
@@ -179,11 +226,14 @@ function ProjectItemsTableComponent({ category, items, loading }) {
                   onBulkDelete={handleBulkDelete}
                   selectedRowsCount={selectedRowsCount}
                   onAddItem={handleCreateItem}
-                  addItemLabel="Add"
+                  addItemLabel="Add Group"
                   onExport={handleExport}
                   onImport={handleImport}
                   category={category}
                   columnVisibility={columnVisibility}
+                  onSave={handleSaveChanges}
+                  hasPendingChanges={pendingChanges.size > 0}
+                  saveLoading={saveLoading}
                 />
               )}
               <DataTable

@@ -20,6 +20,7 @@ export function UnitTable() {
     loading,
     exportItems,
     importItems,
+    updateItem,
   } = useProjectDetail();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [dialogMode, setDialogMode] = useState("create");
@@ -35,8 +36,53 @@ export function UnitTable() {
   const [networkUnits] = useState([]); // Placeholder for network units
   const [scanLoading, setScanLoading] = useState(false);
   const [importDialogOpen, setImportDialogOpen] = useState(false);
+  const [pendingChanges, setPendingChanges] = useState(new Map());
+  const [saveLoading, setSaveLoading] = useState(false);
 
   const units = projectItems.unit || [];
+
+  // Handle inline cell editing
+  const handleCellEdit = useCallback((itemId, field, newValue) => {
+    setPendingChanges((prev) => {
+      const newChanges = new Map(prev);
+      const itemChanges = newChanges.get(itemId) || {};
+      itemChanges[field] = newValue;
+      newChanges.set(itemId, itemChanges);
+      return newChanges;
+    });
+  }, []);
+
+  // Get effective value (pending change or original value)
+  const getEffectiveValue = useCallback(
+    (itemId, field, originalValue) => {
+      const itemChanges = pendingChanges.get(itemId);
+      return itemChanges && itemChanges.hasOwnProperty(field)
+        ? itemChanges[field]
+        : originalValue;
+    },
+    [pendingChanges]
+  );
+
+  // Save all pending changes
+  const handleSaveChanges = useCallback(async () => {
+    if (pendingChanges.size === 0) return;
+
+    setSaveLoading(true);
+    try {
+      for (const [itemId, changes] of pendingChanges) {
+        const item = units.find((i) => i.id === itemId);
+        if (item) {
+          const updatedItem = { ...item, ...changes };
+          await updateItem("unit", updatedItem.id, updatedItem);
+        }
+      }
+      setPendingChanges(new Map());
+    } catch (error) {
+      console.error("Failed to save changes:", error);
+    } finally {
+      setSaveLoading(false);
+    }
+  }, [pendingChanges, units, updateItem]);
 
   const handleCreateItem = () => {
     setEditingItem(null);
@@ -147,7 +193,9 @@ export function UnitTable() {
   const columns = createUnitColumns(
     handleEditItem,
     handleDuplicateItem,
-    handleDeleteItem
+    handleDeleteItem,
+    handleCellEdit,
+    getEffectiveValue
   );
 
   if (loading) {
@@ -201,6 +249,9 @@ export function UnitTable() {
                         onImport={handleImport}
                         category="unit"
                         columnVisibility={columnVisibility}
+                        onSave={handleSaveChanges}
+                        hasPendingChanges={pendingChanges.size > 0}
+                        saveLoading={saveLoading}
                       />
                     )}
                     <DataTable

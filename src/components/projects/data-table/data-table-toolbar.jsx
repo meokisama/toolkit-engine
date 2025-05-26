@@ -7,6 +7,7 @@ import {
   Download,
   Upload,
   FileText,
+  Save,
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -31,6 +32,9 @@ export function DataTableToolbar({
   onImport,
   category,
   columnVisibility,
+  onSave,
+  hasPendingChanges = false,
+  saveLoading = false,
 }) {
   const [searchValue, setSearchValue] = useState("");
 
@@ -75,6 +79,12 @@ export function DataTableToolbar({
     }
   }, [onImport]);
 
+  const handleSave = useCallback(() => {
+    if (onSave) {
+      onSave();
+    }
+  }, [onSave]);
+
   return (
     <div className="flex items-center justify-between">
       <div className="flex flex-1 items-center space-x-2">
@@ -104,13 +114,25 @@ export function DataTableToolbar({
             Delete ({selectedRowsCount})
           </Button>
         )}
+
+        {hasPendingChanges && (
+          <Button
+            onClick={handleSave}
+            disabled={saveLoading}
+            className="bg-green-600 hover:bg-green-700"
+          >
+            <Save className="h-4 w-4" />
+            {saveLoading ? "Saving..." : "Save Changes"}
+          </Button>
+        )}
       </div>
       <div className="flex items-center space-x-2">
         {(onExport || onImport) && (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="outline" size="icon">
+              <Button variant="outline" className="text-gray-700">
                 <FileText className="h-4 w-4" />
+                Import/Export Data
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">

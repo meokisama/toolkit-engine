@@ -57,8 +57,9 @@ function DataTableViewOptionsComponent({ table, columnVisibility }) {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="outline" size="icon">
+        <Button variant="outline" className="text-gray-700">
           <Settings2 className="h-4 w-4" />
+          Customize Columns
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-[150px]">
