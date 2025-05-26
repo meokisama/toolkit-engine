@@ -1,7 +1,7 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Plus, Search, Database, Network, GitCompare } from "lucide-react";
+import { Plus, Search, Database, Network } from "lucide-react";
 import { useProjectDetail } from "@/contexts/project-detail-context";
 import { UnitDialog } from "./unit-dialog";
 import { ConfirmDialog } from "@/components/projects/confirm-dialog";
@@ -105,11 +105,6 @@ export function UnitTable() {
     } finally {
       setScanLoading(false);
     }
-  };
-
-  const handleAddNetworkUnit = async (networkUnit) => {
-    // Placeholder for adding network unit to database
-    console.log("Adding network unit to database:", networkUnit);
   };
 
   const handleExport = async () => {
@@ -216,6 +211,9 @@ export function UnitTable() {
                       onRowSelectionChange={handleRowSelectionChange}
                       onColumnVisibilityChange={handleColumnVisibilityChange}
                       onPaginationChange={handlePaginationChange}
+                      onEdit={handleEditItem}
+                      onDuplicate={handleDuplicateItem}
+                      onDelete={handleDeleteItem}
                     />
                   </div>
                   {databaseTable && (
@@ -264,6 +262,9 @@ export function UnitTable() {
                     columns={columns}
                     data={networkUnits}
                     onTableReady={setNetworkTable}
+                    onEdit={handleEditItem}
+                    onDuplicate={handleDuplicateItem}
+                    onDelete={handleDeleteItem}
                   />
                   {networkTable && <DataTablePagination table={networkTable} />}
                 </div>

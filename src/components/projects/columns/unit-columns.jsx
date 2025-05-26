@@ -1,11 +1,18 @@
 "use client";
 
-import { Copy, SquarePen, Trash2 } from "lucide-react";
+import { Copy, SquarePen, Trash2, MoreHorizontal } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
 import { DataTableColumnHeader } from "@/components/projects/data-table/data-table-column-header";
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+} from "@/components/ui/dropdown-menu";
 
 export const createUnitColumns = (onEdit, onDuplicate, onDelete) => [
   {
@@ -104,7 +111,7 @@ export const createUnitColumns = (onEdit, onDuplicate, onDelete) => [
     cell: ({ row }) => {
       const mode = row.getValue("mode");
       if (!mode) return <div className="text-muted-foreground">-</div>;
-      
+
       const getVariant = (mode) => {
         switch (mode) {
           case "Master":
@@ -158,31 +165,44 @@ export const createUnitColumns = (onEdit, onDuplicate, onDelete) => [
       const item = row.original;
 
       return (
-        <div className="flex items-center gap-2 justify-end">
-          <Button
-            variant="outline"
-            size="icon"
-            onClick={() => onEdit(item)}
-            title="Edit"
-          >
-            <SquarePen className="h-4 w-4" />
-          </Button>
-          <Button
-            variant="outline"
-            size="icon"
-            onClick={() => onDuplicate(item)}
-            title="Duplicate"
-          >
-            <Copy className="h-4 w-4" />
-          </Button>
-          <Button
-            variant="destructive"
-            size="icon"
-            onClick={() => onDelete(item)}
-            title="Delete"
-          >
-            <Trash2 className="h-4 w-4" />
-          </Button>
+        <div className="flex items-center justify-end">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8 p-0"
+                title="More actions"
+              >
+                <MoreHorizontal className="h-4 w-4" />
+                <span className="sr-only">More</span>
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent className="w-48" align="end">
+              <DropdownMenuItem
+                onClick={() => onEdit(item)}
+                className="cursor-pointer"
+              >
+                <SquarePen className="text-muted-foreground" />
+                <span>Edit</span>
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={() => onDuplicate(item)}
+                className="cursor-pointer"
+              >
+                <Copy className="text-muted-foreground" />
+                <span>Duplicate</span>
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem
+                onClick={() => onDelete(item)}
+                className="cursor-pointer text-red-600 focus:text-red-600"
+              >
+                <Trash2 className="text-red-600" />
+                <span>Delete</span>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       );
     },

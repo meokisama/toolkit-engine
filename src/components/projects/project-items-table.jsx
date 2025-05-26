@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, memo } from "react";
+import React, { useState, useCallback, memo } from "react";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 import { useProjectDetail } from "@/contexts/project-detail-context";
@@ -194,6 +194,9 @@ function ProjectItemsTableComponent({ category, items, loading }) {
                 onRowSelectionChange={handleRowSelectionChange}
                 onColumnVisibilityChange={handleColumnVisibilityChange}
                 onPaginationChange={handlePaginationChange}
+                onEdit={handleEditItem}
+                onDuplicate={handleDuplicateItem}
+                onDelete={handleDeleteItem}
               />
             </div>
             {table && (
