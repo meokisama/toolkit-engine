@@ -30,20 +30,43 @@ export function DataTable({
   onEdit,
   onDuplicate,
   onDelete,
+  initialPagination,
 }) {
   const [sorting, setSorting] = React.useState([]);
   const [columnFilters, setColumnFilters] = React.useState([]);
   const [columnVisibility, setColumnVisibility] = React.useState({});
   const [rowSelection, setRowSelection] = React.useState({});
-  const [pagination, setPagination] = React.useState({
-    pageIndex: 0,
-    pageSize: 10,
-  });
+  const [pagination, setPagination] = React.useState(
+    initialPagination || {
+      pageIndex: 0,
+      pageSize: 10,
+    }
+  );
+
+  // Sync pagination state with parent when initialPagination changes
+  React.useEffect(() => {
+    if (initialPagination) {
+      setPagination(initialPagination);
+    }
+  }, [initialPagination]);
 
   // Reset row selection when data length changes (e.g., after deleting items)
   React.useEffect(() => {
     setRowSelection({});
   }, [data.length]);
+
+  // Adjust pagination when data changes to ensure current page is valid
+  React.useEffect(() => {
+    if (data.length > 0) {
+      const maxPageIndex = Math.ceil(data.length / pagination.pageSize) - 1;
+      if (pagination.pageIndex > maxPageIndex) {
+        setPagination((prev) => ({
+          ...prev,
+          pageIndex: Math.max(0, maxPageIndex),
+        }));
+      }
+    }
+  }, [data.length, pagination.pageSize, pagination.pageIndex]);
 
   // Notify parent component when row selection changes
   React.useEffect(() => {
@@ -83,6 +106,9 @@ export function DataTable({
       getFilteredRowModel: getFilteredRowModel(),
       onColumnVisibilityChange: setColumnVisibility,
       onRowSelectionChange: setRowSelection,
+      // Disable auto reset to preserve pagination state when data changes
+      autoResetPageIndex: false,
+      autoResetRowSelection: false,
       state: {
         sorting,
         columnFilters,

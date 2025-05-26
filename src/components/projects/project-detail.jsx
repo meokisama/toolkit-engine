@@ -43,6 +43,15 @@ export function ProjectDetail() {
   // Memoize tab entries to prevent recreating on every render
   const tabEntries = useMemo(() => Object.entries(tabConfig), []);
 
+  // Calculate item counts for each tab
+  const itemCounts = useMemo(() => {
+    const counts = {};
+    Object.keys(tabConfig).forEach((key) => {
+      counts[key] = projectItems[key]?.length || 0;
+    });
+    return counts;
+  }, [projectItems]);
+
   if (!selectedProject) {
     return (
       <div className="flex flex-1 flex-col gap-4 p-4 pt-0">
@@ -67,14 +76,20 @@ export function ProjectDetail() {
         <TabsList className="grid w-full grid-cols-5">
           {tabEntries.map(([key, config]) => {
             const Icon = config.icon;
+            const itemCount = itemCounts[key];
             return (
               <TabsTrigger
                 key={key}
                 value={key}
-                className="flex items-center gap-2"
+                className="flex items-center justify-center gap-2"
               >
                 <Icon className="h-4 w-4" />
                 <span className="hidden sm:inline">{config.label}</span>
+                {itemCount > 0 && (
+                  <span className="bg-amber-200 border border-amber-300 rounded-full px-1">
+                    {itemCount}
+                  </span>
+                )}
               </TabsTrigger>
             );
           })}

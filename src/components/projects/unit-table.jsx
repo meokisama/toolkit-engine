@@ -204,9 +204,10 @@ export function UnitTable() {
                       />
                     )}
                     <DataTable
-                      key={`database-unit-${units.length}`}
+                      key="database-unit"
                       columns={columns}
                       data={units}
+                      initialPagination={pagination}
                       onTableReady={setDatabaseTable}
                       onRowSelectionChange={handleRowSelectionChange}
                       onColumnVisibilityChange={handleColumnVisibilityChange}
@@ -258,7 +259,7 @@ export function UnitTable() {
                 <div className="space-y-4 flex flex-col h-full justify-between">
                   {/* Network units table will be displayed here */}
                   <DataTable
-                    key={`network-unit-${networkUnits.length}`}
+                    key="network-unit"
                     columns={columns}
                     data={networkUnits}
                     onTableReady={setNetworkTable}

@@ -187,9 +187,10 @@ function ProjectItemsTableComponent({ category, items, loading }) {
                 />
               )}
               <DataTable
-                key={`${category}-${items.length}`}
+                key={category}
                 columns={columns}
                 data={items}
+                initialPagination={pagination}
                 onTableReady={setTable}
                 onRowSelectionChange={handleRowSelectionChange}
                 onColumnVisibilityChange={handleColumnVisibilityChange}

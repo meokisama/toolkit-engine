@@ -133,137 +133,160 @@ export function NavProjects() {
 
   return (
     <>
-      <SidebarGroup className="group-data-[collapsible=icon]:hidden">
-        <div className="flex items-center justify-between">
-          <SidebarGroupLabel>Projects</SidebarGroupLabel>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={handleCreateProject}
-            className="h-6 w-6 p-0"
-          >
-            <Plus className="h-4 w-4" />
-            <span className="sr-only">Add Project</span>
-          </Button>
-        </div>
-        <SidebarMenu>
-          {loading ? (
-            // Show skeleton while loading
-            Array.from({ length: 3 }).map((_, index) => (
-              <SidebarMenuSkeleton key={index} showIcon />
-            ))
-          ) : projects.length === 0 ? (
-            <div className="px-2 py-4 text-xs text-muted-foreground text-center italic">
-              No projects found.
+      <ContextMenu>
+        <ContextMenuTrigger asChild>
+          <SidebarGroup className="group-data-[collapsible=icon]:hidden flex-1">
+            <div className="flex items-center justify-between">
+              <SidebarGroupLabel>Projects</SidebarGroupLabel>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleCreateProject}
+                className="h-6 w-6 p-0"
+              >
+                <Plus className="h-4 w-4" />
+                <span className="sr-only">Add Project</span>
+              </Button>
             </div>
-          ) : (
-            projects.map((project) => {
-              return (
-                <SidebarMenuItem key={project.id}>
-                  <ContextMenu>
-                    <ContextMenuTrigger asChild>
-                      <SidebarMenuButton
-                        className={`text-gray-700 cursor-pointer ${
-                          selectedProject?.id === project.id ? "bg-accent" : ""
-                        }`}
-                        onClick={() => selectProject(project)}
-                      >
-                        <Folder />
-                        <span>{project.name}</span>
-                      </SidebarMenuButton>
-                    </ContextMenuTrigger>
-                    <ContextMenuContent className="w-48 text-gray-700">
-                      <ContextMenuItem
-                        onClick={() => handleEditProject(project)}
-                        className="cursor-pointer"
-                      >
-                        <SquarePen className="text-muted-foreground" />
-                        <span>Edit Project</span>
-                      </ContextMenuItem>
-                      <ContextMenuItem
-                        onClick={() => handleDuplicateProject(project)}
-                        className="cursor-pointer"
-                      >
-                        <Copy className="text-muted-foreground" />
-                        <span>Duplicate Project</span>
-                      </ContextMenuItem>
-                      <ContextMenuSeparator />
-                      <ContextMenuItem
-                        onClick={() => handleExportProject(project)}
-                        className="cursor-pointer"
-                      >
-                        <Download className="text-muted-foreground" />
-                        <span>Export Project</span>
-                      </ContextMenuItem>
-                      <ContextMenuItem
-                        onClick={handleImportProject}
-                        className="cursor-pointer"
-                      >
-                        <Upload className="text-muted-foreground" />
-                        <span>Import Project</span>
-                      </ContextMenuItem>
-                      <ContextMenuSeparator />
-                      <ContextMenuItem
-                        onClick={() => handleDeleteProject(project)}
-                        className="cursor-pointer"
-                        variant="destructive"
-                      >
-                        <Trash2 />
-                        <span>Delete Project</span>
-                      </ContextMenuItem>
-                    </ContextMenuContent>
-                  </ContextMenu>
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <SidebarMenuAction showOnHover>
-                        <MoreHorizontal />
-                        <span className="sr-only">More</span>
-                      </SidebarMenuAction>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent
-                      className="w-48 text-gray-700"
-                      side={isMobile ? "bottom" : "right"}
-                      align={isMobile ? "end" : "start"}
-                    >
-                      <DropdownMenuItem
-                        onClick={() => handleEditProject(project)}
-                      >
-                        <SquarePen className="text-muted-foreground" />
-                        <span>Edit Project</span>
-                      </DropdownMenuItem>
-                      <DropdownMenuItem
-                        onClick={() => handleDuplicateProject(project)}
-                      >
-                        <Copy className="text-muted-foreground" />
-                        <span>Duplicate Project</span>
-                      </DropdownMenuItem>
-                      <DropdownMenuSeparator />
-                      <DropdownMenuItem
-                        onClick={() => handleExportProject(project)}
-                      >
-                        <Download className="text-muted-foreground" />
-                        <span>Export Project</span>
-                      </DropdownMenuItem>
-                      <DropdownMenuItem onClick={handleImportProject}>
-                        <Upload className="text-muted-foreground" />
-                        <span>Import Project</span>
-                      </DropdownMenuItem>
-                      <DropdownMenuSeparator />
-                      <DropdownMenuItem
-                        onClick={() => handleDeleteProject(project)}
-                        className="text-red-600 focus:text-red-600"
-                      >
-                        <Trash2 className="text-red-600" />
-                        <span>Delete Project</span>
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </SidebarMenuItem>
-              );
-            })
-          )}
-        </SidebarMenu>
-      </SidebarGroup>
+            <SidebarMenu>
+              {loading ? (
+                // Show skeleton while loading
+                Array.from({ length: 3 }).map((_, index) => (
+                  <SidebarMenuSkeleton key={index} showIcon />
+                ))
+              ) : projects.length === 0 ? (
+                <div className="px-2 py-4 text-xs text-muted-foreground text-center italic">
+                  No projects found.
+                </div>
+              ) : (
+                projects.map((project) => {
+                  return (
+                    <SidebarMenuItem key={project.id}>
+                      <ContextMenu>
+                        <ContextMenuTrigger asChild>
+                          <SidebarMenuButton
+                            className={`text-gray-700 cursor-pointer ${
+                              selectedProject?.id === project.id
+                                ? "bg-accent"
+                                : ""
+                            }`}
+                            onClick={() => selectProject(project)}
+                          >
+                            <Folder />
+                            <span>{project.name}</span>
+                          </SidebarMenuButton>
+                        </ContextMenuTrigger>
+                        <ContextMenuContent className="w-48 text-gray-700">
+                          <ContextMenuItem
+                            onClick={() => handleEditProject(project)}
+                            className="cursor-pointer"
+                          >
+                            <SquarePen className="text-muted-foreground" />
+                            <span>Edit Project</span>
+                          </ContextMenuItem>
+                          <ContextMenuItem
+                            onClick={() => handleDuplicateProject(project)}
+                            className="cursor-pointer"
+                          >
+                            <Copy className="text-muted-foreground" />
+                            <span>Duplicate Project</span>
+                          </ContextMenuItem>
+                          <ContextMenuSeparator />
+                          <ContextMenuItem
+                            onClick={() => handleExportProject(project)}
+                            className="cursor-pointer"
+                          >
+                            <Download className="text-muted-foreground" />
+                            <span>Export Project</span>
+                          </ContextMenuItem>
+                          <ContextMenuItem
+                            onClick={handleImportProject}
+                            className="cursor-pointer"
+                          >
+                            <Upload className="text-muted-foreground" />
+                            <span>Import Project</span>
+                          </ContextMenuItem>
+                          <ContextMenuSeparator />
+                          <ContextMenuItem
+                            onClick={() => handleDeleteProject(project)}
+                            className="cursor-pointer"
+                            variant="destructive"
+                          >
+                            <Trash2 />
+                            <span>Delete Project</span>
+                          </ContextMenuItem>
+                        </ContextMenuContent>
+                      </ContextMenu>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <SidebarMenuAction showOnHover>
+                            <MoreHorizontal />
+                            <span className="sr-only">More</span>
+                          </SidebarMenuAction>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent
+                          className="w-48 text-gray-700"
+                          side={isMobile ? "bottom" : "right"}
+                          align={isMobile ? "end" : "start"}
+                        >
+                          <DropdownMenuItem
+                            onClick={() => handleEditProject(project)}
+                          >
+                            <SquarePen className="text-muted-foreground" />
+                            <span>Edit Project</span>
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            onClick={() => handleDuplicateProject(project)}
+                          >
+                            <Copy className="text-muted-foreground" />
+                            <span>Duplicate Project</span>
+                          </DropdownMenuItem>
+                          <DropdownMenuSeparator />
+                          <DropdownMenuItem
+                            onClick={() => handleExportProject(project)}
+                          >
+                            <Download className="text-muted-foreground" />
+                            <span>Export Project</span>
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={handleImportProject}>
+                            <Upload className="text-muted-foreground" />
+                            <span>Import Project</span>
+                          </DropdownMenuItem>
+                          <DropdownMenuSeparator />
+                          <DropdownMenuItem
+                            onClick={() => handleDeleteProject(project)}
+                            className="text-red-600 focus:text-red-600"
+                          >
+                            <Trash2 className="text-red-600" />
+                            <span>Delete Project</span>
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </SidebarMenuItem>
+                  );
+                })
+              )}
+            </SidebarMenu>
+          </SidebarGroup>
+        </ContextMenuTrigger>
+        <ContextMenuContent className="w-48 text-gray-700">
+          <ContextMenuItem
+            onClick={handleCreateProject}
+            className="cursor-pointer"
+          >
+            <Plus className="text-muted-foreground" />
+            <span>Add Project</span>
+          </ContextMenuItem>
+          <ContextMenuSeparator />
+          <ContextMenuItem
+            onClick={handleImportProject}
+            className="cursor-pointer"
+          >
+            <Upload className="text-muted-foreground" />
+            <span>Import Project</span>
+          </ContextMenuItem>
+        </ContextMenuContent>
+      </ContextMenu>
 
       <ProjectDialog
         open={dialogOpen}
