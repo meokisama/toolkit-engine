@@ -28,7 +28,7 @@ const data = {
   user: {
     name: "Meoki",
     email: "hi@vis.solutions",
-    avatar: "/assets/meoki.jpg",
+    avatar: "/meoki.jpg",
   },
   navMain: [
     {
