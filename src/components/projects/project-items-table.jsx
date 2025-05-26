@@ -9,10 +9,12 @@ import { DataTableToolbar } from "@/components/projects/data-table/data-table-to
 import { DataTablePagination } from "@/components/projects/data-table/data-table-pagination";
 import { DataTableSkeleton } from "@/components/projects/table-skeleton";
 import { createProjectItemsColumns } from "./columns/project-items-columns";
+import { ImportItemsDialog } from "@/components/projects/import-items-dialog";
 
 // Memoized component to prevent unnecessary rerenders
 function ProjectItemsTableComponent({ category, items, loading }) {
-  const { deleteItem, duplicateItem } = useProjectDetail();
+  const { deleteItem, duplicateItem, exportItems, importItems } =
+    useProjectDetail();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingItem, setEditingItem] = useState(null);
   const [dialogMode, setDialogMode] = useState("create");
@@ -23,7 +25,10 @@ function ProjectItemsTableComponent({ category, items, loading }) {
   const [bulkDeleteDialogOpen, setBulkDeleteDialogOpen] = useState(false);
   const [itemsToDelete, setItemsToDelete] = useState([]);
   const [bulkDeleteLoading, setBulkDeleteLoading] = useState(false);
+  const [importDialogOpen, setImportDialogOpen] = useState(false);
   const [selectedRowsCount, setSelectedRowsCount] = useState(0);
+  const [columnVisibility, setColumnVisibility] = useState({});
+  const [pagination, setPagination] = useState({ pageIndex: 0, pageSize: 10 });
 
   // Memoize handlers to prevent unnecessary rerenders
   const handleCreateItem = useCallback(() => {
@@ -99,16 +104,44 @@ function ProjectItemsTableComponent({ category, items, loading }) {
     }
   };
 
-  // Update selected rows count when table row selection changes - optimized
-  useEffect(() => {
-    if (table) {
-      const rowSelection = table.getState().rowSelection;
-      const selectedCount = Object.keys(rowSelection).filter(
-        (id) => rowSelection[id]
-      ).length;
-      setSelectedRowsCount(selectedCount);
+  // Handle row selection changes from DataTable
+  const handleRowSelectionChange = useCallback((selectedCount) => {
+    setSelectedRowsCount(selectedCount);
+  }, []);
+
+  // Handle column visibility changes from DataTable
+  const handleColumnVisibilityChange = useCallback((visibility) => {
+    setColumnVisibility(visibility);
+  }, []);
+
+  // Handle pagination changes from DataTable
+  const handlePaginationChange = useCallback((paginationState) => {
+    setPagination(paginationState);
+  }, []);
+
+  const handleExport = useCallback(async () => {
+    try {
+      await exportItems(category);
+    } catch (error) {
+      console.error("Failed to export items:", error);
     }
-  }, [table, table?.getState().rowSelection]);
+  }, [exportItems, category]);
+
+  const handleImport = useCallback(() => {
+    setImportDialogOpen(true);
+  }, []);
+
+  const handleImportConfirm = useCallback(
+    async (items) => {
+      try {
+        await importItems(category, items);
+        setImportDialogOpen(false);
+      } catch (error) {
+        console.error("Failed to import items:", error);
+      }
+    },
+    [importItems, category]
+  );
 
   // Create columns with handlers after they are defined
   const columns = createProjectItemsColumns(
@@ -146,6 +179,10 @@ function ProjectItemsTableComponent({ category, items, loading }) {
                 selectedRowsCount={selectedRowsCount}
                 onAddItem={handleCreateItem}
                 addItemLabel="Add"
+                onExport={handleExport}
+                onImport={handleImport}
+                category={category}
+                columnVisibility={columnVisibility}
               />
             )}
             <DataTable
@@ -153,8 +190,13 @@ function ProjectItemsTableComponent({ category, items, loading }) {
               columns={columns}
               data={items}
               onTableReady={setTable}
+              onRowSelectionChange={handleRowSelectionChange}
+              onColumnVisibilityChange={handleColumnVisibilityChange}
+              onPaginationChange={handlePaginationChange}
             />
-            {table && <DataTablePagination table={table} />}
+            {table && (
+              <DataTablePagination table={table} pagination={pagination} />
+            )}
           </div>
         )}
       </div>
@@ -195,6 +237,13 @@ function ProjectItemsTableComponent({ category, items, loading }) {
         variant="destructive"
         onConfirm={confirmBulkDelete}
         loading={bulkDeleteLoading}
+      />
+
+      <ImportItemsDialog
+        open={importDialogOpen}
+        onOpenChange={setImportDialogOpen}
+        onImport={handleImportConfirm}
+        category={category}
       />
     </>
   );

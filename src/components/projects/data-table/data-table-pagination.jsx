@@ -15,17 +15,18 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
-export function DataTablePagination({ table }) {
-  // Use state to track pagination changes and force rerenders
-  const [paginationState, setPaginationState] = React.useState(
-    () => table.getState().pagination
+export function DataTablePagination({ table, pagination }) {
+  // Use prop-based state instead of internal state management
+  const [localPagination, setLocalPagination] = React.useState(
+    pagination || { pageIndex: 0, pageSize: 10 }
   );
 
-  // Update local state when table pagination changes
+  // Update local state when prop changes
   React.useEffect(() => {
-    const currentPagination = table.getState().pagination;
-    setPaginationState(currentPagination);
-  }, [table]);
+    if (pagination) {
+      setLocalPagination(pagination);
+    }
+  }, [pagination]);
 
   const pageCount = table.getPageCount();
 
@@ -34,11 +35,11 @@ export function DataTablePagination({ table }) {
       <div className="flex items-center space-x-2">
         <p className="text-sm font-medium">Rows</p>
         <Select
-          value={`${paginationState.pageSize}`}
+          value={`${localPagination.pageSize}`}
           onValueChange={(value) => {
             table.setPageSize(Number(value));
             // Update local state immediately
-            setPaginationState((prev) => ({
+            setLocalPagination((prev) => ({
               ...prev,
               pageSize: Number(value),
               pageIndex: 0, // Reset to first page when changing page size
@@ -46,7 +47,7 @@ export function DataTablePagination({ table }) {
           }}
         >
           <SelectTrigger className="h-8 w-[70px]">
-            <SelectValue placeholder={paginationState.pageSize} />
+            <SelectValue placeholder={localPagination.pageSize} />
           </SelectTrigger>
           <SelectContent side="top">
             {[10, 20, 30, 40, 50].map((pageSize) => (
@@ -58,7 +59,7 @@ export function DataTablePagination({ table }) {
         </Select>
       </div>
       <div className="flex w-[100px] items-center justify-center text-sm font-medium">
-        Page {paginationState.pageIndex + 1} / {pageCount}
+        Page {localPagination.pageIndex + 1} / {pageCount}
       </div>
       <div className="flex items-center space-x-2">
         <Button
@@ -67,7 +68,7 @@ export function DataTablePagination({ table }) {
           className="hidden lg:flex"
           onClick={() => {
             table.setPageIndex(0);
-            setPaginationState((prev) => ({ ...prev, pageIndex: 0 }));
+            setLocalPagination((prev) => ({ ...prev, pageIndex: 0 }));
           }}
           disabled={!table.getCanPreviousPage()}
         >
@@ -79,7 +80,7 @@ export function DataTablePagination({ table }) {
           size="icon"
           onClick={() => {
             table.previousPage();
-            setPaginationState((prev) => ({
+            setLocalPagination((prev) => ({
               ...prev,
               pageIndex: Math.max(0, prev.pageIndex - 1),
             }));
@@ -94,7 +95,7 @@ export function DataTablePagination({ table }) {
           size="icon"
           onClick={() => {
             table.nextPage();
-            setPaginationState((prev) => ({
+            setLocalPagination((prev) => ({
               ...prev,
               pageIndex: Math.min(pageCount - 1, prev.pageIndex + 1),
             }));
@@ -110,7 +111,7 @@ export function DataTablePagination({ table }) {
           className="hidden lg:flex"
           onClick={() => {
             table.setPageIndex(pageCount - 1);
-            setPaginationState((prev) => ({
+            setLocalPagination((prev) => ({
               ...prev,
               pageIndex: pageCount - 1,
             }));

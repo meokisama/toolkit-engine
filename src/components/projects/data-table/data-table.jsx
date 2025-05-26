@@ -19,7 +19,14 @@ import {
   TableRow,
 } from "@/components/ui/table";
 
-export function DataTable({ columns, data, onTableReady }) {
+export function DataTable({
+  columns,
+  data,
+  onTableReady,
+  onRowSelectionChange,
+  onColumnVisibilityChange,
+  onPaginationChange,
+}) {
   const [sorting, setSorting] = React.useState([]);
   const [columnFilters, setColumnFilters] = React.useState([]);
   const [columnVisibility, setColumnVisibility] = React.useState({});
@@ -33,6 +40,30 @@ export function DataTable({ columns, data, onTableReady }) {
   React.useEffect(() => {
     setRowSelection({});
   }, [data.length]);
+
+  // Notify parent component when row selection changes
+  React.useEffect(() => {
+    if (onRowSelectionChange) {
+      const selectedCount = Object.keys(rowSelection).filter(
+        (id) => rowSelection[id]
+      ).length;
+      onRowSelectionChange(selectedCount, rowSelection);
+    }
+  }, [rowSelection, onRowSelectionChange]);
+
+  // Notify parent component when column visibility changes
+  React.useEffect(() => {
+    if (onColumnVisibilityChange) {
+      onColumnVisibilityChange(columnVisibility);
+    }
+  }, [columnVisibility, onColumnVisibilityChange]);
+
+  // Notify parent component when pagination changes
+  React.useEffect(() => {
+    if (onPaginationChange) {
+      onPaginationChange(pagination);
+    }
+  }, [pagination, onPaginationChange]);
 
   // Memoize table configuration to prevent unnecessary recreations
   const tableConfig = React.useMemo(

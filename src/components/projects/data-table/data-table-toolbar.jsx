@@ -1,8 +1,22 @@
 import React, { useState, useCallback } from "react";
-import { Search, X, Trash2, Plus } from "lucide-react";
+import {
+  Search,
+  X,
+  Trash2,
+  Plus,
+  Download,
+  Upload,
+  FileText,
+} from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { DataTableViewOptions } from "./data-table-view-options";
 
 export function DataTableToolbar({
@@ -13,6 +27,10 @@ export function DataTableToolbar({
   selectedRowsCount = 0,
   onAddItem,
   addItemLabel = "Add Item",
+  onExport,
+  onImport,
+  category,
+  columnVisibility,
 }) {
   const [searchValue, setSearchValue] = useState("");
 
@@ -45,6 +63,18 @@ export function DataTableToolbar({
     }
   }, [onBulkDelete, selectedRows]);
 
+  const handleExport = useCallback(() => {
+    if (onExport) {
+      onExport();
+    }
+  }, [onExport]);
+
+  const handleImport = useCallback(() => {
+    if (onImport) {
+      onImport();
+    }
+  }, [onImport]);
+
   return (
     <div className="flex items-center justify-between">
       <div className="flex flex-1 items-center space-x-2">
@@ -76,7 +106,33 @@ export function DataTableToolbar({
         )}
       </div>
       <div className="flex items-center space-x-2">
-        <DataTableViewOptions table={table} />
+        {(onExport || onImport) && (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" size="icon">
+                <FileText className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              {onExport && (
+                <DropdownMenuItem onClick={handleExport}>
+                  <Upload className="h-4 w-4" />
+                  Export data
+                </DropdownMenuItem>
+              )}
+              {onImport && (
+                <DropdownMenuItem onClick={handleImport}>
+                  <Download className="h-4 w-4" />
+                  Import data
+                </DropdownMenuItem>
+              )}
+            </DropdownMenuContent>
+          </DropdownMenu>
+        )}
+        <DataTableViewOptions
+          table={table}
+          columnVisibility={columnVisibility}
+        />
         {onAddItem && (
           <Button onClick={onAddItem}>
             <Plus className="h-4 w-4" />

@@ -1,10 +1,11 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Plus, Search, Database, Network, GitCompare } from "lucide-react";
 import { useProjectDetail } from "@/contexts/project-detail-context";
 import { UnitDialog } from "./unit-dialog";
 import { ConfirmDialog } from "@/components/projects/confirm-dialog";
+import { ImportItemsDialog } from "@/components/projects/import-items-dialog";
 import { DataTable } from "@/components/projects/data-table/data-table";
 import { DataTableToolbar } from "@/components/projects/data-table/data-table-toolbar";
 import { DataTablePagination } from "@/components/projects/data-table/data-table-pagination";
@@ -12,8 +13,14 @@ import { DataTableSkeleton } from "@/components/projects/table-skeleton";
 import { createUnitColumns } from "./columns/unit-columns";
 
 export function UnitTable() {
-  const { projectItems, deleteItem, duplicateItem, loading } =
-    useProjectDetail();
+  const {
+    projectItems,
+    deleteItem,
+    duplicateItem,
+    loading,
+    exportItems,
+    importItems,
+  } = useProjectDetail();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [dialogMode, setDialogMode] = useState("create");
   const [editingItem, setEditingItem] = useState(null);
@@ -23,8 +30,11 @@ export function UnitTable() {
   const [databaseTable, setDatabaseTable] = useState(null);
   const [networkTable, setNetworkTable] = useState(null);
   const [selectedRowsCount, setSelectedRowsCount] = useState(0);
+  const [columnVisibility, setColumnVisibility] = useState({});
+  const [pagination, setPagination] = useState({ pageIndex: 0, pageSize: 10 });
   const [networkUnits] = useState([]); // Placeholder for network units
   const [scanLoading, setScanLoading] = useState(false);
+  const [importDialogOpen, setImportDialogOpen] = useState(false);
 
   const units = projectItems.unit || [];
 
@@ -75,8 +85,8 @@ export function UnitTable() {
       );
       await Promise.all(deletePromises);
 
-      if (table) {
-        table.resetRowSelection();
+      if (databaseTable) {
+        databaseTable.resetRowSelection();
       }
     } catch (error) {
       console.error("Failed to bulk delete units:", error);
@@ -102,16 +112,41 @@ export function UnitTable() {
     console.log("Adding network unit to database:", networkUnit);
   };
 
-  // Update selected rows count when table row selection changes - optimized
-  useEffect(() => {
-    if (databaseTable) {
-      const rowSelection = databaseTable.getState().rowSelection;
-      const selectedCount = Object.keys(rowSelection).filter(
-        (id) => rowSelection[id]
-      ).length;
-      setSelectedRowsCount(selectedCount);
+  const handleExport = async () => {
+    try {
+      await exportItems("unit");
+    } catch (error) {
+      console.error("Failed to export unit items:", error);
     }
-  }, [databaseTable, databaseTable?.getState().rowSelection]);
+  };
+
+  const handleImport = () => {
+    setImportDialogOpen(true);
+  };
+
+  const handleImportConfirm = async (items) => {
+    try {
+      await importItems("unit", items);
+      setImportDialogOpen(false);
+    } catch (error) {
+      console.error("Failed to import unit items:", error);
+    }
+  };
+
+  // Handle row selection changes from DataTable
+  const handleRowSelectionChange = useCallback((selectedCount) => {
+    setSelectedRowsCount(selectedCount);
+  }, []);
+
+  // Handle column visibility changes from DataTable
+  const handleColumnVisibilityChange = useCallback((visibility) => {
+    setColumnVisibility(visibility);
+  }, []);
+
+  // Handle pagination changes from DataTable
+  const handlePaginationChange = useCallback((paginationState) => {
+    setPagination(paginationState);
+  }, []);
 
   // Create columns with handlers
   const columns = createUnitColumns(
@@ -166,6 +201,10 @@ export function UnitTable() {
                       selectedRowsCount={selectedRowsCount}
                       onAddItem={handleCreateItem}
                       addItemLabel="Add Unit"
+                      onExport={handleExport}
+                      onImport={handleImport}
+                      category="unit"
+                      columnVisibility={columnVisibility}
                     />
                   )}
                   <DataTable
@@ -173,9 +212,15 @@ export function UnitTable() {
                     columns={columns}
                     data={units}
                     onTableReady={setDatabaseTable}
+                    onRowSelectionChange={handleRowSelectionChange}
+                    onColumnVisibilityChange={handleColumnVisibilityChange}
+                    onPaginationChange={handlePaginationChange}
                   />
                   {databaseTable && (
-                    <DataTablePagination table={databaseTable} />
+                    <DataTablePagination
+                      table={databaseTable}
+                      pagination={pagination}
+                    />
                   )}
                 </div>
               )}
@@ -243,6 +288,13 @@ export function UnitTable() {
         variant="destructive"
         onConfirm={confirmDeleteItem}
         loading={deleteLoading}
+      />
+
+      <ImportItemsDialog
+        open={importDialogOpen}
+        onOpenChange={setImportDialogOpen}
+        onImport={handleImportConfirm}
+        category="unit"
       />
     </>
   );

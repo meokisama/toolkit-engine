@@ -6,6 +6,7 @@ import React, {
   useMemo,
 } from "react";
 import { toast } from "sonner";
+import { exportImportService } from "@/services/export-import";
 
 const ProjectDetailContext = createContext();
 
@@ -59,6 +60,8 @@ export function ProjectDetailProvider({ children }) {
   const selectProject = useCallback(
     async (project) => {
       setSelectedProject(project);
+      // Reset to default tab (lighting) when switching projects
+      setActiveTab("lighting");
       if (project) {
         await loadProjectItems(project.id);
       } else {
@@ -151,6 +154,61 @@ export function ProjectDetailProvider({ children }) {
     }
   }, []);
 
+  // Export items to CSV - memoized to prevent recreating on every render
+  const exportItems = useCallback(
+    async (category) => {
+      try {
+        if (!selectedProject) {
+          toast.error("No project selected");
+          return false;
+        }
+
+        const items = projectItems[category] || [];
+        return await exportImportService.exportItemsToCSV(
+          items,
+          category,
+          selectedProject.name
+        );
+      } catch (err) {
+        console.error(`Failed to export ${category} items:`, err);
+        toast.error(`Failed to export ${category} items`);
+        return false;
+      }
+    },
+    [selectedProject, projectItems]
+  );
+
+  // Import items from CSV - memoized to prevent recreating on every render
+  const importItems = useCallback(
+    async (category, items) => {
+      try {
+        if (!selectedProject) {
+          toast.error("No project selected");
+          return false;
+        }
+
+        const importedItems = await window.electronAPI[category].bulkImport(
+          selectedProject.id,
+          items
+        );
+        setProjectItems((prev) => ({
+          ...prev,
+          [category]: [...prev[category], ...importedItems],
+        }));
+
+        toast.success(
+          `${importedItems.length} ${category} items imported successfully`
+        );
+        return importedItems;
+      } catch (err) {
+        console.error(`Failed to import ${category} items:`, err);
+        toast.error(`Failed to import ${category} items`);
+        throw err;
+      }
+    },
+    [selectedProject]
+  );
+
   // Note: loadProjectItems is called directly in selectProject, no need for useEffect
 
   // Memoize context value to prevent unnecessary rerenders
@@ -168,6 +226,8 @@ export function ProjectDetailProvider({ children }) {
       updateItem,
       deleteItem,
       duplicateItem,
+      exportItems,
+      importItems,
     }),
     [
       selectedProject,
@@ -181,6 +241,8 @@ export function ProjectDetailProvider({ children }) {
       updateItem,
       deleteItem,
       duplicateItem,
+      exportItems,
+      importItems,
     ]
   );
 

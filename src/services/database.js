@@ -399,6 +399,68 @@ class DatabaseService {
     }
   }
 
+  // Import project with all items
+  importProject(projectData, itemsData) {
+    try {
+      // Start transaction
+      const transaction = this.db.transaction(() => {
+        // Create project
+        const project = this.createProject(projectData);
+
+        // Import items for each category
+        const categories = ['lighting', 'aircon', 'unit', 'curtain', 'scene'];
+        const importedCounts = {};
+
+        categories.forEach(category => {
+          const items = itemsData[category] || [];
+          importedCounts[category] = 0;
+
+          items.forEach(itemData => {
+            if (category === 'unit') {
+              this.createUnitItem(project.id, itemData);
+            } else {
+              this.createProjectItem(project.id, itemData, category);
+            }
+            importedCounts[category]++;
+          });
+        });
+
+        return { project, importedCounts };
+      });
+
+      return transaction();
+    } catch (error) {
+      console.error('Failed to import project:', error);
+      throw error;
+    }
+  }
+
+  // Bulk import items for a specific category
+  bulkImportItems(projectId, items, category) {
+    try {
+      const transaction = this.db.transaction(() => {
+        const importedItems = [];
+
+        items.forEach(itemData => {
+          let item;
+          if (category === 'unit') {
+            item = this.createUnitItem(projectId, itemData);
+          } else {
+            item = this.createProjectItem(projectId, itemData, category);
+          }
+          importedItems.push(item);
+        });
+
+        return importedItems;
+      });
+
+      return transaction();
+    } catch (error) {
+      console.error(`Failed to bulk import ${category} items:`, error);
+      throw error;
+    }
+  }
+
   // Specific methods for each category
   // Lighting
   getLightingItems(projectId) {

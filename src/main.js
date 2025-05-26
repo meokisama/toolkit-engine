@@ -374,6 +374,62 @@ function setupIpcHandlers() {
       throw error;
     }
   });
+
+  // Import project
+  ipcMain.handle('projects:import', async (event, projectData, itemsData) => {
+    try {
+      return await dbService.importProject(projectData, itemsData);
+    } catch (error) {
+      console.error('Error importing project:', error);
+      throw error;
+    }
+  });
+
+  // Bulk import items for each category
+  ipcMain.handle('lighting:bulkImport', async (event, projectId, items) => {
+    try {
+      return await dbService.bulkImportItems(projectId, items, 'lighting');
+    } catch (error) {
+      console.error('Error bulk importing lighting items:', error);
+      throw error;
+    }
+  });
+
+  ipcMain.handle('aircon:bulkImport', async (event, projectId, items) => {
+    try {
+      return await dbService.bulkImportItems(projectId, items, 'aircon');
+    } catch (error) {
+      console.error('Error bulk importing aircon items:', error);
+      throw error;
+    }
+  });
+
+  ipcMain.handle('unit:bulkImport', async (event, projectId, items) => {
+    try {
+      return await dbService.bulkImportItems(projectId, items, 'unit');
+    } catch (error) {
+      console.error('Error bulk importing unit items:', error);
+      throw error;
+    }
+  });
+
+  ipcMain.handle('curtain:bulkImport', async (event, projectId, items) => {
+    try {
+      return await dbService.bulkImportItems(projectId, items, 'curtain');
+    } catch (error) {
+      console.error('Error bulk importing curtain items:', error);
+      throw error;
+    }
+  });
+
+  ipcMain.handle('scene:bulkImport', async (event, projectId, items) => {
+    try {
+      return await dbService.bulkImportItems(projectId, items, 'scene');
+    } catch (error) {
+      console.error('Error bulk importing scene items:', error);
+      throw error;
+    }
+  });
 }
 
 // In this file you can include the rest of your app's specific main process

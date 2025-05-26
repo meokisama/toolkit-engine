@@ -6,6 +6,8 @@ import {
   Trash2,
   Copy,
   Plus,
+  Download,
+  Upload,
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -36,10 +38,18 @@ import { useProjects } from "@/contexts/project-context";
 import { useProjectDetail } from "@/contexts/project-detail-context";
 import { ProjectDialog } from "@/components/projects/project-dialog";
 import { ConfirmDialog } from "@/components/projects/confirm-dialog";
+import { ImportDialog } from "@/components/projects/import-dialog";
 
 export function NavProjects() {
   const { isMobile } = useSidebar();
-  const { projects, loading, deleteProject, duplicateProject } = useProjects();
+  const {
+    projects,
+    loading,
+    deleteProject,
+    duplicateProject,
+    exportProject,
+    importProject,
+  } = useProjects();
   const { selectProject, selectedProject } = useProjectDetail();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingProject, setEditingProject] = useState(null);
@@ -47,6 +57,7 @@ export function NavProjects() {
   const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
   const [projectToDelete, setProjectToDelete] = useState(null);
   const [deleteLoading, setDeleteLoading] = useState(false);
+  const [importDialogOpen, setImportDialogOpen] = useState(false);
 
   // Memoize handlers to prevent unnecessary rerenders
   const handleCreateProject = useCallback(() => {
@@ -76,6 +87,34 @@ export function NavProjects() {
     setProjectToDelete(project);
     setConfirmDialogOpen(true);
   }, []);
+
+  const handleExportProject = useCallback(
+    async (project) => {
+      try {
+        await exportProject(project.id);
+      } catch (error) {
+        console.error("Failed to export project:", error);
+      }
+    },
+    [exportProject]
+  );
+
+  const handleImportProject = useCallback(() => {
+    setImportDialogOpen(true);
+  }, []);
+
+  const handleImportConfirm = useCallback(
+    async (projectData, itemsData) => {
+      try {
+        const newProject = await importProject(projectData, itemsData);
+        // Optionally select the newly imported project
+        selectProject(newProject);
+      } catch (error) {
+        console.error("Failed to import project:", error);
+      }
+    },
+    [importProject, selectProject]
+  );
 
   const confirmDeleteProject = useCallback(async () => {
     if (!projectToDelete) return;
@@ -150,6 +189,21 @@ export function NavProjects() {
                       </ContextMenuItem>
                       <ContextMenuSeparator />
                       <ContextMenuItem
+                        onClick={() => handleExportProject(project)}
+                        className="cursor-pointer"
+                      >
+                        <Download className="text-muted-foreground" />
+                        <span>Export Project</span>
+                      </ContextMenuItem>
+                      <ContextMenuItem
+                        onClick={handleImportProject}
+                        className="cursor-pointer"
+                      >
+                        <Upload className="text-muted-foreground" />
+                        <span>Import Project</span>
+                      </ContextMenuItem>
+                      <ContextMenuSeparator />
+                      <ContextMenuItem
                         onClick={() => handleDeleteProject(project)}
                         className="cursor-pointer"
                         variant="destructive"
@@ -185,6 +239,17 @@ export function NavProjects() {
                       </DropdownMenuItem>
                       <DropdownMenuSeparator />
                       <DropdownMenuItem
+                        onClick={() => handleExportProject(project)}
+                      >
+                        <Download className="text-muted-foreground" />
+                        <span>Export Project</span>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={handleImportProject}>
+                        <Upload className="text-muted-foreground" />
+                        <span>Import Project</span>
+                      </DropdownMenuItem>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem
                         onClick={() => handleDeleteProject(project)}
                         className="text-red-600 focus:text-red-600"
                       >
@@ -217,6 +282,12 @@ export function NavProjects() {
         variant="destructive"
         onConfirm={confirmDeleteProject}
         loading={deleteLoading}
+      />
+
+      <ImportDialog
+        open={importDialogOpen}
+        onOpenChange={setImportDialogOpen}
+        onImport={handleImportConfirm}
       />
     </>
   );
