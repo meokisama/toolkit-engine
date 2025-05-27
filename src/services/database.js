@@ -1,6 +1,7 @@
 import path from 'node:path';
 import fs from 'node:fs';
 import { app } from 'electron';
+import { AIRCON_OBJECT_TYPES } from '../constants.js';
 
 class DatabaseService {
   constructor() {
@@ -53,22 +54,24 @@ class DatabaseService {
       CREATE TABLE IF NOT EXISTS lighting (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         project_id INTEGER NOT NULL,
-        name TEXT NOT NULL,
-        address TEXT,
+        name TEXT,
+        address TEXT NOT NULL,
         description TEXT,
+        object_type TEXT DEFAULT 'OBJ_LIGHTING',
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
         updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
         FOREIGN KEY (project_id) REFERENCES projects (id) ON DELETE CASCADE
       )
     `;
 
-    const createAirconTable = `
-      CREATE TABLE IF NOT EXISTS aircon (
+    const createAirconItemsTable = `
+      CREATE TABLE IF NOT EXISTS aircon_items (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         project_id INTEGER NOT NULL,
-        name TEXT NOT NULL,
-        address TEXT,
+        name TEXT,
+        address TEXT NOT NULL,
         description TEXT,
+        object_type TEXT NOT NULL,
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
         updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
         FOREIGN KEY (project_id) REFERENCES projects (id) ON DELETE CASCADE
@@ -79,7 +82,6 @@ class DatabaseService {
       CREATE TABLE IF NOT EXISTS unit (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         project_id INTEGER NOT NULL,
-        name TEXT NOT NULL,
         type TEXT,
         serial_no TEXT,
         ip_address TEXT,
@@ -97,9 +99,10 @@ class DatabaseService {
       CREATE TABLE IF NOT EXISTS curtain (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         project_id INTEGER NOT NULL,
-        name TEXT NOT NULL,
-        address TEXT,
+        name TEXT,
+        address TEXT NOT NULL,
         description TEXT,
+        object_type TEXT DEFAULT 'OBJ_CURTAIN',
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
         updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
         FOREIGN KEY (project_id) REFERENCES projects (id) ON DELETE CASCADE
@@ -110,9 +113,10 @@ class DatabaseService {
       CREATE TABLE IF NOT EXISTS scene (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         project_id INTEGER NOT NULL,
-        name TEXT NOT NULL,
-        address TEXT,
+        name TEXT,
+        address TEXT NOT NULL,
         description TEXT,
+        object_type TEXT DEFAULT 'OBJ_SCENE',
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
         updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
         FOREIGN KEY (project_id) REFERENCES projects (id) ON DELETE CASCADE
@@ -122,7 +126,7 @@ class DatabaseService {
     try {
       this.db.exec(createProjectsTable);
       this.db.exec(createLightingTable);
-      this.db.exec(createAirconTable);
+      this.db.exec(createAirconItemsTable);
       this.db.exec(createUnitTable);
       this.db.exec(createCurtainTable);
       this.db.exec(createSceneTable);
@@ -266,12 +270,22 @@ class DatabaseService {
             description: item.description
           };
           this.createUnitItem(newProjectId, itemData);
+        } else if (category === 'aircon') {
+          // Special handling for aircon items (use aircon_items table)
+          const itemData = {
+            name: item.name,
+            address: item.address,
+            description: item.description,
+            object_type: item.object_type
+          };
+          this.createProjectItem(newProjectId, itemData, 'aircon_items');
         } else {
           // Standard handling for other categories
           const itemData = {
             name: item.name,
             address: item.address,
-            description: item.description
+            description: item.description,
+            object_type: item.object_type
           };
           this.createProjectItem(newProjectId, itemData, category);
         }
@@ -282,8 +296,8 @@ class DatabaseService {
   // Get all project items in one optimized call
   getAllProjectItems(projectId) {
     try {
-      const lighting = this.db.prepare('SELECT * FROM lighting WHERE project_id = ? ORDER BY created_at DESC').all(projectId);
-      const aircon = this.db.prepare('SELECT * FROM aircon WHERE project_id = ? ORDER BY created_at DESC').all(projectId);
+      const lighting = this.db.prepare('SELECT * FROM lighting WHERE project_id = ? ORDER BY address ASC').all(projectId);
+      const aircon = this.db.prepare('SELECT * FROM aircon_items WHERE project_id = ? ORDER BY created_at DESC').all(projectId);
       const unit = this.db.prepare('SELECT * FROM unit WHERE project_id = ? ORDER BY created_at DESC').all(projectId);
       const curtain = this.db.prepare('SELECT * FROM curtain WHERE project_id = ? ORDER BY created_at DESC').all(projectId);
       const scene = this.db.prepare('SELECT * FROM scene WHERE project_id = ? ORDER BY created_at DESC').all(projectId);
@@ -324,14 +338,14 @@ class DatabaseService {
 
   createProjectItem(projectId, itemData, tableName) {
     try {
-      const { name, address, description } = itemData;
+      const { name, address, description, object_type } = itemData;
 
       const stmt = this.db.prepare(`
-        INSERT INTO ${tableName} (project_id, name, address, description)
-        VALUES (?, ?, ?, ?)
+        INSERT INTO ${tableName} (project_id, name, address, description, object_type)
+        VALUES (?, ?, ?, ?, ?)
       `);
 
-      const result = stmt.run(projectId, name, address, description);
+      const result = stmt.run(projectId, name, address, description, object_type);
       return this.getProjectItemById(result.lastInsertRowid, tableName);
     } catch (error) {
       console.error(`Failed to create ${tableName} item:`, error);
@@ -341,15 +355,27 @@ class DatabaseService {
 
   updateProjectItem(id, itemData, tableName) {
     try {
-      const { name, address, description } = itemData;
+      const { name, address, description, object_type } = itemData;
+
+      // Special validation for aircon_items to prevent duplicate addresses
+      if (tableName === 'aircon_items' && address) {
+        const currentItem = this.getProjectItemById(id, tableName);
+        if (currentItem && currentItem.address !== address) {
+          // Check if new address already exists for this project (excluding current item's address)
+          const existingItems = this.db.prepare('SELECT COUNT(*) as count FROM aircon_items WHERE project_id = ? AND address = ? AND address != ?').get(currentItem.project_id, address, currentItem.address);
+          if (existingItems.count > 0) {
+            throw new Error(`Address ${address} already exists for another aircon card`);
+          }
+        }
+      }
 
       const stmt = this.db.prepare(`
         UPDATE ${tableName}
-        SET name = ?, address = ?, description = ?, updated_at = CURRENT_TIMESTAMP
+        SET name = ?, address = ?, description = ?, object_type = ?, updated_at = CURRENT_TIMESTAMP
         WHERE id = ?
       `);
 
-      const result = stmt.run(name, address, description, id);
+      const result = stmt.run(name, address, description, object_type, id);
 
       if (result.changes === 0) {
         throw new Error(`${tableName} item not found`);
@@ -387,9 +413,10 @@ class DatabaseService {
       }
 
       const duplicatedItem = {
-        name: `${originalItem.name} (Copy)`,
+        name: originalItem.name ? `${originalItem.name} (Copy)` : null,
         address: originalItem.address,
-        description: originalItem.description
+        description: originalItem.description,
+        object_type: originalItem.object_type
       };
 
       return this.createProjectItem(originalItem.project_id, duplicatedItem, tableName);
@@ -418,6 +445,8 @@ class DatabaseService {
           items.forEach(itemData => {
             if (category === 'unit') {
               this.createUnitItem(project.id, itemData);
+            } else if (category === 'aircon') {
+              this.createProjectItem(project.id, itemData, 'aircon_items');
             } else {
               this.createProjectItem(project.id, itemData, category);
             }
@@ -445,6 +474,8 @@ class DatabaseService {
           let item;
           if (category === 'unit') {
             item = this.createUnitItem(projectId, itemData);
+          } else if (category === 'aircon') {
+            item = this.createProjectItem(projectId, itemData, 'aircon_items');
           } else {
             item = this.createProjectItem(projectId, itemData, category);
           }
@@ -483,25 +514,154 @@ class DatabaseService {
     return this.duplicateProjectItem(id, 'lighting');
   }
 
-  // Aircon
+  // Aircon - Special handling for aircon cards and items
   getAirconItems(projectId) {
-    return this.getProjectItems(projectId, 'aircon');
+    return this.getProjectItems(projectId, 'aircon_items');
+  }
+
+  // Get aircon items grouped by address (for card display)
+  getAirconCards(projectId) {
+    try {
+      const items = this.db.prepare('SELECT * FROM aircon_items WHERE project_id = ? ORDER BY address, object_type').all(projectId);
+
+      // Group items by address
+      const cards = {};
+      items.forEach(item => {
+        if (!cards[item.address]) {
+          cards[item.address] = {
+            name: item.name,
+            address: item.address,
+            description: item.description,
+            items: []
+          };
+        }
+        cards[item.address].items.push(item);
+      });
+
+      return Object.values(cards);
+    } catch (error) {
+      console.error('Failed to get aircon cards:', error);
+      throw error;
+    }
+  }
+
+  // Create a new aircon card (creates 5 items with different object types)
+  createAirconCard(projectId, cardData) {
+    try {
+      const { name, address, description } = cardData;
+
+      // Check if address already exists for this project
+      const existingItems = this.db.prepare('SELECT COUNT(*) as count FROM aircon_items WHERE project_id = ? AND address = ?').get(projectId, address);
+      if (existingItems.count > 0) {
+        throw new Error(`Address ${address} already exists for another aircon card`);
+      }
+
+      const transaction = this.db.transaction(() => {
+        const createdItems = [];
+
+        AIRCON_OBJECT_TYPES.forEach(objectType => {
+          const itemData = {
+            name,
+            address,
+            description,
+            object_type: objectType
+          };
+
+          const item = this.createProjectItem(projectId, itemData, 'aircon_items');
+          createdItems.push(item);
+        });
+
+        return createdItems;
+      });
+
+      return transaction();
+    } catch (error) {
+      console.error('Failed to create aircon card:', error);
+      throw error;
+    }
   }
 
   createAirconItem(projectId, itemData) {
-    return this.createProjectItem(projectId, itemData, 'aircon');
+    return this.createProjectItem(projectId, itemData, 'aircon_items');
   }
 
   updateAirconItem(id, itemData) {
-    return this.updateProjectItem(id, itemData, 'aircon');
+    return this.updateProjectItem(id, itemData, 'aircon_items');
   }
 
   deleteAirconItem(id) {
-    return this.deleteProjectItem(id, 'aircon');
+    return this.deleteProjectItem(id, 'aircon_items');
+  }
+
+  // Delete entire aircon card (all items with same address)
+  deleteAirconCard(projectId, address) {
+    try {
+      const stmt = this.db.prepare('DELETE FROM aircon_items WHERE project_id = ? AND address = ?');
+      const result = stmt.run(projectId, address);
+
+      return { success: true, deletedCount: result.changes };
+    } catch (error) {
+      console.error('Failed to delete aircon card:', error);
+      throw error;
+    }
   }
 
   duplicateAirconItem(id) {
-    return this.duplicateProjectItem(id, 'aircon');
+    return this.duplicateProjectItem(id, 'aircon_items');
+  }
+
+  // Duplicate entire aircon card
+  duplicateAirconCard(projectId, address) {
+    try {
+      const items = this.db.prepare('SELECT * FROM aircon_items WHERE project_id = ? AND address = ?').all(projectId, address);
+
+      if (items.length === 0) {
+        throw new Error('Aircon card not found');
+      }
+
+      // Find a unique numeric address for the duplicated card
+      // Get all existing addresses for this project
+      const existingAddresses = this.db.prepare('SELECT DISTINCT address FROM aircon_items WHERE project_id = ?').all(projectId);
+      const addressNumbers = existingAddresses
+        .map(item => parseInt(item.address))
+        .filter(num => !isNaN(num))
+        .sort((a, b) => a - b);
+
+      // Find the first gap or next number after the highest
+      let newAddress = 1;
+      for (const num of addressNumbers) {
+        if (newAddress < num) {
+          break;
+        }
+        newAddress = num + 1;
+      }
+
+      // Convert to string for consistency
+      newAddress = newAddress.toString();
+
+      const transaction = this.db.transaction(() => {
+        const duplicatedItems = [];
+
+        items.forEach(item => {
+          const duplicatedItem = {
+            name: item.name ? `${item.name} (Copy)` : null,
+            address: newAddress,
+            description: item.description,
+            object_type: item.object_type
+          };
+
+          const newItem = this.createProjectItem(projectId, duplicatedItem, 'aircon_items');
+          duplicatedItems.push(newItem);
+        });
+
+        return duplicatedItems;
+      });
+
+      return transaction();
+    } catch (error) {
+      console.error('Failed to duplicate aircon card:', error);
+      throw error;
+    }
   }
 
   // Unit - Special handling for unit table structure
@@ -512,7 +672,6 @@ class DatabaseService {
   createUnitItem(projectId, itemData) {
     try {
       const {
-        name,
         type,
         serial_no,
         ip_address,
@@ -524,14 +683,14 @@ class DatabaseService {
 
       const stmt = this.db.prepare(`
         INSERT INTO unit (
-          project_id, name, type, serial_no, ip_address,
+          project_id, type, serial_no, ip_address,
           id_can, mode, firmware_version, description
         )
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
       `);
 
       const result = stmt.run(
-        projectId, name, type, serial_no, ip_address,
+        projectId, type, serial_no, ip_address,
         id_can, mode, firmware_version, description
       );
 
@@ -545,7 +704,6 @@ class DatabaseService {
   updateUnitItem(id, itemData) {
     try {
       const {
-        name,
         type,
         serial_no,
         ip_address,
@@ -557,14 +715,14 @@ class DatabaseService {
 
       const stmt = this.db.prepare(`
         UPDATE unit
-        SET name = ?, type = ?, serial_no = ?, ip_address = ?,
+        SET type = ?, serial_no = ?, ip_address = ?,
             id_can = ?, mode = ?, firmware_version = ?, description = ?,
             updated_at = CURRENT_TIMESTAMP
         WHERE id = ?
       `);
 
       const result = stmt.run(
-        name, type, serial_no, ip_address,
+        type, serial_no, ip_address,
         id_can, mode, firmware_version, description, id
       );
 
@@ -592,7 +750,6 @@ class DatabaseService {
       }
 
       const duplicatedItem = {
-        name: `${originalItem.name} (Copy)`,
         type: originalItem.type,
         serial_no: originalItem.serial_no,
         ip_address: originalItem.ip_address,

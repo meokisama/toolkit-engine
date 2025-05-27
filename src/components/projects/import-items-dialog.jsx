@@ -17,10 +17,10 @@ export function ImportItemsDialog({ open, onOpenChange, onImport, category }) {
 
   const handleFileSelect = async () => {
     try {
-      const input = document.createElement('input');
-      input.type = 'file';
-      input.accept = '.csv';
-      
+      const input = document.createElement("input");
+      input.type = "file";
+      input.accept = ".csv";
+
       input.onchange = async (event) => {
         const file = event.target.files[0];
         if (!file) return;
@@ -28,42 +28,58 @@ export function ImportItemsDialog({ open, onOpenChange, onImport, category }) {
         try {
           const text = await file.text();
           const items = parseCSVToItems(text, category);
-          
+
           if (!items || items.length === 0) {
-            toast.error('No valid items found in CSV file');
+            toast.error("No valid items found in CSV file");
             return;
           }
 
           setImportData(items);
           toast.success(`${items.length} items loaded successfully`);
         } catch (error) {
-          console.error('Failed to read file:', error);
-          toast.error('Failed to read CSV file');
+          console.error("Failed to read file:", error);
+          toast.error("Failed to read CSV file");
         }
       };
 
       input.click();
     } catch (error) {
-      console.error('File selection failed:', error);
-      toast.error('Failed to select file');
+      console.error("File selection failed:", error);
+      toast.error("Failed to select file");
     }
   };
 
   const parseCSVToItems = (csvContent, category) => {
-    const lines = csvContent.split('\n').filter(line => line.trim());
+    const lines = csvContent.split("\n").filter((line) => line.trim());
     if (lines.length < 2) return [];
 
-    const headers = lines[0].split(',').map(h => h.trim().replace(/"/g, ''));
+    const headers = lines[0].split(",").map((h) => h.trim().replace(/"/g, ""));
     const items = [];
 
     // Validate headers based on category
-    const expectedHeaders = category === 'unit' 
-      ? ['name', 'type', 'serial_no', 'ip_address', 'id_can', 'mode', 'firmware_version', 'description']
-      : ['name', 'address', 'description'];
+    const expectedHeaders =
+      category === "unit"
+        ? [
+            "name",
+            "type",
+            "serial_no",
+            "ip_address",
+            "id_can",
+            "mode",
+            "firmware_version",
+            "description",
+          ]
+        : ["name", "address", "description"];
 
-    const hasValidHeaders = expectedHeaders.every(header => headers.includes(header));
+    const hasValidHeaders = expectedHeaders.every((header) =>
+      headers.includes(header)
+    );
     if (!hasValidHeaders) {
-      throw new Error(`Invalid CSV headers for ${category} items. Expected: ${expectedHeaders.join(', ')}`);
+      throw new Error(
+        `Invalid CSV headers for ${category} items. Expected: ${expectedHeaders.join(
+          ", "
+        )}`
+      );
     }
 
     for (let i = 1; i < lines.length; i++) {
@@ -72,7 +88,7 @@ export function ImportItemsDialog({ open, onOpenChange, onImport, category }) {
 
       const item = {};
       headers.forEach((header, index) => {
-        item[header] = values[index] || '';
+        item[header] = values[index] || "";
       });
 
       // Validate required fields
@@ -86,13 +102,13 @@ export function ImportItemsDialog({ open, onOpenChange, onImport, category }) {
 
   const parseCSVLine = (line) => {
     const result = [];
-    let current = '';
+    let current = "";
     let inQuotes = false;
-    
+
     for (let i = 0; i < line.length; i++) {
       const char = line[i];
       const nextChar = line[i + 1];
-      
+
       if (char === '"') {
         if (inQuotes && nextChar === '"') {
           current += '"';
@@ -100,21 +116,21 @@ export function ImportItemsDialog({ open, onOpenChange, onImport, category }) {
         } else {
           inQuotes = !inQuotes;
         }
-      } else if (char === ',' && !inQuotes) {
+      } else if (char === "," && !inQuotes) {
         result.push(current.trim());
-        current = '';
+        current = "";
       } else {
         current += char;
       }
     }
-    
+
     result.push(current.trim());
     return result;
   };
 
   const handleImport = async () => {
     if (!importData) {
-      toast.error('Please select a CSV file first');
+      toast.error("Please select a CSV file first");
       return;
     }
 
@@ -123,7 +139,7 @@ export function ImportItemsDialog({ open, onOpenChange, onImport, category }) {
       await onImport(importData);
       handleClose();
     } catch (error) {
-      console.error('Import failed:', error);
+      console.error("Import failed:", error);
       toast.error(`Failed to import ${category} items`);
     } finally {
       setLoading(false);
@@ -137,12 +153,25 @@ export function ImportItemsDialog({ open, onOpenChange, onImport, category }) {
   };
 
   const getExpectedHeaders = () => {
-    return category === 'unit' 
-      ? ['name', 'type', 'serial_no', 'ip_address', 'id_can', 'mode', 'firmware_version', 'description']
-      : ['name', 'address', 'description'];
+    if (category === "unit") {
+      return [
+        "type",
+        "serial_no",
+        "ip_address",
+        "id_can",
+        "mode",
+        "firmware_version",
+        "description",
+      ];
+    } else if (category === "aircon") {
+      return ["name", "address", "description"];
+    } else {
+      return ["name", "address", "description", "object_type"];
+    }
   };
 
-  const categoryDisplayName = category.charAt(0).toUpperCase() + category.slice(1);
+  const categoryDisplayName =
+    category.charAt(0).toUpperCase() + category.slice(1);
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
@@ -150,7 +179,9 @@ export function ImportItemsDialog({ open, onOpenChange, onImport, category }) {
         <DialogHeader>
           <DialogTitle>Import {categoryDisplayName} Items</DialogTitle>
           <DialogDescription>
-            Import {category} items from a CSV file. The CSV file should have the correct headers.
+            {category === "aircon"
+              ? "Import aircon cards from a CSV file. Each row will create a card with 5 items (Power, Mode, Fan Speed, Temperature, Swing)."
+              : `Import ${category} items from a CSV file. The CSV file should have the correct headers.`}
           </DialogDescription>
         </DialogHeader>
 
@@ -171,12 +202,16 @@ export function ImportItemsDialog({ open, onOpenChange, onImport, category }) {
               <div className="bg-muted/50 rounded-lg p-4">
                 <div className="flex items-center gap-2 mb-2">
                   <AlertCircle className="h-4 w-4 text-blue-600" />
-                  <span className="text-sm font-medium">Required CSV Headers</span>
+                  <span className="text-sm font-medium">
+                    Required CSV Headers
+                  </span>
                 </div>
                 <div className="text-sm text-muted-foreground">
-                  <p>Your CSV file must include these headers (in any order):</p>
+                  <p>
+                    Your CSV file must include these headers (in any order):
+                  </p>
                   <div className="mt-1 font-mono text-xs bg-background rounded px-2 py-1">
-                    {getExpectedHeaders().join(', ')}
+                    {getExpectedHeaders().join(", ")}
                   </div>
                 </div>
               </div>
@@ -186,7 +221,9 @@ export function ImportItemsDialog({ open, onOpenChange, onImport, category }) {
               <div className="bg-muted/50 rounded-lg p-4">
                 <div className="flex items-center gap-2 mb-2">
                   <CheckCircle className="h-4 w-4 text-green-600" />
-                  <span className="text-sm font-medium">CSV file loaded successfully</span>
+                  <span className="text-sm font-medium">
+                    CSV file loaded successfully
+                  </span>
                 </div>
                 <div className="text-sm text-muted-foreground">
                   <p>Found {importData.length} valid items to import</p>
@@ -202,8 +239,12 @@ export function ImportItemsDialog({ open, onOpenChange, onImport, category }) {
                   <p>First few items:</p>
                   <div className="mt-2 space-y-1">
                     {importData.slice(0, 3).map((item, index) => (
-                      <div key={index} className="font-mono text-xs bg-background rounded px-2 py-1">
-                        {item.name} {item.address && `- ${item.address}`} {item.type && `(${item.type})`}
+                      <div
+                        key={index}
+                        className="font-mono text-xs bg-background rounded px-2 py-1"
+                      >
+                        {item.name} {item.address && `- ${item.address}`}{" "}
+                        {item.type && `(${item.type})`}
                       </div>
                     ))}
                     {importData.length > 3 && (
@@ -229,11 +270,19 @@ export function ImportItemsDialog({ open, onOpenChange, onImport, category }) {
           </Button>
           {importData && (
             <>
-              <Button variant="outline" onClick={handleFileSelect} disabled={loading}>
+              <Button
+                variant="outline"
+                onClick={handleFileSelect}
+                disabled={loading}
+              >
                 Select Different File
               </Button>
               <Button onClick={handleImport} disabled={loading}>
-                {loading ? "Importing..." : `Import ${importData.length} Items`}
+                {loading
+                  ? "Importing..."
+                  : category === "aircon"
+                  ? `Import ${importData.length} Cards`
+                  : `Import ${importData.length} Items`}
               </Button>
             </>
           )}

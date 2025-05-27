@@ -119,7 +119,7 @@ export const createProjectItemsColumns = (
         />
       );
     },
-    enableSorting: true,
+    enableSorting: false,
     enableHiding: true,
     meta: {
       className: "w-[45%]",

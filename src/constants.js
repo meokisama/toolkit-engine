@@ -1,3 +1,33 @@
+// Object Types
+export const OBJECT_TYPES = {
+  LIGHTING: "OBJ_LIGHTING",
+  AC_POWER: "OBJ_AC_POWER",
+  AC_MODE: "OBJ_AC_MODE",
+  AC_FAN_SPEED: "OBJ_AC_FAN_SPEED",
+  AC_TEMPERATURE: "OBJ_AC_TEMPERATURE",
+  AC_SWING: "OBJ_AC_SWING",
+  CURTAIN: "OBJ_CURTAIN",
+  SCENE: "OBJ_SCENE"
+};
+
+// Aircon object types for creating aircon items
+export const AIRCON_OBJECT_TYPES = [
+  OBJECT_TYPES.AC_POWER,
+  OBJECT_TYPES.AC_MODE,
+  OBJECT_TYPES.AC_FAN_SPEED,
+  OBJECT_TYPES.AC_TEMPERATURE,
+  OBJECT_TYPES.AC_SWING
+];
+
+// Aircon object type labels for display
+export const AIRCON_OBJECT_LABELS = {
+  [OBJECT_TYPES.AC_POWER]: "Power",
+  [OBJECT_TYPES.AC_MODE]: "Mode",
+  [OBJECT_TYPES.AC_FAN_SPEED]: "Fan Speed",
+  [OBJECT_TYPES.AC_TEMPERATURE]: "Temperature",
+  [OBJECT_TYPES.AC_SWING]: "Swing"
+};
+
 export const UNIT_TYPES = [
   "RLC-416",
   "RLC-420",

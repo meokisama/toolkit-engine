@@ -17,18 +17,26 @@ class ExportImportService {
 
       const jsonString = JSON.stringify(exportData, null, 2);
       const blob = new Blob([jsonString], { type: 'application/json' });
-      
-      // Create download link
+
+      // Create download link with event listeners
       const url = URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
       link.download = `${project.name.replace(/[^a-z0-9]/gi, '_').toLowerCase()}_export.json`;
+
+      // Add event listener to show success message after download starts
+      link.addEventListener('click', () => {
+        // Small delay to ensure download dialog appears first
+        setTimeout(() => {
+          toast.success(`Project "${project.name}" export started`);
+        }, 100);
+      });
+
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
       URL.revokeObjectURL(url);
 
-      toast.success(`Project "${project.name}" exported successfully`);
       return true;
     } catch (error) {
       console.error('Export project failed:', error);
@@ -43,7 +51,7 @@ class ExportImportService {
       const input = document.createElement('input');
       input.type = 'file';
       input.accept = '.json';
-      
+
       input.onchange = async (event) => {
         const file = event.target.files[0];
         if (!file) {
@@ -54,7 +62,7 @@ class ExportImportService {
         try {
           const text = await file.text();
           const data = JSON.parse(text);
-          
+
           // Validate import data structure
           if (!this.validateProjectImportData(data)) {
             toast.error('Invalid project file format');
@@ -80,7 +88,7 @@ class ExportImportService {
     if (!data.project || typeof data.project !== 'object') return false;
     if (!data.project.name || typeof data.project.name !== 'string') return false;
     if (!data.items || typeof data.items !== 'object') return false;
-    
+
     // Check if items has valid categories
     const validCategories = ['lighting', 'aircon', 'unit', 'curtain', 'scene'];
     for (const category of validCategories) {
@@ -88,7 +96,7 @@ class ExportImportService {
         return false;
       }
     }
-    
+
     return true;
   }
 
@@ -100,20 +108,39 @@ class ExportImportService {
         return false;
       }
 
-      const csvContent = this.convertItemsToCSV(items, category);
+      let csvContent;
+      let filename;
+
+      // Special handling for aircon category - export as cards
+      if (category === 'aircon') {
+        csvContent = this.convertAirconItemsToCardsCSV(items);
+        filename = `${projectName.replace(/[^a-z0-9]/gi, '_').toLowerCase()}_aircon_cards_export.csv`;
+      } else {
+        csvContent = this.convertItemsToCSV(items, category);
+        filename = `${projectName.replace(/[^a-z0-9]/gi, '_').toLowerCase()}_${category}_export.csv`;
+      }
+
       const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-      
-      // Create download link
+
+      // Create download link with event listeners
       const url = URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
-      link.download = `${projectName.replace(/[^a-z0-9]/gi, '_').toLowerCase()}_${category}_export.csv`;
+      link.download = filename;
+
+      // Add event listener to show success message after download starts
+      link.addEventListener('click', () => {
+        // Small delay to ensure download dialog appears first
+        setTimeout(() => {
+          toast.success(`${category} items export started`);
+        }, 100);
+      });
+
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
       URL.revokeObjectURL(url);
 
-      toast.success(`${category} items exported successfully`);
       return true;
     } catch (error) {
       console.error('Export items failed:', error);
@@ -129,9 +156,9 @@ class ExportImportService {
     // Define headers based on category
     let headers;
     if (category === 'unit') {
-      headers = ['name', 'type', 'serial_no', 'ip_address', 'id_can', 'mode', 'firmware_version', 'description'];
+      headers = ['type', 'serial_no', 'ip_address', 'id_can', 'mode', 'firmware_version', 'description'];
     } else {
-      headers = ['name', 'address', 'description'];
+      headers = ['name', 'address', 'description', 'object_type'];
     }
 
     // Create CSV content
@@ -153,13 +180,48 @@ class ExportImportService {
     return csvRows.join('\n');
   }
 
+  // Convert aircon items to cards CSV format
+  convertAirconItemsToCardsCSV(items) {
+    if (!items || items.length === 0) return '';
+
+    // Group items by address to form cards
+    const cards = {};
+    items.forEach(item => {
+      if (!cards[item.address]) {
+        cards[item.address] = {
+          name: item.name,
+          address: item.address,
+          description: item.description
+        };
+      }
+    });
+
+    const headers = ['name', 'address', 'description'];
+    const csvRows = [];
+    csvRows.push(headers.join(','));
+
+    Object.values(cards).forEach(card => {
+      const row = headers.map(header => {
+        const value = card[header] || '';
+        // Escape quotes and wrap in quotes if contains comma or quote
+        if (typeof value === 'string' && (value.includes(',') || value.includes('"') || value.includes('\n'))) {
+          return `"${value.replace(/"/g, '""')}"`;
+        }
+        return value;
+      });
+      csvRows.push(row.join(','));
+    });
+
+    return csvRows.join('\n');
+  }
+
   // Import items from CSV file
   async importItemsFromCSV(category) {
     return new Promise((resolve, reject) => {
       const input = document.createElement('input');
       input.type = 'file';
       input.accept = '.csv';
-      
+
       input.onchange = async (event) => {
         const file = event.target.files[0];
         if (!file) {
@@ -170,7 +232,7 @@ class ExportImportService {
         try {
           const text = await file.text();
           const items = this.parseCSVToItems(text, category);
-          
+
           if (!items || items.length === 0) {
             toast.error('No valid items found in CSV file');
             reject(new Error('No valid items'));
@@ -197,10 +259,15 @@ class ExportImportService {
     const headers = lines[0].split(',').map(h => h.trim().replace(/"/g, ''));
     const items = [];
 
+    // Special handling for aircon category - expect card format
+    if (category === 'aircon') {
+      return this.parseAirconCardsCSV(csvContent);
+    }
+
     // Validate headers based on category
-    const expectedHeaders = category === 'unit' 
-      ? ['name', 'type', 'serial_no', 'ip_address', 'id_can', 'mode', 'firmware_version', 'description']
-      : ['name', 'address', 'description'];
+    const expectedHeaders = category === 'unit'
+      ? ['type', 'serial_no', 'ip_address', 'id_can', 'mode', 'firmware_version', 'description']
+      : ['name', 'address', 'description', 'object_type'];
 
     const hasValidHeaders = expectedHeaders.every(header => headers.includes(header));
     if (!hasValidHeaders) {
@@ -216,8 +283,12 @@ class ExportImportService {
         item[header] = values[index] || '';
       });
 
-      // Validate required fields
-      if (item.name && item.name.trim()) {
+      // Validate required fields based on category
+      const isValid = category === 'unit'
+        ? item.type && item.type.trim()
+        : item.address && item.address.trim();
+
+      if (isValid) {
         items.push(item);
       }
     }
@@ -225,16 +296,57 @@ class ExportImportService {
     return items;
   }
 
+  // Parse aircon cards CSV content
+  parseAirconCardsCSV(csvContent) {
+    const lines = csvContent.split('\n').filter(line => line.trim());
+    if (lines.length < 2) return [];
+
+    const headers = lines[0].split(',').map(h => h.trim().replace(/"/g, ''));
+    const cards = [];
+
+    // Validate headers for aircon cards
+    const expectedHeaders = ['name', 'address', 'description'];
+    const hasValidHeaders = expectedHeaders.every(header => headers.includes(header));
+    if (!hasValidHeaders) {
+      throw new Error('Invalid CSV headers for aircon cards. Expected: name, address, description');
+    }
+
+    for (let i = 1; i < lines.length; i++) {
+      const values = this.parseCSVLine(lines[i]);
+      if (values.length !== headers.length) continue;
+
+      const card = {};
+      headers.forEach((header, index) => {
+        card[header] = values[index] || '';
+      });
+
+      // Validate required fields
+      if (card.address && card.address.trim()) {
+        // Validate address is positive integer
+        const addressNum = parseInt(card.address.trim());
+        if (!isNaN(addressNum) && addressNum > 0) {
+          cards.push({
+            name: card.name.trim(),
+            address: card.address.trim(),
+            description: card.description.trim()
+          });
+        }
+      }
+    }
+
+    return cards;
+  }
+
   // Parse a single CSV line handling quotes and commas
   parseCSVLine(line) {
     const result = [];
     let current = '';
     let inQuotes = false;
-    
+
     for (let i = 0; i < line.length; i++) {
       const char = line[i];
       const nextChar = line[i + 1];
-      
+
       if (char === '"') {
         if (inQuotes && nextChar === '"') {
           current += '"';
@@ -249,7 +361,7 @@ class ExportImportService {
         current += char;
       }
     }
-    
+
     result.push(current.trim());
     return result;
   }

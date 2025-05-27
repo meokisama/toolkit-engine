@@ -238,6 +238,43 @@ function setupIpcHandlers() {
     }
   });
 
+  // Aircon cards
+  ipcMain.handle('aircon:getCards', async (event, projectId) => {
+    try {
+      return await dbService.getAirconCards(projectId);
+    } catch (error) {
+      console.error('Error getting aircon cards:', error);
+      throw error;
+    }
+  });
+
+  ipcMain.handle('aircon:createCard', async (event, projectId, cardData) => {
+    try {
+      return await dbService.createAirconCard(projectId, cardData);
+    } catch (error) {
+      console.error('Error creating aircon card:', error);
+      throw error;
+    }
+  });
+
+  ipcMain.handle('aircon:deleteCard', async (event, projectId, address) => {
+    try {
+      return await dbService.deleteAirconCard(projectId, address);
+    } catch (error) {
+      console.error('Error deleting aircon card:', error);
+      throw error;
+    }
+  });
+
+  ipcMain.handle('aircon:duplicateCard', async (event, projectId, address) => {
+    try {
+      return await dbService.duplicateAirconCard(projectId, address);
+    } catch (error) {
+      console.error('Error duplicating aircon card:', error);
+      throw error;
+    }
+  });
+
   // Unit items
   ipcMain.handle('unit:getAll', async (event, projectId) => {
     try {

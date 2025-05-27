@@ -34,6 +34,7 @@ export function ProjectDetailProvider({ children }) {
     curtain: [],
     scene: [],
   });
+  const [airconCards, setAirconCards] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
@@ -51,6 +52,10 @@ export function ProjectDetailProvider({ children }) {
       );
 
       setProjectItems(projectItems);
+
+      // Load aircon cards separately
+      const cards = await window.electronAPI.aircon.getCards(projectId);
+      setAirconCards(cards);
     } catch (err) {
       console.error("Failed to load project items:", err);
       setError("Failed to load project items");
@@ -76,6 +81,7 @@ export function ProjectDetailProvider({ children }) {
           curtain: [],
           scene: [],
         });
+        setAirconCards([]);
       }
     },
     [loadProjectItems]
@@ -199,26 +205,187 @@ export function ProjectDetailProvider({ children }) {
           return false;
         }
 
-        const importedItems = await window.electronAPI[category].bulkImport(
-          selectedProject.id,
-          items
-        );
-        setProjectItems((prev) => ({
-          ...prev,
-          [category]: [...prev[category], ...importedItems],
-        }));
+        let importedItems;
 
-        toast.success(
-          `${importedItems.length} ${category} items imported successfully`
-        );
+        // Special handling for aircon category - import as cards
+        if (category === "aircon") {
+          const cardPromises = items.map((cardData) =>
+            window.electronAPI.aircon.createCard(selectedProject.id, cardData)
+          );
+          const cardResults = await Promise.all(cardPromises);
+          importedItems = cardResults.flat(); // Flatten array of arrays
+
+          // Update both aircon items and cards
+          setProjectItems((prev) => ({
+            ...prev,
+            [category]: [...prev[category], ...importedItems],
+          }));
+
+          // Reload cards to get updated structure
+          const cards = await window.electronAPI.aircon.getCards(
+            selectedProject.id
+          );
+          setAirconCards(cards);
+
+          toast.success(
+            `${items.length} aircon cards (${importedItems.length} items) imported successfully`
+          );
+        } else {
+          importedItems = await window.electronAPI[category].bulkImport(
+            selectedProject.id,
+            items
+          );
+          setProjectItems((prev) => ({
+            ...prev,
+            [category]: [...prev[category], ...importedItems],
+          }));
+
+          toast.success(
+            `${importedItems.length} ${category} items imported successfully`
+          );
+        }
+
         return importedItems;
       } catch (err) {
         console.error(`Failed to import ${category} items:`, err);
-        toast.error(`Failed to import ${category} items`);
+        const errorMessage =
+          err.message || `Failed to import ${category} items`;
+        toast.error(errorMessage);
         throw err;
       }
     },
     [selectedProject]
+  );
+
+  // Aircon card operations - memoized
+  const createAirconCard = useCallback(
+    async (cardData) => {
+      if (!selectedProject) return;
+
+      try {
+        const newItems = await window.electronAPI.aircon.createCard(
+          selectedProject.id,
+          cardData
+        );
+
+        // Update both aircon items and cards
+        setProjectItems((prev) => ({
+          ...prev,
+          aircon: [...prev.aircon, ...newItems],
+        }));
+
+        // Reload cards to get updated structure
+        const cards = await window.electronAPI.aircon.getCards(
+          selectedProject.id
+        );
+        setAirconCards(cards);
+
+        toast.success("Aircon card created successfully");
+        return newItems;
+      } catch (err) {
+        console.error("Failed to create aircon card:", err);
+        const errorMessage = err.message || "Failed to create aircon card";
+        toast.error(errorMessage);
+        throw err;
+      }
+    },
+    [selectedProject]
+  );
+
+  const deleteAirconCard = useCallback(async (projectId, address) => {
+    try {
+      await window.electronAPI.aircon.deleteCard(projectId, address);
+
+      // Update both aircon items and cards
+      setProjectItems((prev) => ({
+        ...prev,
+        aircon: prev.aircon.filter((item) => item.address !== address),
+      }));
+
+      setAirconCards((prev) => prev.filter((card) => card.address !== address));
+
+      toast.success("Aircon card deleted successfully");
+    } catch (err) {
+      console.error("Failed to delete aircon card:", err);
+      toast.error("Failed to delete aircon card");
+      throw err;
+    }
+  }, []);
+
+  const duplicateAirconCard = useCallback(async (projectId, address) => {
+    try {
+      const duplicatedItems = await window.electronAPI.aircon.duplicateCard(
+        projectId,
+        address
+      );
+
+      // Update both aircon items and cards
+      setProjectItems((prev) => ({
+        ...prev,
+        aircon: [...prev.aircon, ...duplicatedItems],
+      }));
+
+      // Reload cards to get updated structure
+      const cards = await window.electronAPI.aircon.getCards(projectId);
+      setAirconCards(cards);
+
+      toast.success("Aircon card duplicated successfully");
+      return duplicatedItems;
+    } catch (err) {
+      console.error("Failed to duplicate aircon card:", err);
+      toast.error("Failed to duplicate aircon card");
+      throw err;
+    }
+  }, []);
+
+  const updateAirconCard = useCallback(
+    async (cardData) => {
+      if (!selectedProject) return;
+
+      try {
+        // Update all items with the same address
+        const itemsToUpdate = projectItems.aircon.filter(
+          (item) => item.address === cardData.address
+        );
+
+        const updatePromises = itemsToUpdate.map((item) =>
+          window.electronAPI.aircon.update(item.id, {
+            name: cardData.name,
+            address: cardData.address,
+            description: cardData.description,
+            object_type: item.object_type,
+          })
+        );
+
+        const updatedItems = await Promise.all(updatePromises);
+
+        // Update both aircon items and cards
+        setProjectItems((prev) => ({
+          ...prev,
+          aircon: prev.aircon.map((item) => {
+            const updatedItem = updatedItems.find(
+              (updated) => updated.id === item.id
+            );
+            return updatedItem || item;
+          }),
+        }));
+
+        // Reload cards to get updated structure
+        const cards = await window.electronAPI.aircon.getCards(
+          selectedProject.id
+        );
+        setAirconCards(cards);
+
+        toast.success("Aircon card updated successfully");
+        return updatedItems;
+      } catch (err) {
+        console.error("Failed to update aircon card:", err);
+        const errorMessage = err.message || "Failed to update aircon card";
+        toast.error(errorMessage);
+        throw err;
+      }
+    },
+    [selectedProject, projectItems.aircon]
   );
 
   // Note: loadProjectItems is called directly in selectProject, no need for useEffect
@@ -230,6 +397,7 @@ export function ProjectDetailProvider({ children }) {
       activeTab,
       setActiveTab,
       projectItems,
+      airconCards,
       loading,
       error,
       selectProject,
@@ -240,11 +408,16 @@ export function ProjectDetailProvider({ children }) {
       duplicateItem,
       exportItems,
       importItems,
+      createAirconCard,
+      updateAirconCard,
+      deleteAirconCard,
+      duplicateAirconCard,
     }),
     [
       selectedProject,
       activeTab,
       projectItems,
+      airconCards,
       loading,
       error,
       selectProject,
@@ -255,6 +428,10 @@ export function ProjectDetailProvider({ children }) {
       duplicateItem,
       exportItems,
       importItems,
+      createAirconCard,
+      updateAirconCard,
+      deleteAirconCard,
+      duplicateAirconCard,
     ]
   );
 

@@ -5,19 +5,13 @@ import { Card, CardContent } from "@/components/ui/card";
 export function TabContentSkeleton() {
   return (
     <div className="flex flex-1 flex-col gap-4 p-4 pt-0">
-      {/* Project header skeleton */}
-      <div className="space-y-2">
-        <Skeleton className="h-8 w-64" /> {/* Project title */}
-        <Skeleton className="h-4 w-96" /> {/* Project description */}
-      </div>
-      
       {/* Tabs skeleton */}
-      <div className="flex space-x-1 border-b">
+      <div className="flex space-x-1 w-full">
         {Array.from({ length: 5 }).map((_, index) => (
-          <Skeleton key={index} className="h-10 w-20" />
+          <Skeleton key={index} className="h-10 w-1/5" />
         ))}
       </div>
-      
+
       {/* Tab content skeleton */}
       <Card className="flex-1 mt-2">
         <CardContent className="h-full">
@@ -30,7 +24,7 @@ export function TabContentSkeleton() {
                 <Skeleton className="h-10 w-24" /> {/* Bulk delete button */}
               </div>
             </div>
-            
+
             {/* Table skeleton */}
             <div className="rounded-md border">
               {/* Header */}
@@ -41,10 +35,13 @@ export function TabContentSkeleton() {
                 <Skeleton className="h-4 w-32" /> {/* Description */}
                 <Skeleton className="h-4 w-16" /> {/* Actions */}
               </div>
-              
+
               {/* Rows */}
               {Array.from({ length: 5 }).map((_, index) => (
-                <div key={index} className="flex items-center space-x-4 p-4 border-b">
+                <div
+                  key={index}
+                  className="flex items-center space-x-4 p-4 border-b"
+                >
                   <Skeleton className="h-4 w-4" /> {/* Checkbox */}
                   <Skeleton className="h-4 w-24" /> {/* Name */}
                   <Skeleton className="h-4 w-20" /> {/* Address */}
@@ -57,7 +54,7 @@ export function TabContentSkeleton() {
                 </div>
               ))}
             </div>
-            
+
             {/* Pagination skeleton */}
             <div className="flex items-center justify-between">
               <Skeleton className="h-4 w-32" /> {/* Selected count */}

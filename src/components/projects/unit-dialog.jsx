@@ -28,7 +28,6 @@ export function UnitDialog({
 }) {
   const { createItem, updateItem } = useProjectDetail();
   const [formData, setFormData] = useState({
-    name: "",
     type: "",
     serial_no: "",
     ip_address: "",
@@ -74,7 +73,6 @@ export function UnitDialog({
     if (open) {
       if (mode === "edit" && item) {
         setFormData({
-          name: item.name || "",
           type: item.type || "",
           serial_no: item.serial_no || "",
           ip_address: item.ip_address || "",
@@ -85,7 +83,6 @@ export function UnitDialog({
         });
       } else {
         setFormData({
-          name: "",
           type: "",
           serial_no: "",
           ip_address: "",
@@ -111,7 +108,9 @@ export function UnitDialog({
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (!formData.name.trim()) {
+    // Validate required type field
+    if (!formData.type.trim()) {
+      setErrors({ type: "Unit type is required" });
       return;
     }
 
@@ -157,41 +156,33 @@ export function UnitDialog({
         </DialogHeader>
         <form onSubmit={handleSubmit}>
           <div className="grid gap-4 py-4">
-            {/* Name */}
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="name" className="text-right">
-                Name *
-              </Label>
-              <Input
-                id="name"
-                value={formData.name}
-                onChange={(e) => handleInputChange("name", e.target.value)}
-                className="col-span-3"
-                placeholder="Enter unit name"
-                required
-              />
-            </div>
-
             {/* Type */}
             <div className="grid grid-cols-4 items-center gap-4">
               <Label htmlFor="type" className="text-right">
-                Type
+                Type *
               </Label>
-              <Select
-                value={formData.type}
-                onValueChange={(value) => handleInputChange("type", value)}
-              >
-                <SelectTrigger className="col-span-3">
-                  <SelectValue placeholder="Select unit type" />
-                </SelectTrigger>
-                <SelectContent>
-                  {UNIT_TYPES.map((type) => (
-                    <SelectItem key={type} value={type}>
-                      {type}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <div className="col-span-3">
+                <Select
+                  value={formData.type}
+                  onValueChange={(value) => handleInputChange("type", value)}
+                >
+                  <SelectTrigger
+                    className={errors.type ? "border-red-500" : ""}
+                  >
+                    <SelectValue placeholder="Select unit type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {UNIT_TYPES.map((type) => (
+                      <SelectItem key={type} value={type}>
+                        {type}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {errors.type && (
+                  <p className="text-sm text-red-500 mt-1">{errors.type}</p>
+                )}
+              </div>
             </div>
 
             {/* Serial No */}
@@ -316,7 +307,8 @@ export function UnitDialog({
               type="submit"
               disabled={
                 loading ||
-                !formData.name.trim() ||
+                !formData.type.trim() ||
+                errors.type ||
                 errors.ip_address ||
                 errors.id_can
               }

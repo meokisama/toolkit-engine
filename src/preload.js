@@ -31,6 +31,11 @@ contextBridge.exposeInMainWorld('electronAPI', {
         delete: (id) => ipcRenderer.invoke('aircon:delete', id),
         duplicate: (id) => ipcRenderer.invoke('aircon:duplicate', id),
         bulkImport: (projectId, items) => ipcRenderer.invoke('aircon:bulkImport', projectId, items),
+        // Aircon cards
+        getCards: (projectId) => ipcRenderer.invoke('aircon:getCards', projectId),
+        createCard: (projectId, cardData) => ipcRenderer.invoke('aircon:createCard', projectId, cardData),
+        deleteCard: (projectId, address) => ipcRenderer.invoke('aircon:deleteCard', projectId, address),
+        duplicateCard: (projectId, address) => ipcRenderer.invoke('aircon:duplicateCard', projectId, address),
     },
     unit: {
         getAll: (projectId) => ipcRenderer.invoke('unit:getAll', projectId),

@@ -4,6 +4,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { useProjectDetail } from "@/contexts/project-detail-context";
 import { ProjectItemsTable } from "./project-items-table";
 import { UnitTable } from "./unit-table";
+import { AirconCards } from "./aircon-cards";
 import { TabContentSkeleton } from "@/components/projects/tab-content-skeleton";
 import { Lightbulb, Wind, Cpu, Blinds, Palette } from "lucide-react";
 
@@ -37,8 +38,14 @@ const tabConfig = {
 };
 
 export function ProjectDetail() {
-  const { selectedProject, activeTab, setActiveTab, projectItems, loading } =
-    useProjectDetail();
+  const {
+    selectedProject,
+    activeTab,
+    setActiveTab,
+    projectItems,
+    airconCards,
+    loading,
+  } = useProjectDetail();
 
   // Memoize tab entries to prevent recreating on every render
   const tabEntries = useMemo(() => Object.entries(tabConfig), []);
@@ -47,10 +54,14 @@ export function ProjectDetail() {
   const itemCounts = useMemo(() => {
     const counts = {};
     Object.keys(tabConfig).forEach((key) => {
-      counts[key] = projectItems[key]?.length || 0;
+      if (key === "aircon") {
+        counts[key] = airconCards?.length || 0;
+      } else {
+        counts[key] = projectItems[key]?.length || 0;
+      }
     });
     return counts;
-  }, [projectItems]);
+  }, [projectItems, airconCards]);
 
   if (!selectedProject) {
     return (
@@ -98,6 +109,8 @@ export function ProjectDetail() {
           <TabsContent key={key} value={key} className="flex-1 mt-2">
             {key === "unit" ? (
               <UnitTable />
+            ) : key === "aircon" ? (
+              <AirconCards cards={airconCards || []} loading={loading} />
             ) : (
               <Card className="h-full">
                 <CardContent className="h-full">

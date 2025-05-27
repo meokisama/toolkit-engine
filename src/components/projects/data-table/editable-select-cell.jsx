@@ -39,7 +39,7 @@ export function EditableSelectCell({
 
   return (
     <Select value={editValue} onValueChange={handleValueChange}>
-      <SelectTrigger className={cn("h-10", className)}>
+      <SelectTrigger className={cn("!h-10", className)}>
         {renderBadge && editValue ? (
           <Badge variant={badgeVariant} className="text-xs">
             {displayText}

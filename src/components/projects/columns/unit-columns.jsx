@@ -58,29 +58,7 @@ export const createUnitColumns = (
       className: "w-[3%]",
     },
   },
-  {
-    accessorKey: "name",
-    header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Name" />
-    ),
-    cell: ({ row }) => {
-      const name = row.getValue("name");
-      const effectiveValue = getEffectiveValue(row.original.id, "name", name);
-      return (
-        <EditableCell
-          value={effectiveValue}
-          type="text"
-          onSave={(newValue) => onCellEdit(row.original.id, "name", newValue)}
-          className="font-medium"
-        />
-      );
-    },
-    enableSorting: true,
-    enableHiding: true,
-    meta: {
-      className: "w-[10%]",
-    },
-  },
+
   {
     accessorKey: "type",
     header: ({ column }) => (
@@ -98,13 +76,14 @@ export const createUnitColumns = (
           placeholder="Choose unit type"
           renderBadge={false}
           badgeVariant="secondary"
+          className="w-full"
         />
       );
     },
     enableSorting: true,
     enableHiding: true,
     meta: {
-      className: "w-[10%]",
+      className: "w-[15%]",
     },
   },
   {
@@ -126,7 +105,7 @@ export const createUnitColumns = (
           onSave={(newValue) =>
             onCellEdit(row.original.id, "serial_no", newValue)
           }
-          className="font-mono text-sm"
+          className="font-mono text-sm w-full"
           placeholder="-"
         />
       );
@@ -156,12 +135,12 @@ export const createUnitColumns = (
           onSave={(newValue) =>
             onCellEdit(row.original.id, "ip_address", newValue)
           }
-          className="font-mono text-sm"
+          className="font-mono text-sm w-full"
           placeholder="-"
         />
       );
     },
-    enableSorting: true,
+    enableSorting: false,
     enableHiding: true,
     meta: {
       className: "w-[15%]",
@@ -184,12 +163,12 @@ export const createUnitColumns = (
           value={effectiveValue}
           type="text"
           onSave={(newValue) => onCellEdit(row.original.id, "id_can", newValue)}
-          className="font-mono text-sm"
+          className="font-mono text-sm w-full"
           placeholder="-"
         />
       );
     },
-    enableSorting: true,
+    enableSorting: false,
     enableHiding: true,
     meta: {
       className: "w-[15%]",
@@ -225,6 +204,7 @@ export const createUnitColumns = (
           placeholder="Choose mode"
           renderBadge={false}
           badgeVariant={getVariant(effectiveValue)}
+          className="w-full"
         />
       );
     },
@@ -253,7 +233,7 @@ export const createUnitColumns = (
           onSave={(newValue) =>
             onCellEdit(row.original.id, "firmware_version", newValue)
           }
-          className="font-mono text-sm"
+          className="font-mono text-sm w-full"
           placeholder="-"
         />
       );
@@ -283,12 +263,11 @@ export const createUnitColumns = (
           onSave={(newValue) =>
             onCellEdit(row.original.id, "description", newValue)
           }
-          className="max-w-[150px]"
           placeholder="-"
         />
       );
     },
-    enableSorting: true,
+    enableSorting: false,
     enableHiding: true,
     meta: {
       className: "w-[30%]",

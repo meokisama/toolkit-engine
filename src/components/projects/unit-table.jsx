@@ -239,7 +239,7 @@ export function UnitTable() {
                     {databaseTable && (
                       <DataTableToolbar
                         table={databaseTable}
-                        searchColumn="name"
+                        searchColumn="type"
                         searchPlaceholder="Search units..."
                         onBulkDelete={handleBulkDelete}
                         selectedRowsCount={selectedRowsCount}

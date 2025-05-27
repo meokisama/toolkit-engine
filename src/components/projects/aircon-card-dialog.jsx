@@ -11,92 +11,68 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useProjectDetail } from "@/contexts/project-detail-context";
-import { OBJECT_TYPES } from "@/constants";
 
-const categoryLabels = {
-  lighting: "Lighting",
-  aircon: "Aircon",
-  unit: "Unit",
-  curtain: "Curtain",
-  scene: "Scene",
-};
-
-export function ProjectItemDialog({
+export function AirconCardDialog({
   open,
   onOpenChange,
-  category,
-  item = null,
   mode = "create",
+  card = null,
 }) {
-  const { createItem, updateItem } = useProjectDetail();
+  const { selectedProject, createAirconCard, updateAirconCard } =
+    useProjectDetail();
   const [formData, setFormData] = useState({
     name: "",
     address: "",
     description: "",
-    object_type: "",
   });
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({});
 
-  // Validate address field
-  const validateAddress = (value) => {
-    // For lighting category, address is required
-    if (category === "lighting" && !value.trim()) {
-      return "Address is required for lighting items";
-    }
-
-    if (!value.trim()) {
-      return null; // Address is optional for other categories
-    }
-
-    const num = parseInt(value, 10);
-    if (isNaN(num) || num <= 0 || !Number.isInteger(parseFloat(value))) {
-      return "Address must be a positive integer";
-    }
-
-    return null;
-  };
-
-  // Reset form when dialog opens/closes or item changes
   useEffect(() => {
     if (open) {
-      setErrors({}); // Clear errors when dialog opens
-      if (mode === "edit" && item) {
+      if (mode === "edit" && card) {
         setFormData({
-          name: item.name || "",
-          address: item.address || "",
-          description: item.description || "",
-          object_type: item.object_type || getDefaultObjectType(category),
+          name: card.name || "",
+          address: card.address || "",
+          description: card.description || "",
         });
       } else {
         setFormData({
           name: "",
           address: "",
           description: "",
-          object_type: getDefaultObjectType(category),
         });
       }
+      setErrors({});
     }
-  }, [open, item, mode, category]);
+  }, [open, mode, card]);
 
-  // Get default object type based on category
-  const getDefaultObjectType = (category) => {
-    switch (category) {
-      case "lighting":
-        return OBJECT_TYPES.LIGHTING;
-      case "curtain":
-        return OBJECT_TYPES.CURTAIN;
-      case "scene":
-        return OBJECT_TYPES.SCENE;
-      default:
-        return "";
+  const validateAddress = (address) => {
+    if (!address || !address.trim()) {
+      return "Address is required";
+    }
+
+    const addressNum = parseInt(address.trim());
+    if (isNaN(addressNum) || addressNum <= 0) {
+      return "Address must be a positive integer";
+    }
+
+    return null;
+  };
+
+  const handleInputChange = (field, value) => {
+    setFormData((prev) => ({ ...prev, [field]: value }));
+
+    // Clear error when user starts typing
+    if (errors[field] || errors.general) {
+      setErrors((prev) => ({ ...prev, [field]: null, general: null }));
     }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (!formData.name.trim()) {
+    if (!formData.name.trim() || !formData.address.trim()) {
       return;
     }
 
@@ -109,50 +85,45 @@ export function ProjectItemDialog({
 
     setLoading(true);
     try {
-      if (mode === "edit" && item) {
-        await updateItem(category, item.id, formData);
+      if (mode === "edit") {
+        await updateAirconCard({
+          name: formData.name.trim(),
+          address: formData.address.trim(),
+          description: formData.description.trim(),
+        });
       } else {
-        await createItem(category, formData);
+        await createAirconCard({
+          name: formData.name.trim(),
+          address: formData.address.trim(),
+          description: formData.description.trim(),
+        });
       }
       onOpenChange(false);
     } catch (error) {
-      console.error("Failed to save item:", error);
+      console.error(`Failed to ${mode} aircon card:`, error);
+
+      // Handle specific error messages
+      if (error.message && error.message.includes("already exists")) {
+        setErrors({ address: error.message });
+      } else {
+        setErrors({ general: `Failed to ${mode} aircon card` });
+      }
     } finally {
       setLoading(false);
     }
   };
-
-  const handleInputChange = (field, value) => {
-    setFormData((prev) => ({
-      ...prev,
-      [field]: value,
-    }));
-
-    // Real-time validation for address field
-    if (field === "address") {
-      const error = validateAddress(value);
-      setErrors((prev) => ({
-        ...prev,
-        address: error,
-      }));
-    }
-  };
-
-  const categoryLabel = categoryLabels[category] || category;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
           <DialogTitle>
-            {mode === "edit"
-              ? `Edit ${categoryLabel} Item`
-              : `Create New ${categoryLabel} Item`}
+            {mode === "edit" ? "Edit Aircon Card" : "Create New Aircon Card"}
           </DialogTitle>
           <DialogDescription>
             {mode === "edit"
-              ? `Update the ${categoryLabel.toLowerCase()} item details below.`
-              : `Add a new ${categoryLabel.toLowerCase()} item to your project.`}
+              ? "Update the aircon card details. This will update all 5 items with the same address."
+              : "Add a new aircon card to your project. This will create 5 items with different object types."}
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit}>
@@ -166,23 +137,21 @@ export function ProjectItemDialog({
                 value={formData.name}
                 onChange={(e) => handleInputChange("name", e.target.value)}
                 className="col-span-3"
-                placeholder="Enter item name"
+                placeholder="Enter aircon name"
                 required
               />
             </div>
-            <div className="grid grid-cols-4 items-start gap-4">
-              <Label htmlFor="address" className="text-right pt-2">
-                Address{category === "lighting" ? " *" : ""}
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="address" className="text-right">
+                Address *
               </Label>
               <div className="col-span-3">
                 <Input
                   id="address"
                   value={formData.address}
                   onChange={(e) => handleInputChange("address", e.target.value)}
-                  className={
-                    errors.address ? "border-red-500 focus:border-red-500" : ""
-                  }
-                  placeholder="Enter positive integer (e.g., 1, 2, 100)"
+                  placeholder="Enter address (positive integer)"
+                  className={errors.address ? "border-red-500" : ""}
                 />
                 {errors.address && (
                   <p className="text-sm text-red-500 mt-1">{errors.address}</p>
@@ -205,6 +174,12 @@ export function ProjectItemDialog({
             </div>
           </div>
 
+          {errors.general && (
+            <div className="text-sm text-red-500 text-center py-2">
+              {errors.general}
+            </div>
+          )}
+
           <DialogFooter>
             <Button
               type="button"
@@ -219,11 +194,17 @@ export function ProjectItemDialog({
               disabled={
                 loading ||
                 !formData.name.trim() ||
-                (category === "lighting" && !formData.address.trim()) ||
+                !formData.address.trim() ||
                 errors.address
               }
             >
-              {loading ? "Saving..." : mode === "edit" ? "Update" : "Create"}
+              {loading
+                ? mode === "edit"
+                  ? "Updating..."
+                  : "Creating..."
+                : mode === "edit"
+                ? "Update"
+                : "Create"}
             </Button>
           </DialogFooter>
         </form>

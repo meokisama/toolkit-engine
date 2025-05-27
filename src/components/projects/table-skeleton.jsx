@@ -10,10 +10,13 @@ export function TableSkeleton({ rows = 5, columns = 4 }) {
           <Skeleton key={index} className="h-4 flex-1" />
         ))}
       </div>
-      
+
       {/* Table rows skeleton */}
       {Array.from({ length: rows }).map((_, rowIndex) => (
-        <div key={rowIndex} className="flex items-center space-x-4 p-4 border-b border-muted">
+        <div
+          key={rowIndex}
+          className="flex items-center space-x-4 p-4 border-b border-muted"
+        >
           {Array.from({ length: columns }).map((_, colIndex) => (
             <Skeleton key={colIndex} className="h-4 flex-1" />
           ))}
@@ -34,7 +37,7 @@ export function DataTableSkeleton({ rows = 5 }) {
           <Skeleton className="h-10 w-24" /> {/* Bulk delete button */}
         </div>
       </div>
-      
+
       {/* Table skeleton */}
       <div className="rounded-md border">
         {/* Header */}
@@ -45,7 +48,7 @@ export function DataTableSkeleton({ rows = 5 }) {
           <Skeleton className="h-4 w-32" /> {/* Description */}
           <Skeleton className="h-4 w-16" /> {/* Actions */}
         </div>
-        
+
         {/* Rows */}
         {Array.from({ length: rows }).map((_, index) => (
           <div key={index} className="flex items-center space-x-4 p-4 border-b">
@@ -61,7 +64,7 @@ export function DataTableSkeleton({ rows = 5 }) {
           </div>
         ))}
       </div>
-      
+
       {/* Pagination skeleton */}
       <div className="flex items-center justify-between">
         <Skeleton className="h-4 w-32" /> {/* Selected count */}
