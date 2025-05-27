@@ -38,12 +38,12 @@ export function DataTableToolbar({
 }) {
   const [searchValue, setSearchValue] = useState("");
 
-  const selectedRows = table.getFilteredSelectedRowModel().rows;
+  const selectedRows = table?.getFilteredSelectedRowModel()?.rows || [];
   const hasSelectedRows = selectedRowsCount > 0;
 
   // Memoize handlers to prevent unnecessary rerenders
   const handleSearch = useCallback(() => {
-    table.getColumn(searchColumn)?.setFilterValue(searchValue);
+    table?.getColumn(searchColumn)?.setFilterValue(searchValue);
   }, [table, searchColumn, searchValue]);
 
   const handleKeyPress = useCallback(
@@ -57,7 +57,7 @@ export function DataTableToolbar({
 
   const handleClearSearch = useCallback(() => {
     setSearchValue("");
-    table.getColumn(searchColumn)?.setFilterValue("");
+    table?.getColumn(searchColumn)?.setFilterValue("");
   }, [table, searchColumn]);
 
   const handleBulkDelete = useCallback(() => {

@@ -61,3 +61,57 @@ export const UNIT_TYPES = [
 ];
 
 export const UNIT_MODES = ["Slave", "Master", "Stand Alone"];
+
+// Aircon Values
+export const AC_POWER_VALUES = {
+  AC_PWR_OFF: 0,
+  AC_PWR_ON: 1
+};
+
+export const AC_FAN_SPEED_VALUES = {
+  FCU_FAN_LOW: 0,
+  FCU_FAN_MED: 1,
+  FCU_FAN_HIGH: 2,
+  FCU_FAN_AUTO: 3,
+  FCU_FAN_OFF: 4
+};
+
+export const AC_MODE_VALUES = {
+  AC_COOL_MODE: 0,
+  AC_HEAT_MODE: 1,
+  AC_VENTILATION_MODE: 2,
+  AC_DRY_MODE: 3,
+  AC_AUTO: 4
+};
+
+export const AC_SWING_VALUES = {
+  OFF: 0,
+  ON: 1
+};
+
+// Aircon value labels for display
+export const AC_POWER_LABELS = {
+  [AC_POWER_VALUES.AC_PWR_OFF]: "Off",
+  [AC_POWER_VALUES.AC_PWR_ON]: "On"
+};
+
+export const AC_FAN_SPEED_LABELS = {
+  [AC_FAN_SPEED_VALUES.FCU_FAN_LOW]: "Low",
+  [AC_FAN_SPEED_VALUES.FCU_FAN_MED]: "Medium",
+  [AC_FAN_SPEED_VALUES.FCU_FAN_HIGH]: "High",
+  [AC_FAN_SPEED_VALUES.FCU_FAN_AUTO]: "Auto",
+  [AC_FAN_SPEED_VALUES.FCU_FAN_OFF]: "Off"
+};
+
+export const AC_MODE_LABELS = {
+  [AC_MODE_VALUES.AC_COOL_MODE]: "Cool",
+  [AC_MODE_VALUES.AC_HEAT_MODE]: "Heat",
+  [AC_MODE_VALUES.AC_VENTILATION_MODE]: "Ventilation",
+  [AC_MODE_VALUES.AC_DRY_MODE]: "Dry",
+  [AC_MODE_VALUES.AC_AUTO]: "Auto"
+};
+
+export const AC_SWING_LABELS = {
+  [AC_SWING_VALUES.OFF]: "Off",
+  [AC_SWING_VALUES.ON]: "On"
+};

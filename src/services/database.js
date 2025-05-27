@@ -114,12 +114,24 @@ class DatabaseService {
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         project_id INTEGER NOT NULL,
         name TEXT,
-        address TEXT NOT NULL,
+        address TEXT,
         description TEXT,
         object_type TEXT DEFAULT 'OBJ_SCENE',
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
         updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
         FOREIGN KEY (project_id) REFERENCES projects (id) ON DELETE CASCADE
+      )
+    `;
+
+    const createSceneItemsTable = `
+      CREATE TABLE IF NOT EXISTS scene_items (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        scene_id INTEGER NOT NULL,
+        item_type TEXT NOT NULL,
+        item_id INTEGER NOT NULL,
+        item_value TEXT,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (scene_id) REFERENCES scene (id) ON DELETE CASCADE
       )
     `;
 
@@ -130,6 +142,7 @@ class DatabaseService {
       this.db.exec(createUnitTable);
       this.db.exec(createCurtainTable);
       this.db.exec(createSceneTable);
+      this.db.exec(createSceneItemsTable);
     } catch (error) {
       console.error('Failed to create tables:', error);
       throw error;
@@ -805,7 +818,128 @@ class DatabaseService {
   }
 
   duplicateSceneItem(id) {
-    return this.duplicateProjectItem(id, 'scene');
+    try {
+      // Start transaction
+      const transaction = this.db.transaction(() => {
+        // Duplicate the scene
+        const duplicatedScene = this.duplicateProjectItem(id, 'scene');
+
+        // Get original scene items
+        const originalSceneItems = this.getSceneItemsWithDetails(id);
+
+        // Duplicate scene items
+        for (const sceneItem of originalSceneItems) {
+          this.addItemToScene(
+            duplicatedScene.id,
+            sceneItem.item_type,
+            sceneItem.item_id,
+            sceneItem.item_value
+          );
+        }
+
+        return duplicatedScene;
+      });
+
+      return transaction();
+    } catch (error) {
+      console.error('Failed to duplicate scene with items:', error);
+      throw error;
+    }
+  }
+
+  // Scene Items Management
+  getSceneItemsWithDetails(sceneId) {
+    try {
+      const stmt = this.db.prepare(`
+        SELECT
+          si.*,
+          CASE
+            WHEN si.item_type = 'lighting' THEN l.name
+            WHEN si.item_type = 'aircon' THEN ai.name
+            WHEN si.item_type = 'curtain' THEN c.name
+          END as item_name,
+          CASE
+            WHEN si.item_type = 'lighting' THEN l.address
+            WHEN si.item_type = 'aircon' THEN ai.address
+            WHEN si.item_type = 'curtain' THEN c.address
+          END as item_address,
+          CASE
+            WHEN si.item_type = 'lighting' THEN l.description
+            WHEN si.item_type = 'aircon' THEN ai.description
+            WHEN si.item_type = 'curtain' THEN c.description
+          END as item_description,
+          CASE
+            WHEN si.item_type = 'lighting' THEN l.object_type
+            WHEN si.item_type = 'aircon' THEN ai.object_type
+            WHEN si.item_type = 'curtain' THEN c.object_type
+            ELSE NULL
+          END as object_type
+        FROM scene_items si
+        LEFT JOIN lighting l ON si.item_type = 'lighting' AND si.item_id = l.id
+        LEFT JOIN aircon_items ai ON si.item_type = 'aircon' AND si.item_id = ai.id
+        LEFT JOIN curtain c ON si.item_type = 'curtain' AND si.item_id = c.id
+        WHERE si.scene_id = ?
+        ORDER BY si.created_at ASC
+      `);
+
+      return stmt.all(sceneId);
+    } catch (error) {
+      console.error('Failed to get scene items with details:', error);
+      throw error;
+    }
+  }
+
+  addItemToScene(sceneId, itemType, itemId, itemValue = null) {
+    try {
+      const stmt = this.db.prepare(`
+        INSERT INTO scene_items (scene_id, item_type, item_id, item_value)
+        VALUES (?, ?, ?, ?)
+      `);
+
+      const result = stmt.run(sceneId, itemType, itemId, itemValue);
+
+      // Return the created scene item with details
+      const getStmt = this.db.prepare('SELECT * FROM scene_items WHERE id = ?');
+      return getStmt.get(result.lastInsertRowid);
+    } catch (error) {
+      console.error('Failed to add item to scene:', error);
+      throw error;
+    }
+  }
+
+  removeItemFromScene(sceneItemId) {
+    try {
+      const stmt = this.db.prepare('DELETE FROM scene_items WHERE id = ?');
+      const result = stmt.run(sceneItemId);
+
+      return result.changes > 0;
+    } catch (error) {
+      console.error('Failed to remove item from scene:', error);
+      throw error;
+    }
+  }
+
+  updateSceneItemValue(sceneItemId, itemValue) {
+    try {
+      const stmt = this.db.prepare(`
+        UPDATE scene_items
+        SET item_value = ?
+        WHERE id = ?
+      `);
+
+      const result = stmt.run(itemValue, sceneItemId);
+
+      if (result.changes === 0) {
+        throw new Error('Scene item not found');
+      }
+
+      // Return updated scene item
+      const getStmt = this.db.prepare('SELECT * FROM scene_items WHERE id = ?');
+      return getStmt.get(sceneItemId);
+    } catch (error) {
+      console.error('Failed to update scene item value:', error);
+      throw error;
+    }
   }
 
   close() {

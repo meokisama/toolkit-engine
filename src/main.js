@@ -413,6 +413,43 @@ function setupIpcHandlers() {
     }
   });
 
+  // Scene Items Management
+  ipcMain.handle('scene:getItemsWithDetails', async (event, sceneId) => {
+    try {
+      return await dbService.getSceneItemsWithDetails(sceneId);
+    } catch (error) {
+      console.error('Error getting scene items with details:', error);
+      throw error;
+    }
+  });
+
+  ipcMain.handle('scene:addItem', async (event, sceneId, itemType, itemId, itemValue) => {
+    try {
+      return await dbService.addItemToScene(sceneId, itemType, itemId, itemValue);
+    } catch (error) {
+      console.error('Error adding item to scene:', error);
+      throw error;
+    }
+  });
+
+  ipcMain.handle('scene:removeItem', async (event, sceneItemId) => {
+    try {
+      return await dbService.removeItemFromScene(sceneItemId);
+    } catch (error) {
+      console.error('Error removing item from scene:', error);
+      throw error;
+    }
+  });
+
+  ipcMain.handle('scene:updateItemValue', async (event, sceneItemId, itemValue) => {
+    try {
+      return await dbService.updateSceneItemValue(sceneItemId, itemValue);
+    } catch (error) {
+      console.error('Error updating scene item value:', error);
+      throw error;
+    }
+  });
+
   // Import project
   ipcMain.handle('projects:import', async (event, projectData, itemsData) => {
     try {
