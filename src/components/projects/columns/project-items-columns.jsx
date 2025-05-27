@@ -158,7 +158,7 @@ export const createProjectItemsColumns = (
             variant="outline"
             size="icon"
             onClick={() => onDelete(item)}
-            className="cursor-pointer hover:bg-destructive/10 hover:text-destructive hover:border-destructive/30"
+            className="cursor-pointer hover:bg-destructive/10 text-destructive hover:text-destructive hover:border-destructive/30"
             title="Delete"
           >
             <Trash2 />

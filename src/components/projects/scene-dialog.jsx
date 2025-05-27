@@ -32,7 +32,15 @@ import {
   AC_MODE_LABELS,
   AC_SWING_LABELS,
 } from "@/constants";
-import { Plus, Trash2, Lightbulb, Wind, Blinds, Sun } from "lucide-react";
+import {
+  Plus,
+  Trash2,
+  Lightbulb,
+  Wind,
+  Blinds,
+  Sun,
+  Thermometer,
+} from "lucide-react";
 
 export function SceneDialog({
   open,
@@ -52,6 +60,7 @@ export function SceneDialog({
     description: "",
   });
   const [sceneItems, setSceneItems] = useState([]);
+  const [originalSceneItems, setOriginalSceneItems] = useState([]); // Store original items for reset
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({});
 
@@ -69,6 +78,7 @@ export function SceneDialog({
           description: "",
         });
         setSceneItems([]);
+        setOriginalSceneItems([]);
       }
       setErrors({});
     }
@@ -78,6 +88,7 @@ export function SceneDialog({
     try {
       const items = await window.electronAPI.scene.getItemsWithDetails(sceneId);
       setSceneItems(items);
+      setOriginalSceneItems(items); // Store original items for reset
     } catch (error) {
       console.error("Failed to load scene items:", error);
     }
@@ -90,73 +101,148 @@ export function SceneDialog({
     }
   };
 
-  const addItemToScene = async (itemType, itemId, itemValue = null) => {
-    if (mode === "edit" && scene) {
-      try {
-        await window.electronAPI.scene.addItem(
-          scene.id,
-          itemType,
-          itemId,
-          itemValue
-        );
-        await loadSceneItems(scene.id);
-      } catch (error) {
-        console.error("Failed to add item to scene:", error);
-      }
-    } else {
-      // For create mode, add to local state
-      const item = getItemDetails(itemType, itemId);
-      if (item) {
-        const newSceneItem = {
-          id: Date.now(), // Temporary ID for create mode
-          item_type: itemType,
-          item_id: itemId,
-          item_value: itemValue,
-          item_name: item.name,
-          item_address: item.address,
-          item_description: item.description,
-          object_type: item.object_type,
-        };
-        setSceneItems((prev) => [...prev, newSceneItem]);
-      }
+  const addItemToScene = (itemType, itemId, itemValue = null) => {
+    const item = getItemDetails(itemType, itemId);
+    if (!item) return;
+
+    // Get command and object_type for the item
+    let command = null;
+    let objectType = item.object_type;
+
+    // For aircon items, get the command based on object_type and value
+    if (itemType === "aircon" && itemValue !== null) {
+      command = getCommandForAirconItem(item.object_type, itemValue);
     }
+
+    // Always add to local state only - changes will be saved when user clicks Save
+    const newSceneItem = {
+      id: mode === "edit" ? `temp_${Date.now()}` : Date.now(), // Temporary ID
+      item_type: itemType,
+      item_id: itemId,
+      item_value: itemValue,
+      command: command,
+      object_type: objectType,
+      item_name: item.name,
+      item_address: item.address,
+      item_description: item.description,
+      label: item.label, // Include label for aircon items
+    };
+    setSceneItems((prev) => [...prev, newSceneItem]);
   };
 
-  const removeItemFromScene = async (sceneItemId) => {
-    if (mode === "edit" && scene) {
-      try {
-        await window.electronAPI.scene.removeItem(sceneItemId);
-        await loadSceneItems(scene.id);
-      } catch (error) {
-        console.error("Failed to remove item from scene:", error);
-      }
-    } else {
-      // For create mode, remove from local state
-      setSceneItems((prev) => prev.filter((item) => item.id !== sceneItemId));
-    }
+  const removeItemFromScene = (sceneItemId) => {
+    // Always remove from local state only - changes will be saved when user clicks Save
+    setSceneItems((prev) => prev.filter((item) => item.id !== sceneItemId));
   };
 
-  const updateSceneItemValue = async (sceneItemId, itemValue) => {
-    if (mode === "edit" && scene) {
-      try {
-        await window.electronAPI.scene.updateItemValue(sceneItemId, itemValue);
-        await loadSceneItems(scene.id);
-      } catch (error) {
-        console.error("Failed to update scene item value:", error);
-      }
-    } else {
-      // For create mode, update local state
-      setSceneItems((prev) =>
-        prev.map((item) =>
-          item.id === sceneItemId ? { ...item, item_value: itemValue } : item
-        )
-      );
-    }
+  const updateSceneItemValue = (sceneItemId, itemValue) => {
+    // Always update local state only - changes will be saved when user clicks Save
+    setSceneItems((prev) =>
+      prev.map((item) => {
+        if (item.id === sceneItemId) {
+          let command = null;
+          if (item.item_type === "aircon") {
+            command = getCommandForAirconItem(item.object_type, itemValue);
+          }
+          return { ...item, item_value: itemValue, command: command };
+        }
+        return item;
+      })
+    );
   };
 
   const getItemDetails = (itemType, itemId) => {
     const items = projectItems[itemType] || [];
     return items.find((item) => item.id === itemId);
+  };
+
+  const getCommandForAirconItem = (objectType, itemValue) => {
+    // For aircon items, we need to find the command based on object_type and value
+    switch (objectType) {
+      case OBJECT_TYPES.AC_POWER:
+        return (
+          Object.entries(AC_POWER_VALUES).find(
+            ([command, value]) => value.toString() === itemValue
+          )?.[0] || null
+        );
+      case OBJECT_TYPES.AC_FAN_SPEED:
+        return (
+          Object.entries(AC_FAN_SPEED_VALUES).find(
+            ([command, value]) => value.toString() === itemValue
+          )?.[0] || null
+        );
+      case OBJECT_TYPES.AC_MODE:
+        return (
+          Object.entries(AC_MODE_VALUES).find(
+            ([command, value]) => value.toString() === itemValue
+          )?.[0] || null
+        );
+      case OBJECT_TYPES.AC_SWING:
+        return (
+          Object.entries(AC_SWING_VALUES).find(
+            ([command, value]) => value.toString() === itemValue
+          )?.[0] || null
+        );
+      case OBJECT_TYPES.AC_TEMPERATURE:
+        return null; // Temperature doesn't use commands, just direct value
+      default:
+        return null;
+    }
+  };
+
+  const applySceneItemsChanges = async (sceneId) => {
+    // Compare current sceneItems with originalSceneItems to determine changes
+
+    // Find items to remove (in original but not in current)
+    const itemsToRemove = originalSceneItems.filter(
+      (item) => !sceneItems.some((currentItem) => currentItem.id === item.id)
+    );
+
+    // Find items to add (in current but not in original, or have temp IDs)
+    const itemsToAdd = sceneItems.filter(
+      (item) =>
+        !originalSceneItems.some(
+          (originalItem) => originalItem.id === item.id
+        ) || item.id.toString().startsWith("temp_")
+    );
+
+    // Find items to update (same ID but different values)
+    const itemsToUpdate = sceneItems.filter((item) => {
+      const originalItem = originalSceneItems.find(
+        (orig) => orig.id === item.id
+      );
+      return (
+        originalItem &&
+        (originalItem.item_value !== item.item_value ||
+          originalItem.command !== item.command)
+      );
+    });
+
+    // Remove items
+    for (const item of itemsToRemove) {
+      await window.electronAPI.scene.removeItem(item.id);
+    }
+
+    // Add new items
+    for (const item of itemsToAdd) {
+      await window.electronAPI.scene.addItem(
+        sceneId,
+        item.item_type,
+        item.item_id,
+        item.item_value,
+        item.command,
+        item.object_type
+      );
+    }
+
+    // Update existing items
+    for (const item of itemsToUpdate) {
+      await window.electronAPI.scene.updateItemValue(
+        item.id,
+        item.item_value,
+        item.command
+      );
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -170,7 +256,11 @@ export function SceneDialog({
     setLoading(true);
     try {
       if (mode === "edit" && scene) {
+        // Update scene basic info
         await updateItem("scene", scene.id, formData);
+
+        // Apply scene items changes
+        await applySceneItemsChanges(scene.id);
       } else {
         // Create new scene
         const newScene = await createItem("scene", formData);
@@ -181,7 +271,9 @@ export function SceneDialog({
             newScene.id,
             sceneItem.item_type,
             sceneItem.item_id,
-            sceneItem.item_value
+            sceneItem.item_value,
+            sceneItem.command,
+            sceneItem.object_type
           );
         }
 
@@ -196,12 +288,26 @@ export function SceneDialog({
         description: "",
       });
       setSceneItems([]);
+      setOriginalSceneItems([]);
       setErrors({});
     } catch (error) {
       console.error("Failed to save scene:", error);
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleCancel = () => {
+    if (mode === "edit" && originalSceneItems.length > 0) {
+      // Reset to original state
+      setSceneItems([...originalSceneItems]);
+      setFormData({
+        name: scene?.name || "",
+        description: scene?.description || "",
+      });
+    }
+    setErrors({});
+    onOpenChange(false);
   };
 
   const getValueOptions = (objectType) => {
@@ -227,10 +333,7 @@ export function SceneDialog({
           label,
         }));
       case OBJECT_TYPES.AC_TEMPERATURE:
-        return Array.from({ length: 21 }, (_, i) => ({
-          value: (i + 16).toString(),
-          label: `${i + 16}°C`,
-        }));
+        return []; // Temperature now uses number input, not dropdown
       default:
         return [];
     }
@@ -261,20 +364,50 @@ export function SceneDialog({
                 updateSceneItemValue(sceneItem.id, value.toString());
               }
             }}
-            className="w-32 pl-8 font-semibold"
+            className="w-40 pl-8 font-semibold"
           />
         </div>
       );
     }
 
-    // For aircon items, use select dropdown
+    // For aircon temperature, use number input for decimal values
+    if (sceneItem.object_type === OBJECT_TYPES.AC_TEMPERATURE) {
+      return (
+        <div className="relative">
+          <Thermometer className="h-4 w-4 absolute left-2 top-1/2 -translate-y-1/2 text-muted-foreground" />
+          <Input
+            type="number"
+            min="0"
+            max="40"
+            step="0.5"
+            value={sceneItem.item_value || "25"}
+            onChange={(e) => {
+              const inputValue = e.target.value;
+              if (inputValue === "") {
+                updateSceneItemValue(sceneItem.id, "25");
+              } else {
+                const value = Math.min(
+                  40,
+                  Math.max(0, parseFloat(inputValue) || 25)
+                );
+                updateSceneItemValue(sceneItem.id, value.toString());
+              }
+            }}
+            className="w-40 pl-8 font-semibold"
+            placeholder="25.5"
+          />
+        </div>
+      );
+    }
+
+    // For other aircon items, use select dropdown
     if (options.length > 0) {
       return (
         <Select
           value={sceneItem.item_value || ""}
           onValueChange={(value) => updateSceneItemValue(sceneItem.id, value)}
         >
-          <SelectTrigger className="w-32">
+          <SelectTrigger className="w-40">
             <SelectValue placeholder="Select value" />
           </SelectTrigger>
           <SelectContent>
@@ -295,7 +428,7 @@ export function SceneDialog({
         value={sceneItem.item_value || ""}
         onChange={(e) => updateSceneItemValue(sceneItem.id, e.target.value)}
         placeholder="Value"
-        className="w-32"
+        className="w-40"
       />
     );
   };
@@ -396,7 +529,11 @@ export function SceneDialog({
                                 </div>
                                 <div className="text-xs text-muted-foreground">
                                   Address: {sceneItem.item_address}
-                                  {sceneItem.object_type &&
+                                  {sceneItem.item_type === "aircon" &&
+                                    sceneItem.label &&
+                                    ` | ${sceneItem.label}`}
+                                  {sceneItem.item_type !== "aircon" &&
+                                    sceneItem.object_type &&
                                     ` | ${sceneItem.object_type}`}
                                 </div>
                               </div>
@@ -520,7 +657,7 @@ export function SceneDialog({
                                     </div>
                                     <div className="text-xs text-muted-foreground">
                                       Address: {item.address} |{" "}
-                                      {item.object_type}
+                                      {item.label || item.object_type}
                                     </div>
                                   </div>
                                   <Button
@@ -598,7 +735,7 @@ export function SceneDialog({
             <Button
               type="button"
               variant="outline"
-              onClick={() => onOpenChange(false)}
+              onClick={handleCancel}
               disabled={loading}
             >
               Cancel

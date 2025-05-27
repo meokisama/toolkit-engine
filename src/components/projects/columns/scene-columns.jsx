@@ -3,21 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { DataTableColumnHeader } from "@/components/projects/data-table/data-table-column-header";
-import {
-  Settings,
-  Palette,
-  MoreHorizontal,
-  SquarePen,
-  Copy,
-  Trash2,
-} from "lucide-react";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+import { Settings, Palette, SquarePen, Copy, Trash2 } from "lucide-react";
 
 export const createSceneColumns = (onEdit, onDuplicate, onDelete) => [
   {
@@ -42,7 +28,7 @@ export const createSceneColumns = (onEdit, onDuplicate, onDelete) => [
     enableSorting: false,
     enableHiding: false,
     meta: {
-      className: "w-[3%]",
+      className: "w-[5%]",
     },
   },
   {
@@ -62,7 +48,7 @@ export const createSceneColumns = (onEdit, onDuplicate, onDelete) => [
     enableSorting: true,
     enableHiding: true,
     meta: {
-      className: "w-[30%]",
+      className: "w-[20%]",
     },
   },
 
@@ -86,7 +72,7 @@ export const createSceneColumns = (onEdit, onDuplicate, onDelete) => [
     enableSorting: false,
     enableHiding: true,
     meta: {
-      className: "w-[40%]",
+      className: "w-[30%]",
     },
   },
   {
@@ -110,78 +96,47 @@ export const createSceneColumns = (onEdit, onDuplicate, onDelete) => [
     },
   },
   {
-    id: "manage",
-    header: "Manage",
-    cell: ({ row }) => {
-      return (
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => onEdit(row.original)}
-          className="h-8 px-2"
-        >
-          <Settings className="h-4 w-4 mr-1" />
-          Manage
-        </Button>
-      );
-    },
-    enableSorting: false,
-    enableHiding: false,
-    meta: {
-      className: "w-[12%]",
-    },
-  },
-  {
     id: "actions",
+    header: "",
     cell: ({ row }) => {
       const item = row.original;
 
       return (
-        <div className="flex items-center justify-end">
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-8 w-8 p-0"
-                title="More actions"
-              >
-                <MoreHorizontal className="h-4 w-4" />
-                <span className="sr-only">More</span>
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent className="w-48" align="end">
-              <DropdownMenuItem
-                onClick={() => onEdit(item)}
-                className="cursor-pointer"
-              >
-                <SquarePen className="text-muted-foreground" />
-                <span>Edit</span>
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                onClick={() => onDuplicate(item)}
-                className="cursor-pointer"
-              >
-                <Copy className="text-muted-foreground" />
-                <span>Duplicate</span>
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem
-                onClick={() => onDelete(item)}
-                className="cursor-pointer text-destructive focus:text-destructive"
-              >
-                <Trash2 className="text-destructive" />
-                <span>Delete</span>
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+        <div className="flex justify-end gap-1">
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={() => onEdit(item)}
+            className="cursor-pointer"
+            title="Manage scene items"
+          >
+            <Settings className="h-4 w-4" />
+          </Button>
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={() => onDuplicate(item)}
+            className="cursor-pointer"
+            title="Duplicate scene"
+          >
+            <Copy className="h-4 w-4" />
+          </Button>
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={() => onDelete(item)}
+            className="text-destructive hover:text-destructive cursor-pointer"
+            title="Delete scene"
+          >
+            <Trash2 className="h-4 w-4" />
+          </Button>
         </div>
       );
     },
     enableSorting: false,
     enableHiding: false,
     meta: {
-      className: "w-[5%]",
+      className: "w-[17%]",
     },
   },
 ];

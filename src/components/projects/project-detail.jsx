@@ -93,12 +93,12 @@ export function ProjectDetail() {
               <TabsTrigger
                 key={key}
                 value={key}
-                className="flex items-center justify-center gap-2"
+                className="flex items-center justify-center gap-3"
               >
                 <Icon className="h-4 w-4" />
                 <span className="hidden sm:inline">{config.label}</span>
                 {itemCount > 0 && (
-                  <span className="bg-amber-200 border border-amber-300 rounded-full px-1">
+                  <span className="bg-amber-200 border border-amber-300 rounded-full px-1.5">
                     {itemCount}
                   </span>
                 )}

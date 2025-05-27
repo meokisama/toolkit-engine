@@ -161,15 +161,6 @@ const SceneTable = memo(function SceneTable({ items = [], loading = false }) {
 
   return (
     <div className="space-y-4 flex flex-col h-full">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <Button onClick={handleCreateItem} size="sm">
-            <Plus className="mr-2 h-4 w-4" />
-            Add Scene
-          </Button>
-        </div>
-      </div>
-
       <div className="flex-1 space-y-4">
         {items.length === 0 ? (
           <div className="flex flex-1 items-center justify-center rounded-lg border border-dashed shadow-sm min-h-[400px]">
@@ -180,19 +171,21 @@ const SceneTable = memo(function SceneTable({ items = [], loading = false }) {
                 scene.
               </p>
               <Button className="mt-4" onClick={handleCreateItem}>
-                <Plus className="mr-2 h-4 w-4" />
+                <Plus className="h-4 w-4" />
                 Add Scene
               </Button>
             </div>
           </div>
         ) : (
           <div className="space-y-4 flex flex-col h-full">
-            <div className="flex-1">
+            <div className="flex-1 space-y-4">
               {table && (
                 <DataTableToolbar
                   table={table}
                   category="scene"
                   columnVisibility={columnVisibility}
+                  onAddItem={handleCreateItem}
+                  addItemLabel="Add Scene"
                 />
               )}
               <DataTable

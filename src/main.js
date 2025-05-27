@@ -423,9 +423,9 @@ function setupIpcHandlers() {
     }
   });
 
-  ipcMain.handle('scene:addItem', async (event, sceneId, itemType, itemId, itemValue) => {
+  ipcMain.handle('scene:addItem', async (event, sceneId, itemType, itemId, itemValue, command, objectType) => {
     try {
-      return await dbService.addItemToScene(sceneId, itemType, itemId, itemValue);
+      return await dbService.addItemToScene(sceneId, itemType, itemId, itemValue, command, objectType);
     } catch (error) {
       console.error('Error adding item to scene:', error);
       throw error;
@@ -441,9 +441,9 @@ function setupIpcHandlers() {
     }
   });
 
-  ipcMain.handle('scene:updateItemValue', async (event, sceneItemId, itemValue) => {
+  ipcMain.handle('scene:updateItemValue', async (event, sceneItemId, itemValue, command) => {
     try {
-      return await dbService.updateSceneItemValue(sceneItemId, itemValue);
+      return await dbService.updateSceneItemValue(sceneItemId, itemValue, command);
     } catch (error) {
       console.error('Error updating scene item value:', error);
       throw error;

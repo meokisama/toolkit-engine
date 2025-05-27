@@ -1,7 +1,7 @@
 import path from 'node:path';
 import fs from 'node:fs';
 import { app } from 'electron';
-import { AIRCON_OBJECT_TYPES } from '../constants.js';
+import { AIRCON_OBJECT_TYPES, AIRCON_OBJECT_LABELS } from '../constants.js';
 
 class DatabaseService {
   constructor() {
@@ -72,6 +72,7 @@ class DatabaseService {
         address TEXT NOT NULL,
         description TEXT,
         object_type TEXT NOT NULL,
+        label TEXT,
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
         updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
         FOREIGN KEY (project_id) REFERENCES projects (id) ON DELETE CASCADE
@@ -130,6 +131,8 @@ class DatabaseService {
         item_type TEXT NOT NULL,
         item_id INTEGER NOT NULL,
         item_value TEXT,
+        command TEXT,
+        object_type TEXT,
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
         FOREIGN KEY (scene_id) REFERENCES scene (id) ON DELETE CASCADE
       )
@@ -351,15 +354,25 @@ class DatabaseService {
 
   createProjectItem(projectId, itemData, tableName) {
     try {
-      const { name, address, description, object_type } = itemData;
+      const { name, address, description, object_type, label } = itemData;
 
-      const stmt = this.db.prepare(`
-        INSERT INTO ${tableName} (project_id, name, address, description, object_type)
-        VALUES (?, ?, ?, ?, ?)
-      `);
-
-      const result = stmt.run(projectId, name, address, description, object_type);
-      return this.getProjectItemById(result.lastInsertRowid, tableName);
+      // For aircon_items table, include label column
+      if (tableName === 'aircon_items') {
+        const stmt = this.db.prepare(`
+          INSERT INTO ${tableName} (project_id, name, address, description, object_type, label)
+          VALUES (?, ?, ?, ?, ?, ?)
+        `);
+        const result = stmt.run(projectId, name, address, description, object_type, label);
+        return this.getProjectItemById(result.lastInsertRowid, tableName);
+      } else {
+        // For other tables, use original structure
+        const stmt = this.db.prepare(`
+          INSERT INTO ${tableName} (project_id, name, address, description, object_type)
+          VALUES (?, ?, ?, ?, ?)
+        `);
+        const result = stmt.run(projectId, name, address, description, object_type);
+        return this.getProjectItemById(result.lastInsertRowid, tableName);
+      }
     } catch (error) {
       console.error(`Failed to create ${tableName} item:`, error);
       throw error;
@@ -368,7 +381,7 @@ class DatabaseService {
 
   updateProjectItem(id, itemData, tableName) {
     try {
-      const { name, address, description, object_type } = itemData;
+      const { name, address, description, object_type, label } = itemData;
 
       // Special validation for aircon_items to prevent duplicate addresses
       if (tableName === 'aircon_items' && address) {
@@ -382,16 +395,30 @@ class DatabaseService {
         }
       }
 
-      const stmt = this.db.prepare(`
-        UPDATE ${tableName}
-        SET name = ?, address = ?, description = ?, object_type = ?, updated_at = CURRENT_TIMESTAMP
-        WHERE id = ?
-      `);
+      // For aircon_items table, include label column
+      if (tableName === 'aircon_items') {
+        const stmt = this.db.prepare(`
+          UPDATE ${tableName}
+          SET name = ?, address = ?, description = ?, object_type = ?, label = ?, updated_at = CURRENT_TIMESTAMP
+          WHERE id = ?
+        `);
+        const result = stmt.run(name, address, description, object_type, label, id);
 
-      const result = stmt.run(name, address, description, object_type, id);
+        if (result.changes === 0) {
+          throw new Error(`${tableName} item not found`);
+        }
+      } else {
+        // For other tables, use original structure
+        const stmt = this.db.prepare(`
+          UPDATE ${tableName}
+          SET name = ?, address = ?, description = ?, object_type = ?, updated_at = CURRENT_TIMESTAMP
+          WHERE id = ?
+        `);
+        const result = stmt.run(name, address, description, object_type, id);
 
-      if (result.changes === 0) {
-        throw new Error(`${tableName} item not found`);
+        if (result.changes === 0) {
+          throw new Error(`${tableName} item not found`);
+        }
       }
 
       return this.getProjectItemById(id, tableName);
@@ -432,6 +459,11 @@ class DatabaseService {
         object_type: originalItem.object_type
       };
 
+      // For aircon_items, include label
+      if (tableName === 'aircon_items') {
+        duplicatedItem.label = originalItem.label;
+      }
+
       return this.createProjectItem(originalItem.project_id, duplicatedItem, tableName);
     } catch (error) {
       console.error(`Failed to duplicate ${tableName} item:`, error);
@@ -459,6 +491,10 @@ class DatabaseService {
             if (category === 'unit') {
               this.createUnitItem(project.id, itemData);
             } else if (category === 'aircon') {
+              // Ensure label is set for aircon items
+              if (!itemData.label && itemData.object_type) {
+                itemData.label = AIRCON_OBJECT_LABELS[itemData.object_type];
+              }
               this.createProjectItem(project.id, itemData, 'aircon_items');
             } else {
               this.createProjectItem(project.id, itemData, category);
@@ -577,7 +613,8 @@ class DatabaseService {
             name,
             address,
             description,
-            object_type: objectType
+            object_type: objectType,
+            label: AIRCON_OBJECT_LABELS[objectType]
           };
 
           const item = this.createProjectItem(projectId, itemData, 'aircon_items');
@@ -660,7 +697,8 @@ class DatabaseService {
             name: item.name ? `${item.name} (Copy)` : null,
             address: newAddress,
             description: item.description,
-            object_type: item.object_type
+            object_type: item.object_type,
+            label: item.label
           };
 
           const newItem = this.createProjectItem(projectId, duplicatedItem, 'aircon_items');
@@ -833,7 +871,9 @@ class DatabaseService {
             duplicatedScene.id,
             sceneItem.item_type,
             sceneItem.item_id,
-            sceneItem.item_value
+            sceneItem.item_value,
+            sceneItem.command,
+            sceneItem.object_type
           );
         }
 
@@ -873,7 +913,11 @@ class DatabaseService {
             WHEN si.item_type = 'aircon' THEN ai.object_type
             WHEN si.item_type = 'curtain' THEN c.object_type
             ELSE NULL
-          END as object_type
+          END as object_type,
+          CASE
+            WHEN si.item_type = 'aircon' THEN ai.label
+            ELSE NULL
+          END as label
         FROM scene_items si
         LEFT JOIN lighting l ON si.item_type = 'lighting' AND si.item_id = l.id
         LEFT JOIN aircon_items ai ON si.item_type = 'aircon' AND si.item_id = ai.id
@@ -889,14 +933,14 @@ class DatabaseService {
     }
   }
 
-  addItemToScene(sceneId, itemType, itemId, itemValue = null) {
+  addItemToScene(sceneId, itemType, itemId, itemValue = null, command = null, objectType = null) {
     try {
       const stmt = this.db.prepare(`
-        INSERT INTO scene_items (scene_id, item_type, item_id, item_value)
-        VALUES (?, ?, ?, ?)
+        INSERT INTO scene_items (scene_id, item_type, item_id, item_value, command, object_type)
+        VALUES (?, ?, ?, ?, ?, ?)
       `);
 
-      const result = stmt.run(sceneId, itemType, itemId, itemValue);
+      const result = stmt.run(sceneId, itemType, itemId, itemValue, command, objectType);
 
       // Return the created scene item with details
       const getStmt = this.db.prepare('SELECT * FROM scene_items WHERE id = ?');
@@ -919,15 +963,15 @@ class DatabaseService {
     }
   }
 
-  updateSceneItemValue(sceneItemId, itemValue) {
+  updateSceneItemValue(sceneItemId, itemValue, command = null) {
     try {
       const stmt = this.db.prepare(`
         UPDATE scene_items
-        SET item_value = ?
+        SET item_value = ?, command = ?
         WHERE id = ?
       `);
 
-      const result = stmt.run(itemValue, sceneItemId);
+      const result = stmt.run(itemValue, command, sceneItemId);
 
       if (result.changes === 0) {
         throw new Error('Scene item not found');

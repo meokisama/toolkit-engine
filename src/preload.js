@@ -62,8 +62,8 @@ contextBridge.exposeInMainWorld('electronAPI', {
         bulkImport: (projectId, items) => ipcRenderer.invoke('scene:bulkImport', projectId, items),
         // Scene Items Management
         getItemsWithDetails: (sceneId) => ipcRenderer.invoke('scene:getItemsWithDetails', sceneId),
-        addItem: (sceneId, itemType, itemId, itemValue) => ipcRenderer.invoke('scene:addItem', sceneId, itemType, itemId, itemValue),
+        addItem: (sceneId, itemType, itemId, itemValue, command, objectType) => ipcRenderer.invoke('scene:addItem', sceneId, itemType, itemId, itemValue, command, objectType),
         removeItem: (sceneItemId) => ipcRenderer.invoke('scene:removeItem', sceneItemId),
-        updateItemValue: (sceneItemId, itemValue) => ipcRenderer.invoke('scene:updateItemValue', sceneItemId, itemValue),
+        updateItemValue: (sceneItemId, itemValue, command) => ipcRenderer.invoke('scene:updateItemValue', sceneItemId, itemValue, command),
     }
 });
