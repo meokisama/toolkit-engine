@@ -1,0 +1,33 @@
+export const UNIT_TYPES = [
+  "RLC-416",
+  "RLC-420",
+  "Bedado-17T",
+  "RLC-520",
+  "BSP_R14_OL",
+  "Bedado-12T",
+  "RCU-35L-2440",
+  "RCU-32A0",
+  "RCU-24RL-840",
+  "RCU-16RL-1840",
+  "RCU-21N-8RL",
+  "RCU-21N-16RL-1A0",
+  "RCU-21N-8RL-4AI",
+  "RCU-21N-16RL-5DL",
+  "RCU-21N-16RL",
+  "RCU-48N-32A0",
+  "RCU-48N-16RL",
+  "RCU-48N-16RL-1A0",
+  "RCU-48N-16RL-5AI",
+  "RCU-48N-16RL-5DL",
+  "GNT-EXT-32L",
+  "GNT-EXT-8RL",
+  "GNT-EXT-16RL",
+  "GNT-EXT-20RL",
+  "GNT-EXT-32RL",
+  "GNT-EXT-28A0",
+  "GNT-EXT-20RL-12A0",
+  "GNT-EXT-24IN",
+  "GNT-EXT-48IN"
+];
+
+export const UNIT_MODES = ["Slave", "Master", "Stand Alone"];
