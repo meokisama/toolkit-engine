@@ -360,7 +360,7 @@ class DatabaseService {
       if (tableName === 'lighting' && address) {
         const existingItems = this.db.prepare('SELECT COUNT(*) as count FROM lighting WHERE project_id = ? AND address = ?').get(projectId, address);
         if (existingItems.count > 0) {
-          throw new Error(`Address ${address} already exists for another lighting item`);
+          throw new Error(`Address ${address} already exists.`);
         }
       }
 
@@ -398,7 +398,7 @@ class DatabaseService {
           // Check if new address already exists for this project (excluding current item's address)
           const existingItems = this.db.prepare('SELECT COUNT(*) as count FROM aircon_items WHERE project_id = ? AND address = ? AND address != ?').get(currentItem.project_id, address, currentItem.address);
           if (existingItems.count > 0) {
-            throw new Error(`Address ${address} already exists for another aircon card`);
+            throw new Error(`Address ${address} already exists.`);
           }
         }
       }
@@ -410,7 +410,7 @@ class DatabaseService {
           // Check if new address already exists for this project (excluding current item's address)
           const existingItems = this.db.prepare('SELECT COUNT(*) as count FROM lighting WHERE project_id = ? AND address = ? AND id != ?').get(currentItem.project_id, address, id);
           if (existingItems.count > 0) {
-            throw new Error(`Address ${address} already exists for another lighting item`);
+            throw new Error(`Address ${address} already exists.`);
           }
         }
       }
@@ -657,7 +657,7 @@ class DatabaseService {
       // Check if address already exists for this project
       const existingItems = this.db.prepare('SELECT COUNT(*) as count FROM aircon_items WHERE project_id = ? AND address = ?').get(projectId, address);
       if (existingItems.count > 0) {
-        throw new Error(`Address ${address} already exists for another aircon card`);
+        throw new Error(`Address ${address} already exists.`);
       }
 
       const transaction = this.db.transaction(() => {
