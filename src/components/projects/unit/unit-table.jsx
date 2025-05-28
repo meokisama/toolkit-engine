@@ -3,14 +3,14 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Plus, Search, Database, Network } from "lucide-react";
 import { useProjectDetail } from "@/contexts/project-detail-context";
-import { UnitDialog } from "./unit-dialog";
+import { UnitDialog } from "@/components/projects/unit/unit-dialog";
 import { ConfirmDialog } from "@/components/projects/confirm-dialog";
-import { ImportItemsDialog } from "@/components/projects/import-items-dialog";
+import { ImportItemsDialog } from "@/components/projects/import-category-dialog";
 import { DataTable } from "@/components/projects/data-table/data-table";
 import { DataTableToolbar } from "@/components/projects/data-table/data-table-toolbar";
 import { DataTablePagination } from "@/components/projects/data-table/data-table-pagination";
 import { DataTableSkeleton } from "@/components/projects/table-skeleton";
-import { createUnitColumns } from "./columns/unit-columns";
+import { createUnitColumns } from "@/components/projects/unit/unit-columns";
 
 export function UnitTable() {
   const {

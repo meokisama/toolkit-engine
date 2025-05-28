@@ -2,11 +2,11 @@ import React, { useMemo } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent } from "@/components/ui/card";
 import { useProjectDetail } from "@/contexts/project-detail-context";
-import { ProjectItemsTable } from "./project-items-table";
-import { UnitTable } from "./unit-table";
-import { AirconCards } from "./aircon-cards";
-import { SceneTable } from "./scene-table";
-import { TabContentSkeleton } from "@/components/projects/tab-content-skeleton";
+import { ProjectItemsTable } from "./lighting/lighting-table";
+import { UnitTable } from "./unit/unit-table";
+import { AirconCards } from "./aircon/aircon-cards";
+import { SceneTable } from "./scenes/scene-table";
+import { TabContentSkeleton } from "@/components/projects/tabs-skeleton";
 import { Lightbulb, Wind, Cpu, Blinds, Palette } from "lucide-react";
 
 // Memoize tab config outside component to prevent recreating on every render

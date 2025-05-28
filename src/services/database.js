@@ -356,6 +356,14 @@ class DatabaseService {
     try {
       const { name, address, description, object_type, label } = itemData;
 
+      // Special validation for lighting to prevent duplicate addresses
+      if (tableName === 'lighting' && address) {
+        const existingItems = this.db.prepare('SELECT COUNT(*) as count FROM lighting WHERE project_id = ? AND address = ?').get(projectId, address);
+        if (existingItems.count > 0) {
+          throw new Error(`Address ${address} already exists for another lighting item`);
+        }
+      }
+
       // For aircon_items table, include label column
       if (tableName === 'aircon_items') {
         const stmt = this.db.prepare(`
@@ -391,6 +399,18 @@ class DatabaseService {
           const existingItems = this.db.prepare('SELECT COUNT(*) as count FROM aircon_items WHERE project_id = ? AND address = ? AND address != ?').get(currentItem.project_id, address, currentItem.address);
           if (existingItems.count > 0) {
             throw new Error(`Address ${address} already exists for another aircon card`);
+          }
+        }
+      }
+
+      // Special validation for lighting to prevent duplicate addresses
+      if (tableName === 'lighting' && address) {
+        const currentItem = this.getProjectItemById(id, tableName);
+        if (currentItem && currentItem.address !== address) {
+          // Check if new address already exists for this project (excluding current item's address)
+          const existingItems = this.db.prepare('SELECT COUNT(*) as count FROM lighting WHERE project_id = ? AND address = ? AND id != ?').get(currentItem.project_id, address, id);
+          if (existingItems.count > 0) {
+            throw new Error(`Address ${address} already exists for another lighting item`);
           }
         }
       }
@@ -458,6 +478,41 @@ class DatabaseService {
         description: originalItem.description,
         object_type: originalItem.object_type
       };
+
+      // For lighting, find a unique address in range 1-255
+      if (tableName === 'lighting' && originalItem.address) {
+        const existingAddresses = this.db.prepare('SELECT DISTINCT address FROM lighting WHERE project_id = ?').all(originalItem.project_id);
+        const addressNumbers = existingAddresses
+          .map(item => parseInt(item.address))
+          .filter(num => !isNaN(num) && num >= 1 && num <= 255)
+          .sort((a, b) => a - b);
+
+        // Find the first available address in range 1-255
+        let newAddress = 1;
+        for (const num of addressNumbers) {
+          if (newAddress < num) {
+            break;
+          }
+          newAddress = num + 1;
+        }
+
+        // If we've exceeded 255, find a gap in the existing addresses
+        if (newAddress > 255) {
+          newAddress = null;
+          for (let i = 1; i <= 255; i++) {
+            if (!addressNumbers.includes(i)) {
+              newAddress = i;
+              break;
+            }
+          }
+
+          if (newAddress === null) {
+            throw new Error('No available addresses in range 1-255 for lighting item duplication');
+          }
+        }
+
+        duplicatedItem.address = newAddress.toString();
+      }
 
       // For aircon_items, include label
       if (tableName === 'aircon_items') {

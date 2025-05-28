@@ -38,7 +38,7 @@ import { useProjects } from "@/contexts/project-context";
 import { useProjectDetail } from "@/contexts/project-detail-context";
 import { ProjectDialog } from "@/components/projects/project-dialog";
 import { ConfirmDialog } from "@/components/projects/confirm-dialog";
-import { ImportDialog } from "@/components/projects/import-dialog";
+import { ImportDialog } from "@/components/projects/import-project-dialog";
 
 export function NavProjects() {
   const { isMobile } = useSidebar();

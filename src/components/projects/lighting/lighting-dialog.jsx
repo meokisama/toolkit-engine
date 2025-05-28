@@ -50,8 +50,20 @@ export function ProjectItemDialog({
     }
 
     const num = parseInt(value, 10);
-    if (isNaN(num) || num <= 0 || !Number.isInteger(parseFloat(value))) {
-      return "Address must be a positive integer";
+    if (isNaN(num) || !Number.isInteger(parseFloat(value))) {
+      return "Address must be an integer";
+    }
+
+    // For lighting category, address must be in range 1-255
+    if (category === "lighting") {
+      if (num < 1 || num > 255) {
+        return "Address must be between 1 and 255";
+      }
+    } else {
+      // For other categories, address must be greater than 0
+      if (num <= 0) {
+        return "Address must be greater than 0";
+      }
     }
 
     return null;
@@ -117,6 +129,14 @@ export function ProjectItemDialog({
       onOpenChange(false);
     } catch (error) {
       console.error("Failed to save item:", error);
+
+      // Handle duplicate address error specifically
+      if (error.message && error.message.includes("already exists")) {
+        setErrors({ address: error.message });
+      } else {
+        // Handle other errors generically
+        setErrors({ general: "Failed to save item. Please try again." });
+      }
     } finally {
       setLoading(false);
     }
@@ -127,6 +147,14 @@ export function ProjectItemDialog({
       ...prev,
       [field]: value,
     }));
+
+    // Clear general error when user starts typing
+    if (errors.general) {
+      setErrors((prev) => ({
+        ...prev,
+        general: null,
+      }));
+    }
 
     // Real-time validation for address field
     if (field === "address") {
@@ -182,7 +210,11 @@ export function ProjectItemDialog({
                   className={
                     errors.address ? "border-red-500 focus:border-red-500" : ""
                   }
-                  placeholder="Enter positive integer (e.g., 1, 2, 100)"
+                  placeholder={
+                    category === "lighting"
+                      ? "Enter integer 1-255 (e.g., 1, 2, 255)"
+                      : "Enter integer greater than 0 (e.g., 1, 2, 100)"
+                  }
                 />
                 {errors.address && (
                   <p className="text-sm text-red-500 mt-1">{errors.address}</p>
@@ -204,6 +236,12 @@ export function ProjectItemDialog({
               />
             </div>
           </div>
+
+          {errors.general && (
+            <div className="text-sm text-red-500 text-center mt-4">
+              {errors.general}
+            </div>
+          )}
 
           <DialogFooter>
             <Button

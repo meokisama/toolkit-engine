@@ -297,7 +297,7 @@ export function SceneDialog({
     }
   };
 
-  const handleCancel = () => {
+  const resetToOriginalState = () => {
     if (mode === "edit" && originalSceneItems.length > 0) {
       // Reset to original state
       setSceneItems([...originalSceneItems]);
@@ -307,7 +307,19 @@ export function SceneDialog({
       });
     }
     setErrors({});
+  };
+
+  const handleCancel = () => {
+    resetToOriginalState();
     onOpenChange(false);
+  };
+
+  const handleDialogOpenChange = (isOpen) => {
+    if (!isOpen) {
+      // When dialog is being closed, reset changes first
+      resetToOriginalState();
+    }
+    onOpenChange(isOpen);
   };
 
   const getValueOptions = (objectType) => {
@@ -434,7 +446,7 @@ export function SceneDialog({
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={handleDialogOpenChange}>
       <DialogContent className="sm:max-w-6xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>
@@ -635,7 +647,7 @@ export function SceneDialog({
                       </TabsContent>
 
                       <TabsContent value="aircon" className="space-y-2">
-                        <div className="max-h-80 overflow-y-auto space-y-2">
+                        <div className="max-h-80 overflow-y-auto space-y-2 pr-2">
                           {projectItems.aircon?.length > 0 ? (
                             projectItems.aircon
                               .filter(
@@ -649,7 +661,7 @@ export function SceneDialog({
                               .map((item) => (
                                 <div
                                   key={item.id}
-                                  className="flex items-center justify-between p-2 border rounded"
+                                  className="flex items-center justify-between p-2 border rounded-lg"
                                 >
                                   <div>
                                     <div className="font-medium text-sm">
@@ -681,7 +693,7 @@ export function SceneDialog({
                       </TabsContent>
 
                       <TabsContent value="curtain" className="space-y-2">
-                        <div className="max-h-80 overflow-y-auto space-y-2">
+                        <div className="max-h-80 overflow-y-auto space-y-2 pr-2">
                           {projectItems.curtain?.length > 0 ? (
                             projectItems.curtain
                               .filter(
@@ -695,7 +707,7 @@ export function SceneDialog({
                               .map((item) => (
                                 <div
                                   key={item.id}
-                                  className="flex items-center justify-between p-2 border rounded"
+                                  className="flex items-center justify-between p-2 border rounded-lg"
                                 >
                                   <div>
                                     <div className="font-medium text-sm">

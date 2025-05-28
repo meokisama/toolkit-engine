@@ -2,13 +2,13 @@ import React, { useState, useCallback, memo, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 import { useProjectDetail } from "@/contexts/project-detail-context";
-import { SceneDialog } from "./scene-dialog";
+import { SceneDialog } from "@/components/projects/scenes/scene-dialog";
 import { ConfirmDialog } from "@/components/projects/confirm-dialog";
 import { DataTable } from "@/components/projects/data-table/data-table";
 import { DataTableToolbar } from "@/components/projects/data-table/data-table-toolbar";
 import { DataTablePagination } from "@/components/projects/data-table/data-table-pagination";
 import { DataTableSkeleton } from "@/components/projects/table-skeleton";
-import { createSceneColumns } from "./columns/scene-columns";
+import { createSceneColumns } from "@/components/projects/scenes/scene-columns";
 
 const SceneTable = memo(function SceneTable({ items = [], loading = false }) {
   const { deleteItem, duplicateItem } = useProjectDetail();

@@ -2,14 +2,14 @@ import React, { useState, useCallback, memo } from "react";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 import { useProjectDetail } from "@/contexts/project-detail-context";
-import { ProjectItemDialog } from "./project-item-dialog";
+import { ProjectItemDialog } from "@/components/projects/lighting/lighting-dialog";
 import { ConfirmDialog } from "@/components/projects/confirm-dialog";
 import { DataTable } from "@/components/projects/data-table/data-table";
 import { DataTableToolbar } from "@/components/projects/data-table/data-table-toolbar";
 import { DataTablePagination } from "@/components/projects/data-table/data-table-pagination";
 import { DataTableSkeleton } from "@/components/projects/table-skeleton";
-import { createProjectItemsColumns } from "./columns/project-items-columns";
-import { ImportItemsDialog } from "@/components/projects/import-items-dialog";
+import { createProjectItemsColumns } from "@/components/projects/lighting/lighting-columns";
+import { ImportItemsDialog } from "@/components/projects/import-category-dialog";
 
 // Memoized component to prevent unnecessary rerenders
 function ProjectItemsTableComponent({ category, items, loading }) {
