@@ -104,7 +104,9 @@ export function AirconCardDialog({
 
       // Handle specific error messages
       if (error.message && error.message.includes("already exists")) {
-        setErrors({ address: error.message });
+        // Extract the clean error message after the last colon
+        const cleanMessage = error.message.split(": ").pop();
+        setErrors({ address: cleanMessage });
       } else {
         setErrors({ general: `Failed to ${mode} aircon card` });
       }

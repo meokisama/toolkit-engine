@@ -49,6 +49,19 @@ export const CONSTANTS = {
   },
 
   // Aircon configuration
+  // Curtain configuration
+  CURTAIN: {
+    TYPES: [
+      { value: "CURTAIN_PULSE_2P", label: "2-Point Pulse" },
+      { value: "CURTAIN_PULSE_3P", label: "3-Point Pulse" }
+    ],
+    VALUES: [
+      { value: 0, label: "Stop" },
+      { value: 1, label: "Open" },
+      { value: 2, label: "Close" }
+    ]
+  },
+
   AIRCON: [
     {
       obj_type: "OBJ_AC_POWER",
@@ -104,6 +117,11 @@ export const CONSTANTS = {
 export const OBJECT_TYPES = CONSTANTS.OBJECT_TYPES;
 export const UNIT_TYPES = CONSTANTS.UNIT.TYPES;
 export const UNIT_MODES = CONSTANTS.UNIT.MODES;
+export const CURTAIN_TYPES = CONSTANTS.CURTAIN.TYPES;
+export const CURTAIN_VALUES = CONSTANTS.CURTAIN.VALUES;
+export const CURTAIN_VALUE_LABELS = Object.fromEntries(
+  CONSTANTS.CURTAIN.VALUES.map(item => [item.value, item.label])
+);
 
 // Extract aircon object types and labels from new structure
 export const AIRCON_OBJECT_TYPES = CONSTANTS.AIRCON.map(item => item.obj_type);

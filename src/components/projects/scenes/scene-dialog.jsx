@@ -31,6 +31,7 @@ import {
   AC_FAN_SPEED_LABELS,
   AC_MODE_LABELS,
   AC_SWING_LABELS,
+  CURTAIN_VALUE_LABELS,
 } from "@/constants";
 import {
   Plus,
@@ -322,7 +323,7 @@ export function SceneDialog({
     onOpenChange(isOpen);
   };
 
-  const getValueOptions = (objectType) => {
+  const getValueOptions = (objectType, itemType) => {
     switch (objectType) {
       case OBJECT_TYPES.AC_POWER:
         return Object.entries(AC_POWER_LABELS).map(([value, label]) => ({
@@ -346,13 +347,25 @@ export function SceneDialog({
         }));
       case OBJECT_TYPES.AC_TEMPERATURE:
         return []; // Temperature now uses number input, not dropdown
+      case OBJECT_TYPES.CURTAIN:
+        return Object.entries(CURTAIN_VALUE_LABELS).map(([value, label]) => ({
+          value,
+          label,
+        }));
       default:
+        // For curtain items without specific object type, return curtain values
+        if (itemType === "curtain") {
+          return Object.entries(CURTAIN_VALUE_LABELS).map(([value, label]) => ({
+            value,
+            label,
+          }));
+        }
         return [];
     }
   };
 
   const renderValueControl = (sceneItem) => {
-    const options = getValueOptions(sceneItem.object_type);
+    const options = getValueOptions(sceneItem.object_type, sceneItem.item_type);
 
     // For lighting items, always use number input for brightness (0-100)
     if (sceneItem.item_type === "lighting") {
@@ -379,6 +392,27 @@ export function SceneDialog({
             className="w-40 pl-8 font-semibold"
           />
         </div>
+      );
+    }
+
+    // For curtain items, use select dropdown with Open/Close/Stop options
+    if (sceneItem.item_type === "curtain") {
+      return (
+        <Select
+          value={sceneItem.item_value || "1"}
+          onValueChange={(value) => updateSceneItemValue(sceneItem.id, value)}
+        >
+          <SelectTrigger className="w-40">
+            <SelectValue placeholder="Select action" />
+          </SelectTrigger>
+          <SelectContent>
+            {options.map((option) => (
+              <SelectItem key={option.value} value={option.value}>
+                {option.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       );
     }
 
@@ -433,7 +467,7 @@ export function SceneDialog({
       );
     }
 
-    // For other items (curtain), use generic number input
+    // Fallback for other items
     return (
       <Input
         type="number"
@@ -722,7 +756,7 @@ export function SceneDialog({
                                     variant="outline"
                                     size="icon"
                                     onClick={() =>
-                                      addItemToScene("curtain", item.id)
+                                      addItemToScene("curtain", item.id, "1")
                                     }
                                   >
                                     <Plus className="h-4 w-4" />

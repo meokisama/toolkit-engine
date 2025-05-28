@@ -132,7 +132,9 @@ export function ProjectItemDialog({
 
       // Handle duplicate address error specifically
       if (error.message && error.message.includes("already exists")) {
-        setErrors({ address: error.message });
+        // Extract the clean error message after the last colon
+        const cleanMessage = error.message.split(": ").pop();
+        setErrors({ address: cleanMessage });
       } else {
         // Handle other errors generically
         setErrors({ general: "Failed to save item. Please try again." });

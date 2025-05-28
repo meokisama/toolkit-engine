@@ -5,6 +5,7 @@ import { useProjectDetail } from "@/contexts/project-detail-context";
 import { ProjectItemsTable } from "./lighting/lighting-table";
 import { UnitTable } from "./unit/unit-table";
 import { AirconCards } from "./aircon/aircon-cards";
+import { CurtainTable } from "./curtain/curtain-table";
 import { SceneTable } from "./scenes/scene-table";
 import { TabContentSkeleton } from "@/components/projects/tabs-skeleton";
 import { Lightbulb, Wind, Cpu, Blinds, Palette } from "lucide-react";
@@ -112,6 +113,15 @@ export function ProjectDetail() {
               <UnitTable />
             ) : key === "aircon" ? (
               <AirconCards cards={airconCards || []} loading={loading} />
+            ) : key === "curtain" ? (
+              <Card className="h-full">
+                <CardContent className="h-full">
+                  <CurtainTable
+                    items={projectItems[key] || []}
+                    loading={loading}
+                  />
+                </CardContent>
+              </Card>
             ) : key === "scene" ? (
               <Card className="h-full">
                 <CardContent className="h-full">

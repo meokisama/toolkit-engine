@@ -104,6 +104,10 @@ class DatabaseService {
         address TEXT NOT NULL,
         description TEXT,
         object_type TEXT DEFAULT 'OBJ_CURTAIN',
+        curtain_type TEXT DEFAULT 'CURTAIN_PULSE_2P',
+        open_group TEXT,
+        close_group TEXT,
+        stop_group TEXT,
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
         updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
         FOREIGN KEY (project_id) REFERENCES projects (id) ON DELETE CASCADE
@@ -295,6 +299,19 @@ class DatabaseService {
             object_type: item.object_type
           };
           this.createProjectItem(newProjectId, itemData, 'aircon_items');
+        } else if (category === 'curtain') {
+          // Special handling for curtain items
+          const itemData = {
+            name: item.name,
+            address: item.address,
+            description: item.description,
+            object_type: item.object_type,
+            curtain_type: item.curtain_type,
+            open_group: item.open_group,
+            close_group: item.close_group,
+            stop_group: item.stop_group
+          };
+          this.createProjectItem(newProjectId, itemData, category);
         } else {
           // Standard handling for other categories
           const itemData = {
@@ -354,7 +371,7 @@ class DatabaseService {
 
   createProjectItem(projectId, itemData, tableName) {
     try {
-      const { name, address, description, object_type, label } = itemData;
+      const { name, address, description, object_type, label, curtain_type, open_group, close_group, stop_group } = itemData;
 
       // Special validation for lighting to prevent duplicate addresses
       if (tableName === 'lighting' && address) {
@@ -371,6 +388,14 @@ class DatabaseService {
           VALUES (?, ?, ?, ?, ?, ?)
         `);
         const result = stmt.run(projectId, name, address, description, object_type, label);
+        return this.getProjectItemById(result.lastInsertRowid, tableName);
+      } else if (tableName === 'curtain') {
+        // For curtain table, include curtain-specific fields
+        const stmt = this.db.prepare(`
+          INSERT INTO ${tableName} (project_id, name, address, description, object_type, curtain_type, open_group, close_group, stop_group)
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+        `);
+        const result = stmt.run(projectId, name, address, description, object_type, curtain_type, open_group, close_group, stop_group);
         return this.getProjectItemById(result.lastInsertRowid, tableName);
       } else {
         // For other tables, use original structure
@@ -389,7 +414,7 @@ class DatabaseService {
 
   updateProjectItem(id, itemData, tableName) {
     try {
-      const { name, address, description, object_type, label } = itemData;
+      const { name, address, description, object_type, label, curtain_type, open_group, close_group, stop_group } = itemData;
 
       // Special validation for aircon_items to prevent duplicate addresses
       if (tableName === 'aircon_items' && address) {
@@ -423,6 +448,18 @@ class DatabaseService {
           WHERE id = ?
         `);
         const result = stmt.run(name, address, description, object_type, label, id);
+
+        if (result.changes === 0) {
+          throw new Error(`${tableName} item not found`);
+        }
+      } else if (tableName === 'curtain') {
+        // For curtain table, include curtain-specific fields
+        const stmt = this.db.prepare(`
+          UPDATE ${tableName}
+          SET name = ?, address = ?, description = ?, object_type = ?, curtain_type = ?, open_group = ?, close_group = ?, stop_group = ?, updated_at = CURRENT_TIMESTAMP
+          WHERE id = ?
+        `);
+        const result = stmt.run(name, address, description, object_type, curtain_type, open_group, close_group, stop_group, id);
 
         if (result.changes === 0) {
           throw new Error(`${tableName} item not found`);
@@ -517,6 +554,14 @@ class DatabaseService {
       // For aircon_items, include label
       if (tableName === 'aircon_items') {
         duplicatedItem.label = originalItem.label;
+      }
+
+      // For curtain, include curtain-specific fields
+      if (tableName === 'curtain') {
+        duplicatedItem.curtain_type = originalItem.curtain_type;
+        duplicatedItem.open_group = originalItem.open_group;
+        duplicatedItem.close_group = originalItem.close_group;
+        duplicatedItem.stop_group = originalItem.stop_group;
       }
 
       return this.createProjectItem(originalItem.project_id, duplicatedItem, tableName);
