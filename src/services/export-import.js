@@ -157,6 +157,8 @@ class ExportImportService {
     let headers;
     if (category === 'unit') {
       headers = ['type', 'serial_no', 'ip_address', 'id_can', 'mode', 'firmware_version', 'description'];
+    } else if (category === 'curtain') {
+      headers = ['name', 'address', 'description', 'object_type', 'curtain_type', 'open_group', 'close_group', 'stop_group'];
     } else {
       headers = ['name', 'address', 'description', 'object_type'];
     }
@@ -265,9 +267,14 @@ class ExportImportService {
     }
 
     // Validate headers based on category
-    const expectedHeaders = category === 'unit'
-      ? ['type', 'serial_no', 'ip_address', 'id_can', 'mode', 'firmware_version', 'description']
-      : ['name', 'address', 'description', 'object_type'];
+    let expectedHeaders;
+    if (category === 'unit') {
+      expectedHeaders = ['type', 'serial_no', 'ip_address', 'id_can', 'mode', 'firmware_version', 'description'];
+    } else if (category === 'curtain') {
+      expectedHeaders = ['name', 'address', 'description', 'object_type', 'curtain_type', 'open_group', 'close_group', 'stop_group'];
+    } else {
+      expectedHeaders = ['name', 'address', 'description', 'object_type'];
+    }
 
     const hasValidHeaders = expectedHeaders.every(header => headers.includes(header));
     if (!hasValidHeaders) {

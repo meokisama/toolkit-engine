@@ -165,6 +165,17 @@ export function ImportItemsDialog({ open, onOpenChange, onImport, category }) {
       ];
     } else if (category === "aircon") {
       return ["name", "address", "description"];
+    } else if (category === "curtain") {
+      return [
+        "name",
+        "address",
+        "description",
+        "object_type",
+        "curtain_type",
+        "open_group",
+        "close_group",
+        "stop_group",
+      ];
     } else {
       return ["name", "address", "description", "object_type"];
     }

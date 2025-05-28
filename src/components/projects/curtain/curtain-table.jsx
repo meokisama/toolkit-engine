@@ -7,7 +7,7 @@ import { DataTablePagination } from "../data-table/data-table-pagination";
 import { createCurtainColumns } from "./curtain-columns";
 import { CurtainDialog } from "./curtain-dialog";
 import { ConfirmDialog } from "../confirm-dialog";
-import { BulkDeleteDialog } from "../bulk-delete-dialog";
+import { ImportItemsDialog } from "../import-category-dialog";
 import { useProjectDetail } from "@/contexts/project-detail-context";
 import { TableSkeleton } from "../table-skeleton";
 
@@ -34,6 +34,10 @@ export function CurtainTable({ items = [], loading = false }) {
   // Bulk delete state
   const [bulkDeleteDialogOpen, setBulkDeleteDialogOpen] = useState(false);
   const [itemsToDelete, setItemsToDelete] = useState([]);
+  const [bulkDeleteLoading, setBulkDeleteLoading] = useState(false);
+
+  // Import state
+  const [importDialogOpen, setImportDialogOpen] = useState(false);
 
   // Get lighting items for group selection
   const lightingItems = projectItems.lighting || [];
@@ -102,16 +106,29 @@ export function CurtainTable({ items = [], loading = false }) {
   }, []);
 
   const confirmBulkDelete = useCallback(async () => {
+    if (itemsToDelete.length === 0) return;
+
+    setBulkDeleteLoading(true);
     try {
-      for (const item of itemsToDelete) {
-        await deleteItem("curtain", item.id);
-      }
+      // Delete all selected items
+      await Promise.all(
+        itemsToDelete.map((item) => deleteItem("curtain", item.id))
+      );
+
+      // Close dialog and clear state first
       setBulkDeleteDialogOpen(false);
       setItemsToDelete([]);
+
+      // Clear selection after a small delay to ensure data has been updated
+      setTimeout(() => {
+        table?.resetRowSelection();
+      }, 100);
     } catch (error) {
       console.error("Failed to delete curtain items:", error);
+    } finally {
+      setBulkDeleteLoading(false);
     }
-  }, [itemsToDelete, deleteItem]);
+  }, [itemsToDelete, deleteItem, table]);
 
   // Export/Import handlers
   const handleExport = useCallback(async () => {
@@ -122,10 +139,15 @@ export function CurtainTable({ items = [], loading = false }) {
     }
   }, [exportItems]);
 
-  const handleImport = useCallback(
-    async (importedItems) => {
+  const handleImport = useCallback(() => {
+    setImportDialogOpen(true);
+  }, []);
+
+  const handleImportConfirm = useCallback(
+    async (items) => {
       try {
-        await importItems("curtain", importedItems);
+        await importItems("curtain", items);
+        setImportDialogOpen(false);
       } catch (error) {
         console.error("Failed to import curtain items:", error);
       }
@@ -225,11 +247,28 @@ export function CurtainTable({ items = [], loading = false }) {
         }"? This action cannot be undone.`}
       />
 
-      <BulkDeleteDialog
+      <ConfirmDialog
         open={bulkDeleteDialogOpen}
         onOpenChange={setBulkDeleteDialogOpen}
+        title="Delete Multiple Curtain Items"
+        description={`Are you sure you want to delete ${
+          itemsToDelete.length
+        } selected curtain item${
+          itemsToDelete.length !== 1 ? "s" : ""
+        }? This action cannot be undone.`}
+        confirmText={`Delete ${itemsToDelete.length} item${
+          itemsToDelete.length !== 1 ? "s" : ""
+        }`}
+        cancelText="Cancel"
+        variant="destructive"
         onConfirm={confirmBulkDelete}
-        items={itemsToDelete}
+        loading={bulkDeleteLoading}
+      />
+
+      <ImportItemsDialog
+        open={importDialogOpen}
+        onOpenChange={setImportDialogOpen}
+        onImport={handleImportConfirm}
         category="curtain"
       />
     </>
