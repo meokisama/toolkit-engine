@@ -11,22 +11,26 @@ import {
 import { DataTableColumnHeader } from "../data-table/data-table-column-header";
 import { EditableCell } from "../data-table/editable-cell";
 import { EditableSelectCell } from "../data-table/editable-select-cell";
+import { EditableComboboxCell } from "../data-table/editable-combobox-cell";
 import { CURTAIN_TYPES } from "@/constants";
 
 export const createCurtainColumns = (
   onEdit,
   onDelete,
   onDuplicate,
-  onUpdate,
+  onCellEdit,
+  getEffectiveValue,
   lightingItems = []
 ) => {
   // Create lighting options for group selection
-  const lightingOptions = lightingItems.map(item => ({
+  const lightingOptions = lightingItems.map((item) => ({
     value: item.address,
-    label: item.name ? `${item.name} (${item.address})` : `Group ${item.address}`,
+    label: item.name
+      ? `${item.name} (${item.address})`
+      : `Group ${item.address}`,
   }));
 
-  const curtainTypeOptions = CURTAIN_TYPES.map(type => ({
+  const curtainTypeOptions = CURTAIN_TYPES.map((type) => ({
     value: type.value,
     label: type.label,
   }));
@@ -37,43 +41,65 @@ export const createCurtainColumns = (
       header: ({ column }) => (
         <DataTableColumnHeader column={column} title="Name" />
       ),
-      cell: ({ row }) => (
-        <EditableCell
-          value={row.getValue("name")}
-          onSave={(value) => onUpdate(row.original.id, { name: value })}
-          placeholder="Enter name"
-        />
-      ),
+      cell: ({ row }) => {
+        const name = row.getValue("name");
+        const effectiveValue = getEffectiveValue(row.original.id, "name", name);
+        return (
+          <EditableCell
+            value={effectiveValue}
+            onSave={(value) => onCellEdit(row.original.id, "name", value)}
+            placeholder="Enter name"
+          />
+        );
+      },
     },
     {
       accessorKey: "address",
       header: ({ column }) => (
         <DataTableColumnHeader column={column} title="Address" />
       ),
-      cell: ({ row }) => (
-        <EditableCell
-          value={row.getValue("address")}
-          onSave={(value) => onUpdate(row.original.id, { address: value })}
-          placeholder="1-255"
-          type="number"
-          min="1"
-          max="255"
-        />
-      ),
+      cell: ({ row }) => {
+        const address = row.getValue("address");
+        const effectiveValue = getEffectiveValue(
+          row.original.id,
+          "address",
+          address
+        );
+        return (
+          <EditableCell
+            value={effectiveValue}
+            onSave={(value) => onCellEdit(row.original.id, "address", value)}
+            placeholder="1-255"
+            type="number"
+            min="1"
+            max="255"
+          />
+        );
+      },
     },
     {
       accessorKey: "curtain_type",
       header: ({ column }) => (
         <DataTableColumnHeader column={column} title="Type" />
       ),
-      cell: ({ row }) => (
-        <EditableSelectCell
-          value={row.getValue("curtain_type")}
-          options={curtainTypeOptions}
-          onSave={(value) => onUpdate(row.original.id, { curtain_type: value })}
-          placeholder="Select type"
-        />
-      ),
+      cell: ({ row }) => {
+        const curtainType = row.getValue("curtain_type");
+        const effectiveValue = getEffectiveValue(
+          row.original.id,
+          "curtain_type",
+          curtainType
+        );
+        return (
+          <EditableSelectCell
+            value={effectiveValue}
+            options={curtainTypeOptions}
+            onSave={(value) =>
+              onCellEdit(row.original.id, "curtain_type", value)
+            }
+            placeholder="Select type"
+          />
+        );
+      },
     },
     {
       accessorKey: "open_group",
@@ -81,19 +107,21 @@ export const createCurtainColumns = (
         <DataTableColumnHeader column={column} title="Open Group" />
       ),
       cell: ({ row }) => {
-        const value = row.getValue("open_group");
-        const lightingItem = lightingItems.find(item => item.address === value);
-        const displayValue = lightingItem 
-          ? (lightingItem.name ? `${lightingItem.name} (${lightingItem.address})` : `Group ${lightingItem.address}`)
-          : value;
+        const openGroup = row.getValue("open_group");
+        const effectiveValue = getEffectiveValue(
+          row.original.id,
+          "open_group",
+          openGroup
+        );
 
         return (
-          <EditableSelectCell
-            value={value}
-            displayValue={displayValue}
+          <EditableComboboxCell
+            value={effectiveValue}
             options={lightingOptions}
-            onSave={(value) => onUpdate(row.original.id, { open_group: value })}
+            onSave={(value) => onCellEdit(row.original.id, "open_group", value)}
             placeholder="Select group"
+            searchPlaceholder="Search lighting groups..."
+            emptyMessage="No lighting groups found."
           />
         );
       },
@@ -104,19 +132,23 @@ export const createCurtainColumns = (
         <DataTableColumnHeader column={column} title="Close Group" />
       ),
       cell: ({ row }) => {
-        const value = row.getValue("close_group");
-        const lightingItem = lightingItems.find(item => item.address === value);
-        const displayValue = lightingItem 
-          ? (lightingItem.name ? `${lightingItem.name} (${lightingItem.address})` : `Group ${lightingItem.address}`)
-          : value;
+        const closeGroup = row.getValue("close_group");
+        const effectiveValue = getEffectiveValue(
+          row.original.id,
+          "close_group",
+          closeGroup
+        );
 
         return (
-          <EditableSelectCell
-            value={value}
-            displayValue={displayValue}
+          <EditableComboboxCell
+            value={effectiveValue}
             options={lightingOptions}
-            onSave={(value) => onUpdate(row.original.id, { close_group: value })}
+            onSave={(value) =>
+              onCellEdit(row.original.id, "close_group", value)
+            }
             placeholder="Select group"
+            searchPlaceholder="Search lighting groups..."
+            emptyMessage="No lighting groups found."
           />
         );
       },
@@ -128,25 +160,31 @@ export const createCurtainColumns = (
       ),
       cell: ({ row }) => {
         const curtainType = row.getValue("curtain_type");
-        const value = row.getValue("stop_group");
-        
+        const stopGroup = row.getValue("stop_group");
+        const effectiveCurtainType = getEffectiveValue(
+          row.original.id,
+          "curtain_type",
+          curtainType
+        );
+        const effectiveValue = getEffectiveValue(
+          row.original.id,
+          "stop_group",
+          stopGroup
+        );
+
         // Only show stop group for 3P type
-        if (curtainType !== "CURTAIN_PULSE_3P") {
+        if (effectiveCurtainType !== "CURTAIN_PULSE_3P") {
           return <span className="text-muted-foreground">-</span>;
         }
 
-        const lightingItem = lightingItems.find(item => item.address === value);
-        const displayValue = lightingItem 
-          ? (lightingItem.name ? `${lightingItem.name} (${lightingItem.address})` : `Group ${lightingItem.address}`)
-          : value;
-
         return (
-          <EditableSelectCell
-            value={value}
-            displayValue={displayValue}
+          <EditableComboboxCell
+            value={effectiveValue}
             options={lightingOptions}
-            onSave={(value) => onUpdate(row.original.id, { stop_group: value })}
+            onSave={(value) => onCellEdit(row.original.id, "stop_group", value)}
             placeholder="Select group"
+            searchPlaceholder="Search lighting groups..."
+            emptyMessage="No lighting groups found."
           />
         );
       },
@@ -156,13 +194,23 @@ export const createCurtainColumns = (
       header: ({ column }) => (
         <DataTableColumnHeader column={column} title="Description" />
       ),
-      cell: ({ row }) => (
-        <EditableCell
-          value={row.getValue("description")}
-          onSave={(value) => onUpdate(row.original.id, { description: value })}
-          placeholder="Enter description"
-        />
-      ),
+      cell: ({ row }) => {
+        const description = row.getValue("description");
+        const effectiveValue = getEffectiveValue(
+          row.original.id,
+          "description",
+          description
+        );
+        return (
+          <EditableCell
+            value={effectiveValue}
+            onSave={(value) =>
+              onCellEdit(row.original.id, "description", value)
+            }
+            placeholder="Enter description"
+          />
+        );
+      },
     },
     {
       id: "actions",

@@ -381,6 +381,14 @@ class DatabaseService {
         }
       }
 
+      // Special validation for curtain to prevent duplicate addresses
+      if (tableName === 'curtain' && address) {
+        const existingItems = this.db.prepare('SELECT COUNT(*) as count FROM curtain WHERE project_id = ? AND address = ?').get(projectId, address);
+        if (existingItems.count > 0) {
+          throw new Error(`Address ${address} already exists.`);
+        }
+      }
+
       // For aircon_items table, include label column
       if (tableName === 'aircon_items') {
         const stmt = this.db.prepare(`
@@ -391,11 +399,15 @@ class DatabaseService {
         return this.getProjectItemById(result.lastInsertRowid, tableName);
       } else if (tableName === 'curtain') {
         // For curtain table, include curtain-specific fields
+        // Address is required for curtain items
+        if (!address) {
+          throw new Error('Address is required for curtain items.');
+        }
         const stmt = this.db.prepare(`
           INSERT INTO ${tableName} (project_id, name, address, description, object_type, curtain_type, open_group, close_group, stop_group)
           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
         `);
-        const result = stmt.run(projectId, name, address, description, object_type, curtain_type, open_group, close_group, stop_group);
+        const result = stmt.run(projectId, name, address, description, object_type, curtain_type, open_group || null, close_group || null, stop_group || null);
         return this.getProjectItemById(result.lastInsertRowid, tableName);
       } else {
         // For other tables, use original structure
@@ -440,6 +452,18 @@ class DatabaseService {
         }
       }
 
+      // Special validation for curtain to prevent duplicate addresses
+      if (tableName === 'curtain' && address) {
+        const currentItem = this.getProjectItemById(id, tableName);
+        if (currentItem && currentItem.address !== address) {
+          // Check if new address already exists for this project (excluding current item's address)
+          const existingItems = this.db.prepare('SELECT COUNT(*) as count FROM curtain WHERE project_id = ? AND address = ? AND id != ?').get(currentItem.project_id, address, id);
+          if (existingItems.count > 0) {
+            throw new Error(`Address ${address} already exists.`);
+          }
+        }
+      }
+
       // For aircon_items table, include label column
       if (tableName === 'aircon_items') {
         const stmt = this.db.prepare(`
@@ -454,12 +478,16 @@ class DatabaseService {
         }
       } else if (tableName === 'curtain') {
         // For curtain table, include curtain-specific fields
+        // Address is required for curtain items
+        if (!address) {
+          throw new Error('Address is required for curtain items.');
+        }
         const stmt = this.db.prepare(`
           UPDATE ${tableName}
           SET name = ?, address = ?, description = ?, object_type = ?, curtain_type = ?, open_group = ?, close_group = ?, stop_group = ?, updated_at = CURRENT_TIMESTAMP
           WHERE id = ?
         `);
-        const result = stmt.run(name, address, description, object_type, curtain_type, open_group, close_group, stop_group, id);
+        const result = stmt.run(name, address, description, object_type, curtain_type, open_group || null, close_group || null, stop_group || null, id);
 
         if (result.changes === 0) {
           throw new Error(`${tableName} item not found`);
@@ -556,8 +584,39 @@ class DatabaseService {
         duplicatedItem.label = originalItem.label;
       }
 
-      // For curtain, include curtain-specific fields
-      if (tableName === 'curtain') {
+      // For curtain, find a unique address in range 1-255 and include curtain-specific fields
+      if (tableName === 'curtain' && originalItem.address) {
+        const existingAddresses = this.db.prepare('SELECT DISTINCT address FROM curtain WHERE project_id = ?').all(originalItem.project_id);
+        const addressNumbers = existingAddresses
+          .map(item => parseInt(item.address))
+          .filter(num => !isNaN(num) && num >= 1 && num <= 255)
+          .sort((a, b) => a - b);
+
+        // Find the first available address in range 1-255
+        let newAddress = 1;
+        for (const num of addressNumbers) {
+          if (newAddress < num) {
+            break;
+          }
+          newAddress = num + 1;
+        }
+
+        // If we've exceeded 255, find a gap in the existing addresses
+        if (newAddress > 255) {
+          newAddress = null;
+          for (let i = 1; i <= 255; i++) {
+            if (!addressNumbers.includes(i)) {
+              newAddress = i;
+              break;
+            }
+          }
+
+          if (newAddress === null) {
+            throw new Error('No available addresses in range 1-255 for curtain item duplication');
+          }
+        }
+
+        duplicatedItem.address = newAddress.toString();
         duplicatedItem.curtain_type = originalItem.curtain_type;
         duplicatedItem.open_group = originalItem.open_group;
         duplicatedItem.close_group = originalItem.close_group;

@@ -30,6 +30,8 @@ export function CurtainTable({ items = [], loading = false }) {
   const [selectedRowsCount, setSelectedRowsCount] = useState(0);
   const [columnVisibility, setColumnVisibility] = useState({});
   const [pagination, setPagination] = useState({ pageIndex: 0, pageSize: 10 });
+  const [pendingChanges, setPendingChanges] = useState(new Map());
+  const [saveLoading, setSaveLoading] = useState(false);
 
   // Bulk delete state
   const [bulkDeleteDialogOpen, setBulkDeleteDialogOpen] = useState(false);
@@ -41,6 +43,49 @@ export function CurtainTable({ items = [], loading = false }) {
 
   // Get lighting items for group selection
   const lightingItems = projectItems.lighting || [];
+
+  // Handle inline cell editing
+  const handleCellEdit = useCallback((itemId, field, newValue) => {
+    setPendingChanges((prev) => {
+      const newChanges = new Map(prev);
+      const itemChanges = newChanges.get(itemId) || {};
+      itemChanges[field] = newValue;
+      newChanges.set(itemId, itemChanges);
+      return newChanges;
+    });
+  }, []);
+
+  // Get effective value (pending change or original value)
+  const getEffectiveValue = useCallback(
+    (itemId, field, originalValue) => {
+      const itemChanges = pendingChanges.get(itemId);
+      return itemChanges && itemChanges.hasOwnProperty(field)
+        ? itemChanges[field]
+        : originalValue;
+    },
+    [pendingChanges]
+  );
+
+  // Save all pending changes
+  const handleSaveChanges = useCallback(async () => {
+    if (pendingChanges.size === 0) return;
+
+    setSaveLoading(true);
+    try {
+      for (const [itemId, changes] of pendingChanges) {
+        const item = items.find((i) => i.id === itemId);
+        if (item) {
+          const updatedItem = { ...item, ...changes };
+          await updateItem("curtain", updatedItem.id, updatedItem);
+        }
+      }
+      setPendingChanges(new Map());
+    } catch (error) {
+      console.error("Failed to save changes:", error);
+    } finally {
+      setSaveLoading(false);
+    }
+  }, [pendingChanges, items, updateItem]);
 
   const handleEdit = (item) => {
     setEditingItem(item);
@@ -167,10 +212,11 @@ export function CurtainTable({ items = [], loading = false }) {
         handleEdit,
         handleDelete,
         handleDuplicate,
-        handleUpdate,
+        handleCellEdit,
+        getEffectiveValue,
         lightingItems
       ),
-    [lightingItems]
+    [lightingItems, handleCellEdit, getEffectiveValue]
   );
 
   if (loading) {
@@ -207,6 +253,9 @@ export function CurtainTable({ items = [], loading = false }) {
                   onImport={handleImport}
                   category="curtain"
                   columnVisibility={columnVisibility}
+                  onSave={handleSaveChanges}
+                  hasPendingChanges={pendingChanges.size > 0}
+                  saveLoading={saveLoading}
                 />
               )}
               <DataTable
