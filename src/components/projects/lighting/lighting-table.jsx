@@ -248,6 +248,7 @@ function ProjectItemsTableComponent({ category, items, loading }) {
                 onEdit={handleEditItem}
                 onDuplicate={handleDuplicateItem}
                 onDelete={handleDeleteItem}
+                enableRowSelection={true}
               />
             </div>
             {table && (

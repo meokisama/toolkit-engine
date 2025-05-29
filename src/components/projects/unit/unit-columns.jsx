@@ -8,6 +8,7 @@ import { DataTableColumnHeader } from "@/components/projects/data-table/data-tab
 import { EditableCell } from "@/components/projects/data-table/editable-cell";
 import { EditableSelectCell } from "@/components/projects/data-table/editable-select-cell";
 import { EditableComboboxCell } from "@/components/projects/data-table/editable-combobox-cell";
+import { EditableCheckboxCell } from "@/components/projects/data-table/editable-checkbox-cell";
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -51,6 +52,7 @@ export const createUnitColumns = (
         checked={row.getIsSelected()}
         onCheckedChange={(value) => row.toggleSelected(!!value)}
         aria-label="Select row"
+        className="mx-1.5"
       />
     ),
     enableSorting: false,
@@ -278,7 +280,11 @@ export const createUnitColumns = (
   {
     accessorKey: "can_load",
     header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Can Load" />
+      <DataTableColumnHeader
+        column={column}
+        title="CAN Load"
+        className="text-center"
+      />
     ),
     cell: ({ row }) => {
       const canLoad = row.getValue("can_load");
@@ -288,20 +294,18 @@ export const createUnitColumns = (
         canLoad
       );
       return (
-        <div className="flex items-center justify-center">
-          <span
-            className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
-              effectiveValue
-                ? "bg-green-100 text-green-800"
-                : "bg-gray-100 text-gray-800"
-            }`}
-          >
-            {effectiveValue ? "Yes" : "No"}
-          </span>
-        </div>
+        <EditableCheckboxCell
+          value={effectiveValue}
+          onSave={(newValue) =>
+            onCellEdit(row.original.id, "can_load", newValue)
+          }
+          trueColor="bg-green-100 text-green-800"
+          falseColor="bg-gray-100 text-gray-800"
+          showBadge={false}
+        />
       );
     },
-    enableSorting: true,
+    enableSorting: false,
     enableHiding: true,
     meta: {
       className: "w-[8%]",
@@ -310,7 +314,11 @@ export const createUnitColumns = (
   {
     accessorKey: "recovery_mode",
     header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Recovery" />
+      <DataTableColumnHeader
+        column={column}
+        title="Recovery"
+        className="text-center"
+      />
     ),
     cell: ({ row }) => {
       const recoveryMode = row.getValue("recovery_mode");
@@ -320,20 +328,18 @@ export const createUnitColumns = (
         recoveryMode
       );
       return (
-        <div className="flex items-center justify-center">
-          <span
-            className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
-              effectiveValue
-                ? "bg-red-100 text-red-800"
-                : "bg-gray-100 text-gray-800"
-            }`}
-          >
-            {effectiveValue ? "Yes" : "No"}
-          </span>
-        </div>
+        <EditableCheckboxCell
+          value={effectiveValue}
+          onSave={(newValue) =>
+            onCellEdit(row.original.id, "recovery_mode", newValue)
+          }
+          trueColor="bg-red-100 text-red-800"
+          falseColor="bg-gray-100 text-gray-800"
+          showBadge={false}
+        />
       );
     },
-    enableSorting: true,
+    enableSorting: false,
     enableHiding: true,
     meta: {
       className: "w-[8%]",
@@ -436,6 +442,7 @@ export const createNetworkUnitColumns = () => [
         }
         onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
         aria-label="Select all"
+        className="mx-1.5"
       />
     ),
     cell: ({ row }) => (

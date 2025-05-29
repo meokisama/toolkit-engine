@@ -270,6 +270,7 @@ export function CurtainTable({ items = [], loading = false }) {
                 onEdit={handleEdit}
                 onDuplicate={handleDuplicate}
                 onDelete={handleDelete}
+                enableRowSelection={true}
               />
             </div>
             {table && (

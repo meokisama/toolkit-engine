@@ -37,11 +37,9 @@ export function UnitDialog({
     mode: "",
     firmware_version: "",
     hardware_version: "",
-    manufacture_date: "",
     can_load: false,
     recovery_mode: false,
     description: "",
-    discovered_at: "",
   });
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({});
@@ -93,11 +91,9 @@ export function UnitDialog({
           mode: item.mode || "",
           firmware_version: item.firmware_version || "",
           hardware_version: item.hardware_version || "",
-          manufacture_date: item.manufacture_date || "",
           can_load: item.can_load || false,
           recovery_mode: item.recovery_mode || false,
           description: item.description || "",
-          discovered_at: item.discovered_at || "",
         });
       } else {
         setFormData({
@@ -108,11 +104,9 @@ export function UnitDialog({
           mode: "",
           firmware_version: "",
           hardware_version: "",
-          manufacture_date: "",
           can_load: false,
           recovery_mode: false,
           description: "",
-          discovered_at: "",
         });
       }
       setErrors({});
@@ -306,23 +300,9 @@ export function UnitDialog({
               />
             </div>
 
-            {/* Manufacture Date */}
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="manufacture_date">Mfg Date</Label>
-              <Input
-                id="manufacture_date"
-                value={formData.manufacture_date}
-                onChange={(e) =>
-                  handleInputChange("manufacture_date", e.target.value)
-                }
-                className="col-span-3"
-                placeholder="DDMMYYYY"
-              />
-            </div>
-
             {/* Can Load */}
             <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="can_load">Can Load</Label>
+              <Label htmlFor="can_load">CAN Load</Label>
               <div className="col-span-3 flex items-center space-x-2">
                 <Checkbox
                   id="can_load"
@@ -353,19 +333,6 @@ export function UnitDialog({
                 </Label>
               </div>
             </div>
-
-            {/* Discovered At (Read-only for network scanned units) */}
-            {formData.discovered_at && (
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="discovered_at">Discovered</Label>
-                <Input
-                  id="discovered_at"
-                  value={new Date(formData.discovered_at).toLocaleString()}
-                  className="col-span-3"
-                  disabled
-                />
-              </div>
-            )}
 
             {/* Description */}
             <div className="grid grid-cols-4 items-center gap-4">

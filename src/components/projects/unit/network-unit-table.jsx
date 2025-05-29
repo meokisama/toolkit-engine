@@ -161,16 +161,6 @@ export function NetworkUnitTable({ onTransferToDatabase, existingUnits = [] }) {
             <p className="text-sm mb-4">
               Click "Scan Network" to discover units on your network.
             </p>
-            {!scanLoading && (
-              <Button
-                onClick={handleScanNetwork}
-                variant="outline"
-                className="flex items-center gap-2"
-              >
-                <Search className="h-4 w-4" />
-                Scan Network
-              </Button>
-            )}
           </div>
         ) : (
           <div className="space-y-4 flex flex-col h-full justify-between">

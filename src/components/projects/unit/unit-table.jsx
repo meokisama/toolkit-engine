@@ -233,7 +233,7 @@ export function UnitTable() {
                 </div>
               ) : (
                 <div className="space-y-4 h-full flex flex-col justify-between">
-                  <div className="space-y-4">
+                  <div className="space-y-4 overflow-x-auto">
                     {databaseTable && (
                       <DataTableToolbar
                         table={databaseTable}
@@ -264,6 +264,7 @@ export function UnitTable() {
                       onEdit={handleEditItem}
                       onDuplicate={handleDuplicateItem}
                       onDelete={handleDeleteItem}
+                      enableRowSelection={true}
                     />
                   </div>
                   {databaseTable && (
