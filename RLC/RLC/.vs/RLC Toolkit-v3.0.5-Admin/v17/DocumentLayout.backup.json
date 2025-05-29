@@ -1,0 +1,120 @@
+{
+  "Version": 1,
+  "WorkspaceRootPath": "C:\\Users\\hoang\\Downloads\\Toolkit\\RLC\\RLC\\",
+  "Documents": [
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\hoang\\Downloads\\RLC\\Common_Modules\\AC_Out_Cfg.Designer.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{9DC9C405-08DF-470C-9E9A-E33187D3973D}|RLC Toolkit-v3.0.5-Admin.csproj|C:\\Users\\hoang\\Downloads\\Toolkit\\RLC\\RLC\\rlcform.resx||{81828910-B8B3-4D2B-99A3-067027C180C1}",
+      "RelativeMoniker": "D:0:0:{9DC9C405-08DF-470C-9E9A-E33187D3973D}|RLC Toolkit-v3.0.5-Admin.csproj|solutionrelative:rlcform.resx||{81828910-B8B3-4D2B-99A3-067027C180C1}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{9DC9C405-08DF-470C-9E9A-E33187D3973D}|RLC Toolkit-v3.0.5-Admin.csproj|C:\\Users\\hoang\\Downloads\\Toolkit\\RLC\\RLC\\rlcform.designer.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{9DC9C405-08DF-470C-9E9A-E33187D3973D}|RLC Toolkit-v3.0.5-Admin.csproj|solutionrelative:rlcform.designer.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{9DC9C405-08DF-470C-9E9A-E33187D3973D}|RLC Toolkit-v3.0.5-Admin.csproj|C:\\Users\\hoang\\Downloads\\Toolkit\\RLC\\RLC\\rlcform.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}|Form",
+      "RelativeMoniker": "D:0:0:{9DC9C405-08DF-470C-9E9A-E33187D3973D}|RLC Toolkit-v3.0.5-Admin.csproj|solutionrelative:rlcform.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}|Form"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|c:\\users\\hoang\\downloads\\rlc\\common_modules\\ac_out_cfg.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}|Form"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\hoang\\Downloads\\RLC\\Common_Modules\\AC_Out_Cfg.resx||{81828910-B8B3-4D2B-99A3-067027C180C1}"
+    }
+  ],
+  "DocumentGroupContainers": [
+    {
+      "Orientation": 0,
+      "VerticalTabListWidth": 256,
+      "DocumentGroups": [
+        {
+          "DockedWidth": 200,
+          "SelectedChildIndex": 5,
+          "Children": [
+            {
+              "$type": "Bookmark",
+              "Name": "ST:0:0:{31fc2115-5126-4a87-b2f7-77eaab65048b}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:0:0:{aa2115a1-9712-457b-9047-dbb71ca2cdd2}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:0:0:{1c4feeaa-4718-4aa9-859d-94ce25d182ba}"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 4,
+              "Title": "AC_Out_Cfg.cs [Design]",
+              "DocumentMoniker": "C:\\Users\\hoang\\Downloads\\RLC\\Common_Modules\\AC_Out_Cfg.cs",
+              "RelativeDocumentMoniker": "..\\..\\..\\RLC\\Common_Modules\\AC_Out_Cfg.cs",
+              "ToolTip": "C:\\Users\\hoang\\Downloads\\RLC\\Common_Modules\\AC_Out_Cfg.cs [Design]",
+              "RelativeToolTip": "..\\..\\..\\RLC\\Common_Modules\\AC_Out_Cfg.cs [Design]",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-05-20T04:16:40.579Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 5,
+              "Title": "AC_Out_Cfg.resx",
+              "DocumentMoniker": "C:\\Users\\hoang\\Downloads\\RLC\\Common_Modules\\AC_Out_Cfg.resx",
+              "RelativeDocumentMoniker": "..\\..\\..\\RLC\\Common_Modules\\AC_Out_Cfg.resx",
+              "ToolTip": "C:\\Users\\hoang\\Downloads\\RLC\\Common_Modules\\AC_Out_Cfg.resx",
+              "RelativeToolTip": "..\\..\\..\\RLC\\Common_Modules\\AC_Out_Cfg.resx",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001005|",
+              "WhenOpened": "2025-05-20T04:16:35.104Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "AC_Out_Cfg.Designer.cs",
+              "DocumentMoniker": "C:\\Users\\hoang\\Downloads\\RLC\\Common_Modules\\AC_Out_Cfg.Designer.cs",
+              "RelativeDocumentMoniker": "..\\..\\..\\RLC\\Common_Modules\\AC_Out_Cfg.Designer.cs",
+              "ToolTip": "C:\\Users\\hoang\\Downloads\\RLC\\Common_Modules\\AC_Out_Cfg.Designer.cs",
+              "RelativeToolTip": "..\\..\\..\\RLC\\Common_Modules\\AC_Out_Cfg.Designer.cs",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-05-20T04:16:29.988Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "RLCform.resx",
+              "DocumentMoniker": "C:\\Users\\hoang\\Downloads\\Toolkit\\RLC\\RLC\\RLCform.resx",
+              "RelativeDocumentMoniker": "RLCform.resx",
+              "ToolTip": "C:\\Users\\hoang\\Downloads\\Toolkit\\RLC\\RLC\\RLCform.resx",
+              "RelativeToolTip": "RLCform.resx",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001005|",
+              "WhenOpened": "2025-05-20T04:16:04.9Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 2,
+              "Title": "RLCform.Designer.cs",
+              "DocumentMoniker": "C:\\Users\\hoang\\Downloads\\Toolkit\\RLC\\RLC\\RLCform.Designer.cs",
+              "RelativeDocumentMoniker": "RLCform.Designer.cs",
+              "ToolTip": "C:\\Users\\hoang\\Downloads\\Toolkit\\RLC\\RLC\\RLCform.Designer.cs",
+              "RelativeToolTip": "RLCform.Designer.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-05-20T04:15:50.408Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 3,
+              "Title": "RLCform.cs [Design]",
+              "DocumentMoniker": "C:\\Users\\hoang\\Downloads\\Toolkit\\RLC\\RLC\\RLCform.cs",
+              "RelativeDocumentMoniker": "RLCform.cs",
+              "ToolTip": "C:\\Users\\hoang\\Downloads\\RLC\\RLC\\RLCform.cs [Design]",
+              "RelativeToolTip": "..\\..\\..\\RLC\\RLC\\RLCform.cs [Design]",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-05-20T04:15:13.657Z"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

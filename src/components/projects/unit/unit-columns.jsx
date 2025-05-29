@@ -7,6 +7,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { DataTableColumnHeader } from "@/components/projects/data-table/data-table-column-header";
 import { EditableCell } from "@/components/projects/data-table/editable-cell";
 import { EditableSelectCell } from "@/components/projects/data-table/editable-select-cell";
+import { EditableComboboxCell } from "@/components/projects/data-table/editable-combobox-cell";
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -69,13 +70,13 @@ export const createUnitColumns = (
       const effectiveValue = getEffectiveValue(row.original.id, "type", type);
 
       return (
-        <EditableSelectCell
+        <EditableComboboxCell
           value={effectiveValue}
           options={UNIT_TYPE_OPTIONS}
           onSave={(newValue) => onCellEdit(row.original.id, "type", newValue)}
           placeholder="Choose unit type"
-          renderBadge={false}
-          badgeVariant="secondary"
+          searchPlaceholder="Search unit types..."
+          emptyMessage="No unit types found."
           className="w-full"
         />
       );
@@ -83,7 +84,7 @@ export const createUnitColumns = (
     enableSorting: true,
     enableHiding: true,
     meta: {
-      className: "w-[15%]",
+      className: "w-[12%]",
     },
   },
   {
@@ -113,7 +114,7 @@ export const createUnitColumns = (
     enableSorting: true,
     enableHiding: true,
     meta: {
-      className: "w-[15%]",
+      className: "w-[12%]",
     },
   },
   {
@@ -143,7 +144,7 @@ export const createUnitColumns = (
     enableSorting: false,
     enableHiding: true,
     meta: {
-      className: "w-[15%]",
+      className: "w-[10%]",
     },
   },
   {
@@ -171,7 +172,7 @@ export const createUnitColumns = (
     enableSorting: false,
     enableHiding: true,
     meta: {
-      className: "w-[15%]",
+      className: "w-[10%]",
     },
   },
   {
@@ -211,7 +212,7 @@ export const createUnitColumns = (
     enableSorting: true,
     enableHiding: true,
     meta: {
-      className: "w-[10%]",
+      className: "w-[8%]",
     },
   },
   {
@@ -241,7 +242,101 @@ export const createUnitColumns = (
     enableSorting: true,
     enableHiding: true,
     meta: {
-      className: "w-[10%]",
+      className: "w-[8%]",
+    },
+  },
+  {
+    accessorKey: "hardware_version",
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title="Hardware" />
+    ),
+    cell: ({ row }) => {
+      const hardwareVersion = row.getValue("hardware_version");
+      const effectiveValue = getEffectiveValue(
+        row.original.id,
+        "hardware_version",
+        hardwareVersion
+      );
+      return (
+        <EditableCell
+          value={effectiveValue}
+          type="text"
+          onSave={(newValue) =>
+            onCellEdit(row.original.id, "hardware_version", newValue)
+          }
+          className="font-mono text-sm w-full"
+          placeholder="-"
+        />
+      );
+    },
+    enableSorting: true,
+    enableHiding: true,
+    meta: {
+      className: "w-[8%]",
+    },
+  },
+  {
+    accessorKey: "can_load",
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title="Can Load" />
+    ),
+    cell: ({ row }) => {
+      const canLoad = row.getValue("can_load");
+      const effectiveValue = getEffectiveValue(
+        row.original.id,
+        "can_load",
+        canLoad
+      );
+      return (
+        <div className="flex items-center justify-center">
+          <span
+            className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
+              effectiveValue
+                ? "bg-green-100 text-green-800"
+                : "bg-gray-100 text-gray-800"
+            }`}
+          >
+            {effectiveValue ? "Yes" : "No"}
+          </span>
+        </div>
+      );
+    },
+    enableSorting: true,
+    enableHiding: true,
+    meta: {
+      className: "w-[8%]",
+    },
+  },
+  {
+    accessorKey: "recovery_mode",
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title="Recovery" />
+    ),
+    cell: ({ row }) => {
+      const recoveryMode = row.getValue("recovery_mode");
+      const effectiveValue = getEffectiveValue(
+        row.original.id,
+        "recovery_mode",
+        recoveryMode
+      );
+      return (
+        <div className="flex items-center justify-center">
+          <span
+            className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
+              effectiveValue
+                ? "bg-red-100 text-red-800"
+                : "bg-gray-100 text-gray-800"
+            }`}
+          >
+            {effectiveValue ? "Yes" : "No"}
+          </span>
+        </div>
+      );
+    },
+    enableSorting: true,
+    enableHiding: true,
+    meta: {
+      className: "w-[8%]",
     },
   },
   {
@@ -270,7 +365,7 @@ export const createUnitColumns = (
     enableSorting: false,
     enableHiding: true,
     meta: {
-      className: "w-[30%]",
+      className: "w-[25%]",
     },
   },
   {
@@ -324,7 +419,229 @@ export const createUnitColumns = (
     enableSorting: false,
     enableHiding: false,
     meta: {
+      className: "w-[8%]",
+    },
+  },
+];
+
+// Network unit columns (read-only, no edit functionality)
+export const createNetworkUnitColumns = () => [
+  {
+    id: "select",
+    header: ({ table }) => (
+      <Checkbox
+        checked={
+          table.getIsAllPageRowsSelected() ||
+          (table.getIsSomePageRowsSelected() && "indeterminate")
+        }
+        onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
+        aria-label="Select all"
+      />
+    ),
+    cell: ({ row }) => (
+      <Checkbox
+        checked={row.getIsSelected()}
+        onCheckedChange={(value) => row.toggleSelected(!!value)}
+        aria-label="Select row"
+      />
+    ),
+    enableSorting: false,
+    enableHiding: false,
+    meta: {
+      className: "w-[3%]",
+    },
+  },
+  {
+    accessorKey: "type",
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title="Type" />
+    ),
+    cell: ({ row }) => {
+      const type = row.getValue("type");
+      return <span className="font-medium">{type || "-"}</span>;
+    },
+    enableSorting: true,
+    enableHiding: true,
+    meta: {
+      className: "w-[15%]",
+    },
+  },
+  {
+    accessorKey: "serial_no",
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title="Serial No." />
+    ),
+    cell: ({ row }) => {
+      const serialNo = row.getValue("serial_no");
+      return <span className="font-mono text-sm">{serialNo || "-"}</span>;
+    },
+    enableSorting: true,
+    enableHiding: true,
+    meta: {
+      className: "w-[15%]",
+    },
+  },
+  {
+    accessorKey: "ip_address",
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title="IP Address" />
+    ),
+    cell: ({ row }) => {
+      const ipAddress = row.getValue("ip_address");
+      return <span className="font-mono text-sm">{ipAddress || "-"}</span>;
+    },
+    enableSorting: false,
+    enableHiding: true,
+    meta: {
+      className: "w-[12%]",
+    },
+  },
+  {
+    accessorKey: "id_can",
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title="ID CAN" />
+    ),
+    cell: ({ row }) => {
+      const idCan = row.getValue("id_can");
+      return <span className="font-mono text-sm">{idCan || "-"}</span>;
+    },
+    enableSorting: false,
+    enableHiding: true,
+    meta: {
+      className: "w-[12%]",
+    },
+  },
+  {
+    accessorKey: "mode",
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title="Mode" />
+    ),
+    cell: ({ row }) => {
+      const mode = row.getValue("mode");
+
+      return (
+        <span
+          className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
+            mode === "Master"
+              ? "bg-blue-100 text-blue-800"
+              : mode === "Slave"
+              ? "bg-gray-100 text-gray-800"
+              : mode === "Stand-Alone"
+              ? "bg-green-100 text-green-800"
+              : "bg-gray-100 text-gray-800"
+          }`}
+        >
+          {mode || "-"}
+        </span>
+      );
+    },
+    enableSorting: true,
+    enableHiding: true,
+    meta: {
       className: "w-[10%]",
+    },
+  },
+  {
+    accessorKey: "firmware_version",
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title="Firmware" />
+    ),
+    cell: ({ row }) => {
+      const firmwareVersion = row.getValue("firmware_version");
+      return (
+        <span className="font-mono text-sm">{firmwareVersion || "-"}</span>
+      );
+    },
+    enableSorting: true,
+    enableHiding: true,
+    meta: {
+      className: "w-[10%]",
+    },
+  },
+  {
+    accessorKey: "hardware_version",
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title="Hardware" />
+    ),
+    cell: ({ row }) => {
+      const hardwareVersion = row.getValue("hardware_version");
+      return (
+        <span className="font-mono text-sm">{hardwareVersion || "-"}</span>
+      );
+    },
+    enableSorting: true,
+    enableHiding: true,
+    meta: {
+      className: "w-[10%]",
+    },
+  },
+  {
+    accessorKey: "can_load",
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title="Can Load" />
+    ),
+    cell: ({ row }) => {
+      const canLoad = row.getValue("can_load");
+      return (
+        <div className="flex items-center justify-center">
+          <span
+            className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
+              canLoad
+                ? "bg-green-100 text-green-800"
+                : "bg-gray-100 text-gray-800"
+            }`}
+          >
+            {canLoad ? "Yes" : "No"}
+          </span>
+        </div>
+      );
+    },
+    enableSorting: true,
+    enableHiding: true,
+    meta: {
+      className: "w-[8%]",
+    },
+  },
+  {
+    accessorKey: "recovery_mode",
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title="Recovery" />
+    ),
+    cell: ({ row }) => {
+      const recoveryMode = row.getValue("recovery_mode");
+      return (
+        <div className="flex items-center justify-center">
+          <span
+            className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
+              recoveryMode
+                ? "bg-red-100 text-red-800"
+                : "bg-gray-100 text-gray-800"
+            }`}
+          >
+            {recoveryMode ? "Yes" : "No"}
+          </span>
+        </div>
+      );
+    },
+    enableSorting: true,
+    enableHiding: true,
+    meta: {
+      className: "w-[8%]",
+    },
+  },
+  {
+    accessorKey: "description",
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title="Description" />
+    ),
+    cell: ({ row }) => {
+      const description = row.getValue("description");
+      return <span className="text-sm">{description || "-"}</span>;
+    },
+    enableSorting: false,
+    enableHiding: true,
+    meta: {
+      className: "w-[20%]",
     },
   },
 ];

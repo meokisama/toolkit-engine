@@ -1,7 +1,7 @@
 import React, { useState, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Plus, Search, Database, Network } from "lucide-react";
+import { Plus, Database } from "lucide-react";
 import { useProjectDetail } from "@/contexts/project-detail-context";
 import { UnitDialog } from "@/components/projects/unit/unit-dialog";
 import { ConfirmDialog } from "@/components/projects/confirm-dialog";
@@ -11,6 +11,8 @@ import { DataTableToolbar } from "@/components/projects/data-table/data-table-to
 import { DataTablePagination } from "@/components/projects/data-table/data-table-pagination";
 import { DataTableSkeleton } from "@/components/projects/table-skeleton";
 import { createUnitColumns } from "@/components/projects/unit/unit-columns";
+import { NetworkUnitTable } from "@/components/projects/unit/network-unit-table";
+import { toast } from "sonner";
 
 export function UnitTable() {
   const {
@@ -29,12 +31,9 @@ export function UnitTable() {
   const [itemToDelete, setItemToDelete] = useState(null);
   const [deleteLoading, setDeleteLoading] = useState(false);
   const [databaseTable, setDatabaseTable] = useState(null);
-  const [networkTable, setNetworkTable] = useState(null);
   const [selectedRowsCount, setSelectedRowsCount] = useState(0);
   const [columnVisibility, setColumnVisibility] = useState({});
   const [pagination, setPagination] = useState({ pageIndex: 0, pageSize: 10 });
-  const [networkUnits] = useState([]); // Placeholder for network units
-  const [scanLoading, setScanLoading] = useState(false);
   const [importDialogOpen, setImportDialogOpen] = useState(false);
   const [pendingChanges, setPendingChanges] = useState(new Map());
   const [saveLoading, setSaveLoading] = useState(false);
@@ -139,17 +138,16 @@ export function UnitTable() {
     }
   };
 
-  const handleScanNetwork = async () => {
-    setScanLoading(true);
+  // Handle transfer from network units to database
+  const handleTransferToDatabase = async (unitsToTransfer) => {
     try {
-      // Placeholder for network scanning functionality
-      // This will be implemented later
-      console.log("Scanning network for units...");
-      await new Promise((resolve) => setTimeout(resolve, 2000)); // Simulate scan
+      await importItems("unit", unitsToTransfer);
+      toast.success(
+        `Successfully transferred ${unitsToTransfer.length} unit(s) to database`
+      );
     } catch (error) {
-      console.error("Failed to scan network:", error);
-    } finally {
-      setScanLoading(false);
+      console.error("Failed to transfer units to database:", error);
+      throw error; // Re-throw to let NetworkUnitTable handle the error display
     }
   };
 
@@ -189,8 +187,8 @@ export function UnitTable() {
     setPagination(paginationState);
   }, []);
 
-  // Create columns with handlers
-  const columns = createUnitColumns(
+  // Create columns with handlers for database units (editable)
+  const databaseColumns = createUnitColumns(
     handleEditItem,
     handleDuplicateItem,
     handleDeleteItem,
@@ -256,7 +254,7 @@ export function UnitTable() {
                     )}
                     <DataTable
                       key="database-unit"
-                      columns={columns}
+                      columns={databaseColumns}
                       data={units}
                       initialPagination={pagination}
                       onTableReady={setDatabaseTable}
@@ -279,50 +277,11 @@ export function UnitTable() {
             </CardContent>
           </Card>
 
-          {/* Network Units Card */}
-          <Card className="h-full">
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <CardTitle className="flex items-center gap-2">
-                  <Network className="h-5 w-5" />
-                  Network Units
-                </CardTitle>
-                <Button
-                  onClick={handleScanNetwork}
-                  disabled={scanLoading}
-                  className="flex items-center gap-2"
-                >
-                  <Search className="h-4 w-4" />
-                  {scanLoading ? "Scanning..." : "Scan"}
-                </Button>
-              </div>
-            </CardHeader>
-            <CardContent className="h-full">
-              {networkUnits.length === 0 ? (
-                <div className="text-center text-muted-foreground py-8 flex flex-col justify-center items-center h-full -mt-8">
-                  <Network className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                  <p>No network units found.</p>
-                  <p className="text-sm">
-                    Click "Scan Network" to discover units on your network.
-                  </p>
-                </div>
-              ) : (
-                <div className="space-y-4 flex flex-col h-full justify-between">
-                  {/* Network units table will be displayed here */}
-                  <DataTable
-                    key="network-unit"
-                    columns={columns}
-                    data={networkUnits}
-                    onTableReady={setNetworkTable}
-                    onEdit={handleEditItem}
-                    onDuplicate={handleDuplicateItem}
-                    onDelete={handleDeleteItem}
-                  />
-                  {networkTable && <DataTablePagination table={networkTable} />}
-                </div>
-              )}
-            </CardContent>
-          </Card>
+          {/* Network Units */}
+          <NetworkUnitTable
+            onTransferToDatabase={handleTransferToDatabase}
+            existingUnits={units}
+          />
         </div>
       </div>
 

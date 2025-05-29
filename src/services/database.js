@@ -89,7 +89,12 @@ class DatabaseService {
         id_can TEXT,
         mode TEXT,
         firmware_version TEXT,
+        hardware_version TEXT,
+        manufacture_date TEXT,
+        can_load BOOLEAN DEFAULT 0,
+        recovery_mode BOOLEAN DEFAULT 0,
         description TEXT,
+        discovered_at DATETIME,
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
         updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
         FOREIGN KEY (project_id) REFERENCES projects (id) ON DELETE CASCADE
@@ -888,20 +893,27 @@ class DatabaseService {
         id_can,
         mode,
         firmware_version,
-        description
+        hardware_version,
+        manufacture_date,
+        can_load,
+        recovery_mode,
+        description,
+        discovered_at
       } = itemData;
 
       const stmt = this.db.prepare(`
         INSERT INTO unit (
           project_id, type, serial_no, ip_address,
-          id_can, mode, firmware_version, description
+          id_can, mode, firmware_version, hardware_version,
+          manufacture_date, can_load, recovery_mode, description, discovered_at
         )
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       `);
 
       const result = stmt.run(
         projectId, type, serial_no, ip_address,
-        id_can, mode, firmware_version, description
+        id_can, mode, firmware_version, hardware_version,
+        manufacture_date, can_load ? 1 : 0, recovery_mode ? 1 : 0, description, discovered_at
       );
 
       return this.getProjectItemById(result.lastInsertRowid, 'unit');
@@ -920,20 +932,28 @@ class DatabaseService {
         id_can,
         mode,
         firmware_version,
-        description
+        hardware_version,
+        manufacture_date,
+        can_load,
+        recovery_mode,
+        description,
+        discovered_at
       } = itemData;
 
       const stmt = this.db.prepare(`
         UPDATE unit
         SET type = ?, serial_no = ?, ip_address = ?,
-            id_can = ?, mode = ?, firmware_version = ?, description = ?,
-            updated_at = CURRENT_TIMESTAMP
+            id_can = ?, mode = ?, firmware_version = ?, hardware_version = ?,
+            manufacture_date = ?, can_load = ?, recovery_mode = ?, description = ?,
+            discovered_at = ?, updated_at = CURRENT_TIMESTAMP
         WHERE id = ?
       `);
 
       const result = stmt.run(
         type, serial_no, ip_address,
-        id_can, mode, firmware_version, description, id
+        id_can, mode, firmware_version, hardware_version,
+        manufacture_date, can_load ? 1 : 0, recovery_mode ? 1 : 0, description,
+        discovered_at, id
       );
 
       if (result.changes === 0) {

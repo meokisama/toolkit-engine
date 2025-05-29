@@ -15,8 +15,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Combobox } from "@/components/ui/combobox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
 import { useProjectDetail } from "@/contexts/project-detail-context";
 import { UNIT_TYPES, UNIT_MODES } from "@/constants";
 
@@ -34,10 +36,21 @@ export function UnitDialog({
     id_can: "",
     mode: "",
     firmware_version: "",
+    hardware_version: "",
+    manufacture_date: "",
+    can_load: false,
+    recovery_mode: false,
     description: "",
+    discovered_at: "",
   });
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({});
+
+  // Create options for combobox from UNIT_TYPES
+  const unitTypeOptions = UNIT_TYPES.map((type) => ({
+    value: type,
+    label: type,
+  }));
 
   // Validate IP address
   const validateIpAddress = (value) => {
@@ -79,7 +92,12 @@ export function UnitDialog({
           id_can: item.id_can || "",
           mode: item.mode || "",
           firmware_version: item.firmware_version || "",
+          hardware_version: item.hardware_version || "",
+          manufacture_date: item.manufacture_date || "",
+          can_load: item.can_load || false,
+          recovery_mode: item.recovery_mode || false,
           description: item.description || "",
+          discovered_at: item.discovered_at || "",
         });
       } else {
         setFormData({
@@ -89,7 +107,12 @@ export function UnitDialog({
           id_can: "",
           mode: "",
           firmware_version: "",
+          hardware_version: "",
+          manufacture_date: "",
+          can_load: false,
+          recovery_mode: false,
           description: "",
+          discovered_at: "",
         });
       }
       setErrors({});
@@ -162,23 +185,15 @@ export function UnitDialog({
                 Type *
               </Label>
               <div className="col-span-3">
-                <Select
+                <Combobox
                   value={formData.type}
                   onValueChange={(value) => handleInputChange("type", value)}
-                >
-                  <SelectTrigger
-                    className={errors.type ? "border-red-500" : ""}
-                  >
-                    <SelectValue placeholder="Select unit type" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {UNIT_TYPES.map((type) => (
-                      <SelectItem key={type} value={type}>
-                        {type}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                  options={unitTypeOptions}
+                  placeholder="Select unit type"
+                  searchPlaceholder="Search unit types..."
+                  emptyMessage="No unit types found."
+                  error={!!errors.type}
+                />
                 {errors.type && (
                   <p className="text-sm text-red-500 mt-1">{errors.type}</p>
                 )}
@@ -276,6 +291,81 @@ export function UnitDialog({
                 placeholder="v1.0.0"
               />
             </div>
+
+            {/* Hardware Version */}
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="hardware_version">Hardware</Label>
+              <Input
+                id="hardware_version"
+                value={formData.hardware_version}
+                onChange={(e) =>
+                  handleInputChange("hardware_version", e.target.value)
+                }
+                className="col-span-3"
+                placeholder="v1.0.0"
+              />
+            </div>
+
+            {/* Manufacture Date */}
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="manufacture_date">Mfg Date</Label>
+              <Input
+                id="manufacture_date"
+                value={formData.manufacture_date}
+                onChange={(e) =>
+                  handleInputChange("manufacture_date", e.target.value)
+                }
+                className="col-span-3"
+                placeholder="DDMMYYYY"
+              />
+            </div>
+
+            {/* Can Load */}
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="can_load">Can Load</Label>
+              <div className="col-span-3 flex items-center space-x-2">
+                <Checkbox
+                  id="can_load"
+                  checked={formData.can_load}
+                  onCheckedChange={(checked) =>
+                    handleInputChange("can_load", checked)
+                  }
+                />
+                <Label htmlFor="can_load" className="text-sm font-normal">
+                  Unit supports loading functionality
+                </Label>
+              </div>
+            </div>
+
+            {/* Recovery Mode */}
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="recovery_mode">Recovery</Label>
+              <div className="col-span-3 flex items-center space-x-2">
+                <Checkbox
+                  id="recovery_mode"
+                  checked={formData.recovery_mode}
+                  onCheckedChange={(checked) =>
+                    handleInputChange("recovery_mode", checked)
+                  }
+                />
+                <Label htmlFor="recovery_mode" className="text-sm font-normal">
+                  Unit is in recovery mode
+                </Label>
+              </div>
+            </div>
+
+            {/* Discovered At (Read-only for network scanned units) */}
+            {formData.discovered_at && (
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="discovered_at">Discovered</Label>
+                <Input
+                  id="discovered_at"
+                  value={new Date(formData.discovered_at).toLocaleString()}
+                  className="col-span-3"
+                  disabled
+                />
+              </div>
+            )}
 
             {/* Description */}
             <div className="grid grid-cols-4 items-center gap-4">

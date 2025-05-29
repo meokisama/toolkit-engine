@@ -31,6 +31,7 @@ export function DataTable({
   onDuplicate,
   onDelete,
   initialPagination,
+  enableRowSelection = false,
 }) {
   const [sorting, setSorting] = React.useState([]);
   const [columnFilters, setColumnFilters] = React.useState([]);
@@ -106,6 +107,7 @@ export function DataTable({
       getFilteredRowModel: getFilteredRowModel(),
       onColumnVisibilityChange: setColumnVisibility,
       onRowSelectionChange: setRowSelection,
+      enableRowSelection: enableRowSelection,
       // Disable auto reset to preserve pagination state when data changes
       autoResetPageIndex: false,
       autoResetRowSelection: false,
@@ -125,6 +127,7 @@ export function DataTable({
       columnVisibility,
       rowSelection,
       pagination,
+      enableRowSelection,
     ]
   );
 

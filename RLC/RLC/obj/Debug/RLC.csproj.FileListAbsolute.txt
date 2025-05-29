@@ -1,0 +1,989 @@
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\v2.0.3\RLC V2.0.4 - for Admin ( Build Jun-30-2018)\bin\Debug\RLC.exe.config
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\v2.0.3\RLC V2.0.4 - for Admin ( Build Jun-30-2018)\bin\Debug\RLC.exe.manifest
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\v2.0.3\RLC V2.0.4 - for Admin ( Build Jun-30-2018)\bin\Debug\RLC.application
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\v2.0.3\RLC V2.0.4 - for Admin ( Build Jun-30-2018)\bin\Debug\RLC.exe
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\v2.0.3\RLC V2.0.4 - for Admin ( Build Jun-30-2018)\bin\Debug\RLC.pdb
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\v2.0.3\RLC V2.0.4 - for Admin ( Build Jun-30-2018)\bin\Debug\DevExpress.BonusSkins.v9.2.dll
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\v2.0.3\RLC V2.0.4 - for Admin ( Build Jun-30-2018)\bin\Debug\DevExpress.Data.v9.2.dll
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\v2.0.3\RLC V2.0.4 - for Admin ( Build Jun-30-2018)\bin\Debug\DevExpress.ExpressApp.v9.2.dll
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\v2.0.3\RLC V2.0.4 - for Admin ( Build Jun-30-2018)\bin\Debug\DevExpress.ExpressApp.Win.v9.2.dll
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\v2.0.3\RLC V2.0.4 - for Admin ( Build Jun-30-2018)\bin\Debug\DevExpress.OfficeSkins.v9.2.dll
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\v2.0.3\RLC V2.0.4 - for Admin ( Build Jun-30-2018)\bin\Debug\DevExpress.Utils.v9.2.dll
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\v2.0.3\RLC V2.0.4 - for Admin ( Build Jun-30-2018)\bin\Debug\DevExpress.Xpo.v9.2.dll
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\v2.0.3\RLC V2.0.4 - for Admin ( Build Jun-30-2018)\bin\Debug\DevExpress.XtraBars.v9.2.dll
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\v2.0.3\RLC V2.0.4 - for Admin ( Build Jun-30-2018)\bin\Debug\DevExpress.XtraEditors.v9.2.dll
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\v2.0.3\RLC V2.0.4 - for Admin ( Build Jun-30-2018)\bin\Debug\DevExpress.XtraGrid.v9.2.dll
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\v2.0.3\RLC V2.0.4 - for Admin ( Build Jun-30-2018)\bin\Debug\DevExpress.XtraLayout.v9.2.dll
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\v2.0.3\RLC V2.0.4 - for Admin ( Build Jun-30-2018)\bin\Debug\DevExpress.XtraNavBar.v9.2.dll
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\v2.0.3\RLC V2.0.4 - for Admin ( Build Jun-30-2018)\bin\Debug\DevExpress.XtraRichEdit.v9.2.dll
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\v2.0.3\RLC V2.0.4 - for Admin ( Build Jun-30-2018)\bin\Debug\DevExpress.XtraTreeList.v9.2.dll
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\v2.0.3\RLC V2.0.4 - for Admin ( Build Jun-30-2018)\bin\Debug\DevExpress.XtraVerticalGrid.v9.2.dll
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\v2.0.3\RLC V2.0.4 - for Admin ( Build Jun-30-2018)\bin\Debug\Ionic.Zip.dll
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\v2.0.3\RLC V2.0.4 - for Admin ( Build Jun-30-2018)\obj\Debug\RLC.csprojResolveAssemblyReference.cache
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\v2.0.3\RLC V2.0.4 - for Admin ( Build Jun-30-2018)\obj\Debug\RLC.Backup.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\v2.0.3\RLC V2.0.4 - for Admin ( Build Jun-30-2018)\obj\Debug\RLC.Input_Bedside_12T.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\v2.0.3\RLC V2.0.4 - for Admin ( Build Jun-30-2018)\obj\Debug\RLC.ConfigIO_Bedside_12T.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\v2.0.3\RLC V2.0.4 - for Admin ( Build Jun-30-2018)\obj\Debug\RLC.Input_RCU_16RL_16AO.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\v2.0.3\RLC V2.0.4 - for Admin ( Build Jun-30-2018)\obj\Debug\RLC.ConfigIO_RCU_16RL_16AO.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\v2.0.3\RLC V2.0.4 - for Admin ( Build Jun-30-2018)\obj\Debug\RLC.Input_RCU_24RL_8AO.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\v2.0.3\RLC V2.0.4 - for Admin ( Build Jun-30-2018)\obj\Debug\RLC.ConfigIO_RCU_24RL_8AO.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\v2.0.3\RLC V2.0.4 - for Admin ( Build Jun-30-2018)\obj\Debug\RLC.Input_RCU_32AO.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\v2.0.3\RLC V2.0.4 - for Admin ( Build Jun-30-2018)\obj\Debug\RLC.ConfigIO_RCU_32AO.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\v2.0.3\RLC V2.0.4 - for Admin ( Build Jun-30-2018)\obj\Debug\RLC.Input_RCU_8RL_24AO.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\v2.0.3\RLC V2.0.4 - for Admin ( Build Jun-30-2018)\obj\Debug\RLC.ConfigIO_RCU_8RL_24AO.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\v2.0.3\RLC V2.0.4 - for Admin ( Build Jun-30-2018)\obj\Debug\RLC.ConfigIO_RLC.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\v2.0.3\RLC V2.0.4 - for Admin ( Build Jun-30-2018)\obj\Debug\RLC.Add_Group.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\v2.0.3\RLC V2.0.4 - for Admin ( Build Jun-30-2018)\obj\Debug\RLC.Add_Unit.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\v2.0.3\RLC V2.0.4 - for Admin ( Build Jun-30-2018)\obj\Debug\RLC.ConfigIO_Bedside.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\v2.0.3\RLC V2.0.4 - for Admin ( Build Jun-30-2018)\obj\Debug\RLC.Input_RLC_new_20_ports.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\v2.0.3\RLC V2.0.4 - for Admin ( Build Jun-30-2018)\obj\Debug\RLC.ConfigIO_RLC_new_20_ports.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\v2.0.3\RLC V2.0.4 - for Admin ( Build Jun-30-2018)\obj\Debug\RLC.Input_Bedside.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\v2.0.3\RLC V2.0.4 - for Admin ( Build Jun-30-2018)\obj\Debug\RLC.Input_RLC.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\v2.0.3\RLC V2.0.4 - for Admin ( Build Jun-30-2018)\obj\Debug\RLC.Tool_Setup.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\v2.0.3\RLC V2.0.4 - for Admin ( Build Jun-30-2018)\obj\Debug\RLC.Relay_Delay.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\v2.0.3\RLC V2.0.4 - for Admin ( Build Jun-30-2018)\obj\Debug\RLC.ConfigIO_RLC_new.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\v2.0.3\RLC V2.0.4 - for Admin ( Build Jun-30-2018)\obj\Debug\RLC.Input_RLC_new.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\v2.0.3\RLC V2.0.4 - for Admin ( Build Jun-30-2018)\obj\Debug\RLC.RLC1.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\v2.0.3\RLC V2.0.4 - for Admin ( Build Jun-30-2018)\obj\Debug\RLC.Properties.Resources.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\v2.0.3\RLC V2.0.4 - for Admin ( Build Jun-30-2018)\obj\Debug\RLC.csproj.GenerateResource.Cache
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\v2.0.3\RLC V2.0.4 - for Admin ( Build Jun-30-2018)\obj\Debug\RLC.exe.licenses
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\v2.0.3\RLC V2.0.4 - for Admin ( Build Jun-30-2018)\obj\Debug\RLC.TrustInfo.xml
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\v2.0.3\RLC V2.0.4 - for Admin ( Build Jun-30-2018)\obj\Debug\RLC.exe.manifest
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\v2.0.3\RLC V2.0.4 - for Admin ( Build Jun-30-2018)\obj\Debug\RLC.application
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\v2.0.3\RLC V2.0.4 - for Admin ( Build Jun-30-2018)\obj\Debug\RLC.exe
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\v2.0.3\RLC V2.0.4 - for Admin ( Build Jun-30-2018)\obj\Debug\RLC.pdb
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\v2.0.3\RLC V2.0.3 - for Admin ( Build Jun-30-2018)\bin\Debug\RLC.exe.config
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\v2.0.3\RLC V2.0.3 - for Admin ( Build Jun-30-2018)\obj\Debug\RLC.exe
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\v2.0.3\RLC V2.0.3 - for Admin ( Build Jun-30-2018)\obj\Debug\RLC.pdb
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\v2.0.3\RLC V2.0.3 - for Admin ( Build Jun-30-2018)\bin\Debug\RLC.exe.manifest
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\v2.0.3\RLC V2.0.3 - for Admin ( Build Jun-30-2018)\bin\Debug\RLC.application
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\v2.0.3\RLC V2.0.3 - for Admin ( Build Jun-30-2018)\bin\Debug\RLC.exe
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\v2.0.3\RLC V2.0.3 - for Admin ( Build Jun-30-2018)\bin\Debug\RLC.pdb
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\v2.0.3\RLC V2.0.3 - for Admin ( Build Jun-30-2018)\bin\Debug\DevExpress.BonusSkins.v9.2.dll
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\v2.0.3\RLC V2.0.3 - for Admin ( Build Jun-30-2018)\bin\Debug\DevExpress.Data.v9.2.dll
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\v2.0.3\RLC V2.0.3 - for Admin ( Build Jun-30-2018)\bin\Debug\DevExpress.ExpressApp.v9.2.dll
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\v2.0.3\RLC V2.0.3 - for Admin ( Build Jun-30-2018)\bin\Debug\DevExpress.ExpressApp.Win.v9.2.dll
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\v2.0.3\RLC V2.0.3 - for Admin ( Build Jun-30-2018)\bin\Debug\DevExpress.OfficeSkins.v9.2.dll
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\v2.0.3\RLC V2.0.3 - for Admin ( Build Jun-30-2018)\bin\Debug\DevExpress.Utils.v9.2.dll
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\v2.0.3\RLC V2.0.3 - for Admin ( Build Jun-30-2018)\bin\Debug\DevExpress.Xpo.v9.2.dll
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\v2.0.3\RLC V2.0.3 - for Admin ( Build Jun-30-2018)\bin\Debug\DevExpress.XtraBars.v9.2.dll
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\v2.0.3\RLC V2.0.3 - for Admin ( Build Jun-30-2018)\bin\Debug\DevExpress.XtraEditors.v9.2.dll
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\v2.0.3\RLC V2.0.3 - for Admin ( Build Jun-30-2018)\bin\Debug\DevExpress.XtraGrid.v9.2.dll
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\v2.0.3\RLC V2.0.3 - for Admin ( Build Jun-30-2018)\bin\Debug\DevExpress.XtraLayout.v9.2.dll
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\v2.0.3\RLC V2.0.3 - for Admin ( Build Jun-30-2018)\bin\Debug\DevExpress.XtraNavBar.v9.2.dll
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\v2.0.3\RLC V2.0.3 - for Admin ( Build Jun-30-2018)\bin\Debug\DevExpress.XtraRichEdit.v9.2.dll
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\v2.0.3\RLC V2.0.3 - for Admin ( Build Jun-30-2018)\bin\Debug\DevExpress.XtraTreeList.v9.2.dll
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\v2.0.3\RLC V2.0.3 - for Admin ( Build Jun-30-2018)\bin\Debug\DevExpress.XtraVerticalGrid.v9.2.dll
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\v2.0.3\RLC V2.0.3 - for Admin ( Build Jun-30-2018)\bin\Debug\Ionic.Zip.dll
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\v2.0.3\RLC V2.0.3 - for Admin ( Build Jun-30-2018)\obj\Debug\RLC.csprojResolveAssemblyReference.cache
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\v2.0.3\RLC V2.0.3 - for Admin ( Build Jun-30-2018)\obj\Debug\RLC.Backup.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\v2.0.3\RLC V2.0.3 - for Admin ( Build Jun-30-2018)\obj\Debug\RLC.Input_Bedside_12T.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\v2.0.3\RLC V2.0.3 - for Admin ( Build Jun-30-2018)\obj\Debug\RLC.ConfigIO_Bedside_12T.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\v2.0.3\RLC V2.0.3 - for Admin ( Build Jun-30-2018)\obj\Debug\RLC.Input_RCU_16RL_16AO.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\v2.0.3\RLC V2.0.3 - for Admin ( Build Jun-30-2018)\obj\Debug\RLC.ConfigIO_RCU_16RL_16AO.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\v2.0.3\RLC V2.0.3 - for Admin ( Build Jun-30-2018)\obj\Debug\RLC.Input_RCU_24RL_8AO.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\v2.0.3\RLC V2.0.3 - for Admin ( Build Jun-30-2018)\obj\Debug\RLC.ConfigIO_RCU_24RL_8AO.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\v2.0.3\RLC V2.0.3 - for Admin ( Build Jun-30-2018)\obj\Debug\RLC.Input_RCU_32AO.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\v2.0.3\RLC V2.0.3 - for Admin ( Build Jun-30-2018)\obj\Debug\RLC.ConfigIO_RCU_32AO.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\v2.0.3\RLC V2.0.3 - for Admin ( Build Jun-30-2018)\obj\Debug\RLC.Input_RCU_8RL_24AO.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\v2.0.3\RLC V2.0.3 - for Admin ( Build Jun-30-2018)\obj\Debug\RLC.ConfigIO_RCU_8RL_24AO.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\v2.0.3\RLC V2.0.3 - for Admin ( Build Jun-30-2018)\obj\Debug\RLC.ConfigIO_RLC.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\v2.0.3\RLC V2.0.3 - for Admin ( Build Jun-30-2018)\obj\Debug\RLC.Add_Group.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\v2.0.3\RLC V2.0.3 - for Admin ( Build Jun-30-2018)\obj\Debug\RLC.Add_Unit.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\v2.0.3\RLC V2.0.3 - for Admin ( Build Jun-30-2018)\obj\Debug\RLC.ConfigIO_Bedside.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\v2.0.3\RLC V2.0.3 - for Admin ( Build Jun-30-2018)\obj\Debug\RLC.Input_RLC_new_20_ports.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\v2.0.3\RLC V2.0.3 - for Admin ( Build Jun-30-2018)\obj\Debug\RLC.ConfigIO_RLC_new_20_ports.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\v2.0.3\RLC V2.0.3 - for Admin ( Build Jun-30-2018)\obj\Debug\RLC.Input_Bedside.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\v2.0.3\RLC V2.0.3 - for Admin ( Build Jun-30-2018)\obj\Debug\RLC.Input_RLC.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\v2.0.3\RLC V2.0.3 - for Admin ( Build Jun-30-2018)\obj\Debug\RLC.Tool_Setup.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\v2.0.3\RLC V2.0.3 - for Admin ( Build Jun-30-2018)\obj\Debug\RLC.Relay_Delay.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\v2.0.3\RLC V2.0.3 - for Admin ( Build Jun-30-2018)\obj\Debug\RLC.ConfigIO_RLC_new.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\v2.0.3\RLC V2.0.3 - for Admin ( Build Jun-30-2018)\obj\Debug\RLC.Input_RLC_new.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\v2.0.3\RLC V2.0.3 - for Admin ( Build Jun-30-2018)\obj\Debug\RLC.RLC1.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\v2.0.3\RLC V2.0.3 - for Admin ( Build Jun-30-2018)\obj\Debug\RLC.Properties.Resources.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\v2.0.3\RLC V2.0.3 - for Admin ( Build Jun-30-2018)\obj\Debug\RLC.csproj.GenerateResource.Cache
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\v2.0.3\RLC V2.0.3 - for Admin ( Build Jun-30-2018)\obj\Debug\RLC.exe.licenses
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\v2.0.3\RLC V2.0.3 - for Admin ( Build Jun-30-2018)\obj\Debug\RLC.TrustInfo.xml
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\v2.0.3\RLC V2.0.3 - for Admin ( Build Jun-30-2018)\obj\Debug\RLC.exe.manifest
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\v2.0.3\RLC V2.0.3 - for Admin ( Build Jun-30-2018)\obj\Debug\RLC.application
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\v2.0.4\RLC V2.0.4 - for Admin ( Build Jun-30-2018)\bin\Debug\RLC.exe.config
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\v2.0.4\RLC V2.0.4 - for Admin ( Build Jun-30-2018)\obj\Debug\RLC.exe
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\v2.0.4\RLC V2.0.4 - for Admin ( Build Jun-30-2018)\obj\Debug\RLC.pdb
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\v2.0.4\RLC V2.0.4 - for Admin ( Build Jun-30-2018)\bin\Debug\RLC.exe.manifest
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\v2.0.4\RLC V2.0.4 - for Admin ( Build Jun-30-2018)\bin\Debug\RLC.application
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\v2.0.4\RLC V2.0.4 - for Admin ( Build Jun-30-2018)\bin\Debug\RLC.exe
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\v2.0.4\RLC V2.0.4 - for Admin ( Build Jun-30-2018)\bin\Debug\RLC.pdb
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\v2.0.4\RLC V2.0.4 - for Admin ( Build Jun-30-2018)\bin\Debug\DevExpress.BonusSkins.v9.2.dll
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\v2.0.4\RLC V2.0.4 - for Admin ( Build Jun-30-2018)\bin\Debug\DevExpress.Data.v9.2.dll
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\v2.0.4\RLC V2.0.4 - for Admin ( Build Jun-30-2018)\bin\Debug\DevExpress.ExpressApp.v9.2.dll
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\v2.0.4\RLC V2.0.4 - for Admin ( Build Jun-30-2018)\bin\Debug\DevExpress.ExpressApp.Win.v9.2.dll
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\v2.0.4\RLC V2.0.4 - for Admin ( Build Jun-30-2018)\bin\Debug\DevExpress.OfficeSkins.v9.2.dll
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\v2.0.4\RLC V2.0.4 - for Admin ( Build Jun-30-2018)\bin\Debug\DevExpress.Utils.v9.2.dll
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\v2.0.4\RLC V2.0.4 - for Admin ( Build Jun-30-2018)\bin\Debug\DevExpress.Xpo.v9.2.dll
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\v2.0.4\RLC V2.0.4 - for Admin ( Build Jun-30-2018)\bin\Debug\DevExpress.XtraBars.v9.2.dll
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\v2.0.4\RLC V2.0.4 - for Admin ( Build Jun-30-2018)\bin\Debug\DevExpress.XtraEditors.v9.2.dll
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\v2.0.4\RLC V2.0.4 - for Admin ( Build Jun-30-2018)\bin\Debug\DevExpress.XtraGrid.v9.2.dll
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\v2.0.4\RLC V2.0.4 - for Admin ( Build Jun-30-2018)\bin\Debug\DevExpress.XtraLayout.v9.2.dll
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\v2.0.4\RLC V2.0.4 - for Admin ( Build Jun-30-2018)\bin\Debug\DevExpress.XtraNavBar.v9.2.dll
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\v2.0.4\RLC V2.0.4 - for Admin ( Build Jun-30-2018)\bin\Debug\DevExpress.XtraRichEdit.v9.2.dll
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\v2.0.4\RLC V2.0.4 - for Admin ( Build Jun-30-2018)\bin\Debug\DevExpress.XtraTreeList.v9.2.dll
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\v2.0.4\RLC V2.0.4 - for Admin ( Build Jun-30-2018)\bin\Debug\DevExpress.XtraVerticalGrid.v9.2.dll
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\v2.0.4\RLC V2.0.4 - for Admin ( Build Jun-30-2018)\bin\Debug\Ionic.Zip.dll
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\v2.0.4\RLC V2.0.4 - for Admin ( Build Jun-30-2018)\obj\Debug\RLC.csprojResolveAssemblyReference.cache
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\v2.0.4\RLC V2.0.4 - for Admin ( Build Jun-30-2018)\obj\Debug\RLC.Backup.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\v2.0.4\RLC V2.0.4 - for Admin ( Build Jun-30-2018)\obj\Debug\RLC.Input_Bedside_12T.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\v2.0.4\RLC V2.0.4 - for Admin ( Build Jun-30-2018)\obj\Debug\RLC.ConfigIO_Bedside_12T.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\v2.0.4\RLC V2.0.4 - for Admin ( Build Jun-30-2018)\obj\Debug\RLC.Input_RCU_16RL_16AO.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\v2.0.4\RLC V2.0.4 - for Admin ( Build Jun-30-2018)\obj\Debug\RLC.ConfigIO_RCU_16RL_16AO.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\v2.0.4\RLC V2.0.4 - for Admin ( Build Jun-30-2018)\obj\Debug\RLC.Input_RCU_24RL_8AO.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\v2.0.4\RLC V2.0.4 - for Admin ( Build Jun-30-2018)\obj\Debug\RLC.ConfigIO_RCU_24RL_8AO.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\v2.0.4\RLC V2.0.4 - for Admin ( Build Jun-30-2018)\obj\Debug\RLC.Input_RCU_32AO.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\v2.0.4\RLC V2.0.4 - for Admin ( Build Jun-30-2018)\obj\Debug\RLC.ConfigIO_RCU_32AO.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\v2.0.4\RLC V2.0.4 - for Admin ( Build Jun-30-2018)\obj\Debug\RLC.Input_RCU_8RL_24AO.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\v2.0.4\RLC V2.0.4 - for Admin ( Build Jun-30-2018)\obj\Debug\RLC.ConfigIO_RCU_8RL_24AO.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\v2.0.4\RLC V2.0.4 - for Admin ( Build Jun-30-2018)\obj\Debug\RLC.ConfigIO_RLC.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\v2.0.4\RLC V2.0.4 - for Admin ( Build Jun-30-2018)\obj\Debug\RLC.Add_Group.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\v2.0.4\RLC V2.0.4 - for Admin ( Build Jun-30-2018)\obj\Debug\RLC.Add_Unit.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\v2.0.4\RLC V2.0.4 - for Admin ( Build Jun-30-2018)\obj\Debug\RLC.ConfigIO_Bedside.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\v2.0.4\RLC V2.0.4 - for Admin ( Build Jun-30-2018)\obj\Debug\RLC.Input_RLC_new_20_ports.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\v2.0.4\RLC V2.0.4 - for Admin ( Build Jun-30-2018)\obj\Debug\RLC.ConfigIO_RLC_new_20_ports.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\v2.0.4\RLC V2.0.4 - for Admin ( Build Jun-30-2018)\obj\Debug\RLC.Input_Bedside.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\v2.0.4\RLC V2.0.4 - for Admin ( Build Jun-30-2018)\obj\Debug\RLC.Input_RLC.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\v2.0.4\RLC V2.0.4 - for Admin ( Build Jun-30-2018)\obj\Debug\RLC.Tool_Setup.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\v2.0.4\RLC V2.0.4 - for Admin ( Build Jun-30-2018)\obj\Debug\RLC.Relay_Delay.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\v2.0.4\RLC V2.0.4 - for Admin ( Build Jun-30-2018)\obj\Debug\RLC.ConfigIO_RLC_new.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\v2.0.4\RLC V2.0.4 - for Admin ( Build Jun-30-2018)\obj\Debug\RLC.Input_RLC_new.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\v2.0.4\RLC V2.0.4 - for Admin ( Build Jun-30-2018)\obj\Debug\RLC.RLC1.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\v2.0.4\RLC V2.0.4 - for Admin ( Build Jun-30-2018)\obj\Debug\RLC.Properties.Resources.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\v2.0.4\RLC V2.0.4 - for Admin ( Build Jun-30-2018)\obj\Debug\RLC.csproj.GenerateResource.Cache
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\v2.0.4\RLC V2.0.4 - for Admin ( Build Jun-30-2018)\obj\Debug\RLC.exe.licenses
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\v2.0.4\RLC V2.0.4 - for Admin ( Build Jun-30-2018)\obj\Debug\RLC.TrustInfo.xml
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\v2.0.4\RLC V2.0.4 - for Admin ( Build Jun-30-2018)\obj\Debug\RLC.exe.manifest
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\v2.0.4\RLC V2.0.4 - for Admin ( Build Jun-30-2018)\obj\Debug\RLC.application
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\v2.0.4\RLC V2.0.4 - for Admin (Build 29-Oct-2018)\bin\Debug\RLC.exe.config
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\v2.0.4\RLC V2.0.4 - for Admin (Build 29-Oct-2018)\obj\Debug\RLC.exe
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\v2.0.4\RLC V2.0.4 - for Admin (Build 29-Oct-2018)\obj\Debug\RLC.pdb
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\v2.0.4\RLC V2.0.4 - for Admin (Build 29-Oct-2018)\bin\Debug\RLC.exe.manifest
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\v2.0.4\RLC V2.0.4 - for Admin (Build 29-Oct-2018)\bin\Debug\RLC.application
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\v2.0.4\RLC V2.0.4 - for Admin (Build 29-Oct-2018)\bin\Debug\RLC.exe
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\v2.0.4\RLC V2.0.4 - for Admin (Build 29-Oct-2018)\bin\Debug\RLC.pdb
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\v2.0.4\RLC V2.0.4 - for Admin (Build 29-Oct-2018)\bin\Debug\DevExpress.BonusSkins.v9.2.dll
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\v2.0.4\RLC V2.0.4 - for Admin (Build 29-Oct-2018)\bin\Debug\DevExpress.Data.v9.2.dll
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\v2.0.4\RLC V2.0.4 - for Admin (Build 29-Oct-2018)\bin\Debug\DevExpress.ExpressApp.v9.2.dll
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\v2.0.4\RLC V2.0.4 - for Admin (Build 29-Oct-2018)\bin\Debug\DevExpress.ExpressApp.Win.v9.2.dll
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\v2.0.4\RLC V2.0.4 - for Admin (Build 29-Oct-2018)\bin\Debug\DevExpress.OfficeSkins.v9.2.dll
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\v2.0.4\RLC V2.0.4 - for Admin (Build 29-Oct-2018)\bin\Debug\DevExpress.Utils.v9.2.dll
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\v2.0.4\RLC V2.0.4 - for Admin (Build 29-Oct-2018)\bin\Debug\DevExpress.Xpo.v9.2.dll
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\v2.0.4\RLC V2.0.4 - for Admin (Build 29-Oct-2018)\bin\Debug\DevExpress.XtraBars.v9.2.dll
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\v2.0.4\RLC V2.0.4 - for Admin (Build 29-Oct-2018)\bin\Debug\DevExpress.XtraEditors.v9.2.dll
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\v2.0.4\RLC V2.0.4 - for Admin (Build 29-Oct-2018)\bin\Debug\DevExpress.XtraGrid.v9.2.dll
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\v2.0.4\RLC V2.0.4 - for Admin (Build 29-Oct-2018)\bin\Debug\DevExpress.XtraLayout.v9.2.dll
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\v2.0.4\RLC V2.0.4 - for Admin (Build 29-Oct-2018)\bin\Debug\DevExpress.XtraNavBar.v9.2.dll
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\v2.0.4\RLC V2.0.4 - for Admin (Build 29-Oct-2018)\bin\Debug\DevExpress.XtraRichEdit.v9.2.dll
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\v2.0.4\RLC V2.0.4 - for Admin (Build 29-Oct-2018)\bin\Debug\DevExpress.XtraTreeList.v9.2.dll
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\v2.0.4\RLC V2.0.4 - for Admin (Build 29-Oct-2018)\bin\Debug\DevExpress.XtraVerticalGrid.v9.2.dll
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\v2.0.4\RLC V2.0.4 - for Admin (Build 29-Oct-2018)\bin\Debug\Ionic.Zip.dll
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\v2.0.4\RLC V2.0.4 - for Admin (Build 29-Oct-2018)\obj\Debug\RLC.csprojResolveAssemblyReference.cache
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\v2.0.4\RLC V2.0.4 - for Admin (Build 29-Oct-2018)\obj\Debug\RLC.Backup.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\v2.0.4\RLC V2.0.4 - for Admin (Build 29-Oct-2018)\obj\Debug\RLC.Input_Bedside_12T.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\v2.0.4\RLC V2.0.4 - for Admin (Build 29-Oct-2018)\obj\Debug\RLC.ConfigIO_Bedside_12T.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\v2.0.4\RLC V2.0.4 - for Admin (Build 29-Oct-2018)\obj\Debug\RLC.Input_RCU_16RL_16AO.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\v2.0.4\RLC V2.0.4 - for Admin (Build 29-Oct-2018)\obj\Debug\RLC.ConfigIO_RCU_16RL_16AO.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\v2.0.4\RLC V2.0.4 - for Admin (Build 29-Oct-2018)\obj\Debug\RLC.Input_RCU_24RL_8AO.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\v2.0.4\RLC V2.0.4 - for Admin (Build 29-Oct-2018)\obj\Debug\RLC.ConfigIO_RCU_24RL_8AO.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\v2.0.4\RLC V2.0.4 - for Admin (Build 29-Oct-2018)\obj\Debug\RLC.Input_RCU_32AO.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\v2.0.4\RLC V2.0.4 - for Admin (Build 29-Oct-2018)\obj\Debug\RLC.ConfigIO_RCU_32AO.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\v2.0.4\RLC V2.0.4 - for Admin (Build 29-Oct-2018)\obj\Debug\RLC.Input_RCU_8RL_24AO.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\v2.0.4\RLC V2.0.4 - for Admin (Build 29-Oct-2018)\obj\Debug\RLC.ConfigIO_RCU_8RL_24AO.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\v2.0.4\RLC V2.0.4 - for Admin (Build 29-Oct-2018)\obj\Debug\RLC.ConfigIO_RLC.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\v2.0.4\RLC V2.0.4 - for Admin (Build 29-Oct-2018)\obj\Debug\RLC.Add_Group.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\v2.0.4\RLC V2.0.4 - for Admin (Build 29-Oct-2018)\obj\Debug\RLC.Add_Unit.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\v2.0.4\RLC V2.0.4 - for Admin (Build 29-Oct-2018)\obj\Debug\RLC.ConfigIO_Bedside.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\v2.0.4\RLC V2.0.4 - for Admin (Build 29-Oct-2018)\obj\Debug\RLC.Input_RLC_new_20_ports.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\v2.0.4\RLC V2.0.4 - for Admin (Build 29-Oct-2018)\obj\Debug\RLC.ConfigIO_RLC_new_20_ports.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\v2.0.4\RLC V2.0.4 - for Admin (Build 29-Oct-2018)\obj\Debug\RLC.Input_Bedside.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\v2.0.4\RLC V2.0.4 - for Admin (Build 29-Oct-2018)\obj\Debug\RLC.Input_RLC.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\v2.0.4\RLC V2.0.4 - for Admin (Build 29-Oct-2018)\obj\Debug\RLC.Tool_Setup.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\v2.0.4\RLC V2.0.4 - for Admin (Build 29-Oct-2018)\obj\Debug\RLC.Relay_Delay.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\v2.0.4\RLC V2.0.4 - for Admin (Build 29-Oct-2018)\obj\Debug\RLC.ConfigIO_RLC_new.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\v2.0.4\RLC V2.0.4 - for Admin (Build 29-Oct-2018)\obj\Debug\RLC.Input_RLC_new.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\v2.0.4\RLC V2.0.4 - for Admin (Build 29-Oct-2018)\obj\Debug\RLC.RLC1.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\v2.0.4\RLC V2.0.4 - for Admin (Build 29-Oct-2018)\obj\Debug\RLC.Properties.Resources.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\v2.0.4\RLC V2.0.4 - for Admin (Build 29-Oct-2018)\obj\Debug\RLC.csproj.GenerateResource.Cache
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\v2.0.4\RLC V2.0.4 - for Admin (Build 29-Oct-2018)\obj\Debug\RLC.exe.licenses
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\v2.0.4\RLC V2.0.4 - for Admin (Build 29-Oct-2018)\obj\Debug\RLC.TrustInfo.xml
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\v2.0.4\RLC V2.0.4 - for Admin (Build 29-Oct-2018)\obj\Debug\RLC.exe.manifest
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\v2.0.4\RLC V2.0.4 - for Admin (Build 29-Oct-2018)\obj\Debug\RLC.application
+E:\Project\RLC_Project\RLC - Admin\bin\Debug\RLC.exe.config
+E:\Project\RLC_Project\RLC - Admin\obj\Debug\RLC.exe
+E:\Project\RLC_Project\RLC - Admin\obj\Debug\RLC.pdb
+E:\Project\RLC_Project\RLC - Admin\obj\Debug\RLC.csprojResolveAssemblyReference.cache
+E:\Project\RLC_Project\RLC - Admin\obj\Debug\RLC.Backup.resources
+E:\Project\RLC_Project\RLC - Admin\obj\Debug\RLC.Input_Bedside_12T.resources
+E:\Project\RLC_Project\RLC - Admin\obj\Debug\RLC.ConfigIO_Bedside_12T.resources
+E:\Project\RLC_Project\RLC - Admin\obj\Debug\RLC.Input_RCU_16RL_16AO.resources
+E:\Project\RLC_Project\RLC - Admin\obj\Debug\RLC.ConfigIO_RCU_16RL_16AO.resources
+E:\Project\RLC_Project\RLC - Admin\obj\Debug\RLC.Input_RCU_24RL_8AO.resources
+E:\Project\RLC_Project\RLC - Admin\obj\Debug\RLC.ConfigIO_RCU_24RL_8AO.resources
+E:\Project\RLC_Project\RLC - Admin\obj\Debug\RLC.Input_RCU_32AO.resources
+E:\Project\RLC_Project\RLC - Admin\obj\Debug\RLC.ConfigIO_RCU_32AO.resources
+E:\Project\RLC_Project\RLC - Admin\obj\Debug\RLC.Input_RCU_8RL_24AO.resources
+E:\Project\RLC_Project\RLC - Admin\obj\Debug\RLC.ConfigIO_RCU_8RL_24AO.resources
+E:\Project\RLC_Project\RLC - Admin\obj\Debug\RLC.ConfigIO_RLC.resources
+E:\Project\RLC_Project\RLC - Admin\obj\Debug\RLC.Add_Group.resources
+E:\Project\RLC_Project\RLC - Admin\obj\Debug\RLC.Add_Unit.resources
+E:\Project\RLC_Project\RLC - Admin\obj\Debug\RLC.ConfigIO_Bedside.resources
+E:\Project\RLC_Project\RLC - Admin\obj\Debug\RLC.Input_RLC_new_20_ports.resources
+E:\Project\RLC_Project\RLC - Admin\obj\Debug\RLC.ConfigIO_RLC_new_20_ports.resources
+E:\Project\RLC_Project\RLC - Admin\obj\Debug\RLC.Input_Bedside.resources
+E:\Project\RLC_Project\RLC - Admin\obj\Debug\RLC.Input_RLC.resources
+E:\Project\RLC_Project\RLC - Admin\obj\Debug\RLC.Tool_Setup.resources
+E:\Project\RLC_Project\RLC - Admin\obj\Debug\RLC.ConfigIO_RLC_new.resources
+E:\Project\RLC_Project\RLC - Admin\obj\Debug\RLC.Input_RLC_new.resources
+E:\Project\RLC_Project\RLC - Admin\obj\Debug\RLC.RLC1.resources
+E:\Project\RLC_Project\RLC - Admin\obj\Debug\RLC.Properties.Resources.resources
+E:\Project\RLC_Project\RLC - Admin\obj\Debug\RLC.csproj.GenerateResource.Cache
+E:\Project\RLC_Project\RLC - Admin\obj\Debug\RLC.exe.licenses
+E:\Project\RLC_Project\RLC - Admin\bin\Debug\RLC.exe.manifest
+E:\Project\RLC_Project\RLC - Admin\bin\Debug\RLC.application
+E:\Project\RLC_Project\RLC - Admin\bin\Debug\RLC.exe
+E:\Project\RLC_Project\RLC - Admin\bin\Debug\RLC.pdb
+E:\Project\RLC_Project\RLC - Admin\bin\Debug\DevExpress.BonusSkins.v9.2.dll
+E:\Project\RLC_Project\RLC - Admin\bin\Debug\DevExpress.Data.v9.2.dll
+E:\Project\RLC_Project\RLC - Admin\bin\Debug\DevExpress.ExpressApp.v9.2.dll
+E:\Project\RLC_Project\RLC - Admin\bin\Debug\DevExpress.ExpressApp.Win.v9.2.dll
+E:\Project\RLC_Project\RLC - Admin\bin\Debug\DevExpress.OfficeSkins.v9.2.dll
+E:\Project\RLC_Project\RLC - Admin\bin\Debug\DevExpress.Utils.v9.2.dll
+E:\Project\RLC_Project\RLC - Admin\bin\Debug\DevExpress.Xpo.v9.2.dll
+E:\Project\RLC_Project\RLC - Admin\bin\Debug\DevExpress.XtraBars.v9.2.dll
+E:\Project\RLC_Project\RLC - Admin\bin\Debug\DevExpress.XtraEditors.v9.2.dll
+E:\Project\RLC_Project\RLC - Admin\bin\Debug\DevExpress.XtraGrid.v9.2.dll
+E:\Project\RLC_Project\RLC - Admin\bin\Debug\DevExpress.XtraLayout.v9.2.dll
+E:\Project\RLC_Project\RLC - Admin\bin\Debug\DevExpress.XtraNavBar.v9.2.dll
+E:\Project\RLC_Project\RLC - Admin\bin\Debug\DevExpress.XtraRichEdit.v9.2.dll
+E:\Project\RLC_Project\RLC - Admin\bin\Debug\DevExpress.XtraTreeList.v9.2.dll
+E:\Project\RLC_Project\RLC - Admin\bin\Debug\DevExpress.XtraVerticalGrid.v9.2.dll
+E:\Project\RLC_Project\RLC - Admin\bin\Debug\Ionic.Zip.dll
+E:\Project\RLC_Project\RLC - Admin\obj\Debug\RLC.TrustInfo.xml
+E:\Project\RLC_Project\RLC - Admin\obj\Debug\RLC.exe.manifest
+E:\Project\RLC_Project\RLC - Admin\obj\Debug\RLC.application
+E:\Project\RLC_Project\RLC - Admin\obj\Debug\RLC.ConfigIO_BSP_R14_OL.resources
+E:\Project\RLC_Project\RLC - Admin\obj\Debug\RLC.Input_BSP_R14_OL.resources
+E:\Project\RLC_Project\RLC - Admin\obj\Debug\RLC.Input_RCU_10AO.resources
+E:\Project\RLC_Project\RLC - Admin\obj\Debug\RLC.Input_RCU_8RL.resources
+E:\Project\RLC_Project\RLC - Admin\obj\Debug\RLC.Input_RCU_6RL.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.0.5 (09-24-2019)\RLC - Admin\bin\Debug\RLC.exe.config
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.0.5 (09-24-2019)\RLC - Admin\obj\Debug\RLC.exe
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.0.5 (09-24-2019)\RLC - Admin\obj\Debug\RLC.pdb
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.0.5 (09-24-2019)\RLC - Admin\obj\Debug\RLC.csprojResolveAssemblyReference.cache
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.0.5 (09-24-2019)\RLC - Admin\obj\Debug\RLC.Input_Bedside_12T.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.0.5 (09-24-2019)\RLC - Admin\obj\Debug\RLC.ConfigIO_Bedside_12T.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.0.5 (09-24-2019)\RLC - Admin\obj\Debug\RLC.ConfigIO_Bedside.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.0.5 (09-24-2019)\RLC - Admin\obj\Debug\RLC.Input_Bedside.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.0.5 (09-24-2019)\RLC - Admin\obj\Debug\RLC.ConfigIO_BSP_R14_OL.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.0.5 (09-24-2019)\RLC - Admin\obj\Debug\RLC.Input_BSP_R14_OL.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.0.5 (09-24-2019)\RLC - Admin\obj\Debug\RLC.Input_RCU_10AO.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.0.5 (09-24-2019)\RLC - Admin\obj\Debug\RLC.Input_RCU_16RL_16AO.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.0.5 (09-24-2019)\RLC - Admin\obj\Debug\RLC.ConfigIO_RCU_16RL_16AO.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.0.5 (09-24-2019)\RLC - Admin\obj\Debug\RLC.Input_RCU_24RL_8AO.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.0.5 (09-24-2019)\RLC - Admin\obj\Debug\RLC.ConfigIO_RCU_24RL_8AO.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.0.5 (09-24-2019)\RLC - Admin\obj\Debug\RLC.Input_RCU_32AO.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.0.5 (09-24-2019)\RLC - Admin\obj\Debug\RLC.ConfigIO_RCU_32AO.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.0.5 (09-24-2019)\RLC - Admin\obj\Debug\RLC.Input_RCU_6RL.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.0.5 (09-24-2019)\RLC - Admin\obj\Debug\RLC.Input_RCU_8RL_24AO.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.0.5 (09-24-2019)\RLC - Admin\obj\Debug\RLC.ConfigIO_RCU_8RL_24AO.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.0.5 (09-24-2019)\RLC - Admin\obj\Debug\RLC.Input_RCU_8RL.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.0.5 (09-24-2019)\RLC - Admin\obj\Debug\RLC.Input_RLC_new.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.0.5 (09-24-2019)\RLC - Admin\obj\Debug\RLC.ConfigIO_RLC_new.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.0.5 (09-24-2019)\RLC - Admin\obj\Debug\RLC.Input_RLC_new_20_ports.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.0.5 (09-24-2019)\RLC - Admin\obj\Debug\RLC.ConfigIO_RLC_new_20_ports.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.0.5 (09-24-2019)\RLC - Admin\obj\Debug\RLC.ConfigIO_RLC.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.0.5 (09-24-2019)\RLC - Admin\obj\Debug\RLC.Input_RLC.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.0.5 (09-24-2019)\RLC - Admin\obj\Debug\RLC.Backup.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.0.5 (09-24-2019)\RLC - Admin\obj\Debug\RLC.Add_Group.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.0.5 (09-24-2019)\RLC - Admin\obj\Debug\RLC.Add_Unit.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.0.5 (09-24-2019)\RLC - Admin\obj\Debug\RLC.Tool_Setup.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.0.5 (09-24-2019)\RLC - Admin\obj\Debug\RLC.Relay_Delay.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.0.5 (09-24-2019)\RLC - Admin\obj\Debug\RLC.RLC1.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.0.5 (09-24-2019)\RLC - Admin\obj\Debug\RLC.Properties.Resources.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.0.5 (09-24-2019)\RLC - Admin\obj\Debug\RLC.csproj.GenerateResource.Cache
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.0.5 (09-24-2019)\RLC - Admin\obj\Debug\RLC.exe.licenses
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.0.5 (09-24-2019)\RLC - Admin\bin\Debug\RLC.exe.manifest
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.0.5 (09-24-2019)\RLC - Admin\bin\Debug\RLC.application
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.0.5 (09-24-2019)\RLC - Admin\bin\Debug\RLC.exe
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.0.5 (09-24-2019)\RLC - Admin\bin\Debug\RLC.pdb
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.0.5 (09-24-2019)\RLC - Admin\bin\Debug\DevExpress.BonusSkins.v9.2.dll
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.0.5 (09-24-2019)\RLC - Admin\bin\Debug\DevExpress.Data.v9.2.dll
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.0.5 (09-24-2019)\RLC - Admin\bin\Debug\DevExpress.ExpressApp.v9.2.dll
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.0.5 (09-24-2019)\RLC - Admin\bin\Debug\DevExpress.ExpressApp.Win.v9.2.dll
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.0.5 (09-24-2019)\RLC - Admin\bin\Debug\DevExpress.OfficeSkins.v9.2.dll
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.0.5 (09-24-2019)\RLC - Admin\bin\Debug\DevExpress.Utils.v9.2.dll
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.0.5 (09-24-2019)\RLC - Admin\bin\Debug\DevExpress.Xpo.v9.2.dll
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.0.5 (09-24-2019)\RLC - Admin\bin\Debug\DevExpress.XtraBars.v9.2.dll
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.0.5 (09-24-2019)\RLC - Admin\bin\Debug\DevExpress.XtraEditors.v9.2.dll
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.0.5 (09-24-2019)\RLC - Admin\bin\Debug\DevExpress.XtraGrid.v9.2.dll
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.0.5 (09-24-2019)\RLC - Admin\bin\Debug\DevExpress.XtraLayout.v9.2.dll
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.0.5 (09-24-2019)\RLC - Admin\bin\Debug\DevExpress.XtraNavBar.v9.2.dll
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.0.5 (09-24-2019)\RLC - Admin\bin\Debug\DevExpress.XtraRichEdit.v9.2.dll
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.0.5 (09-24-2019)\RLC - Admin\bin\Debug\DevExpress.XtraTreeList.v9.2.dll
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.0.5 (09-24-2019)\RLC - Admin\bin\Debug\DevExpress.XtraVerticalGrid.v9.2.dll
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.0.5 (09-24-2019)\RLC - Admin\bin\Debug\Ionic.Zip.dll
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.0.5 (09-24-2019)\RLC - Admin\obj\Debug\RLC.TrustInfo.xml
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.0.5 (09-24-2019)\RLC - Admin\obj\Debug\RLC.exe.manifest
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.0.5 (09-24-2019)\RLC - Admin\obj\Debug\RLC.application
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.0.5 (11-17-2019)\RLC - Admin\bin\Debug\RLC.exe.config
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.0.5 (11-17-2019)\RLC - Admin\obj\Debug\RLC.exe
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.0.5 (11-17-2019)\RLC - Admin\obj\Debug\RLC.pdb
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.0.5 (11-17-2019)\RLC - Admin\bin\Debug\RLC.exe.manifest
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.0.5 (11-17-2019)\RLC - Admin\bin\Debug\RLC.application
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.0.5 (11-17-2019)\RLC - Admin\bin\Debug\RLC.exe
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.0.5 (11-17-2019)\RLC - Admin\bin\Debug\DevExpress.BonusSkins.v9.2.dll
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.0.5 (11-17-2019)\RLC - Admin\bin\Debug\DevExpress.Data.v9.2.dll
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.0.5 (11-17-2019)\RLC - Admin\bin\Debug\DevExpress.ExpressApp.v9.2.dll
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.0.5 (11-17-2019)\RLC - Admin\bin\Debug\DevExpress.ExpressApp.Win.v9.2.dll
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.0.5 (11-17-2019)\RLC - Admin\bin\Debug\DevExpress.OfficeSkins.v9.2.dll
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.0.5 (11-17-2019)\RLC - Admin\bin\Debug\DevExpress.Utils.v9.2.dll
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.0.5 (11-17-2019)\RLC - Admin\bin\Debug\DevExpress.Xpo.v9.2.dll
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.0.5 (11-17-2019)\RLC - Admin\bin\Debug\DevExpress.XtraBars.v9.2.dll
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.0.5 (11-17-2019)\RLC - Admin\bin\Debug\DevExpress.XtraEditors.v9.2.dll
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.0.5 (11-17-2019)\RLC - Admin\bin\Debug\DevExpress.XtraGrid.v9.2.dll
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.0.5 (11-17-2019)\RLC - Admin\bin\Debug\DevExpress.XtraLayout.v9.2.dll
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.0.5 (11-17-2019)\RLC - Admin\bin\Debug\DevExpress.XtraNavBar.v9.2.dll
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.0.5 (11-17-2019)\RLC - Admin\bin\Debug\DevExpress.XtraRichEdit.v9.2.dll
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.0.5 (11-17-2019)\RLC - Admin\bin\Debug\DevExpress.XtraTreeList.v9.2.dll
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.0.5 (11-17-2019)\RLC - Admin\bin\Debug\DevExpress.XtraVerticalGrid.v9.2.dll
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.0.5 (11-17-2019)\RLC - Admin\bin\Debug\Ionic.Zip.dll
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.0.5 (11-17-2019)\RLC - Admin\obj\Debug\RLC.csprojResolveAssemblyReference.cache
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.0.5 (11-17-2019)\RLC - Admin\obj\Debug\RLC.Input_Bedside_12T.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.0.5 (11-17-2019)\RLC - Admin\obj\Debug\RLC.ConfigIO_Bedside_12T.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.0.5 (11-17-2019)\RLC - Admin\obj\Debug\RLC.ConfigIO_Bedside.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.0.5 (11-17-2019)\RLC - Admin\obj\Debug\RLC.Input_Bedside.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.0.5 (11-17-2019)\RLC - Admin\obj\Debug\RLC.ConfigIO_BSP_R14_OL.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.0.5 (11-17-2019)\RLC - Admin\obj\Debug\RLC.Input_BSP_R14_OL.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.0.5 (11-17-2019)\RLC - Admin\obj\Debug\RLC.Input_RCU_10AO.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.0.5 (11-17-2019)\RLC - Admin\obj\Debug\RLC.Input_RCU_16RL_16AO.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.0.5 (11-17-2019)\RLC - Admin\obj\Debug\RLC.ConfigIO_RCU_16RL_16AO.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.0.5 (11-17-2019)\RLC - Admin\obj\Debug\RLC.Input_RCU_24RL_8AO.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.0.5 (11-17-2019)\RLC - Admin\obj\Debug\RLC.ConfigIO_RCU_24RL_8AO.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.0.5 (11-17-2019)\RLC - Admin\obj\Debug\RLC.Input_RCU_32AO.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.0.5 (11-17-2019)\RLC - Admin\obj\Debug\RLC.ConfigIO_RCU_32AO.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.0.5 (11-17-2019)\RLC - Admin\obj\Debug\RLC.Input_RCU_6RL.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.0.5 (11-17-2019)\RLC - Admin\obj\Debug\RLC.Input_RCU_8RL_24AO.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.0.5 (11-17-2019)\RLC - Admin\obj\Debug\RLC.ConfigIO_RCU_8RL_24AO.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.0.5 (11-17-2019)\RLC - Admin\obj\Debug\RLC.Input_RCU_8RL.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.0.5 (11-17-2019)\RLC - Admin\obj\Debug\RLC.Input_RLC_new.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.0.5 (11-17-2019)\RLC - Admin\obj\Debug\RLC.ConfigIO_RLC_new.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.0.5 (11-17-2019)\RLC - Admin\obj\Debug\RLC.Input_RLC_new_20_ports.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.0.5 (11-17-2019)\RLC - Admin\obj\Debug\RLC.ConfigIO_RLC_new_20_ports.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.0.5 (11-17-2019)\RLC - Admin\obj\Debug\RLC.ConfigIO_RLC.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.0.5 (11-17-2019)\RLC - Admin\obj\Debug\RLC.Input_RLC.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.0.5 (11-17-2019)\RLC - Admin\obj\Debug\RLC.Backup.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.0.5 (11-17-2019)\RLC - Admin\obj\Debug\RLC.Add_Group.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.0.5 (11-17-2019)\RLC - Admin\obj\Debug\RLC.Add_Unit.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.0.5 (11-17-2019)\RLC - Admin\obj\Debug\RLC.Tool_Setup.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.0.5 (11-17-2019)\RLC - Admin\obj\Debug\RLC.Relay_Delay.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.0.5 (11-17-2019)\RLC - Admin\obj\Debug\RLC.RLC1.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.0.5 (11-17-2019)\RLC - Admin\obj\Debug\RLC.Properties.Resources.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.0.5 (11-17-2019)\RLC - Admin\obj\Debug\RLC.csproj.GenerateResource.Cache
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.0.5 (11-17-2019)\RLC - Admin\obj\Debug\RLC.exe.licenses
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.0.5 (11-17-2019)\RLC - Admin\obj\Debug\RLC.TrustInfo.xml
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.0.5 (11-17-2019)\RLC - Admin\obj\Debug\RLC.exe.manifest
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.0.5 (11-17-2019)\RLC - Admin\obj\Debug\RLC.application
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.0.5 (11-17-2019)\RLC - Admin\bin\Debug\RLC.pdb
+C:\Users\Hoai An\Desktop\RLC_Project_2.0.5 (11-17-2019)\RLC - Admin\bin\Debug\RLC.exe.config
+C:\Users\Hoai An\Desktop\RLC_Project_2.0.5 (11-17-2019)\RLC - Admin\bin\Debug\RLC.exe.manifest
+C:\Users\Hoai An\Desktop\RLC_Project_2.0.5 (11-17-2019)\RLC - Admin\bin\Debug\RLC.application
+C:\Users\Hoai An\Desktop\RLC_Project_2.0.5 (11-17-2019)\RLC - Admin\bin\Debug\RLC.exe
+C:\Users\Hoai An\Desktop\RLC_Project_2.0.5 (11-17-2019)\RLC - Admin\bin\Debug\RLC.pdb
+C:\Users\Hoai An\Desktop\RLC_Project_2.0.5 (11-17-2019)\RLC - Admin\bin\Debug\DevExpress.BonusSkins.v9.2.dll
+C:\Users\Hoai An\Desktop\RLC_Project_2.0.5 (11-17-2019)\RLC - Admin\bin\Debug\DevExpress.Data.v9.2.dll
+C:\Users\Hoai An\Desktop\RLC_Project_2.0.5 (11-17-2019)\RLC - Admin\bin\Debug\DevExpress.ExpressApp.v9.2.dll
+C:\Users\Hoai An\Desktop\RLC_Project_2.0.5 (11-17-2019)\RLC - Admin\bin\Debug\DevExpress.ExpressApp.Win.v9.2.dll
+C:\Users\Hoai An\Desktop\RLC_Project_2.0.5 (11-17-2019)\RLC - Admin\bin\Debug\DevExpress.OfficeSkins.v9.2.dll
+C:\Users\Hoai An\Desktop\RLC_Project_2.0.5 (11-17-2019)\RLC - Admin\bin\Debug\DevExpress.Utils.v9.2.dll
+C:\Users\Hoai An\Desktop\RLC_Project_2.0.5 (11-17-2019)\RLC - Admin\bin\Debug\DevExpress.Xpo.v9.2.dll
+C:\Users\Hoai An\Desktop\RLC_Project_2.0.5 (11-17-2019)\RLC - Admin\bin\Debug\DevExpress.XtraBars.v9.2.dll
+C:\Users\Hoai An\Desktop\RLC_Project_2.0.5 (11-17-2019)\RLC - Admin\bin\Debug\DevExpress.XtraEditors.v9.2.dll
+C:\Users\Hoai An\Desktop\RLC_Project_2.0.5 (11-17-2019)\RLC - Admin\bin\Debug\DevExpress.XtraGrid.v9.2.dll
+C:\Users\Hoai An\Desktop\RLC_Project_2.0.5 (11-17-2019)\RLC - Admin\bin\Debug\DevExpress.XtraLayout.v9.2.dll
+C:\Users\Hoai An\Desktop\RLC_Project_2.0.5 (11-17-2019)\RLC - Admin\bin\Debug\DevExpress.XtraNavBar.v9.2.dll
+C:\Users\Hoai An\Desktop\RLC_Project_2.0.5 (11-17-2019)\RLC - Admin\bin\Debug\DevExpress.XtraRichEdit.v9.2.dll
+C:\Users\Hoai An\Desktop\RLC_Project_2.0.5 (11-17-2019)\RLC - Admin\bin\Debug\DevExpress.XtraTreeList.v9.2.dll
+C:\Users\Hoai An\Desktop\RLC_Project_2.0.5 (11-17-2019)\RLC - Admin\bin\Debug\DevExpress.XtraVerticalGrid.v9.2.dll
+C:\Users\Hoai An\Desktop\RLC_Project_2.0.5 (11-17-2019)\RLC - Admin\bin\Debug\Ionic.Zip.dll
+C:\Users\Hoai An\Desktop\RLC_Project_2.0.5 (11-17-2019)\RLC - Admin\obj\Debug\RLC.Input_Bedside_12T.resources
+C:\Users\Hoai An\Desktop\RLC_Project_2.0.5 (11-17-2019)\RLC - Admin\obj\Debug\RLC.ConfigIO_Bedside_12T.resources
+C:\Users\Hoai An\Desktop\RLC_Project_2.0.5 (11-17-2019)\RLC - Admin\obj\Debug\RLC.ConfigIO_Bedside.resources
+C:\Users\Hoai An\Desktop\RLC_Project_2.0.5 (11-17-2019)\RLC - Admin\obj\Debug\RLC.Input_Bedside.resources
+C:\Users\Hoai An\Desktop\RLC_Project_2.0.5 (11-17-2019)\RLC - Admin\obj\Debug\RLC.ConfigIO_BSP_R14_OL.resources
+C:\Users\Hoai An\Desktop\RLC_Project_2.0.5 (11-17-2019)\RLC - Admin\obj\Debug\RLC.Input_BSP_R14_OL.resources
+C:\Users\Hoai An\Desktop\RLC_Project_2.0.5 (11-17-2019)\RLC - Admin\obj\Debug\RLC.Input_RCU_10AO.resources
+C:\Users\Hoai An\Desktop\RLC_Project_2.0.5 (11-17-2019)\RLC - Admin\obj\Debug\RLC.Input_RCU_16RL_16AO.resources
+C:\Users\Hoai An\Desktop\RLC_Project_2.0.5 (11-17-2019)\RLC - Admin\obj\Debug\RLC.ConfigIO_RCU_16RL_16AO.resources
+C:\Users\Hoai An\Desktop\RLC_Project_2.0.5 (11-17-2019)\RLC - Admin\obj\Debug\RLC.Input_RCU_24RL_8AO.resources
+C:\Users\Hoai An\Desktop\RLC_Project_2.0.5 (11-17-2019)\RLC - Admin\obj\Debug\RLC.ConfigIO_RCU_24RL_8AO.resources
+C:\Users\Hoai An\Desktop\RLC_Project_2.0.5 (11-17-2019)\RLC - Admin\obj\Debug\RLC.Input_RCU_32AO.resources
+C:\Users\Hoai An\Desktop\RLC_Project_2.0.5 (11-17-2019)\RLC - Admin\obj\Debug\RLC.ConfigIO_RCU_32AO.resources
+C:\Users\Hoai An\Desktop\RLC_Project_2.0.5 (11-17-2019)\RLC - Admin\obj\Debug\RLC.Input_RCU_6RL.resources
+C:\Users\Hoai An\Desktop\RLC_Project_2.0.5 (11-17-2019)\RLC - Admin\obj\Debug\RLC.Input_RCU_8RL_24AO.resources
+C:\Users\Hoai An\Desktop\RLC_Project_2.0.5 (11-17-2019)\RLC - Admin\obj\Debug\RLC.ConfigIO_RCU_8RL_24AO.resources
+C:\Users\Hoai An\Desktop\RLC_Project_2.0.5 (11-17-2019)\RLC - Admin\obj\Debug\RLC.Input_RCU_8RL.resources
+C:\Users\Hoai An\Desktop\RLC_Project_2.0.5 (11-17-2019)\RLC - Admin\obj\Debug\RLC.Input_RLC_new.resources
+C:\Users\Hoai An\Desktop\RLC_Project_2.0.5 (11-17-2019)\RLC - Admin\obj\Debug\RLC.ConfigIO_RLC_new.resources
+C:\Users\Hoai An\Desktop\RLC_Project_2.0.5 (11-17-2019)\RLC - Admin\obj\Debug\RLC.Input_RLC_new_20_ports.resources
+C:\Users\Hoai An\Desktop\RLC_Project_2.0.5 (11-17-2019)\RLC - Admin\obj\Debug\RLC.ConfigIO_RLC_new_20_ports.resources
+C:\Users\Hoai An\Desktop\RLC_Project_2.0.5 (11-17-2019)\RLC - Admin\obj\Debug\RLC.ConfigIO_RLC.resources
+C:\Users\Hoai An\Desktop\RLC_Project_2.0.5 (11-17-2019)\RLC - Admin\obj\Debug\RLC.Input_RLC.resources
+C:\Users\Hoai An\Desktop\RLC_Project_2.0.5 (11-17-2019)\RLC - Admin\obj\Debug\RLC.Backup.resources
+C:\Users\Hoai An\Desktop\RLC_Project_2.0.5 (11-17-2019)\RLC - Admin\obj\Debug\RLC.Add_Group.resources
+C:\Users\Hoai An\Desktop\RLC_Project_2.0.5 (11-17-2019)\RLC - Admin\obj\Debug\RLC.Add_Unit.resources
+C:\Users\Hoai An\Desktop\RLC_Project_2.0.5 (11-17-2019)\RLC - Admin\obj\Debug\RLC.Tool_Setup.resources
+C:\Users\Hoai An\Desktop\RLC_Project_2.0.5 (11-17-2019)\RLC - Admin\obj\Debug\RLC.Relay_Delay.resources
+C:\Users\Hoai An\Desktop\RLC_Project_2.0.5 (11-17-2019)\RLC - Admin\obj\Debug\RLC.RLC1.resources
+C:\Users\Hoai An\Desktop\RLC_Project_2.0.5 (11-17-2019)\RLC - Admin\obj\Debug\RLC.Properties.Resources.resources
+C:\Users\Hoai An\Desktop\RLC_Project_2.0.5 (11-17-2019)\RLC - Admin\obj\Debug\RLC.csproj.GenerateResource.Cache
+C:\Users\Hoai An\Desktop\RLC_Project_2.0.5 (11-17-2019)\RLC - Admin\obj\Debug\RLC.exe.licenses
+C:\Users\Hoai An\Desktop\RLC_Project_2.0.5 (11-17-2019)\RLC - Admin\obj\Debug\RLC.TrustInfo.xml
+C:\Users\Hoai An\Desktop\RLC_Project_2.0.5 (11-17-2019)\RLC - Admin\obj\Debug\RLC.exe.manifest
+C:\Users\Hoai An\Desktop\RLC_Project_2.0.5 (11-17-2019)\RLC - Admin\obj\Debug\RLC.application
+C:\Users\Hoai An\Desktop\RLC_Project_2.0.5 (11-17-2019)\RLC - Admin\obj\Debug\RLC.exe
+C:\Users\Hoai An\Desktop\RLC_Project_2.0.5 (11-17-2019)\RLC - Admin\obj\Debug\RLC.pdb
+C:\Users\Hoai An\Desktop\RLC_Project_2.0.5 (11-17-2019)\RLC - Admin\obj\Debug\RLC.csprojResolveAssemblyReference.cache
+E:\Project\RLC_Project\RLC - Admin\obj\Debug\RLC.AC_Out_Cfg.resources
+E:\Project\RLC_Project\RLC - Admin\obj\Debug\RLC.Light_Out_Cfg.resources
+E:\Project\RLC_Project\RLC - Admin\obj\Debug\RLC.RS485_Config.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.0 (04-July-2020)\RLC - Admin\bin\Debug\RLC.exe.config
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.0 (04-July-2020)\RLC - Admin\obj\Debug\RLC.exe
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.0 (04-July-2020)\RLC - Admin\obj\Debug\RLC.pdb
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.0 (04-July-2020)\RLC - Admin\bin\Debug\RLC.exe.manifest
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.0 (04-July-2020)\RLC - Admin\bin\Debug\RLC.application
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.0 (04-July-2020)\RLC - Admin\bin\Debug\RLC.exe
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.0 (04-July-2020)\RLC - Admin\bin\Debug\RLC.pdb
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.0 (04-July-2020)\RLC - Admin\bin\Debug\DevExpress.BonusSkins.v9.2.dll
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.0 (04-July-2020)\RLC - Admin\bin\Debug\DevExpress.Data.v9.2.dll
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.0 (04-July-2020)\RLC - Admin\bin\Debug\DevExpress.ExpressApp.v9.2.dll
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.0 (04-July-2020)\RLC - Admin\bin\Debug\DevExpress.ExpressApp.Win.v9.2.dll
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.0 (04-July-2020)\RLC - Admin\bin\Debug\DevExpress.OfficeSkins.v9.2.dll
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.0 (04-July-2020)\RLC - Admin\bin\Debug\DevExpress.Utils.v9.2.dll
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.0 (04-July-2020)\RLC - Admin\bin\Debug\DevExpress.Xpo.v9.2.dll
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.0 (04-July-2020)\RLC - Admin\bin\Debug\DevExpress.XtraBars.v9.2.dll
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.0 (04-July-2020)\RLC - Admin\bin\Debug\DevExpress.XtraEditors.v9.2.dll
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.0 (04-July-2020)\RLC - Admin\bin\Debug\DevExpress.XtraGrid.v9.2.dll
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.0 (04-July-2020)\RLC - Admin\bin\Debug\DevExpress.XtraLayout.v9.2.dll
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.0 (04-July-2020)\RLC - Admin\bin\Debug\DevExpress.XtraNavBar.v9.2.dll
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.0 (04-July-2020)\RLC - Admin\bin\Debug\DevExpress.XtraRichEdit.v9.2.dll
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.0 (04-July-2020)\RLC - Admin\bin\Debug\DevExpress.XtraTreeList.v9.2.dll
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.0 (04-July-2020)\RLC - Admin\bin\Debug\DevExpress.XtraVerticalGrid.v9.2.dll
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.0 (04-July-2020)\RLC - Admin\bin\Debug\Ionic.Zip.dll
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.0 (04-July-2020)\RLC - Admin\obj\Debug\RLC.csprojResolveAssemblyReference.cache
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.0 (04-July-2020)\RLC - Admin\obj\Debug\RLC.AC_Out_Cfg.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.0 (04-July-2020)\RLC - Admin\obj\Debug\RLC.Add_Group.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.0 (04-July-2020)\RLC - Admin\obj\Debug\RLC.Add_Unit.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.0 (04-July-2020)\RLC - Admin\obj\Debug\RLC.Backup.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.0 (04-July-2020)\RLC - Admin\obj\Debug\RLC.Input_Bedside_12T.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.0 (04-July-2020)\RLC - Admin\obj\Debug\RLC.ConfigIO_Bedside_12T.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.0 (04-July-2020)\RLC - Admin\obj\Debug\RLC.ConfigIO_Bedside.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.0 (04-July-2020)\RLC - Admin\obj\Debug\RLC.Input_Bedside.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.0 (04-July-2020)\RLC - Admin\obj\Debug\RLC.ConfigIO_BSP_R14_OL.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.0 (04-July-2020)\RLC - Admin\obj\Debug\RLC.Input_BSP_R14_OL.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.0 (04-July-2020)\RLC - Admin\obj\Debug\RLC.Input_RCU_10AO.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.0 (04-July-2020)\RLC - Admin\obj\Debug\RLC.Input_RCU_16RL_16AO.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.0 (04-July-2020)\RLC - Admin\obj\Debug\RLC.ConfigIO_RCU_16RL_16AO.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.0 (04-July-2020)\RLC - Admin\obj\Debug\RLC.Input_RCU_24RL_8AO.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.0 (04-July-2020)\RLC - Admin\obj\Debug\RLC.ConfigIO_RCU_24RL_8AO.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.0 (04-July-2020)\RLC - Admin\obj\Debug\RLC.Input_RCU_32AO.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.0 (04-July-2020)\RLC - Admin\obj\Debug\RLC.ConfigIO_RCU_32AO.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.0 (04-July-2020)\RLC - Admin\obj\Debug\RLC.Input_RCU_6RL.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.0 (04-July-2020)\RLC - Admin\obj\Debug\RLC.Input_RCU_8RL_24AO.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.0 (04-July-2020)\RLC - Admin\obj\Debug\RLC.ConfigIO_RCU_8RL_24AO.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.0 (04-July-2020)\RLC - Admin\obj\Debug\RLC.Input_RCU_8RL.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.0 (04-July-2020)\RLC - Admin\obj\Debug\RLC.Input_RLC_new.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.0 (04-July-2020)\RLC - Admin\obj\Debug\RLC.ConfigIO_RLC_new.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.0 (04-July-2020)\RLC - Admin\obj\Debug\RLC.Input_RLC_new_20_ports.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.0 (04-July-2020)\RLC - Admin\obj\Debug\RLC.ConfigIO_RLC_new_20_ports.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.0 (04-July-2020)\RLC - Admin\obj\Debug\RLC.ConfigIO_RLC.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.0 (04-July-2020)\RLC - Admin\obj\Debug\RLC.Input_RLC.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.0 (04-July-2020)\RLC - Admin\obj\Debug\RLC.Light_Out_Cfg.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.0 (04-July-2020)\RLC - Admin\obj\Debug\RLC.RS485_Config.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.0 (04-July-2020)\RLC - Admin\obj\Debug\RLC.Tool_Setup.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.0 (04-July-2020)\RLC - Admin\obj\Debug\RLC.RLC1.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.0 (04-July-2020)\RLC - Admin\obj\Debug\RLC.Properties.Resources.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.0 (04-July-2020)\RLC - Admin\obj\Debug\RLC.csproj.GenerateResource.Cache
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.0 (04-July-2020)\RLC - Admin\obj\Debug\RLC.exe.licenses
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.0 (04-July-2020)\RLC - Admin\obj\Debug\RLC.TrustInfo.xml
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.0 (04-July-2020)\RLC - Admin\obj\Debug\RLC.exe.manifest
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.0 (04-July-2020)\RLC - Admin\obj\Debug\RLC.application
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.0 (04-July-2020) - Copy\RLC - Admin\obj\Debug\RLC.csprojResolveAssemblyReference.cache
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.0 (04-July-2020) - Copy\RLC - Admin\obj\Debug\RLC.AC_Out_Cfg.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.0 (04-July-2020) - Copy\RLC - Admin\obj\Debug\RLC.Add_Group.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.0 (04-July-2020) - Copy\RLC - Admin\obj\Debug\RLC.Add_Unit.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.0 (04-July-2020) - Copy\RLC - Admin\obj\Debug\RLC.Backup.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.0 (04-July-2020) - Copy\RLC - Admin\obj\Debug\RLC.Input_Bedside_12T.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.0 (04-July-2020) - Copy\RLC - Admin\obj\Debug\RLC.ConfigIO_Bedside_12T.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.0 (04-July-2020) - Copy\RLC - Admin\obj\Debug\RLC.ConfigIO_Bedside.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.0 (04-July-2020) - Copy\RLC - Admin\obj\Debug\RLC.Input_Bedside.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.0 (04-July-2020) - Copy\RLC - Admin\obj\Debug\RLC.ConfigIO_BSP_R14_OL.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.0 (04-July-2020) - Copy\RLC - Admin\obj\Debug\RLC.Input_BSP_R14_OL.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.0 (04-July-2020) - Copy\RLC - Admin\obj\Debug\RLC.Input_RCU_10AO.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.0 (04-July-2020) - Copy\RLC - Admin\obj\Debug\RLC.Input_RCU_16RL_16AO.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.0 (04-July-2020) - Copy\RLC - Admin\obj\Debug\RLC.ConfigIO_RCU_16RL_16AO.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.0 (04-July-2020) - Copy\RLC - Admin\obj\Debug\RLC.Input_RCU_24RL_8AO.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.0 (04-July-2020) - Copy\RLC - Admin\obj\Debug\RLC.ConfigIO_RCU_24RL_8AO.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.0 (04-July-2020) - Copy\RLC - Admin\obj\Debug\RLC.Input_RCU_32AO.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.0 (04-July-2020) - Copy\RLC - Admin\obj\Debug\RLC.ConfigIO_RCU_32AO.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.0 (04-July-2020) - Copy\RLC - Admin\obj\Debug\RLC.Input_RCU_6RL.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.0 (04-July-2020) - Copy\RLC - Admin\obj\Debug\RLC.Input_RCU_8RL_24AO.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.0 (04-July-2020) - Copy\RLC - Admin\obj\Debug\RLC.ConfigIO_RCU_8RL_24AO.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.0 (04-July-2020) - Copy\RLC - Admin\obj\Debug\RLC.Input_RLC_new.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.0 (04-July-2020) - Copy\RLC - Admin\obj\Debug\RLC.ConfigIO_RLC_new.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.0 (04-July-2020) - Copy\RLC - Admin\obj\Debug\RLC.Input_RLC_new_20_ports.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.0 (04-July-2020) - Copy\RLC - Admin\obj\Debug\RLC.ConfigIO_RLC_new_20_ports.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.0 (04-July-2020) - Copy\RLC - Admin\obj\Debug\RLC.ConfigIO_RLC.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.0 (04-July-2020) - Copy\RLC - Admin\obj\Debug\RLC.Input_RLC.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.0 (04-July-2020) - Copy\RLC - Admin\obj\Debug\RLC.Light_Out_Cfg.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.0 (04-July-2020) - Copy\RLC - Admin\obj\Debug\RLC.RS485_Config.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.0 (04-July-2020) - Copy\RLC - Admin\obj\Debug\RLC.Tool_Setup.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.0 (04-July-2020) - Copy\RLC - Admin\obj\Debug\RLC.RLC1.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.0 (04-July-2020) - Copy\RLC - Admin\obj\Debug\RLC.Properties.Resources.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.0 (04-July-2020) - Copy\RLC - Admin\obj\Debug\RLC.csproj.GenerateResource.Cache
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.0 (04-July-2020) - Copy\RLC - Admin\obj\Debug\RLC.exe.licenses
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.0 (04-July-2020) - Copy\RLC - Admin\bin\Debug\RLC.exe.config
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.0 (04-July-2020) - Copy\RLC - Admin\bin\Debug\RLC.exe.manifest
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.0 (04-July-2020) - Copy\RLC - Admin\bin\Debug\RLC.application
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.0 (04-July-2020) - Copy\RLC - Admin\bin\Debug\RLC.exe
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.0 (04-July-2020) - Copy\RLC - Admin\bin\Debug\RLC.pdb
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.0 (04-July-2020) - Copy\RLC - Admin\bin\Debug\DevExpress.BonusSkins.v9.2.dll
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.0 (04-July-2020) - Copy\RLC - Admin\bin\Debug\DevExpress.Data.v9.2.dll
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.0 (04-July-2020) - Copy\RLC - Admin\bin\Debug\DevExpress.ExpressApp.v9.2.dll
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.0 (04-July-2020) - Copy\RLC - Admin\bin\Debug\DevExpress.ExpressApp.Win.v9.2.dll
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.0 (04-July-2020) - Copy\RLC - Admin\bin\Debug\DevExpress.OfficeSkins.v9.2.dll
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.0 (04-July-2020) - Copy\RLC - Admin\bin\Debug\DevExpress.Utils.v9.2.dll
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.0 (04-July-2020) - Copy\RLC - Admin\bin\Debug\DevExpress.Xpo.v9.2.dll
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.0 (04-July-2020) - Copy\RLC - Admin\bin\Debug\DevExpress.XtraBars.v9.2.dll
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.0 (04-July-2020) - Copy\RLC - Admin\bin\Debug\DevExpress.XtraEditors.v9.2.dll
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.0 (04-July-2020) - Copy\RLC - Admin\bin\Debug\DevExpress.XtraGrid.v9.2.dll
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.0 (04-July-2020) - Copy\RLC - Admin\bin\Debug\DevExpress.XtraLayout.v9.2.dll
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.0 (04-July-2020) - Copy\RLC - Admin\bin\Debug\DevExpress.XtraNavBar.v9.2.dll
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.0 (04-July-2020) - Copy\RLC - Admin\bin\Debug\DevExpress.XtraRichEdit.v9.2.dll
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.0 (04-July-2020) - Copy\RLC - Admin\bin\Debug\DevExpress.XtraTreeList.v9.2.dll
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.0 (04-July-2020) - Copy\RLC - Admin\bin\Debug\DevExpress.XtraVerticalGrid.v9.2.dll
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.0 (04-July-2020) - Copy\RLC - Admin\bin\Debug\Ionic.Zip.dll
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.0 (04-July-2020) - Copy\RLC - Admin\obj\Debug\RLC.Input_RCU_8RL.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.0 (04-July-2020) - Copy\RLC - Admin\obj\Debug\RLC.TrustInfo.xml
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.0 (04-July-2020) - Copy\RLC - Admin\obj\Debug\RLC.exe.manifest
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.0 (04-July-2020) - Copy\RLC - Admin\obj\Debug\RLC.application
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.0 (04-July-2020) - Copy\RLC - Admin\obj\Debug\RLC.exe
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.0 (04-July-2020) - Copy\RLC - Admin\obj\Debug\RLC.pdb
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta\RLC - Admin\bin\Debug\RLC.exe.config
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta\RLC - Admin\obj\Debug\RLC.exe
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta\RLC - Admin\obj\Debug\RLC.pdb
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta\RLC - Admin\obj\Debug\RLC.csprojResolveAssemblyReference.cache
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta\RLC - Admin\obj\Debug\RLC.AC_Out_Cfg.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta\RLC - Admin\obj\Debug\RLC.Add_Group.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta\RLC - Admin\obj\Debug\RLC.Add_Unit.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta\RLC - Admin\obj\Debug\RLC.Backup.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta\RLC - Admin\obj\Debug\RLC.Input_Bedside_12T.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta\RLC - Admin\obj\Debug\RLC.ConfigIO_Bedside_12T.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta\RLC - Admin\obj\Debug\RLC.ConfigIO_Bedside.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta\RLC - Admin\obj\Debug\RLC.Input_Bedside.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta\RLC - Admin\obj\Debug\RLC.ConfigIO_BSP_R14_OL.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta\RLC - Admin\obj\Debug\RLC.Input_BSP_R14_OL.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta\RLC - Admin\obj\Debug\RLC.Input_RCU_16RL_16AO.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta\RLC - Admin\obj\Debug\RLC.ConfigIO_RCU_16RL_16AO.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta\RLC - Admin\obj\Debug\RLC.Input_RCU_24RL_8AO.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta\RLC - Admin\obj\Debug\RLC.ConfigIO_RCU_24RL_8AO.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta\RLC - Admin\obj\Debug\RLC.Input_RCU_32AO.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta\RLC - Admin\obj\Debug\RLC.ConfigIO_RCU_32AO.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta\RLC - Admin\obj\Debug\RLC.Input_RCU_8RL_24AO.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta\RLC - Admin\obj\Debug\RLC.ConfigIO_RCU_8RL_24AO.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta\RLC - Admin\obj\Debug\RLC.Input_RLC_new.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta\RLC - Admin\obj\Debug\RLC.ConfigIO_RLC_new.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta\RLC - Admin\obj\Debug\RLC.Input_RLC_new_20_ports.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta\RLC - Admin\obj\Debug\RLC.ConfigIO_RLC_new_20_ports.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta\RLC - Admin\obj\Debug\RLC.ConfigIO_RLC.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta\RLC - Admin\obj\Debug\RLC.Input_RLC.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta\RLC - Admin\obj\Debug\RLC.Light_Out_Cfg.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta\RLC - Admin\obj\Debug\RLC.RS485_Config.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta\RLC - Admin\obj\Debug\RLC.Tool_Setup.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta\RLC - Admin\obj\Debug\RLC.RLC1.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta\RLC - Admin\obj\Debug\RLC.Properties.Resources.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta\RLC - Admin\obj\Debug\RLC.csproj.GenerateResource.Cache
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta\RLC - Admin\obj\Debug\RLC.exe.licenses
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta\RLC - Admin\bin\Debug\RLC.exe.manifest
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta\RLC - Admin\bin\Debug\RLC.application
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta\RLC - Admin\bin\Debug\RLC.exe
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta\RLC - Admin\bin\Debug\RLC.pdb
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta\RLC - Admin\bin\Debug\DevExpress.BonusSkins.v9.2.dll
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta\RLC - Admin\bin\Debug\DevExpress.Data.v9.2.dll
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta\RLC - Admin\bin\Debug\DevExpress.ExpressApp.v9.2.dll
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta\RLC - Admin\bin\Debug\DevExpress.ExpressApp.Win.v9.2.dll
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta\RLC - Admin\bin\Debug\DevExpress.OfficeSkins.v9.2.dll
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta\RLC - Admin\bin\Debug\DevExpress.Utils.v9.2.dll
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta\RLC - Admin\bin\Debug\DevExpress.Xpo.v9.2.dll
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta\RLC - Admin\bin\Debug\DevExpress.XtraBars.v9.2.dll
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta\RLC - Admin\bin\Debug\DevExpress.XtraEditors.v9.2.dll
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta\RLC - Admin\bin\Debug\DevExpress.XtraGrid.v9.2.dll
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta\RLC - Admin\bin\Debug\DevExpress.XtraLayout.v9.2.dll
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta\RLC - Admin\bin\Debug\DevExpress.XtraNavBar.v9.2.dll
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta\RLC - Admin\bin\Debug\DevExpress.XtraRichEdit.v9.2.dll
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta\RLC - Admin\bin\Debug\DevExpress.XtraTreeList.v9.2.dll
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta\RLC - Admin\bin\Debug\DevExpress.XtraVerticalGrid.v9.2.dll
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta\RLC - Admin\bin\Debug\Ionic.Zip.dll
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta\RLC - Admin\obj\Debug\RLC.TrustInfo.xml
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta\RLC - Admin\obj\Debug\RLC.exe.manifest
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta\RLC - Admin\obj\Debug\RLC.application
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta\RLC - Admin\obj\Debug\RLC.Input_GNT_EXT_10AO.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta\RLC - Admin\obj\Debug\RLC.Input_GNT_EXT_8RL.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta\RLC - Admin\obj\Debug\RLC.Input_GNT_EXT_6RL.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta\RLC - Admin\obj\Debug\RLC.Input_GNT_EXT_12RL.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta\RLC - Admin\obj\Debug\RLC.Input_GNT_EXT_20RL.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta\RLC - Admin\obj\Debug\RLC.Input_GNT_EXT_32AO.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta\RLC - Admin\obj\Debug\RLC.Input_GNT_EXT_12RL_12AO.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta2\RLC - Admin\bin\Debug\RLC.exe.config
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta2\RLC - Admin\obj\Debug\RLC.exe
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta2\RLC - Admin\obj\Debug\RLC.pdb
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta2\RLC - Admin\bin\Debug\RLC.exe.manifest
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta2\RLC - Admin\bin\Debug\RLC.application
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta2\RLC - Admin\bin\Debug\RLC.exe
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta2\RLC - Admin\bin\Debug\RLC.pdb
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta2\RLC - Admin\bin\Debug\DevExpress.BonusSkins.v9.2.dll
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta2\RLC - Admin\bin\Debug\DevExpress.Data.v9.2.dll
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta2\RLC - Admin\bin\Debug\DevExpress.ExpressApp.v9.2.dll
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta2\RLC - Admin\bin\Debug\DevExpress.ExpressApp.Win.v9.2.dll
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta2\RLC - Admin\bin\Debug\DevExpress.OfficeSkins.v9.2.dll
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta2\RLC - Admin\bin\Debug\DevExpress.Utils.v9.2.dll
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta2\RLC - Admin\bin\Debug\DevExpress.Xpo.v9.2.dll
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta2\RLC - Admin\bin\Debug\DevExpress.XtraBars.v9.2.dll
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta2\RLC - Admin\bin\Debug\DevExpress.XtraEditors.v9.2.dll
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta2\RLC - Admin\bin\Debug\DevExpress.XtraGrid.v9.2.dll
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta2\RLC - Admin\bin\Debug\DevExpress.XtraLayout.v9.2.dll
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta2\RLC - Admin\bin\Debug\DevExpress.XtraNavBar.v9.2.dll
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta2\RLC - Admin\bin\Debug\DevExpress.XtraRichEdit.v9.2.dll
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta2\RLC - Admin\bin\Debug\DevExpress.XtraTreeList.v9.2.dll
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta2\RLC - Admin\bin\Debug\DevExpress.XtraVerticalGrid.v9.2.dll
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta2\RLC - Admin\bin\Debug\Ionic.Zip.dll
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta2\RLC - Admin\obj\Debug\RLC.csprojResolveAssemblyReference.cache
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta2\RLC - Admin\obj\Debug\RLC.AC_Out_Cfg.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta2\RLC - Admin\obj\Debug\RLC.Add_Group.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta2\RLC - Admin\obj\Debug\RLC.Add_Unit.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta2\RLC - Admin\obj\Debug\RLC.Backup.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta2\RLC - Admin\obj\Debug\RLC.Input_Bedside_12T.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta2\RLC - Admin\obj\Debug\RLC.ConfigIO_Bedside_12T.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta2\RLC - Admin\obj\Debug\RLC.ConfigIO_Bedside.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta2\RLC - Admin\obj\Debug\RLC.Input_Bedside.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta2\RLC - Admin\obj\Debug\RLC.ConfigIO_BSP_R14_OL.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta2\RLC - Admin\obj\Debug\RLC.Input_BSP_R14_OL.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta2\RLC - Admin\obj\Debug\RLC.Input_RCU_16RL_16AO.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta2\RLC - Admin\obj\Debug\RLC.ConfigIO_RCU_16RL_16AO.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta2\RLC - Admin\obj\Debug\RLC.Input_RCU_24RL_8AO.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta2\RLC - Admin\obj\Debug\RLC.ConfigIO_RCU_24RL_8AO.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta2\RLC - Admin\obj\Debug\RLC.Input_RCU_32AO.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta2\RLC - Admin\obj\Debug\RLC.ConfigIO_RCU_32AO.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta2\RLC - Admin\obj\Debug\RLC.Input_RCU_8RL_24AO.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta2\RLC - Admin\obj\Debug\RLC.ConfigIO_RCU_8RL_24AO.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta2\RLC - Admin\obj\Debug\RLC.Input_RLC_new.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta2\RLC - Admin\obj\Debug\RLC.ConfigIO_RLC_new.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta2\RLC - Admin\obj\Debug\RLC.Input_RLC_new_20_ports.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta2\RLC - Admin\obj\Debug\RLC.ConfigIO_RLC_new_20_ports.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta2\RLC - Admin\obj\Debug\RLC.ConfigIO_RLC.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta2\RLC - Admin\obj\Debug\RLC.Input_RLC.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta2\RLC - Admin\obj\Debug\RLC.Light_Out_Cfg.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta2\RLC - Admin\obj\Debug\RLC.RS485_Config.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta2\RLC - Admin\obj\Debug\RLC.Input_GNT_EXT_10AO.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta2\RLC - Admin\obj\Debug\RLC.Input_GNT_EXT_12RL_12AO.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta2\RLC - Admin\obj\Debug\RLC.Input_GNT_EXT_12RL.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta2\RLC - Admin\obj\Debug\RLC.Input_GNT_EXT_20RL.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta2\RLC - Admin\obj\Debug\RLC.Input_GNT_EXT_8RL.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta2\RLC - Admin\obj\Debug\RLC.Input_GNT_EXT_6RL.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta2\RLC - Admin\obj\Debug\RLC.Tool_Setup.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta2\RLC - Admin\obj\Debug\RLC.RLC1.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta2\RLC - Admin\obj\Debug\RLC.Properties.Resources.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta2\RLC - Admin\obj\Debug\RLC.csproj.GenerateResource.Cache
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta2\RLC - Admin\obj\Debug\RLC.exe.licenses
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta2\RLC - Admin\obj\Debug\RLC.TrustInfo.xml
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta2\RLC - Admin\obj\Debug\RLC.exe.manifest
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta2\RLC - Admin\obj\Debug\RLC.application
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta2\RLC - Admin\obj\Debug\RLC.Input_GNT_EXT_28AO.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta3\RLC - Admin\bin\Debug\RLC.exe.config
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta3\RLC - Admin\obj\Debug\RLC.exe
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta3\RLC - Admin\obj\Debug\RLC.pdb
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta3\RLC - Admin\bin\Debug\RLC.exe.manifest
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta3\RLC - Admin\bin\Debug\RLC.application
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta3\RLC - Admin\bin\Debug\RLC.exe
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta3\RLC - Admin\bin\Debug\RLC.pdb
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta3\RLC - Admin\bin\Debug\DevExpress.BonusSkins.v9.2.dll
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta3\RLC - Admin\bin\Debug\DevExpress.Data.v9.2.dll
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta3\RLC - Admin\bin\Debug\DevExpress.ExpressApp.v9.2.dll
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta3\RLC - Admin\bin\Debug\DevExpress.ExpressApp.Win.v9.2.dll
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta3\RLC - Admin\bin\Debug\DevExpress.OfficeSkins.v9.2.dll
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta3\RLC - Admin\bin\Debug\DevExpress.Utils.v9.2.dll
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta3\RLC - Admin\bin\Debug\DevExpress.Xpo.v9.2.dll
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta3\RLC - Admin\bin\Debug\DevExpress.XtraBars.v9.2.dll
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta3\RLC - Admin\bin\Debug\DevExpress.XtraEditors.v9.2.dll
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta3\RLC - Admin\bin\Debug\DevExpress.XtraGrid.v9.2.dll
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta3\RLC - Admin\bin\Debug\DevExpress.XtraLayout.v9.2.dll
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta3\RLC - Admin\bin\Debug\DevExpress.XtraNavBar.v9.2.dll
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta3\RLC - Admin\bin\Debug\DevExpress.XtraRichEdit.v9.2.dll
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta3\RLC - Admin\bin\Debug\DevExpress.XtraTreeList.v9.2.dll
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta3\RLC - Admin\bin\Debug\DevExpress.XtraVerticalGrid.v9.2.dll
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta3\RLC - Admin\bin\Debug\Ionic.Zip.dll
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta3\RLC - Admin\obj\Debug\RLC.csprojResolveAssemblyReference.cache
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta3\RLC - Admin\obj\Debug\RLC.AC_Out_Cfg.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta3\RLC - Admin\obj\Debug\RLC.Add_Group.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta3\RLC - Admin\obj\Debug\RLC.Add_Unit.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta3\RLC - Admin\obj\Debug\RLC.Backup.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta3\RLC - Admin\obj\Debug\RLC.Input_Bedside_12T.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta3\RLC - Admin\obj\Debug\RLC.ConfigIO_Bedside_12T.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta3\RLC - Admin\obj\Debug\RLC.ConfigIO_Bedside.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta3\RLC - Admin\obj\Debug\RLC.Input_Bedside.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta3\RLC - Admin\obj\Debug\RLC.ConfigIO_BSP_R14_OL.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta3\RLC - Admin\obj\Debug\RLC.Input_BSP_R14_OL.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta3\RLC - Admin\obj\Debug\RLC.Input_RCU_16RL_16AO.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta3\RLC - Admin\obj\Debug\RLC.ConfigIO_RCU_16RL_16AO.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta3\RLC - Admin\obj\Debug\RLC.Input_RCU_24RL_8AO.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta3\RLC - Admin\obj\Debug\RLC.ConfigIO_RCU_24RL_8AO.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta3\RLC - Admin\obj\Debug\RLC.Input_RCU_32AO.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta3\RLC - Admin\obj\Debug\RLC.ConfigIO_RCU_32AO.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta3\RLC - Admin\obj\Debug\RLC.Input_RCU_8RL_24AO.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta3\RLC - Admin\obj\Debug\RLC.ConfigIO_RCU_8RL_24AO.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta3\RLC - Admin\obj\Debug\RLC.Input_RLC_new.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta3\RLC - Admin\obj\Debug\RLC.ConfigIO_RLC_new.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta3\RLC - Admin\obj\Debug\RLC.Input_RLC_new_20_ports.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta3\RLC - Admin\obj\Debug\RLC.ConfigIO_RLC_new_20_ports.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta3\RLC - Admin\obj\Debug\RLC.ConfigIO_RLC.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta3\RLC - Admin\obj\Debug\RLC.Input_RLC.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta3\RLC - Admin\obj\Debug\RLC.Light_Out_Cfg.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta3\RLC - Admin\obj\Debug\RLC.RS485_Config.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta3\RLC - Admin\obj\Debug\RLC.Input_GNT_EXT_10AO.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta3\RLC - Admin\obj\Debug\RLC.Input_GNT_EXT_12RL_12AO.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta3\RLC - Admin\obj\Debug\RLC.Input_GNT_EXT_12RL.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta3\RLC - Admin\obj\Debug\RLC.Input_GNT_EXT_20RL.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta3\RLC - Admin\obj\Debug\RLC.Input_GNT_EXT_28AO.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta3\RLC - Admin\obj\Debug\RLC.Input_GNT_EXT_8RL.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta3\RLC - Admin\obj\Debug\RLC.Input_GNT_EXT_6RL.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta3\RLC - Admin\obj\Debug\RLC.Input_RCU_21IN_10RL.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta3\RLC - Admin\obj\Debug\RLC.ConfigIO_RCU_21IN_10RL.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta3\RLC - Admin\obj\Debug\RLC.Input_RCU_9IN_4RL.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta3\RLC - Admin\obj\Debug\RLC.ConfigIO_RCU_9IN_4RL.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta3\RLC - Admin\obj\Debug\RLC.Input_RCU_48IN_16RL.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta3\RLC - Admin\obj\Debug\RLC.ConfigIO_RCU_48IN_16RL.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta3\RLC - Admin\obj\Debug\RLC.Tool_Setup.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta3\RLC - Admin\obj\Debug\RLC.RLC1.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta3\RLC - Admin\obj\Debug\RLC.Properties.Resources.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta3\RLC - Admin\obj\Debug\RLC.csproj.GenerateResource.Cache
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta3\RLC - Admin\obj\Debug\RLC.exe.licenses
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta3\RLC - Admin\obj\Debug\RLC.TrustInfo.xml
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta3\RLC - Admin\obj\Debug\RLC.exe.manifest
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta3\RLC - Admin\obj\Debug\RLC.application
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta4\RLC - Admin\obj\Debug\RLC.AC_Out_Cfg.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta4\RLC - Admin\obj\Debug\RLC.Add_Group.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta4\RLC - Admin\obj\Debug\RLC.Add_Unit.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta4\RLC - Admin\obj\Debug\RLC.Backup.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta4\RLC - Admin\obj\Debug\RLC.Input_Bedside_12T.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta4\RLC - Admin\obj\Debug\RLC.ConfigIO_Bedside_12T.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta4\RLC - Admin\obj\Debug\RLC.ConfigIO_Bedside.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta4\RLC - Admin\obj\Debug\RLC.Input_Bedside.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta4\RLC - Admin\obj\Debug\RLC.ConfigIO_BSP_R14_OL.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta4\RLC - Admin\obj\Debug\RLC.Input_BSP_R14_OL.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta4\RLC - Admin\obj\Debug\RLC.Input_RCU_16RL_16AO.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta4\RLC - Admin\obj\Debug\RLC.ConfigIO_RCU_16RL_16AO.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta4\RLC - Admin\obj\Debug\RLC.Input_RCU_24RL_8AO.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta4\RLC - Admin\obj\Debug\RLC.ConfigIO_RCU_24RL_8AO.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta4\RLC - Admin\obj\Debug\RLC.Input_RCU_32AO.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta4\RLC - Admin\obj\Debug\RLC.ConfigIO_RCU_32AO.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta4\RLC - Admin\obj\Debug\RLC.Input_RCU_8RL_24AO.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta4\RLC - Admin\obj\Debug\RLC.ConfigIO_RCU_8RL_24AO.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta4\RLC - Admin\obj\Debug\RLC.Input_RLC_new.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta4\RLC - Admin\obj\Debug\RLC.ConfigIO_RLC_new.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta4\RLC - Admin\obj\Debug\RLC.Input_RLC_new_20_ports.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta4\RLC - Admin\obj\Debug\RLC.ConfigIO_RLC_new_20_ports.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta4\RLC - Admin\obj\Debug\RLC.ConfigIO_RLC.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta4\RLC - Admin\obj\Debug\RLC.Input_RLC.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta4\RLC - Admin\obj\Debug\RLC.Light_Out_Cfg.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta4\RLC - Admin\obj\Debug\RLC.RS485_Config.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta4\RLC - Admin\obj\Debug\RLC.Input_GNT_EXT_10AO.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta4\RLC - Admin\obj\Debug\RLC.Input_GNT_EXT_12RL_12AO.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta4\RLC - Admin\obj\Debug\RLC.Input_GNT_EXT_12RL.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta4\RLC - Admin\obj\Debug\RLC.Input_GNT_EXT_20RL.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta4\RLC - Admin\obj\Debug\RLC.Input_GNT_EXT_28AO.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta4\RLC - Admin\obj\Debug\RLC.Input_GNT_EXT_8RL.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta4\RLC - Admin\obj\Debug\RLC.Input_GNT_EXT_6RL.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta4\RLC - Admin\obj\Debug\RLC.Input_RCU_21IN_10RL.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta4\RLC - Admin\obj\Debug\RLC.ConfigIO_RCU_21IN_10RL.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta4\RLC - Admin\obj\Debug\RLC.Input_RCU_9IN_4RL.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta4\RLC - Admin\obj\Debug\RLC.ConfigIO_RCU_9IN_4RL.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta4\RLC - Admin\obj\Debug\RLC.Input_RCU_48IN_16RL.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta4\RLC - Admin\obj\Debug\RLC.ConfigIO_RCU_48IN_16RL.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta4\RLC - Admin\obj\Debug\RLC.Tool_Setup.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta4\RLC - Admin\obj\Debug\RLC.RLC1.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta4\RLC - Admin\obj\Debug\RLC.Properties.Resources.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta4\RLC - Admin\obj\Debug\RLC.csproj.GenerateResource.Cache
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta4\RLC - Admin\obj\Debug\RLC.exe.licenses
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta4\RLC - Admin\bin\Debug\RLC.exe.config
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta4\RLC - Admin\bin\Debug\RLC.exe.manifest
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta4\RLC - Admin\bin\Debug\RLC.application
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta4\RLC - Admin\bin\Debug\RLC.exe
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta4\RLC - Admin\bin\Debug\RLC.pdb
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta4\RLC - Admin\bin\Debug\DevExpress.BonusSkins.v9.2.dll
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta4\RLC - Admin\bin\Debug\DevExpress.Data.v9.2.dll
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta4\RLC - Admin\bin\Debug\DevExpress.ExpressApp.v9.2.dll
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta4\RLC - Admin\bin\Debug\DevExpress.ExpressApp.Win.v9.2.dll
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta4\RLC - Admin\bin\Debug\DevExpress.OfficeSkins.v9.2.dll
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta4\RLC - Admin\bin\Debug\DevExpress.Utils.v9.2.dll
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta4\RLC - Admin\bin\Debug\DevExpress.Xpo.v9.2.dll
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta4\RLC - Admin\bin\Debug\DevExpress.XtraBars.v9.2.dll
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta4\RLC - Admin\bin\Debug\DevExpress.XtraEditors.v9.2.dll
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta4\RLC - Admin\bin\Debug\DevExpress.XtraGrid.v9.2.dll
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta4\RLC - Admin\bin\Debug\DevExpress.XtraLayout.v9.2.dll
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta4\RLC - Admin\bin\Debug\DevExpress.XtraNavBar.v9.2.dll
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta4\RLC - Admin\bin\Debug\DevExpress.XtraRichEdit.v9.2.dll
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta4\RLC - Admin\bin\Debug\DevExpress.XtraTreeList.v9.2.dll
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta4\RLC - Admin\bin\Debug\DevExpress.XtraVerticalGrid.v9.2.dll
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta4\RLC - Admin\bin\Debug\Ionic.Zip.dll
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta4\RLC - Admin\obj\Debug\RLC.TrustInfo.xml
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta4\RLC - Admin\obj\Debug\RLC.exe.manifest
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta4\RLC - Admin\obj\Debug\RLC.application
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta4\RLC - Admin\obj\Debug\RLC.exe
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta4\RLC - Admin\obj\Debug\RLC.pdb
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta5\RLC - Admin\bin\Debug\RLC.exe.config
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta5\RLC - Admin\obj\Debug\RLC.exe
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta5\RLC - Admin\obj\Debug\RLC.pdb
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta5\RLC - Admin\bin\Debug\RLC.exe.manifest
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta5\RLC - Admin\bin\Debug\RLC.application
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta5\RLC - Admin\bin\Debug\RLC.exe
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta5\RLC - Admin\bin\Debug\RLC.pdb
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta5\RLC - Admin\bin\Debug\DevExpress.BonusSkins.v9.2.dll
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta5\RLC - Admin\bin\Debug\DevExpress.Data.v9.2.dll
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta5\RLC - Admin\bin\Debug\DevExpress.ExpressApp.v9.2.dll
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta5\RLC - Admin\bin\Debug\DevExpress.ExpressApp.Win.v9.2.dll
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta5\RLC - Admin\bin\Debug\DevExpress.OfficeSkins.v9.2.dll
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta5\RLC - Admin\bin\Debug\DevExpress.Utils.v9.2.dll
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta5\RLC - Admin\bin\Debug\DevExpress.Xpo.v9.2.dll
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta5\RLC - Admin\bin\Debug\DevExpress.XtraBars.v9.2.dll
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta5\RLC - Admin\bin\Debug\DevExpress.XtraEditors.v9.2.dll
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta5\RLC - Admin\bin\Debug\DevExpress.XtraGrid.v9.2.dll
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta5\RLC - Admin\bin\Debug\DevExpress.XtraLayout.v9.2.dll
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta5\RLC - Admin\bin\Debug\DevExpress.XtraNavBar.v9.2.dll
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta5\RLC - Admin\bin\Debug\DevExpress.XtraRichEdit.v9.2.dll
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta5\RLC - Admin\bin\Debug\DevExpress.XtraTreeList.v9.2.dll
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta5\RLC - Admin\bin\Debug\DevExpress.XtraVerticalGrid.v9.2.dll
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta5\RLC - Admin\bin\Debug\Ionic.Zip.dll
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta5\RLC - Admin\obj\Debug\RLC.csprojResolveAssemblyReference.cache
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta5\RLC - Admin\obj\Debug\RLC.AC_Out_Cfg.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta5\RLC - Admin\obj\Debug\RLC.Add_Group.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta5\RLC - Admin\obj\Debug\RLC.Add_Unit.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta5\RLC - Admin\obj\Debug\RLC.Backup.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta5\RLC - Admin\obj\Debug\RLC.Input_Bedside_12T.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta5\RLC - Admin\obj\Debug\RLC.ConfigIO_Bedside_12T.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta5\RLC - Admin\obj\Debug\RLC.ConfigIO_Bedside.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta5\RLC - Admin\obj\Debug\RLC.Input_Bedside.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta5\RLC - Admin\obj\Debug\RLC.ConfigIO_BSP_R14_OL.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta5\RLC - Admin\obj\Debug\RLC.Input_BSP_R14_OL.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta5\RLC - Admin\obj\Debug\RLC.Input_RCU_16RL_16AO.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta5\RLC - Admin\obj\Debug\RLC.ConfigIO_RCU_16RL_16AO.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta5\RLC - Admin\obj\Debug\RLC.Input_RCU_24RL_8AO.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta5\RLC - Admin\obj\Debug\RLC.ConfigIO_RCU_24RL_8AO.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta5\RLC - Admin\obj\Debug\RLC.Input_RCU_32AO.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta5\RLC - Admin\obj\Debug\RLC.ConfigIO_RCU_32AO.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta5\RLC - Admin\obj\Debug\RLC.Input_RCU_8RL_24AO.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta5\RLC - Admin\obj\Debug\RLC.ConfigIO_RCU_8RL_24AO.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta5\RLC - Admin\obj\Debug\RLC.Input_RLC_new.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta5\RLC - Admin\obj\Debug\RLC.ConfigIO_RLC_new.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta5\RLC - Admin\obj\Debug\RLC.Input_RLC_new_20_ports.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta5\RLC - Admin\obj\Debug\RLC.ConfigIO_RLC_new_20_ports.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta5\RLC - Admin\obj\Debug\RLC.ConfigIO_RLC.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta5\RLC - Admin\obj\Debug\RLC.Input_RLC.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta5\RLC - Admin\obj\Debug\RLC.Light_Out_Cfg.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta5\RLC - Admin\obj\Debug\RLC.RS485_Config.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta5\RLC - Admin\obj\Debug\RLC.Input_GNT_EXT_10AO.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta5\RLC - Admin\obj\Debug\RLC.Input_GNT_EXT_12RL_12AO.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta5\RLC - Admin\obj\Debug\RLC.Input_GNT_EXT_12RL.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta5\RLC - Admin\obj\Debug\RLC.Input_GNT_EXT_20RL.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta5\RLC - Admin\obj\Debug\RLC.Input_GNT_EXT_28AO.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta5\RLC - Admin\obj\Debug\RLC.Input_GNT_EXT_8RL.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta5\RLC - Admin\obj\Debug\RLC.Input_GNT_EXT_6RL.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta5\RLC - Admin\obj\Debug\RLC.Input_RCU_21IN_10RL.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta5\RLC - Admin\obj\Debug\RLC.ConfigIO_RCU_21IN_10RL.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta5\RLC - Admin\obj\Debug\RLC.Input_RCU_48IN_16RL.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta5\RLC - Admin\obj\Debug\RLC.ConfigIO_RCU_48IN_16RL.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta5\RLC - Admin\obj\Debug\RLC.Tool_Setup.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta5\RLC - Admin\obj\Debug\RLC.RLC1.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta5\RLC - Admin\obj\Debug\RLC.Properties.Resources.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta5\RLC - Admin\obj\Debug\RLC.csproj.GenerateResource.Cache
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta5\RLC - Admin\obj\Debug\RLC.exe.licenses
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta5\RLC - Admin\obj\Debug\RLC.TrustInfo.xml
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta5\RLC - Admin\obj\Debug\RLC.exe.manifest
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta5\RLC - Admin\obj\Debug\RLC.application
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta5\RLC - Admin\obj\Debug\RLC.Input_RCU_11IN_4RL.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta5\RLC - Admin\obj\Debug\RLC.ConfigIO_RCU_11IN_4RL.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta6\RLC - Admin\bin\Debug\RLC.exe.config
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta6\RLC - Admin\obj\Debug\RLC.exe
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta6\RLC - Admin\obj\Debug\RLC.pdb
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta6\RLC - Admin\bin\Debug\RLC.exe.manifest
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta6\RLC - Admin\bin\Debug\RLC.application
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta6\RLC - Admin\bin\Debug\RLC.exe
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta6\RLC - Admin\bin\Debug\RLC.pdb
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta6\RLC - Admin\bin\Debug\DevExpress.BonusSkins.v9.2.dll
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta6\RLC - Admin\bin\Debug\DevExpress.Data.v9.2.dll
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta6\RLC - Admin\bin\Debug\DevExpress.ExpressApp.v9.2.dll
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta6\RLC - Admin\bin\Debug\DevExpress.ExpressApp.Win.v9.2.dll
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta6\RLC - Admin\bin\Debug\DevExpress.OfficeSkins.v9.2.dll
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta6\RLC - Admin\bin\Debug\DevExpress.Utils.v9.2.dll
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta6\RLC - Admin\bin\Debug\DevExpress.Xpo.v9.2.dll
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta6\RLC - Admin\bin\Debug\DevExpress.XtraBars.v9.2.dll
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta6\RLC - Admin\bin\Debug\DevExpress.XtraEditors.v9.2.dll
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta6\RLC - Admin\bin\Debug\DevExpress.XtraGrid.v9.2.dll
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta6\RLC - Admin\bin\Debug\DevExpress.XtraLayout.v9.2.dll
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta6\RLC - Admin\bin\Debug\DevExpress.XtraNavBar.v9.2.dll
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta6\RLC - Admin\bin\Debug\DevExpress.XtraRichEdit.v9.2.dll
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta6\RLC - Admin\bin\Debug\DevExpress.XtraTreeList.v9.2.dll
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta6\RLC - Admin\bin\Debug\DevExpress.XtraVerticalGrid.v9.2.dll
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta6\RLC - Admin\bin\Debug\Ionic.Zip.dll
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta6\RLC - Admin\obj\Debug\RLC.csprojResolveAssemblyReference.cache
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta6\RLC - Admin\obj\Debug\RLC.AC_Out_Cfg.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta6\RLC - Admin\obj\Debug\RLC.Add_Group.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta6\RLC - Admin\obj\Debug\RLC.Add_Unit.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta6\RLC - Admin\obj\Debug\RLC.Backup.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta6\RLC - Admin\obj\Debug\RLC.Input_Bedside_12T.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta6\RLC - Admin\obj\Debug\RLC.ConfigIO_Bedside_12T.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta6\RLC - Admin\obj\Debug\RLC.ConfigIO_Bedside.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta6\RLC - Admin\obj\Debug\RLC.Input_Bedside.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta6\RLC - Admin\obj\Debug\RLC.ConfigIO_BSP_R14_OL.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta6\RLC - Admin\obj\Debug\RLC.Input_RCU_16RL_16AO.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta6\RLC - Admin\obj\Debug\RLC.ConfigIO_RCU_16RL_16AO.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta6\RLC - Admin\obj\Debug\RLC.Input_RCU_24RL_8AO.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta6\RLC - Admin\obj\Debug\RLC.ConfigIO_RCU_24RL_8AO.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta6\RLC - Admin\obj\Debug\RLC.Input_RCU_32AO.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta6\RLC - Admin\obj\Debug\RLC.ConfigIO_RCU_32AO.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta6\RLC - Admin\obj\Debug\RLC.Input_RCU_8RL_24AO.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta6\RLC - Admin\obj\Debug\RLC.ConfigIO_RCU_8RL_24AO.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta6\RLC - Admin\obj\Debug\RLC.Input_RLC_new.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta6\RLC - Admin\obj\Debug\RLC.ConfigIO_RLC_new.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta6\RLC - Admin\obj\Debug\RLC.Input_RLC_new_20_ports.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta6\RLC - Admin\obj\Debug\RLC.ConfigIO_RLC_new_20_ports.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta6\RLC - Admin\obj\Debug\RLC.ConfigIO_RLC.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta6\RLC - Admin\obj\Debug\RLC.Input_RLC.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta6\RLC - Admin\obj\Debug\RLC.Light_Out_Cfg.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta6\RLC - Admin\obj\Debug\RLC.RS485_Config.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta6\RLC - Admin\obj\Debug\RLC.Input_BSP_R14_OL.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta6\RLC - Admin\obj\Debug\RLC.Input_GNT_EXT_10AO.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta6\RLC - Admin\obj\Debug\RLC.Input_GNT_EXT_12RL_12AO.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta6\RLC - Admin\obj\Debug\RLC.Input_GNT_EXT_12RL.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta6\RLC - Admin\obj\Debug\RLC.Input_GNT_EXT_20RL.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta6\RLC - Admin\obj\Debug\RLC.Input_GNT_EXT_28AO.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta6\RLC - Admin\obj\Debug\RLC.Input_GNT_EXT_8RL.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta6\RLC - Admin\obj\Debug\RLC.Input_GNT_EXT_6RL.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta6\RLC - Admin\obj\Debug\RLC.Input_RCU_11IN_4RL.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta6\RLC - Admin\obj\Debug\RLC.ConfigIO_RCU_11IN_4RL.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta6\RLC - Admin\obj\Debug\RLC.Input_RCU_21IN_10RL.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta6\RLC - Admin\obj\Debug\RLC.ConfigIO_RCU_21IN_10RL.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta6\RLC - Admin\obj\Debug\RLC.Input_RCU_48IN_16RL.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta6\RLC - Admin\obj\Debug\RLC.ConfigIO_RCU_48IN_16RL.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta6\RLC - Admin\obj\Debug\RLC.Tool_Setup.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta6\RLC - Admin\obj\Debug\RLC.RLC1.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta6\RLC - Admin\obj\Debug\RLC.Properties.Resources.resources
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta6\RLC - Admin\obj\Debug\RLC.csproj.GenerateResource.Cache
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta6\RLC - Admin\obj\Debug\RLC.exe.licenses
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta6\RLC - Admin\obj\Debug\RLC.TrustInfo.xml
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta6\RLC - Admin\obj\Debug\RLC.exe.manifest
+D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta6\RLC - Admin\obj\Debug\RLC.application

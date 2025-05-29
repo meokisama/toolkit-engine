@@ -1,0 +1,3033 @@
+﻿//#define TEST
+
+using System;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.Data;
+using System.Drawing;
+using System.Linq;
+using System.Text;
+using System.Windows.Forms;
+using System.IO;
+
+using System.Net;
+using System.Net.Sockets;
+using System.Net.NetworkInformation;
+using System.Collections;
+using System.Threading;
+
+using Ionic.Zip;
+
+
+namespace RLC
+{    
+
+    public partial class RLC1 : Form
+    {
+        bool transNet=false;
+        public int UDPPort = 1234;                        //1234
+        IPEndPoint AnyIP;
+        EndPoint rm;
+        int SoLanRetryMax = 3;
+        int SoLanRetryMaxFirmware = 6;
+        const int SL_INPUT_RLC =        48;
+        const int SL_INPUT_RLC_I20 =    60;
+        const int SL_INPUT_RLC_I16 =    60;
+        const int SL_INPUT_BEDSIDE =    20;
+        const int SL_INPUT_BEDSIDE_12T= 12;
+
+        const int SL_OUTPUT_RLC =       38;
+        const int SL_OUTPUT_BEDSIDE =   0;
+
+        const int SL_RELAY = 32;
+
+        TreeNode CopyNode;
+        string CopyNode_Parent;
+        public bool[] Group_Address;
+        public string Group_Path = "";
+        public string Unit_Path = "";
+        public int SLGroup = 256;
+        public string directoryDatabase = "Project";
+        bool Group_Delete = false;
+        int act = 0;    //act=1:add; act=2:copy;   act=3:rename
+        public int gr_ad;
+        public string gr_name, gr_des;
+        public int rowindex = 0;
+        public int form = 0;
+        public bool OK = false;
+        public int[] MSGroup;
+        public bool confignetwork = false;
+        public int oldActMode;
+        
+
+        public struct Unit
+        {
+            public int unit,kind;
+            public string Descript, IP, IDCan,Barcode, Fw_ver , Hw_ver , Manu_Date;
+            public bool LoadCan,Recovery;
+        }
+
+        public struct IOProperty
+        {
+            public int Input, Function, Ramp, Preset, Led_Status, Auto_Mode, Auto_Time, DelayOff, DelayOn, NumGroup;
+            public int[] Group;
+            public byte[] Preset_Group;
+        }
+        public IOProperty[] InputNetwork;
+
+        public byte[] OutputNetwork;
+        public int[] RLCFormRelay_DelayOn, RLCFormRelay_DelayOff;
+
+        public Unit ConfigUnit;
+
+        public RLC1()
+        {
+            InitializeComponent();
+        }
+
+
+        /**************************** Event Mouse Over/Leave ************************/
+
+        private void btn_Scan_MouseHover(object sender, EventArgs e)
+        {
+            btn_Scan.FlatStyle = FlatStyle.Standard;
+        }
+
+        private void btn_Scan_MouseLeave(object sender, EventArgs e)
+        {
+            btn_Scan.FlatStyle = FlatStyle.Flat;
+        }
+
+        private void btn_EditUnitNetwork_MouseHover(object sender, EventArgs e)
+        {
+            btn_EditUnitNetwork.FlatStyle = FlatStyle.Standard;
+        }
+
+        private void btn_EditUnitNetwork_MouseLeave(object sender, EventArgs e)
+        {
+            btn_EditUnitNetwork.FlatStyle = FlatStyle.Flat;
+        }
+
+        private void btn_ConfigUnitNetwork_MouseHover(object sender, EventArgs e)
+        {
+            btn_ConfigUnitNetwork.FlatStyle = FlatStyle.Standard;
+        }
+
+        private void btn_ConfigUnitNetwork_MouseLeave(object sender, EventArgs e)
+        {
+            btn_ConfigUnitNetwork.FlatStyle = FlatStyle.Flat;
+        }
+
+        private void btn_AddtoData_MouseHover(object sender, EventArgs e)
+        {
+            btn_AddtoData.FlatStyle = FlatStyle.Standard;
+        }
+
+        private void btn_AddtoData_MouseLeave(object sender, EventArgs e)
+        {
+            btn_AddtoData.FlatStyle = FlatStyle.Flat;
+        }
+
+        private void btn_ReplaceDatabase_MouseHover(object sender, EventArgs e)
+        {
+            btn_ReplaceDatabase.FlatStyle = FlatStyle.Standard;
+        }
+
+        private void btn_ReplaceDatabase_MouseLeave(object sender, EventArgs e)
+        {
+            btn_ReplaceDatabase.FlatStyle = FlatStyle.Flat;
+        }
+
+        private void btn_TranfertoData_MouseHover(object sender, EventArgs e)
+        {
+            btn_TranfertoData.FlatStyle = FlatStyle.Standard;
+        }
+
+        private void btn_TranfertoData_MouseLeave(object sender, EventArgs e)
+        {
+            btn_TranfertoData.FlatStyle = FlatStyle.Flat;
+        }
+
+        private void btn_UpdateFirmware_MouseHover(object sender, EventArgs e)
+        {
+            btn_UpdateFirmware.FlatStyle = FlatStyle.Standard;
+        }
+
+        private void btn_UpdateFirmware_MouseLeave(object sender, EventArgs e)
+        {
+            btn_UpdateFirmware.FlatStyle = FlatStyle.Flat;
+        }
+ 
+        private void btn_RenameProject_MouseHover(object sender, EventArgs e)
+        {
+            btn_RenameProject.FlatStyle = FlatStyle.Standard;
+        }
+
+        private void btn_RenameProject_MouseLeave(object sender, EventArgs e)
+        {
+            btn_RenameProject.FlatStyle = FlatStyle.Flat;
+        }
+
+        private void btn_DeleteProject_MouseHover(object sender, EventArgs e)
+        {
+            btn_DeleteProject.FlatStyle = FlatStyle.Standard;
+        }
+
+        private void btn_DeleteProject_MouseLeave(object sender, EventArgs e)
+        {
+            btn_DeleteProject.FlatStyle = FlatStyle.Flat;
+        }
+
+        private void btn_AddProject_MouseHover(object sender, EventArgs e)
+        {
+            btn_AddProject.FlatStyle = FlatStyle.Standard;
+        }
+
+        private void btn_AddProject_MouseLeave(object sender, EventArgs e)
+        {
+            btn_AddProject.FlatStyle = FlatStyle.Flat;
+        }
+
+        private void btn_CopyProject_MouseHover(object sender, EventArgs e)
+        {
+            btn_CopyProject.FlatStyle = FlatStyle.Standard;
+        }
+
+        private void btn_CopyProject_MouseLeave(object sender, EventArgs e)
+        {
+            btn_CopyProject.FlatStyle = FlatStyle.Flat;
+        }
+
+        private void btn_AddGroup_MouseHover(object sender, EventArgs e)
+        {
+            btn_AddGroup.FlatStyle = FlatStyle.Standard;
+        }
+
+        private void btn_AddGroup_MouseLeave(object sender, EventArgs e)
+        {
+            btn_AddGroup.FlatStyle = FlatStyle.Flat;
+        }
+
+        private void btn_EditGroup_MouseHover(object sender, EventArgs e)
+        {
+            btn_EditGroup.FlatStyle = FlatStyle.Standard;
+        }
+
+        private void btn_EditGroup_MouseLeave(object sender, EventArgs e)
+        {
+            btn_EditGroup.FlatStyle = FlatStyle.Flat;
+        }
+
+        private void btn_DeleteGroup_MouseHover(object sender, EventArgs e)
+        {
+            btn_DeleteGroup.FlatStyle = FlatStyle.Standard;
+        }
+
+        private void btn_DeleteGroup_MouseLeave(object sender, EventArgs e)
+        {
+            btn_DeleteGroup.FlatStyle = FlatStyle.Flat;
+        }
+
+        private void btn_Paste_MouseHover(object sender, EventArgs e)
+        {
+            btn_Paste.FlatStyle = FlatStyle.Standard;
+        }
+
+        private void btn_Paste_MouseLeave(object sender, EventArgs e)
+        {
+            btn_Paste.FlatStyle = FlatStyle.Flat;
+        }
+
+        private void btn_transferToNet_MouseHover(object sender, EventArgs e)
+        {
+            btn_transferToNet.FlatStyle = FlatStyle.Standard;
+        }
+
+        private void btn_transferToNet_MouseLeave(object sender, EventArgs e)
+        {
+            btn_transferToNet.FlatStyle = FlatStyle.Flat;
+        }
+
+        private void btn_DeleteUnit_MouseHover(object sender, EventArgs e)
+        {
+            btn_DeleteUnit.FlatStyle = FlatStyle.Standard;
+        }
+
+        private void btn_DeleteUnit_MouseLeave(object sender, EventArgs e)
+        {
+            btn_DeleteUnit.FlatStyle = FlatStyle.Flat;
+        }
+
+        private void btn_ConfigUnit_MouseHover(object sender, EventArgs e)
+        {
+            btn_ConfigUnit.FlatStyle = FlatStyle.Standard;
+        }
+
+        private void btn_ConfigUnit_MouseLeave(object sender, EventArgs e)
+        {
+            btn_ConfigUnit.FlatStyle = FlatStyle.Flat;
+        }
+
+        private void btn_EditUnit_MouseHover(object sender, EventArgs e)
+        {
+            btn_EditUnit.FlatStyle = FlatStyle.Standard;
+        }
+
+        private void btn_EditUnit_MouseLeave(object sender, EventArgs e)
+        {
+            btn_EditUnit.FlatStyle = FlatStyle.Flat;
+        }
+
+        private void btn_AddUnit_MouseHover(object sender, EventArgs e)
+        {
+            btn_AddUnit.FlatStyle = FlatStyle.Standard;
+        }
+
+        private void btn_AddUnit_MouseLeave(object sender, EventArgs e)
+        {
+            btn_AddUnit.FlatStyle = FlatStyle.Flat;
+        }
+
+
+        /***********************************End Event Mouse Over/Leave ***************************/
+
+
+
+        public void AddProject(string name)
+        {
+            TreeNode node0 = new TreeNode("Group");
+            node0.ImageIndex = 2;
+            node0.SelectedImageIndex = 2;
+            TreeNode node1 = new TreeNode("Unit");
+            node1.ImageIndex = 3;
+            node1.SelectedImageIndex = 3;
+            TreeNode[] array = new TreeNode[] { node0, node1 };
+            TreeNode NewProject = new TreeNode(name, array);
+            NewProject.ImageIndex = 1;
+            NewProject.SelectedImageIndex = 1;
+            treeView1.Nodes[0].Nodes.Add(NewProject);
+            treeView1.Nodes[0].Expand();
+            treeView1.SelectedNode = NewProject;
+        }
+        
+        private void btn_AddProject_Click(object sender, EventArgs e)
+        {
+            AddProject("New Project");
+            act = 1;
+            btn_RenameProject_Click(null, null);
+            
+        }   
+
+        private void exitToolStripMenuItem1_Click(object sender, EventArgs e)
+        {
+            Close();
+        }
+
+        private void Tat_Mo_Nut(bool check)
+        {
+            btn_DeleteProject.Enabled = check;
+            btn_RenameProject.Enabled = check;
+            renameProjectAltRToolStripMenuItem.Enabled = check;
+            deleteProjectToolStripMenuItem.Enabled = check;
+        }
+
+        private void treeView1_NodeMouseClick(object sender, TreeNodeMouseClickEventArgs e)
+        {
+            TreeViewHitTestInfo hti = treeView1.HitTest(e.Location);
+            if (e.Button == MouseButtons.Right)
+            {
+                if (e.Node.Parent == null)
+                    contextMenuStrip_Root.Show(treeView1, new Point(hti.Node.Bounds.Left, hti.Node.Bounds.Bottom));
+                else if (e.Node.Parent.ToString() == "TreeNode: Project")
+                    contextMenuStrip_Project.Show(treeView1, new Point(hti.Node.Bounds.Left, hti.Node.Bounds.Bottom));
+                else contextMenuStrip1.Show(treeView1, new Point(hti.Node.Bounds.Left, hti.Node.Bounds.Bottom));
+
+                treeView1.SelectedNode = e.Node;
+            }
+        }
+
+        private void RLC1_Load(object sender, EventArgs e)
+        {
+            if (!System.IO.Directory.Exists(directoryDatabase))
+                System.IO.Directory.CreateDirectory(directoryDatabase);
+
+            this.Location = new Point(0, 0);
+            this.Size = Screen.PrimaryScreen.WorkingArea.Size;
+            
+            
+            AnyIP = new IPEndPoint(IPAddress.Any, 0);
+            rm = new IPEndPoint(IPAddress.Any, 0);
+
+            
+
+            treeView1.Nodes[0].Expand();
+            Group_Address = new bool[SLGroup];
+            ImageList il = new ImageList();
+            il.Images.Add(RLC.Properties.Resources.bag); //Hình ảnh bạn add vô réource cho dễ lấy nhé
+            il.Images.Add(RLC.Properties.Resources.pj);
+            il.Images.Add(RLC.Properties.Resources.group);
+            il.Images.Add(RLC.Properties.Resources.unit);
+            treeView1.ImageList = il;
+
+            string[] folders = Directory.GetDirectories(directoryDatabase);// lay cac folder
+            foreach (string folder in folders)
+            {
+                AddProject(folder.Substring(8));
+            }
+            
+            
+        }
+
+        private void btn_DeleteProject_Click(object sender, EventArgs e)
+        {
+            DialogResult lkResult = MessageBox.Show("Are you sure to delete Project: \"" + treeView1.SelectedNode.Text+"\"", "Deleted Project", MessageBoxButtons.YesNo);
+
+           if (lkResult == DialogResult.Yes)
+
+           {
+               string Name = treeView1.SelectedNode.Text;
+               string filePath = directoryDatabase + @"\" + Name;
+               DeleteFolder(filePath);
+               treeView1.SelectedNode.Remove();
+               return;
+
+           }
+           
+            
+        }
+
+        private void Tat_Mo_Paste(bool check)
+        {
+            pasteProjectToolStripMenuItem.Enabled = check;
+            tstripChild_Paste.Enabled = check;
+            toolStripMenuItem6.Enabled = check;
+            btn_Paste.Enabled = check;
+        }
+        private void btn_CopyProject_Click(object sender, EventArgs e)
+        {
+            CopyNode = (TreeNode)treeView1.SelectedNode.Clone();
+            CopyNode_Parent = treeView1.SelectedNode.Parent.Text;
+            treeView1.Select();
+            Tat_Mo_Paste(true);
+        }
+
+        private void pasteProjectToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            int IndexOfNode;
+            if (treeView1.SelectedNode.Parent == null)
+            {
+                if (CopyNode.SelectedImageIndex == 1)
+                {
+                    treeView1.Nodes[0].Nodes.Add(CopyNode);
+                    act = 2;
+                    treeView1.SelectedNode = CopyNode;
+                    btn_RenameProject_Click(null, null);
+                }
+                return;
+            }
+
+            if (treeView1.SelectedNode.Parent.ToString() == "TreeNode: Project") IndexOfNode = treeView1.SelectedNode.Index;
+            else IndexOfNode = treeView1.SelectedNode.Parent.Index;
+
+            if ((CopyNode.Text != "Group") && (CopyNode.Text != "Unit"))
+            {
+                treeView1.Nodes[0].Nodes.Add(CopyNode);
+                act = 2;
+                treeView1.SelectedNode = CopyNode;
+                btn_RenameProject_Click(null, null);
+            }
+            else
+            {
+                
+                if (CopyNode.Text == "Group")
+                {
+                    string desName = directoryDatabase + @"\" + treeView1.Nodes[0].Nodes[IndexOfNode].Text + @"\" + "Group.csv";
+                    string sName = directoryDatabase + @"\" + CopyNode_Parent + @"\" +"Group.csv";
+                    DialogResult lkResult = MessageBox.Show("Are you sure to copy \"Group\" from Project: \"" + CopyNode_Parent + "\" to Project: \"" + treeView1.Nodes[0].Nodes[IndexOfNode].Text+"\". It will be Overwrited?", "Copy Group", MessageBoxButtons.YesNo);
+
+                    if ((lkResult == DialogResult.Yes) && (sName!=desName)) File.Copy(sName,desName,true);
+                    treeView1.SelectedNode = treeView1.Nodes[0].Nodes[IndexOfNode];
+                    treeView1.SelectedNode = treeView1.Nodes[0].Nodes[IndexOfNode].Nodes[0];
+                    
+                }
+                else
+                {
+                    string desName = directoryDatabase + @"\" + treeView1.Nodes[0].Nodes[IndexOfNode].Text + @"\" + "Unit";
+                    string sName = directoryDatabase + @"\" + CopyNode_Parent + @"\" + "Unit";
+                    DialogResult lkResult = MessageBox.Show("Are you sure to copy \"Unit\" from Project: \"" + CopyNode_Parent + "\" to Project: \"" + treeView1.Nodes[0].Nodes[IndexOfNode].Text + "\". It will be Overwrited ?", "Copy Unit", MessageBoxButtons.YesNo);
+
+                    if ((lkResult == DialogResult.Yes) && (sName!=desName))
+                    {
+                        DeleteFolder(desName);
+                        CopyFolder(sName, desName);
+                    }
+                    treeView1.SelectedNode = treeView1.Nodes[0].Nodes[IndexOfNode];
+                    treeView1.SelectedNode = treeView1.Nodes[0].Nodes[IndexOfNode].Nodes[1];
+                    
+                }
+            }
+            Tat_Mo_Paste(false);
+        }
+
+        private void btn_RenameProject_Click(object sender, EventArgs e)
+        {
+                Tat_Mo_Nut(false);
+                btn_AddProject.Enabled = false;
+                btn_CopyProject.Enabled = false;
+                menuStrip1.Enabled = false;
+                treeView1.LabelEdit = true;
+                if (act == 0) act = 3;
+                if (!treeView1.SelectedNode.IsEditing)
+                {
+                    treeView1.SelectedNode.BeginEdit();
+                }
+        }
+
+        private void LoadUnit(string filePath)
+        {
+            gr_Unit.Rows.Clear();
+            string input;
+            DirectoryInfo drInfo = new DirectoryInfo(filePath);
+            DirectoryInfo[] folders = drInfo.GetDirectories(); // lay cac folder
+            FileInfo[] files = drInfo.GetFiles(); //lay cac files
+            foreach (FileInfo f in files)
+            {
+                StreamReader rd = File.OpenText(f.FullName);
+                input = rd.ReadLine();
+                int count = 0;
+                string[] s ;
+                s = new string[10];
+                for (int i = 0; i < input.Length; i++)
+                {
+                   if (input[i] != ',') s[count] = s[count] + input[i];
+                   else
+                   {
+                      count++;
+                   }
+                }
+                if (count == 6)  // old database
+                {
+                    s[8] = s[6];
+                    s[6] = s[7] = "No Info";
+                }
+
+                if (s[9] == "") s[9] = "0";
+
+                gr_Unit.Rows.Add(s[0], s[1], s[2], s[3], s[4], Convert.ToBoolean(s[5]), s[6], s[7], s[8], Convert.ToBoolean(s[9]));
+
+                rd.Close();
+            }
+        }
+
+        private void treeView1_AfterSelect(object sender, TreeViewEventArgs e)
+        {
+            treeView1.LabelEdit = false;
+
+            if ((e.Node.Parent != null) && (e.Node.Parent.ToString() == "TreeNode: Project")) Tat_Mo_Nut(true);
+            else Tat_Mo_Nut(false);
+
+            if (e.Node.Parent == null) 
+            {
+               label1.Text = "Room Controller";
+               btn_CopyProject.Enabled = false;
+               copyProjectToolStripMenuItem.Enabled = false;
+            }
+            else if (e.Node.Parent.ToString() == "TreeNode: Project")
+            {
+                label1.Text = "Project - " + e.Node.Text; 
+            }
+
+            if (e.Node.Parent == null)
+            {
+                btn_CopyProject.Enabled = false;
+                copyProjectToolStripMenuItem.Enabled = false;
+            }
+            else
+            {
+                btn_CopyProject.Enabled = true;
+                copyProjectToolStripMenuItem.Enabled = true;
+            }
+            string s;
+            s = treeView1.SelectedNode.ToString();
+
+            if (s.Substring(s.Length - 5) == "Group")
+            {
+                label1.Text = "Group in Database - " + treeView1.SelectedNode.Parent.ToString().Substring(10);
+                btn_AddGroup.Enabled = true;
+                string filePath = treeView1.SelectedNode.FullPath + ".csv";
+                LoadGroup(filePath);
+                if (gr_Group.Rows.Count > 0)
+                {
+                    btn_EditGroup.Enabled = true;
+                    btn_DeleteGroup.Enabled = true;
+                }
+                else
+                {
+                    btn_EditGroup.Enabled = false;
+                    btn_DeleteGroup.Enabled = false;
+                }
+
+            }
+            else
+            {
+                btn_AddGroup.Enabled = false;
+                btn_EditGroup.Enabled = false;
+                btn_DeleteGroup.Enabled = false;
+                gr_Group.Rows.Clear();
+            }
+
+            if (s.Substring(s.Length - 4) == "Unit")
+            {
+                label1.Text = "Units in Database - " + treeView1.SelectedNode.Parent.ToString().Substring(10);
+                btn_AddUnit.Enabled = true;
+                gr_Group.Visible = false;
+                gr_Unit.Visible = true;
+                panel2.Visible = true;
+                grBoardNetwork.Visible = true;
+                if (grBoardNetwork.Rows.Count > 0)
+                {
+                    updateFirmwareToolStripMenuItem.Enabled = true;
+                    setupToolStripMenuItem.Enabled = true;
+                }
+                panel4.Visible = true;
+
+                string filePath = treeView1.SelectedNode.FullPath;
+                LoadUnit(filePath);
+                if (gr_Unit.Rows.Count > 0)
+                {
+                    btn_EditUnit.Enabled = true;
+                    btn_ConfigUnit.Enabled = true;
+                    btn_DeleteUnit.Enabled = true;
+                    if (grBoardNetwork.Rows.Count > 0)
+                    {
+                        btn_transferToNet.Enabled = true;
+                        btn_ReplaceDatabase.Enabled = true;
+                    }
+                    else
+                    {
+                        btn_transferToNet.Enabled = false;
+                        btn_ReplaceDatabase.Enabled = false;
+                    }
+                }
+                else
+                {
+                    btn_EditUnit.Enabled = false;
+                    btn_ConfigUnit.Enabled = false;
+                    btn_DeleteUnit.Enabled = false;
+                    btn_transferToNet.Enabled = false;
+                    btn_ReplaceDatabase.Enabled = false;
+                }
+            }
+            else
+            {
+                updateFirmwareToolStripMenuItem.Enabled = false;
+                setupToolStripMenuItem.Enabled = false;
+                btn_AddUnit.Enabled = false;
+                gr_Group.Visible = true;
+                gr_Unit.Visible = false;
+                panel2.Visible = false;
+                grBoardNetwork.Visible = false;
+                panel4.Visible = false;
+
+                gr_Unit.Rows.Clear();
+                btn_EditUnit.Enabled = false;
+                btn_ConfigUnit.Enabled = false;
+                btn_DeleteUnit.Enabled = false;
+            }
+
+
+
+        }
+        private void LoadGroup(string filepath)
+        {
+            gr_Group.Rows.Clear();
+            Group_Address = new bool[SLGroup];
+            MSGroup = new int[SLGroup];
+            for (int i = 0; i < SLGroup; i++)
+                MSGroup[i] = -2;
+
+            MSGroup[0] = -1;
+            StreamReader rd = File.OpenText(filepath);
+            string input = null;
+            string name="", address="", descript="";
+            int dem=0;
+            while ((input = rd.ReadLine()) != null)
+            {
+                int count = 0;
+                string s="";
+                for (int i = 0; i < input.Length; i++)
+                {
+                    if (input[i] != ',') s = s + input[i];
+                    else
+                    {
+                        if (count == 0)
+                        {
+                            name = s;
+                            s = "";
+                            count = 1;
+                        }
+                        else
+                        {
+                            address = s;
+                            s = "";
+                        }
+                    }
+                }
+                descript = s;
+                Group_Address[Convert.ToInt16(address)] = true;
+                gr_Group.Rows.Add(name, address, descript);
+                MSGroup[Convert.ToInt16(address)] = dem;
+                dem++;
+                
+            }
+            rd.Close();
+           
+        }
+
+        public void btn_AddGroup_Click(object sender, EventArgs e)
+        {
+            gr_name = "New Group";
+            gr_ad = 0;
+            gr_des = "No Description";
+            Add_Group AddGroup = new Add_Group();
+            AddGroup.Initialize(this);
+            Group_Path = treeView1.SelectedNode.Parent.FullPath+"\\Group.csv";
+            this.Enabled = false;
+            AddGroup.Show();
+            AddGroup.Focus();
+            
+            
+        }
+
+        private void treeView1_AfterLabelEdit(object sender, NodeLabelEditEventArgs e)
+        {
+            string filePath = directoryDatabase + @"\" + e.Label;
+
+
+            if ((e.Label == null) && (act == 1)) filePath = filePath + "New Project";
+            
+            if ((e.Label!=null) && (e.Label.IndexOf('/')>=0))
+            {
+                MessageBox.Show("The project name has / character.Please modify again!!!", "Notification");
+                e.CancelEdit = true;
+                treeView1.SelectedNode.BeginEdit();
+            }
+            else if ((System.IO.Directory.Exists(filePath)) && ((act!=3) || (e.Label!=null)))
+            {
+                MessageBox.Show("Project name already exists. Please choose another name!");
+                e.CancelEdit = true;
+                treeView1.SelectedNode.BeginEdit();
+            }
+
+            else
+            {
+                string old_Name = treeView1.SelectedNode.Text;
+                if (act == 2) old_Name = CopyNode.Text;
+                if (e.Label != null) treeView1.SelectedNode.Text = e.Label;
+                if ((act == 3) && (e.Label == null))
+                {
+                    Tat_Mo_Nut(true);
+                    btn_AddProject.Enabled = true;
+                    btn_CopyProject.Enabled = true;
+                    menuStrip1.Enabled = true;
+                    act = 0;
+                    treeView1.LabelEdit = false;
+                    return;
+                }
+                XuLyFile(act, treeView1.SelectedNode.Text, old_Name);
+            }
+        }
+
+
+        private void XuLyFile(int act1,string Name,string old_name)
+        {
+            if (!System.IO.Directory.Exists(directoryDatabase))
+                System.IO.Directory.CreateDirectory(directoryDatabase);
+            string filePath = directoryDatabase + @"\" + Name;
+            string oldfilePath = directoryDatabase + @"\" + old_name;
+
+            if (act1 == 1)
+            {
+                if (!System.IO.Directory.Exists(filePath))
+                {
+                    System.IO.Directory.CreateDirectory(filePath);
+                    string filePath1 = filePath + @"\" + "Group.csv";
+                    FileStream fs;
+                    fs = new FileStream(filePath1, FileMode.Create);
+                    fs.Close();
+                    filePath = filePath + @"\" + "Unit";
+                   
+                    if (!System.IO.Directory.Exists(filePath))
+                        System.IO.Directory.CreateDirectory(filePath);
+                   
+                    Tat_Mo_Nut(true);
+                    btn_AddProject.Enabled = true;
+                    btn_CopyProject.Enabled = true;
+                    menuStrip1.Enabled = true;
+                    act = 0;
+                    treeView1.LabelEdit = false;
+                }
+                else
+                {
+                    MessageBox.Show("Project name already exists. Please choose another name!");
+                    btn_RenameProject_Click(null, null);
+                }
+            }
+            else if (act == 2)
+            {
+                if (!System.IO.Directory.Exists(filePath))
+                {
+                    CopyFolder(oldfilePath, filePath);
+                    Tat_Mo_Nut(true);
+                    btn_AddProject.Enabled = true;
+                    btn_CopyProject.Enabled = true;
+                    menuStrip1.Enabled = true;
+                    act = 0;
+                    treeView1.LabelEdit = false;
+                }
+                else
+                {
+                    MessageBox.Show("Project name already exists. Please choose another name!");
+                    btn_RenameProject_Click(null, null);
+                }
+            }
+            else
+            {
+                
+                if ((!System.IO.Directory.Exists(filePath)) && (oldfilePath != filePath))
+                {
+                    System.IO.Directory.Move(oldfilePath, filePath);
+                    Tat_Mo_Nut(true);
+                    btn_AddProject.Enabled = true;
+                    btn_CopyProject.Enabled = true;
+                    menuStrip1.Enabled = true;
+                    act = 0;
+                    treeView1.LabelEdit = false;
+                }
+                else
+                {
+                    MessageBox.Show("Project name already exists. Please choose another name!");
+                    btn_RenameProject_Click(null, null);
+                }
+            }
+            
+            
+     
+        }
+        public void DeleteFolder(string path)
+        {
+            DirectoryInfo drInfo = new DirectoryInfo(path);
+            DirectoryInfo[] folders = drInfo.GetDirectories(); // lay cac folder
+            FileInfo[] files = drInfo.GetFiles(); //lay cac files
+
+            // neu van con thu muc con thi phai xoa het cac thu muc con
+            if (folders != null)
+            {
+                foreach (DirectoryInfo fol in folders)
+                {
+                    DeleteFolder(fol.FullName);  //xoa thu muc con va cac file trong thu muc con do
+                }
+
+            }
+
+            //Neu van con file thi phai xoa het cac file
+            if (files != null)
+            {
+                foreach (FileInfo f in files)
+                {
+                    File.Delete(f.FullName);
+                }
+            }
+            //Cuoi cung xoa thu muc goc
+            Directory.Delete(path);
+        }
+
+        public void CopyFolder(string SourceFolder, string DestFolder)
+        {
+            if (!Directory.Exists(DestFolder)) // folder ton tai thi moi thuc hien copy
+            {
+                Directory.CreateDirectory(DestFolder); //Tao folder moi
+            }
+                string[] files = Directory.GetFiles(SourceFolder);
+                //Neu co file thy phai copy file
+                foreach (string file in files)
+                {
+                    string name = Path.GetFileName(file);
+                    string dest = Path.Combine(DestFolder, name);
+                    File.Copy(file, dest,true);
+                }
+
+                string[] folders = Directory.GetDirectories(SourceFolder);
+                foreach (string folder in folders)
+                {
+                    string name = Path.GetFileName(folder);
+                    string dest = Path.Combine(DestFolder, name);
+                    CopyFolder(folder, dest);
+                }
+            
+        }
+
+        public void btn_EditGroup_Click(object sender, EventArgs e)
+        {
+            
+            Add_Group AddGroup = new Add_Group();
+            AddGroup.Initialize(this);
+            AddGroup.Text = "Edit_Group";
+            Group_Path = treeView1.SelectedNode.Parent.FullPath + "\\Group.csv";
+            int index = gr_Group.CurrentCell.RowIndex;
+
+            Group_Address[Convert.ToInt16(gr_Group.Rows[index].Cells[1].Value.ToString())] = false;
+
+            gr_name = gr_Group.Rows[index].Cells[0].Value.ToString();
+            gr_ad = Convert.ToInt16(gr_Group.Rows[index].Cells[1].Value.ToString());
+            gr_des = gr_Group.Rows[index].Cells[2].Value.ToString(); ;
+            rowindex = index;
+
+            this.Enabled = false;
+            AddGroup.Show();
+            AddGroup.Focus();
+        }
+
+        public void LuuGroup(string filePath)
+        {
+               
+                FileStream fs;
+                fs = new FileStream(filePath, FileMode.Create);
+                StreamWriter sWriter = new StreamWriter(fs, Encoding.UTF8);
+                int i = 0;
+                string Data;
+
+               
+                while (i < gr_Group.Rows.Count)
+                {
+                    Data = gr_Group.Rows[i].Cells[0].Value.ToString()+","+gr_Group.Rows[i].Cells[1].Value.ToString()+","+gr_Group.Rows[i].Cells[2].Value.ToString();
+                    sWriter.WriteLine(Data);
+                    sWriter.Flush();
+                    i = i + 1;
+                }
+                fs.Close();
+                
+            
+        }
+       
+        private void gr_Group_RowsRemoved(object sender, DataGridViewRowsRemovedEventArgs e)
+        {
+            if (Group_Delete==true) LuuGroup(treeView1.SelectedNode.FullPath+".csv");
+            Group_Delete = false;
+            if (gr_Group.Rows.Count == 0)
+            {
+                btn_EditGroup.Enabled = false;
+                btn_DeleteGroup.Enabled = false;    
+            }
+            
+        }
+
+        private void gr_Group_UserDeletingRow(object sender, DataGridViewRowCancelEventArgs e)
+        {
+            DialogResult lkResult = MessageBox.Show("Are you sure to delete Group: \"" + e.Row.Cells[0].Value.ToString() + "\" , Address: "+e.Row.Cells[1].Value.ToString(), "Delete Group", MessageBoxButtons.YesNo);
+
+            if (lkResult == DialogResult.Yes)
+            {
+                Group_Address[Convert.ToInt16(e.Row.Cells[1].Value.ToString())] = false;
+                Group_Delete = true;
+            }
+            else
+            {
+                e.Cancel = true;
+                Group_Delete = false;
+            }
+            
+        }
+
+        private void btn_DeleteGroup_Click(object sender, EventArgs e)
+        {
+            int index=gr_Group.CurrentCell.RowIndex;
+
+            DialogResult lkResult = MessageBox.Show("Are you sure to delete Group: \"" + gr_Group.Rows[index].Cells[0].Value.ToString() + "\" , Address: " + gr_Group.Rows[index].Cells[1].Value.ToString(), "Delete Group", MessageBoxButtons.YesNo);
+
+            if (lkResult == DialogResult.Yes)
+            {
+                Group_Address[Convert.ToInt16(gr_Group.Rows[index].Cells[1].Value.ToString())] = false;
+                gr_Group.Rows.RemoveAt(index);
+                LuuGroup(treeView1.SelectedNode.FullPath + ".csv");
+            }
+            Group_Delete = false;
+
+        }
+
+        public void btn_AddUnit_Click(object sender, EventArgs e)
+        {
+
+            ConfigUnit.unit = 1;
+            ConfigUnit.Descript = "No Description";
+            ConfigUnit.IP = "1.2";
+            ConfigUnit.IDCan = "0.0.0.1";
+            ConfigUnit.kind = 2;
+            ConfigUnit.Fw_ver = "No Info";
+            ConfigUnit.Hw_ver = "No Info";
+            ConfigUnit.LoadCan = false;
+            ConfigUnit.Recovery = false;
+
+
+            Add_Unit AddUnit = new Add_Unit();
+            AddUnit.Initialize(this);
+            AddUnit.edit = false;
+            Group_Path = treeView1.SelectedNode.FullPath;
+            this.Enabled = false;
+            AddUnit.Show();
+            AddUnit.Focus();
+           
+        }
+
+        private void btn_EditUnit_Click(object sender, EventArgs e)
+        {
+            int index = gr_Unit.CurrentCell.RowIndex;
+            rowindex = index;
+
+            ConfigUnit.IP = "";
+            ConfigUnit.IDCan = gr_Unit[3,index].Value.ToString();
+
+            ConfigUnit.unit = 0;
+            if (gr_Unit.Rows[index].Cells[0].Value.ToString() == "RLC-I16") ConfigUnit.unit = 1;
+            else if (gr_Unit.Rows[index].Cells[0].Value.ToString() == "RLC-I20") ConfigUnit.unit = 2;
+            else if (gr_Unit.Rows[index].Cells[0].Value.ToString() == "Bedside-17T") ConfigUnit.unit = 3;
+            else if (gr_Unit.Rows[index].Cells[0].Value.ToString() == "Bedside-12T") ConfigUnit.unit = 4;
+            
+            ConfigUnit.Descript = gr_Unit.Rows[index].Cells[8].Value.ToString();
+
+            int dem = 0;
+            for (int i = 0; i < gr_Unit.Rows[index].Cells[2].Value.ToString().Length; i++)
+            {
+                if (dem >= 2) ConfigUnit.IP = ConfigUnit.IP + gr_Unit.Rows[index].Cells[2].Value.ToString()[i];
+                if (gr_Unit.Rows[index].Cells[2].Value.ToString()[i] == '.') dem++;
+            }
+            dem = 0;
+            
+            if (gr_Unit.Rows[index].Cells[4].Value.ToString() == "Master") ConfigUnit.kind = 2;
+            else if (gr_Unit.Rows[index].Cells[4].Value.ToString() == "Slave") ConfigUnit.kind = 1;
+            else ConfigUnit.kind = 0;
+
+            ConfigUnit.LoadCan = Convert.ToBoolean(gr_Unit.Rows[index].Cells[5].Value.ToString());
+            ConfigUnit.Fw_ver = gr_Unit.Rows[index].Cells[6].Value.ToString();
+            ConfigUnit.Hw_ver = gr_Unit.Rows[index].Cells[7].Value.ToString();
+            ConfigUnit.Recovery = Convert.ToBoolean(gr_Unit.Rows[index].Cells[9].Value.ToString());
+
+            Add_Unit AddUnit = new Add_Unit();
+            AddUnit.Initialize(this);
+            AddUnit.edit = true;
+            AddUnit.Text = "Edit_Unit_Database";
+
+            Group_Path = treeView1.SelectedNode.FullPath;
+
+            this.Enabled = false;
+            AddUnit.Show();
+            AddUnit.Focus();
+        }
+
+        private void gr_Unit_UserDeletingRow(object sender, DataGridViewRowCancelEventArgs e)
+        {
+            DialogResult lkResult = MessageBox.Show("Are you sure to delete Unit: \"" + e.Row.Cells[0].Value.ToString() + "\" , IP Address: " + e.Row.Cells[2].Value.ToString(), "Delete Unit", MessageBoxButtons.YesNo);
+
+            if (lkResult == DialogResult.Yes)
+            {
+                string filePath = treeView1.SelectedNode.FullPath + "\\" + e.Row.Cells[2].Value.ToString() + "&" + e.Row.Cells[3].Value.ToString();
+                File.Delete(filePath);
+            }
+            else
+            {
+                e.Cancel = true;
+            }
+        }
+
+        private void btn_DeleteUnit_Click(object sender, EventArgs e)
+        {
+            int index = gr_Unit.CurrentCell.RowIndex;
+            DialogResult lkResult = MessageBox.Show("Are you sure to delete Unit: \"" + gr_Unit.Rows[index].Cells[0].Value.ToString() + "\" , IP Address: " + gr_Unit.Rows[index].Cells[2].Value.ToString(), "Delete Unit", MessageBoxButtons.YesNo);
+
+            if (lkResult == DialogResult.Yes)
+            {
+                string filePath = treeView1.SelectedNode.FullPath + "\\" + gr_Unit.Rows[index].Cells[2].Value.ToString()+"&"+gr_Unit.Rows[index].Cells[3].Value.ToString();
+                File.Delete(filePath);
+                gr_Unit.Rows.RemoveAt(index);
+            }
+        }
+
+        private void gr_Unit_RowsRemoved(object sender, DataGridViewRowsRemovedEventArgs e)
+        {
+            if (gr_Unit.Rows.Count == 0)
+            {
+                btn_EditUnit.Enabled = false;
+                btn_ConfigUnit.Enabled = false;
+                btn_DeleteUnit.Enabled = false;
+                btn_ReplaceDatabase.Enabled = false;
+                btn_transferToNet.Enabled = false;
+            }
+        }
+
+        private void btn_ConfigUnit_Click(object sender, EventArgs e)
+        {
+            confignetwork = false;
+            int index = gr_Unit.CurrentCell.RowIndex;
+            Group_Path = treeView1.SelectedNode.FullPath;
+            string filePath = treeView1.SelectedNode.Parent.FullPath + "\\Group.csv";
+
+            LoadGroup(filePath);
+
+            Unit_Path=treeView1.SelectedNode.FullPath+"\\"+gr_Unit.Rows[index].Cells[2].Value.ToString()+"&"+gr_Unit.Rows[index].Cells[3].Value.ToString();
+            if (gr_Unit.Rows[index].Cells[0].Value.ToString() == "Room Logic Controller")
+            {
+               Input_RLC CfgUnit = new Input_RLC();
+               CfgUnit.Text = "Config I/O RLC in Database";
+               CfgUnit.Initialize(this);
+               this.Enabled = false;
+               CfgUnit.Show();
+               CfgUnit.Focus();
+            }
+            else if (gr_Unit.Rows[index].Cells[0].Value.ToString() == "Bedside-17T")
+            {
+                Input_Bedside CfgUnit = new Input_Bedside();
+                CfgUnit.Text = "Config I/O Bedside in Database";
+                CfgUnit.Initialize(this);
+                this.Enabled = false;
+                CfgUnit.Show();
+                CfgUnit.Focus();
+            }
+            else if (gr_Unit.Rows[index].Cells[0].Value.ToString() == "Bedside-12T")
+            {
+                Input_Bedside_12T CfgUnit = new Input_Bedside_12T();
+                CfgUnit.Text = "Config I/O Bedside-12T in Database";
+                CfgUnit.Initialize(this);
+                this.Enabled = false;
+                CfgUnit.Show();
+                CfgUnit.Focus();
+            }
+            else if (gr_Unit.Rows[index].Cells[0].Value.ToString() == "RLC-I20")
+            {
+                Input_RLC_new_20_ports CfgUnit = new Input_RLC_new_20_ports();
+                CfgUnit.Text = "Config I/O RLC New (20 ports) in Database";
+                CfgUnit.Initialize(this);
+                this.Enabled = false;
+                CfgUnit.Show();
+                CfgUnit.Focus();
+            }
+            else if (gr_Unit.Rows[index].Cells[0].Value.ToString() == "RLC-I16")
+            {
+                Input_RLC_new CfgUnit = new Input_RLC_new();
+                CfgUnit.Text = "Config I/O RLC New (16 ports) in Database";
+                CfgUnit.Initialize(this);
+                this.Enabled = false;
+                CfgUnit.Show();
+                CfgUnit.Focus();
+            }
+
+
+            
+        }
+
+        private void btn_TranfertoData_Click(object sender, EventArgs e)
+        {
+            DialogResult lkResult = MessageBox.Show("Are you sure to transfer all units on network to database? The database will be deleted all!!!", "Transer to database", MessageBoxButtons.YesNo);
+
+            if (lkResult == DialogResult.Yes)
+            {
+                string filePath;
+                while (gr_Unit.Rows.Count>0)
+                {
+                    filePath = treeView1.SelectedNode.FullPath + "\\" + gr_Unit.Rows[0].Cells[2].Value.ToString() +"&"+ gr_Unit.Rows[0].Cells[3].Value.ToString();
+                    File.Delete(filePath);
+                    gr_Unit.Rows.RemoveAt(0);
+                }
+                for (int i=0;i<grBoardNetwork.Rows.Count;i++)
+                {
+                    grBoardNetwork.CurrentCell = grBoardNetwork.Rows[i].Cells[0];
+                    btn_AddtoData_Click(null,null);
+                }
+                
+            }           
+        }
+
+        private string InfoBarcode(string barcode)
+        {
+            if (barcode == "8930000000019") return "Room Logic Controller";
+            else if (barcode == "8930000000200") return "Bedside-17T";
+            else if (barcode == "8930000100214") return "Bedside-12T";
+            else if (barcode == "8930000000026") return "RLC-I16";
+            else if (barcode == "8930000000033") return "RLC-I20";
+            
+            return "Unindentified";
+        }
+
+        private bool SoSanhConfig(string filePath,int SLinput,int SLoutput)
+        {
+            StreamReader rd = File.OpenText(filePath);
+            string input = null;
+            int i=0,k=0;
+            string Data;
+            input = rd.ReadLine();
+            while ((input = rd.ReadLine()) != null)
+            {
+                if (i<SLinput)
+                {
+                    Data = InputNetwork[i].Input.ToString() + "," + InputNetwork[i].Function.ToString() + "," + InputNetwork[i].Ramp.ToString() + "," + InputNetwork[i].Preset.ToString() + ",";
+                    Data = Data + InputNetwork[i].Led_Status.ToString() + "," + InputNetwork[i].Auto_Mode.ToString() + "," + InputNetwork[i].Auto_Time.ToString() + "," + InputNetwork[i].DelayOff.ToString() + ",";
+                    Data = Data + InputNetwork[i].DelayOn.ToString() + "," + InputNetwork[i].NumGroup.ToString() + ",";
+                    for (int j = 0; j < InputNetwork[i].NumGroup; j++)
+                        Data = Data + InputNetwork[i].Group[j].ToString()+","+InputNetwork[i].Preset_Group[j].ToString()+",";
+                    
+
+                    if (Data!=input) 
+                    {
+                        input = input.Substring(0, input.Length - 2);
+                        input = input + "1,0,0,";
+                        if (Data != input)
+                        {
+                            rd.Close();
+                            return false;
+                        }
+                    }
+                    i++;
+                }
+                else
+                {
+                    if (Substring(',',0,input)!=OutputNetwork[k].ToString()) 
+                    {
+                        rd.Close();
+                        return false;
+                    }
+                    k++;
+                }
+            }
+            rd.Close();
+            return true;
+        }
+
+        private bool GetIO_Unit(int index,int SLinput,int SLoutput)
+        {
+             string IP = grBoardNetwork[2, index].Value.ToString();
+             string ID = grBoardNetwork[3, index].Value.ToString();
+
+             IPEndPoint ep = new IPEndPoint(IPAddress.Parse(IP), UDPPort);
+             Socket s = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
+             s.ReceiveTimeout = 1000;
+
+             int cnt;
+             byte[] DuLieuTuBo;
+             DuLieuTuBo = new byte[1024];
+
+             InputNetwork = new IOProperty[SLinput];
+             OutputNetwork = new byte[SLoutput];
+             RLCFormRelay_DelayOn = new int[SLoutput];
+             RLCFormRelay_DelayOff = new int[SLoutput];
+
+             int SoLanRetry = 0;
+
+             
+
+             try
+             {
+
+                 Byte[] Data;    //<Address><length><CMD><Data><CRC> 
+                 Data = new Byte[1024];
+                 int SumCRC = 0;
+                 int length = DuLieuTuBo[5] * 256 + DuLieuTuBo[4];
+                 bool check = false;
+
+                 Data[0] = Convert.ToByte(Substring('.',3,ID));
+                 Data[1] = Convert.ToByte(Substring('.', 2, ID)); 
+                 Data[2] = Convert.ToByte(Substring('.', 1, ID)); 
+                 Data[3] = Convert.ToByte(Substring('.', 0, ID)); 
+
+                 Data[4] = 4;   // Address:4 ;Length=2 byte; CMD:2, Data:0, CRC:2
+                 Data[5] = 0;
+
+                 Data[6] = 10;
+                 Data[7] = 9;
+
+                 for (int i = 4; i < Data[4] + 4; i++)
+                     SumCRC = SumCRC + Data[i];
+
+                 Data[9] = (byte)(SumCRC / 256);
+                 Data[8] = (byte)(SumCRC - Data[9] * 256);
+
+                 s.SendTo(Data, Data[4] + 6, SocketFlags.None, ep);
+
+
+                 while (((length != 5) || (DuLieuTuBo[8] != 0) || (!check)) && (SoLanRetry < SoLanRetryMax))
+                 {
+                     try
+                     {
+                         cnt = s.ReceiveFrom(DuLieuTuBo, ref rm);
+                         length = DuLieuTuBo[5] * 256 + DuLieuTuBo[4];
+                         check = true;
+                         for (uint i = 0; i < 4; i++)
+                         {
+                             if (Data[i] != DuLieuTuBo[i])
+                             {
+                                 check = false;
+                                 break;
+                             }
+                         }
+                     }
+                     catch
+                     {
+                         SoLanRetry++;
+                         s.SendTo(Data, Data[4] + 6, SocketFlags.None, ep);
+                     }
+
+                     if (length < 30)
+                     {
+                         if (length != 5)
+                         {
+                             SoLanRetry++;
+                             //s.SendTo(Data, Data[4] + 6, SocketFlags.None, ep);
+                         }
+                     }
+                     else
+                     {
+                         SoLanRetry = 0;
+                         int pos=8;
+                         int inp;
+                         while (pos < length + 3)
+                         {
+                             inp = DuLieuTuBo[pos];
+                             InputNetwork[inp].Input = DuLieuTuBo[pos];
+                             InputNetwork[inp].Function = DuLieuTuBo[pos+1];
+                             InputNetwork[inp].Ramp = DuLieuTuBo[pos+2];
+                             InputNetwork[inp].Preset = DuLieuTuBo[pos + 3];
+                             InputNetwork[inp].Led_Status = DuLieuTuBo[pos + 4];
+                             InputNetwork[inp].Auto_Mode = DuLieuTuBo[pos + 5];
+                             InputNetwork[inp].Auto_Time = 0;       //pos+6->pos+33
+                             InputNetwork[inp].DelayOff = DuLieuTuBo[pos + 35] * 256 + DuLieuTuBo[pos + 34];
+                             InputNetwork[inp].DelayOn = DuLieuTuBo[pos + 37] * 256 + DuLieuTuBo[pos + 36];
+                             InputNetwork[inp].NumGroup = DuLieuTuBo[pos + 38];
+                             pos=pos+39;
+                             InputNetwork[inp].Group = new int[InputNetwork[inp].NumGroup];
+                             InputNetwork[inp].Preset_Group = new byte[InputNetwork[inp].NumGroup];
+                             for (int i = 0; i < InputNetwork[inp].NumGroup; i++)
+                             {
+                                 InputNetwork[inp].Group[i] = DuLieuTuBo[pos];
+                                 InputNetwork[inp].Preset_Group[i] = DuLieuTuBo[pos+1];
+                                 pos = pos + 2;
+                             }
+                         }
+                         
+
+
+                     }
+                 }
+                 if (SoLanRetry >SoLanRetryMax)
+                 {
+                     s.Close();
+                     MessageBox.Show("Can't get IO of unit IP: " + IP, "Network Error");
+                     return false;
+                 }
+                 if (SLoutput > 0)
+                 {
+                     SumCRC = 0;
+                     Data[6] = 10;
+                     Data[7] = 31;
+
+                     for (int i = 4; i < Data[4] + 4; i++)
+                         SumCRC = SumCRC + Data[i];
+
+                     Data[9] = (byte)(SumCRC / 256);
+                     Data[8] = (byte)(SumCRC - Data[9] * 256);
+
+                     
+                     s.SendTo(Data, Data[4] + 6, SocketFlags.None, ep);
+                     DuLieuTuBo = new byte[1024];
+                     
+                     while ((DuLieuTuBo[7] != 31) && (SoLanRetry < SoLanRetryMax))
+                     {
+                         cnt = s.ReceiveFrom(DuLieuTuBo, ref rm);
+                         length = DuLieuTuBo[5] * 256 + DuLieuTuBo[4];
+                         if (length < 6)
+                         {
+                             if (DuLieuTuBo[7] != 31)
+                             {
+                                 SoLanRetry++;
+                                 s.SendTo(Data, Data[4] + 6, SocketFlags.None, ep);
+                             }
+
+                         }
+                         else
+                         {
+                             SoLanRetry = 0;
+                             int pos = 8;
+
+                             while (pos < length + 3)
+                             {
+                                 OutputNetwork[DuLieuTuBo[pos]] = DuLieuTuBo[pos + 1];
+                                 RLCFormRelay_DelayOff[DuLieuTuBo[pos]] = DuLieuTuBo[pos + 3] * 256 + DuLieuTuBo[pos + 2];
+                                 RLCFormRelay_DelayOn[DuLieuTuBo[pos]] = DuLieuTuBo[pos + 5] * 256 + DuLieuTuBo[pos + 4];
+                                 pos = pos + 6;
+                             }
+                         }
+                     }
+                 }
+                 return true;
+             }
+             catch
+             {
+                 s.Close();
+                 MessageBox.Show("Can't get IO of unit IP: "+IP, "Network Error");
+                 return false;
+             }
+        }
+
+
+        private void SoSanhBoard()
+        {
+            int check = 0;
+
+            for (int j = 0; j < gr_Unit.Rows.Count; j++)
+            {
+                gr_Unit.Rows[j].DefaultCellStyle.ForeColor = Color.Red;
+                gr_Unit.Rows[j].DefaultCellStyle.SelectionForeColor = Color.Red;
+            }
+
+            for (int i = 0; i < grBoardNetwork.Rows.Count; i++)
+            {
+                check = 0;
+                int j;
+                for (j = 0; j < gr_Unit.Rows.Count; j++)
+                {
+                    string s = gr_Unit.Rows[j].Cells[3].Value.ToString();
+                    string s1 = grBoardNetwork.Rows[i].Cells[3].Value.ToString();
+
+                    if (Substring('.', 3, s1) == Substring('.', 3, s))
+                        if (grBoardNetwork.Rows[i].Cells[0].Value.ToString() == gr_Unit.Rows[j].Cells[0].Value.ToString())
+                            if (grBoardNetwork.Rows[i].Cells[1].Value.ToString() == gr_Unit.Rows[j].Cells[1].Value.ToString())
+                                if (grBoardNetwork.Rows[i].Cells[2].Value.ToString() == gr_Unit.Rows[j].Cells[2].Value.ToString())
+                                    if (grBoardNetwork.Rows[i].Cells[4].Value.ToString() == gr_Unit.Rows[j].Cells[4].Value.ToString())
+                                        if (grBoardNetwork.Rows[i].Cells[5].Value.ToString() == gr_Unit.Rows[j].Cells[5].Value.ToString())
+                                            if (grBoardNetwork.Rows[i].Cells[10].Value.ToString() == gr_Unit.Rows[j].Cells[9].Value.ToString()) // Recovery
+                                            {
+                                                check = 1;
+                                                break;
+                                            }    
+
+                }
+       
+                if (check == 1)
+                {
+                    int SLin = 0, SLout = 0;
+                    grBoardNetwork.CurrentCell = grBoardNetwork.Rows[i].Cells[0];
+                    GetSLIO(ref SLin, ref SLout);                    
+                    if (GetIO_Unit(i, SLin, SLout))
+                    {
+                        Unit_Path = treeView1.SelectedNode.FullPath + "\\" + gr_Unit.Rows[j].Cells[2].Value.ToString()+"&"+gr_Unit.Rows[j].Cells[3].Value.ToString();
+                        if (SoSanhConfig(Unit_Path, SLin, SLout))
+                        {
+                            grBoardNetwork.Rows[i].DefaultCellStyle.ForeColor = Color.Green;
+                            grBoardNetwork.Rows[i].DefaultCellStyle.SelectionForeColor = Color.Green;
+                            gr_Unit.Rows[j].DefaultCellStyle.ForeColor = Color.Green;
+                            gr_Unit.Rows[j].DefaultCellStyle.SelectionForeColor = Color.Green;
+                        }
+                        else
+                        {
+                            grBoardNetwork.Rows[i].DefaultCellStyle.ForeColor = Color.Red;
+                            grBoardNetwork.Rows[i].DefaultCellStyle.SelectionForeColor = Color.Red;
+                        }
+                    }
+                    else
+                    {
+                        grBoardNetwork.Rows[i].DefaultCellStyle.ForeColor = Color.Red;
+                        grBoardNetwork.Rows[i].DefaultCellStyle.SelectionForeColor = Color.Red;
+                    }
+
+                }
+
+                else
+                {
+                    grBoardNetwork.Rows[i].DefaultCellStyle.ForeColor = Color.Red;
+                    grBoardNetwork.Rows[i].DefaultCellStyle.SelectionForeColor = Color.Red;
+                }
+            }
+         
+        }
+        private void Get_Infor_Unit(string IP,string ID)
+        {
+            IPEndPoint ep = new IPEndPoint(IPAddress.Parse(IP), UDPPort);
+            Socket s = new Socket(AddressFamily.InterNetwork,SocketType.Dgram, ProtocolType.Udp);
+            s.ReceiveTimeout = 200;
+            int cnt;
+            byte[] DuLieuTuBo;
+            DuLieuTuBo = new byte[1024];
+            int SoLanRetry = 0;
+
+            Cursor.Current = Cursors.WaitCursor;
+            grBoardNetwork.Rows.Clear();
+
+            try
+            {
+                Byte[] Data;    //<Address><length><CMD><Data><CRC> 
+                Data = new Byte[1024];
+                int SumCRC = 0;
+                int posData=7;
+
+                /******************* Request hardware *****************/
+
+                Data[0] = Convert.ToByte(Substring('.', 3, ID));
+                Data[1] = Convert.ToByte(Substring('.', 2, ID));
+                Data[2] = Convert.ToByte(Substring('.', 1, ID));
+                Data[3] = Convert.ToByte(Substring('.', 0, ID)); 
+
+                Data[4] = 4;   // Address:4 ;Length=2 byte; CMD:2, Data:0, CRC:2
+                Data[5] = 0;
+
+                Data[6] = 1;   
+                Data[7] = 4;
+
+                for (int i = 4; i < Data[4] + 4; i++)
+                    SumCRC = SumCRC + Data[i];
+
+                Data[9] = (byte)(SumCRC / 256);
+                Data[8] = (byte)(SumCRC - Data[9] * 256);
+
+                s.SendTo(Data, Data[4] + 6, SocketFlags.None, ep);
+                
+                while (true)
+                {
+                    DuLieuTuBo[4] = 0;
+                    DuLieuTuBo[5] = 0;
+                    cnt = s.ReceiveFrom(DuLieuTuBo, ref rm);
+                    SoLanRetry++;
+                    if ((DuLieuTuBo[5] * 256 + DuLieuTuBo[4]) > 90) 
+                    {
+                        SoLanRetry = 0;
+                        
+                        string Unit_IPType,Unit_Barcode="",Unit_IP,Unit_ID,Unit_ActMode ,Hw_ver, Fw_ver;
+                        byte Unit_CanLoad;
+                        Unit_IP = rm.ToString().Substring(0, rm.ToString().IndexOf(':'));
+                        //Unit_IP=DuLieuTuBo[posData+1].ToString()+"."+DuLieuTuBo[posData+2].ToString()+"."+DuLieuTuBo[posData+3].ToString()+"."+DuLieuTuBo[posData+4].ToString();
+                        Unit_ID=DuLieuTuBo[3].ToString()+"."+DuLieuTuBo[2].ToString()+"."+DuLieuTuBo[1].ToString()+"."+DuLieuTuBo[0].ToString();
+
+                        for (int i = posData+70; i < posData+83; i++)         //barcode 13byte
+                            Unit_Barcode = Unit_Barcode + (DuLieuTuBo[i]-48).ToString();
+                        Unit_IPType=InfoBarcode(Unit_Barcode);
+                        
+                        int Hardware_Enable=DuLieuTuBo[posData+84];
+                        bool recovery = false;
+                        if ((Hardware_Enable & 0x40) == 0x40) recovery = true;
+                        int factor = 128;
+                        for (int i = 1; i <= 5; i++)
+                        {
+                            if (Hardware_Enable >= factor) Hardware_Enable = Hardware_Enable - factor;
+                            factor = factor / 2;
+                        }
+                        if (Hardware_Enable >= 4)
+                        {
+                            Unit_CanLoad = 1;
+                            Hardware_Enable = Hardware_Enable - 4;
+                        }
+                        else Unit_CanLoad = 0;
+                                                
+                        if (Hardware_Enable == 0) Unit_ActMode = "Stand-Alone";
+                        else if (Hardware_Enable == 1) Unit_ActMode = "Slave";
+                        else Unit_ActMode = "Master";
+
+                        Hw_ver = DuLieuTuBo[posData + 86].ToString() + "." + (DuLieuTuBo[posData + 85] >> 4).ToString() + "." + (DuLieuTuBo[posData + 85] & 0x0F).ToString();
+                        Fw_ver = DuLieuTuBo[posData + 88].ToString() + "." + DuLieuTuBo[posData + 87].ToString() + "." + "0";
+                        string man_date = "";
+                        for (int i = 19 ; i < 27; i++)
+                        {
+                            man_date = man_date + (DuLieuTuBo[i] - 48).ToString();
+                        }
+                        if (IP == "192.168.255.255") grBoardNetwork.Rows.Add(Unit_IPType, Unit_Barcode, Unit_IP, Unit_ID, Unit_ActMode, Convert.ToBoolean(Unit_CanLoad), Fw_ver , Hw_ver,"",man_date,recovery);
+                          
+                    }
+                }
+            }
+            catch
+            {
+                Cursor.Current = Cursors.Default;
+                s.Close();
+                
+            }
+        }
+
+
+        private void btn_Scan_Click(object sender, EventArgs e)
+        {
+
+#if !TEST
+            Get_Infor_Unit("192.168.255.255","0.0.0.0");
+#else
+            grBoardNetwork.Rows.Clear();
+            grBoardNetwork.Rows.Add("Room Logic Controller", "8930000000019", "192.168.1.23", "12.43.3.3", "Stand-Alone", Convert.ToBoolean((byte)1), "1.0.4", "3.2.5","","06072015");
+            grBoardNetwork.Rows.Add("Bedside-17T", "8930000000200", "192.168.1.24", "12.43.3.5", "Slave", Convert.ToBoolean((byte)1),"1.0.4","3.2.5","","09032015");
+#endif
+            if (grBoardNetwork.Rows.Count > 0)
+            {
+                label2.Text = "Units on Network (" + grBoardNetwork.Rows.Count.ToString() + ")";
+                SoSanhBoard();
+                btn_AddtoData.Enabled = true;
+                btn_EditUnitNetwork.Enabled = true;
+                btn_ConfigUnitNetwork.Enabled = true;
+                btn_TranfertoData.Enabled = true;
+                if (gr_Unit.Rows.Count > 0)
+                {
+                    btn_transferToNet.Enabled = true;
+                    btn_ReplaceDatabase.Enabled = true;
+                }
+                else
+                {
+                    btn_transferToNet.Enabled = false;
+                    btn_ReplaceDatabase.Enabled = false;
+                }
+                btn_UpdateFirmware.Enabled = true;
+                updateFirmwareToolStripMenuItem.Enabled = true;
+                setupToolStripMenuItem.Enabled = true;
+                MessageBox.Show("Scan Finished!!!", "Announce");
+                
+            }
+            else
+            {
+                label2.Text = "Units on Network";
+                btn_AddtoData.Enabled = false;
+                btn_EditUnitNetwork.Enabled = false;
+                btn_ConfigUnitNetwork.Enabled = false;
+                btn_TranfertoData.Enabled = false;
+                btn_transferToNet.Enabled = false;
+                btn_ReplaceDatabase.Enabled = false;
+                btn_UpdateFirmware.Enabled = false;
+                updateFirmwareToolStripMenuItem.Enabled = false;
+                setupToolStripMenuItem.Enabled = false;
+                MessageBox.Show("No Unit Found", "Error");
+            }
+           
+        }
+        public string Substring(char c,int repeat,string s)
+        {
+            string result_string="";
+            for (int i=0; i<s.Length;i++)
+            {
+                if ((repeat==0) && (s[i]!=c))
+                {
+                    result_string=result_string+s[i];
+                }
+                if (s[i]==c) repeat=repeat-1;
+                if (repeat==-1) break;
+            }
+            return result_string;
+        }
+
+
+     
+
+        private bool SoSanh()
+        {
+            int i = grBoardNetwork.CurrentCell.RowIndex;
+            
+            for (int j = 0; j < gr_Unit.Rows.Count; j++)
+            {
+                if (grBoardNetwork.Rows[i].Cells[2].Value.ToString() == gr_Unit.Rows[j].Cells[2].Value.ToString())
+                    if (grBoardNetwork.Rows[i].Cells[3].Value.ToString() == gr_Unit.Rows[j].Cells[3].Value.ToString())
+                        if (grBoardNetwork.Rows[i].Cells[4].Value.ToString() == gr_Unit.Rows[j].Cells[4].Value.ToString()) return true;
+            }       
+            return false;
+        }
+
+        private bool AddFileDatabase(int SLin,int SLout)
+        {
+            int index=grBoardNetwork.CurrentCell.RowIndex;
+            string filePath = treeView1.SelectedNode.FullPath + "\\" + grBoardNetwork[2, grBoardNetwork.CurrentCell.RowIndex].Value.ToString() + "&" + grBoardNetwork[3, grBoardNetwork.CurrentCell.RowIndex].Value.ToString();
+            FileStream fs;
+            if (File.Exists(filePath))
+            {
+                MessageBox.Show("IP Address is duplicated. Please choose another one!");
+                return false;
+            }
+            else
+                fs = new FileStream(filePath, FileMode.Create);
+
+            StreamWriter sWriter = new StreamWriter(fs, Encoding.UTF8);
+            string Data = grBoardNetwork[0, index].Value.ToString() + "," + grBoardNetwork[1, index].Value.ToString() + "," + grBoardNetwork[2, index].Value.ToString() + "," + grBoardNetwork[3, index].Value.ToString() + "," + grBoardNetwork[4, index].Value.ToString() + "," + Convert.ToBoolean(grBoardNetwork[5, index].Value).ToString() + "," + grBoardNetwork[6, index].Value.ToString() + "," + grBoardNetwork[7, index].Value.ToString() + ",No Description" + "," + grBoardNetwork[10, index].Value.ToString();
+            sWriter.WriteLine(Data);
+            sWriter.Flush();
+
+            for (int i = 0; i < SLin; i++)
+            {
+                Data = InputNetwork[i].Input.ToString() + "," + InputNetwork[i].Function.ToString() + "," + InputNetwork[i].Ramp.ToString() + "," + InputNetwork[i].Preset.ToString() + ",";
+                Data = Data + InputNetwork[i].Led_Status.ToString() + "," + InputNetwork[i].Auto_Mode.ToString() + "," + InputNetwork[i].Auto_Time.ToString() + "," + InputNetwork[i].DelayOff.ToString() + ",";
+                Data = Data + InputNetwork[i].DelayOn.ToString() + "," + InputNetwork[i].NumGroup.ToString() + ",";
+                for (int j = 0; j < InputNetwork[i].NumGroup; j++)
+                    Data = Data + InputNetwork[i].Group[j].ToString() + "," + InputNetwork[i].Preset_Group[j].ToString() + ",";
+                sWriter.WriteLine(Data);
+                sWriter.Flush();
+            }
+            for (int i = 0; i < SLout; i++)
+            {
+                Data = OutputNetwork[i].ToString()+ "," + RLCFormRelay_DelayOn[i].ToString() + "," + RLCFormRelay_DelayOff[i].ToString();
+                sWriter.WriteLine(Data);
+                sWriter.Flush();
+            }
+            fs.Close();
+
+
+
+            return true;
+        
+        }
+
+        private void btn_AddtoData_Click(object sender, EventArgs e)
+        {
+            int i = grBoardNetwork.CurrentCell.RowIndex;
+            if (!SoSanh())
+            {
+                int SLin = 0, SLout = 0;
+                GetSLIO(ref SLin, ref SLout);
+
+                if (!GetIO_Unit(i, SLin, SLout)) return;
+                if (AddFileDatabase(SLin,SLout))
+                {
+                    gr_Unit.Rows.Add(grBoardNetwork.Rows[i].Cells[0].Value.ToString(), grBoardNetwork.Rows[i].Cells[1].Value.ToString(),
+                            grBoardNetwork.Rows[i].Cells[2].Value.ToString(), grBoardNetwork.Rows[i].Cells[3].Value.ToString(), grBoardNetwork.Rows[i].Cells[4].Value.ToString(),
+                            grBoardNetwork.Rows[i].Cells[5].Value, grBoardNetwork.Rows[i].Cells[6].Value.ToString(), grBoardNetwork.Rows[i].Cells[7].Value.ToString(), "No Description", grBoardNetwork.Rows[i].Cells[10].Value.ToString());
+                    grBoardNetwork.Rows[i].DefaultCellStyle.ForeColor = Color.Green;
+                    grBoardNetwork.Rows[i].DefaultCellStyle.SelectionForeColor = Color.Green;
+                    
+                    gr_Unit.Rows[gr_Unit.Rows.Count-1].DefaultCellStyle.ForeColor = Color.Green;
+                    gr_Unit.Rows[gr_Unit.Rows.Count - 1].DefaultCellStyle.SelectionForeColor = Color.Green;
+
+                }
+
+
+            }
+            
+        }
+
+        public bool SetupBoard(string oldIP, string oldID, string Man_date, string Barcode, string newID, bool Reset)
+        {
+            IPEndPoint ep = new IPEndPoint(IPAddress.Parse("192.168." + oldIP), UDPPort);
+            Socket s = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
+           
+            s.ReceiveTimeout = 5000;
+            int cnt;
+            byte[] DuLieuTuBo;
+            DuLieuTuBo = new byte[1024];
+
+
+            try
+            {
+                Byte[] Data;    //<Address><length><CMD><Data><CRC> 
+                Data = new Byte[1024];
+                
+                int SumCRC = 0;
+
+                Data[0] = Convert.ToByte(Substring('.', 3, oldID));
+                Data[1] = Convert.ToByte(Substring('.', 2, oldID));
+                Data[2] = Convert.ToByte(Substring('.', 1, oldID));
+                Data[3] = Convert.ToByte(Substring('.', 0, oldID));
+
+
+                //Reset Firmware version
+                if (Reset)
+                {
+                    Data[4] = 4;   // Address:4 ;Length=2 byte; CMD:2, Data:8, CRC:2
+                    Data[5] = 0;
+
+                    SumCRC = 0;
+
+                    Data[6] = 2;
+                    Data[7] = 0;
+
+                    for (int i = 4; i < Data[4] + 4; i++)
+                        SumCRC = SumCRC + Data[i];
+
+                    Data[9] = (byte)(SumCRC / 256);
+                    Data[8] = (byte)(SumCRC - Data[9] * 256);
+
+                    s.SendTo(Data, Data[4] + 6, SocketFlags.None, ep);
+                    cnt = s.ReceiveFrom(DuLieuTuBo, ref rm);
+                }
+
+
+                //Change Manufacture date
+                if (Man_date.Length != 0)
+                {
+                    Data[4] = Convert.ToByte(Man_date.Length + 4) ;   // Address:4 ;Length=2 byte; CMD:2, Data:8, CRC:2
+                    Data[5] = 0;
+
+                    SumCRC = 0;
+
+                    Data[6] = 2;
+                    Data[7] = 6;
+
+                    for (int i = 0; i < Man_date.Length; i++)
+                        Data[i+8] = (byte)(Man_date[i]);
+                    
+
+                    for (int i = 4; i < Data[4] + 4; i++)
+                        SumCRC = SumCRC + Data[i];
+
+                    Data[9+Man_date.Length] = (byte)(SumCRC / 256);
+                    Data[8 + Man_date.Length] = (byte)(SumCRC - Data[9 + Man_date.Length] * 256);
+
+                    s.SendTo(Data, Data[4] + 6, SocketFlags.None, ep);
+                    cnt = s.ReceiveFrom(DuLieuTuBo, ref rm);
+                }
+
+                //Change Barcode
+                if (Barcode != ConfigUnit.Barcode)
+                {
+                    Data[4] = Convert.ToByte(Barcode.Length + 4);   // Address:4 ;Length=2 byte; CMD:2, Data:13, CRC:2
+                    Data[5] = 0;
+
+                    SumCRC = 0;
+
+                    Data[6] = 2;
+                    Data[7] = 7;
+
+                    for (int i = 0; i < Barcode.Length; i++)
+                        Data[i + 8] = (byte)(Barcode[i]);
+                    
+
+                    for (int i = 4; i < Data[4] + 4; i++)
+                        SumCRC = SumCRC + Data[i];
+
+                    Data[9 + Barcode.Length] = (byte)(SumCRC / 256);
+                    Data[8 + Barcode.Length] = (byte)(SumCRC - Data[9 + Barcode.Length] * 256);
+
+                    s.SendTo(Data, Data[4] + 6, SocketFlags.None, ep);
+                    cnt = s.ReceiveFrom(DuLieuTuBo, ref rm);
+                }
+
+                //Change ID
+                if (oldID != newID)
+                {
+                    Data[4] = 7;   // Address:4 ;Length=2 byte; CMD:2, Data:13, CRC:2
+                    Data[5] = 0;
+
+                    SumCRC = 0;
+                    Data[6] = 2;
+                    Data[7] = 1;
+
+                    Data[8] = Convert.ToByte(Substring('.', 2, newID));
+                    Data[9] = Convert.ToByte(Substring('.', 1, newID));
+                    Data[10] = Convert.ToByte(Substring('.', 0, newID));
+
+                    for (int i = 4; i < Data[4] + 4; i++)
+                        SumCRC = SumCRC + Data[i];
+
+                    Data[12] = (byte)(SumCRC / 256);
+                    Data[11] = (byte)(SumCRC - Data[12] * 256);
+
+                    s.SendTo(Data, Data[4] + 6, SocketFlags.None, ep);
+                    cnt = s.ReceiveFrom(DuLieuTuBo, ref rm);
+                }
+
+                grBoardNetwork.Rows.Clear();
+                if (transNet == false) btn_Scan_Click(null, null);
+                transNet = false;
+                return true;
+            }
+
+            catch
+            {
+                s.Close();
+                MessageBox.Show("Can't connect to unit IP : 192.168." + oldIP, "Network Error");
+                return false;
+            }
+
+        }
+        public bool EditNetwork(string oldIP,string oldID)
+        {
+            IPEndPoint ep = new IPEndPoint(IPAddress.Parse("192.168."+oldIP), UDPPort);
+            Socket s = new Socket(AddressFamily.InterNetwork,SocketType.Dgram, ProtocolType.Udp);
+            s.ReceiveTimeout = 5000;
+            int cnt;
+            byte[] DuLieuTuBo;
+            DuLieuTuBo = new byte[1024];
+
+
+            try
+            {
+
+                Byte[] Data;    //<Address><length><CMD><Data><CRC> 
+                Data = new Byte[1024];
+                int SumCRC = 0;
+
+                Data[0] = Convert.ToByte(Substring('.', 3, oldID));
+                Data[1] = Convert.ToByte(Substring('.', 2, oldID));
+                Data[2] = Convert.ToByte(Substring('.', 1, oldID));
+                Data[3] = Convert.ToByte(Substring('.', 0, oldID));
+
+                Data[4] = 5;   // Address:4 ;Length=2 byte; CMD:2, Data:0, CRC:2
+                Data[5] = 0;
+
+
+
+                if (ConfigUnit.kind != oldActMode)
+                {
+
+                    //Change Actmode
+                    SumCRC = 0;
+                    Data[6] = 1;
+                    Data[7] = 11;
+
+                    Data[8] = Convert.ToByte(ConfigUnit.kind);
+
+                    for (int i = 4; i < Data[4] + 4; i++)
+                        SumCRC = SumCRC + Data[i];
+
+                    Data[10] = (byte)(SumCRC / 256);
+                    Data[9] = (byte)(SumCRC - Data[10] * 256);
+
+                    s.SendTo(Data, Data[4] + 6, SocketFlags.None, ep);
+                    cnt = s.ReceiveFrom(DuLieuTuBo, ref rm);
+                }
+
+                //Change Hardware Enable
+                SumCRC = 0;
+
+                Data[6] = 1;
+                Data[7] = 12;
+                int Hardware_enable = ConfigUnit.kind | (Convert.ToByte(ConfigUnit.LoadCan) << 2) | (Convert.ToByte(ConfigUnit.Recovery) << 6);
+                Data[8] = Convert.ToByte(Hardware_enable);
+
+                for (int i = 4; i < Data[4] + 4; i++)
+                    SumCRC = SumCRC + Data[i];
+
+                Data[10] = (byte)(SumCRC / 256);
+                Data[9] = (byte)(SumCRC - Data[10] * 256);
+
+                s.SendTo(Data, Data[4] + 6, SocketFlags.None, ep);
+                cnt = s.ReceiveFrom(DuLieuTuBo, ref rm);
+
+
+                                    //Change ID
+                if (oldID != ConfigUnit.IDCan)
+                {
+                    SumCRC = 0;
+                    Data[6] = 1;
+                    Data[7] = 8;
+
+                    Data[8] = Convert.ToByte(Substring('.', 3, ConfigUnit.IDCan));
+
+                    for (int i = 4; i < Data[4] + 4; i++)
+                        SumCRC = SumCRC + Data[i];
+
+                    Data[10] = (byte)(SumCRC / 256);
+                    Data[9] = (byte)(SumCRC - Data[10] * 256);
+
+                    s.SendTo(Data, Data[4] + 6, SocketFlags.None, ep);
+                    cnt = s.ReceiveFrom(DuLieuTuBo, ref rm);
+                }
+
+                
+                                    //Chang IP
+                if (oldIP != ConfigUnit.IP)
+                {
+                    Thread.Sleep(1000);
+                    SumCRC = 0;
+
+                    Data[0] = Convert.ToByte(Substring('.', 3, ConfigUnit.IDCan));
+                    Data[1] = Convert.ToByte(Substring('.', 2, ConfigUnit.IDCan));
+                    Data[2] = Convert.ToByte(Substring('.', 1, ConfigUnit.IDCan));
+                    Data[3] = Convert.ToByte(Substring('.', 0, ConfigUnit.IDCan));
+
+                    Data[4] = 8;   // Address:4 ;Length=2 byte; CMD:2, Data:0, CRC:2
+                    Data[5] = 0;
+
+                    Data[6] = 1;
+                    Data[7] = 7;
+
+                    Data[8] = 192;
+                    Data[9] = 168;
+                    Data[10] = Convert.ToByte(Substring('.', 0, ConfigUnit.IP));
+                    Data[11] = Convert.ToByte(Substring('.', 1, ConfigUnit.IP));
+
+                    for (int i = 4; i < Data[4] + 4; i++)
+                        SumCRC = SumCRC + Data[i];
+
+                    Data[13] = (byte)(SumCRC / 256);
+                    Data[12] = (byte)(SumCRC - Data[13] * 256);
+
+                    s.SendTo(Data, Data[4] + 6, SocketFlags.None, ep);
+                    cnt = s.ReceiveFrom(DuLieuTuBo, ref rm);
+
+                    s.Close();
+                   //Request Unit
+
+                        ep = new IPEndPoint(IPAddress.Parse("192.168." + ConfigUnit.IP), UDPPort);
+                        s = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
+                        s.ReceiveTimeout = 10000;
+
+                        Data[4] = 4;
+                        Data[5] = 0;
+
+                        Data[6] = 1;
+                        Data[7] = 1;
+
+                        SumCRC = 0;
+
+                        for (int i = 4; i < Data[4] + 4; i++)
+                            SumCRC = SumCRC + Data[i];
+
+                        Data[9] = (byte)(SumCRC / 256);
+                        Data[8] = (byte)(SumCRC - Data[9] * 256);
+                        
+                        DuLieuTuBo[4] = 0;
+                        
+                        while (DuLieuTuBo[4] < 10) 
+                        {
+                            s.SendTo(Data, Data[4] + 6, SocketFlags.None, ep);
+                            try
+                            {
+                                cnt = s.ReceiveFrom(DuLieuTuBo, ref rm);
+                            }
+                            catch 
+                            {
+                                //s.Close();
+                                //MessageBox.Show("Can't connect to unit IP : 192.168." + ConfigUnit.IP, "Network Error");
+                                //return false;
+                            };
+                            
+                        }
+                        s.Close();
+                }
+                grBoardNetwork.Rows.Clear();
+                if (transNet==false) btn_Scan_Click(null,null);
+                transNet = false;
+                return true;
+            }
+
+            catch
+            {
+                s.Close();
+                MessageBox.Show("Can't connect to unit IP : 192.168." + oldIP, "Network Error");
+                return false;
+            }
+        }
+
+        private void btn_EditUnitNetwork_Click(object sender, EventArgs e)
+        {
+            int index = grBoardNetwork.CurrentCell.RowIndex;
+            rowindex = index;
+            
+            ConfigUnit.IP = "";
+            ConfigUnit.IDCan = grBoardNetwork[3, index].Value.ToString();
+
+            ConfigUnit.unit = 0;
+            if (grBoardNetwork.Rows[index].Cells[0].Value.ToString() == "RLC-I16") ConfigUnit.unit = 1;
+            else if (grBoardNetwork.Rows[index].Cells[0].Value.ToString() == "RLC-I20") ConfigUnit.unit = 2;
+            else if (grBoardNetwork.Rows[index].Cells[0].Value.ToString() == "Bedside-17T") ConfigUnit.unit = 3;
+            else if (grBoardNetwork.Rows[index].Cells[0].Value.ToString() == "Bedside-12T") ConfigUnit.unit = 4;
+
+            ConfigUnit.Descript = "";
+
+            int dem = 0;
+            for (int i = 0; i < grBoardNetwork.Rows[index].Cells[2].Value.ToString().Length; i++)
+            {
+                if (dem >= 2) ConfigUnit.IP = ConfigUnit.IP + grBoardNetwork.Rows[index].Cells[2].Value.ToString()[i];
+                if (grBoardNetwork.Rows[index].Cells[2].Value.ToString()[i] == '.') dem++;
+            }
+            dem = 0;
+
+            if (grBoardNetwork.Rows[index].Cells[4].Value.ToString() == "Master") ConfigUnit.kind = 2;
+            else if (grBoardNetwork.Rows[index].Cells[4].Value.ToString() == "Slave") ConfigUnit.kind = 1;
+            else ConfigUnit.kind = 0;
+
+            ConfigUnit.LoadCan = Convert.ToBoolean(grBoardNetwork.Rows[index].Cells[5].Value);
+            ConfigUnit.Recovery = Convert.ToBoolean(grBoardNetwork.Rows[index].Cells[10].Value);
+
+            Add_Unit AddUnit = new Add_Unit();
+            AddUnit.Initialize(this);
+            AddUnit.edit = true;
+            AddUnit.Text = "Edit_Unit_Network";
+
+            Group_Path = treeView1.SelectedNode.FullPath;
+
+            this.Enabled = false;
+            AddUnit.Show();
+            AddUnit.Focus();
+            
+
+        }
+
+        private void gr_Unit_RowsAdded(object sender, DataGridViewRowsAddedEventArgs e)
+        {
+            if (treeView1.SelectedNode.Text == "Unit")
+            {
+                btn_EditUnit.Enabled = true;
+                btn_ConfigUnit.Enabled = true;
+                btn_DeleteUnit.Enabled = true;
+                if (grBoardNetwork.Rows.Count > 0)
+                {
+                    btn_transferToNet.Enabled = true;
+                    btn_ReplaceDatabase.Enabled = true;
+                }
+                else
+                {
+                    btn_transferToNet.Enabled = false;
+                    btn_ReplaceDatabase.Enabled = false;
+                }
+            }
+        }
+
+        private void btn_ReplaceDatabase_Click(object sender, EventArgs e)
+        {
+            int indexDatabase = gr_Unit.CurrentCell.RowIndex;
+            int i = grBoardNetwork.CurrentCell.RowIndex;
+
+            if (grBoardNetwork[1, i].Value.ToString() != gr_Unit[1, indexDatabase].Value.ToString())
+            {
+                MessageBox.Show("Different board type. Please choose another one!!!", "Error");
+                return;
+            }
+
+            for (int j = 0; j < gr_Unit.Rows.Count; j++)
+            {
+                if (j != indexDatabase)
+                {
+                    if ((grBoardNetwork.Rows[i].Cells[2].Value.ToString() == gr_Unit.Rows[j].Cells[2].Value.ToString()) && (grBoardNetwork.Rows[i].Cells[3].Value.ToString() == gr_Unit.Rows[j].Cells[3].Value.ToString()))
+                    {
+                        MessageBox.Show("Unit IP: " + grBoardNetwork[2, i].Value.ToString() + " already exists in database. Can't replace another unit!!!", "Error");
+                        return;
+                    }
+                }
+            }
+
+            int SLin = 0, SLout = 0;
+            GetSLIO(ref SLin, ref SLout);
+
+            if (GetIO_Unit(i, SLin, SLout))
+            {
+                DialogResult lkResult = MessageBox.Show("Are you sure to replace unit on network to database? The database will be replaced!!!", "Replace unit", MessageBoxButtons.YesNo);
+
+                if (lkResult == DialogResult.Yes)
+                {
+                    string filePath = treeView1.SelectedNode.FullPath + "\\" + gr_Unit.Rows[indexDatabase].Cells[2].Value.ToString() + "&" + gr_Unit.Rows[indexDatabase].Cells[3].Value.ToString();
+                    File.Delete(filePath);
+                    gr_Unit.Rows.RemoveAt(indexDatabase);
+
+                    if (AddFileDatabase(SLin, SLout))
+                    {
+                        gr_Unit.Rows.Add(grBoardNetwork.Rows[i].Cells[0].Value.ToString(), grBoardNetwork.Rows[i].Cells[1].Value.ToString(),
+                            grBoardNetwork.Rows[i].Cells[2].Value.ToString(), grBoardNetwork.Rows[i].Cells[3].Value.ToString(), grBoardNetwork.Rows[i].Cells[4].Value.ToString(),
+                            grBoardNetwork.Rows[i].Cells[5].Value, grBoardNetwork.Rows[i].Cells[6].Value.ToString(), grBoardNetwork.Rows[i].Cells[7].Value.ToString(), "No Description", grBoardNetwork.Rows[i].Cells[10].Value.ToString());
+
+                        grBoardNetwork.Rows[i].DefaultCellStyle.ForeColor = Color.Green;
+                        grBoardNetwork.Rows[i].DefaultCellStyle.SelectionForeColor = Color.Green;
+                        gr_Unit.Rows[gr_Unit.RowCount - 1].DefaultCellStyle.ForeColor = Color.Green;
+                        gr_Unit.Rows[gr_Unit.RowCount - 1].DefaultCellStyle.SelectionForeColor = Color.Green;
+                    }
+                }
+            }
+            
+        }
+
+        private byte ConvertToHex(char c1, char c2)
+        {
+            byte hi, lo, result;
+
+
+            if (Char.ToUpper(c1) == 'A') hi = 10;
+            else if (Char.ToUpper(c1) == 'B') hi = 11;
+            else if (Char.ToUpper(c1) == 'C') hi = 12;
+            else if (Char.ToUpper(c1) == 'D') hi = 13;
+            else if (Char.ToUpper(c1) == 'E') hi = 14;
+            else if (Char.ToUpper(c1) == 'F') hi = 15;
+            else hi = Convert.ToByte(c1.ToString());
+
+            if (Char.ToUpper(c2) == 'A') lo = 10;
+            else if (Char.ToUpper(c2) == 'B') lo = 11;
+            else if (Char.ToUpper(c2) == 'C') lo = 12;
+            else if (Char.ToUpper(c2) == 'D') lo = 13;
+            else if (Char.ToUpper(c2) == 'E') lo = 14;
+            else if (Char.ToUpper(c2) == 'F') lo = 15;
+            else lo = Convert.ToByte(c2.ToString());
+            result = (byte)(hi * 16 + lo);
+            return result;
+        }
+
+        private void Khoanut(bool check)
+        {
+            grBoardNetwork.Enabled = check;
+            panel_firmware.Visible=!check;
+            panel2.Enabled = check;
+            btn_transferToNet.Enabled = check;
+        }
+
+        private void btn_UpdateFirmware_Click(object sender, EventArgs e)
+        {
+            label4.Text = "Loading firmware. Please wait a few seconds...";
+            prBar_Update.Value = 0;
+            lb_percent.Text = "0%";
+            OpenFileDialog op = new OpenFileDialog();
+            op.Filter = "hex file|*.hex";
+            op.ShowDialog();
+            string tenfile = "";
+            for (int i = op.FileName.Length - 1; i >= 0; i--)
+            {
+                if (op.FileName[i] != '\\') tenfile = op.FileName[i] + tenfile;
+                else break;
+            }
+
+            if (op.FileName != "")
+            {
+                if (MessageBox.Show("Are you sure to update firware: \"" + tenfile + "\" to unit IP: \"" + grBoardNetwork.Rows[grBoardNetwork.CurrentCell.RowIndex].Cells[2].Value.ToString() + "\"?", "Update Firmware",
+                MessageBoxButtons.YesNo) == DialogResult.Yes)
+                {
+
+
+                    StreamReader rd = File.OpenText(op.FileName);
+                    string input = null;
+                    int SoDong = -1;
+                    while ((input = rd.ReadLine()) != null) SoDong++;
+
+                    rd.Close();
+
+                    if (SoDong > 0)
+                    {
+                        int index=grBoardNetwork.CurrentCell.RowIndex;
+                        string IP = grBoardNetwork[2, index].Value.ToString();
+                        int SoLanRetry = 0;
+
+                        IPEndPoint ep = new IPEndPoint(IPAddress.Parse(IP), UDPPort);
+                        Socket s = new Socket(AddressFamily.InterNetwork,
+                                           SocketType.Dgram, ProtocolType.Udp);
+                        s.ReceiveTimeout = 2000;
+                        int cnt;
+                        byte[] DuLieuTuBo;
+                        DuLieuTuBo = new byte[1024];
+                        byte[] Data;    //<Address><length><CMD><Data><CRC> 
+                        Data = new byte[1024];
+                        int SumCRC = 0;
+
+                        rd = File.OpenText(op.FileName);
+                        input = null;
+
+
+                        string str;
+                        str = grBoardNetwork.Rows[grBoardNetwork.CurrentCell.RowIndex].Cells[3].Value.ToString();
+
+                        Data[3] = Convert.ToByte(str.Substring(0, str.IndexOf(".")));
+                        str = str.Substring(str.IndexOf(".") + 1);
+
+                        Data[2] = Convert.ToByte(str.Substring(0, str.IndexOf(".")));
+                        str = str.Substring(str.IndexOf(".") + 1);
+
+                        Data[1] = Convert.ToByte(str.Substring(0, str.IndexOf(".")));
+                        str = str.Substring(str.IndexOf(".") + 1);
+
+                        Data[0] = Convert.ToByte(str);
+
+                        Data[6] = 1;
+                        Data[7] = 6;
+
+                        int length = 4, posdata = 8;
+                        input = rd.ReadLine();
+
+                        input = input.Substring(1);
+
+                        while (input != "")
+                        {
+                            Data[posdata] = ConvertToHex(input[0], input[1]);
+                            input = input.Substring(2);
+                            length = length + 1;
+                            posdata = posdata + 1;
+                        }
+
+                        Data[5] = (byte)(length / 256);
+                        Data[4] = (byte)(length - Data[5] * 256);
+
+                        for (int i = 4; i < length + 4; i++)
+                            SumCRC = SumCRC + Data[i];
+
+                        Data[posdata + 1] = (byte)(SumCRC / 256);
+                        Data[posdata] = (byte)(SumCRC - Data[posdata + 1] * 256);
+                        SoLanRetry = 0;
+
+                        s.SendTo(Data, length + 6, SocketFlags.None, ep);
+                        Thread.Sleep(300);
+                        while ((DuLieuTuBo[7] != 6) && (SoLanRetry < SoLanRetryMaxFirmware))
+                        {
+                            try
+                            {
+                                cnt = s.ReceiveFrom(DuLieuTuBo, ref rm);
+                            }
+                            catch
+                            {
+                               s.SendTo(Data, length + 6, SocketFlags.None, ep);
+                               Thread.Sleep(300);
+                            }
+                            if (DuLieuTuBo[8] == 255)
+                            {
+                               s.SendTo(Data, length + 6, SocketFlags.None, ep);
+                               Thread.Sleep(300);
+
+                            }
+                            SoLanRetry++;
+                        }
+                        if ((DuLieuTuBo[7] != 6))
+                        {
+                            if (DuLieuTuBo[8] == 9) MessageBox.Show("Lower Firmware");
+                            else if (DuLieuTuBo[6] == 1) MessageBox.Show("Data transfer error");
+                            if (DuLieuTuBo[6] != 1) MessageBox.Show("Can't connect to IP: " + grBoardNetwork.Rows[grBoardNetwork.CurrentCell.RowIndex].Cells[2].Value.ToString(), "Error");
+                            s.Close();
+                            rd.Close();
+                            return;
+                        }
+
+                        Khoanut(false);
+                        int dem;
+                        string stFile;
+                        int vitri;
+                        double percent = 0;
+                        while (input != null)
+                        {
+                            dem = 0;
+                            if (input.Length > 0) stFile = input.Substring(1);
+                            else stFile = "";
+                            while (((input = rd.ReadLine()) != null) && (dem < 40))
+                            {
+                                dem++;
+                                input = input.Substring(1);
+                                stFile = stFile + input;
+
+                            }
+
+                            posdata = 8;
+                            length = 4;
+                            SumCRC = 0;
+                            vitri = 0;
+                            while (vitri < stFile.Length - 1)
+                            {
+                                Data[posdata] = ConvertToHex(stFile[vitri], stFile[vitri + 1]);
+                                vitri = vitri + 2;
+                                length = length + 1;
+                                SumCRC = SumCRC + Data[posdata];
+                                posdata = posdata + 1;
+                            }
+
+                            Data[5] = (byte)(length / 256);
+                            Data[4] = (byte)(length - Data[5] * 256);
+
+                            for (int i = 4; i < 8; i++)
+                                SumCRC = SumCRC + Data[i];
+
+                            Data[posdata + 1] = (byte)(SumCRC / 256);
+                            Data[posdata] = (byte)(SumCRC - Data[posdata + 1] * 256);
+                            SoLanRetry = 0;
+                            DuLieuTuBo[7] = 0;
+                            DuLieuTuBo[6] = 0;
+                            DuLieuTuBo[8] = 0;
+                            s.SendTo(Data, length + 6, SocketFlags.None, ep);
+                            while ((DuLieuTuBo[7] != 6) && (SoLanRetry < SoLanRetryMaxFirmware))
+                            {
+                                try
+                                {
+                                    cnt = s.ReceiveFrom(DuLieuTuBo, ref rm);
+                                    if (DuLieuTuBo[6] == 4)
+                                    {
+                                        DuLieuTuBo[6] = 1;
+                                    }
+                                }
+                                catch 
+                                { 
+                                    s.SendTo(Data, length + 6, SocketFlags.None, ep);
+                                   
+
+                                }
+                                if (DuLieuTuBo[8] == 255)
+                                {
+                                    s.SendTo(Data, length + 6, SocketFlags.None, ep);
+                                    
+                                }
+
+                                SoLanRetry++;
+                            }
+                         
+                            if ((DuLieuTuBo[7] != 6) )
+                            {
+                                if (DuLieuTuBo[8] == 9) MessageBox.Show("Lower Firmware");
+                                else
+                                {
+                                    if ((DuLieuTuBo[6] == 1) && (DuLieuTuBo[8] == 255)) MessageBox.Show("Data transfer is corrupted");
+                                    else if ((DuLieuTuBo[6] == 1) && (DuLieuTuBo[8]!=7)) MessageBox.Show("Data transfer error code:" + DuLieuTuBo[8].ToString());
+                                    else if ((DuLieuTuBo[6] == 1) && (DuLieuTuBo[8] == 7)) MessageBox.Show("Absent Unit");
+                                }
+                                if (DuLieuTuBo[6] != 1)
+                                {
+                                    MessageBox.Show("Can't connect to unit IP: " + grBoardNetwork.Rows[grBoardNetwork.CurrentCell.RowIndex].Cells[2].Value.ToString(), "Error");
+                                }
+                                Khoanut(true);
+                                s.Close();
+                                rd.Close();
+                                return;
+                            }
+                            else
+                            {
+                                percent = percent + (Convert.ToDouble(dem) + 1) * 100 / SoDong;
+                                if (percent < 100) prBar_Update.Value = Convert.ToInt16(percent);
+                                else prBar_Update.Value = 100;
+                                lb_percent.Text = prBar_Update.Value.ToString() + "%";
+                                
+                                Application.DoEvents();
+
+
+                            }
+
+                        }
+                        
+                        prBar_Update.Value = 100;
+                        lb_percent.Text = "100%";
+                        rd.Close();
+                       
+                        label4.Text = "Updating firmware. Please wait a few more seconds...";
+                        Application.DoEvents();
+
+                        //Request Unit
+
+                        Data[4] = 4;
+                        Data[5] = 0;
+
+                        Data[6] = 1;
+                        Data[7] = 1;
+
+                        SumCRC = 0;
+
+                        for (int i = 4; i < Data[4] + 4; i++)
+                            SumCRC = SumCRC + Data[i];
+
+                        Data[9] = (byte)(SumCRC / 256);
+                        Data[8] = (byte)(SumCRC - Data[9] * 256);
+                        
+                        DuLieuTuBo[4] = 0;
+                        int SoLanRequest = 0;
+                        while ((DuLieuTuBo[4] < 10)  &&(SoLanRequest<10))
+                        {
+                            s.SendTo(Data, Data[4] + 6, SocketFlags.None, ep);
+                            
+                            try
+                            {
+                                cnt = s.ReceiveFrom(DuLieuTuBo, ref rm);
+                                
+                            }
+                            catch {  };
+                            SoLanRequest++;                            
+                        }
+
+                        MessageBox.Show("Update Firmware Successfully!!!", "Success");
+                        btn_Scan_Click(null, null);
+                        Khoanut(true);
+                        s.Close();
+                    }
+
+                }
+            }
+        }
+        private void GetSLIO(ref int SLin,ref int SLout)
+        {
+            int index = grBoardNetwork.CurrentCell.RowIndex;
+            switch (grBoardNetwork[0, index].Value.ToString())
+            {
+                case "Room Logic Controller":
+                    SLin = SL_INPUT_RLC;
+                    SLout = SL_OUTPUT_RLC;
+                break;
+
+                case "RLC-I20":
+                    SLin = SL_INPUT_RLC_I20;
+                    SLout = SL_OUTPUT_RLC;
+                break;
+
+                case "RLC-I16":
+                    SLin = SL_INPUT_RLC_I16;
+                    SLout = SL_OUTPUT_RLC;
+                break;
+
+                case "Bedside-17T":
+                    SLin = SL_INPUT_BEDSIDE;
+                    SLout = SL_OUTPUT_BEDSIDE;
+                break;
+
+                case "Bedside-12T":
+                    SLin = SL_INPUT_BEDSIDE_12T;
+                    SLout = SL_OUTPUT_BEDSIDE;
+                break;
+
+                default:
+                    break;
+
+            }
+        }
+
+        private void LoadConfig(string filePath,int SLin,int SLout)
+        {
+            StreamReader rd = File.OpenText(filePath);
+            string input = null;
+            string BasicInfo = rd.ReadLine();
+
+            int dem=-1;
+            int op = -1;
+            RLCFormRelay_DelayOn = new int[SLout];
+            RLCFormRelay_DelayOff = new int[SLout];
+            while ((input = rd.ReadLine()) != null)
+            {
+                
+                dem++;
+                if (dem < SLin)
+                {
+                    InputNetwork[dem].Input = Convert.ToInt16(Substring(',', 0, input));
+                    InputNetwork[dem].Function = Convert.ToInt16(Substring(',', 1, input));
+                    InputNetwork[dem].Ramp = Convert.ToInt16(Substring(',', 2, input));
+                    InputNetwork[dem].Preset = Convert.ToInt16(Substring(',', 3, input));
+                    InputNetwork[dem].Led_Status = Convert.ToInt16(Substring(',', 4, input));
+                    InputNetwork[dem].Auto_Mode = Convert.ToInt16(Substring(',', 5, input));
+                    InputNetwork[dem].Auto_Time = Convert.ToInt16(Substring(',', 6, input));
+                    InputNetwork[dem].DelayOff = Convert.ToInt16(Substring(',', 7, input));
+                    InputNetwork[dem].DelayOn = Convert.ToInt16(Substring(',', 8, input));
+                    InputNetwork[dem].NumGroup = Convert.ToInt16(Substring(',', 9, input));
+                    InputNetwork[dem].Group = new int[InputNetwork[dem].NumGroup];
+                    InputNetwork[dem].Preset_Group = new byte[InputNetwork[dem].NumGroup];
+                    int cnt = 0;
+                    for (int dem1 = 0; dem1 < InputNetwork[dem].NumGroup; dem1++)
+                    {
+                        InputNetwork[dem].Group[dem1] = Convert.ToInt16(Substring(',', 10 + cnt, input));
+                        InputNetwork[dem].Preset_Group[dem1] = Convert.ToByte(Substring(',', 11 + cnt, input));
+                        cnt=cnt+2;   
+                    }
+                }
+                else
+                {
+                                       
+                    op++;
+                    if (input.IndexOf(',') > 0)
+                    {
+                        OutputNetwork[op] = Convert.ToByte(Substring(',', 0, input));
+                        RLCFormRelay_DelayOn[op] = Convert.ToInt32(Substring(',', 1, input));
+                        RLCFormRelay_DelayOff[op] = Convert.ToInt32(Substring(',', 2, input));
+                    }
+                    else
+                    {
+                        OutputNetwork[op] = Convert.ToByte(input);
+                        RLCFormRelay_DelayOn[op] = 0;
+                        RLCFormRelay_DelayOff[op] = 0;
+                    }
+                }
+
+            }
+            rd.Close();
+         }
+
+        public void SaveConfigNetwork(string IP,string ID,int SLin,int SLout)
+        {
+            IPEndPoint ep = new IPEndPoint(IPAddress.Parse(IP), UDPPort);
+            Socket s = new Socket(AddressFamily.InterNetwork,SocketType.Dgram, ProtocolType.Udp);
+            s.ReceiveTimeout = 1000;
+            int cnt;
+            byte[] DuLieuTuBo;
+            DuLieuTuBo = new byte[1024];
+            int length=4;
+
+            try
+            {
+                Byte[] Data;    //<Address><length><CMD><Data><CRC> 
+                Data = new Byte[1024];
+                int SumCRC = 0;
+
+                Data[0] = Convert.ToByte(Substring('.', 3, ID));
+                Data[1] = Convert.ToByte(Substring('.', 2, ID));
+                Data[2] = Convert.ToByte(Substring('.', 1, ID));
+                Data[3] = Convert.ToByte(Substring('.', 0, ID));
+
+                Data[6] = 10;
+                Data[7] = 0;
+                
+               int pos;;
+               int SL = 1;
+               int inp=0;
+               
+               while (inp < SLin)
+               {
+                   pos = 8;
+                   length = 4;
+                   SumCRC = 0;
+                   if (SLin-inp<SL) SL=SLin-inp;
+                   for (int j = 0; j < SL; j++)
+                   {
+                       inp++;
+                       Data[pos] = Convert.ToByte(InputNetwork[inp-1].Input);
+                       Data[pos + 1] = Convert.ToByte(InputNetwork[inp-1].Function);
+                       Data[pos + 2] = (byte)InputNetwork[inp-1].Ramp;
+                       Data[pos + 3] = (byte)InputNetwork[inp-1].Preset;
+                       Data[pos + 4] = (byte)InputNetwork[inp-1].Led_Status;
+                       Data[pos + 5] = (byte)InputNetwork[inp-1].Auto_Mode;
+                       for (int i = pos + 6; i <= pos + 33; i++)
+                           Data[i] = (byte)InputNetwork[inp-1].Auto_Time;       //pos+6->pos+33
+
+                       Data[pos + 35] = (byte)(InputNetwork[inp-1].DelayOff / 256);
+                       Data[pos + 34] = (byte)(InputNetwork[inp-1].DelayOff - Data[pos + 35] * 256);
+
+                       Data[pos + 37] = (byte)(InputNetwork[inp-1].DelayOn / 256);
+                       Data[pos + 36] = (byte)(InputNetwork[inp-1].DelayOn - Data[pos + 37] * 256);
+
+                       Data[pos + 38] = (byte)InputNetwork[inp-1].NumGroup;
+                       pos = pos + 39;
+
+                       for (int i = 0; i < InputNetwork[inp-1].NumGroup; i++)
+                       {
+                           Data[pos] = (byte)InputNetwork[inp-1].Group[i];
+                           Data[pos + 1] = InputNetwork[inp-1].Preset_Group[i];
+                           pos = pos + 2;
+                       }
+                   }
+                   length = length + pos - 8;
+                   Data[5] = (byte)(length/256);
+                   Data[4] = (byte)(length-Data[5]*256);   // Address:4 ;Length=2 byte; CMD:2, Data:0, CRC:2
+
+                   for (int i = 4; i < length + 4; i++)
+                       SumCRC = SumCRC + Data[i];
+
+                   Data[pos+1] = (byte)(SumCRC / 256);
+                   Data[pos] = (byte)(SumCRC - Data[pos+1] * 256);
+
+                   s.SendTo(Data, length + 6, SocketFlags.None, ep);
+                   cnt = s.ReceiveFrom(DuLieuTuBo, ref rm);
+               }
+
+
+               
+                if (SLout>0)
+                {
+                    Data[6] = 10;
+                    Data[7] = 20;           //assisgn out to group
+
+                    pos = 8;
+                    SumCRC = 0;
+                    length = 4;
+                    for (byte i = 0; i < SLout; i++)
+                    {
+                        Data[pos] = i;
+                        Data[pos + 1] = OutputNetwork[i];
+                        pos = pos + 2;
+                    }
+
+                    length = length + pos - 8;
+
+                    Data[5] = (byte)(length / 256);
+                    Data[4] = (byte)(length - Data[5] * 256);   // Address:4 ;Length=2 byte; CMD:2, Data:0, CRC:2
+
+                    for (int i = 4; i < length + 4; i++)
+                        SumCRC = SumCRC + Data[i];
+
+                    Data[pos + 1] = (byte)(SumCRC / 256);
+                    Data[pos] = (byte)(SumCRC - Data[pos + 1] * 256);
+
+                    s.SendTo(Data, length + 6, SocketFlags.None, ep);
+                    cnt = s.ReceiveFrom(DuLieuTuBo, ref rm);
+                    
+
+                    //Relay_Delay_off
+
+
+                    Data[6] = 10;
+                    Data[7] = 32;           //Relay delay off
+
+                    pos = 8;
+                    SumCRC = 0;
+                    length = 4;
+                    for (byte i = 0; i < SL_RELAY; i++)
+                    {
+                        Data[pos] = i;
+                        Data[pos + 2] = (byte)(RLCFormRelay_DelayOff[i] / 256);
+                        Data[pos + 1] = (byte)(RLCFormRelay_DelayOff[i] - Data[pos+2] * 256);
+                        pos = pos + 3;
+                    }
+
+                    length = length + pos - 8;
+
+                    Data[5] = (byte)(length / 256);
+                    Data[4] = (byte)(length - Data[5] * 256);   // Address:4 ;Length=2 byte; CMD:2, Data:0, CRC:2
+
+                    for (int i = 4; i < length + 4; i++)
+                        SumCRC = SumCRC + Data[i];
+
+                    Data[pos + 1] = (byte)(SumCRC / 256);
+                    Data[pos] = (byte)(SumCRC - Data[pos + 1] * 256);
+
+                    s.SendTo(Data, length + 6, SocketFlags.None, ep);
+                    cnt = s.ReceiveFrom(DuLieuTuBo, ref rm);
+
+
+                    //Relay_Delay_on
+
+
+                    Data[6] = 10;
+                    Data[7] = 33;           //Relay delay on
+
+                    pos = 8;
+                    SumCRC = 0;
+                    length = 4;
+                    for (byte i = 0; i < SL_RELAY; i++)
+                    {
+                        Data[pos] = i;
+                        Data[pos + 2] = (byte)(RLCFormRelay_DelayOn[i] / 256);
+                        Data[pos + 1] = (byte)(RLCFormRelay_DelayOn[i] - Data[pos + 2] * 256);
+                        pos = pos + 3;
+                    }
+
+                    length = length + pos - 8;
+
+                    Data[5] = (byte)(length / 256);
+                    Data[4] = (byte)(length - Data[5] * 256);   // Address:4 ;Length=2 byte; CMD:2, Data:0, CRC:2
+
+                    for (int i = 4; i < length + 4; i++)
+                        SumCRC = SumCRC + Data[i];
+
+                    Data[pos + 1] = (byte)(SumCRC / 256);
+                    Data[pos] = (byte)(SumCRC - Data[pos + 1] * 256);
+
+                    s.SendTo(Data, length + 6, SocketFlags.None, ep);
+                    cnt = s.ReceiveFrom(DuLieuTuBo, ref rm);
+
+                }
+                s.Close();
+                grBoardNetwork.Rows.Clear();
+                btn_Scan_Click(null, null);                    
+            }
+            catch
+            {
+                s.Close();
+                MessageBox.Show("Can't connect to unit IP : "+IP, "Network Error");
+            }
+
+        }
+
+        private void btn_transferToNet_Click(object sender, EventArgs e)
+        {
+            int SLin=0,SLout=0;
+            int index = grBoardNetwork.CurrentCell.RowIndex;
+            int indexDatabase=gr_Unit.CurrentCell.RowIndex;
+            string filePath = treeView1.SelectedNode.FullPath + "\\" + gr_Unit.Rows[indexDatabase].Cells[2].Value.ToString() + "&" + gr_Unit.Rows[indexDatabase].Cells[3].Value.ToString();
+
+            if (grBoardNetwork[1, index].Value.ToString() != gr_Unit[1, indexDatabase].Value.ToString())
+            {
+                MessageBox.Show("Different board type. Please choose another one!!!", "Error");
+                return;
+            }
+            for (int i = 0; i < grBoardNetwork.Rows.Count;i++ )
+            {
+                if (i == index) continue;
+                if ((grBoardNetwork[3, i].Value.ToString() == gr_Unit[3, indexDatabase].Value.ToString()) && (grBoardNetwork[4, i].Value.ToString() == gr_Unit[4, indexDatabase].Value.ToString()))
+                {
+                    MessageBox.Show("The IP and ID of device has been in network. Please try another one!!!", "Error");
+                    return;
+                }
+            }
+
+            if ((grBoardNetwork[2, index].Value.ToString() != gr_Unit[2, indexDatabase].Value.ToString()) || ((grBoardNetwork[4, index].Value.ToString() != gr_Unit[4,indexDatabase].Value.ToString()) && (grBoardNetwork[4,index].Value.ToString()!="Slave")))
+            {
+                for (int i = 0; i < grBoardNetwork.Rows.Count; i++)
+                    if ((grBoardNetwork[2, i].Value.ToString() == gr_Unit[2, indexDatabase].Value.ToString()) && (i != index))
+                    {
+                        MessageBox.Show("There is IP conflict. Please choose another one!!!", "IP Conflict");
+                        return;
+                    }
+            }
+            switch (gr_Unit[0, indexDatabase].Value.ToString())
+            {
+                case "Room Logic Controller":
+                    SLin = SL_INPUT_RLC;
+                    SLout = SL_OUTPUT_RLC;
+                    break;
+
+                case "RLC-I20":
+                    SLin = SL_INPUT_RLC_I20;
+                    SLout = SL_OUTPUT_RLC;
+                    break;
+
+                case "RLC-I16":
+                    SLin = SL_INPUT_RLC_I16;
+                    SLout = SL_OUTPUT_RLC;
+                    break;
+
+                case "Bedside-17T":
+                    SLin = SL_INPUT_BEDSIDE;
+                    SLout = SL_OUTPUT_BEDSIDE;
+                    break;
+
+                case "Bedside-12T":
+                    SLin = SL_INPUT_BEDSIDE_12T;
+                    SLout = SL_OUTPUT_BEDSIDE;
+                    break;
+
+                default:
+                    break;
+
+            }
+            
+            
+            InputNetwork = new IOProperty[SLin];
+            OutputNetwork = new byte[SLout];
+            LoadConfig(filePath, SLin, SLout);
+            string sIP = grBoardNetwork[2, index].Value.ToString();
+            string oldIP = Substring('.', 2, sIP) + "." + Substring('.', 3, sIP); 
+            string oldID = grBoardNetwork[3, index].Value.ToString();
+
+            string IP = gr_Unit[2, indexDatabase].Value.ToString();
+            string Act_Mode = gr_Unit[4,indexDatabase].Value.ToString();
+            string oldAct_Mode = grBoardNetwork[4, index].Value.ToString();
+
+            ConfigUnit.IP = Substring('.', 2, IP) + "." + Substring('.', 3, IP);
+
+            int dem=0;
+            ConfigUnit.IDCan = "";
+            for (int i = 0; i < oldID.Length; i++)
+            {
+                if (oldID[i] == '.') dem++;
+                ConfigUnit.IDCan = ConfigUnit.IDCan + oldID[i];
+                if (dem == 3) break;
+            }
+
+            ConfigUnit.IDCan =ConfigUnit.IDCan+ Substring('.',3,gr_Unit[3, indexDatabase].Value.ToString());
+
+            if (Act_Mode == "Master") ConfigUnit.kind = 2;
+            else if (Act_Mode == "Slave") ConfigUnit.kind = 1;
+            else ConfigUnit.kind = 0;
+
+            if (oldAct_Mode == "Master") oldActMode = 2;
+            else if (oldAct_Mode == "Slave") oldActMode = 1;
+            else oldActMode = 0;
+
+            ConfigUnit.LoadCan = Convert.ToBoolean(gr_Unit[5, indexDatabase].Value.ToString());
+            ConfigUnit.Recovery = Convert.ToBoolean(gr_Unit[9, indexDatabase].Value.ToString());
+            transNet = true;
+            if (EditNetwork(oldIP, oldID)) SaveConfigNetwork(IP,ConfigUnit.IDCan,SLin,SLout);
+        }
+
+        private void btn_ConfigUnitNetwork_Click(object sender, EventArgs e)
+        {
+            int index = grBoardNetwork.CurrentCell.RowIndex;
+            Group_Path = treeView1.SelectedNode.FullPath;
+            string filePath = treeView1.SelectedNode.Parent.FullPath + "\\Group.csv";
+            LoadGroup(filePath);
+            confignetwork = true;
+
+            int SLin=0,Slout=0;
+            GetSLIO(ref SLin, ref Slout);
+
+            if (GetIO_Unit(index,SLin,Slout))
+            {
+
+                if (grBoardNetwork.Rows[index].Cells[0].Value.ToString() == "Room Logic Controller")
+                {
+                    Input_RLC CfgUnit = new Input_RLC();
+                    CfgUnit.Initialize(this);
+                    CfgUnit.Text = "Config I/O RLC on Network";
+                    this.Enabled = false;
+                    CfgUnit.Show();
+                    CfgUnit.Focus();
+                }
+
+                else if (grBoardNetwork.Rows[index].Cells[0].Value.ToString() == "Bedside-17T")
+                {
+                    Input_Bedside CfgUnit = new Input_Bedside();
+                    CfgUnit.Initialize(this);
+                    CfgUnit.Text = "Config I/O Bedside on Network";
+                    this.Enabled = false;
+                    CfgUnit.Show();
+                    CfgUnit.Focus();
+                }
+                else if (grBoardNetwork.Rows[index].Cells[0].Value.ToString() == "Bedside-12T")
+                {
+                    Input_Bedside_12T CfgUnit = new Input_Bedside_12T();
+                    CfgUnit.Initialize(this);
+                    CfgUnit.Text = "Config I/O Bedside on Network";
+                    this.Enabled = false;
+                    CfgUnit.Show();
+                    CfgUnit.Focus();
+                }
+                else if (grBoardNetwork.Rows[index].Cells[0].Value.ToString() == "RLC-I20")
+                {
+                    Input_RLC_new_20_ports CfgUnit = new Input_RLC_new_20_ports();
+                    CfgUnit.Text = "Config I/O RLC New (20 ports) on Network";
+                    CfgUnit.Initialize(this);
+                    this.Enabled = false;
+                    CfgUnit.Show();
+                    CfgUnit.Focus();
+                }
+                else if (grBoardNetwork.Rows[index].Cells[0].Value.ToString() == "RLC-I16")
+                {
+                    Input_RLC_new CfgUnit = new Input_RLC_new();
+                    CfgUnit.Text = "Config I/O RLC New (16 ports) on Network";
+                    CfgUnit.Initialize(this);
+                    this.Enabled = false;
+                    CfgUnit.Show();
+                    CfgUnit.Focus();
+                }
+            }
+            
+        }
+
+        private void toolStripBackup_Click(object sender, EventArgs e)
+        {
+            string[] folders = Directory.GetDirectories(directoryDatabase);// lay cac folder
+            
+            if (folders.Length==0) 
+            {
+                MessageBox.Show("There is no project to backup", "Backup");
+                return;
+            }
+
+            Backup form = new Backup();
+            
+            foreach (string folder in folders)
+            {
+                form.gr_project.Rows.Add(true, folder.Substring(8));
+            }
+            form.Initialize(this);
+            form.Show();
+            
+            this.Enabled = false;
+            
+            
+        }
+
+        private void toolStripRestoreProject_Click(object sender, EventArgs e)
+        {
+
+            OpenFileDialog op = new OpenFileDialog();
+            op.Filter = "Backup File|*.RLC";
+            //op.FileName = "Backup.RLC";
+            op.Title = "Open Project";
+
+            if (op.ShowDialog() == DialogResult.OK)
+            {
+                Backup form = new Backup();
+                form.btn_Ok.Text = "Finish";
+                
+                ZipFile zip = new ZipFile(op.FileName);
+                string s;
+                string filePath;
+                
+                for (int i = 0; i < zip.Count; i++) 
+                {
+                    s=zip[i].FileName;
+                    if (s.IndexOf('/')==s.Length-1) 
+                    {
+                        form.gr_project.Rows.Add(true, s.Substring(0,s.Length-1));
+                        filePath=directoryDatabase+"\\"+s.Substring(0,s.Length-1);
+                        if (System.IO.Directory.Exists(filePath))
+                        {
+                            form.btn_Ok.Text = "Next";
+                            form.label_annouce.Visible = true;
+                        }
+                    }
+
+                }
+                form.zipPath=op.FileName;
+                form.Initialize(this);
+                form.Text = "Restore Project";
+                form.labelguide.Text = "Please choose projects that you want to restore";
+                form.Show();
+
+                this.Enabled = false;
+            }
+            
+        }
+
+        private void gr_Unit_RowPostPaint(object sender, DataGridViewRowPostPaintEventArgs e)
+        {
+
+            if (gr_Unit.Rows[e.RowIndex].Selected)
+            {
+                using (Pen pen = new Pen(Color.Blue))
+                {
+                    int penWidth = 1;
+
+                    pen.Width = penWidth;
+
+                    int x = e.RowBounds.Left + (penWidth / 2);
+                    int y = e.RowBounds.Top + (penWidth / 2);
+                    int width = e.RowBounds.Width + 1 - penWidth;
+                    int height = e.RowBounds.Height - penWidth;
+
+                    e.Graphics.DrawRectangle(pen, x, y, width, height);
+                }
+            }
+        }
+
+        private void grBoardNetwork_RowPostPaint(object sender, DataGridViewRowPostPaintEventArgs e)
+        {
+            if (grBoardNetwork.Rows[e.RowIndex].Selected)
+            {
+                using (Pen pen = new Pen(Color.Blue))
+                {
+                    int penWidth = 1;
+
+                    pen.Width = penWidth;
+
+                    int x = e.RowBounds.Left + (penWidth / 2);
+                    int y = e.RowBounds.Top + (penWidth / 2);
+                    int width = e.RowBounds.Width +1 - penWidth;
+                    int height = e.RowBounds.Height - penWidth;
+
+                    e.Graphics.DrawRectangle(pen, x, y, width, height);
+                }
+            }
+        }
+
+
+        private void RLC1_FormClosing(object sender, FormClosingEventArgs e)
+        {
+            if (btn_Scan.Enabled == false)
+            {
+                e.Cancel = true;
+                return;
+            }
+        }
+
+        private void gr_Group_RowPostPaint(object sender, DataGridViewRowPostPaintEventArgs e)
+        {
+            if (gr_Group.Rows[e.RowIndex].Selected)
+            {
+                using (Pen pen = new Pen(Color.Blue))
+                {
+                    int penWidth = 1;
+
+                    pen.Width = penWidth;
+
+                    int x = e.RowBounds.Left + (penWidth / 2);
+                    int y = e.RowBounds.Top + (penWidth / 2);
+                    int width = e.RowBounds.Width - penWidth;
+                    int height = e.RowBounds.Height - penWidth;
+
+                    e.Graphics.DrawRectangle(pen, x, y, width, height);
+                }
+            }
+        }
+
+        private void setupToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            int index = grBoardNetwork.CurrentCell.RowIndex;
+            ConfigUnit.IDCan = grBoardNetwork[3, index].Value.ToString();
+            ConfigUnit.Barcode = grBoardNetwork[1, index].Value.ToString();
+            ConfigUnit.IP = Substring('.', 2, grBoardNetwork[2, index].Value.ToString()) + "." + Substring('.', 3, grBoardNetwork[2, index].Value.ToString());
+
+            ConfigUnit.Manu_Date = grBoardNetwork[9, index].Value.ToString();
+
+            Tool_Setup ToolSetup = new Tool_Setup();
+            ToolSetup.Initialize(this);
+            this.Enabled = false;
+            ToolSetup.Show();
+            ToolSetup.Focus();
+
+        }
+
+        private void gr_Unit_CellContentClick(object sender, DataGridViewCellEventArgs e)
+        {
+
+        }
+
+
+
+       
+
+   
+    }
+}
