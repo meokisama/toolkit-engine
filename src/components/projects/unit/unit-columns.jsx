@@ -4,6 +4,7 @@ import { Copy, SquarePen, Trash2, MoreHorizontal } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Input } from "@/components/ui/input";
 import { DataTableColumnHeader } from "@/components/projects/data-table/data-table-column-header";
 import { EditableCell } from "@/components/projects/data-table/editable-cell";
 import { EditableSelectCell } from "@/components/projects/data-table/editable-select-cell";
@@ -92,7 +93,11 @@ export const createUnitColumns = (
   {
     accessorKey: "serial_no",
     header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Serial No." />
+      <DataTableColumnHeader
+        column={column}
+        title="Serial No."
+        className="flex items-center justify-center"
+      />
     ),
     cell: ({ row }) => {
       const serialNo = row.getValue("serial_no");
@@ -108,7 +113,7 @@ export const createUnitColumns = (
           onSave={(newValue) =>
             onCellEdit(row.original.id, "serial_no", newValue)
           }
-          className="font-mono text-sm w-full"
+          className="text-sm w-full text-center"
           placeholder="-"
         />
       );
@@ -122,7 +127,11 @@ export const createUnitColumns = (
   {
     accessorKey: "ip_address",
     header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="IP Address" />
+      <DataTableColumnHeader
+        column={column}
+        title="IP Address"
+        className="text-center"
+      />
     ),
     cell: ({ row }) => {
       const ipAddress = row.getValue("ip_address");
@@ -138,7 +147,7 @@ export const createUnitColumns = (
           onSave={(newValue) =>
             onCellEdit(row.original.id, "ip_address", newValue)
           }
-          className="font-mono text-sm w-full"
+          className="text-sm w-full text-center"
           placeholder="-"
         />
       );
@@ -152,7 +161,11 @@ export const createUnitColumns = (
   {
     accessorKey: "id_can",
     header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="ID CAN" />
+      <DataTableColumnHeader
+        column={column}
+        title="ID CAN"
+        className="text-center"
+      />
     ),
     cell: ({ row }) => {
       const idCan = row.getValue("id_can");
@@ -166,7 +179,7 @@ export const createUnitColumns = (
           value={effectiveValue}
           type="text"
           onSave={(newValue) => onCellEdit(row.original.id, "id_can", newValue)}
-          className="font-mono text-sm w-full"
+          className="text-sm w-full text-center"
           placeholder="-"
         />
       );
@@ -180,7 +193,11 @@ export const createUnitColumns = (
   {
     accessorKey: "mode",
     header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Mode" />
+      <DataTableColumnHeader
+        column={column}
+        title="Mode"
+        className="flex items-center justify-center"
+      />
     ),
     cell: ({ row }) => {
       const mode = row.getValue("mode");
@@ -220,7 +237,11 @@ export const createUnitColumns = (
   {
     accessorKey: "firmware_version",
     header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Firmware" />
+      <DataTableColumnHeader
+        column={column}
+        title="Firmware"
+        className="text-center"
+      />
     ),
     cell: ({ row }) => {
       const firmwareVersion = row.getValue("firmware_version");
@@ -236,12 +257,12 @@ export const createUnitColumns = (
           onSave={(newValue) =>
             onCellEdit(row.original.id, "firmware_version", newValue)
           }
-          className="font-mono text-sm w-full"
+          className="text-sm w-full text-center"
           placeholder="-"
         />
       );
     },
-    enableSorting: true,
+    enableSorting: false,
     enableHiding: true,
     meta: {
       className: "w-[8%]",
@@ -250,7 +271,11 @@ export const createUnitColumns = (
   {
     accessorKey: "hardware_version",
     header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Hardware" />
+      <DataTableColumnHeader
+        column={column}
+        title="Hardware"
+        className="text-center"
+      />
     ),
     cell: ({ row }) => {
       const hardwareVersion = row.getValue("hardware_version");
@@ -266,12 +291,12 @@ export const createUnitColumns = (
           onSave={(newValue) =>
             onCellEdit(row.original.id, "hardware_version", newValue)
           }
-          className="font-mono text-sm w-full"
+          className="text-sm w-full text-center"
           placeholder="-"
         />
       );
     },
-    enableSorting: true,
+    enableSorting: false,
     enableHiding: true,
     meta: {
       className: "w-[8%]",
@@ -442,7 +467,6 @@ export const createNetworkUnitColumns = () => [
         }
         onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
         aria-label="Select all"
-        className="mx-1.5"
       />
     ),
     cell: ({ row }) => (
@@ -450,6 +474,7 @@ export const createNetworkUnitColumns = () => [
         checked={row.getIsSelected()}
         onCheckedChange={(value) => row.toggleSelected(!!value)}
         aria-label="Select row"
+        className="mx-1.5"
       />
     ),
     enableSorting: false,
@@ -465,148 +490,207 @@ export const createNetworkUnitColumns = () => [
     ),
     cell: ({ row }) => {
       const type = row.getValue("type");
-      return <span className="font-medium">{type || "-"}</span>;
+      return (
+        <Input
+          value={type || ""}
+          readOnly
+          className="font-medium "
+          placeholder="-"
+        />
+      );
     },
     enableSorting: true,
     enableHiding: true,
     meta: {
-      className: "w-[15%]",
+      className: "w-[18%]",
     },
   },
   {
     accessorKey: "serial_no",
     header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Serial No." />
+      <DataTableColumnHeader
+        column={column}
+        title="Serial No."
+        className="flex items-center justify-center"
+      />
     ),
     cell: ({ row }) => {
       const serialNo = row.getValue("serial_no");
-      return <span className="font-mono text-sm">{serialNo || "-"}</span>;
+      return (
+        <Input
+          value={serialNo || ""}
+          readOnly
+          className="text-sm text-center"
+          placeholder="-"
+        />
+      );
     },
     enableSorting: true,
+    enableHiding: true,
+    meta: {
+      className: "w-[18%]",
+    },
+  },
+  {
+    accessorKey: "ip_address",
+    header: ({ column }) => (
+      <DataTableColumnHeader
+        column={column}
+        title="IP Address"
+        className="text-center"
+      />
+    ),
+    cell: ({ row }) => {
+      const ipAddress = row.getValue("ip_address");
+      return (
+        <Input
+          value={ipAddress || ""}
+          readOnly
+          className="text-sm text-center"
+          placeholder="-"
+        />
+      );
+    },
+    enableSorting: false,
     enableHiding: true,
     meta: {
       className: "w-[15%]",
     },
   },
   {
-    accessorKey: "ip_address",
-    header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="IP Address" />
-    ),
-    cell: ({ row }) => {
-      const ipAddress = row.getValue("ip_address");
-      return <span className="font-mono text-sm">{ipAddress || "-"}</span>;
-    },
-    enableSorting: false,
-    enableHiding: true,
-    meta: {
-      className: "w-[12%]",
-    },
-  },
-  {
     accessorKey: "id_can",
     header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="ID CAN" />
+      <DataTableColumnHeader
+        column={column}
+        title="ID CAN"
+        className="text-center"
+      />
     ),
     cell: ({ row }) => {
       const idCan = row.getValue("id_can");
-      return <span className="font-mono text-sm">{idCan || "-"}</span>;
+      return (
+        <Input
+          value={idCan || ""}
+          readOnly
+          className="text-sm text-center"
+          placeholder="-"
+        />
+      );
     },
     enableSorting: false,
     enableHiding: true,
     meta: {
-      className: "w-[12%]",
+      className: "w-[15%]",
     },
   },
   {
     accessorKey: "mode",
     header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Mode" />
+      <DataTableColumnHeader
+        column={column}
+        title="Mode"
+        className="flex items-center justify-center"
+      />
     ),
     cell: ({ row }) => {
       const mode = row.getValue("mode");
+      const getTextColor = (mode) => {
+        switch (mode) {
+          case "Master":
+            return "text-blue-800";
+          case "Slave":
+            return "text-gray-800";
+          case "Stand-Alone":
+            return "text-green-800";
+          default:
+            return "text-gray-800";
+        }
+      };
 
       return (
-        <span
-          className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
-            mode === "Master"
-              ? "bg-blue-100 text-blue-800"
-              : mode === "Slave"
-              ? "bg-gray-100 text-gray-800"
-              : mode === "Stand-Alone"
-              ? "bg-green-100 text-green-800"
-              : "bg-gray-100 text-gray-800"
-          }`}
-        >
-          {mode || "-"}
-        </span>
+        <Input
+          value={mode || ""}
+          readOnly
+          className={`text-center  text-xs font-medium ${getTextColor(mode)}`}
+          placeholder="-"
+        />
       );
     },
     enableSorting: true,
     enableHiding: true,
     meta: {
-      className: "w-[10%]",
+      className: "w-[11%]",
     },
   },
   {
     accessorKey: "firmware_version",
     header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Firmware" />
+      <DataTableColumnHeader
+        column={column}
+        title="Firmware"
+        className="text-center"
+      />
     ),
     cell: ({ row }) => {
       const firmwareVersion = row.getValue("firmware_version");
       return (
-        <span className="font-mono text-sm">{firmwareVersion || "-"}</span>
+        <Input
+          value={firmwareVersion || ""}
+          readOnly
+          className="text-sm text-center"
+          placeholder="-"
+        />
       );
     },
-    enableSorting: true,
+    enableSorting: false,
     enableHiding: true,
     meta: {
-      className: "w-[10%]",
+      className: "w-[12%]",
     },
   },
   {
     accessorKey: "hardware_version",
     header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Hardware" />
+      <DataTableColumnHeader
+        column={column}
+        title="Hardware"
+        className="text-center"
+      />
     ),
     cell: ({ row }) => {
       const hardwareVersion = row.getValue("hardware_version");
       return (
-        <span className="font-mono text-sm">{hardwareVersion || "-"}</span>
+        <Input
+          value={hardwareVersion || ""}
+          readOnly
+          className="text-sm text-center"
+          placeholder="-"
+        />
       );
     },
-    enableSorting: true,
+    enableSorting: false,
     enableHiding: true,
     meta: {
-      className: "w-[10%]",
+      className: "w-[12%]",
     },
   },
   {
     accessorKey: "can_load",
     header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Can Load" />
+      <DataTableColumnHeader column={column} title="CAN Load" />
     ),
     cell: ({ row }) => {
       const canLoad = row.getValue("can_load");
       return (
         <div className="flex items-center justify-center">
-          <span
-            className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
-              canLoad
-                ? "bg-green-100 text-green-800"
-                : "bg-gray-100 text-gray-800"
-            }`}
-          >
-            {canLoad ? "Yes" : "No"}
-          </span>
+          <Checkbox checked={canLoad} readOnly />
         </div>
       );
     },
-    enableSorting: true,
+    enableSorting: false,
     enableHiding: true,
     meta: {
-      className: "w-[8%]",
+      className: "w-[10%]",
     },
   },
   {
@@ -618,37 +702,14 @@ export const createNetworkUnitColumns = () => [
       const recoveryMode = row.getValue("recovery_mode");
       return (
         <div className="flex items-center justify-center">
-          <span
-            className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
-              recoveryMode
-                ? "bg-red-100 text-red-800"
-                : "bg-gray-100 text-gray-800"
-            }`}
-          >
-            {recoveryMode ? "Yes" : "No"}
-          </span>
+          <Checkbox checked={recoveryMode} readOnly />
         </div>
       );
-    },
-    enableSorting: true,
-    enableHiding: true,
-    meta: {
-      className: "w-[8%]",
-    },
-  },
-  {
-    accessorKey: "description",
-    header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Description" />
-    ),
-    cell: ({ row }) => {
-      const description = row.getValue("description");
-      return <span className="text-sm">{description || "-"}</span>;
     },
     enableSorting: false,
     enableHiding: true,
     meta: {
-      className: "w-[20%]",
+      className: "w-[10%]",
     },
   },
 ];

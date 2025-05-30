@@ -366,10 +366,12 @@ class DatabaseService {
 
   getProjectItemById(id, tableName) {
     try {
+      console.log(`Getting ${tableName} item by id:`, id, 'tableName:', tableName);
       const stmt = this.db.prepare(`SELECT * FROM ${tableName} WHERE id = ?`);
       return stmt.get(id);
     } catch (error) {
       console.error(`Failed to get ${tableName} item by id:`, error);
+      console.error('Parameters:', { id, tableName });
       throw error;
     }
   }
@@ -622,10 +624,10 @@ class DatabaseService {
         }
 
         duplicatedItem.address = newAddress.toString();
-        duplicatedItem.curtain_type = originalItem.curtain_type;
-        duplicatedItem.open_group = originalItem.open_group;
-        duplicatedItem.close_group = originalItem.close_group;
-        duplicatedItem.stop_group = originalItem.stop_group;
+        duplicatedItem.curtain_type = originalItem.curtain_type || 'CURTAIN_PULSE_2P';
+        duplicatedItem.open_group = originalItem.open_group || null;
+        duplicatedItem.close_group = originalItem.close_group || null;
+        duplicatedItem.stop_group = originalItem.stop_group || null;
       }
 
       return this.createProjectItem(originalItem.project_id, duplicatedItem, tableName);

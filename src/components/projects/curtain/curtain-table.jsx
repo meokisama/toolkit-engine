@@ -87,24 +87,26 @@ export function CurtainTable({ items = [], loading = false }) {
     }
   }, [pendingChanges, items, updateItem]);
 
-  const handleEdit = (item) => {
+  const handleEdit = useCallback((item) => {
     setEditingItem(item);
     setDialogOpen(true);
-  };
+  }, []);
 
-  const handleDelete = (id) => {
-    const item = items.find((item) => item.id === id);
+  const handleDelete = useCallback((item) => {
     setItemToDelete(item);
     setDeleteDialogOpen(true);
-  };
+  }, []);
 
-  const handleDuplicate = async (id) => {
-    try {
-      await duplicateItem("curtain", id);
-    } catch (error) {
-      console.error("Failed to duplicate curtain item:", error);
-    }
-  };
+  const handleDuplicate = useCallback(
+    async (item) => {
+      try {
+        await duplicateItem("curtain", item.id);
+      } catch (error) {
+        console.error("Failed to duplicate curtain item:", error);
+      }
+    },
+    [duplicateItem]
+  );
 
   const handleUpdate = async (id, data) => {
     try {
@@ -216,7 +218,14 @@ export function CurtainTable({ items = [], loading = false }) {
         getEffectiveValue,
         lightingItems
       ),
-    [lightingItems, handleCellEdit, getEffectiveValue]
+    [
+      handleEdit,
+      handleDelete,
+      handleDuplicate,
+      handleCellEdit,
+      getEffectiveValue,
+      lightingItems,
+    ]
   );
 
   if (loading) {

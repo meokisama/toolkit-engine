@@ -40,10 +40,16 @@ export function ConfirmDialog({
             variant="outline"
             onClick={() => onOpenChange(false)}
             disabled={loading}
+            className="cursor-pointer"
           >
             {cancelText}
           </Button>
-          <Button variant={variant} onClick={handleConfirm} disabled={loading}>
+          <Button
+            variant={variant}
+            onClick={handleConfirm}
+            disabled={loading}
+            className="cursor-pointer"
+          >
             {loading ? "Processing..." : confirmText}
           </Button>
         </DialogFooter>

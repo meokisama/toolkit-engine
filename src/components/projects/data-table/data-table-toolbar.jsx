@@ -86,7 +86,7 @@ export function DataTableToolbar({
   }, [onSave]);
 
   return (
-    <div className="flex items-center justify-between">
+    <div className="flex items-center justify-between gap-2">
       <div className="flex flex-1 items-center space-x-2">
         <div className="relative">
           <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
@@ -111,7 +111,8 @@ export function DataTableToolbar({
         {hasSelectedRows && (
           <Button variant="destructive" onClick={handleBulkDelete}>
             <Trash2 className="h-4 w-4" />
-            Delete ({selectedRowsCount})
+            <span className="hidden lg:inline">Delete </span>(
+            {selectedRowsCount})
           </Button>
         )}
 
@@ -119,10 +120,10 @@ export function DataTableToolbar({
           <Button
             onClick={handleSave}
             disabled={saveLoading}
-            className="bg-green-600 hover:bg-green-700"
+            className="bg-green-700 hover:bg-green-800"
           >
             <Save className="h-4 w-4" />
-            {saveLoading ? "Saving..." : "Save Changes"}
+            {saveLoading ? "Saving..." : "Save"}
           </Button>
         )}
       </div>
@@ -132,7 +133,7 @@ export function DataTableToolbar({
             <DropdownMenuTrigger asChild>
               <Button variant="outline" className="text-gray-700">
                 <FileText className="h-4 w-4" />
-                Import/Export Data
+                <span className="hidden lg:inline">Import/Export Data</span>
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">

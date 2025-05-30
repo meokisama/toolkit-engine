@@ -1,5 +1,6 @@
 import { ArrowUpDown, MoreHorizontal, Copy, Edit, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -36,6 +37,32 @@ export const createCurtainColumns = (
   }));
 
   return [
+    {
+      id: "select",
+      header: ({ table }) => (
+        <Checkbox
+          checked={
+            table.getIsAllPageRowsSelected() ||
+            (table.getIsSomePageRowsSelected() && "indeterminate")
+          }
+          onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
+          aria-label="Select all"
+        />
+      ),
+      cell: ({ row }) => (
+        <Checkbox
+          checked={row.getIsSelected()}
+          onCheckedChange={(value) => row.toggleSelected(!!value)}
+          aria-label="Select row"
+          className="mx-1.5"
+        />
+      ),
+      enableSorting: false,
+      enableHiding: false,
+      meta: {
+        className: "w-[3%]",
+      },
+    },
     {
       accessorKey: "name",
       header: ({ column }) => (
@@ -232,13 +259,13 @@ export const createCurtainColumns = (
                 <Edit className="mr-2 h-4 w-4" />
                 Edit
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => onDuplicate(item.id)}>
+              <DropdownMenuItem onClick={() => onDuplicate(item)}>
                 <Copy className="mr-2 h-4 w-4" />
                 Duplicate
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem
-                onClick={() => onDelete(item.id)}
+                onClick={() => onDelete(item)}
                 className="text-red-600"
               >
                 <Trash2 className="mr-2 h-4 w-4" />

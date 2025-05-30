@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useCallback } from "react";
-import { Network, Search, Download } from "lucide-react";
+import { Network, Search, Layers2, Layers } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { DataTable } from "@/components/projects/data-table/data-table";
@@ -38,7 +38,7 @@ export function NetworkUnitTable({ onTransferToDatabase, existingUnits = [] }) {
     }
   };
 
-  const handleTransferToDatabase = async () => {
+  const handleTransferSelectedToDatabase = async () => {
     if (selectedNetworkUnits.length === 0) {
       toast.warning("Please select units to transfer to database");
       return;
@@ -83,12 +83,71 @@ export function NetworkUnitTable({ onTransferToDatabase, existingUnits = [] }) {
         }
 
         toast.success(
-          `Transferred ${unitsToTransfer.length} unit(s) to database`
+          `Transferred ${unitsToTransfer.length} selected unit(s) to database`
         );
       }
     } catch (error) {
-      console.error("Failed to transfer network units to database:", error);
-      toast.error("Failed to transfer units to database: " + error.message);
+      console.error(
+        "Failed to transfer selected network units to database:",
+        error
+      );
+      toast.error(
+        "Failed to transfer selected units to database: " + error.message
+      );
+    }
+  };
+
+  const handleTransferAllToDatabase = async () => {
+    if (networkUnits.length === 0) {
+      toast.warning("No network units to transfer");
+      return;
+    }
+
+    try {
+      const transferPromises = networkUnits.map(async (networkUnit) => {
+        // Check if unit already exists in database
+        const existingUnit = existingUnits.find(
+          (unit) =>
+            unit.ip_address === networkUnit.ip_address ||
+            unit.serial_no === networkUnit.serial_no
+        );
+
+        if (existingUnit) {
+          toast.warning(
+            `Unit ${networkUnit.type} (${networkUnit.ip_address}) already exists in database`
+          );
+          return null;
+        }
+
+        // Create new unit from network unit
+        const newUnit = {
+          ...networkUnit,
+          id: undefined, // Let the system generate new ID
+        };
+
+        return newUnit;
+      });
+
+      const unitsToTransfer = (await Promise.all(transferPromises)).filter(
+        (unit) => unit !== null
+      );
+
+      if (unitsToTransfer.length > 0) {
+        await onTransferToDatabase(unitsToTransfer);
+
+        // Clear selection after successful transfer
+        setSelectedNetworkUnits([]);
+        if (networkTable) {
+          networkTable.resetRowSelection();
+        }
+
+        toast.success(
+          `Transferred all ${unitsToTransfer.length} unit(s) to database`
+        );
+      }
+    } catch (error) {
+      console.error("Failed to transfer all network units to database:", error);
+      toast.error("Failed to transfer all units to database: " + error.message);
     }
   };
 
@@ -131,15 +190,29 @@ export function NetworkUnitTable({ onTransferToDatabase, existingUnits = [] }) {
             Network Units ({networkUnits.length})
           </CardTitle>
           <div className="flex items-center gap-2">
+            {networkUnits.length > 0 && (
+              <Button
+                onClick={handleTransferAllToDatabase}
+                variant="outline"
+                className="flex items-center gap-2"
+                title="Transfer all network units to database"
+              >
+                <Layers className="h-4 w-4" />
+                <span className="hidden lg:inline">
+                  Transfer All to Database
+                </span>
+              </Button>
+            )}
             {selectedNetworkUnits.length > 0 && (
               <Button
-                onClick={handleTransferToDatabase}
+                onClick={handleTransferSelectedToDatabase}
                 variant="outline"
-                size="sm"
                 className="flex items-center gap-2"
+                title="Transfer selected network units to database"
               >
-                <Download className="h-4 w-4" />
-                Transfer to Database ({selectedNetworkUnits.length})
+                <Layers2 className="h-4 w-4" />
+                <span className="hidden lg:inline">Transfer Selected</span> (
+                {selectedNetworkUnits.length})
               </Button>
             )}
             <Button
@@ -164,35 +237,14 @@ export function NetworkUnitTable({ onTransferToDatabase, existingUnits = [] }) {
           </div>
         ) : (
           <div className="space-y-4 flex flex-col h-full justify-between">
-            <div className="space-y-4">
-              {networkTable && (
-                <div className="flex items-center justify-between">
-                  <div className="text-sm text-muted-foreground">
-                    {selectedNetworkUnits.length > 0
-                      ? `${selectedNetworkUnits.length} of ${networkUnits.length} units selected`
-                      : `${networkUnits.length} units discovered`}
-                  </div>
-                  {selectedNetworkUnits.length > 0 && (
-                    <Button
-                      onClick={handleTransferToDatabase}
-                      size="sm"
-                      className="flex items-center gap-2"
-                    >
-                      <Download className="h-4 w-4" />
-                      Transfer Selected to Database
-                    </Button>
-                  )}
-                </div>
-              )}
-              <DataTable
-                key="network-unit"
-                columns={networkColumns}
-                data={networkUnits}
-                onTableReady={setNetworkTable}
-                onRowSelectionChange={handleNetworkRowSelectionChange}
-                enableRowSelection={true}
-              />
-            </div>
+            <DataTable
+              key="network-unit"
+              columns={networkColumns}
+              data={networkUnits}
+              onTableReady={setNetworkTable}
+              onRowSelectionChange={handleNetworkRowSelectionChange}
+              enableRowSelection={true}
+            />
             {networkTable && <DataTablePagination table={networkTable} />}
           </div>
         )}
