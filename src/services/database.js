@@ -338,7 +338,7 @@ class DatabaseService {
       const aircon = this.db.prepare('SELECT * FROM aircon_items WHERE project_id = ? ORDER BY address ASC').all(projectId);
       const unit = this.db.prepare('SELECT * FROM unit WHERE project_id = ? ORDER BY created_at DESC').all(projectId);
       const curtain = this.db.prepare('SELECT * FROM curtain WHERE project_id = ? ORDER BY address ASC').all(projectId);
-      const scene = this.db.prepare('SELECT * FROM scene WHERE project_id = ? ORDER BY created_at DESC').all(projectId);
+      const scene = this.db.prepare('SELECT * FROM scene WHERE project_id = ? ORDER BY address ASC').all(projectId);
 
       return {
         lighting,
@@ -356,8 +356,14 @@ class DatabaseService {
   // Generic CRUD operations for project items
   getProjectItems(projectId, tableName) {
     try {
-      const stmt = this.db.prepare(`SELECT * FROM ${tableName} WHERE project_id = ? ORDER BY created_at DESC`);
-      return stmt.all(projectId);
+      // Sort by address ASC for tables with address field, except unit table
+      if (tableName === 'unit') {
+        const stmt = this.db.prepare(`SELECT * FROM ${tableName} WHERE project_id = ? ORDER BY created_at DESC`);
+        return stmt.all(projectId);
+      } else {
+        const stmt = this.db.prepare(`SELECT * FROM ${tableName} WHERE project_id = ? ORDER BY address ASC`);
+        return stmt.all(projectId);
+      }
     } catch (error) {
       throw error;
     }
@@ -384,9 +390,25 @@ class DatabaseService {
         }
       }
 
+      // Special validation for aircon_items to prevent duplicate addresses
+      if (tableName === 'aircon_items' && address) {
+        const existingItems = this.db.prepare('SELECT COUNT(*) as count FROM aircon_items WHERE project_id = ? AND address = ?').get(projectId, address);
+        if (existingItems.count > 0) {
+          throw new Error(`Address ${address} already exists.`);
+        }
+      }
+
       // Special validation for curtain to prevent duplicate addresses
       if (tableName === 'curtain' && address) {
         const existingItems = this.db.prepare('SELECT COUNT(*) as count FROM curtain WHERE project_id = ? AND address = ?').get(projectId, address);
+        if (existingItems.count > 0) {
+          throw new Error(`Address ${address} already exists.`);
+        }
+      }
+
+      // Special validation for scene to prevent duplicate addresses
+      if (tableName === 'scene' && address) {
+        const existingItems = this.db.prepare('SELECT COUNT(*) as count FROM scene WHERE project_id = ? AND address = ?').get(projectId, address);
         if (existingItems.count > 0) {
           throw new Error(`Address ${address} already exists.`);
         }
@@ -461,6 +483,18 @@ class DatabaseService {
         if (currentItem && currentItem.address !== address) {
           // Check if new address already exists for this project (excluding current item's address)
           const existingItems = this.db.prepare('SELECT COUNT(*) as count FROM curtain WHERE project_id = ? AND address = ? AND id != ?').get(currentItem.project_id, address, id);
+          if (existingItems.count > 0) {
+            throw new Error(`Address ${address} already exists.`);
+          }
+        }
+      }
+
+      // Special validation for scene to prevent duplicate addresses
+      if (tableName === 'scene' && address) {
+        const currentItem = this.getProjectItemById(id, tableName);
+        if (currentItem && currentItem.address !== address) {
+          // Check if new address already exists for this project (excluding current item's address)
+          const existingItems = this.db.prepare('SELECT COUNT(*) as count FROM scene WHERE project_id = ? AND address = ? AND id != ?').get(currentItem.project_id, address, id);
           if (existingItems.count > 0) {
             throw new Error(`Address ${address} already exists.`);
           }
@@ -582,9 +616,43 @@ class DatabaseService {
         duplicatedItem.address = newAddress.toString();
       }
 
-      // For aircon_items, include label
+      // For aircon_items, include label and find unique address in range 1-255
       if (tableName === 'aircon_items') {
         duplicatedItem.label = originalItem.label;
+
+        if (originalItem.address) {
+          const existingAddresses = this.db.prepare('SELECT DISTINCT address FROM aircon_items WHERE project_id = ?').all(originalItem.project_id);
+          const addressNumbers = existingAddresses
+            .map(item => parseInt(item.address))
+            .filter(num => !isNaN(num) && num >= 1 && num <= 255)
+            .sort((a, b) => a - b);
+
+          // Find the first available address in range 1-255
+          let newAddress = 1;
+          for (const num of addressNumbers) {
+            if (newAddress < num) {
+              break;
+            }
+            newAddress = num + 1;
+          }
+
+          // If we've exceeded 255, find a gap in the existing addresses
+          if (newAddress > 255) {
+            newAddress = null;
+            for (let i = 1; i <= 255; i++) {
+              if (!addressNumbers.includes(i)) {
+                newAddress = i;
+                break;
+              }
+            }
+
+            if (newAddress === null) {
+              throw new Error('No available addresses in range 1-255 for aircon item duplication');
+            }
+          }
+
+          duplicatedItem.address = newAddress.toString();
+        }
       }
 
       // For curtain, find a unique address in range 1-255 and include curtain-specific fields
@@ -624,6 +692,41 @@ class DatabaseService {
         duplicatedItem.open_group = originalItem.open_group || null;
         duplicatedItem.close_group = originalItem.close_group || null;
         duplicatedItem.stop_group = originalItem.stop_group || null;
+      }
+
+      // For scene, find a unique address in range 1-255 if address exists
+      if (tableName === 'scene' && originalItem.address) {
+        const existingAddresses = this.db.prepare('SELECT DISTINCT address FROM scene WHERE project_id = ?').all(originalItem.project_id);
+        const addressNumbers = existingAddresses
+          .map(item => parseInt(item.address))
+          .filter(num => !isNaN(num) && num >= 1 && num <= 255)
+          .sort((a, b) => a - b);
+
+        // Find the first available address in range 1-255
+        let newAddress = 1;
+        for (const num of addressNumbers) {
+          if (newAddress < num) {
+            break;
+          }
+          newAddress = num + 1;
+        }
+
+        // If we've exceeded 255, find a gap in the existing addresses
+        if (newAddress > 255) {
+          newAddress = null;
+          for (let i = 1; i <= 255; i++) {
+            if (!addressNumbers.includes(i)) {
+              newAddress = i;
+              break;
+            }
+          }
+
+          if (newAddress === null) {
+            throw new Error('No available addresses in range 1-255 for scene item duplication');
+          }
+        }
+
+        duplicatedItem.address = newAddress.toString();
       }
 
       return this.createProjectItem(originalItem.project_id, duplicatedItem, tableName);
@@ -831,21 +934,36 @@ class DatabaseService {
         throw new Error('Aircon card not found');
       }
 
-      // Find a unique numeric address for the duplicated card
+      // Find a unique numeric address for the duplicated card in range 1-255
       // Get all existing addresses for this project
       const existingAddresses = this.db.prepare('SELECT DISTINCT address FROM aircon_items WHERE project_id = ?').all(projectId);
       const addressNumbers = existingAddresses
         .map(item => parseInt(item.address))
-        .filter(num => !isNaN(num))
+        .filter(num => !isNaN(num) && num >= 1 && num <= 255)
         .sort((a, b) => a - b);
 
-      // Find the first gap or next number after the highest
+      // Find the first available address in range 1-255
       let newAddress = 1;
       for (const num of addressNumbers) {
         if (newAddress < num) {
           break;
         }
         newAddress = num + 1;
+      }
+
+      // If we've exceeded 255, find a gap in the existing addresses
+      if (newAddress > 255) {
+        newAddress = null;
+        for (let i = 1; i <= 255; i++) {
+          if (!addressNumbers.includes(i)) {
+            newAddress = i;
+            break;
+          }
+        }
+
+        if (newAddress === null) {
+          throw new Error('No available addresses in range 1-255 for aircon card duplication');
+        }
       }
 
       // Convert to string for consistency

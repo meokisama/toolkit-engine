@@ -53,8 +53,12 @@ export function AirconCardDialog({
     }
 
     const addressNum = parseInt(address.trim());
-    if (isNaN(addressNum) || addressNum <= 0) {
-      return "Address must be a positive integer";
+    if (isNaN(addressNum) || !Number.isInteger(parseFloat(address.trim()))) {
+      return "Address must be an integer";
+    }
+
+    if (addressNum < 1 || addressNum > 255) {
+      return "Address must be between 1 and 255";
     }
 
     return null;
@@ -151,7 +155,7 @@ export function AirconCardDialog({
                   id="address"
                   value={formData.address}
                   onChange={(e) => handleInputChange("address", e.target.value)}
-                  placeholder="1-255"
+                  placeholder="Enter integer 1-255 (e.g., 1, 2, 255)"
                   className={errors.address ? "border-red-500" : ""}
                 />
                 {errors.address && (

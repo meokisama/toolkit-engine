@@ -32,7 +32,7 @@ const SceneTable = memo(function SceneTable({ items = [], loading = false }) {
   const [pendingChanges, setPendingChanges] = useState(new Map());
   const [saveLoading, setSaveLoading] = useState(false);
 
-  // Load scene item counts
+  // Load scene item counts only when tab is active and has items
   useEffect(() => {
     const loadSceneItemCounts = async () => {
       const counts = {};
@@ -50,13 +50,14 @@ const SceneTable = memo(function SceneTable({ items = [], loading = false }) {
       setSceneItemCounts(counts);
     };
 
-    if (items.length > 0) {
+    // Only load counts if we have items and not in loading state
+    if (items.length > 0 && !loading) {
       loadSceneItemCounts();
     } else {
       // Clear counts when no items
       setSceneItemCounts({});
     }
-  }, [items]);
+  }, [items, loading]);
 
   // Reload scene item counts
   const reloadSceneItemCounts = useCallback(async () => {

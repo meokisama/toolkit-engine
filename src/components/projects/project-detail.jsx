@@ -8,6 +8,10 @@ import { AirconCards } from "./aircon/aircon-cards";
 import { CurtainTable } from "./curtain/curtain-table";
 import { SceneTable } from "./scenes/scene-table";
 import { TabContentSkeleton } from "@/components/projects/tabs-skeleton";
+import {
+  TabLoadingSkeleton,
+  AirconCardsSkeleton,
+} from "@/components/projects/tab-loading-skeleton";
 import { Lightbulb, Wind, Cpu, Blinds, SlidersHorizontal } from "lucide-react";
 
 // Memoize tab config outside component to prevent recreating on every render
@@ -47,6 +51,8 @@ export function ProjectDetail() {
     projectItems,
     airconCards,
     loading,
+    tabLoading,
+    loadedTabs,
   } = useProjectDetail();
 
   // Memoize tab entries to prevent recreating on every render
@@ -107,43 +113,55 @@ export function ProjectDetail() {
             );
           })}
         </TabsList>
-        {tabEntries.map(([key]) => (
-          <TabsContent key={key} value={key} className="flex-1 mt-2">
-            {key === "unit" ? (
-              <UnitTable />
-            ) : key === "aircon" ? (
-              <AirconCards cards={airconCards || []} loading={loading} />
-            ) : key === "curtain" ? (
-              <Card className="h-full">
-                <CardContent className="h-full">
-                  <CurtainTable
-                    items={projectItems[key] || []}
-                    loading={loading}
-                  />
-                </CardContent>
-              </Card>
-            ) : key === "scene" ? (
-              <Card className="h-full">
-                <CardContent className="h-full">
-                  <SceneTable
-                    items={projectItems[key] || []}
-                    loading={loading}
-                  />
-                </CardContent>
-              </Card>
-            ) : (
-              <Card className="h-full">
-                <CardContent className="h-full">
-                  <ProjectItemsTable
-                    category={key}
-                    items={projectItems[key] || []}
-                    loading={loading}
-                  />
-                </CardContent>
-              </Card>
-            )}
-          </TabsContent>
-        ))}
+        {tabEntries.map(([key]) => {
+          // Check if this tab is currently loading
+          const isTabLoading =
+            tabLoading[key] || (!loadedTabs.has(key) && activeTab === key);
+
+          return (
+            <TabsContent key={key} value={key} className="flex-1 mt-2">
+              {isTabLoading ? (
+                key === "aircon" ? (
+                  <AirconCardsSkeleton />
+                ) : (
+                  <TabLoadingSkeleton />
+                )
+              ) : key === "unit" ? (
+                <UnitTable />
+              ) : key === "aircon" ? (
+                <AirconCards cards={airconCards || []} loading={false} />
+              ) : key === "curtain" ? (
+                <Card className="h-full">
+                  <CardContent className="h-full">
+                    <CurtainTable
+                      items={projectItems[key] || []}
+                      loading={false}
+                    />
+                  </CardContent>
+                </Card>
+              ) : key === "scene" ? (
+                <Card className="h-full">
+                  <CardContent className="h-full">
+                    <SceneTable
+                      items={projectItems[key] || []}
+                      loading={false}
+                    />
+                  </CardContent>
+                </Card>
+              ) : (
+                <Card className="h-full">
+                  <CardContent className="h-full">
+                    <ProjectItemsTable
+                      category={key}
+                      items={projectItems[key] || []}
+                      loading={false}
+                    />
+                  </CardContent>
+                </Card>
+              )}
+            </TabsContent>
+          );
+        })}
       </Tabs>
     </div>
   );

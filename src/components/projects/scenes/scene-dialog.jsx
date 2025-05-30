@@ -61,10 +61,28 @@ export function SceneDialog({
     address: "",
     description: "",
   });
+  const [errors, setErrors] = useState({});
   const [sceneItems, setSceneItems] = useState([]);
   const [originalSceneItems, setOriginalSceneItems] = useState([]); // Store original items for reset
   const [loading, setLoading] = useState(false);
-  const [errors, setErrors] = useState({});
+
+  // Validate address field
+  const validateAddress = (value) => {
+    if (!value.trim()) {
+      return null; // Address is optional for scenes
+    }
+
+    const num = parseInt(value, 10);
+    if (isNaN(num) || !Number.isInteger(parseFloat(value))) {
+      return "Address must be an integer";
+    }
+
+    if (num < 1 || num > 255) {
+      return "Address must be between 1 and 255";
+    }
+
+    return null;
+  };
 
   useEffect(() => {
     if (open) {
@@ -100,7 +118,17 @@ export function SceneDialog({
 
   const handleInputChange = (field, value) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
-    if (errors[field]) {
+
+    // Clear general error when user starts typing
+    if (errors.general) {
+      setErrors((prev) => ({ ...prev, general: null }));
+    }
+
+    // Real-time validation for address field
+    if (field === "address") {
+      const error = validateAddress(value);
+      setErrors((prev) => ({ ...prev, address: error }));
+    } else if (errors[field]) {
       setErrors((prev) => ({ ...prev, [field]: null }));
     }
   };
@@ -252,8 +280,16 @@ export function SceneDialog({
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    // Validate name
     if (!formData.name.trim()) {
       setErrors({ name: "Name is required" });
+      return;
+    }
+
+    // Validate address before submitting
+    const addressError = validateAddress(formData.address);
+    if (addressError) {
+      setErrors({ address: addressError });
       return;
     }
 
@@ -297,6 +333,16 @@ export function SceneDialog({
       setErrors({});
     } catch (error) {
       console.error("Failed to save scene:", error);
+
+      // Handle duplicate address error specifically
+      if (error.message && error.message.includes("already exists")) {
+        // Extract the clean error message after the last colon
+        const cleanMessage = error.message.split(": ").pop();
+        setErrors({ address: cleanMessage });
+      } else {
+        // Handle other errors generically
+        setErrors({ general: "Failed to save scene. Please try again." });
+      }
     } finally {
       setLoading(false);
     }
@@ -525,13 +571,26 @@ export function SceneDialog({
                 <Label htmlFor="address" className="text-right pl-1">
                   Address
                 </Label>
-                <Input
-                  id="address"
-                  value={formData.address}
-                  onChange={(e) => handleInputChange("address", e.target.value)}
-                  className="col-span-5"
-                  placeholder="Enter address"
-                />
+                <div className="col-span-5">
+                  <Input
+                    id="address"
+                    value={formData.address}
+                    onChange={(e) =>
+                      handleInputChange("address", e.target.value)
+                    }
+                    className={
+                      errors.address
+                        ? "border-red-500 focus:border-red-500"
+                        : ""
+                    }
+                    placeholder="Enter integer 1-255 (e.g., 1, 2, 255)"
+                  />
+                  {errors.address && (
+                    <p className="text-sm text-red-500 mt-1">
+                      {errors.address}
+                    </p>
+                  )}
+                </div>
               </div>
 
               <div className="flex flex-col gap-2">
@@ -795,6 +854,13 @@ export function SceneDialog({
             </div>
           </div>
 
+          {/* General Error Display */}
+          {errors.general && (
+            <div className="text-sm text-red-500 text-center mt-4">
+              {errors.general}
+            </div>
+          )}
+
           <DialogFooter>
             <Button
               type="button"
@@ -806,7 +872,12 @@ export function SceneDialog({
             </Button>
             <Button
               type="submit"
-              disabled={loading || !formData.name.trim() || errors.name}
+              disabled={
+                loading ||
+                !formData.name.trim() ||
+                errors.name ||
+                errors.address
+              }
             >
               {loading ? "Saving..." : mode === "edit" ? "Update" : "Create"}
             </Button>
