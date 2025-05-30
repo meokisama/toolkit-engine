@@ -249,15 +249,15 @@ export function CurtainDialog({
               : "Add a new curtain item to your project."}
           </DialogDescription>
         </DialogHeader>
-        <form onSubmit={handleSubmit}>
-          <div className="grid gap-4 py-4">
+        <form onSubmit={handleSubmit} className="w-full">
+          <div className="grid gap-6 py-4 w-full">
             {errors.general && (
               <div className="text-sm text-red-600 bg-red-50 p-2 rounded">
                 {errors.general}
               </div>
             )}
 
-            <div className="grid grid-cols-4 items-center gap-4">
+            <div className="flex flex-col gap-2">
               <Label htmlFor="name" className="text-right">
                 Name
               </Label>
@@ -265,7 +265,6 @@ export function CurtainDialog({
                 id="name"
                 value={formData.name}
                 onChange={(e) => handleInputChange("name", e.target.value)}
-                className="col-span-3"
                 placeholder="Enter curtain name"
               />
               {errors.name && (
@@ -275,116 +274,146 @@ export function CurtainDialog({
               )}
             </div>
 
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="address" className="text-right">
-                Address *
-              </Label>
-              <Input
-                id="address"
-                type="number"
-                min="1"
-                max="255"
-                value={formData.address}
-                onChange={(e) => handleInputChange("address", e.target.value)}
-                className="col-span-3"
-                placeholder="1-255"
-              />
-              {errors.address && (
-                <div className="col-span-4 text-sm text-red-600">
-                  {errors.address}
-                </div>
-              )}
-            </div>
-
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="curtain_type" className="text-right">
-                Type *
-              </Label>
-              <Select
-                value={formData.curtain_type}
-                onValueChange={(value) =>
-                  handleInputChange("curtain_type", value)
-                }
-              >
-                <SelectTrigger className="col-span-3">
-                  <SelectValue placeholder="Select curtain type" />
-                </SelectTrigger>
-                <SelectContent>
-                  {curtainTypeOptions.map((option) => (
-                    <SelectItem key={option.value} value={option.value}>
-                      {option.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="open_group" className="text-right">
-                Open Group
-              </Label>
-              <div className="col-span-3">
-                <LightingCombobox
-                  value={formData.open_group}
-                  onValueChange={(value) =>
-                    handleInputChange("open_group", value)
-                  }
-                  options={lightingOptions}
-                  placeholder="Select lighting group for open (optional)"
-                />
-              </div>
-              {errors.open_group && (
-                <div className="col-span-4 text-sm text-red-600">
-                  {errors.open_group}
-                </div>
-              )}
-            </div>
-
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="close_group" className="text-right">
-                Close Group
-              </Label>
-              <div className="col-span-3">
-                <LightingCombobox
-                  value={formData.close_group}
-                  onValueChange={(value) =>
-                    handleInputChange("close_group", value)
-                  }
-                  options={lightingOptions}
-                  placeholder="Select lighting group for close (optional)"
-                />
-              </div>
-              {errors.close_group && (
-                <div className="col-span-4 text-sm text-red-600">
-                  {errors.close_group}
-                </div>
-              )}
-            </div>
-
-            {formData.curtain_type === "CURTAIN_PULSE_3P" && (
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="stop_group" className="text-right">
-                  Stop Group
+            <div className="flex gap-2">
+              <div className="flex flex-col gap-2 w-1/2">
+                <Label htmlFor="address" className="text-right">
+                  Address *
                 </Label>
-                <div className="col-span-3">
-                  <LightingCombobox
-                    value={formData.stop_group}
-                    onValueChange={(value) =>
-                      handleInputChange("stop_group", value)
-                    }
-                    options={lightingOptions}
-                    placeholder="Select lighting group for stop (optional)"
-                  />
-                </div>
-                {errors.stop_group && (
+                <Input
+                  id="address"
+                  type="number"
+                  min="1"
+                  max="255"
+                  value={formData.address}
+                  onChange={(e) => handleInputChange("address", e.target.value)}
+                  placeholder="1-255"
+                />
+                {errors.address && (
                   <div className="col-span-4 text-sm text-red-600">
-                    {errors.stop_group}
+                    {errors.address}
                   </div>
                 )}
               </div>
-            )}
 
-            <div className="grid grid-cols-4 items-center gap-4">
+              <div className="flex flex-col gap-2 w-1/2">
+                <Label htmlFor="curtain_type" className="text-right">
+                  Type *
+                </Label>
+                <Select
+                  value={formData.curtain_type}
+                  onValueChange={(value) =>
+                    handleInputChange("curtain_type", value)
+                  }
+                >
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Select curtain type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {curtainTypeOptions.map((option) => (
+                      <SelectItem key={option.value} value={option.value}>
+                        {option.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            <div className="flex gap-2">
+              <div
+                className={`flex flex-col gap-2 ${
+                  formData.curtain_type === "CURTAIN_PULSE_3P"
+                    ? "w-1/3"
+                    : "w-1/2"
+                }`}
+              >
+                <Label htmlFor="open_group" className="text-right">
+                  Open Group
+                </Label>
+                <div>
+                  <LightingCombobox
+                    value={formData.open_group}
+                    onValueChange={(value) =>
+                      handleInputChange("open_group", value)
+                    }
+                    options={lightingOptions}
+                    placeholder="Select group"
+                    className={`${
+                      formData.curtain_type === "CURTAIN_PULSE_3P"
+                        ? "max-w-36"
+                        : "max-w-55"
+                    }`}
+                  />
+                </div>
+                {errors.open_group && (
+                  <div className="col-span-4 text-sm text-red-600">
+                    {errors.open_group}
+                  </div>
+                )}
+              </div>
+
+              <div
+                className={`flex flex-col gap-2 ${
+                  formData.curtain_type === "CURTAIN_PULSE_3P"
+                    ? "w-1/3"
+                    : "w-1/2"
+                }`}
+              >
+                <Label htmlFor="close_group" className="text-right">
+                  Close Group
+                </Label>
+                <div>
+                  <LightingCombobox
+                    value={formData.close_group}
+                    onValueChange={(value) =>
+                      handleInputChange("close_group", value)
+                    }
+                    options={lightingOptions}
+                    placeholder="Select group"
+                    className={`${
+                      formData.curtain_type === "CURTAIN_PULSE_3P"
+                        ? "max-w-36"
+                        : "max-w-55"
+                    }`}
+                  />
+                </div>
+                {errors.close_group && (
+                  <div className="col-span-4 text-sm text-red-600">
+                    {errors.close_group}
+                  </div>
+                )}
+              </div>
+
+              {formData.curtain_type === "CURTAIN_PULSE_3P" && (
+                <div className="flex flex-col gap-2 w-1/3">
+                  <Label htmlFor="stop_group" className="text-right">
+                    Stop Group
+                  </Label>
+                  <div>
+                    <LightingCombobox
+                      value={formData.stop_group}
+                      onValueChange={(value) =>
+                        handleInputChange("stop_group", value)
+                      }
+                      options={lightingOptions}
+                      placeholder="Select group"
+                      className={`${
+                        formData.curtain_type === "CURTAIN_PULSE_3P"
+                          ? "max-w-36"
+                          : "max-w-55"
+                      }`}
+                    />
+                  </div>
+                  {errors.stop_group && (
+                    <div className="col-span-4 text-sm text-red-600">
+                      {errors.stop_group}
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+
+            <div className="flex flex-col gap-2">
               <Label htmlFor="description" className="text-right">
                 Description
               </Label>
@@ -394,8 +423,7 @@ export function CurtainDialog({
                 onChange={(e) =>
                   handleInputChange("description", e.target.value)
                 }
-                className="col-span-3"
-                placeholder="Optional description"
+                placeholder="Enter description"
               />
             </div>
           </div>
