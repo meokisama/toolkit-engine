@@ -21,6 +21,9 @@ import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useProjectDetail } from "@/contexts/project-detail-context";
 import { UNIT_TYPES, UNIT_MODES } from "@/constants";
+import { RS485ConfigDialog } from "./rs485-config-dialog";
+import { Settings } from "lucide-react";
+import { supportsRS485 } from "@/utils/rs485-utils";
 
 export function UnitDialog({
   open,
@@ -40,9 +43,11 @@ export function UnitDialog({
     can_load: false,
     recovery_mode: false,
     description: "",
+    rs485_config: null,
   });
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({});
+  const [rs485DialogOpen, setRS485DialogOpen] = useState(false);
 
   // Create options for combobox from UNIT_TYPES
   const unitTypeOptions = UNIT_TYPES.map((unit) => ({
@@ -94,6 +99,7 @@ export function UnitDialog({
           can_load: item.can_load || false,
           recovery_mode: item.recovery_mode || false,
           description: item.description || "",
+          rs485_config: item.rs485_config || null,
         });
       } else {
         setFormData({
@@ -107,6 +113,7 @@ export function UnitDialog({
           can_load: false,
           recovery_mode: false,
           description: "",
+          rs485_config: null,
         });
       }
       setErrors({});
@@ -120,6 +127,15 @@ export function UnitDialog({
     if (errors[field]) {
       setErrors((prev) => ({ ...prev, [field]: null }));
     }
+  };
+
+  const handleRS485ConfigSave = (config) => {
+    setFormData((prev) => ({ ...prev, rs485_config: config }));
+  };
+
+  // Check if unit supports RS485 (not all unit types support RS485)
+  const unitSupportsRS485 = () => {
+    return supportsRS485(formData.type);
   };
 
   const handleSubmit = async (e) => {
@@ -322,6 +338,25 @@ export function UnitDialog({
                 placeholder="Enter description"
               />
             </div>
+
+            {/* RS485 Configuration */}
+            {unitSupportsRS485() && (
+              <div className="flex flex-col gap-2">
+                <Label className="text-right">RS485 Configuration</Label>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setRS485DialogOpen(true)}
+                  className="flex items-center gap-2"
+                >
+                  <Settings className="h-4 w-4" />
+                  Configure RS485
+                  {formData.rs485_config && (
+                    <span className="text-xs text-green-600">(Configured)</span>
+                  )}
+                </Button>
+              </div>
+            )}
           </div>
 
           <DialogFooter>
@@ -348,6 +383,14 @@ export function UnitDialog({
           </DialogFooter>
         </form>
       </DialogContent>
+
+      {/* RS485 Configuration Dialog */}
+      <RS485ConfigDialog
+        open={rs485DialogOpen}
+        onOpenChange={setRS485DialogOpen}
+        config={formData.rs485_config}
+        onSave={handleRS485ConfigSave}
+      />
     </Dialog>
   );
 }

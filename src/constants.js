@@ -69,6 +69,74 @@ export const CONSTANTS = {
     ]
   },
 
+  RS485: {
+    MAX_CONFIG: 2,
+    SLAVE_MAX_DEVS: 10,
+    SLAVE_MAX_INDOORS: 16,
+
+    TYPES: [
+      { value: 0, label: "RS485_NONE" },
+      { value: 1, label: "RS485_MASTER_TC300" },
+      { value: 2, label: "RS485_MASTER_TC303" },
+      { value: 3, label: "RS485_MASTER_TC903" },
+      { value: 4, label: "RS485_MASTER_TC907" },
+      { value: 5, label: "RS485_MASTER_SE8300" },
+      { value: 6, label: "RS485_MASTER_P_22RTM" },
+      { value: 7, label: "RS485_MASTER_ABB" },
+      { value: 10, label: "RS485_MASTER_DAIKIN" },
+      { value: 11, label: "RS485_MASTER_MITSU" },
+      { value: 12, label: "RS485_MASTER_LG" },
+      { value: 13, label: "RS485_MASTER_SAMSUNG_F1F2" },
+      { value: 14, label: "RS485_MASTER_SAMSUNG_F3F4" },
+      { value: 15, label: "RS485_MASTER_HITACHI" },
+      { value: 16, label: "RS485_MASTER_SANYO" },
+      { value: 17, label: "RS485_MASTER_RISHUN" },
+      { value: 18, label: "RS485_MASTER_LAFFEY" },
+      { value: 19, label: "RS485_MASTER_HAFELE" },
+      { value: 20, label: "RS485_SLAVE_RLG" },
+      { value: 21, label: "RS485_MASTER_RLG" },
+      { value: 22, label: "RS485_SLAVE_RTU" },
+      { value: 23, label: "RS485_MASTER_RTU" },
+      { value: 24, label: "RS485_SLAVE_ASCII" },
+      { value: 25, label: "RS485_MASTER_ASCII" },
+      { value: 26, label: "RS485_SLAVE_TC300" },
+      { value: 27, label: "RS485_SLAVE_TC303" },
+      { value: 28, label: "RS485_SLAVE_LINK" },
+      { value: 29, label: "RS485_MASTER_LINK" },
+      { value: 30, label: "RS485_SLAVE_DMX" },
+      { value: 31, label: "RS485_MASTER_DMX" },
+      { value: 32, label: "RS485_BACNET" },
+      { value: 33, label: "RS485_RESI_DALI" },
+      { value: 40, label: "SAMSUNG_OUTDOOR_F1F2" },
+      { value: 41, label: "SAMSUNG_INDOOR_F3F4" },
+      { value: 42, label: "D3_NET" },
+      { value: 43, label: "P1P2" },
+      { value: 255, label: "RS485_OTHER" }
+    ],
+
+    BAUDRATES: [
+      { value: 4800, label: "4800" },
+      { value: 9600, label: "9600" },
+      { value: 19200, label: "19200" },
+      { value: 38400, label: "38400" },
+      { value: 57600, label: "57600" },
+      { value: 115200, label: "115200" },
+      { value: 128000, label: "128000" },
+      { value: 256000, label: "256000" }
+    ],
+
+    PARITY: [
+      { value: 0, label: "None" },
+      { value: 1, label: "Odd" },
+      { value: 2, label: "Even" }
+    ],
+
+    STOP_BITS: [
+      { value: 0, label: "1" },
+      { value: 1, label: "2" }
+    ]
+  },
+
   AIRCON: [
     {
       obj_type: "OBJ_AC_POWER",
