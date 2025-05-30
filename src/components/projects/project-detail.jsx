@@ -8,7 +8,7 @@ import { AirconCards } from "./aircon/aircon-cards";
 import { CurtainTable } from "./curtain/curtain-table";
 import { SceneTable } from "./scenes/scene-table";
 import { TabContentSkeleton } from "@/components/projects/tabs-skeleton";
-import { Lightbulb, Wind, Cpu, Blinds, Palette } from "lucide-react";
+import { Lightbulb, Wind, Cpu, Blinds, SlidersHorizontal } from "lucide-react";
 
 // Memoize tab config outside component to prevent recreating on every render
 const tabConfig = {
@@ -29,7 +29,7 @@ const tabConfig = {
   },
   scene: {
     label: "Scene",
-    icon: Palette,
+    icon: SlidersHorizontal,
     description: "Manage lighting and automation scenes",
   },
   unit: {
@@ -94,7 +94,7 @@ export function ProjectDetail() {
               <TabsTrigger
                 key={key}
                 value={key}
-                className="flex items-center justify-center gap-3"
+                className="flex items-center justify-center gap-3 cursor-pointer"
               >
                 <Icon className="h-4 w-4" />
                 <span className="hidden sm:inline">{config.label}</span>

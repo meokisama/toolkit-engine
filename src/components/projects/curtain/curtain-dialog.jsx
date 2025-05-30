@@ -183,10 +183,6 @@ export function CurtainDialog({
   const validateForm = () => {
     const newErrors = {};
 
-    if (!formData.name?.trim()) {
-      newErrors.name = "Name is required";
-    }
-
     if (!formData.address?.trim()) {
       newErrors.address = "Address is required";
     } else {
@@ -196,14 +192,8 @@ export function CurtainDialog({
       }
     }
 
-    // Open and close groups are optional for curtain items
-    // Only stop group is required for 3P type
-    if (
-      formData.curtain_type === "CURTAIN_PULSE_3P" &&
-      !formData.stop_group?.trim()
-    ) {
-      newErrors.stop_group = "Stop group is required for 3-Point Pulse type";
-    }
+    // Open, close, and stop groups are all optional for curtain items
+    // No group validation required for any curtain type
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -269,7 +259,7 @@ export function CurtainDialog({
 
             <div className="grid grid-cols-4 items-center gap-4">
               <Label htmlFor="name" className="text-right">
-                Name *
+                Name
               </Label>
               <Input
                 id="name"
@@ -374,7 +364,7 @@ export function CurtainDialog({
             {formData.curtain_type === "CURTAIN_PULSE_3P" && (
               <div className="grid grid-cols-4 items-center gap-4">
                 <Label htmlFor="stop_group" className="text-right">
-                  Stop Group *
+                  Stop Group
                 </Label>
                 <div className="col-span-3">
                   <LightingCombobox
@@ -383,7 +373,7 @@ export function CurtainDialog({
                       handleInputChange("stop_group", value)
                     }
                     options={lightingOptions}
-                    placeholder="Select lighting group for stop"
+                    placeholder="Select lighting group for stop (optional)"
                   />
                 </div>
                 {errors.stop_group && (

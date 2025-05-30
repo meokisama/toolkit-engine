@@ -9,9 +9,10 @@ import { DataTableToolbar } from "@/components/projects/data-table/data-table-to
 import { DataTablePagination } from "@/components/projects/data-table/data-table-pagination";
 import { DataTableSkeleton } from "@/components/projects/table-skeleton";
 import { createSceneColumns } from "@/components/projects/scenes/scene-columns";
+import { SlidersHorizontal } from "lucide-react";
 
 const SceneTable = memo(function SceneTable({ items = [], loading = false }) {
-  const { deleteItem, duplicateItem } = useProjectDetail();
+  const { deleteItem, duplicateItem, updateItem } = useProjectDetail();
   const [sceneItemCounts, setSceneItemCounts] = useState({});
   const [table, setTable] = useState(null);
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -28,6 +29,8 @@ const SceneTable = memo(function SceneTable({ items = [], loading = false }) {
     pageIndex: 0,
     pageSize: 10,
   });
+  const [pendingChanges, setPendingChanges] = useState(new Map());
+  const [saveLoading, setSaveLoading] = useState(false);
 
   // Load scene item counts
   useEffect(() => {
@@ -73,6 +76,49 @@ const SceneTable = memo(function SceneTable({ items = [], loading = false }) {
       setSceneItemCounts(counts);
     }
   }, [items]);
+
+  // Handle inline cell editing
+  const handleCellEdit = useCallback((itemId, field, newValue) => {
+    setPendingChanges((prev) => {
+      const newChanges = new Map(prev);
+      const itemChanges = newChanges.get(itemId) || {};
+      itemChanges[field] = newValue;
+      newChanges.set(itemId, itemChanges);
+      return newChanges;
+    });
+  }, []);
+
+  // Get effective value (pending change or original value)
+  const getEffectiveValue = useCallback(
+    (itemId, field, originalValue) => {
+      const itemChanges = pendingChanges.get(itemId);
+      return itemChanges && itemChanges.hasOwnProperty(field)
+        ? itemChanges[field]
+        : originalValue;
+    },
+    [pendingChanges]
+  );
+
+  // Save all pending changes
+  const handleSaveChanges = useCallback(async () => {
+    if (pendingChanges.size === 0) return;
+
+    setSaveLoading(true);
+    try {
+      for (const [itemId, changes] of pendingChanges) {
+        const item = items.find((i) => i.id === itemId);
+        if (item) {
+          const updatedItem = { ...item, ...changes };
+          await updateItem("scene", updatedItem.id, updatedItem);
+        }
+      }
+      setPendingChanges(new Map());
+    } catch (error) {
+      console.error("Failed to save changes:", error);
+    } finally {
+      setSaveLoading(false);
+    }
+  }, [pendingChanges, items, updateItem]);
 
   const handleCreateItem = useCallback(() => {
     setEditingItem(null);
@@ -152,7 +198,9 @@ const SceneTable = memo(function SceneTable({ items = [], loading = false }) {
   const columns = createSceneColumns(
     handleEditItem,
     handleDuplicateItem,
-    handleDeleteItem
+    handleDeleteItem,
+    handleCellEdit,
+    getEffectiveValue
   );
 
   if (loading) {
@@ -163,18 +211,16 @@ const SceneTable = memo(function SceneTable({ items = [], loading = false }) {
     <div className="space-y-4 flex flex-col h-full">
       <div className="flex-1 space-y-4">
         {items.length === 0 ? (
-          <div className="flex flex-1 items-center justify-center rounded-lg border border-dashed shadow-sm min-h-[400px]">
-            <div className="flex flex-col items-center gap-1 text-center">
-              <h3 className="text-2xl font-bold tracking-tight">No scenes</h3>
-              <p className="text-sm text-muted-foreground">
-                You haven't created any scenes yet. Start by creating your first
-                scene.
-              </p>
-              <Button className="mt-4" onClick={handleCreateItem}>
-                <Plus className="h-4 w-4" />
-                Add Scene
-              </Button>
-            </div>
+          <div className="text-center text-muted-foreground flex flex-col justify-center items-center h-full -mt-8">
+            <SlidersHorizontal className="h-12 w-12 mx-auto mb-4 opacity-50" />
+            <p>No scenes found.</p>
+            <p className="text-sm mb-8">
+              Click "Add Scene" to create your first item.
+            </p>
+            <Button onClick={handleCreateItem}>
+              <Plus className="h-4 w-4" />
+              Add Scene
+            </Button>
           </div>
         ) : (
           <div className="space-y-4 flex flex-col h-full">
@@ -186,6 +232,9 @@ const SceneTable = memo(function SceneTable({ items = [], loading = false }) {
                   columnVisibility={columnVisibility}
                   onAddItem={handleCreateItem}
                   addItemLabel="Add Scene"
+                  onSave={handleSaveChanges}
+                  hasPendingChanges={pendingChanges.size > 0}
+                  saveLoading={saveLoading}
                 />
               )}
               <DataTable

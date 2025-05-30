@@ -58,6 +58,7 @@ export function SceneDialog({
   } = useProjectDetail();
   const [formData, setFormData] = useState({
     name: "",
+    address: "",
     description: "",
   });
   const [sceneItems, setSceneItems] = useState([]);
@@ -70,12 +71,14 @@ export function SceneDialog({
       if (mode === "edit" && scene) {
         setFormData({
           name: scene.name || "",
+          address: scene.address || "",
           description: scene.description || "",
         });
         loadSceneItems(scene.id);
       } else {
         setFormData({
           name: "",
+          address: "",
           description: "",
         });
         setSceneItems([]);
@@ -286,6 +289,7 @@ export function SceneDialog({
       // Reset form data after successful creation
       setFormData({
         name: "",
+        address: "",
         description: "",
       });
       setSceneItems([]);
@@ -304,6 +308,7 @@ export function SceneDialog({
       setSceneItems([...originalSceneItems]);
       setFormData({
         name: scene?.name || "",
+        address: scene?.address || "",
         description: scene?.description || "",
       });
     }
@@ -496,7 +501,7 @@ export function SceneDialog({
         <form onSubmit={handleSubmit}>
           <div className="grid gap-4 py-4">
             {/* Scene Basic Info */}
-            <div className="grid grid-cols-2 items-center gap-4">
+            <div className="grid grid-cols-3 items-center gap-4">
               <div className="flex flex-col gap-2">
                 <Label htmlFor="name" className="text-right pl-1">
                   Name *
@@ -514,6 +519,19 @@ export function SceneDialog({
                     <p className="text-sm text-red-500 mt-1">{errors.name}</p>
                   )}
                 </div>
+              </div>
+
+              <div className="flex flex-col gap-2">
+                <Label htmlFor="address" className="text-right pl-1">
+                  Address
+                </Label>
+                <Input
+                  id="address"
+                  value={formData.address}
+                  onChange={(e) => handleInputChange("address", e.target.value)}
+                  className="col-span-5"
+                  placeholder="Enter address"
+                />
               </div>
 
               <div className="flex flex-col gap-2">

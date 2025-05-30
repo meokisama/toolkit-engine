@@ -1,6 +1,6 @@
 import { CONSTANTS } from '@/constants';
 
-const { UDP_CONFIG, BARCODE_MAPPING } = CONSTANTS.UNIT;
+const { UDP_CONFIG, TYPES } = CONSTANTS.UNIT;
 
 /**
  * UDP Network Scanner Service
@@ -29,7 +29,8 @@ class UDPNetworkScanner {
      * Based on InfoBarcode function from RLC
      */
     mapBarcodeToDeviceType(barcode) {
-        return BARCODE_MAPPING[barcode] || 'Unidentified';
+        const unit = TYPES.find(unit => unit.barcode === barcode);
+        return unit ? unit.name : 'Unidentified';
     }
 
     /**

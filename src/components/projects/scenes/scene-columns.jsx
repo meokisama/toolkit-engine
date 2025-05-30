@@ -3,9 +3,23 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { DataTableColumnHeader } from "@/components/projects/data-table/data-table-column-header";
-import { Settings, Palette, SquarePen, Copy, Trash2 } from "lucide-react";
+import { EditableCell } from "@/components/projects/data-table/editable-cell";
+import {
+  Settings,
+  Copy,
+  Trash2,
+  SlidersHorizontal,
+  Layers,
+  FilePen,
+} from "lucide-react";
 
-export const createSceneColumns = (onEdit, onDuplicate, onDelete) => [
+export const createSceneColumns = (
+  onEdit,
+  onDuplicate,
+  onDelete,
+  onCellEdit,
+  getEffectiveValue
+) => [
   {
     id: "select",
     header: ({ table }) => (
@@ -29,7 +43,7 @@ export const createSceneColumns = (onEdit, onDuplicate, onDelete) => [
     enableSorting: false,
     enableHiding: false,
     meta: {
-      className: "w-[5%]",
+      className: "w-[3%]",
     },
   },
   {
@@ -39,17 +53,57 @@ export const createSceneColumns = (onEdit, onDuplicate, onDelete) => [
     ),
     cell: ({ row }) => {
       const name = row.getValue("name");
+      const effectiveValue = getEffectiveValue(row.original.id, "name", name);
       return (
-        <div className="flex items-center gap-2">
-          <Palette className="h-4 w-4 text-purple-500" />
-          <span className="font-medium">{name || "Untitled Scene"}</span>
-        </div>
+        <EditableCell
+          value={effectiveValue || "Untitled Scene"}
+          type="text"
+          onSave={(newValue) => onCellEdit(row.original.id, "name", newValue)}
+          className="font-medium"
+          placeholder="Enter scene name"
+          icon={SlidersHorizontal}
+        />
       );
     },
     enableSorting: true,
     enableHiding: true,
     meta: {
-      className: "w-[20%]",
+      className: "w-[15%]",
+    },
+  },
+
+  {
+    accessorKey: "address",
+    header: ({ column }) => (
+      <DataTableColumnHeader
+        column={column}
+        title="Address"
+        className="flex items-center justify-center"
+      />
+    ),
+    cell: ({ row }) => {
+      const address = row.getValue("address");
+      const effectiveValue = getEffectiveValue(
+        row.original.id,
+        "address",
+        address
+      );
+      return (
+        <EditableCell
+          value={effectiveValue}
+          type="number"
+          onSave={(newValue) =>
+            onCellEdit(row.original.id, "address", newValue)
+          }
+          className="text-center font-bold"
+          icon={Layers}
+        />
+      );
+    },
+    enableSorting: true,
+    enableHiding: true,
+    meta: {
+      className: "w-[8%]",
     },
   },
 
@@ -64,36 +118,53 @@ export const createSceneColumns = (onEdit, onDuplicate, onDelete) => [
     ),
     cell: ({ row }) => {
       const description = row.getValue("description");
+      const effectiveValue = getEffectiveValue(
+        row.original.id,
+        "description",
+        description
+      );
       return (
-        <span className="text-muted-foreground">
-          {description || "No description"}
-        </span>
+        <EditableCell
+          value={effectiveValue}
+          type="text"
+          onSave={(newValue) =>
+            onCellEdit(row.original.id, "description", newValue)
+          }
+          placeholder="Enter description"
+          icon={FilePen}
+        />
       );
     },
     enableSorting: false,
     enableHiding: true,
     meta: {
-      className: "w-[30%]",
+      className: "w-[25%]",
     },
   },
   {
     id: "itemCount",
     header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Items" className="pl-1" />
+      <DataTableColumnHeader
+        column={column}
+        title="Items"
+        className="text-center"
+      />
     ),
     cell: ({ row }) => {
       // This will be populated by the parent component with scene item count
       const itemCount = row.original.itemCount || 0;
       return (
-        <Badge variant="secondary">
-          {itemCount} {itemCount === 1 ? "item" : "items"}
-        </Badge>
+        <div className="flex justify-center">
+          <Badge>
+            {itemCount} {itemCount === 1 ? "item" : "items"}
+          </Badge>
+        </div>
       );
     },
     enableSorting: true,
     enableHiding: true,
     meta: {
-      className: "w-[10%]",
+      className: "w-[20%]",
     },
   },
   {
@@ -137,7 +208,7 @@ export const createSceneColumns = (onEdit, onDuplicate, onDelete) => [
     enableSorting: false,
     enableHiding: false,
     meta: {
-      className: "w-[17%]",
+      className: "w-[8%]",
     },
   },
 ];

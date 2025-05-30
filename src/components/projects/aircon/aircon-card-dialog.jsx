@@ -72,7 +72,7 @@ export function AirconCardDialog({
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (!formData.name.trim() || !formData.address.trim()) {
+    if (!formData.address.trim()) {
       return;
     }
 
@@ -132,7 +132,7 @@ export function AirconCardDialog({
           <div className="grid gap-4 py-4">
             <div className="grid grid-cols-4 items-center gap-4">
               <Label htmlFor="name" className="text-right">
-                Name *
+                Name
               </Label>
               <Input
                 id="name"
@@ -140,7 +140,6 @@ export function AirconCardDialog({
                 onChange={(e) => handleInputChange("name", e.target.value)}
                 className="col-span-3"
                 placeholder="Enter aircon name"
-                required
               />
             </div>
             <div className="grid grid-cols-4 items-center gap-4">
@@ -152,7 +151,7 @@ export function AirconCardDialog({
                   id="address"
                   value={formData.address}
                   onChange={(e) => handleInputChange("address", e.target.value)}
-                  placeholder="Enter address (positive integer)"
+                  placeholder="1-255"
                   className={errors.address ? "border-red-500" : ""}
                 />
                 {errors.address && (
@@ -193,12 +192,7 @@ export function AirconCardDialog({
             </Button>
             <Button
               type="submit"
-              disabled={
-                loading ||
-                !formData.name.trim() ||
-                !formData.address.trim() ||
-                errors.address
-              }
+              disabled={loading || !formData.address.trim() || errors.address}
             >
               {loading
                 ? mode === "edit"

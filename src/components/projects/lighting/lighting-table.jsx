@@ -10,6 +10,7 @@ import { DataTablePagination } from "@/components/projects/data-table/data-table
 import { DataTableSkeleton } from "@/components/projects/table-skeleton";
 import { createProjectItemsColumns } from "@/components/projects/lighting/lighting-columns";
 import { ImportItemsDialog } from "@/components/projects/import-category-dialog";
+import { Lightbulb } from "lucide-react";
 
 // Memoized component to prevent unnecessary rerenders
 function ProjectItemsTableComponent({ category, items, loading }) {
@@ -206,13 +207,14 @@ function ProjectItemsTableComponent({ category, items, loading }) {
       <div className="space-y-4 h-full">
         {items.length === 0 ? (
           <div className="text-center text-muted-foreground flex flex-col justify-center items-center h-full -mt-8">
-            <p>No items found.</p>
+            <Lightbulb className="h-12 w-12 mx-auto mb-4 opacity-50" />
+            <p>No lighting groups found.</p>
             <p className="text-sm mb-8">
               Click "Add Group" to create your first item.
             </p>
             <Button onClick={handleCreateItem}>
               <Plus className="h-4 w-4" />
-              Add group
+              Add Group
             </Button>
           </div>
         ) : (

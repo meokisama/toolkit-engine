@@ -108,10 +108,6 @@ export function ProjectItemDialog({
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (!formData.name.trim()) {
-      return;
-    }
-
     // Validate address before submitting
     const addressError = validateAddress(formData.address);
     if (addressError) {
@@ -189,7 +185,7 @@ export function ProjectItemDialog({
           <div className="grid gap-4 py-4">
             <div className="grid grid-cols-4 items-center gap-4">
               <Label htmlFor="name" className="text-right">
-                Name *
+                Name
               </Label>
               <Input
                 id="name"
@@ -197,7 +193,6 @@ export function ProjectItemDialog({
                 onChange={(e) => handleInputChange("name", e.target.value)}
                 className="col-span-3"
                 placeholder="Enter item name"
-                required
               />
             </div>
             <div className="grid grid-cols-4 items-start gap-4">
@@ -258,7 +253,6 @@ export function ProjectItemDialog({
               type="submit"
               disabled={
                 loading ||
-                !formData.name.trim() ||
                 (category === "lighting" && !formData.address.trim()) ||
                 errors.address
               }

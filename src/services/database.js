@@ -335,9 +335,9 @@ class DatabaseService {
   getAllProjectItems(projectId) {
     try {
       const lighting = this.db.prepare('SELECT * FROM lighting WHERE project_id = ? ORDER BY address ASC').all(projectId);
-      const aircon = this.db.prepare('SELECT * FROM aircon_items WHERE project_id = ? ORDER BY created_at DESC').all(projectId);
+      const aircon = this.db.prepare('SELECT * FROM aircon_items WHERE project_id = ? ORDER BY address ASC').all(projectId);
       const unit = this.db.prepare('SELECT * FROM unit WHERE project_id = ? ORDER BY created_at DESC').all(projectId);
-      const curtain = this.db.prepare('SELECT * FROM curtain WHERE project_id = ? ORDER BY created_at DESC').all(projectId);
+      const curtain = this.db.prepare('SELECT * FROM curtain WHERE project_id = ? ORDER BY address ASC').all(projectId);
       const scene = this.db.prepare('SELECT * FROM scene WHERE project_id = ? ORDER BY created_at DESC').all(projectId);
 
       return {
@@ -359,19 +359,15 @@ class DatabaseService {
       const stmt = this.db.prepare(`SELECT * FROM ${tableName} WHERE project_id = ? ORDER BY created_at DESC`);
       return stmt.all(projectId);
     } catch (error) {
-      console.error(`Failed to get ${tableName} items:`, error);
       throw error;
     }
   }
 
   getProjectItemById(id, tableName) {
     try {
-      console.log(`Getting ${tableName} item by id:`, id, 'tableName:', tableName);
       const stmt = this.db.prepare(`SELECT * FROM ${tableName} WHERE id = ?`);
       return stmt.get(id);
     } catch (error) {
-      console.error(`Failed to get ${tableName} item by id:`, error);
-      console.error('Parameters:', { id, tableName });
       throw error;
     }
   }

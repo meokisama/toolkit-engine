@@ -19,10 +19,10 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { UNIT_TYPES, UNIT_MODES } from "@/constants";
 
-// Convert string arrays to option objects for select components
-const UNIT_TYPE_OPTIONS = UNIT_TYPES.map((type) => ({
-  value: type,
-  label: type,
+// Convert unit objects to option objects for select components
+const UNIT_TYPE_OPTIONS = UNIT_TYPES.map((unit) => ({
+  value: unit.name,
+  label: unit.name,
 }));
 const UNIT_MODE_OPTIONS = UNIT_MODES.map((mode) => ({
   value: mode,

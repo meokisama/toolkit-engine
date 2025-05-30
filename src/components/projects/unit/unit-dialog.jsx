@@ -45,9 +45,9 @@ export function UnitDialog({
   const [errors, setErrors] = useState({});
 
   // Create options for combobox from UNIT_TYPES
-  const unitTypeOptions = UNIT_TYPES.map((type) => ({
-    value: type,
-    label: type,
+  const unitTypeOptions = UNIT_TYPES.map((unit) => ({
+    value: unit.name,
+    label: unit.name,
   }));
 
   // Validate IP address
@@ -172,9 +172,9 @@ export function UnitDialog({
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit}>
-          <div className="grid gap-4 py-4">
+          <div className="grid gap-6 py-4">
             {/* Type */}
-            <div className="grid grid-cols-4 items-center gap-4">
+            <div className="flex flex-col gap-2">
               <Label htmlFor="type" className="text-right">
                 Type *
               </Label>
@@ -194,116 +194,93 @@ export function UnitDialog({
               </div>
             </div>
 
-            {/* Serial No */}
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="serial_no" className="text-right">
-                Serial No.
-              </Label>
-              <Input
-                id="serial_no"
-                value={formData.serial_no}
-                onChange={(e) => handleInputChange("serial_no", e.target.value)}
-                className="col-span-3"
-                placeholder="Enter serial number"
-              />
+            <div className="flex gap-2 w-full">
+              {/* IP Address */}
+              <div className="flex flex-col gap-2">
+                <Label htmlFor="ip_address" className="text-right">
+                  IP Address
+                </Label>
+                <div>
+                  <Input
+                    id="ip_address"
+                    value={formData.ip_address}
+                    onChange={(e) =>
+                      handleInputChange("ip_address", e.target.value)
+                    }
+                    placeholder="192.168.1.100"
+                    className={errors.ip_address ? "border-red-500" : ""}
+                  />
+                  {errors.ip_address && (
+                    <p className="text-sm text-red-500 mt-1">
+                      {errors.ip_address}
+                    </p>
+                  )}
+                </div>
+              </div>
+
+              {/* ID CAN */}
+              <div className="flex flex-col gap-2">
+                <Label htmlFor="id_can" className="text-right">
+                  ID CAN
+                </Label>
+                <div>
+                  <Input
+                    id="id_can"
+                    value={formData.id_can}
+                    onChange={(e) =>
+                      handleInputChange("id_can", e.target.value)
+                    }
+                    placeholder="Enter CAN ID"
+                    className={errors.id_can ? "border-red-500" : ""}
+                  />
+                  {errors.id_can && (
+                    <p className="text-sm text-red-500 mt-1">{errors.id_can}</p>
+                  )}
+                </div>
+              </div>
             </div>
 
-            {/* IP Address */}
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="ip_address" className="text-right">
-                IP Address
-              </Label>
-              <div className="col-span-3">
+            <div className="flex gap-2 w-full">
+              {/* Mode */}
+              <div className="flex flex-col gap-2 w-1/2">
+                <Label htmlFor="mode" className="text-right">
+                  Mode
+                </Label>
+                <Select
+                  value={formData.mode}
+                  onValueChange={(value) => handleInputChange("mode", value)}
+                >
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Select mode" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {UNIT_MODES.map((mode) => (
+                      <SelectItem key={mode} value={mode}>
+                        {mode}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Firmware Version */}
+              <div className="flex flex-col gap-2 w-1/2">
+                <Label htmlFor="firmware_version">Firmware</Label>
                 <Input
-                  id="ip_address"
-                  value={formData.ip_address}
+                  id="firmware_version"
+                  value={formData.firmware_version}
                   onChange={(e) =>
-                    handleInputChange("ip_address", e.target.value)
+                    handleInputChange("firmware_version", e.target.value)
                   }
-                  placeholder="192.168.1.100"
-                  className={errors.ip_address ? "border-red-500" : ""}
+                  className="col-span-3"
+                  placeholder="v1.0.0"
                 />
-                {errors.ip_address && (
-                  <p className="text-sm text-red-500 mt-1">
-                    {errors.ip_address}
-                  </p>
-                )}
               </div>
             </div>
 
-            {/* ID CAN */}
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="id_can" className="text-right">
-                ID CAN
-              </Label>
-              <div className="col-span-3">
-                <Input
-                  id="id_can"
-                  value={formData.id_can}
-                  onChange={(e) => handleInputChange("id_can", e.target.value)}
-                  placeholder="Enter CAN ID"
-                  className={errors.id_can ? "border-red-500" : ""}
-                />
-                {errors.id_can && (
-                  <p className="text-sm text-red-500 mt-1">{errors.id_can}</p>
-                )}
-              </div>
-            </div>
-
-            {/* Mode */}
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="mode" className="text-right">
-                Mode
-              </Label>
-              <Select
-                value={formData.mode}
-                onValueChange={(value) => handleInputChange("mode", value)}
-              >
-                <SelectTrigger className="col-span-3">
-                  <SelectValue placeholder="Select mode" />
-                </SelectTrigger>
-                <SelectContent>
-                  {UNIT_MODES.map((mode) => (
-                    <SelectItem key={mode} value={mode}>
-                      {mode}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            {/* Firmware Version */}
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="firmware_version">Firmware</Label>
-              <Input
-                id="firmware_version"
-                value={formData.firmware_version}
-                onChange={(e) =>
-                  handleInputChange("firmware_version", e.target.value)
-                }
-                className="col-span-3"
-                placeholder="v1.0.0"
-              />
-            </div>
-
-            {/* Hardware Version */}
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="hardware_version">Hardware</Label>
-              <Input
-                id="hardware_version"
-                value={formData.hardware_version}
-                onChange={(e) =>
-                  handleInputChange("hardware_version", e.target.value)
-                }
-                className="col-span-3"
-                placeholder="v1.0.0"
-              />
-            </div>
-
-            {/* Can Load */}
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="can_load">CAN Load</Label>
-              <div className="col-span-3 flex items-center space-x-2">
+            <div className="flex gap-4">
+              {/* Can Load */}
+              <div className="flex items-center space-x-2 w-1/2">
                 <Checkbox
                   id="can_load"
                   checked={formData.can_load}
@@ -312,15 +289,11 @@ export function UnitDialog({
                   }
                 />
                 <Label htmlFor="can_load" className="text-sm font-normal">
-                  Unit supports loading functionality
+                  Enable CAN Load
                 </Label>
               </div>
-            </div>
-
-            {/* Recovery Mode */}
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="recovery_mode">Recovery</Label>
-              <div className="col-span-3 flex items-center space-x-2">
+              {/* Recovery Mode */}
+              <div className="flex items-center space-x-2 w-1/2">
                 <Checkbox
                   id="recovery_mode"
                   checked={formData.recovery_mode}
@@ -329,13 +302,13 @@ export function UnitDialog({
                   }
                 />
                 <Label htmlFor="recovery_mode" className="text-sm font-normal">
-                  Unit is in recovery mode
+                  Line Cut Recovery
                 </Label>
               </div>
             </div>
 
             {/* Description */}
-            <div className="grid grid-cols-4 items-center gap-4">
+            <div className="flex flex-col gap-2">
               <Label htmlFor="description" className="text-right">
                 Description
               </Label>

@@ -1,6 +1,4 @@
-// Main constants object with nested structure
 export const CONSTANTS = {
-  // Object Types
   OBJECT_TYPES: {
     LIGHTING: "OBJ_LIGHTING",
     AC_POWER: "OBJ_AC_POWER",
@@ -12,83 +10,43 @@ export const CONSTANTS = {
     SCENE: "OBJ_SCENE"
   },
 
-  // Unit configuration
   UNIT: {
     TYPES: [
-      "Room Logic Controller",
-      "Bedside-17T",
-      "Bedside-12T",
-      "BSP_R14_OL",
-      "RLC-I16",
-      "RLC-I20",
-      "RCU-32AO",
-      "RCU-8RL-24AO",
-      "RCU-16RL-16AO",
-      "RCU-24RL-8AO",
-      "RCU-11IN-4RL",
-      "RCU-21IN-10RL",
-      "RCU-30IN-10RL",
-      "RCU-48IN-16RL",
-      "RCU-48IN-16RL-4AO",
-      "RCU-48IN-16RL-4AI",
-      "RCU-48IN-16RL-K",
-      "RCU-48IN-16RL-DL",
-      "RCU-21IN-8RL",
-      "RCU-21IN-8RL-4AO",
-      "RCU-21IN-8RL-4AI",
-      "RCU-21IN-8RL-K",
-      "RCU-21IN-8RL-DL",
-      "GNT-EXT-6RL",
-      "GNT-EXT-8RL",
-      "GNT-EXT-10AO",
-      "GNT-EXT-28AO",
-      "GNT-EXT-12RL",
-      "GNT-EXT-20RL",
-      "GNT-EXT-12RL-12AO",
-      "GNT-EXT-24IN",
-      "GNT-EXT-48IN",
-      "GNT-ETH2KDL"
+      { name: "Room Logic Controller", barcode: "8930000000019" },
+      { name: "Bedside-17T", barcode: "8930000000200" },
+      { name: "Bedside-12T", barcode: "8930000100214" },
+      { name: "BSP_R14_OL", barcode: "8930000100221" },
+      { name: "RLC-I16", barcode: "8930000000026" },
+      { name: "RLC-I20", barcode: "8930000000033" },
+      { name: "RCU-32AO", barcode: "8930000200013" },
+      { name: "RCU-8RL-24AO", barcode: "8930000200020" },
+      { name: "RCU-16RL-16AO", barcode: "8930000200037" },
+      { name: "RCU-24RL-8AO", barcode: "8930000200044" },
+      { name: "RCU-11IN-4RL", barcode: "8930000210005" },
+      { name: "RCU-21IN-10RL", barcode: "8930000210012" },
+      { name: "RCU-30IN-10RL", barcode: "8930000210036" },
+      { name: "RCU-48IN-16RL", barcode: "8930000210043" },
+      { name: "RCU-48IN-16RL-4AO", barcode: "8930000210050" },
+      { name: "RCU-48IN-16RL-4AI", barcode: "8930000210067" },
+      { name: "RCU-48IN-16RL-K", barcode: "8930000210074" },
+      { name: "RCU-48IN-16RL-DL", barcode: "8930000210081" },
+      { name: "RCU-21IN-8RL", barcode: "8930000210111" },
+      { name: "RCU-21IN-8RL-4AO", barcode: "8930000210128" },
+      { name: "RCU-21IN-8RL-4AI", barcode: "8930000210135" },
+      { name: "RCU-21IN-8RL-K", barcode: "8930000210142" },
+      { name: "RCU-21IN-8RL-DL", barcode: "8930000210159" },
+      { name: "GNT-EXT-6RL", barcode: "8930000200051" },
+      { name: "GNT-EXT-8RL", barcode: "8930000200068" },
+      { name: "GNT-EXT-10AO", barcode: "8930000200075" },
+      { name: "GNT-EXT-28AO", barcode: "8930000200082" },
+      { name: "GNT-EXT-12RL", barcode: "8930000200105" },
+      { name: "GNT-EXT-20RL", barcode: "8930000200112" },
+      { name: "GNT-EXT-12RL-12AO", barcode: "8930000200099" },
+      { name: "GNT-EXT-24IN", barcode: "8930000220011" },
+      { name: "GNT-EXT-48IN", barcode: "8930000220028" },
+      { name: "GNT-ETH2KDL", barcode: "8930000230003" }
     ],
     MODES: ["Slave", "Master", "Stand-Alone"],
-
-    // Barcode to device type mapping (from RLC codebase)
-    BARCODE_MAPPING: {
-      "8930000000019": "Room Logic Controller",
-      "8930000000200": "Bedside-17T",
-      "8930000100214": "Bedside-12T",
-      "8930000100221": "BSP_R14_OL",
-      "8930000000026": "RLC-I16",
-      "8930000000033": "RLC-I20",
-      "8930000200013": "RCU-32AO",
-      "8930000200020": "RCU-8RL-24AO",
-      "8930000200037": "RCU-16RL-16AO",
-      "8930000200044": "RCU-24RL-8AO",
-      "8930000210005": "RCU-11IN-4RL",
-      "8930000210012": "RCU-21IN-10RL",
-      "8930000210036": "RCU-30IN-10RL",
-      "8930000210043": "RCU-48IN-16RL",
-      "8930000210050": "RCU-48IN-16RL-4AO",
-      "8930000210067": "RCU-48IN-16RL-4AI",
-      "8930000210074": "RCU-48IN-16RL-K",
-      "8930000210081": "RCU-48IN-16RL-DL",
-      "8930000210111": "RCU-21IN-8RL",
-      "8930000210128": "RCU-21IN-8RL-4AO",
-      "8930000210135": "RCU-21IN-8RL-4AI",
-      "8930000210142": "RCU-21IN-8RL-K",
-      "8930000210159": "RCU-21IN-8RL-DL",
-      "8930000200051": "GNT-EXT-6RL",
-      "8930000200068": "GNT-EXT-8RL",
-      "8930000200075": "GNT-EXT-10AO",
-      "8930000200082": "GNT-EXT-28AO",
-      "8930000200105": "GNT-EXT-12RL",
-      "8930000200112": "GNT-EXT-20RL",
-      "8930000200099": "GNT-EXT-12RL-12AO",
-      "8930000220011": "GNT-EXT-24IN",
-      "8930000220028": "GNT-EXT-48IN",
-      "8930000230003": "GNT-ETH2KDL"
-    },
-
-    // UDP Configuration (from RLC codebase)
     UDP_CONFIG: {
       UDP_PORT: 1234,
       LOCAL_UDP_PORT: 5678,
@@ -99,8 +57,6 @@ export const CONSTANTS = {
     }
   },
 
-  // Aircon configuration
-  // Curtain configuration
   CURTAIN: {
     TYPES: [
       { value: "CURTAIN_PULSE_2P", label: "2-Point Pulse" },
@@ -147,7 +103,7 @@ export const CONSTANTS = {
     {
       obj_type: "OBJ_AC_TEMPERATURE",
       label: "Temperature",
-      values: [] // Temperature uses numeric input, not predefined values
+      values: []
     },
     {
       obj_type: "OBJ_AC_SWING",

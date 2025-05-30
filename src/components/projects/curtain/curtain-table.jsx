@@ -1,15 +1,15 @@
 import React, { useState, useMemo, useCallback } from "react";
-import { Plus } from "lucide-react";
+import { Blinds, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { DataTable } from "../data-table/data-table";
-import { DataTableToolbar } from "../data-table/data-table-toolbar";
-import { DataTablePagination } from "../data-table/data-table-pagination";
-import { createCurtainColumns } from "./curtain-columns";
-import { CurtainDialog } from "./curtain-dialog";
-import { ConfirmDialog } from "../confirm-dialog";
-import { ImportItemsDialog } from "../import-category-dialog";
+import { DataTable } from "@/components/projects/data-table/data-table";
+import { DataTableToolbar } from "@/components/projects/data-table/data-table-toolbar";
+import { DataTablePagination } from "@/components/projects/data-table/data-table-pagination";
+import { createCurtainColumns } from "@/components/projects/curtain/curtain-columns";
+import { CurtainDialog } from "@/components/projects/curtain/curtain-dialog";
+import { ConfirmDialog } from "@/components/projects/confirm-dialog";
+import { ImportItemsDialog } from "@/components/projects/import-category-dialog";
 import { useProjectDetail } from "@/contexts/project-detail-context";
-import { TableSkeleton } from "../table-skeleton";
+import { TableSkeleton } from "@/components/projects/table-skeleton";
 
 export function CurtainTable({ items = [], loading = false }) {
   const {
@@ -237,6 +237,7 @@ export function CurtainTable({ items = [], loading = false }) {
       <div className="space-y-4 h-full">
         {items.length === 0 ? (
           <div className="text-center text-muted-foreground flex flex-col justify-center items-center h-full -mt-8">
+            <Blinds className="h-12 w-12 mx-auto mb-4 opacity-50" />
             <p>No curtain items found.</p>
             <p className="text-sm mb-8">
               Click "Add Curtain" to create your first curtain item.

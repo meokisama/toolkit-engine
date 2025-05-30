@@ -1,4 +1,12 @@
-import { ArrowUpDown, MoreHorizontal, Copy, Edit, Trash2 } from "lucide-react";
+import {
+  ArrowUpDown,
+  MoreHorizontal,
+  Copy,
+  Edit,
+  Trash2,
+  Layers,
+  Blinds,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
@@ -73,17 +81,28 @@ export const createCurtainColumns = (
         const effectiveValue = getEffectiveValue(row.original.id, "name", name);
         return (
           <EditableCell
-            value={effectiveValue}
+            value={effectiveValue || `Curtain ${row.original.address}`}
             onSave={(value) => onCellEdit(row.original.id, "name", value)}
-            placeholder="Enter name"
+            placeholder="No name"
+            className="font-medium"
+            icon={Blinds}
           />
         );
+      },
+      enableSorting: true,
+      enableHiding: true,
+      meta: {
+        className: "w-[20%]",
       },
     },
     {
       accessorKey: "address",
       header: ({ column }) => (
-        <DataTableColumnHeader column={column} title="Address" />
+        <DataTableColumnHeader
+          column={column}
+          title="Address"
+          className="flex items-center justify-center"
+        />
       ),
       cell: ({ row }) => {
         const address = row.getValue("address");
@@ -95,19 +114,30 @@ export const createCurtainColumns = (
         return (
           <EditableCell
             value={effectiveValue}
+            icon={Layers}
             onSave={(value) => onCellEdit(row.original.id, "address", value)}
             placeholder="1-255"
+            className="text-center font-semibold"
             type="number"
             min="1"
             max="255"
           />
         );
       },
+      enableSorting: true,
+      enableHiding: true,
+      meta: {
+        className: "w-[5%]",
+      },
     },
     {
       accessorKey: "curtain_type",
       header: ({ column }) => (
-        <DataTableColumnHeader column={column} title="Type" />
+        <DataTableColumnHeader
+          column={column}
+          title="Type"
+          className="flex items-center justify-center"
+        />
       ),
       cell: ({ row }) => {
         const curtainType = row.getValue("curtain_type");
@@ -127,11 +157,20 @@ export const createCurtainColumns = (
           />
         );
       },
+      enableSorting: true,
+      enableHiding: true,
+      meta: {
+        className: "w-[10%]",
+      },
     },
     {
       accessorKey: "open_group",
       header: ({ column }) => (
-        <DataTableColumnHeader column={column} title="Open Group" />
+        <DataTableColumnHeader
+          column={column}
+          title="Open Group"
+          className="text-center"
+        />
       ),
       cell: ({ row }) => {
         const openGroup = row.getValue("open_group");
@@ -152,11 +191,20 @@ export const createCurtainColumns = (
           />
         );
       },
+      enableSorting: false,
+      enableHiding: true,
+      meta: {
+        className: "w-[10%]",
+      },
     },
     {
       accessorKey: "close_group",
       header: ({ column }) => (
-        <DataTableColumnHeader column={column} title="Close Group" />
+        <DataTableColumnHeader
+          column={column}
+          title="Close Group"
+          className="text-center"
+        />
       ),
       cell: ({ row }) => {
         const closeGroup = row.getValue("close_group");
@@ -179,11 +227,20 @@ export const createCurtainColumns = (
           />
         );
       },
+      enableSorting: false,
+      enableHiding: true,
+      meta: {
+        className: "w-[10%]",
+      },
     },
     {
       accessorKey: "stop_group",
       header: ({ column }) => (
-        <DataTableColumnHeader column={column} title="Stop Group" />
+        <DataTableColumnHeader
+          column={column}
+          title="Stop Group"
+          className="text-center"
+        />
       ),
       cell: ({ row }) => {
         const curtainType = row.getValue("curtain_type");
@@ -201,7 +258,7 @@ export const createCurtainColumns = (
 
         // Only show stop group for 3P type
         if (effectiveCurtainType !== "CURTAIN_PULSE_3P") {
-          return <span className="text-muted-foreground">-</span>;
+          return <p className="text-muted-foreground text-center">-</p>;
         }
 
         return (
@@ -214,6 +271,11 @@ export const createCurtainColumns = (
             emptyMessage="No lighting groups found."
           />
         );
+      },
+      enableSorting: false,
+      enableHiding: true,
+      meta: {
+        className: "w-[10%]",
       },
     },
     {
@@ -237,6 +299,11 @@ export const createCurtainColumns = (
             placeholder="Enter description"
           />
         );
+      },
+      enableSorting: false,
+      enableHiding: true,
+      meta: {
+        className: "w-[25%]",
       },
     },
     {

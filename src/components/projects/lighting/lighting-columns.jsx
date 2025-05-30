@@ -47,10 +47,11 @@ export const createProjectItemsColumns = (
       const effectiveValue = getEffectiveValue(row.original.id, "name", name);
       return (
         <EditableCell
-          value={effectiveValue}
+          value={effectiveValue || `Group ${row.original.address}`}
           type="text"
           onSave={(newValue) => onCellEdit(row.original.id, "name", newValue)}
           className="font-medium"
+          placeholder="No name"
           icon={Sun}
         />
       );
