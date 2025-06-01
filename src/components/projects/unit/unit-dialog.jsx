@@ -23,7 +23,12 @@ import { useProjectDetail } from "@/contexts/project-detail-context";
 import { UNIT_TYPES, UNIT_MODES } from "@/constants";
 import { RS485ConfigDialog } from "./rs485-config-dialog";
 import { Settings } from "lucide-react";
-import { supportsRS485 } from "@/utils/rs485-utils";
+import {
+  supportsRS485,
+  getUnitTypeConstraints,
+  getModeConstraints,
+  createDefaultRS485Config,
+} from "@/utils/rs485-utils";
 
 export function UnitDialog({
   open,
@@ -48,6 +53,8 @@ export function UnitDialog({
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({});
   const [rs485DialogOpen, setRS485DialogOpen] = useState(false);
+  const [unitConstraints, setUnitConstraints] = useState(null);
+  const [modeConstraints, setModeConstraints] = useState(null);
 
   // Create options for combobox from UNIT_TYPES
   const unitTypeOptions = UNIT_TYPES.map((unit) => ({
@@ -88,7 +95,7 @@ export function UnitDialog({
   useEffect(() => {
     if (open) {
       if (mode === "edit" && item) {
-        setFormData({
+        const newFormData = {
           type: item.type || "",
           serial_no: item.serial_no || "",
           ip_address: item.ip_address || "",
@@ -100,7 +107,19 @@ export function UnitDialog({
           recovery_mode: item.recovery_mode || false,
           description: item.description || "",
           rs485_config: item.rs485_config || null,
-        });
+        };
+        setFormData(newFormData);
+
+        // Initialize constraints for existing item
+        if (newFormData.type) {
+          const constraints = getUnitTypeConstraints(newFormData.type);
+          setUnitConstraints(constraints);
+
+          if (newFormData.mode) {
+            const modeConstraints = getModeConstraints(newFormData.mode);
+            setModeConstraints(modeConstraints);
+          }
+        }
       } else {
         setFormData({
           type: "",
@@ -115,13 +134,54 @@ export function UnitDialog({
           description: "",
           rs485_config: null,
         });
+        setUnitConstraints(null);
+        setModeConstraints(null);
       }
       setErrors({});
     }
   }, [open, mode, item]);
 
   const handleInputChange = (field, value) => {
-    setFormData((prev) => ({ ...prev, [field]: value }));
+    setFormData((prev) => {
+      const newData = { ...prev, [field]: value };
+
+      // Handle unit type change
+      if (field === "type" && value) {
+        const constraints = getUnitTypeConstraints(value);
+        setUnitConstraints(constraints);
+
+        // Apply unit type constraints
+        if (constraints.defaultValues) {
+          newData.can_load = constraints.defaultValues.canLoad;
+          newData.recovery_mode = constraints.defaultValues.recovery;
+        }
+
+        // Set default mode
+        newData.mode = constraints.defaultMode;
+
+        // Update mode constraints
+        const modeConstraints = getModeConstraints(constraints.defaultMode);
+        setModeConstraints(modeConstraints);
+
+        // Apply mode constraints
+        if (modeConstraints.canLoad.value !== null) {
+          newData.can_load = modeConstraints.canLoad.value;
+        }
+      }
+
+      // Handle mode change
+      if (field === "mode" && value) {
+        const modeConstraints = getModeConstraints(value);
+        setModeConstraints(modeConstraints);
+
+        // Apply mode constraints
+        if (modeConstraints.canLoad.value !== null) {
+          newData.can_load = modeConstraints.canLoad.value;
+        }
+      }
+
+      return newData;
+    });
 
     // Clear error when user starts typing
     if (errors[field]) {
@@ -161,10 +221,21 @@ export function UnitDialog({
 
     setLoading(true);
     try {
+      // Prepare form data for submission
+      const submitData = { ...formData };
+
+      // If unit supports RS485 and no RS485 config is set, create default config
+      if (unitSupportsRS485() && !submitData.rs485_config) {
+        // Create default RS485 configurations for both RS485-1 and RS485-2
+        submitData.rs485_config = Array.from({ length: 2 }, () =>
+          createDefaultRS485Config()
+        );
+      }
+
       if (mode === "edit" && item) {
-        await updateItem("unit", item.id, formData);
+        await updateItem("unit", item.id, submitData);
       } else {
-        await createItem("unit", formData);
+        await createItem("unit", submitData);
       }
       onOpenChange(false);
     } catch (error) {
@@ -270,11 +341,28 @@ export function UnitDialog({
                     <SelectValue placeholder="Select mode" />
                   </SelectTrigger>
                   <SelectContent>
-                    {UNIT_MODES.map((mode) => (
-                      <SelectItem key={mode} value={mode}>
-                        {mode}
-                      </SelectItem>
-                    ))}
+                    {UNIT_MODES.map((mode) => {
+                      // Check if mode is enabled based on unit type constraints
+                      const isEnabled =
+                        !unitConstraints ||
+                        (mode === "Master" && unitConstraints.modes.master) ||
+                        (mode === "Slave" && unitConstraints.modes.slave) ||
+                        (mode === "Stand-Alone" &&
+                          unitConstraints.modes.standAlone);
+
+                      return (
+                        <SelectItem
+                          key={mode}
+                          value={mode}
+                          disabled={!isEnabled}
+                          className={
+                            !isEnabled ? "opacity-50 cursor-not-allowed" : ""
+                          }
+                        >
+                          {mode}
+                        </SelectItem>
+                      );
+                    })}
                   </SelectContent>
                 </Select>
               </div>
@@ -300,11 +388,24 @@ export function UnitDialog({
                 <Checkbox
                   id="can_load"
                   checked={formData.can_load}
+                  disabled={
+                    // Disabled based on unit type constraints or mode constraints
+                    (unitConstraints && !unitConstraints.checkboxes.canLoad) ||
+                    (modeConstraints && !modeConstraints.canLoad.enabled)
+                  }
                   onCheckedChange={(checked) =>
                     handleInputChange("can_load", checked)
                   }
                 />
-                <Label htmlFor="can_load" className="text-sm font-normal">
+                <Label
+                  htmlFor="can_load"
+                  className={`text-sm font-normal ${
+                    (unitConstraints && !unitConstraints.checkboxes.canLoad) ||
+                    (modeConstraints && !modeConstraints.canLoad.enabled)
+                      ? "opacity-50"
+                      : ""
+                  }`}
+                >
                   Enable CAN Load
                 </Label>
               </div>
@@ -313,11 +414,22 @@ export function UnitDialog({
                 <Checkbox
                   id="recovery_mode"
                   checked={formData.recovery_mode}
+                  disabled={
+                    // Disabled based on unit type constraints
+                    unitConstraints && !unitConstraints.checkboxes.recovery
+                  }
                   onCheckedChange={(checked) =>
                     handleInputChange("recovery_mode", checked)
                   }
                 />
-                <Label htmlFor="recovery_mode" className="text-sm font-normal">
+                <Label
+                  htmlFor="recovery_mode"
+                  className={`text-sm font-normal ${
+                    unitConstraints && !unitConstraints.checkboxes.recovery
+                      ? "opacity-50"
+                      : ""
+                  }`}
+                >
                   Line Cut Recovery
                 </Label>
               </div>
@@ -351,9 +463,6 @@ export function UnitDialog({
                 >
                   <Settings className="h-4 w-4" />
                   Configure RS485
-                  {formData.rs485_config && (
-                    <span className="text-xs text-green-600">(Configured)</span>
-                  )}
                 </Button>
               </div>
             )}

@@ -13,6 +13,13 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Combobox } from "@/components/ui/combobox";
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
@@ -36,16 +43,13 @@ export function RS485ConfigDialog({ open, onOpenChange, config, onSave }) {
   const [openSlaves, setOpenSlaves] = useState({});
 
   // Create aircon options for combobox
-  const airconOptions = [
-    { value: "0", label: "<Unused>" },
-    ...(airconCards || []).map((card) => ({
-      value: card.address.toString(),
-      label:
-        card.name && card.name.trim()
-          ? `${card.name} (${card.address})`
-          : `Aircon ${card.address}`,
-    })),
-  ];
+  const airconOptions = (airconCards || []).map((card) => ({
+    value: card.address.toString(),
+    label:
+      card.name && card.name.trim()
+        ? `${card.name} (${card.address})`
+        : `Aircon ${card.address}`,
+  }));
 
   // Initialize configurations
   useEffect(() => {
@@ -68,7 +72,7 @@ export function RS485ConfigDialog({ open, onOpenChange, config, onSave }) {
   const toggleSlave = (slaveIndex) => {
     setOpenSlaves((prev) => ({
       ...prev,
-      [slaveIndex]: !prev[slaveIndex],
+      [slaveIndex]: !(prev[slaveIndex] || false),
     }));
   };
 
@@ -150,10 +154,10 @@ export function RS485ConfigDialog({ open, onOpenChange, config, onSave }) {
                   <CardHeader>
                     <CardTitle>Interface Config</CardTitle>
                   </CardHeader>
-                  <CardContent className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  <CardContent className="grid grid-cols-2 md:grid-cols-3 gap-4">
                     <div className="space-y-2">
                       <Label>Baudrate</Label>
-                      <Combobox
+                      <Select
                         value={config.baudrate.toString()}
                         onValueChange={(value) =>
                           handleRS485ConfigChange(
@@ -162,17 +166,26 @@ export function RS485ConfigDialog({ open, onOpenChange, config, onSave }) {
                             parseInt(value)
                           )
                         }
-                        options={RS485.BAUDRATES.map((rate) => ({
-                          value: rate.value.toString(),
-                          label: rate.label,
-                        }))}
-                        placeholder="Select baudrate"
-                      />
+                      >
+                        <SelectTrigger className="w-full cursor-pointer">
+                          <SelectValue placeholder="Select baudrate" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {RS485.BAUDRATES.map((rate) => (
+                            <SelectItem
+                              key={rate.value}
+                              value={rate.value.toString()}
+                            >
+                              {rate.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
                     </div>
 
                     <div className="space-y-2">
                       <Label>Parity</Label>
-                      <Combobox
+                      <Select
                         value={config.parity.toString()}
                         onValueChange={(value) =>
                           handleRS485ConfigChange(
@@ -181,17 +194,26 @@ export function RS485ConfigDialog({ open, onOpenChange, config, onSave }) {
                             parseInt(value)
                           )
                         }
-                        options={RS485.PARITY.map((parity) => ({
-                          value: parity.value.toString(),
-                          label: parity.label,
-                        }))}
-                        placeholder="Select parity"
-                      />
+                      >
+                        <SelectTrigger className="w-full cursor-pointer">
+                          <SelectValue placeholder="Select parity" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {RS485.PARITY.map((parity) => (
+                            <SelectItem
+                              key={parity.value}
+                              value={parity.value.toString()}
+                            >
+                              {parity.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
                     </div>
 
                     <div className="space-y-2">
                       <Label>Stop Bit</Label>
-                      <Combobox
+                      <Select
                         value={config.stop_bit.toString()}
                         onValueChange={(value) =>
                           handleRS485ConfigChange(
@@ -200,12 +222,21 @@ export function RS485ConfigDialog({ open, onOpenChange, config, onSave }) {
                             parseInt(value)
                           )
                         }
-                        options={RS485.STOP_BITS.map((bit) => ({
-                          value: bit.value.toString(),
-                          label: bit.label,
-                        }))}
-                        placeholder="Select stop bit"
-                      />
+                      >
+                        <SelectTrigger className="w-full cursor-pointer">
+                          <SelectValue placeholder="Select stop bit" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {RS485.STOP_BITS.map((bit) => (
+                            <SelectItem
+                              key={bit.value}
+                              value={bit.value.toString()}
+                            >
+                              {bit.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
                     </div>
                   </CardContent>
                 </Card>
@@ -219,12 +250,16 @@ export function RS485ConfigDialog({ open, onOpenChange, config, onSave }) {
                     <div className="space-y-2">
                       <Label>Type</Label>
                       <Combobox
-                        value={config.config_type.toString()}
+                        value={
+                          config.config_type === 0
+                            ? ""
+                            : config.config_type.toString()
+                        }
                         onValueChange={(value) =>
                           handleRS485ConfigChange(
                             configIndex,
                             "config_type",
-                            parseInt(value)
+                            value === "" ? 0 : parseInt(value)
                           )
                         }
                         options={RS485.TYPES.map((type) => ({
@@ -254,8 +289,8 @@ export function RS485ConfigDialog({ open, onOpenChange, config, onSave }) {
                     </div>
 
                     <div className="space-y-2">
-                      <Label>Num Slaves</Label>
-                      <Combobox
+                      <Label>Number of Slaves</Label>
+                      <Select
                         value={config.num_slave_devs.toString()}
                         onValueChange={(value) =>
                           handleRS485ConfigChange(
@@ -264,16 +299,22 @@ export function RS485ConfigDialog({ open, onOpenChange, config, onSave }) {
                             parseInt(value)
                           )
                         }
-                        options={Array.from(
-                          { length: RS485.SLAVE_MAX_DEVS + 1 },
-                          (_, i) => ({
-                            value: i.toString(),
-                            label: i.toString(),
-                          })
-                        )}
-                        placeholder="Select number of slaves"
                         disabled={isNoneTypeConfig || isSlaveTypeConfig}
-                      />
+                      >
+                        <SelectTrigger className="w-full cursor-pointer">
+                          <SelectValue placeholder="Select number of slaves" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {Array.from(
+                            { length: RS485.SLAVE_MAX_DEVS + 1 },
+                            (_, i) => (
+                              <SelectItem key={i} value={i.toString()}>
+                                {i.toString()}
+                              </SelectItem>
+                            )
+                          )}
+                        </SelectContent>
+                      </Select>
                     </div>
                   </CardContent>
                 </Card>
@@ -290,7 +331,7 @@ export function RS485ConfigDialog({ open, onOpenChange, config, onSave }) {
                         (_, slaveIndex) => (
                           <Collapsible
                             key={slaveIndex}
-                            open={openSlaves[slaveIndex]}
+                            open={openSlaves[slaveIndex] || false}
                             onOpenChange={() => toggleSlave(slaveIndex)}
                           >
                             <CollapsibleTrigger asChild>
@@ -299,17 +340,19 @@ export function RS485ConfigDialog({ open, onOpenChange, config, onSave }) {
                                 className="flex w-full justify-between p-4 h-auto"
                               >
                                 <span className="font-medium">
-                                  Slave {slaveIndex + 1}
+                                  Slave #{slaveIndex + 1}
                                 </span>
                                 <ChevronDown
                                   className={`h-4 w-4 transition-transform duration-200 ${
-                                    openSlaves[slaveIndex] ? "rotate-180" : ""
+                                    openSlaves[slaveIndex] || false
+                                      ? "rotate-180"
+                                      : ""
                                   }`}
                                 />
                               </Button>
                             </CollapsibleTrigger>
-                            <CollapsibleContent className="pt-4">
-                              <div className="space-y-4 pl-4 border-l-2 border-muted">
+                            <CollapsibleContent className="p-4 bg-muted/50 rounded-b-lg shadow-sm">
+                              <div className="space-y-4">
                                 {/* Basic Slave Config */}
                                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                                   <div className="space-y-2">
@@ -336,16 +379,24 @@ export function RS485ConfigDialog({ open, onOpenChange, config, onSave }) {
                                   <div className="space-y-2">
                                     <Label>Slave Group</Label>
                                     <Combobox
-                                      value={(
+                                      value={
                                         currentConfig.slave_cfg[slaveIndex]
-                                          ?.slave_group || 0
-                                      ).toString()}
+                                          ?.slave_group === 0
+                                          ? ""
+                                          : (
+                                              currentConfig.slave_cfg[
+                                                slaveIndex
+                                              ]?.slave_group || 0
+                                            ).toString()
+                                      }
                                       onValueChange={(value) =>
                                         handleSlaveConfigChange(
                                           configIndex,
                                           slaveIndex,
                                           "slave_group",
-                                          parseInt(value) || 0
+                                          value === ""
+                                            ? 0
+                                            : parseInt(value) || 0
                                         )
                                       }
                                       options={airconOptions}
@@ -354,8 +405,8 @@ export function RS485ConfigDialog({ open, onOpenChange, config, onSave }) {
                                   </div>
 
                                   <div className="space-y-2">
-                                    <Label>Num Indoors</Label>
-                                    <Combobox
+                                    <Label>Number of Indoors</Label>
+                                    <Select
                                       value={(
                                         currentConfig.slave_cfg[slaveIndex]
                                           ?.num_indoors || 0
@@ -368,15 +419,26 @@ export function RS485ConfigDialog({ open, onOpenChange, config, onSave }) {
                                           parseInt(value)
                                         )
                                       }
-                                      options={Array.from(
-                                        { length: RS485.SLAVE_MAX_INDOORS + 1 },
-                                        (_, i) => ({
-                                          value: i.toString(),
-                                          label: i.toString(),
-                                        })
-                                      )}
-                                      placeholder="Select number of indoors"
-                                    />
+                                    >
+                                      <SelectTrigger className="w-full cursor-pointer">
+                                        <SelectValue placeholder="Select number of indoors" />
+                                      </SelectTrigger>
+                                      <SelectContent>
+                                        {Array.from(
+                                          {
+                                            length: RS485.SLAVE_MAX_INDOORS + 1,
+                                          },
+                                          (_, i) => (
+                                            <SelectItem
+                                              key={i}
+                                              value={i.toString()}
+                                            >
+                                              {i.toString()}
+                                            </SelectItem>
+                                          )
+                                        )}
+                                      </SelectContent>
+                                    </Select>
                                   </div>
                                 </div>
 
@@ -400,21 +462,31 @@ export function RS485ConfigDialog({ open, onOpenChange, config, onSave }) {
                                             className="space-y-2"
                                           >
                                             <Label>
-                                              In{indoorIndex + 1} Group
+                                              Indoor #{indoorIndex + 1}
                                             </Label>
                                             <Combobox
-                                              value={(
+                                              value={
                                                 currentConfig.slave_cfg[
                                                   slaveIndex
-                                                ]?.indoor_group[indoorIndex] ||
+                                                ]?.indoor_group[indoorIndex] ===
                                                 0
-                                              ).toString()}
+                                                  ? ""
+                                                  : (
+                                                      currentConfig.slave_cfg[
+                                                        slaveIndex
+                                                      ]?.indoor_group[
+                                                        indoorIndex
+                                                      ] || 0
+                                                    ).toString()
+                                              }
                                               onValueChange={(value) =>
                                                 handleIndoorGroupChange(
                                                   configIndex,
                                                   slaveIndex,
                                                   indoorIndex,
-                                                  parseInt(value) || 0
+                                                  value === ""
+                                                    ? 0
+                                                    : parseInt(value) || 0
                                                 )
                                               }
                                               options={airconOptions}

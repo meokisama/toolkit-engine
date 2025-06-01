@@ -63,8 +63,8 @@ export const validateRS485Config = (config) => {
     errors.push("Board ID must be between 1 and 255");
   }
 
-  // Validate config type
-  const validTypes = RS485.TYPES.map(t => t.value);
+  // Validate config type (0 = None/not selected, or valid RS485 type)
+  const validTypes = [0, ...RS485.TYPES.map(t => t.value)];
   if (!validTypes.includes(config.config_type)) {
     errors.push("Invalid RS485 type");
   }
@@ -125,7 +125,7 @@ export const serializeRS485Config = (configs) => {
 
   configs.forEach((config, index) => {
     let configStr = `RS485-${index + 1}`;
-    
+
     // Add main config fields
     configStr += `,${config.baudrate}`;
     configStr += `,${config.parity}`;
@@ -133,7 +133,7 @@ export const serializeRS485Config = (configs) => {
     configStr += `,${config.board_id}`;
     configStr += `,${config.config_type}`;
     configStr += `,${config.num_slave_devs}`;
-    
+
     // Add reserved bytes
     config.reserved.forEach(byte => {
       configStr += `,${byte}`;
@@ -144,7 +144,7 @@ export const serializeRS485Config = (configs) => {
       configStr += `,${slave.slave_id}`;
       configStr += `,${slave.slave_group}`;
       configStr += `,${slave.num_indoors}`;
-      
+
       // Add indoor groups
       slave.indoor_group.forEach(group => {
         configStr += `,${group}`;
@@ -180,13 +180,13 @@ export const deserializeRS485Config = (configStrings) => {
   for (let i = 1; i <= numConfigs && i < configStrings.length; i++) {
     const configStr = configStrings[i];
     const parts = configStr.split(",");
-    
+
     if (parts.length < 7) {
       throw new Error(`Invalid RS485-${i} configuration format`);
     }
 
     let index = 1; // Skip "RS485-X" part
-    
+
     const config = {
       baudrate: parseInt(parts[index++]),
       parity: parseInt(parts[index++]),
@@ -228,23 +228,46 @@ export const deserializeRS485Config = (configStrings) => {
 
 /**
  * Check if a unit type supports RS485
+ * Based on C# WinForms original implementation - all unit types support RS485
  */
 export const supportsRS485 = (unitType) => {
+  // In the original C# application, RS485_support is set to true by default for all units
+  // and only disabled when there's no RS485 config in database
+  // All unit types in the system support RS485 configuration
   const rs485SupportedTypes = [
     "Room Logic Controller",
-    "RLC-I16", 
+    "RLC-I16",
     "RLC-I20",
+    "Bedside-17T",
+    "Bedside-12T",
+    "BSP_R14_OL",
     "RCU-32AO",
     "RCU-8RL-24AO",
     "RCU-16RL-16AO",
     "RCU-24RL-8AO",
     "RCU-11IN-4RL",
+    "RCU-21IN-8RL",
+    "RCU-21IN-8RL-4AO",
+    "RCU-21IN-8RL-4AI",
+    "RCU-21IN-8RL-K",
     "RCU-21IN-10RL",
+    "RCU-21IN-10RL-T",
     "RCU-30IN-10RL",
     "RCU-48IN-16RL",
     "RCU-48IN-16RL-4AO",
     "RCU-48IN-16RL-4AI",
-    "RCU-21IN-8RL"
+    "RCU-48IN-16RL-K",
+    "RCU-48IN-16RL-DL",
+    "GNT-EXT-6RL",
+    "GNT-EXT-8RL",
+    "GNT-EXT-10AO",
+    "GNT-EXT-12RL",
+    "GNT-EXT-20RL",
+    "GNT-EXT-28AO",
+    "GNT-EXT-12RL-12AO",
+    "GNT-EXT-24IN",
+    "GNT-EXT-48IN",
+    "GNT-ETH2KDL"
   ];
   return rs485SupportedTypes.includes(unitType);
 };
@@ -253,6 +276,9 @@ export const supportsRS485 = (unitType) => {
  * Get RS485 type label by value
  */
 export const getRS485TypeLabel = (value) => {
+  if (value === 0) {
+    return "None";
+  }
   const type = RS485.TYPES.find(t => t.value === value);
   return type ? type.label : "Unknown";
 };
@@ -266,8 +292,113 @@ export const isSlaveType = (configType) => {
 };
 
 /**
- * Check if RS485 type is none
+ * Check if RS485 type is none (not selected)
+ * When no RS485 type is selected, config_type defaults to 0
  */
 export const isNoneType = (configType) => {
   return configType === 0;
+};
+
+/**
+ * Check if a unit type is forced to Slave mode only
+ * Based on C# WinForms cbx_Unit_SelectedIndexChanged logic
+ */
+export const isSlaveOnlyUnit = (unitType) => {
+  const slaveOnlyTypes = [
+    "Bedside-17T",
+    "Bedside-12T",
+    "BSP_R14_OL",
+    "GNT-EXT-6RL",
+    "GNT-EXT-8RL",
+    "GNT-EXT-12RL",
+    "GNT-EXT-20RL",
+    "GNT-EXT-10AO",
+    "GNT-EXT-28AO",
+    "GNT-EXT-12RL-12AO",
+    "GNT-EXT-24IN",
+    "GNT-EXT-48IN"
+  ];
+  return slaveOnlyTypes.includes(unitType);
+};
+
+/**
+ * Get unit type constraints for mode selection and checkboxes
+ * Based on C# WinForms Add_Unit logic
+ */
+export const getUnitTypeConstraints = (unitType) => {
+  const isSlaveOnly = isSlaveOnlyUnit(unitType);
+
+  return {
+    // Mode constraints
+    modes: {
+      master: !isSlaveOnly,
+      slave: true,
+      standAlone: !isSlaveOnly
+    },
+    // Default mode when unit type is selected
+    defaultMode: isSlaveOnly ? "Slave" : "Stand-Alone",
+    // Checkbox constraints
+    checkboxes: {
+      canLoad: !isSlaveOnly, // Enabled for non-slave-only units
+      recovery: !isSlaveOnly  // Enabled for non-slave-only units
+    },
+    // Default checkbox values for slave-only units
+    defaultValues: isSlaveOnly ? {
+      canLoad: false,
+      recovery: false
+    } : null
+  };
+};
+
+/**
+ * Get mode-specific constraints for checkboxes
+ * Based on C# WinForms rbtn_*_CheckedChanged logic
+ */
+export const getModeConstraints = (mode) => {
+  switch (mode) {
+    case "Master":
+      return {
+        canLoad: {
+          enabled: false,
+          value: true
+        },
+        recovery: {
+          enabled: true,
+          value: null // Keep current value
+        }
+      };
+    case "Slave":
+      return {
+        canLoad: {
+          enabled: true,
+          value: false
+        },
+        recovery: {
+          enabled: true,
+          value: null // Keep current value
+        }
+      };
+    case "Stand-Alone":
+      return {
+        canLoad: {
+          enabled: true,
+          value: false
+        },
+        recovery: {
+          enabled: true,
+          value: null // Keep current value
+        }
+      };
+    default:
+      return {
+        canLoad: {
+          enabled: true,
+          value: null
+        },
+        recovery: {
+          enabled: true,
+          value: null
+        }
+      };
+  }
 };

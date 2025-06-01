@@ -34,7 +34,7 @@ export const CONSTANTS = {
       { name: "RCU-21IN-8RL-4AO", barcode: "8930000210128" },
       { name: "RCU-21IN-8RL-4AI", barcode: "8930000210135" },
       { name: "RCU-21IN-8RL-K", barcode: "8930000210142" },
-      { name: "RCU-21IN-8RL-DL", barcode: "8930000210159" },
+      { name: "RCU-21IN-10RL-T", barcode: "8930000210159" },
       { name: "GNT-EXT-6RL", barcode: "8930000200051" },
       { name: "GNT-EXT-8RL", barcode: "8930000200068" },
       { name: "GNT-EXT-10AO", barcode: "8930000200075" },
@@ -75,7 +75,6 @@ export const CONSTANTS = {
     SLAVE_MAX_INDOORS: 16,
 
     TYPES: [
-      { value: 0, label: "RS485_NONE" },
       { value: 1, label: "RS485_MASTER_TC300" },
       { value: 2, label: "RS485_MASTER_TC303" },
       { value: 3, label: "RS485_MASTER_TC903" },
