@@ -41,7 +41,9 @@ import {
   Blinds,
   Sun,
   Thermometer,
+  Edit,
 } from "lucide-react";
+import { AirconPropertiesDialog } from "./aircon-properties-dialog";
 
 export function SceneDialog({
   open,
@@ -55,6 +57,7 @@ export function SceneDialog({
     createItem,
     updateItem,
     setActiveTab,
+    airconCards,
   } = useProjectDetail();
   const [formData, setFormData] = useState({
     name: "",
@@ -65,6 +68,14 @@ export function SceneDialog({
   const [sceneItems, setSceneItems] = useState([]);
   const [originalSceneItems, setOriginalSceneItems] = useState([]); // Store original items for reset
   const [loading, setLoading] = useState(false);
+  const [airconPropertiesDialog, setAirconPropertiesDialog] = useState({
+    open: false,
+    airconCard: null,
+  });
+  const [editAirconPropertiesDialog, setEditAirconPropertiesDialog] = useState({
+    open: false,
+    airconGroup: null,
+  });
 
   // Validate address field
   const validateAddress = (value) => {
@@ -162,9 +173,124 @@ export function SceneDialog({
     setSceneItems((prev) => [...prev, newSceneItem]);
   };
 
+  // Add multiple aircon items to scene from a card
+  const addAirconCardToScene = (address, selectedProperties) => {
+    const airconItems =
+      projectItems.aircon?.filter((item) => item.address === address) || [];
+
+    selectedProperties.forEach((property) => {
+      const item = airconItems.find(
+        (item) => item.object_type === property.objectType
+      );
+      if (item) {
+        addItemToScene("aircon", item.id, property.value);
+      }
+    });
+  };
+
+  // Handle opening aircon properties dialog
+  const handleAddAirconCard = (airconCard) => {
+    setAirconPropertiesDialog({
+      open: true,
+      airconCard,
+    });
+  };
+
+  // Handle confirming aircon properties selection
+  const handleAirconPropertiesConfirm = (address, selectedProperties) => {
+    addAirconCardToScene(address, selectedProperties);
+  };
+
+  // Handle opening edit aircon properties dialog
+  const handleEditAirconGroup = (airconGroup) => {
+    setEditAirconPropertiesDialog({
+      open: true,
+      airconGroup,
+    });
+  };
+
+  // Handle confirming edit aircon properties
+  const handleEditAirconPropertiesConfirm = (address, selectedProperties) => {
+    // Remove all existing aircon items for this address
+    removeAirconGroupFromScene(address);
+    // Add the new selected properties
+    addAirconCardToScene(address, selectedProperties);
+  };
+
+  // Get unique aircon cards from aircon items
+  const getAirconCards = () => {
+    if (!projectItems.aircon) return [];
+
+    const cardMap = new Map();
+    projectItems.aircon.forEach((item) => {
+      if (!cardMap.has(item.address)) {
+        cardMap.set(item.address, {
+          address: item.address,
+          name: item.name,
+          description: item.description,
+          items: [],
+        });
+      }
+      cardMap.get(item.address).items.push(item);
+    });
+
+    return Array.from(cardMap.values()).sort(
+      (a, b) => parseInt(a.address) - parseInt(b.address)
+    );
+  };
+
+  // Get grouped scene items for display
+  const getGroupedSceneItems = () => {
+    const grouped = [];
+    const airconGroups = new Map();
+
+    sceneItems.forEach((item) => {
+      if (item.item_type === "aircon") {
+        if (!airconGroups.has(item.item_address)) {
+          airconGroups.set(item.item_address, {
+            type: "aircon-group",
+            address: item.item_address,
+            name: item.item_name,
+            description: item.item_description,
+            items: [],
+          });
+        }
+        airconGroups.get(item.item_address).items.push(item);
+      } else {
+        grouped.push(item);
+      }
+    });
+
+    // Add aircon groups to the result
+    airconGroups.forEach((group) => {
+      grouped.push(group);
+    });
+
+    return grouped.sort((a, b) => {
+      // Sort by address if both have addresses
+      if (a.address && b.address) {
+        return parseInt(a.address) - parseInt(b.address);
+      }
+      if (a.item_address && b.item_address) {
+        return parseInt(a.item_address) - parseInt(b.item_address);
+      }
+      return 0;
+    });
+  };
+
   const removeItemFromScene = (sceneItemId) => {
     // Always remove from local state only - changes will be saved when user clicks Save
     setSceneItems((prev) => prev.filter((item) => item.id !== sceneItemId));
+  };
+
+  // Remove all aircon items from a specific address
+  const removeAirconGroupFromScene = (address) => {
+    setSceneItems((prev) =>
+      prev.filter(
+        (item) =>
+          !(item.item_type === "aircon" && item.item_address === address)
+      )
+    );
   };
 
   const updateSceneItemValue = (sceneItemId, itemValue) => {
@@ -630,54 +756,122 @@ export function SceneDialog({
                   <CardContent>
                     {sceneItems.length > 0 ? (
                       <div className="space-y-2 max-h-96 overflow-y-auto">
-                        {sceneItems.map((sceneItem) => (
-                          <div
-                            key={sceneItem.id}
-                            className="flex items-center justify-between p-2 border rounded-lg"
-                          >
-                            <div className="flex items-center gap-2">
-                              {sceneItem.item_type === "lighting" && (
-                                <Lightbulb className="h-4 w-4 text-yellow-500" />
-                              )}
-                              {sceneItem.item_type === "aircon" && (
-                                <Wind className="h-4 w-4 text-blue-500" />
-                              )}
-                              {sceneItem.item_type === "curtain" && (
-                                <Blinds className="h-4 w-4 text-green-500" />
-                              )}
-                              <div>
-                                <div className="font-medium text-sm">
-                                  {sceneItem.item_name ||
-                                    `${sceneItem.item_type} ${sceneItem.item_address}`}
+                        {getGroupedSceneItems().map((item) => {
+                          // Render aircon group
+                          if (item.type === "aircon-group") {
+                            return (
+                              <div
+                                key={`aircon-group-${item.address}`}
+                                className="border rounded-lg p-2"
+                              >
+                                <div className="flex items-center justify-between mb-2">
+                                  <div className="flex items-center gap-2">
+                                    <Wind className="h-4 w-4 text-blue-500" />
+                                    <div>
+                                      <div className="font-medium text-sm">
+                                        {item.name || `Aircon ${item.address}`}
+                                      </div>
+                                      <div className="text-xs text-muted-foreground">
+                                        Address: {item.address} |{" "}
+                                        {item.items.length} properties
+                                      </div>
+                                    </div>
+                                  </div>
+                                  <div className="flex items-center gap-1">
+                                    <Button
+                                      type="button"
+                                      variant="outline"
+                                      size="icon"
+                                      onClick={() =>
+                                        handleEditAirconGroup(item)
+                                      }
+                                    >
+                                      <Edit className="h-4 w-4" />
+                                    </Button>
+                                    <Button
+                                      type="button"
+                                      variant="outline"
+                                      size="icon"
+                                      onClick={() =>
+                                        removeAirconGroupFromScene(item.address)
+                                      }
+                                    >
+                                      <Trash2 className="h-4 w-4" />
+                                    </Button>
+                                  </div>
                                 </div>
-                                <div className="text-xs text-muted-foreground">
-                                  Address: {sceneItem.item_address}
-                                  {sceneItem.item_type === "aircon" &&
-                                    sceneItem.label &&
-                                    ` | ${sceneItem.label}`}
-                                  {sceneItem.item_type !== "aircon" &&
-                                    sceneItem.object_type &&
-                                    ` | ${sceneItem.object_type}`}
+                                {/* Show individual aircon properties */}
+                                <div className="space-y-1 ml-6">
+                                  {item.items.map((airconItem) => (
+                                    <div
+                                      key={airconItem.id}
+                                      className="flex items-center justify-between text-sm"
+                                    >
+                                      <span className="text-muted-foreground">
+                                        {airconItem.label ||
+                                          airconItem.object_type}
+                                      </span>
+                                      <div className="flex items-center gap-2">
+                                        {renderValueControl(airconItem)}
+                                        <Button
+                                          type="button"
+                                          variant="ghost"
+                                          size="sm"
+                                          onClick={() =>
+                                            removeItemFromScene(airconItem.id)
+                                          }
+                                        >
+                                          <Trash2 className="h-3 w-3" />
+                                        </Button>
+                                      </div>
+                                    </div>
+                                  ))}
                                 </div>
                               </div>
+                            );
+                          }
+
+                          // Render regular items (lighting, curtain)
+                          return (
+                            <div
+                              key={item.id}
+                              className="flex items-center justify-between p-2 border rounded-lg"
+                            >
+                              <div className="flex items-center gap-2">
+                                {item.item_type === "lighting" && (
+                                  <Lightbulb className="h-4 w-4 text-yellow-500" />
+                                )}
+                                {item.item_type === "curtain" && (
+                                  <Blinds className="h-4 w-4 text-green-500" />
+                                )}
+                                <div>
+                                  <div className="font-medium text-sm">
+                                    {item.item_name ||
+                                      `${item.item_type} ${item.item_address}`}
+                                  </div>
+                                  <div className="text-xs text-muted-foreground">
+                                    Address: {item.item_address}
+                                    {item.object_type &&
+                                      ` | ${item.object_type}`}
+                                  </div>
+                                </div>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                {(item.object_type ||
+                                  item.item_type === "lighting") &&
+                                  renderValueControl(item)}
+                                <Button
+                                  type="button"
+                                  variant="outline"
+                                  size="icon"
+                                  onClick={() => removeItemFromScene(item.id)}
+                                >
+                                  <Trash2 className="h-4 w-4" />
+                                </Button>
+                              </div>
                             </div>
-                            <div className="flex items-center gap-2">
-                              {(sceneItem.object_type ||
-                                sceneItem.item_type === "lighting") &&
-                                renderValueControl(sceneItem)}
-                              <Button
-                                type="button"
-                                variant="outline"
-                                size="icon"
-                                onClick={() =>
-                                  removeItemFromScene(sceneItem.id)
-                                }
-                              >
-                                <Trash2 className="h-4 w-4" />
-                              </Button>
-                            </div>
-                          </div>
-                        ))}
+                          );
+                        })}
                       </div>
                     ) : (
                       <div className="text-center text-muted-foreground py-8">
@@ -759,37 +953,40 @@ export function SceneDialog({
 
                       <TabsContent value="aircon" className="space-y-2">
                         <div className="max-h-80 overflow-y-auto space-y-2 pr-2">
-                          {projectItems.aircon?.length > 0 ? (
-                            projectItems.aircon
+                          {getAirconCards().length > 0 ? (
+                            getAirconCards()
                               .filter(
-                                (item) =>
+                                (card) =>
+                                  // Check if this card has any items in scene
                                   !sceneItems.some(
                                     (si) =>
                                       si.item_type === "aircon" &&
-                                      si.item_id === item.id
+                                      si.item_address === card.address
                                   )
                               )
-                              .map((item) => (
+                              .map((card) => (
                                 <div
-                                  key={item.id}
+                                  key={card.address}
                                   className="flex items-center justify-between p-2 border rounded-lg"
                                 >
                                   <div>
                                     <div className="font-medium text-sm">
-                                      {item.name}
+                                      {card.name || `Aircon ${card.address}`}
                                     </div>
                                     <div className="text-xs text-muted-foreground">
-                                      Address: {item.address} |{" "}
-                                      {item.label || item.object_type}
+                                      Address: {card.address}
                                     </div>
+                                    {card.description && (
+                                      <div className="text-xs text-muted-foreground">
+                                        {card.description}
+                                      </div>
+                                    )}
                                   </div>
                                   <Button
                                     type="button"
                                     variant="outline"
                                     size="icon"
-                                    onClick={() =>
-                                      addItemToScene("aircon", item.id)
-                                    }
+                                    onClick={() => handleAddAirconCard(card)}
                                   >
                                     <Plus className="h-4 w-4" />
                                   </Button>
@@ -797,7 +994,7 @@ export function SceneDialog({
                               ))
                           ) : (
                             <p className="text-sm text-muted-foreground text-center py-4">
-                              No aircon items available
+                              No aircon cards available
                             </p>
                           )}
                         </div>
@@ -884,6 +1081,27 @@ export function SceneDialog({
           </DialogFooter>
         </form>
       </DialogContent>
+
+      {/* Aircon Properties Dialog */}
+      <AirconPropertiesDialog
+        open={airconPropertiesDialog.open}
+        onOpenChange={(open) =>
+          setAirconPropertiesDialog((prev) => ({ ...prev, open }))
+        }
+        airconCard={airconPropertiesDialog.airconCard}
+        onConfirm={handleAirconPropertiesConfirm}
+      />
+
+      {/* Edit Aircon Properties Dialog */}
+      <AirconPropertiesDialog
+        open={editAirconPropertiesDialog.open}
+        onOpenChange={(open) =>
+          setEditAirconPropertiesDialog((prev) => ({ ...prev, open }))
+        }
+        airconGroup={editAirconPropertiesDialog.airconGroup}
+        mode="edit"
+        onConfirm={handleEditAirconPropertiesConfirm}
+      />
     </Dialog>
   );
 }

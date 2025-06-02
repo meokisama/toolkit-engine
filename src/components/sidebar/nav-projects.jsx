@@ -121,7 +121,16 @@ export function NavProjects() {
 
     setDeleteLoading(true);
     try {
+      // Check if the project being deleted is currently selected
+      const isCurrentlySelected = selectedProject?.id === projectToDelete.id;
+
       await deleteProject(projectToDelete.id);
+
+      // If the deleted project was currently selected, go back to main page
+      if (isCurrentlySelected) {
+        selectProject(null);
+      }
+
       setConfirmDialogOpen(false);
       setProjectToDelete(null);
     } catch (error) {
@@ -129,7 +138,7 @@ export function NavProjects() {
     } finally {
       setDeleteLoading(false);
     }
-  }, [projectToDelete, deleteProject]);
+  }, [projectToDelete, deleteProject, selectedProject, selectProject]);
 
   return (
     <>

@@ -29,7 +29,6 @@ import { CONSTANTS } from "@/constants";
 import { useProjectDetail } from "@/contexts/project-detail-context";
 import {
   createDefaultRS485Config,
-  createDefaultSlaveConfig,
   isSlaveType,
   isNoneType,
 } from "@/utils/rs485-utils";
@@ -277,44 +276,44 @@ export function RS485ConfigDialog({ open, onOpenChange, config, onSave }) {
                         min="1"
                         max="255"
                         value={config.board_id}
-                        onChange={(e) =>
+                        onChange={(e) => {
+                          const value = parseInt(e.target.value) || 1;
+                          const clampedValue = Math.max(
+                            1,
+                            Math.min(255, value)
+                          );
                           handleRS485ConfigChange(
                             configIndex,
                             "board_id",
-                            parseInt(e.target.value) || 1
-                          )
-                        }
+                            clampedValue
+                          );
+                        }}
                         disabled={isNoneTypeConfig}
                       />
                     </div>
 
                     <div className="space-y-2">
-                      <Label>Number of Slaves</Label>
-                      <Select
-                        value={config.num_slave_devs.toString()}
-                        onValueChange={(value) =>
+                      <Label>Number of Slaves (0-10)</Label>
+                      <Input
+                        type="number"
+                        min="0"
+                        max={RS485.SLAVE_MAX_DEVS}
+                        value={config.num_slave_devs}
+                        onChange={(e) => {
+                          const value = parseInt(e.target.value) || 0;
+                          const clampedValue = Math.max(
+                            0,
+                            Math.min(RS485.SLAVE_MAX_DEVS, value)
+                          );
                           handleRS485ConfigChange(
                             configIndex,
                             "num_slave_devs",
-                            parseInt(value)
-                          )
-                        }
+                            clampedValue
+                          );
+                        }}
                         disabled={isNoneTypeConfig || isSlaveTypeConfig}
-                      >
-                        <SelectTrigger className="w-full cursor-pointer">
-                          <SelectValue placeholder="Select number of slaves" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {Array.from(
-                            { length: RS485.SLAVE_MAX_DEVS + 1 },
-                            (_, i) => (
-                              <SelectItem key={i} value={i.toString()}>
-                                {i.toString()}
-                              </SelectItem>
-                            )
-                          )}
-                        </SelectContent>
-                      </Select>
+                        placeholder="Enter number of slaves"
+                      />
                     </div>
                   </CardContent>
                 </Card>
@@ -365,14 +364,20 @@ export function RS485ConfigDialog({ open, onOpenChange, config, onSave }) {
                                         currentConfig.slave_cfg[slaveIndex]
                                           ?.slave_id || 1
                                       }
-                                      onChange={(e) =>
+                                      onChange={(e) => {
+                                        const value =
+                                          parseInt(e.target.value) || 1;
+                                        const clampedValue = Math.max(
+                                          1,
+                                          Math.min(255, value)
+                                        );
                                         handleSlaveConfigChange(
                                           configIndex,
                                           slaveIndex,
                                           "slave_id",
-                                          parseInt(e.target.value) || 1
-                                        )
-                                      }
+                                          clampedValue
+                                        );
+                                      }}
                                     />
                                   </div>
 
@@ -405,40 +410,34 @@ export function RS485ConfigDialog({ open, onOpenChange, config, onSave }) {
                                   </div>
 
                                   <div className="space-y-2">
-                                    <Label>Number of Indoors</Label>
-                                    <Select
-                                      value={(
+                                    <Label>Number of Indoors (0-16)</Label>
+                                    <Input
+                                      type="number"
+                                      min="0"
+                                      max={RS485.SLAVE_MAX_INDOORS}
+                                      value={
                                         currentConfig.slave_cfg[slaveIndex]
                                           ?.num_indoors || 0
-                                      ).toString()}
-                                      onValueChange={(value) =>
+                                      }
+                                      onChange={(e) => {
+                                        const value =
+                                          parseInt(e.target.value) || 0;
+                                        const clampedValue = Math.max(
+                                          0,
+                                          Math.min(
+                                            RS485.SLAVE_MAX_INDOORS,
+                                            value
+                                          )
+                                        );
                                         handleSlaveConfigChange(
                                           configIndex,
                                           slaveIndex,
                                           "num_indoors",
-                                          parseInt(value)
-                                        )
-                                      }
-                                    >
-                                      <SelectTrigger className="w-full cursor-pointer">
-                                        <SelectValue placeholder="Select number of indoors" />
-                                      </SelectTrigger>
-                                      <SelectContent>
-                                        {Array.from(
-                                          {
-                                            length: RS485.SLAVE_MAX_INDOORS + 1,
-                                          },
-                                          (_, i) => (
-                                            <SelectItem
-                                              key={i}
-                                              value={i.toString()}
-                                            >
-                                              {i.toString()}
-                                            </SelectItem>
-                                          )
-                                        )}
-                                      </SelectContent>
-                                    </Select>
+                                          clampedValue
+                                        );
+                                      }}
+                                      placeholder="Enter number of indoors"
+                                    />
                                   </div>
                                 </div>
 
