@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Plus, Database } from "lucide-react";
 import { useProjectDetail } from "@/contexts/project-detail-context";
 import { UnitDialog } from "@/components/projects/unit/unit-dialog";
+import { IOConfigDialog } from "@/components/projects/unit/io-config-dialog";
 import { ConfirmDialog } from "@/components/projects/confirm-dialog";
 import { ImportItemsDialog } from "@/components/projects/import-category-dialog";
 import { DataTable } from "@/components/projects/data-table/data-table";
@@ -37,6 +38,8 @@ export function UnitTable() {
   const [importDialogOpen, setImportDialogOpen] = useState(false);
   const [pendingChanges, setPendingChanges] = useState(new Map());
   const [saveLoading, setSaveLoading] = useState(false);
+  const [ioConfigDialogOpen, setIOConfigDialogOpen] = useState(false);
+  const [ioConfigItem, setIOConfigItem] = useState(null);
 
   const units = projectItems.unit || [];
 
@@ -172,6 +175,12 @@ export function UnitTable() {
     }
   };
 
+  // Handle I/O Config
+  const handleIOConfig = useCallback((item) => {
+    setIOConfigItem(item);
+    setIOConfigDialogOpen(true);
+  }, []);
+
   // Handle row selection changes from DataTable
   const handleRowSelectionChange = useCallback((selectedCount) => {
     setSelectedRowsCount(selectedCount);
@@ -193,7 +202,8 @@ export function UnitTable() {
     handleDuplicateItem,
     handleDeleteItem,
     handleCellEdit,
-    getEffectiveValue
+    getEffectiveValue,
+    handleIOConfig
   );
 
   if (loading) {
@@ -264,6 +274,7 @@ export function UnitTable() {
                       onEdit={handleEditItem}
                       onDuplicate={handleDuplicateItem}
                       onDelete={handleDeleteItem}
+                      onIOConfig={handleIOConfig}
                       enableRowSelection={true}
                     />
                   </div>
@@ -291,6 +302,12 @@ export function UnitTable() {
         onOpenChange={setDialogOpen}
         item={editingItem}
         mode={dialogMode}
+      />
+
+      <IOConfigDialog
+        open={ioConfigDialogOpen}
+        onOpenChange={setIOConfigDialogOpen}
+        item={ioConfigItem}
       />
 
       <ConfirmDialog

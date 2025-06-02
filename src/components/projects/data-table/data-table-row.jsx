@@ -1,7 +1,7 @@
 "use client";
 
 import { flexRender } from "@tanstack/react-table";
-import { Copy, SquarePen, Trash2 } from "lucide-react";
+import { Copy, SquarePen, Trash2, Settings } from "lucide-react";
 
 import { TableCell, TableRow } from "@/components/ui/table";
 import {
@@ -12,7 +12,13 @@ import {
   ContextMenuSeparator,
 } from "@/components/ui/context-menu";
 
-export function DataTableRow({ row, onEdit, onDuplicate, onDelete }) {
+export function DataTableRow({
+  row,
+  onEdit,
+  onDuplicate,
+  onDelete,
+  onIOConfig,
+}) {
   const item = row.original;
 
   return (
@@ -40,6 +46,14 @@ export function DataTableRow({ row, onEdit, onDuplicate, onDelete }) {
         >
           <Copy className="text-muted-foreground" />
           <span>Duplicate</span>
+        </ContextMenuItem>
+        <ContextMenuSeparator />
+        <ContextMenuItem
+          onClick={() => onIOConfig(item)}
+          className="cursor-pointer"
+        >
+          <Settings className="text-muted-foreground" />
+          <span>I/O Config</span>
         </ContextMenuItem>
         <ContextMenuSeparator />
         <ContextMenuItem

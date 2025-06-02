@@ -1,6 +1,12 @@
 "use client";
 
-import { Copy, SquarePen, Trash2, MoreHorizontal } from "lucide-react";
+import {
+  Copy,
+  SquarePen,
+  Trash2,
+  MoreHorizontal,
+  Settings,
+} from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -34,7 +40,8 @@ export const createUnitColumns = (
   onDuplicate,
   onDelete,
   onCellEdit,
-  getEffectiveValue
+  getEffectiveValue,
+  onIOConfig
 ) => [
   {
     id: "select",
@@ -433,6 +440,14 @@ export const createUnitColumns = (
               >
                 <Copy className="text-muted-foreground" />
                 <span>Duplicate</span>
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem
+                onClick={() => onIOConfig(item)}
+                className="cursor-pointer"
+              >
+                <Settings className="text-muted-foreground" />
+                <span>I/O Config</span>
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem

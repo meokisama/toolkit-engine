@@ -30,6 +30,7 @@ export function DataTable({
   onEdit,
   onDuplicate,
   onDelete,
+  onIOConfig,
   initialPagination,
   enableRowSelection = false,
 }) {
@@ -179,6 +180,7 @@ export function DataTable({
                   onEdit={onEdit}
                   onDuplicate={onDuplicate}
                   onDelete={onDelete}
+                  onIOConfig={onIOConfig}
                 />
               ))
           ) : (

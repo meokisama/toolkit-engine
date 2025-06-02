@@ -12,39 +12,516 @@ export const CONSTANTS = {
 
   UNIT: {
     TYPES: [
-      { name: "Room Logic Controller", barcode: "8930000000019" },
-      { name: "Bedside-17T", barcode: "8930000000200" },
-      { name: "Bedside-12T", barcode: "8930000100214" },
-      { name: "BSP_R14_OL", barcode: "8930000100221" },
-      { name: "RLC-I16", barcode: "8930000000026" },
-      { name: "RLC-I20", barcode: "8930000000033" },
-      { name: "RCU-32AO", barcode: "8930000200013" },
-      { name: "RCU-8RL-24AO", barcode: "8930000200020" },
-      { name: "RCU-16RL-16AO", barcode: "8930000200037" },
-      { name: "RCU-24RL-8AO", barcode: "8930000200044" },
-      { name: "RCU-11IN-4RL", barcode: "8930000210005" },
-      { name: "RCU-21IN-10RL", barcode: "8930000210012" },
-      { name: "RCU-30IN-10RL", barcode: "8930000210036" },
-      { name: "RCU-48IN-16RL", barcode: "8930000210043" },
-      { name: "RCU-48IN-16RL-4AO", barcode: "8930000210050" },
-      { name: "RCU-48IN-16RL-4AI", barcode: "8930000210067" },
-      { name: "RCU-48IN-16RL-K", barcode: "8930000210074" },
-      { name: "RCU-48IN-16RL-DL", barcode: "8930000210081" },
-      { name: "RCU-21IN-8RL", barcode: "8930000210111" },
-      { name: "RCU-21IN-8RL-4AO", barcode: "8930000210128" },
-      { name: "RCU-21IN-8RL-4AI", barcode: "8930000210135" },
-      { name: "RCU-21IN-8RL-K", barcode: "8930000210142" },
-      { name: "RCU-21IN-10RL-T", barcode: "8930000210159" },
-      { name: "GNT-EXT-6RL", barcode: "8930000200051" },
-      { name: "GNT-EXT-8RL", barcode: "8930000200068" },
-      { name: "GNT-EXT-10AO", barcode: "8930000200075" },
-      { name: "GNT-EXT-28AO", barcode: "8930000200082" },
-      { name: "GNT-EXT-12RL", barcode: "8930000200105" },
-      { name: "GNT-EXT-20RL", barcode: "8930000200112" },
-      { name: "GNT-EXT-12RL-12AO", barcode: "8930000200099" },
-      { name: "GNT-EXT-24IN", barcode: "8930000220011" },
-      { name: "GNT-EXT-48IN", barcode: "8930000220028" },
-      { name: "GNT-ETH2KDL", barcode: "8930000230003" }
+      {
+        name: "Room Logic Controller",
+        barcode: "8930000000019",
+        inputs: 48,
+        outputs: {
+          relay: 32,
+          dimmer: 6,
+          ao: 0,
+          ac: 10
+        },
+        inputFunctions: {
+          0: "KEY_CARD_INPUT",    // Input 1: Key Card/Keyless
+          3: "BELL_INPUT",       // Input 4: Bell
+          6: "DND_INPUT",        // Input 7: Do Not Disturb
+          7: "MUR_INPUT",        // Input 8: Make Up Room
+          default: "ALL"         // All other inputs: Full function list
+        }
+      },
+      {
+        name: "Bedside-17T",
+        barcode: "8930000000200",
+        inputs: 17,
+        outputs: {
+          relay: 0,
+          dimmer: 0,
+          ao: 0,
+          ac: 0
+        },
+        inputFunctions: {
+          default: "ALL"         // All inputs: Full function list
+        }
+      },
+      {
+        name: "Bedside-12T",
+        barcode: "8930000100214",
+        inputs: 12,
+        outputs: {
+          relay: 0,
+          dimmer: 0,
+          ao: 0,
+          ac: 0
+        },
+        inputFunctions: {
+          default: "ALL"         // All inputs: Full function list
+        }
+      },
+      {
+        name: "BSP_R14_OL",
+        barcode: "8930000100221",
+        inputs: 14,
+        outputs: {
+          relay: 0,
+          dimmer: 0,
+          ao: 0,
+          ac: 0
+        },
+        inputFunctions: {
+          default: "ALL"         // All inputs: Full function list
+        }
+      },
+      {
+        name: "RLC-I16",
+        barcode: "8930000000026",
+        inputs: 60,
+        outputs: {
+          relay: 32,
+          dimmer: 6,
+          ao: 0,
+          ac: 10
+        },
+        inputFunctions: {
+          0: "KEY_CARD_INPUT",    // Input 1: Key Card/Keyless
+          3: "BELL_INPUT",       // Input 4: Bell
+          6: "DND_INPUT",        // Input 7: Do Not Disturb
+          7: "MUR_INPUT",        // Input 8: Make Up Room
+          default: "ALL"         // All other inputs: Full function list
+        }
+      },
+      {
+        name: "RLC-I20",
+        barcode: "8930000000033",
+        inputs: 60,
+        outputs: {
+          relay: 32,
+          dimmer: 6,
+          ao: 0,
+          ac: 10
+        },
+        inputFunctions: {
+          0: "KEY_CARD_INPUT",    // Input 1: Key Card/Keyless
+          3: "BELL_INPUT",       // Input 4: Bell
+          6: "DND_INPUT",        // Input 7: Do Not Disturb
+          7: "MUR_INPUT",        // Input 8: Make Up Room
+          default: "ALL"         // All other inputs: Full function list
+        }
+      },
+      {
+        name: "RCU-32AO",
+        barcode: "8930000200013",
+        inputs: 60,
+        outputs: {
+          relay: 0,
+          dimmer: 6,
+          ao: 32,
+          ac: 10
+        },
+        inputFunctions: {
+          default: "ALL"         // All inputs: Full function list
+        }
+      },
+      {
+        name: "RCU-8RL-24AO",
+        barcode: "8930000200020",
+        inputs: 60,
+        outputs: {
+          relay: 8,
+          dimmer: 0,
+          ao: 24,
+          ac: 10
+        },
+        inputFunctions: {
+          default: "ALL"         // All inputs: Full function list
+        }
+      },
+      {
+        name: "RCU-16RL-16AO",
+        barcode: "8930000200037",
+        inputs: 60,
+        outputs: {
+          relay: 16,
+          dimmer: 0,
+          ao: 16,
+          ac: 10
+        },
+        inputFunctions: {
+          default: "ALL"         // All inputs: Full function list
+        }
+      },
+      {
+        name: "RCU-24RL-8AO",
+        barcode: "8930000200044",
+        inputs: 60,
+        outputs: {
+          relay: 24,
+          dimmer: 0,
+          ao: 8,
+          ac: 10
+        },
+        inputFunctions: {
+          default: "ALL"         // All inputs: Full function list
+        }
+      },
+      {
+        name: "RCU-11IN-4RL",
+        barcode: "8930000210005",
+        inputs: 11,
+        outputs: {
+          relay: 4,
+          dimmer: 0,
+          ao: 0,
+          ac: 10
+        },
+        inputFunctions: {
+          0: "KEY_CARD_INPUT",    // Input 1: Key Card/Keyless
+          3: "BELL_INPUT",       // Input 4: Bell
+          6: "DND_INPUT",        // Input 7: Do Not Disturb
+          7: "MUR_INPUT",        // Input 8: Make Up Room
+          default: "ALL"         // All other inputs: Full function list
+        }
+      },
+      {
+        name: "RCU-21IN-10RL",
+        barcode: "8930000210012",
+        inputs: 21,
+        outputs: {
+          relay: 10,
+          dimmer: 0,
+          ao: 0,
+          ac: 10
+        },
+        inputFunctions: {
+          0: "KEY_CARD_INPUT",    // Input 1: Key Card/Keyless
+          3: "BELL_INPUT",       // Input 4: Bell
+          6: "DND_INPUT",        // Input 7: Do Not Disturb
+          7: "MUR_INPUT",        // Input 8: Make Up Room
+          default: "ALL"         // All other inputs: Full function list
+        }
+      },
+      {
+        name: "RCU-30IN-10RL",
+        barcode: "8930000210036",
+        inputs: 30,
+        outputs: {
+          relay: 10,
+          dimmer: 0,
+          ao: 0,
+          ac: 10
+        },
+        inputFunctions: {
+          0: "KEY_CARD_INPUT",    // Input 1: Key Card/Keyless
+          3: "BELL_INPUT",       // Input 4: Bell
+          6: "DND_INPUT",        // Input 7: Do Not Disturb
+          7: "MUR_INPUT",        // Input 8: Make Up Room
+          default: "ALL"         // All other inputs: Full function list
+        }
+      },
+      {
+        name: "RCU-48IN-16RL",
+        barcode: "8930000210043",
+        inputs: 48,
+        outputs: {
+          relay: 16,
+          dimmer: 0,
+          ao: 0,
+          ac: 10
+        },
+        inputFunctions: {
+          0: "KEY_CARD_INPUT",    // Input 1: Key Card/Keyless
+          3: "BELL_INPUT",       // Input 4: Bell
+          6: "DND_INPUT",        // Input 7: Do Not Disturb
+          7: "MUR_INPUT",        // Input 8: Make Up Room
+          default: "ALL"         // All other inputs: Full function list
+        }
+      },
+      {
+        name: "RCU-48IN-16RL-4AO",
+        barcode: "8930000210050",
+        inputs: 48,
+        outputs: {
+          relay: 16,
+          dimmer: 0,
+          ao: 4,
+          ac: 10
+        },
+        inputFunctions: {
+          0: "KEY_CARD_INPUT",    // Input 1: Key Card/Keyless
+          3: "BELL_INPUT",       // Input 4: Bell
+          6: "DND_INPUT",        // Input 7: Do Not Disturb
+          7: "MUR_INPUT",        // Input 8: Make Up Room
+          default: "ALL"         // All other inputs: Full function list
+        }
+      },
+      {
+        name: "RCU-48IN-16RL-4AI",
+        barcode: "8930000210067",
+        inputs: 48,
+        outputs: {
+          relay: 16,
+          dimmer: 0,
+          ao: 0,
+          ac: 10
+        },
+        inputFunctions: {
+          0: "KEY_CARD_INPUT",    // Input 1: Key Card/Keyless
+          3: "BELL_INPUT",       // Input 4: Bell
+          6: "DND_INPUT",        // Input 7: Do Not Disturb
+          7: "MUR_INPUT",        // Input 8: Make Up Room
+          default: "ALL"         // All other inputs: Full function list
+        }
+      },
+      {
+        name: "RCU-48IN-16RL-K",
+        barcode: "8930000210074",
+        inputs: 48,
+        outputs: {
+          relay: 20,
+          dimmer: 0,
+          ao: 0,
+          ac: 10
+        },
+        inputFunctions: {
+          0: "KEY_CARD_INPUT",    // Input 1: Key Card/Keyless
+          3: "BELL_INPUT",       // Input 4: Bell
+          6: "DND_INPUT",        // Input 7: Do Not Disturb
+          7: "MUR_INPUT",        // Input 8: Make Up Room
+          default: "ALL"         // All other inputs: Full function list
+        }
+      },
+      {
+        name: "RCU-48IN-16RL-DL",
+        barcode: "8930000210081",
+        inputs: 48,
+        outputs: {
+          relay: 20,
+          dimmer: 0,
+          ao: 0,
+          ac: 10
+        },
+        inputFunctions: {
+          0: "KEY_CARD_INPUT",    // Input 1: Key Card/Keyless
+          3: "BELL_INPUT",       // Input 4: Bell
+          6: "DND_INPUT",        // Input 7: Do Not Disturb
+          7: "MUR_INPUT",        // Input 8: Make Up Room
+          default: "ALL"         // All other inputs: Full function list
+        }
+      },
+      {
+        name: "RCU-21IN-8RL",
+        barcode: "8930000210111",
+        inputs: 21,
+        outputs: {
+          relay: 8,
+          dimmer: 0,
+          ao: 0,
+          ac: 10
+        },
+        inputFunctions: {
+          0: "KEY_CARD_INPUT",    // Input 1: Key Card/Keyless
+          3: "BELL_INPUT",       // Input 4: Bell
+          6: "DND_INPUT",        // Input 7: Do Not Disturb
+          7: "MUR_INPUT",        // Input 8: Make Up Room
+          default: "ALL"         // All other inputs: Full function list
+        }
+      },
+      {
+        name: "RCU-21IN-8RL-4AO",
+        barcode: "8930000210128",
+        inputs: 21,
+        outputs: {
+          relay: 8,
+          dimmer: 0,
+          ao: 4,
+          ac: 10
+        },
+        inputFunctions: {
+          0: "KEY_CARD_INPUT",    // Input 1: Key Card/Keyless
+          3: "BELL_INPUT",       // Input 4: Bell
+          6: "DND_INPUT",        // Input 7: Do Not Disturb
+          7: "MUR_INPUT",        // Input 8: Make Up Room
+          default: "ALL"         // All other inputs: Full function list
+        }
+      },
+      {
+        name: "RCU-21IN-8RL-4AI",
+        barcode: "8930000210135",
+        inputs: 21,
+        outputs: {
+          relay: 8,
+          dimmer: 0,
+          ao: 0,
+          ac: 10
+        },
+        inputFunctions: {
+          0: "KEY_CARD_INPUT",    // Input 1: Key Card/Keyless
+          3: "BELL_INPUT",       // Input 4: Bell
+          6: "DND_INPUT",        // Input 7: Do Not Disturb
+          7: "MUR_INPUT",        // Input 8: Make Up Room
+          default: "ALL"         // All other inputs: Full function list
+        }
+      },
+      {
+        name: "RCU-21IN-8RL-K",
+        barcode: "8930000210142",
+        inputs: 21,
+        outputs: {
+          relay: 8,
+          dimmer: 0,
+          ao: 0,
+          ac: 10
+        },
+        inputFunctions: {
+          0: "KEY_CARD_INPUT",    // Input 1: Key Card/Keyless
+          3: "BELL_INPUT",       // Input 4: Bell
+          6: "DND_INPUT",        // Input 7: Do Not Disturb
+          7: "MUR_INPUT",        // Input 8: Make Up Room
+          default: "ALL"         // All other inputs: Full function list
+        }
+      },
+      {
+        name: "RCU-21IN-10RL-T",
+        barcode: "8930000210159",
+        inputs: 21,
+        outputs: {
+          relay: 10,
+          dimmer: 0,
+          ao: 0,
+          ac: 10
+        },
+        inputFunctions: {
+          0: "KEY_CARD_INPUT",    // Input 1: Key Card/Keyless
+          3: "BELL_INPUT",       // Input 4: Bell
+          6: "DND_INPUT",        // Input 7: Do Not Disturb
+          7: "MUR_INPUT",        // Input 8: Make Up Room
+          default: "ALL"         // All other inputs: Full function list
+        }
+      },
+      {
+        name: "GNT-EXT-6RL",
+        barcode: "8930000200051",
+        inputs: 0,
+        outputs: {
+          relay: 6,
+          dimmer: 0,
+          ao: 0,
+          ac: 0
+        },
+        inputFunctions: {}         // No inputs
+      },
+      {
+        name: "GNT-EXT-8RL",
+        barcode: "8930000200068",
+        inputs: 0,
+        outputs: {
+          relay: 8,
+          dimmer: 0,
+          ao: 0,
+          ac: 0
+        },
+        inputFunctions: {}         // No inputs
+      },
+      {
+        name: "GNT-EXT-10AO",
+        barcode: "8930000200075",
+        inputs: 0,
+        outputs: {
+          relay: 0,
+          dimmer: 0,
+          ao: 10,
+          ac: 0
+        },
+        inputFunctions: {}         // No inputs
+      },
+      {
+        name: "GNT-EXT-28AO",
+        barcode: "8930000200082",
+        inputs: 0,
+        outputs: {
+          relay: 0,
+          dimmer: 0,
+          ao: 28,
+          ac: 0
+        },
+        inputFunctions: {}         // No inputs
+      },
+      {
+        name: "GNT-EXT-12RL",
+        barcode: "8930000200105",
+        inputs: 0,
+        outputs: {
+          relay: 12,
+          dimmer: 0,
+          ao: 0,
+          ac: 0
+        },
+        inputFunctions: {}         // No inputs
+      },
+      {
+        name: "GNT-EXT-20RL",
+        barcode: "8930000200112",
+        inputs: 0,
+        outputs: {
+          relay: 20,
+          dimmer: 0,
+          ao: 0,
+          ac: 0
+        },
+        inputFunctions: {}         // No inputs
+      },
+      {
+        name: "GNT-EXT-12RL-12AO",
+        barcode: "8930000200099",
+        inputs: 0,
+        outputs: {
+          relay: 12,
+          dimmer: 0,
+          ao: 12,
+          ac: 0
+        },
+        inputFunctions: {}         // No inputs
+      },
+      {
+        name: "GNT-EXT-24IN",
+        barcode: "8930000220011",
+        inputs: 24,
+        outputs: {
+          relay: 0,
+          dimmer: 0,
+          ao: 0,
+          ac: 0
+        },
+        inputFunctions: {
+          default: "ALL"         // All inputs: Full function list
+        }
+      },
+      {
+        name: "GNT-EXT-48IN",
+        barcode: "8930000220028",
+        inputs: 48,
+        outputs: {
+          relay: 0,
+          dimmer: 0,
+          ao: 0,
+          ac: 0
+        },
+        inputFunctions: {
+          default: "ALL"         // All inputs: Full function list
+        }
+      },
+      {
+        name: "GNT-ETH2KDL",
+        barcode: "8930000230003",
+        inputs: 0,
+        outputs: {
+          relay: 0,
+          dimmer: 0,
+          ao: 0,
+          ac: 0
+        },
+        inputFunctions: {}         // No inputs
+      }
     ],
     MODES: ["Slave", "Master", "Stand-Alone"],
     UDP_CONFIG: {
@@ -236,3 +713,214 @@ export const AC_SWING_VALUES = Object.fromEntries(
 export const AC_SWING_LABELS = Object.fromEntries(
   getSwingConfig().values.map(item => [item.value, item.label])
 );
+
+// Helper functions for unit I/O specifications
+export const getUnitIOSpec = (unitName) => {
+  const unit = CONSTANTS.UNIT.TYPES.find(u => u.name === unitName);
+  return unit ? {
+    inputs: unit.inputs,
+    outputs: unit.outputs,
+    totalOutputs: unit.outputs.relay + unit.outputs.dimmer + unit.outputs.ao + unit.outputs.ac
+  } : null;
+};
+
+export const getUnitByBarcode = (barcode) => {
+  return CONSTANTS.UNIT.TYPES.find(u => u.barcode === barcode);
+};
+
+export const hasInputs = (unitName) => {
+  const spec = getUnitIOSpec(unitName);
+  return spec ? spec.inputs > 0 : false;
+};
+
+export const hasOutputs = (unitName) => {
+  const spec = getUnitIOSpec(unitName);
+  return spec ? spec.totalOutputs > 0 : false;
+};
+
+export const hasAirconOutputs = (unitName) => {
+  const spec = getUnitIOSpec(unitName);
+  return spec ? spec.outputs.ac > 0 : false;
+};
+
+export const getOutputTypes = (unitName) => {
+  const spec = getUnitIOSpec(unitName);
+  if (!spec) return [];
+
+  const types = [];
+  if (spec.outputs.relay > 0) types.push({ type: 'relay', count: spec.outputs.relay });
+  if (spec.outputs.dimmer > 0) types.push({ type: 'dimmer', count: spec.outputs.dimmer });
+  if (spec.outputs.ao > 0) types.push({ type: 'ao', count: spec.outputs.ao });
+  if (spec.outputs.ac > 0) types.push({ type: 'ac', count: spec.outputs.ac });
+
+  return types;
+};
+
+// Input function lists
+export const INPUT_FUNCTIONS = {
+  // Complete list of all available input functions (values match C# enum exactly)
+  ALL: [
+    { name: "IP_UNUSED", label: "Unused", value: 0 },
+    { name: "BELL", label: "Bell", value: 1 },
+    { name: "DO_NOT_DISTURB", label: "Do Not Disturb", value: 2 },
+    { name: "MAKE_UP_ROOM", label: "Make Up Room", value: 3 },
+    { name: "KEY_CARD", label: "Key Card", value: 4 },
+    { name: "IP_ON", label: "On", value: 5 },
+    { name: "IP_OFF", label: "Off", value: 6 },
+    { name: "IP_ON_OFF", label: "On/Off", value: 7 },
+    { name: "IP_SWITCH", label: "Switch", value: 8 },
+    { name: "IP_SWITCH_INVERT", label: "Switch (Inverted)", value: 9 },
+    { name: "IP_DIM_TOGGLE", label: "Dim Toggle", value: 10 },
+    { name: "IP_DIM_MEM", label: "Dim Memory", value: 11 },
+    { name: "IP_ON_UP", label: "On Up", value: 12 },
+    { name: "IP_OFF_DOWN", label: "Off Down", value: 13 },
+    { name: "IP_TIMER_TOGGLE", label: "Timer Toggle", value: 14 },
+    { name: "IP_TIMER_RETRIGGER", label: "Timer Retrigger", value: 15 },
+    { name: "IP_DIM_UP", label: "Dim Up", value: 16 },
+    { name: "IP_DIM_DOWN", label: "Dim Down", value: 17 },
+    { name: "IP_SOFT_UP", label: "Soft Up", value: 18 },
+    { name: "IP_SOFT_DOWN", label: "Soft Down", value: 19 },
+    { name: "SCENE", label: "Scene", value: 20 },
+    { name: "CURTAIN", label: "Curtain", value: 21 },
+    { name: "RETURN", label: "Return", value: 22 },
+    { name: "IP_TOGGLE", label: "Toggle", value: 23 },
+    { name: "SCENE_SEQUENCE", label: "Scene Sequence", value: 24 },
+    { name: "SCENE_OFF", label: "Scene Off", value: 25 },
+    { name: "SCENE_ON", label: "Scene On", value: 26 },
+    { name: "SCENE_WELCOME", label: "Scene Welcome", value: 27 },
+    { name: "SCENE_UNOCCUPIED", label: "Scene Unoccupied", value: 28 },
+    { name: "SCENE_TOGGLE", label: "Scene Toggle", value: 29 },
+    { name: "KEYLESS", label: "Keyless", value: 30 },
+    { name: "DOOR_SWITCH", label: "Door Switch", value: 31 },
+    { name: "MOTION_SENSOR", label: "Motion Sensor", value: 32 },
+    { name: "BLIND", label: "Blind", value: 33 },
+    { name: "FAN_LMH", label: "Fan L/M/H", value: 34 },
+    { name: "FAN_LMHO", label: "Fan L/M/H/O", value: 35 },
+    { name: "IP_CIRCLE_UP", label: "Circle Up", value: 36 },
+    { name: "IP_CIRCLE_DOWN", label: "Circle Down", value: 37 },
+    { name: "IP_CIRCLE_UP_OFF", label: "Circle Up Off", value: 38 },
+    { name: "IP_CIRCLE_DOWN_OFF", label: "Circle Down Off", value: 39 },
+    { name: "IP_VOL_UP", label: "Volume Up", value: 40 },
+    { name: "IP_VOL_DOWN", label: "Volume Down", value: 41 },
+    { name: "SCENE_WELCOME_NIGHT", label: "Scene Welcome Night", value: 42 },
+    { name: "SCENE_GROUP_TRIGGER", label: "Scene Group Trigger", value: 43 },
+    { name: "SCENE_GROUP_TOGGLE", label: "Scene Group Toggle", value: 44 },
+    { name: "SCENE_GROUP_SEQUENCE", label: "Scene Group Sequence", value: 45 },
+    { name: "CURTAIN_OBJ", label: "Curtain Object", value: 49 },
+    { name: "AC_FAN_LMH", label: "AC Fan L/M/H", value: 50 },
+    { name: "AC_FAN_OLMH", label: "AC Fan O/L/M/H", value: 51 },
+    { name: "AC_FAN_LOW", label: "AC Fan Low", value: 52 },
+    { name: "AC_FAN_MED", label: "AC Fan Medium", value: 53 },
+    { name: "AC_FAN_HIGH", label: "AC Fan High", value: 54 },
+    { name: "AC_TEMP_DOWN", label: "AC Temperature Down", value: 55 },
+    { name: "AC_TEMP_UP", label: "AC Temperature Up", value: 56 },
+    { name: "AC_TEMP_TYPE", label: "AC Temperature Type", value: 57 },
+    { name: "AC_POWER", label: "AC Power", value: 58 },
+    { name: "AC_MODE", label: "AC Mode", value: 59 },
+    { name: "AC_FAN_SPEED", label: "AC Fan Speed", value: 60 },
+    { name: "SW_INV_AC_OFF", label: "Switch Invert AC Off", value: 70 },
+    { name: "SW_INV_AC_ECO", label: "Switch Invert AC Eco", value: 71 },
+    { name: "TIME_HOUR", label: "Time Hour", value: 80 },
+    { name: "TIME_MINUTE", label: "Time Minute", value: 81 },
+    { name: "TIME_ALARM", label: "Time Alarm", value: 82 },
+    { name: "TIME_ZONE", label: "Time Zone", value: 83 },
+    { name: "TIME_SETT", label: "Time Setting", value: 84 },
+    { name: "MOTION_SET_SCENE", label: "Motion Set Scene", value: 90 },
+    { name: "SW_SCENE", label: "Switch Scene", value: 91 },
+    { name: "SW_SCENE_OFF", label: "Switch Scene Off", value: 92 },
+    { name: "SW_SCENE_ON", label: "Switch Scene On", value: 93 },
+    { name: "SW_SCENE_SEQUENCE", label: "Switch Scene Sequence", value: 94 },
+    { name: "SW_SCENE_GROUP", label: "Switch Scene Group", value: 95 },
+    { name: "SW_DND", label: "Switch DND", value: 96 },
+    { name: "SW_MUR", label: "Switch MUR", value: 97 },
+    { name: "ENTRANCE", label: "Entrance", value: 254 },
+    { name: "CUSTOM", label: "Custom", value: 255 }
+  ],
+
+  // Specific function lists for special inputs
+  KEY_CARD_INPUT: [
+    { name: "IP_UNUSED", label: "Unused", value: 0 },
+    { name: "KEY_CARD", label: "Key Card", value: 4 },
+    { name: "KEYLESS", label: "Keyless", value: 30 }
+  ],
+  BELL_INPUT: [
+    { name: "IP_UNUSED", label: "Unused", value: 0 },
+    { name: "BELL", label: "Bell", value: 1 }
+  ],
+  DND_INPUT: [
+    { name: "IP_UNUSED", label: "Unused", value: 0 },
+    { name: "DO_NOT_DISTURB", label: "Do Not Disturb", value: 2 },
+    { name: "SW_DND", label: "Switch DND", value: 96 }
+  ],
+  MUR_INPUT: [
+    { name: "IP_UNUSED", label: "Unused", value: 0 },
+    { name: "MAKE_UP_ROOM", label: "Make Up Room", value: 3 },
+    { name: "SW_MUR", label: "Switch MUR", value: 97 }
+  ]
+};
+
+// Helper functions for input functions
+export const getInputFunctions = (unitName, inputIndex) => {
+  const unit = CONSTANTS.UNIT.TYPES.find(u => u.name === unitName);
+  if (!unit || !unit.inputFunctions) return [];
+
+  // Check if this specific input has a custom function list
+  if (unit.inputFunctions[inputIndex]) {
+    return INPUT_FUNCTIONS[unit.inputFunctions[inputIndex]] || [];
+  }
+
+  // Use default function list
+  if (unit.inputFunctions.default) {
+    return INPUT_FUNCTIONS[unit.inputFunctions.default] || [];
+  }
+
+  return [];
+};
+
+export const getInputFunctionByValue = (value) => {
+  // Search through all function lists to find function by value
+  for (const functionList of Object.values(INPUT_FUNCTIONS)) {
+    const found = functionList.find(func => func.value === value);
+    if (found) return found;
+  }
+  return null;
+};
+
+export const getInputFunctionByName = (name) => {
+  // Search through all function lists to find function by name
+  for (const functionList of Object.values(INPUT_FUNCTIONS)) {
+    const found = functionList.find(func => func.name === name);
+    if (found) return found;
+  }
+  return null;
+};
+
+// Multiple Group Functions - functions that require multiple lighting address configuration
+// Based on Multiple_Group_Func enum from WinForms RLC codebase
+export const MULTIPLE_GROUP_FUNCTIONS = [
+  "KEY_CARD", "IP_ON", "IP_OFF", "IP_ON_OFF", "IP_SWITCH", "IP_SWITCH_INVERT",
+  "IP_DIM_TOGGLE", "IP_DIM_MEM", "IP_DIM_UP", "IP_DIM_DOWN", "SCENE", "CURTAIN",
+  "CURTAIN_OBJ", "RETURN", "IP_TOGGLE", "SCENE_SEQUENCE", "SCENE_OFF", "SCENE_ON",
+  "SCENE_WELCOME", "SCENE_UNOCCUPIED", "SCENE_TOGGLE", "SCENE_GROUP_TRIGGER",
+  "SCENE_GROUP_TOGGLE", "SCENE_GROUP_SEQUENCE", "KEYLESS", "DOOR_SWITCH",
+  "MOTION_SENSOR", "BLIND", "FAN_LMH", "FAN_LMHO", "IP_CIRCLE_UP", "IP_CIRCLE_DOWN",
+  "IP_CIRCLE_UP_OFF", "IP_CIRCLE_DOWN_OFF", "IP_VOL_UP", "IP_VOL_DOWN",
+  "AC_FAN_LMH", "AC_FAN_SPEED", "AC_FAN_LOW", "AC_FAN_MED", "AC_FAN_HIGH",
+  "AC_TEMP_DOWN", "AC_TEMP_UP", "AC_TEMP_TYPE", "AC_POWER", "AC_MODE",
+  "SW_INV_AC_OFF", "SW_INV_AC_ECO", "TIME_HOUR", "TIME_MINUTE", "TIME_ALARM",
+  "TIME_ZONE", "TIME_SETT", "SCENE_WELCOME_NIGHT", "CUSTOM"
+];
+
+export const isMultipleGroupFunction = (functionName) => {
+  return MULTIPLE_GROUP_FUNCTIONS.includes(functionName);
+};
+
+export const hasSpecialInputs = (unitName) => {
+  const unit = CONSTANTS.UNIT.TYPES.find(u => u.name === unitName);
+  if (!unit || !unit.inputFunctions) return false;
+
+  // Check if any inputs have special function lists (not "ALL")
+  return Object.keys(unit.inputFunctions).some(key =>
+    key !== "default" && unit.inputFunctions[key] !== "ALL"
+  );
+};

@@ -67,7 +67,10 @@ export function Combobox({
             <CommandEmpty>{emptyMessage}</CommandEmpty>
             <CommandGroup>
               {/* Clear option */}
-              <CommandItem value="" onSelect={handleSelect}>
+              <CommandItem
+                value="Clear selection"
+                onSelect={() => handleSelect("")}
+              >
                 <Check
                   className={cn(
                     "mr-2 h-4 w-4",
@@ -79,8 +82,8 @@ export function Combobox({
               {options.map((option) => (
                 <CommandItem
                   key={option.value}
-                  value={option.value}
-                  onSelect={handleSelect}
+                  value={option.label}
+                  onSelect={() => handleSelect(option.value)}
                 >
                   <Check
                     className={cn(
