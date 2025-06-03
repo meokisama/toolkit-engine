@@ -29,8 +29,6 @@ import {
   createDefaultIOConfig,
   cloneIOConfig,
   hasIOConfigChanges,
-  updateInputConfig,
-  updateOutputConfig,
 } from "@/utils/io-config-utils";
 
 // Performance optimization constants
@@ -276,7 +274,28 @@ const IOConfigDialogComponent = ({ open, onOpenChange, item = null }) => {
     if (!open || !item) return;
 
     // Load I/O config from database or create default
-    const ioConfig = item.io_config || createDefaultIOConfig(item.type);
+    let ioConfig = item.io_config || createDefaultIOConfig(item.type);
+
+    // Migrate old format (outputConfigs separate) to new format (config nested in outputs)
+    if (ioConfig.outputConfigs && Array.isArray(ioConfig.outputConfigs)) {
+      const migratedOutputs = (ioConfig.outputs || []).map((output) => {
+        const outputConfig = ioConfig.outputConfigs.find(
+          (config) => config.index === output.index
+        );
+        if (outputConfig) {
+          const { index, ...config } = outputConfig; // Remove index from config
+          return { ...output, config };
+        }
+        return output;
+      });
+
+      // Create new config without separate outputConfigs
+      ioConfig = {
+        inputs: ioConfig.inputs || [],
+        outputs: migratedOutputs,
+      };
+    }
+
     setOriginalIOConfig(cloneIOConfig(ioConfig));
 
     // Initialize input configs from database or defaults
@@ -330,11 +349,12 @@ const IOConfigDialogComponent = ({ open, onOpenChange, item = null }) => {
     setMultiGroupConfigs(multiGroupData);
     setRlcConfigs(rlcData);
 
-    // Initialize output configurations
+    // Initialize output configurations (now nested in outputs)
     const outputConfigData = {};
-    const savedOutputConfigs = ioConfig.outputConfigs || [];
-    savedOutputConfigs.forEach((output) => {
-      outputConfigData[output.index] = output;
+    outputConfigsFromDB.forEach((output) => {
+      if (output.config) {
+        outputConfigData[output.index] = output.config;
+      }
     });
     setOutputConfigurations(outputConfigData);
   }, [open, item, initialInputConfigs, initialOutputConfigs]);
@@ -372,10 +392,7 @@ const IOConfigDialogComponent = ({ open, onOpenChange, item = null }) => {
           name: config.name,
           deviceId: config.deviceId,
           deviceType: config.type === "ac" ? "aircon" : "lighting",
-        })),
-        outputConfigs: Object.keys(outputConfigurations).map((index) => ({
-          index: parseInt(index),
-          ...outputConfigurations[index],
+          config: outputConfigurations[config.index] || null,
         })),
       };
 

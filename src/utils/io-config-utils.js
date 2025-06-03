@@ -2,6 +2,28 @@
  * Utility functions for I/O configuration management
  */
 
+import { getUnitIOSpec, getOutputTypes } from '@/constants';
+
+/**
+ * Get output label for display
+ * @param {string} type - Output type ('relay', 'dimmer', 'ao', 'ac')
+ * @returns {string} Display label
+ */
+const getOutputLabel = (type) => {
+  switch (type) {
+    case "relay":
+      return "Relay";
+    case "dimmer":
+      return "Dimmer";
+    case "ao":
+      return "Analog";
+    case "ac":
+      return "Aircon";
+    default:
+      return type;
+  }
+};
+
 /**
  * Create a default I/O configuration for a unit
  * @param {string} unitType - The type of unit (e.g., 'Bedside-17T', 'RLC-I20')
@@ -31,14 +53,21 @@ export const createDefaultIOConfig = (unitType) => {
   }
 
   // Create default output configurations
-  for (let i = 0; i < getOutputCount(unitType); i++) {
-    outputs.push({
-      index: i,
-      name: `Output ${i + 1}`,
-      deviceId: null,
-      deviceType: getOutputType(unitType, i) // 'lighting', 'aircon', etc.
-    });
-  }
+  const outputTypes = getOutputTypes(unitType);
+  let outputIndex = 0;
+
+  outputTypes.forEach(({ type, count }) => {
+    for (let i = 0; i < count; i++) {
+      outputs.push({
+        index: outputIndex++,
+        name: `${getOutputLabel(type)} ${i + 1}`,
+        type: type, // Raw output type for dialog logic
+        deviceId: null,
+        deviceType: type === "ac" ? "aircon" : "lighting", // Mapped type for database
+        config: null // Configuration will be added when needed
+      });
+    }
+  });
 
   return {
     inputs,
@@ -52,60 +81,8 @@ export const createDefaultIOConfig = (unitType) => {
  * @returns {number} Number of inputs
  */
 const getInputCount = (unitType) => {
-  // This should match the constants from constants.js
-  const inputCounts = {
-    'Bedside-17T': 17,
-    'Bedside-12T': 12,
-    'RLC-I20': 20,
-    'RLC-I16': 16,
-    'RCU-48IN-16RL': 48,
-    'RCU-48IN-16RL-4AI': 48,
-    'RCU-48IN-16RL-4AO': 48,
-    'RCU-32AO': 0,
-    'RCU-11IN-4RL': 11
-  };
-  
-  return inputCounts[unitType] || 0;
-};
-
-/**
- * Get the number of outputs for a unit type
- * @param {string} unitType - The type of unit
- * @returns {number} Number of outputs
- */
-const getOutputCount = (unitType) => {
-  const outputCounts = {
-    'Bedside-17T': 0,
-    'Bedside-12T': 0,
-    'RLC-I20': 0,
-    'RLC-I16': 0,
-    'RCU-48IN-16RL': 16,
-    'RCU-48IN-16RL-4AI': 16,
-    'RCU-48IN-16RL-4AO': 16,
-    'RCU-32AO': 32,
-    'RCU-11IN-4RL': 4
-  };
-  
-  return outputCounts[unitType] || 0;
-};
-
-/**
- * Get the output type for a specific output index
- * @param {string} unitType - The type of unit
- * @param {number} outputIndex - The output index
- * @returns {string} Output type ('relay', 'dimmer', 'ao', 'ac')
- */
-const getOutputType = (unitType, outputIndex) => {
-  // This should match the output specifications from constants.js
-  const outputSpecs = {
-    'RCU-48IN-16RL': 'relay',
-    'RCU-48IN-16RL-4AI': 'relay',
-    'RCU-48IN-16RL-4AO': 'relay',
-    'RCU-32AO': 'ao',
-    'RCU-11IN-4RL': 'relay'
-  };
-  
-  return outputSpecs[unitType] || 'relay';
+  const spec = getUnitIOSpec(unitType);
+  return spec ? spec.inputs : 0;
 };
 
 /**
@@ -115,7 +92,7 @@ const getOutputType = (unitType, outputIndex) => {
  */
 export const validateIOConfig = (ioConfig) => {
   const errors = [];
-  
+
   if (!ioConfig) {
     errors.push('I/O configuration is required');
     return { isValid: false, errors };
@@ -153,6 +130,10 @@ export const validateIOConfig = (ioConfig) => {
       if (!output.name || typeof output.name !== 'string') {
         errors.push(`Output ${index}: name is required and must be a string`);
       }
+      // Validate nested config if present
+      if (output.config && typeof output.config !== 'object') {
+        errors.push(`Output ${index}: config must be an object if provided`);
+      }
     });
   }
 
@@ -169,13 +150,16 @@ export const validateIOConfig = (ioConfig) => {
  */
 export const cloneIOConfig = (ioConfig) => {
   if (!ioConfig) return null;
-  
+
   return {
     inputs: ioConfig.inputs?.map(input => ({
       ...input,
       multiGroupConfig: [...(input.multiGroupConfig || [])]
     })) || [],
-    outputs: ioConfig.outputs?.map(output => ({ ...output })) || []
+    outputs: ioConfig.outputs?.map(output => ({
+      ...output,
+      config: output.config ? { ...output.config } : null
+    })) || []
   };
 };
 
@@ -188,7 +172,7 @@ export const cloneIOConfig = (ioConfig) => {
 export const hasIOConfigChanges = (original, current) => {
   if (!original && !current) return false;
   if (!original || !current) return true;
-  
+
   return JSON.stringify(original) !== JSON.stringify(current);
 };
 
@@ -212,14 +196,14 @@ export const getInputConfig = (ioConfig, inputIndex) => {
  */
 export const updateInputConfig = (ioConfig, inputIndex, inputData) => {
   const newConfig = cloneIOConfig(ioConfig);
-  
+
   const inputConfigIndex = newConfig.inputs.findIndex(input => input.index === inputIndex);
   if (inputConfigIndex >= 0) {
     newConfig.inputs[inputConfigIndex] = { ...newConfig.inputs[inputConfigIndex], ...inputData };
   } else {
     newConfig.inputs.push({ index: inputIndex, ...inputData });
   }
-  
+
   return newConfig;
 };
 
@@ -235,6 +219,17 @@ export const getOutputConfig = (ioConfig, outputIndex) => {
 };
 
 /**
+ * Get output detailed config by index
+ * @param {Object} ioConfig - The I/O configuration
+ * @param {number} outputIndex - The output index
+ * @returns {Object|null} Output detailed config or null if not found
+ */
+export const getOutputDetailedConfig = (ioConfig, outputIndex) => {
+  const output = getOutputConfig(ioConfig, outputIndex);
+  return output?.config || null;
+};
+
+/**
  * Update output configuration
  * @param {Object} ioConfig - The I/O configuration
  * @param {number} outputIndex - The output index
@@ -243,13 +238,13 @@ export const getOutputConfig = (ioConfig, outputIndex) => {
  */
 export const updateOutputConfig = (ioConfig, outputIndex, outputData) => {
   const newConfig = cloneIOConfig(ioConfig);
-  
+
   const outputConfigIndex = newConfig.outputs.findIndex(output => output.index === outputIndex);
   if (outputConfigIndex >= 0) {
     newConfig.outputs[outputConfigIndex] = { ...newConfig.outputs[outputConfigIndex], ...outputData };
   } else {
     newConfig.outputs.push({ index: outputIndex, ...outputData });
   }
-  
+
   return newConfig;
 };
