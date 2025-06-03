@@ -52,8 +52,14 @@ export function ProjectDetailProvider({ children }) {
       setError(null);
 
       if (tabName === "aircon") {
-        // Load aircon cards
+        // Load both aircon items and cards
+        const items = await window.electronAPI.aircon.getAll(projectId);
         const cards = await window.electronAPI.aircon.getCards(projectId);
+
+        setProjectItems((prev) => ({
+          ...prev,
+          aircon: items,
+        }));
         setAirconCards(cards);
       } else {
         // Load specific category items using individual API calls

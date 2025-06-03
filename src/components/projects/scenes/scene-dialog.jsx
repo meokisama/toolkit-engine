@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo, useCallback } from "react";
 import {
   Dialog,
   DialogContent,
@@ -58,6 +58,8 @@ export function SceneDialog({
     updateItem,
     setActiveTab,
     airconCards,
+    loadTabData,
+    loadedTabs,
   } = useProjectDetail();
   const [formData, setFormData] = useState({
     name: "",
@@ -77,8 +79,8 @@ export function SceneDialog({
     airconGroup: null,
   });
 
-  // Validate address field
-  const validateAddress = (value) => {
+  // Validate address field - memoized
+  const validateAddress = useCallback((value) => {
     if (!value.trim()) {
       return null; // Address is optional for scenes
     }
@@ -93,7 +95,7 @@ export function SceneDialog({
     }
 
     return null;
-  };
+  }, []);
 
   useEffect(() => {
     if (open) {
@@ -114,10 +116,15 @@ export function SceneDialog({
         setOriginalSceneItems([]);
       }
       setErrors({});
-    }
-  }, [open, mode, scene]);
 
-  const loadSceneItems = async (sceneId) => {
+      // Load aircon data if not already loaded
+      if (selectedProject && !loadedTabs.has("aircon")) {
+        loadTabData(selectedProject.id, "aircon");
+      }
+    }
+  }, [open, mode, scene, selectedProject, loadedTabs, loadTabData]);
+
+  const loadSceneItems = useCallback(async (sceneId) => {
     try {
       const items = await window.electronAPI.scene.getItemsWithDetails(sceneId);
       setSceneItems(items);
@@ -125,100 +132,162 @@ export function SceneDialog({
     } catch (error) {
       console.error("Failed to load scene items:", error);
     }
-  };
+  }, []);
 
-  const handleInputChange = (field, value) => {
-    setFormData((prev) => ({ ...prev, [field]: value }));
+  const handleInputChange = useCallback(
+    (field, value) => {
+      setFormData((prev) => ({ ...prev, [field]: value }));
 
-    // Clear general error when user starts typing
-    if (errors.general) {
-      setErrors((prev) => ({ ...prev, general: null }));
+      // Clear general error when user starts typing
+      setErrors((prev) => {
+        const newErrors = { ...prev };
+        if (newErrors.general) {
+          delete newErrors.general;
+        }
+
+        // Real-time validation for address field
+        if (field === "address") {
+          const error = validateAddress(value);
+          newErrors.address = error;
+        } else if (newErrors[field]) {
+          delete newErrors[field];
+        }
+
+        return newErrors;
+      });
+    },
+    [validateAddress]
+  );
+
+  const getItemDetails = useCallback(
+    (itemType, itemId) => {
+      const items = projectItems[itemType] || [];
+      return items.find((item) => item.id === itemId);
+    },
+    [projectItems]
+  );
+
+  const getCommandForAirconItem = useCallback((objectType, itemValue) => {
+    // For aircon items, we need to find the command based on object_type and value
+    switch (objectType) {
+      case OBJECT_TYPES.AC_POWER:
+        return (
+          Object.entries(AC_POWER_VALUES).find(
+            ([, value]) => value.toString() === itemValue
+          )?.[0] || null
+        );
+      case OBJECT_TYPES.AC_FAN_SPEED:
+        return (
+          Object.entries(AC_FAN_SPEED_VALUES).find(
+            ([, value]) => value.toString() === itemValue
+          )?.[0] || null
+        );
+      case OBJECT_TYPES.AC_MODE:
+        return (
+          Object.entries(AC_MODE_VALUES).find(
+            ([, value]) => value.toString() === itemValue
+          )?.[0] || null
+        );
+      case OBJECT_TYPES.AC_SWING:
+        return (
+          Object.entries(AC_SWING_VALUES).find(
+            ([, value]) => value.toString() === itemValue
+          )?.[0] || null
+        );
+      case OBJECT_TYPES.AC_TEMPERATURE:
+        return null; // Temperature doesn't use commands, just direct value
+      default:
+        return null;
     }
+  }, []);
 
-    // Real-time validation for address field
-    if (field === "address") {
-      const error = validateAddress(value);
-      setErrors((prev) => ({ ...prev, address: error }));
-    } else if (errors[field]) {
-      setErrors((prev) => ({ ...prev, [field]: null }));
-    }
-  };
+  const addItemToScene = useCallback(
+    (itemType, itemId, itemValue = null) => {
+      const item = getItemDetails(itemType, itemId);
+      if (!item) return;
 
-  const addItemToScene = (itemType, itemId, itemValue = null) => {
-    const item = getItemDetails(itemType, itemId);
-    if (!item) return;
+      // Get command and object_type for the item
+      let command = null;
+      let objectType = item.object_type;
 
-    // Get command and object_type for the item
-    let command = null;
-    let objectType = item.object_type;
+      // For aircon items, get the command based on object_type and value
+      if (itemType === "aircon" && itemValue !== null) {
+        command = getCommandForAirconItem(item.object_type, itemValue);
+      }
 
-    // For aircon items, get the command based on object_type and value
-    if (itemType === "aircon" && itemValue !== null) {
-      command = getCommandForAirconItem(item.object_type, itemValue);
-    }
-
-    // Always add to local state only - changes will be saved when user clicks Save
-    const newSceneItem = {
-      id: mode === "edit" ? `temp_${Date.now()}` : Date.now(), // Temporary ID
-      item_type: itemType,
-      item_id: itemId,
-      item_value: itemValue,
-      command: command,
-      object_type: objectType,
-      item_name: item.name,
-      item_address: item.address,
-      item_description: item.description,
-      label: item.label, // Include label for aircon items
-    };
-    setSceneItems((prev) => [...prev, newSceneItem]);
-  };
+      // Always add to local state only - changes will be saved when user clicks Save
+      const newSceneItem = {
+        id: mode === "edit" ? `temp_${Date.now()}` : Date.now(), // Temporary ID
+        item_type: itemType,
+        item_id: itemId,
+        item_value: itemValue,
+        command: command,
+        object_type: objectType,
+        item_name: item.name,
+        item_address: item.address,
+        item_description: item.description,
+        label: item.label, // Include label for aircon items
+      };
+      setSceneItems((prev) => [...prev, newSceneItem]);
+    },
+    [getItemDetails, getCommandForAirconItem, mode]
+  );
 
   // Add multiple aircon items to scene from a card
-  const addAirconCardToScene = (address, selectedProperties) => {
-    const airconItems =
-      projectItems.aircon?.filter((item) => item.address === address) || [];
+  const addAirconCardToScene = useCallback(
+    (address, selectedProperties) => {
+      const airconItems =
+        projectItems.aircon?.filter((item) => item.address === address) || [];
 
-    selectedProperties.forEach((property) => {
-      const item = airconItems.find(
-        (item) => item.object_type === property.objectType
-      );
-      if (item) {
-        addItemToScene("aircon", item.id, property.value);
-      }
-    });
-  };
+      selectedProperties.forEach((property) => {
+        const item = airconItems.find(
+          (item) => item.object_type === property.objectType
+        );
+        if (item) {
+          addItemToScene("aircon", item.id, property.value);
+        }
+      });
+    },
+    [projectItems.aircon, addItemToScene]
+  );
 
   // Handle opening aircon properties dialog
-  const handleAddAirconCard = (airconCard) => {
+  const handleAddAirconCard = useCallback((airconCard) => {
     setAirconPropertiesDialog({
       open: true,
       airconCard,
     });
-  };
+  }, []);
 
   // Handle confirming aircon properties selection
-  const handleAirconPropertiesConfirm = (address, selectedProperties) => {
-    addAirconCardToScene(address, selectedProperties);
-  };
+  const handleAirconPropertiesConfirm = useCallback(
+    (address, selectedProperties) => {
+      addAirconCardToScene(address, selectedProperties);
+    },
+    [addAirconCardToScene]
+  );
 
   // Handle opening edit aircon properties dialog
-  const handleEditAirconGroup = (airconGroup) => {
+  const handleEditAirconGroup = useCallback((airconGroup) => {
     setEditAirconPropertiesDialog({
       open: true,
       airconGroup,
     });
-  };
+  }, []);
 
   // Handle confirming edit aircon properties
-  const handleEditAirconPropertiesConfirm = (address, selectedProperties) => {
-    // Remove all existing aircon items for this address
-    removeAirconGroupFromScene(address);
-    // Add the new selected properties
-    addAirconCardToScene(address, selectedProperties);
-  };
+  const handleEditAirconPropertiesConfirm = useCallback(
+    (address, selectedProperties) => {
+      // Remove all existing aircon items for this address
+      removeAirconGroupFromScene(address);
+      // Add the new selected properties
+      addAirconCardToScene(address, selectedProperties);
+    },
+    [addAirconCardToScene]
+  );
 
-  // Get unique aircon cards from aircon items
-  const getAirconCards = () => {
+  // Get unique aircon cards from aircon items - memoized
+  const availableAirconCards = useMemo(() => {
     if (!projectItems.aircon) return [];
 
     const cardMap = new Map();
@@ -237,10 +306,10 @@ export function SceneDialog({
     return Array.from(cardMap.values()).sort(
       (a, b) => parseInt(a.address) - parseInt(b.address)
     );
-  };
+  }, [projectItems.aircon]);
 
-  // Get grouped scene items for display
-  const getGroupedSceneItems = () => {
+  // Get grouped scene items for display - memoized
+  const groupedSceneItems = useMemo(() => {
     const grouped = [];
     const airconGroups = new Map();
 
@@ -276,77 +345,73 @@ export function SceneDialog({
       }
       return 0;
     });
-  };
+  }, [sceneItems]);
 
-  const removeItemFromScene = (sceneItemId) => {
+  // Memoize filtered data for tabs to avoid recalculation on every render
+  const filteredLightingItems = useMemo(() => {
+    return (
+      projectItems.lighting?.filter(
+        (item) =>
+          !sceneItems.some(
+            (si) => si.item_type === "lighting" && si.item_id === item.id
+          )
+      ) || []
+    );
+  }, [projectItems.lighting, sceneItems]);
+
+  const filteredAirconCards = useMemo(() => {
+    return availableAirconCards.filter(
+      (card) =>
+        !sceneItems.some(
+          (si) => si.item_type === "aircon" && si.item_address === card.address
+        )
+    );
+  }, [availableAirconCards, sceneItems]);
+
+  const filteredCurtainItems = useMemo(() => {
+    return (
+      projectItems.curtain?.filter(
+        (item) =>
+          !sceneItems.some(
+            (si) => si.item_type === "curtain" && si.item_id === item.id
+          )
+      ) || []
+    );
+  }, [projectItems.curtain, sceneItems]);
+
+  const removeItemFromScene = useCallback((sceneItemId) => {
     // Always remove from local state only - changes will be saved when user clicks Save
     setSceneItems((prev) => prev.filter((item) => item.id !== sceneItemId));
-  };
+  }, []);
 
   // Remove all aircon items from a specific address
-  const removeAirconGroupFromScene = (address) => {
+  const removeAirconGroupFromScene = useCallback((address) => {
     setSceneItems((prev) =>
       prev.filter(
         (item) =>
           !(item.item_type === "aircon" && item.item_address === address)
       )
     );
-  };
+  }, []);
 
-  const updateSceneItemValue = (sceneItemId, itemValue) => {
-    // Always update local state only - changes will be saved when user clicks Save
-    setSceneItems((prev) =>
-      prev.map((item) => {
-        if (item.id === sceneItemId) {
-          let command = null;
-          if (item.item_type === "aircon") {
-            command = getCommandForAirconItem(item.object_type, itemValue);
+  const updateSceneItemValue = useCallback(
+    (sceneItemId, itemValue) => {
+      // Always update local state only - changes will be saved when user clicks Save
+      setSceneItems((prev) =>
+        prev.map((item) => {
+          if (item.id === sceneItemId) {
+            let command = null;
+            if (item.item_type === "aircon") {
+              command = getCommandForAirconItem(item.object_type, itemValue);
+            }
+            return { ...item, item_value: itemValue, command: command };
           }
-          return { ...item, item_value: itemValue, command: command };
-        }
-        return item;
-      })
-    );
-  };
-
-  const getItemDetails = (itemType, itemId) => {
-    const items = projectItems[itemType] || [];
-    return items.find((item) => item.id === itemId);
-  };
-
-  const getCommandForAirconItem = (objectType, itemValue) => {
-    // For aircon items, we need to find the command based on object_type and value
-    switch (objectType) {
-      case OBJECT_TYPES.AC_POWER:
-        return (
-          Object.entries(AC_POWER_VALUES).find(
-            ([command, value]) => value.toString() === itemValue
-          )?.[0] || null
-        );
-      case OBJECT_TYPES.AC_FAN_SPEED:
-        return (
-          Object.entries(AC_FAN_SPEED_VALUES).find(
-            ([command, value]) => value.toString() === itemValue
-          )?.[0] || null
-        );
-      case OBJECT_TYPES.AC_MODE:
-        return (
-          Object.entries(AC_MODE_VALUES).find(
-            ([command, value]) => value.toString() === itemValue
-          )?.[0] || null
-        );
-      case OBJECT_TYPES.AC_SWING:
-        return (
-          Object.entries(AC_SWING_VALUES).find(
-            ([command, value]) => value.toString() === itemValue
-          )?.[0] || null
-        );
-      case OBJECT_TYPES.AC_TEMPERATURE:
-        return null; // Temperature doesn't use commands, just direct value
-      default:
-        return null;
-    }
-  };
+          return item;
+        })
+      );
+    },
+    [getCommandForAirconItem]
+  );
 
   const applySceneItemsChanges = async (sceneId) => {
     // Compare current sceneItems with originalSceneItems to determine changes
@@ -474,7 +539,7 @@ export function SceneDialog({
     }
   };
 
-  const resetToOriginalState = () => {
+  const resetToOriginalState = useCallback(() => {
     if (mode === "edit" && originalSceneItems.length > 0) {
       // Reset to original state
       setSceneItems([...originalSceneItems]);
@@ -485,22 +550,25 @@ export function SceneDialog({
       });
     }
     setErrors({});
-  };
+  }, [mode, originalSceneItems, scene]);
 
-  const handleCancel = () => {
+  const handleCancel = useCallback(() => {
     resetToOriginalState();
     onOpenChange(false);
-  };
+  }, [resetToOriginalState, onOpenChange]);
 
-  const handleDialogOpenChange = (isOpen) => {
-    if (!isOpen) {
-      // When dialog is being closed, reset changes first
-      resetToOriginalState();
-    }
-    onOpenChange(isOpen);
-  };
+  const handleDialogOpenChange = useCallback(
+    (isOpen) => {
+      if (!isOpen) {
+        // When dialog is being closed, reset changes first
+        resetToOriginalState();
+      }
+      onOpenChange(isOpen);
+    },
+    [resetToOriginalState, onOpenChange]
+  );
 
-  const getValueOptions = (objectType, itemType) => {
+  const getValueOptions = useCallback((objectType, itemType) => {
     switch (objectType) {
       case OBJECT_TYPES.AC_POWER:
         return Object.entries(AC_POWER_LABELS).map(([value, label]) => ({
@@ -539,122 +607,128 @@ export function SceneDialog({
         }
         return [];
     }
-  };
+  }, []);
 
-  const renderValueControl = (sceneItem) => {
-    const options = getValueOptions(sceneItem.object_type, sceneItem.item_type);
-
-    // For lighting items, always use number input for brightness (0-100)
-    if (sceneItem.item_type === "lighting") {
-      return (
-        <div className="relative">
-          <Sun className="h-4 w-4 absolute left-2 top-1/2 -translate-y-1/2 text-muted-foreground" />
-          <Input
-            type="number"
-            min="0"
-            max="100"
-            value={sceneItem.item_value || "100"}
-            onChange={(e) => {
-              const inputValue = e.target.value;
-              if (inputValue === "") {
-                updateSceneItemValue(sceneItem.id, "100");
-              } else {
-                const value = Math.min(
-                  100,
-                  Math.max(0, parseInt(inputValue) || 0)
-                );
-                updateSceneItemValue(sceneItem.id, value.toString());
-              }
-            }}
-            className="w-40 pl-8 font-semibold"
-          />
-        </div>
+  const renderValueControl = useCallback(
+    (sceneItem) => {
+      const options = getValueOptions(
+        sceneItem.object_type,
+        sceneItem.item_type
       );
-    }
 
-    // For curtain items, use select dropdown with Open/Close/Stop options
-    if (sceneItem.item_type === "curtain") {
-      return (
-        <Select
-          value={sceneItem.item_value || "1"}
-          onValueChange={(value) => updateSceneItemValue(sceneItem.id, value)}
-        >
-          <SelectTrigger className="w-40">
-            <SelectValue placeholder="Select action" />
-          </SelectTrigger>
-          <SelectContent>
-            {options.map((option) => (
-              <SelectItem key={option.value} value={option.value}>
-                {option.label}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      );
-    }
+      // For lighting items, always use number input for brightness (0-100)
+      if (sceneItem.item_type === "lighting") {
+        return (
+          <div className="relative">
+            <Sun className="h-4 w-4 absolute left-2 top-1/2 -translate-y-1/2 text-muted-foreground" />
+            <Input
+              type="number"
+              min="0"
+              max="100"
+              value={sceneItem.item_value || "100"}
+              onChange={(e) => {
+                const inputValue = e.target.value;
+                if (inputValue === "") {
+                  updateSceneItemValue(sceneItem.id, "100");
+                } else {
+                  const value = Math.min(
+                    100,
+                    Math.max(0, parseInt(inputValue) || 0)
+                  );
+                  updateSceneItemValue(sceneItem.id, value.toString());
+                }
+              }}
+              className="w-40 pl-8 font-semibold"
+            />
+          </div>
+        );
+      }
 
-    // For aircon temperature, use number input for decimal values
-    if (sceneItem.object_type === OBJECT_TYPES.AC_TEMPERATURE) {
-      return (
-        <div className="relative">
-          <Thermometer className="h-4 w-4 absolute left-2 top-1/2 -translate-y-1/2 text-muted-foreground" />
-          <Input
-            type="number"
-            min="0"
-            max="40"
-            step="0.5"
-            value={sceneItem.item_value || "25"}
-            onChange={(e) => {
-              const inputValue = e.target.value;
-              if (inputValue === "") {
-                updateSceneItemValue(sceneItem.id, "25");
-              } else {
-                const value = Math.min(
-                  40,
-                  Math.max(0, parseFloat(inputValue) || 25)
-                );
-                updateSceneItemValue(sceneItem.id, value.toString());
-              }
-            }}
-            className="w-40 pl-8 font-semibold"
-            placeholder="25.5"
-          />
-        </div>
-      );
-    }
+      // For curtain items, use select dropdown with Open/Close/Stop options
+      if (sceneItem.item_type === "curtain") {
+        return (
+          <Select
+            value={sceneItem.item_value || "1"}
+            onValueChange={(value) => updateSceneItemValue(sceneItem.id, value)}
+          >
+            <SelectTrigger className="w-40">
+              <SelectValue placeholder="Select action" />
+            </SelectTrigger>
+            <SelectContent>
+              {options.map((option) => (
+                <SelectItem key={option.value} value={option.value}>
+                  {option.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        );
+      }
 
-    // For other aircon items, use select dropdown
-    if (options.length > 0) {
+      // For aircon temperature, use number input for decimal values
+      if (sceneItem.object_type === OBJECT_TYPES.AC_TEMPERATURE) {
+        return (
+          <div className="relative">
+            <Thermometer className="h-4 w-4 absolute left-2 top-1/2 -translate-y-1/2 text-muted-foreground" />
+            <Input
+              type="number"
+              min="0"
+              max="40"
+              step="0.5"
+              value={sceneItem.item_value || "25"}
+              onChange={(e) => {
+                const inputValue = e.target.value;
+                if (inputValue === "") {
+                  updateSceneItemValue(sceneItem.id, "25");
+                } else {
+                  const value = Math.min(
+                    40,
+                    Math.max(0, parseFloat(inputValue) || 25)
+                  );
+                  updateSceneItemValue(sceneItem.id, value.toString());
+                }
+              }}
+              className="w-40 pl-8 font-semibold"
+              placeholder="25.5"
+            />
+          </div>
+        );
+      }
+
+      // For other aircon items, use select dropdown
+      if (options.length > 0) {
+        return (
+          <Select
+            value={sceneItem.item_value || ""}
+            onValueChange={(value) => updateSceneItemValue(sceneItem.id, value)}
+          >
+            <SelectTrigger className="w-40">
+              <SelectValue placeholder="Select value" />
+            </SelectTrigger>
+            <SelectContent>
+              {options.map((option) => (
+                <SelectItem key={option.value} value={option.value}>
+                  {option.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        );
+      }
+
+      // Fallback for other items
       return (
-        <Select
+        <Input
+          type="number"
           value={sceneItem.item_value || ""}
-          onValueChange={(value) => updateSceneItemValue(sceneItem.id, value)}
-        >
-          <SelectTrigger className="w-40">
-            <SelectValue placeholder="Select value" />
-          </SelectTrigger>
-          <SelectContent>
-            {options.map((option) => (
-              <SelectItem key={option.value} value={option.value}>
-                {option.label}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+          onChange={(e) => updateSceneItemValue(sceneItem.id, e.target.value)}
+          placeholder="Value"
+          className="w-40"
+        />
       );
-    }
-
-    // Fallback for other items
-    return (
-      <Input
-        type="number"
-        value={sceneItem.item_value || ""}
-        onChange={(e) => updateSceneItemValue(sceneItem.id, e.target.value)}
-        placeholder="Value"
-        className="w-40"
-      />
-    );
-  };
+    },
+    [getValueOptions, updateSceneItemValue]
+  );
 
   return (
     <Dialog open={open} onOpenChange={handleDialogOpenChange}>
@@ -756,7 +830,7 @@ export function SceneDialog({
                   <CardContent>
                     {sceneItems.length > 0 ? (
                       <div className="space-y-2 max-h-96 overflow-y-auto">
-                        {getGroupedSceneItems().map((item) => {
+                        {groupedSceneItems.map((item) => {
                           // Render aircon group
                           if (item.type === "aircon-group") {
                             return (
@@ -908,41 +982,32 @@ export function SceneDialog({
 
                       <TabsContent value="lighting" className="space-y-2">
                         <div className="max-h-80 overflow-y-auto space-y-2 pr-2">
-                          {projectItems.lighting?.length > 0 ? (
-                            projectItems.lighting
-                              .filter(
-                                (item) =>
-                                  !sceneItems.some(
-                                    (si) =>
-                                      si.item_type === "lighting" &&
-                                      si.item_id === item.id
-                                  )
-                              )
-                              .map((item) => (
-                                <div
-                                  key={item.id}
-                                  className="flex items-center justify-between p-2 border rounded-lg"
-                                >
-                                  <div>
-                                    <div className="font-medium text-sm">
-                                      {item.name || `Group ${item.address}`}
-                                    </div>
-                                    <div className="text-xs text-muted-foreground">
-                                      Address: {item.address}
-                                    </div>
+                          {filteredLightingItems.length > 0 ? (
+                            filteredLightingItems.map((item) => (
+                              <div
+                                key={item.id}
+                                className="flex items-center justify-between p-2 border rounded-lg"
+                              >
+                                <div>
+                                  <div className="font-medium text-sm">
+                                    {item.name || `Group ${item.address}`}
                                   </div>
-                                  <Button
-                                    type="button"
-                                    variant="outline"
-                                    size="icon"
-                                    onClick={() =>
-                                      addItemToScene("lighting", item.id, "100")
-                                    }
-                                  >
-                                    <Plus className="h-4 w-4" />
-                                  </Button>
+                                  <div className="text-xs text-muted-foreground">
+                                    Address: {item.address}
+                                  </div>
                                 </div>
-                              ))
+                                <Button
+                                  type="button"
+                                  variant="outline"
+                                  size="icon"
+                                  onClick={() =>
+                                    addItemToScene("lighting", item.id, "100")
+                                  }
+                                >
+                                  <Plus className="h-4 w-4" />
+                                </Button>
+                              </div>
+                            ))
                           ) : (
                             <p className="text-sm text-muted-foreground text-center py-4">
                               No lighting items available
@@ -953,45 +1018,35 @@ export function SceneDialog({
 
                       <TabsContent value="aircon" className="space-y-2">
                         <div className="max-h-80 overflow-y-auto space-y-2 pr-2">
-                          {getAirconCards().length > 0 ? (
-                            getAirconCards()
-                              .filter(
-                                (card) =>
-                                  // Check if this card has any items in scene
-                                  !sceneItems.some(
-                                    (si) =>
-                                      si.item_type === "aircon" &&
-                                      si.item_address === card.address
-                                  )
-                              )
-                              .map((card) => (
-                                <div
-                                  key={card.address}
-                                  className="flex items-center justify-between p-2 border rounded-lg"
-                                >
-                                  <div>
-                                    <div className="font-medium text-sm">
-                                      {card.name || `Aircon ${card.address}`}
-                                    </div>
-                                    <div className="text-xs text-muted-foreground">
-                                      Address: {card.address}
-                                    </div>
-                                    {card.description && (
-                                      <div className="text-xs text-muted-foreground">
-                                        {card.description}
-                                      </div>
-                                    )}
+                          {filteredAirconCards.length > 0 ? (
+                            filteredAirconCards.map((card) => (
+                              <div
+                                key={card.address}
+                                className="flex items-center justify-between p-2 border rounded-lg"
+                              >
+                                <div>
+                                  <div className="font-medium text-sm">
+                                    {card.name || `Aircon ${card.address}`}
                                   </div>
-                                  <Button
-                                    type="button"
-                                    variant="outline"
-                                    size="icon"
-                                    onClick={() => handleAddAirconCard(card)}
-                                  >
-                                    <Plus className="h-4 w-4" />
-                                  </Button>
+                                  <div className="text-xs text-muted-foreground">
+                                    Address: {card.address}
+                                  </div>
+                                  {card.description && (
+                                    <div className="text-xs text-muted-foreground">
+                                      {card.description}
+                                    </div>
+                                  )}
                                 </div>
-                              ))
+                                <Button
+                                  type="button"
+                                  variant="outline"
+                                  size="icon"
+                                  onClick={() => handleAddAirconCard(card)}
+                                >
+                                  <Plus className="h-4 w-4" />
+                                </Button>
+                              </div>
+                            ))
                           ) : (
                             <p className="text-sm text-muted-foreground text-center py-4">
                               No aircon cards available
@@ -1002,41 +1057,32 @@ export function SceneDialog({
 
                       <TabsContent value="curtain" className="space-y-2">
                         <div className="max-h-80 overflow-y-auto space-y-2 pr-2">
-                          {projectItems.curtain?.length > 0 ? (
-                            projectItems.curtain
-                              .filter(
-                                (item) =>
-                                  !sceneItems.some(
-                                    (si) =>
-                                      si.item_type === "curtain" &&
-                                      si.item_id === item.id
-                                  )
-                              )
-                              .map((item) => (
-                                <div
-                                  key={item.id}
-                                  className="flex items-center justify-between p-2 border rounded-lg"
-                                >
-                                  <div>
-                                    <div className="font-medium text-sm">
-                                      {item.name}
-                                    </div>
-                                    <div className="text-xs text-muted-foreground">
-                                      Address: {item.address}
-                                    </div>
+                          {filteredCurtainItems.length > 0 ? (
+                            filteredCurtainItems.map((item) => (
+                              <div
+                                key={item.id}
+                                className="flex items-center justify-between p-2 border rounded-lg"
+                              >
+                                <div>
+                                  <div className="font-medium text-sm">
+                                    {item.name}
                                   </div>
-                                  <Button
-                                    type="button"
-                                    variant="outline"
-                                    size="icon"
-                                    onClick={() =>
-                                      addItemToScene("curtain", item.id, "1")
-                                    }
-                                  >
-                                    <Plus className="h-4 w-4" />
-                                  </Button>
+                                  <div className="text-xs text-muted-foreground">
+                                    Address: {item.address}
+                                  </div>
                                 </div>
-                              ))
+                                <Button
+                                  type="button"
+                                  variant="outline"
+                                  size="icon"
+                                  onClick={() =>
+                                    addItemToScene("curtain", item.id, "1")
+                                  }
+                                >
+                                  <Plus className="h-4 w-4" />
+                                </Button>
+                              </div>
+                            ))
                           ) : (
                             <p className="text-sm text-muted-foreground text-center py-4">
                               No curtain items available
