@@ -181,7 +181,7 @@ export function AirconPropertiesDialog({
           onChange={(e) =>
             handleValueChange(property.objectType, e.target.value)
           }
-          className="w-24"
+          className="w-32"
           placeholder="25"
         />
       );

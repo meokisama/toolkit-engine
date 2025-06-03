@@ -916,6 +916,102 @@ export const isMultipleGroupFunction = (functionName) => {
   return MULTIPLE_GROUP_FUNCTIONS.includes(functionName);
 };
 
+// Ramp and Preset Group Functions - functions that enable both Ramp and Preset options
+// Based on Ramp_Preset_Group_Func enum from WinForms RLC codebase
+export const RAMP_PRESET_GROUP_FUNCTIONS = [
+  "BELL",
+  "IP_SOFT_UP"
+];
+
+// DelayOff Group Functions - functions that enable DelayOff option
+// Based on DelayOff_Group_Func enum from WinForms RLC codebase
+export const DELAY_OFF_GROUP_FUNCTIONS = [
+  "KEY_CARD",
+  "KEYLESS",
+  "IP_TIMER_TOGGLE",
+  "IP_TIMER_RETRIGGER",
+  "CURTAIN",
+  "ENTRANCE",
+  "IP_SWITCH",
+  "IP_SWITCH_INVERT"
+];
+
+// Ramp Group Functions - functions that enable only Ramp option
+// Based on Ramp_Group_Func enum from WinForms RLC codebase
+export const RAMP_GROUP_FUNCTIONS = [
+  "IP_SOFT_DOWN"
+];
+
+// Key Card Group Functions - functions for keycard features
+// Based on Key_Card_Group_Func enum from WinForms RLC codebase
+export const KEY_CARD_GROUP_FUNCTIONS = [
+  "KEY_CARD",
+  "SCENE_GROUP",
+  "SCENE_GROUP_TOGGLE"
+];
+
+// Helper functions to check if a function belongs to each group
+export const isRampPresetGroupFunction = (functionName) => {
+  return RAMP_PRESET_GROUP_FUNCTIONS.includes(functionName);
+};
+
+export const isDelayOffGroupFunction = (functionName) => {
+  return DELAY_OFF_GROUP_FUNCTIONS.includes(functionName);
+};
+
+export const isRampGroupFunction = (functionName) => {
+  return RAMP_GROUP_FUNCTIONS.includes(functionName);
+};
+
+export const isKeyCardGroupFunction = (functionName) => {
+  return KEY_CARD_GROUP_FUNCTIONS.includes(functionName);
+};
+
+// Function to determine which RLC options should be enabled based on input function
+export const getRlcOptionsConfig = (functionName, unitType = null) => {
+  const config = {
+    rampEnabled: false,
+    presetEnabled: false,
+    ledDisplayEnabled: true, // LED display is generally always available
+    nightlightEnabled: true, // Nightlight is generally always available
+    backlightEnabled: true,  // Backlight is generally always available
+    autoModeEnabled: true,   // Auto mode is generally always available
+    delayOffEnabled: false,
+    multiGroupEnabled: false
+  };
+
+  if (!functionName || functionName === "IP_UNUSED") {
+    // All options disabled for unused function
+    return {
+      ...config,
+      ledDisplayEnabled: false,
+      nightlightEnabled: false,
+      backlightEnabled: false,
+      autoModeEnabled: false
+    };
+  }
+
+  // Check function groups to enable specific options
+  if (isRampPresetGroupFunction(functionName)) {
+    config.rampEnabled = true;
+    config.presetEnabled = true;
+  }
+
+  if (isRampGroupFunction(functionName)) {
+    config.rampEnabled = true;
+  }
+
+  if (isDelayOffGroupFunction(functionName)) {
+    config.delayOffEnabled = true;
+  }
+
+  if (isMultipleGroupFunction(functionName)) {
+    config.multiGroupEnabled = true;
+  }
+
+  return config;
+};
+
 export const hasSpecialInputs = (unitName) => {
   const unit = CONSTANTS.UNIT.TYPES.find(u => u.name === unitName);
   if (!unit || !unit.inputFunctions) return false;
@@ -925,3 +1021,100 @@ export const hasSpecialInputs = (unitName) => {
     key !== "default" && unit.inputFunctions[key] !== "ALL"
   );
 };
+
+// RLC Options Constants (from WinForms RLC application)
+
+// Ramp time options (in seconds)
+export const RAMP_OPTIONS = [
+  { value: 0, label: "Instant" },
+  { value: 1, label: "1 secs" },
+  { value: 4, label: "4 secs" },
+  { value: 8, label: "8 secs" },
+  { value: 12, label: "12 secs" },
+  { value: 20, label: "20 secs" },
+  { value: 30, label: "30 secs" },
+  { value: 40, label: "40 secs" },
+  { value: 60, label: "60 secs" },
+  { value: 90, label: "90 secs" },
+  { value: 120, label: "120 secs" },
+  { value: 150, label: "150 secs" },
+  { value: 180, label: "180 secs" },
+  { value: 210, label: "210 secs" },
+  { value: 240, label: "240 secs" },
+  { value: 255, label: "255 secs" }
+];
+
+// LED Display modes
+export const LED_DISPLAY_MODES = [
+  { value: 0, label: "OFF", description: "LED always off" },
+  { value: 1, label: "ON", description: "LED always on" },
+  { value: 2, label: "ON/OFF", description: "LED shows on/off status" },
+  { value: 3, label: "2 Colors", description: "LED shows 2-color status" }
+];
+
+// LED Status calculation flags
+export const LED_STATUS_FLAGS = {
+  NIGHTLIGHT: 16,  // Add 16 if nightlight is enabled
+  BACKLIGHT: 32    // Add 32 if backlight is enabled
+};
+
+// Delay time options for hours (0-18, with special limit at 18)
+export const DELAY_HOUR_OPTIONS = Array.from({ length: 19 }, (_, i) => ({
+  value: i,
+  label: i.toString()
+}));
+
+// Delay time options for minutes (0-59, but limited to 11 if hour is 18)
+export const DELAY_MINUTE_OPTIONS = Array.from({ length: 60 }, (_, i) => ({
+  value: i,
+  label: i.toString()
+}));
+
+// Delay time options for seconds (0-59)
+export const DELAY_SECOND_OPTIONS = Array.from({ length: 60 }, (_, i) => ({
+  value: i,
+  label: i.toString()
+}));
+
+// Helper function to get minute options based on selected hour
+export function getDelayMinuteOptions(selectedHour) {
+  const maxMinutes = selectedHour === 18 ? 12 : 60;
+  return Array.from({ length: maxMinutes }, (_, i) => ({
+    value: i,
+    label: i.toString()
+  }));
+}
+
+// Helper function to calculate delay in seconds
+export function calculateDelaySeconds(hours, minutes, seconds) {
+  return (hours * 3600) + (minutes * 60) + seconds;
+}
+
+// Helper function to parse delay seconds back to hours, minutes, seconds
+export function parseDelaySeconds(totalSeconds) {
+  const hours = Math.floor(totalSeconds / 3600);
+  const minutes = Math.floor((totalSeconds % 3600) / 60);
+  const seconds = totalSeconds % 60;
+  return { hours, minutes, seconds };
+}
+
+// Helper function to calculate LED status value
+export function calculateLedStatus(displayMode, nightlight, backlight) {
+  let status = displayMode;
+  if (nightlight) status += LED_STATUS_FLAGS.NIGHTLIGHT;
+  if (backlight) status += LED_STATUS_FLAGS.BACKLIGHT;
+  return status;
+}
+
+// Helper function to parse LED status value
+export function parseLedStatus(ledStatus) {
+  const backlight = ledStatus >= LED_STATUS_FLAGS.BACKLIGHT;
+  let remaining = backlight ? ledStatus - LED_STATUS_FLAGS.BACKLIGHT : ledStatus;
+
+  const nightlight = remaining >= LED_STATUS_FLAGS.NIGHTLIGHT;
+  remaining = nightlight ? remaining - LED_STATUS_FLAGS.NIGHTLIGHT : remaining;
+
+  const displayMode = remaining;
+
+  return { displayMode, nightlight, backlight };
+}

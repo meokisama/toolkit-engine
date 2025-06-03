@@ -23,6 +23,13 @@ import {
 } from "@/constants";
 import { useProjectDetail } from "@/contexts/project-detail-context";
 import { MultiGroupConfigDialog } from "./multi-group-config-dialog";
+import {
+  createDefaultIOConfig,
+  cloneIOConfig,
+  hasIOConfigChanges,
+  updateInputConfig,
+  updateOutputConfig,
+} from "@/utils/io-config-utils";
 
 // Performance optimization constants
 const PERFORMANCE_THRESHOLD = 50; // Show warning for large lists
@@ -50,7 +57,7 @@ const InputConfigItem = memo(
       }));
     }, [availableFunctions]);
 
-    // Check if current function requires multiple group configuration
+    // Check current function for configuration
     const currentFunction = useMemo(() => {
       return getInputFunctionByValue(config.functionValue);
     }, [config.functionValue]);
@@ -62,6 +69,11 @@ const InputConfigItem = memo(
     const hasMultiGroupConfig = useMemo(() => {
       return multiGroupConfigs[config.index]?.length > 0;
     }, [multiGroupConfigs, config.index]);
+
+    // Always show config button for all functions (except unused)
+    const showConfigButton = useMemo(() => {
+      return currentFunction && currentFunction.name !== "IP_UNUSED";
+    }, [currentFunction]);
 
     // Memoized handlers to prevent unnecessary re-renders
     const handleFunctionChange = useCallback(
@@ -83,39 +95,25 @@ const InputConfigItem = memo(
     }, [config.index, config.functionValue, onOpenMultiGroupConfig]);
 
     return (
-      <div className="space-y-3 p-4 border rounded-lg flex gap-4">
-        <div className="space-y-2 w-1/2">
-          <Label className="text-sm font-medium">{config.name}</Label>
+      <div className="p-4 border rounded-lg flex gap-4 items-center justify-between shadow">
+        <Label className="text-sm font-medium">{config.name}</Label>
+        <div className="flex items-center gap-2">
           <Combobox
             options={functionOptions}
             value={config.functionValue.toString()}
             onValueChange={handleFunctionChange}
             placeholder="Select function..."
             emptyText="No functions available"
+            className="w-56"
           />
-        </div>
-        <div className="space-y-2 w-1/2">
-          <Label className="text-sm text-muted-foreground">Group</Label>
-          {isMultiGroup ? (
-            <Button
-              variant="outline"
-              onClick={handleMultiGroupClick}
-              className="w-full justify-start"
-            >
-              <Settings className="h-4 w-4" />
-              {hasMultiGroupConfig
-                ? `${multiGroupConfigs[config.index].length} Groups Configured`
-                : "Configure Groups"}
-            </Button>
-          ) : (
-            <Combobox
-              options={lightingOptions}
-              value={config.lightingId?.toString() || ""}
-              onValueChange={handleLightingChange}
-              placeholder="Select group..."
-              emptyText="No group found"
-            />
-          )}
+          <Button
+            variant="outline"
+            onClick={handleMultiGroupClick}
+            size="icon"
+            disabled={showConfigButton ? false : true}
+          >
+            <Settings className="h-4 w-4" />
+          </Button>
         </div>
       </div>
     );
@@ -152,19 +150,24 @@ const OutputConfigItem = memo(
     );
 
     return (
-      <div className="p-4 border rounded-lg flex gap-4 justify-center items-center">
-        <Label className="text-sm font-medium flex-shrink-0">
+      <div className="p-4 border rounded-lg flex gap-4 justify-between items-center w-full shadow">
+        <Label className="text-sm font-medium">
           {getOutputIcon(config.type)}
           {config.name}
         </Label>
-        <Combobox
-          className="flex-1"
-          options={deviceOptions}
-          value={config.deviceId?.toString() || ""}
-          onValueChange={handleDeviceChange}
-          placeholder={`Select ${isAircon ? "aircon" : "lighting"}...`}
-          emptyText={`No ${isAircon ? "aircon" : "lighting"} found`}
-        />
+        <div className="flex items-center gap-2">
+          <Combobox
+            className="w-56"
+            options={deviceOptions}
+            value={config.deviceId?.toString() || ""}
+            onValueChange={handleDeviceChange}
+            placeholder={`Select ${isAircon ? "aircon" : "lighting"}...`}
+            emptyText={`No ${isAircon ? "aircon" : "lighting"} found`}
+          />
+          <Button variant="outline" size="icon">
+            <Settings className="h-4 w-4" />
+          </Button>
+        </div>
       </div>
     );
   }
@@ -173,15 +176,18 @@ const OutputConfigItem = memo(
 OutputConfigItem.displayName = "OutputConfigItem";
 
 const IOConfigDialogComponent = ({ open, onOpenChange, item = null }) => {
-  const { projectItems } = useProjectDetail();
+  const { projectItems, updateItem } = useProjectDetail();
 
   const [inputConfigs, setInputConfigs] = useState([]);
   const [outputConfigs, setOutputConfigs] = useState([]);
+  const [originalIOConfig, setOriginalIOConfig] = useState(null);
+  const [loading, setLoading] = useState(false);
 
   // Multi-group configuration state
   const [multiGroupDialogOpen, setMultiGroupDialogOpen] = useState(false);
   const [currentMultiGroupInput, setCurrentMultiGroupInput] = useState(null);
   const [multiGroupConfigs, setMultiGroupConfigs] = useState({});
+  const [rlcConfigs, setRlcConfigs] = useState({}); // Store RLC options for each input
 
   // Get I/O specifications for the unit - memoized to prevent recalculation
   const ioSpec = useMemo(() => {
@@ -252,27 +258,129 @@ const IOConfigDialogComponent = ({ open, onOpenChange, item = null }) => {
     return outputs;
   }, [ioSpec, outputTypes, getOutputLabel]);
 
-  // Initialize configurations only when needed
+  // Initialize configurations from database or defaults
   useEffect(() => {
-    setInputConfigs(initialInputConfigs);
-  }, [initialInputConfigs]);
+    if (!open || !item) return;
 
-  useEffect(() => {
-    setOutputConfigs(initialOutputConfigs);
-  }, [initialOutputConfigs]);
+    // Load I/O config from database or create default
+    const ioConfig = item.io_config || createDefaultIOConfig(item.type);
+    setOriginalIOConfig(cloneIOConfig(ioConfig));
+
+    // Initialize input configs from database or defaults
+    const inputConfigsFromDB = ioConfig.inputs || [];
+    const mergedInputConfigs = initialInputConfigs.map((defaultConfig) => {
+      const savedConfig = inputConfigsFromDB.find(
+        (saved) => saved.index === defaultConfig.index
+      );
+      return savedConfig
+        ? {
+            ...defaultConfig,
+            lightingId: savedConfig.lightingId,
+            functionValue: savedConfig.function || 0,
+          }
+        : defaultConfig;
+    });
+    setInputConfigs(mergedInputConfigs);
+
+    // Initialize output configs from database or defaults
+    const outputConfigsFromDB = ioConfig.outputs || [];
+    const mergedOutputConfigs = initialOutputConfigs.map((defaultConfig) => {
+      const savedConfig = outputConfigsFromDB.find(
+        (saved) => saved.index === defaultConfig.index
+      );
+      return savedConfig
+        ? {
+            ...defaultConfig,
+            deviceId: savedConfig.deviceId,
+          }
+        : defaultConfig;
+    });
+    setOutputConfigs(mergedOutputConfigs);
+
+    // Initialize multi-group configs and RLC configs
+    const multiGroupData = {};
+    const rlcData = {};
+    inputConfigsFromDB.forEach((input) => {
+      if (input.multiGroupConfig && input.multiGroupConfig.length > 0) {
+        multiGroupData[input.index] = input.multiGroupConfig;
+      }
+
+      // Initialize RLC options for each input
+      rlcData[input.index] = {
+        ramp: input.ramp || 0,
+        preset: input.preset || 255,
+        ledStatus: input.led_status || 0,
+        autoMode: input.auto_mode || false,
+        delayOff: input.delay_off || 0,
+      };
+    });
+    setMultiGroupConfigs(multiGroupData);
+    setRlcConfigs(rlcData);
+  }, [open, item, initialInputConfigs, initialOutputConfigs]);
 
   // Memoized handlers to prevent unnecessary re-renders
   const handleClose = useCallback(() => {
     onOpenChange(false);
   }, [onOpenChange]);
 
-  const handleSave = useCallback(() => {
-    // TODO: Implement I/O configuration save logic
-    console.log("I/O Config for unit:", item);
-    console.log("Input configs:", inputConfigs);
-    console.log("Output configs:", outputConfigs);
-    handleClose();
-  }, [item, inputConfigs, outputConfigs, handleClose]);
+  const handleSave = useCallback(async () => {
+    if (!item) return;
+
+    setLoading(true);
+    try {
+      // Build I/O configuration object
+      const ioConfig = {
+        inputs: inputConfigs.map((config) => {
+          const rlcConfig = rlcConfigs[config.index] || {};
+          return {
+            index: config.index,
+            function: config.functionValue,
+            lightingId: config.lightingId,
+            ramp: rlcConfig.ramp || 0,
+            preset: rlcConfig.preset || 255,
+            led_status: rlcConfig.ledStatus || 0,
+            auto_mode: rlcConfig.autoMode || false,
+            auto_time: 0, // Not used in current implementation
+            delay_off: rlcConfig.delayOff || 0,
+            delay_on: 0, // Not used in current implementation
+            multiGroupConfig: multiGroupConfigs[config.index] || [],
+          };
+        }),
+        outputs: outputConfigs.map((config) => ({
+          index: config.index,
+          name: config.name,
+          deviceId: config.deviceId,
+          deviceType: config.type === "ac" ? "aircon" : "lighting",
+        })),
+      };
+
+      // Check if there are changes
+      if (!hasIOConfigChanges(originalIOConfig, ioConfig)) {
+        handleClose();
+        return;
+      }
+
+      // Update unit with new I/O configuration
+      await updateItem("unit", item.id, {
+        ...item,
+        io_config: ioConfig,
+      });
+
+      handleClose();
+    } catch (error) {
+      console.error("Failed to save I/O configuration:", error);
+    } finally {
+      setLoading(false);
+    }
+  }, [
+    item,
+    inputConfigs,
+    outputConfigs,
+    multiGroupConfigs,
+    originalIOConfig,
+    updateItem,
+    handleClose,
+  ]);
 
   // Optimized handlers with useCallback to prevent child re-renders
   const handleInputLightingChange = useCallback((inputIndex, lightingId) => {
@@ -317,13 +425,25 @@ const IOConfigDialogComponent = ({ open, onOpenChange, item = null }) => {
   );
 
   const handleSaveMultiGroupConfig = useCallback(
-    (groups) => {
+    (data) => {
       if (!currentMultiGroupInput) return;
+
+      // Handle both old format (just groups) and new format (groups + rlcOptions)
+      const groups = data.groups || data; // Support backward compatibility
+      const rlcOptions = data.rlcOptions || {};
 
       setMultiGroupConfigs((prev) => ({
         ...prev,
         [currentMultiGroupInput.index]: groups,
       }));
+
+      // Update RLC configs if provided
+      if (data.rlcOptions) {
+        setRlcConfigs((prev) => ({
+          ...prev,
+          [currentMultiGroupInput.index]: rlcOptions,
+        }));
+      }
     },
     [currentMultiGroupInput]
   );
@@ -488,10 +608,12 @@ const IOConfigDialogComponent = ({ open, onOpenChange, item = null }) => {
           </div>
 
           <DialogFooter>
-            <Button variant="outline" onClick={handleClose}>
+            <Button variant="outline" onClick={handleClose} disabled={loading}>
               Cancel
             </Button>
-            <Button onClick={handleSave}>Save Configuration</Button>
+            <Button onClick={handleSave} disabled={loading}>
+              {loading ? "Saving..." : "Save Configuration"}
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -502,10 +624,17 @@ const IOConfigDialogComponent = ({ open, onOpenChange, item = null }) => {
         onOpenChange={setMultiGroupDialogOpen}
         inputName={currentMultiGroupInput?.name || ""}
         functionName={currentMultiGroupInput?.functionName || ""}
+        functionValue={currentMultiGroupInput?.functionValue || null}
+        unitType={item?.name || null}
         initialGroups={
           currentMultiGroupInput
             ? multiGroupConfigs[currentMultiGroupInput.index] || []
             : []
+        }
+        initialRlcOptions={
+          currentMultiGroupInput
+            ? rlcConfigs[currentMultiGroupInput.index] || {}
+            : {}
         }
         onSave={handleSaveMultiGroupConfig}
       />

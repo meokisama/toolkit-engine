@@ -96,6 +96,7 @@ class DatabaseService {
         description TEXT,
         discovered_at DATETIME,
         rs485_config TEXT, -- JSON string for RS485 configuration
+        io_config TEXT, -- JSON string for I/O configuration
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
         updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
         FOREIGN KEY (project_id) REFERENCES projects (id) ON DELETE CASCADE
@@ -400,10 +401,11 @@ class DatabaseService {
       if (tableName === 'unit') {
         const stmt = this.db.prepare(`SELECT * FROM ${tableName} WHERE project_id = ? ORDER BY created_at DESC`);
         const items = stmt.all(projectId);
-        // Parse RS485 config from JSON for unit items
+        // Parse RS485 and I/O config from JSON for unit items
         return items.map(item => ({
           ...item,
-          rs485_config: item.rs485_config ? JSON.parse(item.rs485_config) : null
+          rs485_config: item.rs485_config ? JSON.parse(item.rs485_config) : null,
+          io_config: item.io_config ? JSON.parse(item.io_config) : null
         }));
       } else {
         const stmt = this.db.prepare(`SELECT * FROM ${tableName} WHERE project_id = ? ORDER BY address ASC`);
@@ -888,23 +890,25 @@ class DatabaseService {
         recovery_mode,
         description,
         discovered_at,
-        rs485_config
+        rs485_config,
+        io_config
       } = itemData;
 
       const stmt = this.db.prepare(`
         INSERT INTO unit (
           project_id, type, serial_no, ip_address,
           id_can, mode, firmware_version, hardware_version,
-          manufacture_date, can_load, recovery_mode, description, discovered_at, rs485_config
+          manufacture_date, can_load, recovery_mode, description, discovered_at, rs485_config, io_config
         )
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       `);
 
       const result = stmt.run(
         projectId, type, serial_no, ip_address,
         id_can, mode, firmware_version, hardware_version,
         manufacture_date, can_load ? 1 : 0, recovery_mode ? 1 : 0, description, discovered_at,
-        rs485_config ? JSON.stringify(rs485_config) : null
+        rs485_config ? JSON.stringify(rs485_config) : null,
+        io_config ? JSON.stringify(io_config) : null
       );
 
       return this.getProjectItemById(result.lastInsertRowid, 'unit');
@@ -929,7 +933,8 @@ class DatabaseService {
         recovery_mode,
         description,
         discovered_at,
-        rs485_config
+        rs485_config,
+        io_config
       } = itemData;
 
       const stmt = this.db.prepare(`
@@ -937,7 +942,7 @@ class DatabaseService {
         SET type = ?, serial_no = ?, ip_address = ?,
             id_can = ?, mode = ?, firmware_version = ?, hardware_version = ?,
             manufacture_date = ?, can_load = ?, recovery_mode = ?, description = ?,
-            discovered_at = ?, rs485_config = ?, updated_at = CURRENT_TIMESTAMP
+            discovered_at = ?, rs485_config = ?, io_config = ?, updated_at = CURRENT_TIMESTAMP
         WHERE id = ?
       `);
 
@@ -945,7 +950,8 @@ class DatabaseService {
         type, serial_no, ip_address,
         id_can, mode, firmware_version, hardware_version,
         manufacture_date, can_load ? 1 : 0, recovery_mode ? 1 : 0, description,
-        discovered_at, rs485_config ? JSON.stringify(rs485_config) : null, id
+        discovered_at, rs485_config ? JSON.stringify(rs485_config) : null,
+        io_config ? JSON.stringify(io_config) : null, id
       );
 
       if (result.changes === 0) {
@@ -1081,9 +1087,9 @@ class DatabaseService {
           END as item_description,
           CASE
             WHEN si.item_type = 'lighting' THEN l.object_type
-            WHEN si.item_type = 'aircon' THEN ai.object_type
+            WHEN si.item_type = 'aircon' THEN si.object_type
             WHEN si.item_type = 'curtain' THEN c.object_type
-            ELSE NULL
+            ELSE si.object_type
           END as object_type,
           CASE
             WHEN si.item_type = 'aircon' THEN ai.label

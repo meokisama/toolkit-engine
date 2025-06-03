@@ -1,4 +1,10 @@
-import React, { useState, useEffect, useMemo, useCallback } from "react";
+import React, {
+  useState,
+  useEffect,
+  useMemo,
+  useCallback,
+  useRef,
+} from "react";
 import {
   Dialog,
   DialogContent,
@@ -79,6 +85,9 @@ export function SceneDialog({
     airconGroup: null,
   });
 
+  // Debounce timer for validation
+  const validationTimeoutRef = useRef(null);
+
   // Validate address field - memoized
   const validateAddress = useCallback((value) => {
     if (!value.trim()) {
@@ -117,12 +126,32 @@ export function SceneDialog({
       }
       setErrors({});
 
-      // Load aircon data if not already loaded
-      if (selectedProject && !loadedTabs.has("aircon")) {
-        loadTabData(selectedProject.id, "aircon");
+      // Load required data for scene dialog if not already loaded
+      if (selectedProject) {
+        // Load aircon data if not already loaded
+        if (!loadedTabs.has("aircon")) {
+          loadTabData(selectedProject.id, "aircon");
+        }
+        // Load curtain data if not already loaded
+        if (!loadedTabs.has("curtain")) {
+          loadTabData(selectedProject.id, "curtain");
+        }
+        // Load lighting data if not already loaded
+        if (!loadedTabs.has("lighting")) {
+          loadTabData(selectedProject.id, "lighting");
+        }
       }
     }
   }, [open, mode, scene, selectedProject, loadedTabs, loadTabData]);
+
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (validationTimeoutRef.current) {
+        clearTimeout(validationTimeoutRef.current);
+      }
+    };
+  }, []);
 
   const loadSceneItems = useCallback(async (sceneId) => {
     try {
@@ -145,27 +174,36 @@ export function SceneDialog({
           delete newErrors.general;
         }
 
-        // Real-time validation for address field
-        if (field === "address") {
-          const error = validateAddress(value);
-          newErrors.address = error;
-        } else if (newErrors[field]) {
+        // Clear field error immediately when user starts typing
+        if (newErrors[field]) {
           delete newErrors[field];
         }
 
         return newErrors;
       });
+
+      // Debounced validation for address field to prevent lag
+      if (field === "address") {
+        if (validationTimeoutRef.current) {
+          clearTimeout(validationTimeoutRef.current);
+        }
+
+        validationTimeoutRef.current = setTimeout(() => {
+          const error = validateAddress(value);
+          setErrors((prev) => ({ ...prev, address: error }));
+        }, 300); // 300ms debounce
+      }
     },
     [validateAddress]
   );
 
-  const getItemDetails = useCallback(
-    (itemType, itemId) => {
+  // Memoize getItemDetails to prevent unnecessary recalculations
+  const getItemDetails = useMemo(() => {
+    return (itemType, itemId) => {
       const items = projectItems[itemType] || [];
       return items.find((item) => item.id === itemId);
-    },
-    [projectItems]
-  );
+    };
+  }, [projectItems]);
 
   const getCommandForAirconItem = useCallback((objectType, itemValue) => {
     // For aircon items, we need to find the command based on object_type and value
@@ -577,45 +615,56 @@ export function SceneDialog({
     [resetToOriginalState, onOpenChange]
   );
 
-  const getValueOptions = useCallback((objectType, itemType) => {
-    switch (objectType) {
-      case OBJECT_TYPES.AC_POWER:
-        return Object.entries(AC_POWER_LABELS).map(([value, label]) => ({
+  // Memoize value options to prevent recalculation on every render
+  const getValueOptions = useMemo(() => {
+    const optionsCache = {
+      [OBJECT_TYPES.AC_POWER]: Object.entries(AC_POWER_LABELS).map(
+        ([value, label]) => ({
           value,
           label,
-        }));
-      case OBJECT_TYPES.AC_FAN_SPEED:
-        return Object.entries(AC_FAN_SPEED_LABELS).map(([value, label]) => ({
+        })
+      ),
+      [OBJECT_TYPES.AC_FAN_SPEED]: Object.entries(AC_FAN_SPEED_LABELS).map(
+        ([value, label]) => ({
           value,
           label,
-        }));
-      case OBJECT_TYPES.AC_MODE:
-        return Object.entries(AC_MODE_LABELS).map(([value, label]) => ({
+        })
+      ),
+      [OBJECT_TYPES.AC_MODE]: Object.entries(AC_MODE_LABELS).map(
+        ([value, label]) => ({
           value,
           label,
-        }));
-      case OBJECT_TYPES.AC_SWING:
-        return Object.entries(AC_SWING_LABELS).map(([value, label]) => ({
+        })
+      ),
+      [OBJECT_TYPES.AC_SWING]: Object.entries(AC_SWING_LABELS).map(
+        ([value, label]) => ({
           value,
           label,
-        }));
-      case OBJECT_TYPES.AC_TEMPERATURE:
-        return []; // Temperature now uses number input, not dropdown
-      case OBJECT_TYPES.CURTAIN:
-        return Object.entries(CURTAIN_VALUE_LABELS).map(([value, label]) => ({
+        })
+      ),
+      [OBJECT_TYPES.AC_TEMPERATURE]: [],
+      [OBJECT_TYPES.CURTAIN]: Object.entries(CURTAIN_VALUE_LABELS).map(
+        ([value, label]) => ({
           value,
           label,
-        }));
-      default:
-        // For curtain items without specific object type, return curtain values
-        if (itemType === "curtain") {
-          return Object.entries(CURTAIN_VALUE_LABELS).map(([value, label]) => ({
-            value,
-            label,
-          }));
-        }
-        return [];
-    }
+        })
+      ),
+      curtain: Object.entries(CURTAIN_VALUE_LABELS).map(([value, label]) => ({
+        value,
+        label,
+      })),
+    };
+
+    return (objectType, itemType) => {
+      if (optionsCache[objectType]) {
+        return optionsCache[objectType];
+      }
+      // For curtain items without specific object type, return curtain values
+      if (itemType === "curtain") {
+        return optionsCache.curtain;
+      }
+      return [];
+    };
   }, []);
 
   const renderValueControl = useCallback(
@@ -627,6 +676,16 @@ export function SceneDialog({
 
       // For lighting items, always use number input for brightness (0-100)
       if (sceneItem.item_type === "lighting") {
+        const handleLightingChange = (e) => {
+          const inputValue = e.target.value;
+          if (inputValue === "") {
+            updateSceneItemValue(sceneItem.id, "100");
+          } else {
+            const value = Math.min(100, Math.max(0, parseInt(inputValue) || 0));
+            updateSceneItemValue(sceneItem.id, value.toString());
+          }
+        };
+
         return (
           <div className="relative">
             <Sun className="h-4 w-4 absolute left-2 top-1/2 -translate-y-1/2 text-muted-foreground" />
@@ -635,18 +694,7 @@ export function SceneDialog({
               min="0"
               max="100"
               value={sceneItem.item_value || "100"}
-              onChange={(e) => {
-                const inputValue = e.target.value;
-                if (inputValue === "") {
-                  updateSceneItemValue(sceneItem.id, "100");
-                } else {
-                  const value = Math.min(
-                    100,
-                    Math.max(0, parseInt(inputValue) || 0)
-                  );
-                  updateSceneItemValue(sceneItem.id, value.toString());
-                }
-              }}
+              onChange={handleLightingChange}
               className="w-40 pl-8 font-semibold"
             />
           </div>
@@ -655,10 +703,13 @@ export function SceneDialog({
 
       // For curtain items, use select dropdown with Open/Close/Stop options
       if (sceneItem.item_type === "curtain") {
+        const handleCurtainChange = (value) =>
+          updateSceneItemValue(sceneItem.id, value);
+
         return (
           <Select
             value={sceneItem.item_value || "1"}
-            onValueChange={(value) => updateSceneItemValue(sceneItem.id, value)}
+            onValueChange={handleCurtainChange}
           >
             <SelectTrigger className="w-40">
               <SelectValue placeholder="Select action" />
@@ -676,28 +727,29 @@ export function SceneDialog({
 
       // For aircon temperature, use number input for decimal values
       if (sceneItem.object_type === OBJECT_TYPES.AC_TEMPERATURE) {
+        const handleTemperatureChange = (e) => {
+          const inputValue = e.target.value;
+          if (inputValue === "") {
+            updateSceneItemValue(sceneItem.id, "25");
+          } else {
+            const value = Math.min(
+              40,
+              Math.max(0, parseFloat(inputValue) || 25)
+            );
+            updateSceneItemValue(sceneItem.id, value.toString());
+          }
+        };
+
         return (
           <div className="relative">
-            <Thermometer className="h-4 w-4 absolute left-2 top-1/2 -translate-y-1/2 text-muted-foreground" />
             <Input
               type="number"
               min="0"
               max="40"
               step="0.5"
               value={sceneItem.item_value || "25"}
-              onChange={(e) => {
-                const inputValue = e.target.value;
-                if (inputValue === "") {
-                  updateSceneItemValue(sceneItem.id, "25");
-                } else {
-                  const value = Math.min(
-                    40,
-                    Math.max(0, parseFloat(inputValue) || 25)
-                  );
-                  updateSceneItemValue(sceneItem.id, value.toString());
-                }
-              }}
-              className="w-40 pl-8 font-semibold"
+              onChange={handleTemperatureChange}
+              className="w-40 font-semibold"
               placeholder="25.5"
             />
           </div>
@@ -706,10 +758,13 @@ export function SceneDialog({
 
       // For other aircon items, use select dropdown
       if (options.length > 0) {
+        const handleSelectChange = (value) =>
+          updateSceneItemValue(sceneItem.id, value);
+
         return (
           <Select
             value={sceneItem.item_value || ""}
-            onValueChange={(value) => updateSceneItemValue(sceneItem.id, value)}
+            onValueChange={handleSelectChange}
           >
             <SelectTrigger className="w-40">
               <SelectValue placeholder="Select value" />
@@ -726,11 +781,14 @@ export function SceneDialog({
       }
 
       // Fallback for other items
+      const handleFallbackChange = (e) =>
+        updateSceneItemValue(sceneItem.id, e.target.value);
+
       return (
         <Input
           type="number"
           value={sceneItem.item_value || ""}
-          onChange={(e) => updateSceneItemValue(sceneItem.id, e.target.value)}
+          onChange={handleFallbackChange}
           placeholder="Value"
           className="w-40"
         />
@@ -891,8 +949,9 @@ export function SceneDialog({
                                       className="flex items-center justify-between text-sm"
                                     >
                                       <span className="text-muted-foreground">
-                                        {airconItem.label ||
-                                          airconItem.object_type}
+                                        {AIRCON_OBJECT_LABELS[
+                                          airconItem.object_type
+                                        ] || airconItem.object_type}
                                       </span>
                                       <div className="flex items-center gap-2">
                                         {renderValueControl(airconItem)}
