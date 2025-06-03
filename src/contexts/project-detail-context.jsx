@@ -52,13 +52,20 @@ export function ProjectDetailProvider({ children }) {
       setError(null);
 
       if (tabName === "aircon") {
-        // Load both aircon items and cards
+        // Load aircon items
         const items = await window.electronAPI.aircon.getAll(projectId);
-        const cards = await window.electronAPI.aircon.getCards(projectId);
 
         setProjectItems((prev) => ({
           ...prev,
           aircon: items,
+        }));
+
+        // Create cards from items (each item is now a card)
+        const cards = items.map((item) => ({
+          address: item.address,
+          name: item.name,
+          description: item.description,
+          item: item,
         }));
         setAirconCards(cards);
       } else {
@@ -96,8 +103,13 @@ export function ProjectDetailProvider({ children }) {
 
       setProjectItems(projectItems);
 
-      // Load aircon cards separately
-      const cards = await window.electronAPI.aircon.getCards(projectId);
+      // Create aircon cards from items (each item is now a card)
+      const cards = (projectItems.aircon || []).map((item) => ({
+        address: item.address,
+        name: item.name,
+        description: item.description,
+        item: item,
+      }));
       setAirconCards(cards);
 
       // Mark all tabs as loaded
@@ -298,11 +310,14 @@ export function ProjectDetailProvider({ children }) {
             [category]: [...prev[category], ...importedItems],
           }));
 
-          // Reload cards to get updated structure
-          const cards = await window.electronAPI.aircon.getCards(
-            selectedProject.id
-          );
-          setAirconCards(cards);
+          // Create cards from imported items
+          const cards = importedItems.map((item) => ({
+            address: item.address,
+            name: item.name,
+            description: item.description,
+            item: item,
+          }));
+          setAirconCards((prev) => [...prev, ...cards]);
 
           toast.success(
             `${items.length} aircon cards (${importedItems.length} items) imported successfully`
@@ -345,17 +360,20 @@ export function ProjectDetailProvider({ children }) {
           cardData
         );
 
-        // Update both aircon items and cards
+        // Update aircon items (now just one item per card)
         setProjectItems((prev) => ({
           ...prev,
           aircon: [...prev.aircon, ...newItems],
         }));
 
-        // Reload cards to get updated structure
-        const cards = await window.electronAPI.aircon.getCards(
-          selectedProject.id
-        );
-        setAirconCards(cards);
+        // Create cards from items (each item is now a card)
+        const cards = newItems.map((item) => ({
+          address: item.address,
+          name: item.name,
+          description: item.description,
+          item: item,
+        }));
+        setAirconCards((prev) => [...prev, ...cards]);
 
         toast.success("Aircon card created successfully");
         return newItems;
@@ -402,9 +420,14 @@ export function ProjectDetailProvider({ children }) {
         aircon: [...prev.aircon, ...duplicatedItems],
       }));
 
-      // Reload cards to get updated structure
-      const cards = await window.electronAPI.aircon.getCards(projectId);
-      setAirconCards(cards);
+      // Create cards from duplicated items
+      const cards = duplicatedItems.map((item) => ({
+        address: item.address,
+        name: item.name,
+        description: item.description,
+        item: item,
+      }));
+      setAirconCards((prev) => [...prev, ...cards]);
 
       toast.success("Aircon card duplicated successfully");
       return duplicatedItems;
@@ -447,11 +470,23 @@ export function ProjectDetailProvider({ children }) {
           }),
         }));
 
-        // Reload cards to get updated structure
-        const cards = await window.electronAPI.aircon.getCards(
-          selectedProject.id
+        // Update cards with new data
+        setAirconCards((prev) =>
+          prev.map((card) =>
+            card.address === cardData.address
+              ? {
+                  ...card,
+                  name: cardData.name,
+                  description: cardData.description,
+                  item: {
+                    ...card.item,
+                    name: cardData.name,
+                    description: cardData.description,
+                  },
+                }
+              : card
+          )
         );
-        setAirconCards(cards);
 
         toast.success("Aircon card updated successfully");
         return updatedItems;

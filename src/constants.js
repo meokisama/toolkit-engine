@@ -1,6 +1,7 @@
 export const CONSTANTS = {
   OBJECT_TYPES: {
     LIGHTING: "OBJ_LIGHTING",
+    AIRCON: "OBJ_AIRCON", // General aircon object type for database storage
     AC_POWER: "OBJ_AC_POWER",
     AC_MODE: "OBJ_AC_MODE",
     AC_FAN_SPEED: "OBJ_AC_FAN_SPEED",

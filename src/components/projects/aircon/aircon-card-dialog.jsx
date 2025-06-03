@@ -128,8 +128,8 @@ export function AirconCardDialog({
           </DialogTitle>
           <DialogDescription>
             {mode === "edit"
-              ? "Update the aircon card details. This will update all 5 items with the same address."
-              : "Add a new aircon card to your project. This will create 5 items with different object types."}
+              ? "Update the aircon card details."
+              : "Add a new aircon card to your project. This will create an aircon device that supports Power, Mode, Fan Speed, Temperature, and Swing controls."}
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit}>

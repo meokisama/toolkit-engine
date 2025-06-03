@@ -186,25 +186,14 @@ class ExportImportService {
   convertAirconItemsToCardsCSV(items) {
     if (!items || items.length === 0) return '';
 
-    // Group items by address to form cards
-    const cards = {};
-    items.forEach(item => {
-      if (!cards[item.address]) {
-        cards[item.address] = {
-          name: item.name,
-          address: item.address,
-          description: item.description
-        };
-      }
-    });
-
+    // Each item is now a card (no need to group)
     const headers = ['name', 'address', 'description'];
     const csvRows = [];
     csvRows.push(headers.join(','));
 
-    Object.values(cards).forEach(card => {
+    items.forEach(item => {
       const row = headers.map(header => {
-        const value = card[header] || '';
+        const value = item[header] || '';
         // Escape quotes and wrap in quotes if contains comma or quote
         if (typeof value === 'string' && (value.includes(',') || value.includes('"') || value.includes('\n'))) {
           return `"${value.replace(/"/g, '""')}"`;

@@ -65,7 +65,7 @@ class DatabaseService {
     `;
 
     const createAirconItemsTable = `
-      CREATE TABLE IF NOT EXISTS aircon_items (
+      CREATE TABLE IF NOT EXISTS aircon (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         project_id INTEGER NOT NULL,
         name TEXT,
@@ -335,14 +335,15 @@ class DatabaseService {
           };
           this.createUnitItem(newProjectId, itemData);
         } else if (category === 'aircon') {
-          // Special handling for aircon items (use aircon_items table)
+          // Special handling for aircon items (use aircon table)
           const itemData = {
             name: item.name,
             address: item.address,
             description: item.description,
-            object_type: item.object_type
+            object_type: item.object_type || 'OBJ_AIRCON', // Default to general aircon type
+            label: item.label || 'Aircon'
           };
-          this.createProjectItem(newProjectId, itemData, 'aircon_items');
+          this.createProjectItem(newProjectId, itemData, 'aircon');
         } else if (category === 'curtain') {
           // Special handling for curtain items
           const itemData = {
@@ -374,7 +375,7 @@ class DatabaseService {
   getAllProjectItems(projectId) {
     try {
       const lighting = this.db.prepare('SELECT * FROM lighting WHERE project_id = ? ORDER BY address ASC').all(projectId);
-      const aircon = this.db.prepare('SELECT * FROM aircon_items WHERE project_id = ? ORDER BY address ASC').all(projectId);
+      const aircon = this.db.prepare('SELECT * FROM aircon WHERE project_id = ? ORDER BY address ASC').all(projectId);
       const unit = this.db.prepare('SELECT * FROM unit WHERE project_id = ? ORDER BY created_at DESC').all(projectId);
       const curtain = this.db.prepare('SELECT * FROM curtain WHERE project_id = ? ORDER BY address ASC').all(projectId);
       const scene = this.db.prepare('SELECT * FROM scene WHERE project_id = ? ORDER BY address ASC').all(projectId);
@@ -441,7 +442,7 @@ class DatabaseService {
         }
       }
 
-      // Note: For aircon_items, we skip duplicate address validation here because
+      // Note: For aircon, we skip duplicate address validation here because
       // createAirconCard handles this validation at the card level before creating multiple items
       // with the same address but different object_types
 
@@ -461,8 +462,8 @@ class DatabaseService {
         }
       }
 
-      // For aircon_items table, include label column
-      if (tableName === 'aircon_items') {
+      // For aircon table, include label column
+      if (tableName === 'aircon') {
         const stmt = this.db.prepare(`
           INSERT INTO ${tableName} (project_id, name, address, description, object_type, label)
           VALUES (?, ?, ?, ?, ?, ?)
@@ -500,12 +501,12 @@ class DatabaseService {
     try {
       const { name, address, description, object_type, label, curtain_type, open_group, close_group, stop_group } = itemData;
 
-      // Special validation for aircon_items to prevent duplicate addresses
-      if (tableName === 'aircon_items' && address) {
+      // Special validation for aircon to prevent duplicate addresses
+      if (tableName === 'aircon' && address) {
         const currentItem = this.getProjectItemById(id, tableName);
         if (currentItem && currentItem.address !== address) {
           // Check if new address already exists for this project (excluding current item's address)
-          const existingItems = this.db.prepare('SELECT COUNT(*) as count FROM aircon_items WHERE project_id = ? AND address = ? AND address != ?').get(currentItem.project_id, address, currentItem.address);
+          const existingItems = this.db.prepare('SELECT COUNT(*) as count FROM aircon WHERE project_id = ? AND address = ? AND address != ?').get(currentItem.project_id, address, currentItem.address);
           if (existingItems.count > 0) {
             throw new Error(`Address ${address} already exists.`);
           }
@@ -548,8 +549,8 @@ class DatabaseService {
         }
       }
 
-      // For aircon_items table, include label column
-      if (tableName === 'aircon_items') {
+      // For aircon table, include label column
+      if (tableName === 'aircon') {
         const stmt = this.db.prepare(`
           UPDATE ${tableName}
           SET name = ?, address = ?, description = ?, object_type = ?, label = ?, updated_at = CURRENT_TIMESTAMP
@@ -633,12 +634,12 @@ class DatabaseService {
         duplicatedItem.address = this.findNextAvailableAddress(originalItem.project_id, 'lighting');
       }
 
-      // For aircon_items, include label and find unique address in range 1-255
-      if (tableName === 'aircon_items') {
+      // For aircon, include label and find unique address in range 1-255
+      if (tableName === 'aircon') {
         duplicatedItem.label = originalItem.label;
 
         if (originalItem.address) {
-          duplicatedItem.address = this.findNextAvailableAddress(originalItem.project_id, 'aircon_items');
+          duplicatedItem.address = this.findNextAvailableAddress(originalItem.project_id, 'aircon');
         }
       }
 
@@ -687,7 +688,7 @@ class DatabaseService {
               if (!itemData.label && itemData.object_type) {
                 itemData.label = AIRCON_OBJECT_LABELS[itemData.object_type];
               }
-              this.createProjectItem(project.id, itemData, 'aircon_items');
+              this.createProjectItem(project.id, itemData, 'aircon');
             } else {
               this.createProjectItem(project.id, itemData, category);
             }
@@ -716,7 +717,7 @@ class DatabaseService {
           if (category === 'unit') {
             item = this.createUnitItem(projectId, itemData);
           } else if (category === 'aircon') {
-            item = this.createProjectItem(projectId, itemData, 'aircon_items');
+            item = this.createProjectItem(projectId, itemData, 'aircon');
           } else {
             item = this.createProjectItem(projectId, itemData, category);
           }
@@ -757,36 +758,28 @@ class DatabaseService {
 
   // Aircon - Special handling for aircon cards and items
   getAirconItems(projectId) {
-    return this.getProjectItems(projectId, 'aircon_items');
+    return this.getProjectItems(projectId, 'aircon');
   }
 
-  // Get aircon items grouped by address (for card display)
+  // Get aircon cards (each item is now a card)
   getAirconCards(projectId) {
     try {
-      const items = this.db.prepare('SELECT * FROM aircon_items WHERE project_id = ? ORDER BY address, object_type').all(projectId);
+      const items = this.db.prepare('SELECT * FROM aircon WHERE project_id = ? ORDER BY address').all(projectId);
 
-      // Group items by address
-      const cards = {};
-      items.forEach(item => {
-        if (!cards[item.address]) {
-          cards[item.address] = {
-            name: item.name,
-            address: item.address,
-            description: item.description,
-            items: []
-          };
-        }
-        cards[item.address].items.push(item);
-      });
-
-      return Object.values(cards);
+      // Each item is now a card
+      return items.map(item => ({
+        name: item.name,
+        address: item.address,
+        description: item.description,
+        item: item
+      }));
     } catch (error) {
       console.error('Failed to get aircon cards:', error);
       throw error;
     }
   }
 
-  // Create a new aircon card (creates 5 items with different object types)
+  // Create a new aircon card (creates 1 item with general aircon type)
   createAirconCard(projectId, cardData) {
     try {
       const { name, address, description } = cardData;
@@ -795,31 +788,23 @@ class DatabaseService {
       const addressStr = address.toString();
 
       // Check if address already exists for this project
-      const existingItems = this.db.prepare('SELECT COUNT(*) as count FROM aircon_items WHERE project_id = ? AND address = ?').get(projectId, addressStr);
+      const existingItems = this.db.prepare('SELECT COUNT(*) as count FROM aircon WHERE project_id = ? AND address = ?').get(projectId, addressStr);
 
       if (existingItems.count > 0) {
         throw new Error(`Address ${addressStr} already exists.`);
       }
 
-      const transaction = this.db.transaction(() => {
-        const createdItems = [];
+      // Create single aircon item with general object type
+      const itemData = {
+        name,
+        address: addressStr,
+        description,
+        object_type: 'OBJ_AIRCON', // General aircon object type
+        label: 'Aircon'
+      };
 
-        AIRCON_OBJECT_TYPES.forEach((objectType) => {
-          const itemData = {
-            name,
-            address: addressStr,
-            description,
-            object_type: objectType,
-            label: AIRCON_OBJECT_LABELS[objectType]
-          };
-
-          const item = this.createProjectItem(projectId, itemData, 'aircon_items');
-          createdItems.push(item);
-        });
-        return createdItems;
-      });
-
-      return transaction();
+      const item = this.createProjectItem(projectId, itemData, 'aircon');
+      return [item]; // Return as array for compatibility
     } catch (error) {
       console.error('Failed to create aircon card:', error);
       throw error;
@@ -827,21 +812,21 @@ class DatabaseService {
   }
 
   createAirconItem(projectId, itemData) {
-    return this.createProjectItem(projectId, itemData, 'aircon_items');
+    return this.createProjectItem(projectId, itemData, 'aircon');
   }
 
   updateAirconItem(id, itemData) {
-    return this.updateProjectItem(id, itemData, 'aircon_items');
+    return this.updateProjectItem(id, itemData, 'aircon');
   }
 
   deleteAirconItem(id) {
-    return this.deleteProjectItem(id, 'aircon_items');
+    return this.deleteProjectItem(id, 'aircon');
   }
 
   // Delete entire aircon card (all items with same address)
   deleteAirconCard(projectId, address) {
     try {
-      const stmt = this.db.prepare('DELETE FROM aircon_items WHERE project_id = ? AND address = ?');
+      const stmt = this.db.prepare('DELETE FROM aircon WHERE project_id = ? AND address = ?');
       const result = stmt.run(projectId, address);
 
       return { success: true, deletedCount: result.changes };
@@ -852,41 +837,31 @@ class DatabaseService {
   }
 
   duplicateAirconItem(id) {
-    return this.duplicateProjectItem(id, 'aircon_items');
+    return this.duplicateProjectItem(id, 'aircon');
   }
 
   // Duplicate entire aircon card
   duplicateAirconCard(projectId, address) {
     try {
-      const items = this.db.prepare('SELECT * FROM aircon_items WHERE project_id = ? AND address = ?').all(projectId, address);
+      const item = this.db.prepare('SELECT * FROM aircon WHERE project_id = ? AND address = ?').get(projectId, address);
 
-      if (items.length === 0) {
+      if (!item) {
         throw new Error('Aircon card not found');
       }
 
       // Find a unique numeric address for the duplicated card in range 1-255
-      const newAddress = this.findNextAvailableAddress(projectId, 'aircon_items');
+      const newAddress = this.findNextAvailableAddress(projectId, 'aircon');
 
-      const transaction = this.db.transaction(() => {
-        const duplicatedItems = [];
+      const duplicatedItem = {
+        name: item.name ? `${item.name} (Copy)` : null,
+        address: newAddress,
+        description: item.description,
+        object_type: item.object_type,
+        label: item.label
+      };
 
-        items.forEach(item => {
-          const duplicatedItem = {
-            name: item.name ? `${item.name} (Copy)` : null,
-            address: newAddress,
-            description: item.description,
-            object_type: item.object_type,
-            label: item.label
-          };
-
-          const newItem = this.createProjectItem(projectId, duplicatedItem, 'aircon_items');
-          duplicatedItems.push(newItem);
-        });
-
-        return duplicatedItems;
-      });
-
-      return transaction();
+      const newItem = this.createProjectItem(projectId, duplicatedItem, 'aircon');
+      return [newItem]; // Return as array for compatibility
     } catch (error) {
       console.error('Failed to duplicate aircon card:', error);
       throw error;
@@ -1116,7 +1091,7 @@ class DatabaseService {
           END as label
         FROM scene_items si
         LEFT JOIN lighting l ON si.item_type = 'lighting' AND si.item_id = l.id
-        LEFT JOIN aircon_items ai ON si.item_type = 'aircon' AND si.item_id = ai.id
+        LEFT JOIN aircon ai ON si.item_type = 'aircon' AND si.item_id = ai.id
         LEFT JOIN curtain c ON si.item_type = 'curtain' AND si.item_id = c.id
         WHERE si.scene_id = ?
         ORDER BY si.created_at ASC

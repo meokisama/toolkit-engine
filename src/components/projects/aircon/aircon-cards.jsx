@@ -194,20 +194,15 @@ function AirconCardsComponent({ cards, loading }) {
             </CardHeader>
             <CardContent>
               <div className="space-y-2">
-                {card.items.map((item) => (
-                  <div
-                    key={item.id}
-                    className="flex justify-between items-center p-2 bg-muted/50 rounded"
-                  >
-                    <span className="text-sm">
-                      {AIRCON_OBJECT_LABELS[item.object_type] ||
-                        item.object_type}
-                    </span>
-                    <Badge variant="outline" className="text-xs">
-                      {item.object_type}
-                    </Badge>
-                  </div>
-                ))}
+                <div className="flex justify-between items-center p-2 bg-muted/50 rounded">
+                  <span className="text-sm">Air Conditioner</span>
+                  <Badge variant="outline" className="text-xs">
+                    OBJ_AIRCON
+                  </Badge>
+                </div>
+                <div className="text-xs text-muted-foreground mt-2 p-2 bg-blue-50 rounded">
+                  Supports: Power, Mode, Fan Speed, Temperature, Swing
+                </div>
               </div>
             </CardContent>
           </Card>
@@ -259,7 +254,7 @@ function AirconCardsComponent({ cards, loading }) {
         open={confirmDialogOpen}
         onOpenChange={setConfirmDialogOpen}
         title="Delete Aircon Card"
-        description={`Are you sure you want to delete aircon card "${cardToDelete}"? This will delete all 5 items associated with this aircon. This action cannot be undone.`}
+        description={`Are you sure you want to delete aircon card "${cardToDelete}"? This action cannot be undone.`}
         onConfirm={handleConfirmDelete}
         loading={deleteLoading}
         variant="destructive"

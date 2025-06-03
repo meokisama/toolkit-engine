@@ -32,6 +32,7 @@ import {
   AC_MODE_LABELS,
   AC_SWING_LABELS,
   CURTAIN_VALUE_LABELS,
+  AIRCON_OBJECT_LABELS,
 } from "@/constants";
 import {
   Plus,
@@ -57,7 +58,6 @@ export function SceneDialog({
     createItem,
     updateItem,
     setActiveTab,
-    airconCards,
     loadTabData,
     loadedTabs,
   } = useProjectDetail();
@@ -236,19 +236,35 @@ export function SceneDialog({
   // Add multiple aircon items to scene from a card
   const addAirconCardToScene = useCallback(
     (address, selectedProperties) => {
-      const airconItems =
-        projectItems.aircon?.filter((item) => item.address === address) || [];
+      // Find the single aircon item for this address
+      const airconItem = projectItems.aircon?.find(
+        (item) => item.address === address
+      );
+
+      if (!airconItem) return;
 
       selectedProperties.forEach((property) => {
-        const item = airconItems.find(
-          (item) => item.object_type === property.objectType
-        );
-        if (item) {
-          addItemToScene("aircon", item.id, property.value);
-        }
+        // Create scene item with the aircon item ID but specific object_type and value
+        const newSceneItem = {
+          id:
+            mode === "edit"
+              ? `temp_${Date.now()}_${property.objectType}`
+              : `${Date.now()}_${property.objectType}`,
+          item_type: "aircon",
+          item_id: airconItem.id,
+          item_value: property.value,
+          command: getCommandForAirconItem(property.objectType, property.value),
+          object_type: property.objectType,
+          item_name: airconItem.name,
+          item_address: airconItem.address,
+          item_description: airconItem.description,
+          label:
+            AIRCON_OBJECT_LABELS[property.objectType] || property.objectType,
+        };
+        setSceneItems((prev) => [...prev, newSceneItem]);
       });
     },
-    [projectItems.aircon, addItemToScene]
+    [projectItems.aircon, getCommandForAirconItem, mode]
   );
 
   // Handle opening aircon properties dialog
@@ -286,26 +302,19 @@ export function SceneDialog({
     [addAirconCardToScene]
   );
 
-  // Get unique aircon cards from aircon items - memoized
+  // Get aircon cards from aircon items - memoized
   const availableAirconCards = useMemo(() => {
     if (!projectItems.aircon) return [];
 
-    const cardMap = new Map();
-    projectItems.aircon.forEach((item) => {
-      if (!cardMap.has(item.address)) {
-        cardMap.set(item.address, {
-          address: item.address,
-          name: item.name,
-          description: item.description,
-          items: [],
-        });
-      }
-      cardMap.get(item.address).items.push(item);
-    });
-
-    return Array.from(cardMap.values()).sort(
-      (a, b) => parseInt(a.address) - parseInt(b.address)
-    );
+    // Each aircon item is now a single card
+    return projectItems.aircon
+      .map((item) => ({
+        address: item.address,
+        name: item.name,
+        description: item.description,
+        item: item, // Store the single item
+      }))
+      .sort((a, b) => parseInt(a.address) - parseInt(b.address));
   }, [projectItems.aircon]);
 
   // Get grouped scene items for display - memoized
