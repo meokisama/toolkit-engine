@@ -23,6 +23,8 @@ import {
 } from "@/constants";
 import { useProjectDetail } from "@/contexts/project-detail-context";
 import { MultiGroupConfigDialog } from "./multi-group-config-dialog";
+import { LightingOutputConfigDialog } from "./lighting-output-config-dialog";
+import { ACOutputConfigDialog } from "./ac-output-config-dialog";
 import {
   createDefaultIOConfig,
   cloneIOConfig,
@@ -124,7 +126,7 @@ InputConfigItem.displayName = "InputConfigItem";
 
 // Memoized output configuration component
 const OutputConfigItem = memo(
-  ({ config, deviceOptions, onOutputDeviceChange }) => {
+  ({ config, deviceOptions, onOutputDeviceChange, onOpenOutputConfig }) => {
     const isAircon = config.type === "ac";
 
     const getOutputIcon = useCallback((type) => {
@@ -149,6 +151,10 @@ const OutputConfigItem = memo(
       [config.index, onOutputDeviceChange]
     );
 
+    const handleConfigClick = useCallback(() => {
+      onOpenOutputConfig(config.index, config.type);
+    }, [config.index, config.type, onOpenOutputConfig]);
+
     return (
       <div className="p-4 border rounded-lg flex gap-4 justify-between items-center w-full shadow">
         <Label className="text-sm font-medium">
@@ -164,7 +170,7 @@ const OutputConfigItem = memo(
             placeholder={`Select ${isAircon ? "aircon" : "lighting"}...`}
             emptyText={`No ${isAircon ? "aircon" : "lighting"} found`}
           />
-          <Button variant="outline" size="icon">
+          <Button variant="outline" size="icon" onClick={handleConfigClick}>
             <Settings className="h-4 w-4" />
           </Button>
         </div>
@@ -188,6 +194,13 @@ const IOConfigDialogComponent = ({ open, onOpenChange, item = null }) => {
   const [currentMultiGroupInput, setCurrentMultiGroupInput] = useState(null);
   const [multiGroupConfigs, setMultiGroupConfigs] = useState({});
   const [rlcConfigs, setRlcConfigs] = useState({}); // Store RLC options for each input
+
+  // Output configuration dialog state
+  const [lightingOutputDialogOpen, setLightingOutputDialogOpen] =
+    useState(false);
+  const [acOutputDialogOpen, setACOutputDialogOpen] = useState(false);
+  const [currentOutputConfig, setCurrentOutputConfig] = useState(null);
+  const [outputConfigurations, setOutputConfigurations] = useState({}); // Store output configs
 
   // Get I/O specifications for the unit - memoized to prevent recalculation
   const ioSpec = useMemo(() => {
@@ -316,6 +329,14 @@ const IOConfigDialogComponent = ({ open, onOpenChange, item = null }) => {
     });
     setMultiGroupConfigs(multiGroupData);
     setRlcConfigs(rlcData);
+
+    // Initialize output configurations
+    const outputConfigData = {};
+    const savedOutputConfigs = ioConfig.outputConfigs || [];
+    savedOutputConfigs.forEach((output) => {
+      outputConfigData[output.index] = output;
+    });
+    setOutputConfigurations(outputConfigData);
   }, [open, item, initialInputConfigs, initialOutputConfigs]);
 
   // Memoized handlers to prevent unnecessary re-renders
@@ -352,6 +373,10 @@ const IOConfigDialogComponent = ({ open, onOpenChange, item = null }) => {
           deviceId: config.deviceId,
           deviceType: config.type === "ac" ? "aircon" : "lighting",
         })),
+        outputConfigs: Object.keys(outputConfigurations).map((index) => ({
+          index: parseInt(index),
+          ...outputConfigurations[index],
+        })),
       };
 
       // Check if there are changes
@@ -377,6 +402,8 @@ const IOConfigDialogComponent = ({ open, onOpenChange, item = null }) => {
     inputConfigs,
     outputConfigs,
     multiGroupConfigs,
+    rlcConfigs,
+    outputConfigurations,
     originalIOConfig,
     updateItem,
     handleClose,
@@ -406,6 +433,42 @@ const IOConfigDialogComponent = ({ open, onOpenChange, item = null }) => {
       )
     );
   }, []);
+
+  // Output configuration handlers
+  const handleOpenOutputConfig = useCallback(
+    (outputIndex, outputType) => {
+      const outputConfig = outputConfigs.find(
+        (config) => config.index === outputIndex
+      );
+      if (!outputConfig) return;
+
+      setCurrentOutputConfig({
+        index: outputIndex,
+        name: outputConfig.name,
+        type: outputType,
+        config: outputConfigurations[outputIndex] || {},
+      });
+
+      if (outputType === "ac") {
+        setACOutputDialogOpen(true);
+      } else {
+        setLightingOutputDialogOpen(true);
+      }
+    },
+    [outputConfigs, outputConfigurations]
+  );
+
+  const handleSaveOutputConfig = useCallback(
+    (configData) => {
+      if (!currentOutputConfig) return;
+
+      setOutputConfigurations((prev) => ({
+        ...prev,
+        [currentOutputConfig.index]: configData,
+      }));
+    },
+    [currentOutputConfig]
+  );
 
   // Multi-group configuration handlers - memoized
   const handleOpenMultiGroupConfig = useCallback(
@@ -582,6 +645,7 @@ const IOConfigDialogComponent = ({ open, onOpenChange, item = null }) => {
                                 outputDeviceOptionsMap.get(config.index) || []
                               }
                               onOutputDeviceChange={handleOutputDeviceChange}
+                              onOpenOutputConfig={handleOpenOutputConfig}
                             />
                           ))}
                         </div>
@@ -637,6 +701,26 @@ const IOConfigDialogComponent = ({ open, onOpenChange, item = null }) => {
             : {}
         }
         onSave={handleSaveMultiGroupConfig}
+      />
+
+      {/* Lighting Output Configuration Dialog */}
+      <LightingOutputConfigDialog
+        open={lightingOutputDialogOpen}
+        onOpenChange={setLightingOutputDialogOpen}
+        outputName={currentOutputConfig?.name || ""}
+        outputType={currentOutputConfig?.type || ""}
+        initialConfig={currentOutputConfig?.config || {}}
+        onSave={handleSaveOutputConfig}
+      />
+
+      {/* AC Output Configuration Dialog */}
+      <ACOutputConfigDialog
+        open={acOutputDialogOpen}
+        onOpenChange={setACOutputDialogOpen}
+        outputName={currentOutputConfig?.name || ""}
+        initialConfig={currentOutputConfig?.config || {}}
+        lightingOptions={lightingOptions}
+        onSave={handleSaveOutputConfig}
       />
     </>
   );
