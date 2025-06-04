@@ -23,7 +23,18 @@ import { ProjectDetail } from "@/components/projects/project-detail";
 
 // Breadcrumb component that uses the project context
 function BreadcrumbNav() {
-  const { selectedProject } = useProjectDetail();
+  const { selectedProject, activeSection } = useProjectDetail();
+
+  const getSectionDisplayName = (section) => {
+    switch (section) {
+      case "group-config":
+        return "Group Config";
+      case "scenes-schedules":
+        return "Scenes & Schedules";
+      default:
+        return "Group Config";
+    }
+  };
 
   return (
     <Breadcrumb>
@@ -43,7 +54,13 @@ function BreadcrumbNav() {
           <>
             <BreadcrumbSeparator />
             <BreadcrumbItem>
-              <BreadcrumbPage>{selectedProject.name}</BreadcrumbPage>
+              <BreadcrumbLink href="#">{selectedProject.name}</BreadcrumbLink>
+            </BreadcrumbItem>
+            <BreadcrumbSeparator />
+            <BreadcrumbItem>
+              <BreadcrumbPage>
+                {getSectionDisplayName(activeSection)}
+              </BreadcrumbPage>
             </BreadcrumbItem>
           </>
         )}

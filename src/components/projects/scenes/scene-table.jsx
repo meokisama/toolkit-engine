@@ -12,6 +12,7 @@ import { createSceneColumns } from "@/components/projects/scenes/scene-columns";
 import { SlidersHorizontal } from "lucide-react";
 
 const SceneTable = memo(function SceneTable({ items = [], loading = false }) {
+  const category = "scene";
   const { deleteItem, duplicateItem, updateItem } = useProjectDetail();
   const [sceneItemCounts, setSceneItemCounts] = useState({});
   const [table, setTable] = useState(null);
@@ -110,7 +111,7 @@ const SceneTable = memo(function SceneTable({ items = [], loading = false }) {
         const item = items.find((i) => i.id === itemId);
         if (item) {
           const updatedItem = { ...item, ...changes };
-          await updateItem("scene", updatedItem.id, updatedItem);
+          await updateItem(category, updatedItem.id, updatedItem);
         }
       }
       setPendingChanges(new Map());
@@ -149,7 +150,7 @@ const SceneTable = memo(function SceneTable({ items = [], loading = false }) {
   const handleDuplicateItem = useCallback(
     async (item) => {
       try {
-        await duplicateItem("scene", item.id);
+        await duplicateItem(category, item.id);
       } catch (error) {
         console.error("Failed to duplicate scene:", error);
       }
@@ -167,7 +168,7 @@ const SceneTable = memo(function SceneTable({ items = [], loading = false }) {
         }"? This action cannot be undone and will also remove all items associated with this scene.`,
         onConfirm: async () => {
           try {
-            await deleteItem("scene", item.id);
+            await deleteItem(category, item.id);
             setConfirmDialog({ ...confirmDialog, open: false });
           } catch (error) {
             console.error("Failed to delete scene:", error);
@@ -229,7 +230,7 @@ const SceneTable = memo(function SceneTable({ items = [], loading = false }) {
               {table && (
                 <DataTableToolbar
                   table={table}
-                  category="scene"
+                  category={category}
                   columnVisibility={columnVisibility}
                   onAddItem={handleCreateItem}
                   addItemLabel="Add Scene"
@@ -239,7 +240,7 @@ const SceneTable = memo(function SceneTable({ items = [], loading = false }) {
                 />
               )}
               <DataTable
-                key="scene"
+                key={category}
                 columns={columns}
                 data={itemsWithCounts}
                 initialPagination={pagination}

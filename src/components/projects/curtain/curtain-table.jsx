@@ -12,6 +12,7 @@ import { useProjectDetail } from "@/contexts/project-detail-context";
 import { TableSkeleton } from "@/components/projects/table-skeleton";
 
 export function CurtainTable({ items = [], loading = false }) {
+  const category = "curtain";
   const {
     updateItem,
     deleteItem,
@@ -76,7 +77,7 @@ export function CurtainTable({ items = [], loading = false }) {
         const item = items.find((i) => i.id === itemId);
         if (item) {
           const updatedItem = { ...item, ...changes };
-          await updateItem("curtain", updatedItem.id, updatedItem);
+          await updateItem(category, updatedItem.id, updatedItem);
         }
       }
       setPendingChanges(new Map());
@@ -100,7 +101,7 @@ export function CurtainTable({ items = [], loading = false }) {
   const handleDuplicate = useCallback(
     async (item) => {
       try {
-        await duplicateItem("curtain", item.id);
+        await duplicateItem(category, item.id);
       } catch (error) {
         console.error("Failed to duplicate curtain item:", error);
       }
@@ -110,7 +111,7 @@ export function CurtainTable({ items = [], loading = false }) {
 
   const handleUpdate = async (id, data) => {
     try {
-      await updateItem("curtain", id, data);
+      await updateItem(category, id, data);
     } catch (error) {
       console.error("Failed to update curtain item:", error);
     }
@@ -119,7 +120,7 @@ export function CurtainTable({ items = [], loading = false }) {
   const confirmDelete = async () => {
     if (itemToDelete) {
       try {
-        await deleteItem("curtain", itemToDelete.id);
+        await deleteItem(category, itemToDelete.id);
         setDeleteDialogOpen(false);
         setItemToDelete(null);
       } catch (error) {
@@ -159,7 +160,7 @@ export function CurtainTable({ items = [], loading = false }) {
     try {
       // Delete all selected items
       await Promise.all(
-        itemsToDelete.map((item) => deleteItem("curtain", item.id))
+        itemsToDelete.map((item) => deleteItem(category, item.id))
       );
 
       // Close dialog and clear state first
@@ -180,7 +181,7 @@ export function CurtainTable({ items = [], loading = false }) {
   // Export/Import handlers
   const handleExport = useCallback(async () => {
     try {
-      await exportItems("curtain");
+      await exportItems(category);
     } catch (error) {
       console.error("Failed to export curtain items:", error);
     }
@@ -193,7 +194,7 @@ export function CurtainTable({ items = [], loading = false }) {
   const handleImportConfirm = useCallback(
     async (items) => {
       try {
-        await importItems("curtain", items);
+        await importItems(category, items);
         setImportDialogOpen(false);
       } catch (error) {
         console.error("Failed to import curtain items:", error);
@@ -261,7 +262,7 @@ export function CurtainTable({ items = [], loading = false }) {
                   addItemLabel="Add Curtain"
                   onExport={handleExport}
                   onImport={handleImport}
-                  category="curtain"
+                  category={category}
                   columnVisibility={columnVisibility}
                   onSave={handleSaveChanges}
                   hasPendingChanges={pendingChanges.size > 0}
@@ -269,7 +270,7 @@ export function CurtainTable({ items = [], loading = false }) {
                 />
               )}
               <DataTable
-                key="curtain"
+                key={category}
                 columns={columns}
                 data={items}
                 initialPagination={pagination}
@@ -329,7 +330,7 @@ export function CurtainTable({ items = [], loading = false }) {
         open={importDialogOpen}
         onOpenChange={setImportDialogOpen}
         onImport={handleImportConfirm}
-        category="curtain"
+        category={category}
       />
     </>
   );

@@ -164,7 +164,7 @@ export function ProjectItemDialog({
     }
   };
 
-  const categoryLabel = categoryLabels[category] || category;
+  const categoryLabel = categoryLabels[category] || category || "Item";
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -177,8 +177,12 @@ export function ProjectItemDialog({
           </DialogTitle>
           <DialogDescription>
             {mode === "edit"
-              ? `Update the ${categoryLabel.toLowerCase()} item details below.`
-              : `Add a new ${categoryLabel.toLowerCase()} item to your project.`}
+              ? `Update the ${
+                  categoryLabel?.toLowerCase() || "item"
+                } item details below.`
+              : `Add a new ${
+                  categoryLabel?.toLowerCase() || "item"
+                } item to your project.`}
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit}>

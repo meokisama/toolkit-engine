@@ -26,6 +26,7 @@ export function useProjectDetail() {
 
 export function ProjectDetailProvider({ children }) {
   const [selectedProject, setSelectedProject] = useState(null);
+  const [activeSection, setActiveSection] = useState("group-config"); // "group-config" or "scenes-schedules"
   const [activeTab, setActiveTab] = useState("lighting");
   const [projectItems, setProjectItems] = useState({
     lighting: [],
@@ -126,12 +127,18 @@ export function ProjectDetailProvider({ children }) {
     }
   }, []);
 
-  // Select a project and load only the first tab (lighting) - memoized
-  const selectProject = useCallback(
-    async (project) => {
+  // Select a project section (group-config or scenes-schedules) - memoized
+  const selectProjectSection = useCallback(
+    async (project, section) => {
       setSelectedProject(project);
-      // Reset to default tab (lighting) when switching projects
-      setActiveTab("lighting");
+      setActiveSection(section);
+
+      // Set default tab based on section
+      if (section === "group-config") {
+        setActiveTab("lighting");
+      } else if (section === "scenes-schedules") {
+        setActiveTab("scene");
+      }
 
       if (project) {
         // Reset loaded tabs and clear data
@@ -147,8 +154,9 @@ export function ProjectDetailProvider({ children }) {
         });
         setAirconCards([]);
 
-        // Load only the lighting tab initially for faster response
-        await loadTabData(project.id, "lighting");
+        // Load appropriate tab based on section
+        const initialTab = section === "group-config" ? "lighting" : "scene";
+        await loadTabData(project.id, initialTab);
       } else {
         setProjectItems({
           lighting: [],
@@ -164,6 +172,14 @@ export function ProjectDetailProvider({ children }) {
       }
     },
     [loadTabData]
+  );
+
+  // Legacy selectProject function for backward compatibility
+  const selectProject = useCallback(
+    async (project) => {
+      await selectProjectSection(project, "group-config");
+    },
+    [selectProjectSection]
   );
 
   // Handle tab change with lazy loading
@@ -509,6 +525,8 @@ export function ProjectDetailProvider({ children }) {
   const value = useMemo(
     () => ({
       selectedProject,
+      activeSection,
+      setActiveSection,
       activeTab,
       setActiveTab: handleTabChange,
       projectItems,
@@ -518,6 +536,7 @@ export function ProjectDetailProvider({ children }) {
       loadedTabs,
       error,
       selectProject,
+      selectProjectSection,
       loadProjectItems,
       loadTabData,
       createItem,
@@ -533,6 +552,7 @@ export function ProjectDetailProvider({ children }) {
     }),
     [
       selectedProject,
+      activeSection,
       activeTab,
       handleTabChange,
       projectItems,
@@ -542,6 +562,7 @@ export function ProjectDetailProvider({ children }) {
       loadedTabs,
       error,
       selectProject,
+      selectProjectSection,
       loadProjectItems,
       loadTabData,
       createItem,

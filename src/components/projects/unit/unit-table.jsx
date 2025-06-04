@@ -18,6 +18,7 @@ import { createDefaultRS485Config } from "@/utils/rs485-utils";
 import { createDefaultIOConfig } from "@/utils/io-config-utils";
 
 export function UnitTable() {
+  const category = "unit";
   const {
     projectItems,
     deleteItem,
@@ -97,10 +98,10 @@ export function UnitTable() {
             // Remove the flag from changes before saving
             const { _clearIOConfigs, ...cleanChanges } = changes;
             const updatedItem = { ...item, ...cleanChanges };
-            await updateItem("unit", updatedItem.id, updatedItem);
+            await updateItem(category, updatedItem.id, updatedItem);
           } else {
             const updatedItem = { ...item, ...changes };
-            await updateItem("unit", updatedItem.id, updatedItem);
+            await updateItem(category, updatedItem.id, updatedItem);
           }
         }
       }
@@ -126,7 +127,7 @@ export function UnitTable() {
 
   const handleDuplicateItem = async (item) => {
     try {
-      await duplicateItem("unit", item.id);
+      await duplicateItem(category, item.id);
     } catch (error) {
       console.error("Failed to duplicate unit:", error);
     }
@@ -142,7 +143,7 @@ export function UnitTable() {
 
     setDeleteLoading(true);
     try {
-      await deleteItem("unit", itemToDelete.id);
+      await deleteItem(category, itemToDelete.id);
       setConfirmDialogOpen(false);
       setItemToDelete(null);
     } catch (error) {
@@ -155,7 +156,7 @@ export function UnitTable() {
   const handleBulkDelete = async (selectedRows) => {
     try {
       const deletePromises = selectedRows.map((row) =>
-        deleteItem("unit", row.original.id)
+        deleteItem(category, row.original.id)
       );
       await Promise.all(deletePromises);
 
@@ -170,7 +171,7 @@ export function UnitTable() {
   // Handle transfer from network units to database
   const handleTransferToDatabase = async (unitsToTransfer) => {
     try {
-      await importItems("unit", unitsToTransfer);
+      await importItems(category, unitsToTransfer);
       toast.success(
         `Successfully transferred ${unitsToTransfer.length} unit(s) to database`
       );
@@ -182,7 +183,7 @@ export function UnitTable() {
 
   const handleExport = async () => {
     try {
-      await exportItems("unit");
+      await exportItems(category);
     } catch (error) {
       console.error("Failed to export unit items:", error);
     }
@@ -194,7 +195,7 @@ export function UnitTable() {
 
   const handleImportConfirm = async (items) => {
     try {
-      await importItems("unit", items);
+      await importItems(category, items);
       setImportDialogOpen(false);
     } catch (error) {
       console.error("Failed to import unit items:", error);
@@ -281,7 +282,7 @@ export function UnitTable() {
                         addItemLabel="Add Unit"
                         onExport={handleExport}
                         onImport={handleImport}
-                        category="unit"
+                        category={category}
                         columnVisibility={columnVisibility}
                         onSave={handleSaveChanges}
                         hasPendingChanges={pendingChanges.size > 0}
@@ -352,7 +353,7 @@ export function UnitTable() {
         open={importDialogOpen}
         onOpenChange={setImportDialogOpen}
         onImport={handleImportConfirm}
-        category="unit"
+        category={category}
       />
     </>
   );
