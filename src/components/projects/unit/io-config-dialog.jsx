@@ -124,7 +124,13 @@ InputConfigItem.displayName = "InputConfigItem";
 
 // Memoized output configuration component
 const OutputConfigItem = memo(
-  ({ config, deviceOptions, onOutputDeviceChange, onOpenOutputConfig }) => {
+  ({
+    config,
+    deviceOptions,
+    onOutputDeviceChange,
+    onOpenOutputConfig,
+    isLoadingConfig,
+  }) => {
     const isAircon = config.type === "ac";
 
     const getOutputIcon = useCallback((type) => {
@@ -168,8 +174,17 @@ const OutputConfigItem = memo(
             placeholder={`Select ${isAircon ? "aircon" : "lighting"}...`}
             emptyText={`No ${isAircon ? "aircon" : "lighting"} found`}
           />
-          <Button variant="outline" size="icon" onClick={handleConfigClick}>
-            <Settings className="h-4 w-4" />
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={handleConfigClick}
+            disabled={isLoadingConfig}
+          >
+            {isLoadingConfig ? (
+              <div className="h-4 w-4 animate-spin rounded-full border-2 border-gray-300 border-t-gray-600" />
+            ) : (
+              <Settings className="h-4 w-4" />
+            )}
           </Button>
         </div>
       </div>
@@ -192,6 +207,7 @@ const IOConfigDialogComponent = ({ open, onOpenChange, item = null }) => {
   const [currentMultiGroupInput, setCurrentMultiGroupInput] = useState(null);
   const [multiGroupConfigs, setMultiGroupConfigs] = useState({});
   const [rlcConfigs, setRlcConfigs] = useState({}); // Store RLC options for each input
+  const [loadingInputConfig, setLoadingInputConfig] = useState(false); // Loading state for individual input config
 
   // Output configuration dialog state
   const [lightingOutputDialogOpen, setLightingOutputDialogOpen] =
@@ -199,6 +215,7 @@ const IOConfigDialogComponent = ({ open, onOpenChange, item = null }) => {
   const [acOutputDialogOpen, setACOutputDialogOpen] = useState(false);
   const [currentOutputConfig, setCurrentOutputConfig] = useState(null);
   const [outputConfigurations, setOutputConfigurations] = useState({}); // Store output configs
+  const [loadingOutputConfig, setLoadingOutputConfig] = useState(false); // Loading state for individual output config
 
   // Get I/O specifications for the unit - memoized to prevent recalculation
   const ioSpec = useMemo(() => {
@@ -329,34 +346,12 @@ const IOConfigDialogComponent = ({ open, onOpenChange, item = null }) => {
     });
     setOutputConfigs(mergedOutputConfigs);
 
-    // Initialize multi-group configs and RLC configs
-    const multiGroupData = {};
-    const rlcData = {};
-    inputConfigsFromDB.forEach((input) => {
-      if (input.multiGroupConfig && input.multiGroupConfig.length > 0) {
-        multiGroupData[input.index] = input.multiGroupConfig;
-      }
+    // Clear multi-group and RLC configs cache - will be loaded on demand via lazy loading
+    setMultiGroupConfigs({});
+    setRlcConfigs({});
 
-      // Initialize RLC options for each input
-      rlcData[input.index] = {
-        ramp: input.ramp || 0,
-        preset: input.preset || 255,
-        ledStatus: input.led_status || 0,
-        autoMode: input.auto_mode || false,
-        delayOff: input.delay_off || 0,
-      };
-    });
-    setMultiGroupConfigs(multiGroupData);
-    setRlcConfigs(rlcData);
-
-    // Initialize output configurations (now nested in outputs)
-    const outputConfigData = {};
-    outputConfigsFromDB.forEach((output) => {
-      if (output.config) {
-        outputConfigData[output.index] = output.config;
-      }
-    });
-    setOutputConfigurations(outputConfigData);
+    // Clear output configurations cache - will be loaded on demand via lazy loading
+    setOutputConfigurations({});
   }, [open, item, initialInputConfigs, initialOutputConfigs]);
 
   // Memoized handlers to prevent unnecessary re-renders
@@ -369,30 +364,20 @@ const IOConfigDialogComponent = ({ open, onOpenChange, item = null }) => {
 
     setLoading(true);
     try {
-      // Build I/O configuration object
+      // Build I/O configuration object (without detailed configs - they're stored separately)
       const ioConfig = {
-        inputs: inputConfigs.map((config) => {
-          const rlcConfig = rlcConfigs[config.index] || {};
-          return {
-            index: config.index,
-            function: config.functionValue,
-            lightingId: config.lightingId,
-            ramp: rlcConfig.ramp || 0,
-            preset: rlcConfig.preset || 255,
-            led_status: rlcConfig.ledStatus || 0,
-            auto_mode: rlcConfig.autoMode || false,
-            auto_time: 0, // Not used in current implementation
-            delay_off: rlcConfig.delayOff || 0,
-            delay_on: 0, // Not used in current implementation
-            multiGroupConfig: multiGroupConfigs[config.index] || [],
-          };
-        }),
+        inputs: inputConfigs.map((config) => ({
+          index: config.index,
+          function: config.functionValue,
+          lightingId: config.lightingId,
+          // Note: multi-group and RLC configs are stored separately in unit_input_configs table
+        })),
         outputs: outputConfigs.map((config) => ({
           index: config.index,
           name: config.name,
           deviceId: config.deviceId,
           deviceType: config.type === "ac" ? "aircon" : "lighting",
-          config: outputConfigurations[config.index] || null,
+          // Note: config is stored separately in unit_output_configs table
         })),
       };
 
@@ -427,21 +412,69 @@ const IOConfigDialogComponent = ({ open, onOpenChange, item = null }) => {
   ]);
 
   // Optimized handlers with useCallback to prevent child re-renders
-  const handleInputLightingChange = useCallback((inputIndex, lightingId) => {
-    setInputConfigs((prev) =>
-      prev.map((config) =>
-        config.index === inputIndex ? { ...config, lightingId } : config
-      )
-    );
-  }, []);
+  const handleInputLightingChange = useCallback(
+    async (inputIndex, lightingId) => {
+      // Update local state immediately
+      setInputConfigs((prev) =>
+        prev.map((config) =>
+          config.index === inputIndex ? { ...config, lightingId } : config
+        )
+      );
 
-  const handleInputFunctionChange = useCallback((inputIndex, functionValue) => {
-    setInputConfigs((prev) =>
-      prev.map((config) =>
-        config.index === inputIndex ? { ...config, functionValue } : config
-      )
-    );
-  }, []);
+      // Save to database in background (optional - could be done on dialog save)
+      try {
+        const inputConfig = inputConfigs.find(
+          (config) => config.index === inputIndex
+        );
+        const multiGroupConfig = multiGroupConfigs[inputIndex] || [];
+        const rlcConfig = rlcConfigs[inputIndex] || {};
+
+        await window.electronAPI.unit.saveInputConfig(
+          item.id,
+          inputIndex,
+          inputConfig?.functionValue || 0,
+          lightingId,
+          multiGroupConfig,
+          rlcConfig
+        );
+      } catch (error) {
+        console.error("Failed to save input lighting change:", error);
+      }
+    },
+    [inputConfigs, multiGroupConfigs, rlcConfigs, item?.id]
+  );
+
+  const handleInputFunctionChange = useCallback(
+    async (inputIndex, functionValue) => {
+      // Update local state immediately
+      setInputConfigs((prev) =>
+        prev.map((config) =>
+          config.index === inputIndex ? { ...config, functionValue } : config
+        )
+      );
+
+      // Save to database in background (optional - could be done on dialog save)
+      try {
+        const inputConfig = inputConfigs.find(
+          (config) => config.index === inputIndex
+        );
+        const multiGroupConfig = multiGroupConfigs[inputIndex] || [];
+        const rlcConfig = rlcConfigs[inputIndex] || {};
+
+        await window.electronAPI.unit.saveInputConfig(
+          item.id,
+          inputIndex,
+          functionValue,
+          inputConfig?.lightingId || null,
+          multiGroupConfig,
+          rlcConfig
+        );
+      } catch (error) {
+        console.error("Failed to save input function change:", error);
+      }
+    },
+    [inputConfigs, multiGroupConfigs, rlcConfigs, item?.id]
+  );
 
   const handleOutputDeviceChange = useCallback((outputIndex, deviceId) => {
     setOutputConfigs((prev) =>
@@ -451,81 +484,172 @@ const IOConfigDialogComponent = ({ open, onOpenChange, item = null }) => {
     );
   }, []);
 
-  // Output configuration handlers
+  // Output configuration handlers with lazy loading
   const handleOpenOutputConfig = useCallback(
-    (outputIndex, outputType) => {
+    async (outputIndex, outputType) => {
       const outputConfig = outputConfigs.find(
         (config) => config.index === outputIndex
       );
       if (!outputConfig) return;
 
-      setCurrentOutputConfig({
-        index: outputIndex,
-        name: outputConfig.name,
-        type: outputType,
-        config: outputConfigurations[outputIndex] || {},
-      });
+      setLoadingOutputConfig(true);
 
-      if (outputType === "ac") {
-        setACOutputDialogOpen(true);
-      } else {
-        setLightingOutputDialogOpen(true);
+      try {
+        // Check if config is already cached
+        let configData = outputConfigurations[outputIndex];
+
+        // If not cached, load from database
+        if (!configData) {
+          const result = await window.electronAPI.unit.getOutputConfig(
+            item.id,
+            outputIndex
+          );
+          configData = result?.config_data || {};
+
+          // Cache the loaded config
+          setOutputConfigurations((prev) => ({
+            ...prev,
+            [outputIndex]: configData,
+          }));
+        }
+
+        setCurrentOutputConfig({
+          index: outputIndex,
+          name: outputConfig.name,
+          type: outputType,
+          config: configData,
+        });
+
+        if (outputType === "ac") {
+          setACOutputDialogOpen(true);
+        } else {
+          setLightingOutputDialogOpen(true);
+        }
+      } catch (error) {
+        console.error("Failed to load output config:", error);
+      } finally {
+        setLoadingOutputConfig(false);
       }
     },
-    [outputConfigs, outputConfigurations]
+    [outputConfigs, outputConfigurations, item?.id]
   );
 
   const handleSaveOutputConfig = useCallback(
-    (configData) => {
+    async (configData) => {
       if (!currentOutputConfig) return;
 
-      setOutputConfigurations((prev) => ({
-        ...prev,
-        [currentOutputConfig.index]: configData,
-      }));
+      try {
+        // Save to database immediately
+        await window.electronAPI.unit.saveOutputConfig(
+          item.id,
+          currentOutputConfig.index,
+          currentOutputConfig.type,
+          configData
+        );
+
+        // Update cache
+        setOutputConfigurations((prev) => ({
+          ...prev,
+          [currentOutputConfig.index]: configData,
+        }));
+      } catch (error) {
+        console.error("Failed to save output config:", error);
+      }
     },
-    [currentOutputConfig]
+    [currentOutputConfig, item?.id]
   );
 
-  // Multi-group configuration handlers - memoized
+  // Multi-group configuration handlers with lazy loading - memoized
   const handleOpenMultiGroupConfig = useCallback(
-    (inputIndex, functionValue) => {
+    async (inputIndex, functionValue) => {
       const inputFunction = getInputFunctionByValue(functionValue);
       if (!inputFunction) return;
 
-      setCurrentMultiGroupInput({
-        index: inputIndex,
-        name: `Input ${inputIndex + 1}`,
-        functionName: inputFunction.label,
-        functionValue: functionValue,
-      });
-      setMultiGroupDialogOpen(true);
+      setLoadingInputConfig(true);
+
+      try {
+        // Check if configs are already cached
+        let multiGroupConfig = multiGroupConfigs[inputIndex];
+        let rlcConfig = rlcConfigs[inputIndex];
+
+        // If not cached, load from database
+        if (!multiGroupConfig && !rlcConfig) {
+          const result = await window.electronAPI.unit.getInputConfig(
+            item.id,
+            inputIndex
+          );
+
+          if (result) {
+            multiGroupConfig = result.multi_group_config || [];
+            rlcConfig = result.rlc_config || {};
+
+            // Cache the loaded configs
+            setMultiGroupConfigs((prev) => ({
+              ...prev,
+              [inputIndex]: multiGroupConfig,
+            }));
+            setRlcConfigs((prev) => ({
+              ...prev,
+              [inputIndex]: rlcConfig,
+            }));
+          }
+        }
+
+        setCurrentMultiGroupInput({
+          index: inputIndex,
+          name: `Input ${inputIndex + 1}`,
+          functionName: inputFunction.label,
+          functionValue: functionValue,
+        });
+        setMultiGroupDialogOpen(true);
+      } catch (error) {
+        console.error("Failed to load input config:", error);
+      } finally {
+        setLoadingInputConfig(false);
+      }
     },
-    []
+    [multiGroupConfigs, rlcConfigs, item?.id]
   );
 
   const handleSaveMultiGroupConfig = useCallback(
-    (data) => {
+    async (data) => {
       if (!currentMultiGroupInput) return;
 
-      // Handle both old format (just groups) and new format (groups + rlcOptions)
-      const groups = data.groups || data; // Support backward compatibility
-      const rlcOptions = data.rlcOptions || {};
+      try {
+        // Handle both old format (just groups) and new format (groups + rlcOptions)
+        const groups = data.groups || data; // Support backward compatibility
+        const rlcOptions = data.rlcOptions || {};
 
-      setMultiGroupConfigs((prev) => ({
-        ...prev,
-        [currentMultiGroupInput.index]: groups,
-      }));
+        // Get current input config
+        const inputConfig = inputConfigs.find(
+          (config) => config.index === currentMultiGroupInput.index
+        );
 
-      // Update RLC configs if provided
-      if (data.rlcOptions) {
+        // Save to database immediately
+        await window.electronAPI.unit.saveInputConfig(
+          item.id,
+          currentMultiGroupInput.index,
+          inputConfig?.functionValue || 0,
+          inputConfig?.lightingId || null,
+          groups,
+          rlcOptions
+        );
+
+        // Update cache
+        setMultiGroupConfigs((prev) => ({
+          ...prev,
+          [currentMultiGroupInput.index]: groups,
+        }));
+
         setRlcConfigs((prev) => ({
           ...prev,
           [currentMultiGroupInput.index]: rlcOptions,
         }));
+      } catch (error) {
+        console.error("Failed to save input config:", error);
       }
     },
-    [currentMultiGroupInput]
+    [currentMultiGroupInput, inputConfigs, item?.id]
   );
 
   // Prepare combobox options - memoized to prevent recalculation
@@ -663,6 +787,7 @@ const IOConfigDialogComponent = ({ open, onOpenChange, item = null }) => {
                               }
                               onOutputDeviceChange={handleOutputDeviceChange}
                               onOpenOutputConfig={handleOpenOutputConfig}
+                              isLoadingConfig={loadingOutputConfig}
                             />
                           ))}
                         </div>

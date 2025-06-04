@@ -149,6 +149,36 @@ class DatabaseService {
       )
     `;
 
+    const createUnitOutputConfigsTable = `
+      CREATE TABLE IF NOT EXISTS unit_output_configs (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        unit_id INTEGER NOT NULL,
+        output_index INTEGER NOT NULL,
+        output_type TEXT NOT NULL,
+        config_data TEXT, -- JSON string for output configuration
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (unit_id) REFERENCES unit (id) ON DELETE CASCADE,
+        UNIQUE(unit_id, output_index)
+      )
+    `;
+
+    const createUnitInputConfigsTable = `
+      CREATE TABLE IF NOT EXISTS unit_input_configs (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        unit_id INTEGER NOT NULL,
+        input_index INTEGER NOT NULL,
+        function_value INTEGER DEFAULT 0,
+        lighting_id INTEGER,
+        multi_group_config TEXT, -- JSON string for multi-group configuration
+        rlc_config TEXT, -- JSON string for RLC configuration
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (unit_id) REFERENCES unit (id) ON DELETE CASCADE,
+        UNIQUE(unit_id, input_index)
+      )
+    `;
+
     try {
       this.db.exec(createProjectsTable);
       this.db.exec(createLightingTable);
@@ -157,6 +187,8 @@ class DatabaseService {
       this.db.exec(createCurtainTable);
       this.db.exec(createSceneTable);
       this.db.exec(createSceneItemsTable);
+      this.db.exec(createUnitOutputConfigsTable);
+      this.db.exec(createUnitInputConfigsTable);
     } catch (error) {
       console.error('Failed to create tables:', error);
       throw error;
@@ -967,6 +999,166 @@ class DatabaseService {
 
   deleteUnitItem(id) {
     return this.deleteProjectItem(id, 'unit');
+  }
+
+  // Unit Output Configuration methods
+  getUnitOutputConfig(unitId, outputIndex) {
+    try {
+      const stmt = this.db.prepare(`
+        SELECT * FROM unit_output_configs
+        WHERE unit_id = ? AND output_index = ?
+      `);
+      const result = stmt.get(unitId, outputIndex);
+
+      if (result && result.config_data) {
+        return {
+          ...result,
+          config_data: JSON.parse(result.config_data)
+        };
+      }
+      return null;
+    } catch (error) {
+      console.error('Failed to get unit output config:', error);
+      throw error;
+    }
+  }
+
+  saveUnitOutputConfig(unitId, outputIndex, outputType, configData) {
+    try {
+      const stmt = this.db.prepare(`
+        INSERT OR REPLACE INTO unit_output_configs
+        (unit_id, output_index, output_type, config_data, updated_at)
+        VALUES (?, ?, ?, ?, CURRENT_TIMESTAMP)
+      `);
+
+      const result = stmt.run(
+        unitId,
+        outputIndex,
+        outputType,
+        JSON.stringify(configData)
+      );
+
+      return this.getUnitOutputConfig(unitId, outputIndex);
+    } catch (error) {
+      console.error('Failed to save unit output config:', error);
+      throw error;
+    }
+  }
+
+  deleteUnitOutputConfig(unitId, outputIndex) {
+    try {
+      const stmt = this.db.prepare(`
+        DELETE FROM unit_output_configs
+        WHERE unit_id = ? AND output_index = ?
+      `);
+
+      const result = stmt.run(unitId, outputIndex);
+      return result.changes > 0;
+    } catch (error) {
+      console.error('Failed to delete unit output config:', error);
+      throw error;
+    }
+  }
+
+  getAllUnitOutputConfigs(unitId) {
+    try {
+      const stmt = this.db.prepare(`
+        SELECT * FROM unit_output_configs
+        WHERE unit_id = ?
+        ORDER BY output_index ASC
+      `);
+      const results = stmt.all(unitId);
+
+      return results.map(result => ({
+        ...result,
+        config_data: result.config_data ? JSON.parse(result.config_data) : null
+      }));
+    } catch (error) {
+      console.error('Failed to get all unit output configs:', error);
+      throw error;
+    }
+  }
+
+  // Unit Input Configuration methods
+  getUnitInputConfig(unitId, inputIndex) {
+    try {
+      const stmt = this.db.prepare(`
+        SELECT * FROM unit_input_configs
+        WHERE unit_id = ? AND input_index = ?
+      `);
+      const result = stmt.get(unitId, inputIndex);
+
+      if (result) {
+        return {
+          ...result,
+          multi_group_config: result.multi_group_config ? JSON.parse(result.multi_group_config) : [],
+          rlc_config: result.rlc_config ? JSON.parse(result.rlc_config) : {}
+        };
+      }
+      return null;
+    } catch (error) {
+      console.error('Failed to get unit input config:', error);
+      throw error;
+    }
+  }
+
+  saveUnitInputConfig(unitId, inputIndex, functionValue, lightingId, multiGroupConfig, rlcConfig) {
+    try {
+      const stmt = this.db.prepare(`
+        INSERT OR REPLACE INTO unit_input_configs
+        (unit_id, input_index, function_value, lighting_id, multi_group_config, rlc_config, updated_at)
+        VALUES (?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
+      `);
+
+      stmt.run(
+        unitId,
+        inputIndex,
+        functionValue || 0,
+        lightingId,
+        JSON.stringify(multiGroupConfig || []),
+        JSON.stringify(rlcConfig || {})
+      );
+
+      return this.getUnitInputConfig(unitId, inputIndex);
+    } catch (error) {
+      console.error('Failed to save unit input config:', error);
+      throw error;
+    }
+  }
+
+  deleteUnitInputConfig(unitId, inputIndex) {
+    try {
+      const stmt = this.db.prepare(`
+        DELETE FROM unit_input_configs
+        WHERE unit_id = ? AND input_index = ?
+      `);
+
+      const result = stmt.run(unitId, inputIndex);
+      return result.changes > 0;
+    } catch (error) {
+      console.error('Failed to delete unit input config:', error);
+      throw error;
+    }
+  }
+
+  getAllUnitInputConfigs(unitId) {
+    try {
+      const stmt = this.db.prepare(`
+        SELECT * FROM unit_input_configs
+        WHERE unit_id = ?
+        ORDER BY input_index ASC
+      `);
+      const results = stmt.all(unitId);
+
+      return results.map(result => ({
+        ...result,
+        multi_group_config: result.multi_group_config ? JSON.parse(result.multi_group_config) : [],
+        rlc_config: result.rlc_config ? JSON.parse(result.rlc_config) : {}
+      }));
+    } catch (error) {
+      console.error('Failed to get all unit input configs:', error);
+      throw error;
+    }
   }
 
   duplicateUnitItem(id) {

@@ -620,22 +620,45 @@ export function MultiGroupConfigDialog({
                       : ""
                   }`}
                 >
-                  3. Preset ( {Math.round((rlcOptions.preset * 100) / 255)}%)
+                  3. Preset
                 </Label>
-                <Input
-                  type="number"
-                  min="0"
-                  max="255"
-                  value={rlcOptions.preset}
-                  onChange={(e) => {
-                    const value = parseInt(e.target.value) || 0;
-                    const clampedValue = Math.max(0, Math.min(255, value));
-                    handleRlcOptionChange("preset", clampedValue);
-                  }}
-                  placeholder="0-255"
-                  className="text-center"
-                  disabled={!rlcOptionsConfig.presetEnabled}
-                />
+                <div className="flex gap-6">
+                  <Input
+                    type="number"
+                    min="0"
+                    max="255"
+                    value={rlcOptions.preset}
+                    onChange={(e) => {
+                      const value = parseInt(e.target.value) || 0;
+                      const clampedValue = Math.max(0, Math.min(255, value));
+                      handleRlcOptionChange("preset", clampedValue);
+                    }}
+                    placeholder="0-255"
+                    className="text-center w-1/2"
+                    disabled={!rlcOptionsConfig.presetEnabled}
+                  />
+                  <Label className="text-sm">or</Label>
+                  <div className="relative w-1/2">
+                    <Input
+                      type="number"
+                      min="0"
+                      max="100"
+                      value={Math.round((rlcOptions.preset * 100) / 255)}
+                      onChange={(e) => {
+                        const value = parseInt(e.target.value) || 0;
+                        const clampedValue = Math.max(0, Math.min(100, value));
+                        const rawValue = Math.round((clampedValue * 255) / 100);
+                        handleRlcOptionChange("preset", rawValue);
+                      }}
+                      placeholder="0-100"
+                      className="text-center pl-8"
+                      disabled={!rlcOptionsConfig.presetEnabled}
+                    />
+                    <Label className="text-sm absolute left-2 top-1/2 transform -translate-y-1/2">
+                      %
+                    </Label>
+                  </div>
+                </div>
               </div>
               {/* Delay Off Section */}
               <div className="space-y-2">
@@ -646,45 +669,54 @@ export function MultiGroupConfigDialog({
                       : ""
                   }`}
                 >
-                  4. Delay Off (hh:mm:ss)
+                  4. Delay Off
                 </Label>
-                <div className="grid grid-cols-3 gap-3">
-                  <Input
-                    type="number"
-                    min="0"
-                    max="18"
-                    value={rlcOptions.delayOff.hours}
-                    onChange={(e) =>
-                      handleDelayOffChange("hours", e.target.value)
-                    }
-                    placeholder="0"
-                    className="text-center"
-                    disabled={!rlcOptionsConfig.delayOffEnabled}
-                  />
-                  <Input
-                    type="number"
-                    min="0"
-                    max={rlcOptions.delayOff.hours === 18 ? "11" : "59"}
-                    value={rlcOptions.delayOff.minutes}
-                    onChange={(e) =>
-                      handleDelayOffChange("minutes", e.target.value)
-                    }
-                    placeholder="0"
-                    className="text-center"
-                    disabled={!rlcOptionsConfig.delayOffEnabled}
-                  />
-                  <Input
-                    type="number"
-                    min="0"
-                    max="59"
-                    value={rlcOptions.delayOff.seconds}
-                    onChange={(e) =>
-                      handleDelayOffChange("seconds", e.target.value)
-                    }
-                    placeholder="0"
-                    className="text-center"
-                    disabled={!rlcOptionsConfig.delayOffEnabled}
-                  />
+                <div className="grid grid-cols-3 gap-6">
+                  <div className="flex gap-2">
+                    <Input
+                      type="number"
+                      min="0"
+                      max="18"
+                      value={rlcOptions.delayOff.hours}
+                      onChange={(e) =>
+                        handleDelayOffChange("hours", e.target.value)
+                      }
+                      placeholder="0"
+                      className="text-center"
+                      disabled={!rlcOptionsConfig.delayOffEnabled}
+                    />
+                    <Label className="text-sm">hours</Label>
+                  </div>
+                  <div className="flex gap-2">
+                    <Input
+                      type="number"
+                      min="0"
+                      max={rlcOptions.delayOff.hours === 18 ? "11" : "59"}
+                      value={rlcOptions.delayOff.minutes}
+                      onChange={(e) =>
+                        handleDelayOffChange("minutes", e.target.value)
+                      }
+                      placeholder="0"
+                      className="text-center"
+                      disabled={!rlcOptionsConfig.delayOffEnabled}
+                    />
+                    <Label className="text-sm">mins</Label>
+                  </div>
+                  <div className="flex gap-2">
+                    <Input
+                      type="number"
+                      min="0"
+                      max="59"
+                      value={rlcOptions.delayOff.seconds}
+                      onChange={(e) =>
+                        handleDelayOffChange("seconds", e.target.value)
+                      }
+                      placeholder="0"
+                      className="text-center"
+                      disabled={!rlcOptionsConfig.delayOffEnabled}
+                    />
+                    <Label className="text-sm">secs</Label>
+                  </div>
                 </div>
               </div>
             </div>

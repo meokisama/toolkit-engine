@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, memo } from "react";
 import {
   Dialog,
   DialogContent,
@@ -80,7 +80,7 @@ const WINDOWS_OPTIONS = [
   { value: "1", label: "Bypass" },
 ];
 
-export const ACOutputConfigDialog = ({
+const ACOutputConfigDialogComponent = ({
   open,
   onOpenChange,
   outputName = "",
@@ -541,3 +541,20 @@ export const ACOutputConfigDialog = ({
     </Dialog>
   );
 };
+
+// Export memoized component for optimal performance
+export const ACOutputConfigDialog = memo(
+  ACOutputConfigDialogComponent,
+  (prevProps, nextProps) => {
+    // Custom comparison function for better memoization
+    return (
+      prevProps.open === nextProps.open &&
+      prevProps.onOpenChange === nextProps.onOpenChange &&
+      prevProps.outputName === nextProps.outputName &&
+      JSON.stringify(prevProps.initialConfig) ===
+        JSON.stringify(nextProps.initialConfig) &&
+      JSON.stringify(prevProps.lightingOptions) ===
+        JSON.stringify(nextProps.lightingOptions)
+    );
+  }
+);

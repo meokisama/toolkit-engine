@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useMemo } from "react";
+import React, { useState, useEffect, useCallback, memo } from "react";
 import {
   Dialog,
   DialogContent,
@@ -9,41 +9,98 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Lightbulb, Clock, Timer, Zap } from "lucide-react";
 
-// Helper function to generate time options
-const generateTimeOptions = (max, step = 1) => {
-  const options = [];
-  for (let i = 0; i <= max; i += step) {
-    options.push({ value: i.toString(), label: i.toString() });
-  }
-  return options;
+// Validation ranges for different input types
+const VALIDATION_RANGES = {
+  HOUR: { min: 0, max: 18 },
+  MINUTE: { min: 0, max: 59 },
+  SECOND: { min: 0, max: 59 },
+  SCHEDULE_HOUR: { min: 0, max: 23 },
+  MIN_DIM: { min: 1, max: 30 },
+  MAX_DIM: { min: 70, max: 100 },
 };
 
-// Time options
-const HOUR_OPTIONS = generateTimeOptions(18);
-const MINUTE_OPTIONS = generateTimeOptions(59);
-const SECOND_OPTIONS = generateTimeOptions(59);
-const SCHEDULE_HOUR_OPTIONS = generateTimeOptions(23);
-const MIN_DIM_OPTIONS = generateTimeOptions(30, 1).slice(1); // 1-30
-const MAX_DIM_OPTIONS = (() => {
-  const options = [];
-  for (let i = 70; i <= 100; i++) {
-    options.push({ value: i.toString(), label: i.toString() });
-  }
-  return options;
-})();
+// Memoized Input component with validation
+const ValidatedInput = memo(
+  ({
+    value,
+    onChange,
+    validationRange,
+    className = "w-20",
+    placeholder = "0",
+  }) => {
+    const [localValue, setLocalValue] = useState(value.toString());
+    const [isValid, setIsValid] = useState(true);
 
-export const LightingOutputConfigDialog = ({
+    // Update local value when prop changes
+    useEffect(() => {
+      setLocalValue(value.toString());
+    }, [value]);
+
+    const handleChange = useCallback(
+      (e) => {
+        const inputValue = e.target.value;
+        setLocalValue(inputValue);
+
+        // Skip validation for empty string (allow user to clear field)
+        if (inputValue === "") {
+          setIsValid(true);
+          return;
+        }
+
+        // Validate input
+        const numValue = parseInt(inputValue);
+        const isValidNumber =
+          !isNaN(numValue) &&
+          numValue >= validationRange.min &&
+          numValue <= validationRange.max;
+
+        setIsValid(isValidNumber);
+
+        // Only call onChange if valid
+        if (isValidNumber) {
+          onChange(numValue);
+        }
+      },
+      [onChange, validationRange]
+    );
+
+    const handleBlur = useCallback(() => {
+      // Reset to valid value on blur if invalid
+      if (!isValid) {
+        const clampedValue = Math.max(
+          validationRange.min,
+          Math.min(
+            validationRange.max,
+            parseInt(localValue) || validationRange.min
+          )
+        );
+        setLocalValue(clampedValue.toString());
+        setIsValid(true);
+        onChange(clampedValue);
+      }
+    }, [isValid, localValue, onChange, validationRange]);
+
+    return (
+      <Input
+        type="number"
+        value={localValue}
+        onChange={handleChange}
+        onBlur={handleBlur}
+        className={`${className} ${!isValid ? "border-red-500" : ""}`}
+        placeholder={placeholder}
+        min={validationRange.min}
+        max={validationRange.max}
+      />
+    );
+  }
+);
+
+const LightingOutputConfigDialogComponent = ({
   open,
   onOpenChange,
   outputName = "",
@@ -71,9 +128,7 @@ export const LightingOutputConfigDialog = ({
   const [loading, setLoading] = useState(false);
 
   // Check if this is a dimmer output (shows min/max dim options)
-  const isDimmerOutput = useMemo(() => {
-    return outputType === "dimmer";
-  }, [outputType]);
+  const isDimmerOutput = outputType === "dimmer";
 
   // Initialize config from props
   useEffect(() => {
@@ -113,11 +168,9 @@ export const LightingOutputConfigDialog = ({
     }
   }, [config, onSave, handleClose]);
 
+  // Generic update handler to replace 12 individual handlers
   const updateConfig = useCallback((field, value) => {
-    setConfig((prev) => ({
-      ...prev,
-      [field]: value,
-    }));
+    setConfig((prev) => ({ ...prev, [field]: value }));
   }, []);
 
   return (
@@ -147,61 +200,28 @@ export const LightingOutputConfigDialog = ({
               <div className="space-y-2">
                 <Label className="text-sm font-medium">Delay off output:</Label>
                 <div className="flex items-center gap-2">
-                  <Select
-                    value={config.delayOffHours.toString()}
-                    onValueChange={(value) =>
-                      updateConfig("delayOffHours", parseInt(value))
-                    }
-                  >
-                    <SelectTrigger className="w-20">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {HOUR_OPTIONS.map((option) => (
-                        <SelectItem key={option.value} value={option.value}>
-                          {option.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <ValidatedInput
+                    value={config.delayOffHours}
+                    onChange={(value) => updateConfig("delayOffHours", value)}
+                    validationRange={VALIDATION_RANGES.HOUR}
+                    className="w-20"
+                  />
                   <Label className="text-sm">hours</Label>
 
-                  <Select
-                    value={config.delayOffMinutes.toString()}
-                    onValueChange={(value) =>
-                      updateConfig("delayOffMinutes", parseInt(value))
-                    }
-                  >
-                    <SelectTrigger className="w-20">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {MINUTE_OPTIONS.map((option) => (
-                        <SelectItem key={option.value} value={option.value}>
-                          {option.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <ValidatedInput
+                    value={config.delayOffMinutes}
+                    onChange={(value) => updateConfig("delayOffMinutes", value)}
+                    validationRange={VALIDATION_RANGES.MINUTE}
+                    className="w-20"
+                  />
                   <Label className="text-sm">mins</Label>
 
-                  <Select
-                    value={config.delayOffSeconds.toString()}
-                    onValueChange={(value) =>
-                      updateConfig("delayOffSeconds", parseInt(value))
-                    }
-                  >
-                    <SelectTrigger className="w-20">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {SECOND_OPTIONS.map((option) => (
-                        <SelectItem key={option.value} value={option.value}>
-                          {option.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <ValidatedInput
+                    value={config.delayOffSeconds}
+                    onChange={(value) => updateConfig("delayOffSeconds", value)}
+                    validationRange={VALIDATION_RANGES.SECOND}
+                    className="w-20"
+                  />
                   <Label className="text-sm">secs</Label>
                 </div>
               </div>
@@ -210,61 +230,28 @@ export const LightingOutputConfigDialog = ({
               <div className="space-y-2">
                 <Label className="text-sm font-medium">Delay on output:</Label>
                 <div className="flex items-center gap-2">
-                  <Select
-                    value={config.delayOnHours.toString()}
-                    onValueChange={(value) =>
-                      updateConfig("delayOnHours", parseInt(value))
-                    }
-                  >
-                    <SelectTrigger className="w-20">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {HOUR_OPTIONS.map((option) => (
-                        <SelectItem key={option.value} value={option.value}>
-                          {option.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <ValidatedInput
+                    value={config.delayOnHours}
+                    onChange={(value) => updateConfig("delayOnHours", value)}
+                    validationRange={VALIDATION_RANGES.HOUR}
+                    className="w-20"
+                  />
                   <Label className="text-sm">hours</Label>
 
-                  <Select
-                    value={config.delayOnMinutes.toString()}
-                    onValueChange={(value) =>
-                      updateConfig("delayOnMinutes", parseInt(value))
-                    }
-                  >
-                    <SelectTrigger className="w-20">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {MINUTE_OPTIONS.map((option) => (
-                        <SelectItem key={option.value} value={option.value}>
-                          {option.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <ValidatedInput
+                    value={config.delayOnMinutes}
+                    onChange={(value) => updateConfig("delayOnMinutes", value)}
+                    validationRange={VALIDATION_RANGES.MINUTE}
+                    className="w-20"
+                  />
                   <Label className="text-sm">mins</Label>
 
-                  <Select
-                    value={config.delayOnSeconds.toString()}
-                    onValueChange={(value) =>
-                      updateConfig("delayOnSeconds", parseInt(value))
-                    }
-                  >
-                    <SelectTrigger className="w-20">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {SECOND_OPTIONS.map((option) => (
-                        <SelectItem key={option.value} value={option.value}>
-                          {option.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <ValidatedInput
+                    value={config.delayOnSeconds}
+                    onChange={(value) => updateConfig("delayOnSeconds", value)}
+                    validationRange={VALIDATION_RANGES.SECOND}
+                    className="w-20"
+                  />
                   <Label className="text-sm">secs</Label>
                 </div>
               </div>
@@ -284,44 +271,22 @@ export const LightingOutputConfigDialog = ({
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label className="text-sm font-medium">Min Dim (%)</Label>
-                    <Select
-                      value={config.minDim.toString()}
-                      onValueChange={(value) =>
-                        updateConfig("minDim", parseInt(value))
-                      }
-                    >
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {MIN_DIM_OPTIONS.map((option) => (
-                          <SelectItem key={option.value} value={option.value}>
-                            {option.label}%
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    <ValidatedInput
+                      value={config.minDim}
+                      onChange={(value) => updateConfig("minDim", value)}
+                      validationRange={VALIDATION_RANGES.MIN_DIM}
+                      className="w-full"
+                    />
                   </div>
 
                   <div className="space-y-2">
                     <Label className="text-sm font-medium">Max Dim (%)</Label>
-                    <Select
-                      value={config.maxDim.toString()}
-                      onValueChange={(value) =>
-                        updateConfig("maxDim", parseInt(value))
-                      }
-                    >
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {MAX_DIM_OPTIONS.map((option) => (
-                          <SelectItem key={option.value} value={option.value}>
-                            {option.label}%
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    <ValidatedInput
+                      value={config.maxDim}
+                      onChange={(value) => updateConfig("maxDim", value)}
+                      validationRange={VALIDATION_RANGES.MAX_DIM}
+                      className="w-full"
+                    />
                   </div>
                 </div>
 
@@ -354,42 +319,22 @@ export const LightingOutputConfigDialog = ({
               <div className="space-y-2">
                 <Label className="text-sm font-medium">Schedule on at:</Label>
                 <div className="flex items-center gap-2">
-                  <Select
-                    value={config.scheduleOnHour.toString()}
-                    onValueChange={(value) =>
-                      updateConfig("scheduleOnHour", parseInt(value))
-                    }
-                  >
-                    <SelectTrigger className="w-20">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {SCHEDULE_HOUR_OPTIONS.map((option) => (
-                        <SelectItem key={option.value} value={option.value}>
-                          {option.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <ValidatedInput
+                    value={config.scheduleOnHour}
+                    onChange={(value) => updateConfig("scheduleOnHour", value)}
+                    validationRange={VALIDATION_RANGES.SCHEDULE_HOUR}
+                    className="w-20"
+                  />
                   <Label className="text-sm">hour</Label>
 
-                  <Select
-                    value={config.scheduleOnMinute.toString()}
-                    onValueChange={(value) =>
-                      updateConfig("scheduleOnMinute", parseInt(value))
+                  <ValidatedInput
+                    value={config.scheduleOnMinute}
+                    onChange={(value) =>
+                      updateConfig("scheduleOnMinute", value)
                     }
-                  >
-                    <SelectTrigger className="w-20">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {MINUTE_OPTIONS.map((option) => (
-                        <SelectItem key={option.value} value={option.value}>
-                          {option.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                    validationRange={VALIDATION_RANGES.MINUTE}
+                    className="w-20"
+                  />
                   <Label className="text-sm">min</Label>
                 </div>
               </div>
@@ -398,42 +343,22 @@ export const LightingOutputConfigDialog = ({
               <div className="space-y-2">
                 <Label className="text-sm font-medium">Schedule off at:</Label>
                 <div className="flex items-center gap-2">
-                  <Select
-                    value={config.scheduleOffHour.toString()}
-                    onValueChange={(value) =>
-                      updateConfig("scheduleOffHour", parseInt(value))
-                    }
-                  >
-                    <SelectTrigger className="w-20">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {SCHEDULE_HOUR_OPTIONS.map((option) => (
-                        <SelectItem key={option.value} value={option.value}>
-                          {option.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <ValidatedInput
+                    value={config.scheduleOffHour}
+                    onChange={(value) => updateConfig("scheduleOffHour", value)}
+                    validationRange={VALIDATION_RANGES.SCHEDULE_HOUR}
+                    className="w-20"
+                  />
                   <Label className="text-sm">hour</Label>
 
-                  <Select
-                    value={config.scheduleOffMinute.toString()}
-                    onValueChange={(value) =>
-                      updateConfig("scheduleOffMinute", parseInt(value))
+                  <ValidatedInput
+                    value={config.scheduleOffMinute}
+                    onChange={(value) =>
+                      updateConfig("scheduleOffMinute", value)
                     }
-                  >
-                    <SelectTrigger className="w-20">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {MINUTE_OPTIONS.map((option) => (
-                        <SelectItem key={option.value} value={option.value}>
-                          {option.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                    validationRange={VALIDATION_RANGES.MINUTE}
+                    className="w-20"
+                  />
                   <Label className="text-sm">min</Label>
                 </div>
               </div>
@@ -453,3 +378,35 @@ export const LightingOutputConfigDialog = ({
     </Dialog>
   );
 };
+
+// Shallow comparison for initialConfig object
+const shallowEqual = (obj1, obj2) => {
+  if (obj1 === obj2) return true;
+  if (!obj1 || !obj2) return false;
+
+  const keys1 = Object.keys(obj1);
+  const keys2 = Object.keys(obj2);
+
+  if (keys1.length !== keys2.length) return false;
+
+  for (let key of keys1) {
+    if (obj1[key] !== obj2[key]) return false;
+  }
+
+  return true;
+};
+
+// Export memoized component for optimal performance
+export const LightingOutputConfigDialog = memo(
+  LightingOutputConfigDialogComponent,
+  (prevProps, nextProps) => {
+    // Optimized comparison function without expensive JSON.stringify
+    return (
+      prevProps.open === nextProps.open &&
+      prevProps.onOpenChange === nextProps.onOpenChange &&
+      prevProps.outputName === nextProps.outputName &&
+      prevProps.outputType === nextProps.outputType &&
+      shallowEqual(prevProps.initialConfig, nextProps.initialConfig)
+    );
+  }
+);
