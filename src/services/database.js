@@ -1161,6 +1161,34 @@ class DatabaseService {
     }
   }
 
+  // Clear all I/O configurations for a unit (used when unit type changes)
+  clearAllUnitIOConfigs(unitId) {
+    try {
+      // Clear all input configurations
+      const clearInputsStmt = this.db.prepare(`
+        DELETE FROM unit_input_configs WHERE unit_id = ?
+      `);
+
+      // Clear all output configurations
+      const clearOutputsStmt = this.db.prepare(`
+        DELETE FROM unit_output_configs WHERE unit_id = ?
+      `);
+
+      // Execute both deletions in a transaction
+      const transaction = this.db.transaction(() => {
+        clearInputsStmt.run(unitId);
+        clearOutputsStmt.run(unitId);
+      });
+
+      transaction();
+
+      return true;
+    } catch (error) {
+      console.error('Failed to clear all unit I/O configs:', error);
+      throw error;
+    }
+  }
+
   duplicateUnitItem(id) {
     try {
       const originalItem = this.getProjectItemById(id, 'unit');

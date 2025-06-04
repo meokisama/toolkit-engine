@@ -24,6 +24,7 @@ import {
 
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   Plus,
   Trash2,
@@ -169,6 +170,7 @@ export function MultiGroupConfigDialog({
   unitType = null,
   initialGroups = [],
   initialRlcOptions = {},
+  isLoading = false,
   onSave = () => {},
 }) {
   const { projectItems } = useProjectDetail();
@@ -228,7 +230,14 @@ export function MultiGroupConfigDialog({
 
   // Initialize selected groups and RLC options
   useEffect(() => {
-    if (open) {
+    if (
+      open &&
+      !isLoading &&
+      initialGroups !== null &&
+      initialGroups !== undefined &&
+      initialRlcOptions !== null &&
+      initialRlcOptions !== undefined
+    ) {
       // Initialize with enhanced data structure including preset values
       const enhancedGroups = (initialGroups || []).map((group) => ({
         lightingId: group.lightingId,
@@ -254,7 +263,7 @@ export function MultiGroupConfigDialog({
         delayOff: delayTime,
       });
     }
-  }, [open, initialGroups, initialRlcOptions]);
+  }, [open, initialGroups, initialRlcOptions, isLoading]);
 
   const handleClose = useCallback(() => {
     onOpenChange(false);
@@ -452,392 +461,492 @@ export function MultiGroupConfigDialog({
           </DialogDescription>
         </DialogHeader>
 
-        {/* Percentage Toggle - Only show for multiple group functions */}
-        {isMultipleGroupFunction && (
-          <div className="flex items-center space-x-2 mb-4">
-            <Checkbox
-              id="percentage-toggle"
-              checked={usePercentage}
-              onCheckedChange={handleTogglePercentage}
-            />
-            <Label htmlFor="percentage-toggle" className="text-sm font-medium">
-              Show values as percentage (0-100%) instead of raw values (0-255)
-            </Label>
-          </div>
-        )}
-
-        {/* RLC Options Section */}
-        <Card>
-          <CardContent className="space-y-6">
-            <div className="grid grid-cols-2 gap-y-6 gap-x-8">
-              {/* Ramp */}
-              <div className="space-y-2">
-                <Label
-                  className={`text-sm font-medium flex items-center gap-2 ${
-                    !rlcOptionsConfig.rampEnabled ? "text-muted-foreground" : ""
-                  }`}
-                >
-                  1. Ramp Time
-                </Label>
-                <Select
-                  value={rlcOptions.ramp.toString()}
-                  onValueChange={(value) =>
-                    handleRlcOptionChange("ramp", parseInt(value))
-                  }
-                  disabled={!rlcOptionsConfig.rampEnabled}
-                >
-                  <SelectTrigger
-                    className={
-                      !rlcOptionsConfig.rampEnabled
-                        ? "opacity-50 w-full"
-                        : "w-full"
-                    }
-                  >
-                    <SelectValue placeholder="Select ramp time..." />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {RAMP_OPTIONS.map((option) => (
-                      <SelectItem
-                        key={option.value}
-                        value={option.value.toString()}
-                      >
-                        {option.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+        {isLoading ? (
+          // Loading skeleton
+          <>
+            {isMultipleGroupFunction && (
+              <div className="flex items-center space-x-2 mb-4">
+                <Skeleton className="h-4 w-4" />
+                <Skeleton className="h-4 w-80" />
               </div>
-              <div className="flex flex-col gap-4">
-                {/* LED Display Mode */}
-                <div className="space-y-2">
+            )}
+
+            <Card>
+              <CardContent className="space-y-6">
+                <div className="grid grid-cols-2 gap-y-6 gap-x-8">
+                  {Array.from({ length: 4 }).map((_, i) => (
+                    <div key={i} className="space-y-2">
+                      <Skeleton className="h-4 w-32" />
+                      <Skeleton className="h-10 w-full" />
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+
+            {isMultipleGroupFunction && (
+              <div className="grid grid-cols-2 gap-4">
+                <Card>
+                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <Skeleton className="h-6 w-32" />
+                    <div className="flex gap-2">
+                      <Skeleton className="h-8 w-20" />
+                      <Skeleton className="h-8 w-20" />
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-3">
+                      {Array.from({ length: 3 }).map((_, i) => (
+                        <div
+                          key={i}
+                          className="flex items-center gap-3 p-3 border rounded-lg"
+                        >
+                          <div className="flex-1 space-y-2">
+                            <Skeleton className="h-4 w-24" />
+                            <Skeleton className="h-10 w-full" />
+                          </div>
+                          <div className="w-24 space-y-2">
+                            <Skeleton className="h-4 w-16" />
+                            <Skeleton className="h-8 w-full" />
+                          </div>
+                          <Skeleton className="h-8 w-8" />
+                        </div>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardHeader>
+                    <Skeleton className="h-6 w-32" />
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-2">
+                      {Array.from({ length: 4 }).map((_, i) => (
+                        <div
+                          key={i}
+                          className="flex items-center justify-between p-3 border rounded-lg"
+                        >
+                          <div className="space-y-1">
+                            <Skeleton className="h-4 w-24" />
+                            <Skeleton className="h-3 w-16" />
+                          </div>
+                          <Skeleton className="h-8 w-8" />
+                        </div>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+            )}
+          </>
+        ) : (
+          <>
+            {/* Percentage Toggle - Only show for multiple group functions */}
+            {isMultipleGroupFunction && (
+              <div className="flex items-center space-x-2 mb-4">
+                <Checkbox
+                  id="percentage-toggle"
+                  checked={usePercentage}
+                  onCheckedChange={handleTogglePercentage}
+                />
+                <Label
+                  htmlFor="percentage-toggle"
+                  className="text-sm font-medium"
+                >
+                  Show values as percentage (0-100%) instead of raw values
+                  (0-255)
+                </Label>
+              </div>
+            )}
+
+            {/* RLC Options Section */}
+            <div className="grid grid-cols-2 gap-4">
+              {/* Ramp */}
+              <Card>
+                <CardContent className="space-y-2">
                   <Label
-                    className={`text-sm font-medium ${
-                      !rlcOptionsConfig.ledDisplayEnabled
+                    className={`text-sm font-medium flex items-center gap-2 ${
+                      !rlcOptionsConfig.rampEnabled
                         ? "text-muted-foreground"
                         : ""
                     }`}
                   >
-                    2. LED Display
+                    1. Ramp Time
                   </Label>
                   <Select
-                    value={rlcOptions.ledDisplay.toString()}
+                    value={rlcOptions.ramp.toString()}
                     onValueChange={(value) =>
-                      handleRlcOptionChange("ledDisplay", parseInt(value))
+                      handleRlcOptionChange("ramp", parseInt(value))
                     }
-                    disabled={!rlcOptionsConfig.ledDisplayEnabled}
+                    disabled={!rlcOptionsConfig.rampEnabled}
                   >
                     <SelectTrigger
                       className={
-                        !rlcOptionsConfig.ledDisplayEnabled
+                        !rlcOptionsConfig.rampEnabled
                           ? "opacity-50 w-full"
                           : "w-full"
                       }
                     >
-                      <SelectValue placeholder="Select LED display mode..." />
+                      <SelectValue placeholder="Select ramp time..." />
                     </SelectTrigger>
                     <SelectContent>
-                      {LED_DISPLAY_MODES.map((mode) => (
+                      {RAMP_OPTIONS.map((option) => (
                         <SelectItem
-                          key={mode.value}
-                          value={mode.value.toString()}
+                          key={option.value}
+                          value={option.value.toString()}
                         >
-                          {mode.label} - {mode.description}
+                          {option.label}
                         </SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
-                </div>
-                {/* LED Options */}
-                <div className="grid grid-cols-3 gap-4">
-                  <div className="flex items-center space-x-2">
-                    <Checkbox
-                      id="nightlight"
-                      checked={rlcOptions.nightlight}
-                      onCheckedChange={(checked) =>
-                        handleRlcOptionChange("nightlight", checked)
-                      }
-                      disabled={!rlcOptionsConfig.nightlightEnabled}
-                    />
+                </CardContent>
+              </Card>
+              <Card>
+                <CardContent className="flex flex-col gap-4">
+                  {/* LED Display Mode */}
+                  <div className="space-y-2">
                     <Label
-                      htmlFor="nightlight"
-                      className={`text-sm ${
-                        !rlcOptionsConfig.nightlightEnabled
+                      className={`text-sm font-medium ${
+                        !rlcOptionsConfig.ledDisplayEnabled
                           ? "text-muted-foreground"
                           : ""
                       }`}
                     >
-                      NightLight
+                      2. LED Display
                     </Label>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <Checkbox
-                      id="backlight"
-                      checked={rlcOptions.backlight}
-                      onCheckedChange={(checked) =>
-                        handleRlcOptionChange("backlight", checked)
+                    <Select
+                      value={rlcOptions.ledDisplay.toString()}
+                      onValueChange={(value) =>
+                        handleRlcOptionChange("ledDisplay", parseInt(value))
                       }
-                      disabled={!rlcOptionsConfig.backlightEnabled}
-                    />
-                    <Label
-                      htmlFor="backlight"
-                      className={`text-sm ${
-                        !rlcOptionsConfig.backlightEnabled
-                          ? "text-muted-foreground"
-                          : ""
-                      }`}
+                      disabled={!rlcOptionsConfig.ledDisplayEnabled}
                     >
-                      BackLight
-                    </Label>
+                      <SelectTrigger
+                        className={
+                          !rlcOptionsConfig.ledDisplayEnabled
+                            ? "opacity-50 w-full"
+                            : "w-full"
+                        }
+                      >
+                        <SelectValue placeholder="Select LED display mode..." />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {LED_DISPLAY_MODES.map((mode) => (
+                          <SelectItem
+                            key={mode.value}
+                            value={mode.value.toString()}
+                          >
+                            {mode.label} - {mode.description}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </div>
-                  <div className="flex items-center space-x-2">
-                    <Checkbox
-                      id="auto-mode"
-                      checked={rlcOptions.autoMode}
-                      onCheckedChange={(checked) =>
-                        handleRlcOptionChange("autoMode", checked)
-                      }
-                      disabled={!rlcOptionsConfig.autoModeEnabled}
-                    />
-                    <Label
-                      htmlFor="auto-mode"
-                      className={`text-sm ${
-                        !rlcOptionsConfig.autoModeEnabled
-                          ? "text-muted-foreground"
-                          : ""
-                      }`}
-                    >
-                      Auto Mode
-                    </Label>
+                  {/* LED Options */}
+                  <div className="grid grid-cols-3 gap-4">
+                    <div className="flex items-center space-x-2">
+                      <Checkbox
+                        id="nightlight"
+                        checked={rlcOptions.nightlight}
+                        onCheckedChange={(checked) =>
+                          handleRlcOptionChange("nightlight", checked)
+                        }
+                        disabled={!rlcOptionsConfig.nightlightEnabled}
+                      />
+                      <Label
+                        htmlFor="nightlight"
+                        className={`text-sm ${
+                          !rlcOptionsConfig.nightlightEnabled
+                            ? "text-muted-foreground"
+                            : ""
+                        }`}
+                      >
+                        NightLight
+                      </Label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <Checkbox
+                        id="backlight"
+                        checked={rlcOptions.backlight}
+                        onCheckedChange={(checked) =>
+                          handleRlcOptionChange("backlight", checked)
+                        }
+                        disabled={!rlcOptionsConfig.backlightEnabled}
+                      />
+                      <Label
+                        htmlFor="backlight"
+                        className={`text-sm ${
+                          !rlcOptionsConfig.backlightEnabled
+                            ? "text-muted-foreground"
+                            : ""
+                        }`}
+                      >
+                        BackLight
+                      </Label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <Checkbox
+                        id="auto-mode"
+                        checked={rlcOptions.autoMode}
+                        onCheckedChange={(checked) =>
+                          handleRlcOptionChange("autoMode", checked)
+                        }
+                        disabled={!rlcOptionsConfig.autoModeEnabled}
+                      />
+                      <Label
+                        htmlFor="auto-mode"
+                        className={`text-sm ${
+                          !rlcOptionsConfig.autoModeEnabled
+                            ? "text-muted-foreground"
+                            : ""
+                        }`}
+                      >
+                        Auto Mode
+                      </Label>
+                    </div>
                   </div>
-                </div>
-              </div>
+                </CardContent>
+              </Card>
               {/* Preset */}
-              <div className="space-y-2">
-                <Label
-                  className={`text-sm font-medium flex items-center gap-2 ${
-                    !rlcOptionsConfig.presetEnabled
-                      ? "text-muted-foreground"
-                      : ""
-                  }`}
-                >
-                  3. Preset
-                </Label>
-                <div className="flex gap-6">
-                  <Input
-                    type="number"
-                    min="0"
-                    max="255"
-                    value={rlcOptions.preset}
-                    onChange={(e) => {
-                      const value = parseInt(e.target.value) || 0;
-                      const clampedValue = Math.max(0, Math.min(255, value));
-                      handleRlcOptionChange("preset", clampedValue);
-                    }}
-                    placeholder="0-255"
-                    className="text-center w-1/2"
-                    disabled={!rlcOptionsConfig.presetEnabled}
-                  />
-                  <Label className="text-sm">or</Label>
-                  <div className="relative w-1/2">
+              <Card>
+                <CardContent className="space-y-2">
+                  <Label
+                    className={`text-sm font-medium flex items-center gap-2 ${
+                      !rlcOptionsConfig.presetEnabled
+                        ? "text-muted-foreground"
+                        : ""
+                    }`}
+                  >
+                    3. Preset
+                  </Label>
+                  <div className="flex gap-6">
                     <Input
                       type="number"
                       min="0"
-                      max="100"
-                      value={Math.round((rlcOptions.preset * 100) / 255)}
+                      max="255"
+                      value={rlcOptions.preset}
                       onChange={(e) => {
                         const value = parseInt(e.target.value) || 0;
-                        const clampedValue = Math.max(0, Math.min(100, value));
-                        const rawValue = Math.round((clampedValue * 255) / 100);
-                        handleRlcOptionChange("preset", rawValue);
+                        const clampedValue = Math.max(0, Math.min(255, value));
+                        handleRlcOptionChange("preset", clampedValue);
                       }}
-                      placeholder="0-100"
-                      className="text-center pl-8"
+                      placeholder="0-255"
+                      className="text-center w-1/2"
                       disabled={!rlcOptionsConfig.presetEnabled}
                     />
-                    <Label className="text-sm absolute left-2 top-1/2 transform -translate-y-1/2">
-                      %
-                    </Label>
-                  </div>
-                </div>
-              </div>
-              {/* Delay Off Section */}
-              <div className="space-y-2">
-                <Label
-                  className={`text-sm font-medium flex items-center gap-2 ${
-                    !rlcOptionsConfig.delayOffEnabled
-                      ? "text-muted-foreground"
-                      : ""
-                  }`}
-                >
-                  4. Delay Off
-                </Label>
-                <div className="grid grid-cols-3 gap-6">
-                  <div className="flex gap-2">
-                    <Input
-                      type="number"
-                      min="0"
-                      max="18"
-                      value={rlcOptions.delayOff.hours}
-                      onChange={(e) =>
-                        handleDelayOffChange("hours", e.target.value)
-                      }
-                      placeholder="0"
-                      className="text-center"
-                      disabled={!rlcOptionsConfig.delayOffEnabled}
-                    />
-                    <Label className="text-sm">hours</Label>
-                  </div>
-                  <div className="flex gap-2">
-                    <Input
-                      type="number"
-                      min="0"
-                      max={rlcOptions.delayOff.hours === 18 ? "11" : "59"}
-                      value={rlcOptions.delayOff.minutes}
-                      onChange={(e) =>
-                        handleDelayOffChange("minutes", e.target.value)
-                      }
-                      placeholder="0"
-                      className="text-center"
-                      disabled={!rlcOptionsConfig.delayOffEnabled}
-                    />
-                    <Label className="text-sm">mins</Label>
-                  </div>
-                  <div className="flex gap-2">
-                    <Input
-                      type="number"
-                      min="0"
-                      max="59"
-                      value={rlcOptions.delayOff.seconds}
-                      onChange={(e) =>
-                        handleDelayOffChange("seconds", e.target.value)
-                      }
-                      placeholder="0"
-                      className="text-center"
-                      disabled={!rlcOptionsConfig.delayOffEnabled}
-                    />
-                    <Label className="text-sm">secs</Label>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Multiple Groups Configuration - Only show for multiple group functions */}
-        {isMultipleGroupFunction && (
-          <div className="grid grid-cols-2 gap-4">
-            {/* Selected Groups - Left Side */}
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-base">
-                  Selected Groups
-                  <Badge variant="secondary" className="ml-2">
-                    {selectedGroups.length} Groups
-                  </Badge>
-                </CardTitle>
-                <div className="flex gap-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={handleAddAllGroups}
-                    disabled={availableLightingGroups.length === 0}
-                    className="flex items-center gap-1"
-                  >
-                    <Copy className="h-3 w-3" />
-                    Add All
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={handleClearAllGroups}
-                    disabled={selectedGroups.length === 0}
-                    className="flex items-center gap-1 text-red-600 hover:text-red-700"
-                  >
-                    <X className="h-3 w-3" />
-                    Clear All
-                  </Button>
-                </div>
-              </CardHeader>
-              <CardContent>
-                {selectedGroups.length > 0 ? (
-                  <ScrollArea className="h-[400px]">
-                    <div className="space-y-3 pr-4">
-                      {selectedGroups.map((group, index) => {
-                        const lightingItem = lightingItems.find(
-                          (item) => item.id === group.lightingId
-                        );
-                        return (
-                          <GroupItem
-                            key={index}
-                            group={group}
-                            index={index}
-                            lightingItem={lightingItem}
-                            lightingOptions={lightingOptions}
-                            usePercentage={usePercentage}
-                            onGroupChange={handleGroupChange}
-                            onValueChange={handleValueChange}
-                            onRemoveGroup={handleRemoveGroup}
-                          />
-                        );
-                      })}
+                    <Label className="text-sm">or</Label>
+                    <div className="relative w-1/2">
+                      <Input
+                        type="number"
+                        min="0"
+                        max="100"
+                        value={Math.round((rlcOptions.preset * 100) / 255)}
+                        onChange={(e) => {
+                          const value = parseInt(e.target.value) || 0;
+                          const clampedValue = Math.max(
+                            0,
+                            Math.min(100, value)
+                          );
+                          const rawValue = Math.round(
+                            (clampedValue * 255) / 100
+                          );
+                          handleRlcOptionChange("preset", rawValue);
+                        }}
+                        placeholder="0-100"
+                        className="text-center pl-8"
+                        disabled={!rlcOptionsConfig.presetEnabled}
+                      />
+                      <Label className="text-sm absolute left-2 top-1/2 transform -translate-y-1/2">
+                        %
+                      </Label>
                     </div>
-                  </ScrollArea>
-                ) : (
-                  <div className="text-center text-muted-foreground py-8">
-                    <Settings className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                    <p className="text-lg font-medium mb-2">
-                      No Groups Selected
-                    </p>
-                    <p className="text-sm mb-4">
-                      Select lighting groups from the available list on the
-                      right.
-                    </p>
                   </div>
-                )}
-              </CardContent>
-            </Card>
-
-            {/* Available Groups - Right Side */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-base">
-                  Available Groups
-                  <Badge variant="outline" className="ml-2">
-                    {availableLightingGroups.length} Available
-                  </Badge>
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <ScrollArea className="h-[400px]">
-                  <div className="space-y-2 pr-4">
-                    {availableLightingGroups.length > 0 ? (
-                      availableLightingGroups.map((item) => (
-                        <AvailableGroupItem
-                          key={item.id}
-                          item={item}
-                          onAddFromAvailable={handleAddFromAvailable}
-                        />
-                      ))
+                </CardContent>
+              </Card>
+              {/* Delay Off Section */}
+              <Card>
+                <CardContent className="space-y-2">
+                  <Label
+                    className={`text-sm font-medium flex items-center gap-2 ${
+                      !rlcOptionsConfig.delayOffEnabled
+                        ? "text-muted-foreground"
+                        : ""
+                    }`}
+                  >
+                    4. Delay Off
+                  </Label>
+                  <div className="grid grid-cols-3 gap-6">
+                    <div className="flex gap-2">
+                      <Input
+                        type="number"
+                        min="0"
+                        max="18"
+                        value={rlcOptions.delayOff.hours}
+                        onChange={(e) =>
+                          handleDelayOffChange("hours", e.target.value)
+                        }
+                        placeholder="0"
+                        className="text-center"
+                        disabled={!rlcOptionsConfig.delayOffEnabled}
+                      />
+                      <Label className="text-sm">hours</Label>
+                    </div>
+                    <div className="flex gap-2">
+                      <Input
+                        type="number"
+                        min="0"
+                        max={rlcOptions.delayOff.hours === 18 ? "11" : "59"}
+                        value={rlcOptions.delayOff.minutes}
+                        onChange={(e) =>
+                          handleDelayOffChange("minutes", e.target.value)
+                        }
+                        placeholder="0"
+                        className="text-center"
+                        disabled={!rlcOptionsConfig.delayOffEnabled}
+                      />
+                      <Label className="text-sm">mins</Label>
+                    </div>
+                    <div className="flex gap-2">
+                      <Input
+                        type="number"
+                        min="0"
+                        max="59"
+                        value={rlcOptions.delayOff.seconds}
+                        onChange={(e) =>
+                          handleDelayOffChange("seconds", e.target.value)
+                        }
+                        placeholder="0"
+                        className="text-center"
+                        disabled={!rlcOptionsConfig.delayOffEnabled}
+                      />
+                      <Label className="text-sm">secs</Label>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+            <Separator className="my-4" />
+            {/* Multiple Groups Configuration - Only show for multiple group functions */}
+            {isMultipleGroupFunction && (
+              <div className="grid grid-cols-2 gap-4">
+                {/* Selected Groups - Left Side */}
+                <Card>
+                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardTitle className="text-base">
+                      Selected Groups
+                      <Badge variant="secondary" className="ml-2">
+                        {selectedGroups.length} Groups
+                      </Badge>
+                    </CardTitle>
+                    <div className="flex gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={handleAddAllGroups}
+                        disabled={availableLightingGroups.length === 0}
+                        className="flex items-center gap-1"
+                      >
+                        <Copy className="h-3 w-3" />
+                        Add All
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={handleClearAllGroups}
+                        disabled={selectedGroups.length === 0}
+                        className="flex items-center gap-1 text-red-600 hover:text-red-700"
+                      >
+                        <X className="h-3 w-3" />
+                        Clear All
+                      </Button>
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    {selectedGroups.length > 0 ? (
+                      <ScrollArea className="h-[400px]">
+                        <div className="space-y-3 pr-4">
+                          {selectedGroups.map((group, index) => {
+                            const lightingItem = lightingItems.find(
+                              (item) => item.id === group.lightingId
+                            );
+                            return (
+                              <GroupItem
+                                key={index}
+                                group={group}
+                                index={index}
+                                lightingItem={lightingItem}
+                                lightingOptions={lightingOptions}
+                                usePercentage={usePercentage}
+                                onGroupChange={handleGroupChange}
+                                onValueChange={handleValueChange}
+                                onRemoveGroup={handleRemoveGroup}
+                              />
+                            );
+                          })}
+                        </div>
+                      </ScrollArea>
                     ) : (
                       <div className="text-center text-muted-foreground py-8">
-                        <p className="text-sm">No available groups</p>
-                        <p className="text-xs">
-                          All lighting groups have been selected
+                        <Settings className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                        <p className="text-lg font-medium mb-2">
+                          No Groups Selected
+                        </p>
+                        <p className="text-sm mb-4">
+                          Select lighting groups from the available list on the
+                          right.
                         </p>
                       </div>
                     )}
-                  </div>
-                </ScrollArea>
-              </CardContent>
-            </Card>
-          </div>
+                  </CardContent>
+                </Card>
+
+                {/* Available Groups - Right Side */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-base">
+                      Available Groups
+                      <Badge variant="outline" className="ml-2">
+                        {availableLightingGroups.length} Available
+                      </Badge>
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <ScrollArea className="h-[400px]">
+                      <div className="space-y-2 pr-4">
+                        {availableLightingGroups.length > 0 ? (
+                          availableLightingGroups.map((item) => (
+                            <AvailableGroupItem
+                              key={item.id}
+                              item={item}
+                              onAddFromAvailable={handleAddFromAvailable}
+                            />
+                          ))
+                        ) : (
+                          <div className="text-center text-muted-foreground py-8">
+                            <p className="text-sm">No available groups</p>
+                            <p className="text-xs">
+                              All lighting groups have been selected
+                            </p>
+                          </div>
+                        )}
+                      </div>
+                    </ScrollArea>
+                  </CardContent>
+                </Card>
+              </div>
+            )}
+          </>
         )}
 
         <DialogFooter>
-          <Button variant="outline" onClick={handleClose}>
+          <Button variant="outline" onClick={handleClose} disabled={isLoading}>
             Cancel
           </Button>
-          <Button onClick={handleSave}>Save Configuration</Button>
+          <Button onClick={handleSave} disabled={isLoading}>
+            Save Configuration
+          </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

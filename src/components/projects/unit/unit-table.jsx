@@ -14,6 +14,8 @@ import { DataTableSkeleton } from "@/components/projects/table-skeleton";
 import { createUnitColumns } from "@/components/projects/unit/unit-columns";
 import { NetworkUnitTable } from "@/components/projects/unit/network-unit-table";
 import { toast } from "sonner";
+import { createDefaultRS485Config } from "@/utils/rs485-utils";
+import { createDefaultIOConfig } from "@/utils/io-config-utils";
 
 export function UnitTable() {
   const {
@@ -49,6 +51,21 @@ export function UnitTable() {
       const newChanges = new Map(prev);
       const itemChanges = newChanges.get(itemId) || {};
       itemChanges[field] = newValue;
+
+      // If unit type is being changed, reset RS485 config and I/O config to defaults
+      if (field === "type" && newValue) {
+        // Reset RS485 config to default (2 configurations for RS485-1 and RS485-2)
+        itemChanges.rs485_config = Array.from({ length: 2 }, () =>
+          createDefaultRS485Config()
+        );
+
+        // Reset I/O config to default based on new unit type
+        itemChanges.io_config = createDefaultIOConfig(newValue);
+
+        // Mark that we need to clear I/O configs from database tables
+        itemChanges._clearIOConfigs = true;
+      }
+
       newChanges.set(itemId, itemChanges);
       return newChanges;
     });
@@ -74,8 +91,17 @@ export function UnitTable() {
       for (const [itemId, changes] of pendingChanges) {
         const item = units.find((i) => i.id === itemId);
         if (item) {
-          const updatedItem = { ...item, ...changes };
-          await updateItem("unit", updatedItem.id, updatedItem);
+          // Check if we need to clear I/O configurations from database tables
+          if (changes._clearIOConfigs) {
+            await window.electronAPI.unit.clearAllIOConfigs(item.id);
+            // Remove the flag from changes before saving
+            const { _clearIOConfigs, ...cleanChanges } = changes;
+            const updatedItem = { ...item, ...cleanChanges };
+            await updateItem("unit", updatedItem.id, updatedItem);
+          } else {
+            const updatedItem = { ...item, ...changes };
+            await updateItem("unit", updatedItem.id, updatedItem);
+          }
         }
       }
       setPendingChanges(new Map());

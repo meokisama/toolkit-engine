@@ -13,6 +13,7 @@ import { Label } from "@/components/ui/label";
 import { Combobox } from "@/components/ui/combobox";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Settings, Zap, Lightbulb, Fan, Thermometer } from "lucide-react";
 import {
   getUnitIOSpec,
@@ -201,6 +202,7 @@ const IOConfigDialogComponent = ({ open, onOpenChange, item = null }) => {
   const [outputConfigs, setOutputConfigs] = useState([]);
   const [originalIOConfig, setOriginalIOConfig] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [isInitialLoading, setIsInitialLoading] = useState(false);
 
   // Multi-group configuration state
   const [multiGroupDialogOpen, setMultiGroupDialogOpen] = useState(false);
@@ -288,70 +290,108 @@ const IOConfigDialogComponent = ({ open, onOpenChange, item = null }) => {
 
   // Initialize configurations from database or defaults
   useEffect(() => {
-    if (!open || !item) return;
-
-    // Load I/O config from database or create default
-    let ioConfig = item.io_config || createDefaultIOConfig(item.type);
-
-    // Migrate old format (outputConfigs separate) to new format (config nested in outputs)
-    if (ioConfig.outputConfigs && Array.isArray(ioConfig.outputConfigs)) {
-      const migratedOutputs = (ioConfig.outputs || []).map((output) => {
-        const outputConfig = ioConfig.outputConfigs.find(
-          (config) => config.index === output.index
-        );
-        if (outputConfig) {
-          const { index, ...config } = outputConfig; // Remove index from config
-          return { ...output, config };
-        }
-        return output;
-      });
-
-      // Create new config without separate outputConfigs
-      ioConfig = {
-        inputs: ioConfig.inputs || [],
-        outputs: migratedOutputs,
-      };
+    if (!open || !item) {
+      setIsInitialLoading(false);
+      return;
     }
 
-    setOriginalIOConfig(cloneIOConfig(ioConfig));
+    // Set loading state immediately when dialog opens
+    setIsInitialLoading(true);
 
-    // Initialize input configs from database or defaults
-    const inputConfigsFromDB = ioConfig.inputs || [];
-    const mergedInputConfigs = initialInputConfigs.map((defaultConfig) => {
-      const savedConfig = inputConfigsFromDB.find(
-        (saved) => saved.index === defaultConfig.index
-      );
-      return savedConfig
-        ? {
-            ...defaultConfig,
-            lightingId: savedConfig.lightingId,
-            functionValue: savedConfig.function || 0,
+    // Use setTimeout to allow dialog to render first
+    const initializeAsync = async () => {
+      try {
+        // Load I/O config from database or create default
+        let ioConfig = item.io_config || createDefaultIOConfig(item.type);
+
+        // Migrate old format (outputConfigs separate) to new format (config nested in outputs)
+        if (ioConfig.outputConfigs && Array.isArray(ioConfig.outputConfigs)) {
+          const migratedOutputs = (ioConfig.outputs || []).map((output) => {
+            const outputConfig = ioConfig.outputConfigs.find(
+              (config) => config.index === output.index
+            );
+            if (outputConfig) {
+              const { index, ...config } = outputConfig; // Remove index from config
+              return { ...output, config };
+            }
+            return output;
+          });
+
+          // Create new config without separate outputConfigs
+          ioConfig = {
+            inputs: ioConfig.inputs || [],
+            outputs: migratedOutputs,
+          };
+        }
+
+        setOriginalIOConfig(cloneIOConfig(ioConfig));
+
+        // Load actual input configs from database (unit_input_configs table)
+        const actualInputConfigs =
+          await window.electronAPI.unit.getAllInputConfigs(item.id);
+
+        // Initialize input configs from database or defaults
+        const inputConfigsFromDB = ioConfig.inputs || [];
+        const mergedInputConfigs = initialInputConfigs.map((defaultConfig) => {
+          // First try to get from actual database table (unit_input_configs)
+          const actualConfig = actualInputConfigs.find(
+            (config) => config.input_index === defaultConfig.index
+          );
+
+          if (actualConfig) {
+            return {
+              ...defaultConfig,
+              lightingId: actualConfig.lighting_id,
+              functionValue: actualConfig.function_value || 0,
+            };
           }
-        : defaultConfig;
-    });
-    setInputConfigs(mergedInputConfigs);
 
-    // Initialize output configs from database or defaults
-    const outputConfigsFromDB = ioConfig.outputs || [];
-    const mergedOutputConfigs = initialOutputConfigs.map((defaultConfig) => {
-      const savedConfig = outputConfigsFromDB.find(
-        (saved) => saved.index === defaultConfig.index
-      );
-      return savedConfig
-        ? {
-            ...defaultConfig,
-            deviceId: savedConfig.deviceId,
+          // Fallback to JSON config if no actual config found
+          const savedConfig = inputConfigsFromDB.find(
+            (saved) => saved.index === defaultConfig.index
+          );
+          return savedConfig
+            ? {
+                ...defaultConfig,
+                lightingId: savedConfig.lightingId,
+                functionValue: savedConfig.function || 0,
+              }
+            : defaultConfig;
+        });
+        setInputConfigs(mergedInputConfigs);
+
+        // Initialize output configs from database or defaults
+        const outputConfigsFromDB = ioConfig.outputs || [];
+        const mergedOutputConfigs = initialOutputConfigs.map(
+          (defaultConfig) => {
+            const savedConfig = outputConfigsFromDB.find(
+              (saved) => saved.index === defaultConfig.index
+            );
+            return savedConfig
+              ? {
+                  ...defaultConfig,
+                  deviceId: savedConfig.deviceId,
+                }
+              : defaultConfig;
           }
-        : defaultConfig;
-    });
-    setOutputConfigs(mergedOutputConfigs);
+        );
+        setOutputConfigs(mergedOutputConfigs);
 
-    // Clear multi-group and RLC configs cache - will be loaded on demand via lazy loading
-    setMultiGroupConfigs({});
-    setRlcConfigs({});
+        // Clear multi-group and RLC configs cache - will be loaded on demand via lazy loading
+        setMultiGroupConfigs({});
+        setRlcConfigs({});
 
-    // Clear output configurations cache - will be loaded on demand via lazy loading
-    setOutputConfigurations({});
+        // Clear output configurations cache - will be loaded on demand via lazy loading
+        setOutputConfigurations({});
+      } catch (error) {
+        console.error("Failed to initialize I/O config:", error);
+      } finally {
+        setIsInitialLoading(false);
+      }
+    };
+
+    // Small delay to allow dialog to render first
+    setTimeout(initializeAsync, 50);
   }, [open, item, initialInputConfigs, initialOutputConfigs]);
 
   // Memoized handlers to prevent unnecessary re-renders
@@ -492,8 +532,23 @@ const IOConfigDialogComponent = ({ open, onOpenChange, item = null }) => {
       );
       if (!outputConfig) return;
 
-      setLoadingOutputConfig(true);
+      // Set current output config and open dialog immediately
+      setCurrentOutputConfig({
+        index: outputIndex,
+        name: outputConfig.name,
+        type: outputType,
+        config: null, // Will be loaded after dialog opens
+        isLoading: true, // Add loading state
+      });
 
+      // Open dialog immediately
+      if (outputType === "ac") {
+        setACOutputDialogOpen(true);
+      } else {
+        setLightingOutputDialogOpen(true);
+      }
+
+      // Load data asynchronously after dialog is open
       try {
         // Check if config is already cached
         let configData = outputConfigurations[outputIndex];
@@ -513,22 +568,20 @@ const IOConfigDialogComponent = ({ open, onOpenChange, item = null }) => {
           }));
         }
 
-        setCurrentOutputConfig({
-          index: outputIndex,
-          name: outputConfig.name,
-          type: outputType,
+        // Update current output config with loaded data
+        setCurrentOutputConfig((prev) => ({
+          ...prev,
           config: configData,
-        });
-
-        if (outputType === "ac") {
-          setACOutputDialogOpen(true);
-        } else {
-          setLightingOutputDialogOpen(true);
-        }
+          isLoading: false,
+        }));
       } catch (error) {
         console.error("Failed to load output config:", error);
-      } finally {
-        setLoadingOutputConfig(false);
+        // Update loading state even on error
+        setCurrentOutputConfig((prev) => ({
+          ...prev,
+          config: {},
+          isLoading: false,
+        }));
       }
     },
     [outputConfigs, outputConfigurations, item?.id]
@@ -565,8 +618,19 @@ const IOConfigDialogComponent = ({ open, onOpenChange, item = null }) => {
       const inputFunction = getInputFunctionByValue(functionValue);
       if (!inputFunction) return;
 
-      setLoadingInputConfig(true);
+      // Set current input config and open dialog immediately
+      setCurrentMultiGroupInput({
+        index: inputIndex,
+        name: `Input ${inputIndex + 1}`,
+        functionName: inputFunction.label,
+        functionValue: functionValue,
+        isLoading: true, // Add loading state
+      });
 
+      // Open dialog immediately
+      setMultiGroupDialogOpen(true);
+
+      // Load data asynchronously after dialog is open
       try {
         // Check if configs are already cached
         let multiGroupConfig = multiGroupConfigs[inputIndex];
@@ -595,17 +659,18 @@ const IOConfigDialogComponent = ({ open, onOpenChange, item = null }) => {
           }
         }
 
-        setCurrentMultiGroupInput({
-          index: inputIndex,
-          name: `Input ${inputIndex + 1}`,
-          functionName: inputFunction.label,
-          functionValue: functionValue,
-        });
-        setMultiGroupDialogOpen(true);
+        // Update current input config with loaded data
+        setCurrentMultiGroupInput((prev) => ({
+          ...prev,
+          isLoading: false,
+        }));
       } catch (error) {
         console.error("Failed to load input config:", error);
-      } finally {
-        setLoadingInputConfig(false);
+        // Update loading state even on error
+        setCurrentMultiGroupInput((prev) => ({
+          ...prev,
+          isLoading: false,
+        }));
       }
     },
     [multiGroupConfigs, rlcConfigs, item?.id]
@@ -722,7 +787,65 @@ const IOConfigDialogComponent = ({ open, onOpenChange, item = null }) => {
           </DialogHeader>
 
           <div className="space-y-6">
-            {ioSpec ? (
+            {isInitialLoading ? (
+              // Loading skeleton for main dialog
+              <div className="grid grid-cols-2 gap-6">
+                {/* Input Configuration Skeleton - Left Side */}
+                <Card className="h-[600px] flex flex-col">
+                  <CardHeader className="flex-shrink-0">
+                    <div className="flex items-center gap-2">
+                      <Skeleton className="h-5 w-5" />
+                      <Skeleton className="h-6 w-40" />
+                      <Skeleton className="h-6 w-16 ml-auto" />
+                    </div>
+                  </CardHeader>
+                  <CardContent className="flex-1 overflow-hidden">
+                    <div className="space-y-3 pr-4">
+                      {Array.from({ length: 8 }).map((_, i) => (
+                        <div
+                          key={i}
+                          className="p-4 border rounded-lg flex gap-4 justify-between items-center"
+                        >
+                          <Skeleton className="h-4 w-24" />
+                          <div className="flex items-center gap-2">
+                            <Skeleton className="h-10 w-40" />
+                            <Skeleton className="h-10 w-40" />
+                            <Skeleton className="h-10 w-10" />
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* Output Configuration Skeleton - Right Side */}
+                <Card className="h-[600px] flex flex-col">
+                  <CardHeader className="flex-shrink-0">
+                    <div className="flex items-center gap-2">
+                      <Skeleton className="h-5 w-5" />
+                      <Skeleton className="h-6 w-40" />
+                      <Skeleton className="h-6 w-16 ml-auto" />
+                    </div>
+                  </CardHeader>
+                  <CardContent className="flex-1 overflow-hidden">
+                    <div className="space-y-3 pr-4">
+                      {Array.from({ length: 6 }).map((_, i) => (
+                        <div
+                          key={i}
+                          className="p-4 border rounded-lg flex gap-4 justify-between items-center"
+                        >
+                          <Skeleton className="h-4 w-24" />
+                          <div className="flex items-center gap-2">
+                            <Skeleton className="h-10 w-56" />
+                            <Skeleton className="h-10 w-10" />
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+            ) : ioSpec ? (
               <div className="grid grid-cols-2 gap-6">
                 {/* Input Configuration - Left Side */}
                 <Card className="h-[600px] flex flex-col">
@@ -814,10 +937,14 @@ const IOConfigDialogComponent = ({ open, onOpenChange, item = null }) => {
           </div>
 
           <DialogFooter>
-            <Button variant="outline" onClick={handleClose} disabled={loading}>
+            <Button
+              variant="outline"
+              onClick={handleClose}
+              disabled={loading || isInitialLoading}
+            >
               Cancel
             </Button>
-            <Button onClick={handleSave} disabled={loading}>
+            <Button onClick={handleSave} disabled={loading || isInitialLoading}>
               {loading ? "Saving..." : "Save Configuration"}
             </Button>
           </DialogFooter>
@@ -834,14 +961,15 @@ const IOConfigDialogComponent = ({ open, onOpenChange, item = null }) => {
         unitType={item?.name || null}
         initialGroups={
           currentMultiGroupInput
-            ? multiGroupConfigs[currentMultiGroupInput.index] || []
-            : []
+            ? multiGroupConfigs[currentMultiGroupInput.index]
+            : null
         }
         initialRlcOptions={
           currentMultiGroupInput
-            ? rlcConfigs[currentMultiGroupInput.index] || {}
-            : {}
+            ? rlcConfigs[currentMultiGroupInput.index]
+            : null
         }
+        isLoading={currentMultiGroupInput?.isLoading || false}
         onSave={handleSaveMultiGroupConfig}
       />
 
@@ -851,7 +979,8 @@ const IOConfigDialogComponent = ({ open, onOpenChange, item = null }) => {
         onOpenChange={setLightingOutputDialogOpen}
         outputName={currentOutputConfig?.name || ""}
         outputType={currentOutputConfig?.type || ""}
-        initialConfig={currentOutputConfig?.config || {}}
+        initialConfig={currentOutputConfig?.config}
+        isLoading={currentOutputConfig?.isLoading || false}
         onSave={handleSaveOutputConfig}
       />
 
@@ -860,8 +989,9 @@ const IOConfigDialogComponent = ({ open, onOpenChange, item = null }) => {
         open={acOutputDialogOpen}
         onOpenChange={setACOutputDialogOpen}
         outputName={currentOutputConfig?.name || ""}
-        initialConfig={currentOutputConfig?.config || {}}
+        initialConfig={currentOutputConfig?.config}
         lightingOptions={lightingOptions}
+        isLoading={currentOutputConfig?.isLoading || false}
         onSave={handleSaveOutputConfig}
       />
     </>

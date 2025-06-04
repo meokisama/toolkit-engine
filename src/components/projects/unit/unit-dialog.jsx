@@ -29,6 +29,7 @@ import {
   getModeConstraints,
   createDefaultRS485Config,
 } from "@/utils/rs485-utils";
+import { createDefaultIOConfig } from "@/utils/io-config-utils";
 
 export function UnitDialog({
   open,
@@ -55,6 +56,7 @@ export function UnitDialog({
   const [rs485DialogOpen, setRS485DialogOpen] = useState(false);
   const [unitConstraints, setUnitConstraints] = useState(null);
   const [modeConstraints, setModeConstraints] = useState(null);
+  const [originalUnitType, setOriginalUnitType] = useState(null); // Track original unit type for edit mode
 
   // Create options for combobox from UNIT_TYPES
   const unitTypeOptions = UNIT_TYPES.map((unit) => ({
@@ -109,6 +111,7 @@ export function UnitDialog({
           rs485_config: item.rs485_config || null,
         };
         setFormData(newFormData);
+        setOriginalUnitType(newFormData.type); // Track original unit type
 
         // Initialize constraints for existing item
         if (newFormData.type) {
@@ -134,6 +137,7 @@ export function UnitDialog({
           description: "",
           rs485_config: null,
         });
+        setOriginalUnitType(null); // Reset for create mode
         setUnitConstraints(null);
         setModeConstraints(null);
       }
@@ -166,6 +170,19 @@ export function UnitDialog({
         // Apply mode constraints
         if (modeConstraints.canLoad.value !== null) {
           newData.can_load = modeConstraints.canLoad.value;
+        }
+
+        // Reset RS485 config when unit type changes
+        newData.rs485_config = Array.from({ length: 2 }, () =>
+          createDefaultRS485Config()
+        );
+
+        // Reset I/O config when unit type changes
+        newData.io_config = createDefaultIOConfig(value);
+
+        // Mark that we need to clear I/O configs from database tables if this is an edit
+        if (mode === "edit" && originalUnitType && originalUnitType !== value) {
+          newData._clearIOConfigs = true;
         }
       }
 
@@ -233,7 +250,15 @@ export function UnitDialog({
       }
 
       if (mode === "edit" && item) {
-        await updateItem("unit", item.id, submitData);
+        // Check if we need to clear I/O configurations from database tables
+        if (submitData._clearIOConfigs) {
+          await window.electronAPI.unit.clearAllIOConfigs(item.id);
+          // Remove the flag from submitData before saving
+          const { _clearIOConfigs, ...cleanSubmitData } = submitData;
+          await updateItem("unit", item.id, cleanSubmitData);
+        } else {
+          await updateItem("unit", item.id, submitData);
+        }
       } else {
         await createItem("unit", submitData);
       }

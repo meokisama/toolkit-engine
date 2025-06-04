@@ -19,6 +19,7 @@ import {
 import { Checkbox } from "@/components/ui/checkbox";
 import { Combobox } from "@/components/ui/combobox";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Thermometer, Settings, Wind, Gauge } from "lucide-react";
 
 // Configuration options based on WinForms implementation
@@ -86,6 +87,7 @@ const ACOutputConfigDialogComponent = ({
   outputName = "",
   initialConfig = {},
   lightingOptions = [],
+  isLoading = false,
   onSave,
 }) => {
   // State for all AC configuration options
@@ -115,7 +117,12 @@ const ACOutputConfigDialogComponent = ({
 
   // Initialize config from props
   useEffect(() => {
-    if (open && initialConfig) {
+    if (
+      open &&
+      !isLoading &&
+      initialConfig !== null &&
+      initialConfig !== undefined
+    ) {
       setConfig({
         enable: initialConfig.enable || false,
         windowsMode: initialConfig.windowsMode?.toString() || "0",
@@ -138,7 +145,7 @@ const ACOutputConfigDialogComponent = ({
         heatClose: initialConfig.heatClose || null,
       });
     }
-  }, [open, initialConfig]);
+  }, [open, initialConfig, isLoading]);
 
   // Handlers
   const handleClose = useCallback(() => {
@@ -191,349 +198,453 @@ const ACOutputConfigDialogComponent = ({
         </DialogHeader>
 
         <div className="space-y-6">
-          {/* Enable Checkbox */}
-          <div className="flex items-center space-x-2">
-            <Checkbox
-              id="enable"
-              checked={config.enable}
-              onCheckedChange={(checked) => updateConfig("enable", checked)}
-            />
-            <Label htmlFor="enable" className="text-sm font-medium">
-              Enable
-            </Label>
-          </div>
-
-          {/* Basic Configuration */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-base">
-                <Settings className="h-4 w-4" />
-                Basic Configuration
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label className="text-sm font-medium">Windows mode</Label>
-                  <Select
-                    value={config.windowsMode}
-                    onValueChange={(value) =>
-                      updateConfig("windowsMode", value)
-                    }
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {WINDOWS_MODE_OPTIONS.map((option) => (
-                        <SelectItem key={option.value} value={option.value}>
-                          {option.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div className="space-y-2">
-                  <Label className="text-sm font-medium">Fan type</Label>
-                  <Select
-                    value={config.fanType}
-                    onValueChange={(value) => updateConfig("fanType", value)}
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {FAN_TYPE_OPTIONS.map((option) => (
-                        <SelectItem key={option.value} value={option.value}>
-                          {option.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div className="space-y-2">
-                  <Label className="text-sm font-medium">Temp type</Label>
-                  <Select
-                    value={config.tempType}
-                    onValueChange={(value) => updateConfig("tempType", value)}
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {TEMP_TYPE_OPTIONS.map((option) => (
-                        <SelectItem key={option.value} value={option.value}>
-                          {option.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div className="space-y-2">
-                  <Label className="text-sm font-medium">Temp Unit</Label>
-                  <Select
-                    value={config.tempUnit}
-                    onValueChange={(value) => updateConfig("tempUnit", value)}
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {TEMP_UNIT_OPTIONS.map((option) => (
-                        <SelectItem key={option.value} value={option.value}>
-                          {option.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div className="space-y-2">
-                  <Label className="text-sm font-medium">Valve contact</Label>
-                  <Select
-                    value={config.valveContact}
-                    onValueChange={(value) =>
-                      updateConfig("valveContact", value)
-                    }
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {VALVE_CONTACT_OPTIONS.map((option) => (
-                        <SelectItem key={option.value} value={option.value}>
-                          {option.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div className="space-y-2">
-                  <Label className="text-sm font-medium">Valve type</Label>
-                  <Select
-                    value={config.valveType}
-                    onValueChange={(value) => updateConfig("valveType", value)}
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {VALVE_TYPE_OPTIONS.map((option) => (
-                        <SelectItem key={option.value} value={option.value}>
-                          {option.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div className="space-y-2">
-                  <Label className="text-sm font-medium">Dead band</Label>
-                  <Select
-                    value={config.deadBand}
-                    onValueChange={(value) => updateConfig("deadBand", value)}
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {DEAD_BAND_OPTIONS.map((option) => (
-                        <SelectItem key={option.value} value={option.value}>
-                          {option.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div className="space-y-2">
-                  <Label className="text-sm font-medium">Windows</Label>
-                  <Select
-                    value={config.windows}
-                    onValueChange={(value) => updateConfig("windows", value)}
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {WINDOWS_OPTIONS.map((option) => (
-                        <SelectItem key={option.value} value={option.value}>
-                          {option.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
+          {isLoading ? (
+            // Loading skeleton
+            <>
+              <div className="flex items-center space-x-2">
+                <Skeleton className="h-4 w-4" />
+                <Skeleton className="h-4 w-16" />
               </div>
-            </CardContent>
-          </Card>
 
-          {/* Fan Groups Configuration */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-base">
-                <Wind className="h-4 w-4" />
-                Fan Groups
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label className="text-sm font-medium">Low fan</Label>
-                  <Combobox
-                    options={lightingOptions}
-                    value={config.lowFan?.toString() || ""}
-                    onValueChange={(value) =>
-                      updateConfig("lowFan", value ? parseInt(value) : null)
-                    }
-                    placeholder="Select lighting group..."
-                    emptyText="No lighting groups found"
-                  />
-                </div>
+              <Card>
+                <CardHeader>
+                  <Skeleton className="h-6 w-48" />
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="grid grid-cols-2 gap-4">
+                    {Array.from({ length: 8 }).map((_, i) => (
+                      <div key={i} className="space-y-2">
+                        <Skeleton className="h-4 w-24" />
+                        <Skeleton className="h-10 w-full" />
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
 
-                <div className="space-y-2">
-                  <Label className="text-sm font-medium">Med fan</Label>
-                  <Combobox
-                    options={lightingOptions}
-                    value={config.medFan?.toString() || ""}
-                    onValueChange={(value) =>
-                      updateConfig("medFan", value ? parseInt(value) : null)
-                    }
-                    placeholder="Select lighting group..."
-                    emptyText="No lighting groups found"
-                  />
-                </div>
+              <Card>
+                <CardHeader>
+                  <Skeleton className="h-6 w-32" />
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="grid grid-cols-2 gap-4">
+                    {Array.from({ length: 6 }).map((_, i) => (
+                      <div key={i} className="space-y-2">
+                        <Skeleton className="h-4 w-24" />
+                        <Skeleton className="h-10 w-full" />
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
 
-                <div className="space-y-2">
-                  <Label className="text-sm font-medium">High fan</Label>
-                  <Combobox
-                    options={lightingOptions}
-                    value={config.highFan?.toString() || ""}
-                    onValueChange={(value) =>
-                      updateConfig("highFan", value ? parseInt(value) : null)
-                    }
-                    placeholder="Select lighting group..."
-                    emptyText="No lighting groups found"
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label className="text-sm font-medium">Analog fan</Label>
-                  <Combobox
-                    options={lightingOptions}
-                    value={config.analogFan?.toString() || ""}
-                    onValueChange={(value) =>
-                      updateConfig("analogFan", value ? parseInt(value) : null)
-                    }
-                    placeholder="Select lighting group..."
-                    emptyText="No lighting groups found"
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label className="text-sm font-medium">Analog cool</Label>
-                  <Combobox
-                    options={lightingOptions}
-                    value={config.analogCool?.toString() || ""}
-                    onValueChange={(value) =>
-                      updateConfig("analogCool", value ? parseInt(value) : null)
-                    }
-                    placeholder="Select lighting group..."
-                    emptyText="No lighting groups found"
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label className="text-sm font-medium">Analog heat</Label>
-                  <Combobox
-                    options={lightingOptions}
-                    value={config.analogHeat?.toString() || ""}
-                    onValueChange={(value) =>
-                      updateConfig("analogHeat", value ? parseInt(value) : null)
-                    }
-                    placeholder="Select lighting group..."
-                    emptyText="No lighting groups found"
-                  />
-                </div>
+              <Card>
+                <CardHeader>
+                  <Skeleton className="h-6 w-32" />
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="grid grid-cols-2 gap-4">
+                    {Array.from({ length: 4 }).map((_, i) => (
+                      <div key={i} className="space-y-2">
+                        <Skeleton className="h-4 w-24" />
+                        <Skeleton className="h-10 w-full" />
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            </>
+          ) : (
+            <>
+              {/* Enable Checkbox */}
+              <div className="flex items-center space-x-2">
+                <Checkbox
+                  id="enable"
+                  checked={config.enable}
+                  onCheckedChange={(checked) => updateConfig("enable", checked)}
+                />
+                <Label htmlFor="enable" className="text-sm font-medium">
+                  Enable
+                </Label>
               </div>
-            </CardContent>
-          </Card>
 
-          {/* Valve Groups Configuration */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-base">
-                <Gauge className="h-4 w-4" />
-                Valve Groups
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label className="text-sm font-medium">Cool open</Label>
-                  <Combobox
-                    options={lightingOptions}
-                    value={config.coolOpen?.toString() || ""}
-                    onValueChange={(value) =>
-                      updateConfig("coolOpen", value ? parseInt(value) : null)
-                    }
-                    placeholder="Select lighting group..."
-                    emptyText="No lighting groups found"
-                  />
-                </div>
+              {/* Basic Configuration */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2 text-base">
+                    <Settings className="h-4 w-4" />
+                    Basic Configuration
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label className="text-sm font-medium">
+                        Windows mode
+                      </Label>
+                      <Select
+                        value={config.windowsMode}
+                        onValueChange={(value) =>
+                          updateConfig("windowsMode", value)
+                        }
+                      >
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {WINDOWS_MODE_OPTIONS.map((option) => (
+                            <SelectItem key={option.value} value={option.value}>
+                              {option.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
 
-                <div className="space-y-2">
-                  <Label className="text-sm font-medium">Cool close</Label>
-                  <Combobox
-                    options={lightingOptions}
-                    value={config.coolClose?.toString() || ""}
-                    onValueChange={(value) =>
-                      updateConfig("coolClose", value ? parseInt(value) : null)
-                    }
-                    placeholder="Select lighting group..."
-                    emptyText="No lighting groups found"
-                  />
-                </div>
+                    <div className="space-y-2">
+                      <Label className="text-sm font-medium">Fan type</Label>
+                      <Select
+                        value={config.fanType}
+                        onValueChange={(value) =>
+                          updateConfig("fanType", value)
+                        }
+                      >
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {FAN_TYPE_OPTIONS.map((option) => (
+                            <SelectItem key={option.value} value={option.value}>
+                              {option.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
 
-                <div className="space-y-2">
-                  <Label className="text-sm font-medium">Heat open</Label>
-                  <Combobox
-                    options={lightingOptions}
-                    value={config.heatOpen?.toString() || ""}
-                    onValueChange={(value) =>
-                      updateConfig("heatOpen", value ? parseInt(value) : null)
-                    }
-                    placeholder="Select lighting group..."
-                    emptyText="No lighting groups found"
-                  />
-                </div>
+                    <div className="space-y-2">
+                      <Label className="text-sm font-medium">Temp type</Label>
+                      <Select
+                        value={config.tempType}
+                        onValueChange={(value) =>
+                          updateConfig("tempType", value)
+                        }
+                      >
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {TEMP_TYPE_OPTIONS.map((option) => (
+                            <SelectItem key={option.value} value={option.value}>
+                              {option.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
 
-                <div className="space-y-2">
-                  <Label className="text-sm font-medium">Heat close</Label>
-                  <Combobox
-                    options={lightingOptions}
-                    value={config.heatClose?.toString() || ""}
-                    onValueChange={(value) =>
-                      updateConfig("heatClose", value ? parseInt(value) : null)
-                    }
-                    placeholder="Select lighting group..."
-                    emptyText="No lighting groups found"
-                  />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+                    <div className="space-y-2">
+                      <Label className="text-sm font-medium">Temp Unit</Label>
+                      <Select
+                        value={config.tempUnit}
+                        onValueChange={(value) =>
+                          updateConfig("tempUnit", value)
+                        }
+                      >
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {TEMP_UNIT_OPTIONS.map((option) => (
+                            <SelectItem key={option.value} value={option.value}>
+                              {option.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label className="text-sm font-medium">
+                        Valve contact
+                      </Label>
+                      <Select
+                        value={config.valveContact}
+                        onValueChange={(value) =>
+                          updateConfig("valveContact", value)
+                        }
+                      >
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {VALVE_CONTACT_OPTIONS.map((option) => (
+                            <SelectItem key={option.value} value={option.value}>
+                              {option.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label className="text-sm font-medium">Valve type</Label>
+                      <Select
+                        value={config.valveType}
+                        onValueChange={(value) =>
+                          updateConfig("valveType", value)
+                        }
+                      >
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {VALVE_TYPE_OPTIONS.map((option) => (
+                            <SelectItem key={option.value} value={option.value}>
+                              {option.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label className="text-sm font-medium">Dead band</Label>
+                      <Select
+                        value={config.deadBand}
+                        onValueChange={(value) =>
+                          updateConfig("deadBand", value)
+                        }
+                      >
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {DEAD_BAND_OPTIONS.map((option) => (
+                            <SelectItem key={option.value} value={option.value}>
+                              {option.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label className="text-sm font-medium">Windows</Label>
+                      <Select
+                        value={config.windows}
+                        onValueChange={(value) =>
+                          updateConfig("windows", value)
+                        }
+                      >
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {WINDOWS_OPTIONS.map((option) => (
+                            <SelectItem key={option.value} value={option.value}>
+                              {option.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Fan Groups Configuration */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2 text-base">
+                    <Wind className="h-4 w-4" />
+                    Fan Groups
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label className="text-sm font-medium">Low fan</Label>
+                      <Combobox
+                        options={lightingOptions}
+                        value={config.lowFan?.toString() || ""}
+                        onValueChange={(value) =>
+                          updateConfig("lowFan", value ? parseInt(value) : null)
+                        }
+                        placeholder="Select lighting group..."
+                        emptyText="No lighting groups found"
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label className="text-sm font-medium">Med fan</Label>
+                      <Combobox
+                        options={lightingOptions}
+                        value={config.medFan?.toString() || ""}
+                        onValueChange={(value) =>
+                          updateConfig("medFan", value ? parseInt(value) : null)
+                        }
+                        placeholder="Select lighting group..."
+                        emptyText="No lighting groups found"
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label className="text-sm font-medium">High fan</Label>
+                      <Combobox
+                        options={lightingOptions}
+                        value={config.highFan?.toString() || ""}
+                        onValueChange={(value) =>
+                          updateConfig(
+                            "highFan",
+                            value ? parseInt(value) : null
+                          )
+                        }
+                        placeholder="Select lighting group..."
+                        emptyText="No lighting groups found"
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label className="text-sm font-medium">Analog fan</Label>
+                      <Combobox
+                        options={lightingOptions}
+                        value={config.analogFan?.toString() || ""}
+                        onValueChange={(value) =>
+                          updateConfig(
+                            "analogFan",
+                            value ? parseInt(value) : null
+                          )
+                        }
+                        placeholder="Select lighting group..."
+                        emptyText="No lighting groups found"
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label className="text-sm font-medium">Analog cool</Label>
+                      <Combobox
+                        options={lightingOptions}
+                        value={config.analogCool?.toString() || ""}
+                        onValueChange={(value) =>
+                          updateConfig(
+                            "analogCool",
+                            value ? parseInt(value) : null
+                          )
+                        }
+                        placeholder="Select lighting group..."
+                        emptyText="No lighting groups found"
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label className="text-sm font-medium">Analog heat</Label>
+                      <Combobox
+                        options={lightingOptions}
+                        value={config.analogHeat?.toString() || ""}
+                        onValueChange={(value) =>
+                          updateConfig(
+                            "analogHeat",
+                            value ? parseInt(value) : null
+                          )
+                        }
+                        placeholder="Select lighting group..."
+                        emptyText="No lighting groups found"
+                      />
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Valve Groups Configuration */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2 text-base">
+                    <Gauge className="h-4 w-4" />
+                    Valve Groups
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label className="text-sm font-medium">Cool open</Label>
+                      <Combobox
+                        options={lightingOptions}
+                        value={config.coolOpen?.toString() || ""}
+                        onValueChange={(value) =>
+                          updateConfig(
+                            "coolOpen",
+                            value ? parseInt(value) : null
+                          )
+                        }
+                        placeholder="Select lighting group..."
+                        emptyText="No lighting groups found"
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label className="text-sm font-medium">Cool close</Label>
+                      <Combobox
+                        options={lightingOptions}
+                        value={config.coolClose?.toString() || ""}
+                        onValueChange={(value) =>
+                          updateConfig(
+                            "coolClose",
+                            value ? parseInt(value) : null
+                          )
+                        }
+                        placeholder="Select lighting group..."
+                        emptyText="No lighting groups found"
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label className="text-sm font-medium">Heat open</Label>
+                      <Combobox
+                        options={lightingOptions}
+                        value={config.heatOpen?.toString() || ""}
+                        onValueChange={(value) =>
+                          updateConfig(
+                            "heatOpen",
+                            value ? parseInt(value) : null
+                          )
+                        }
+                        placeholder="Select lighting group..."
+                        emptyText="No lighting groups found"
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label className="text-sm font-medium">Heat close</Label>
+                      <Combobox
+                        options={lightingOptions}
+                        value={config.heatClose?.toString() || ""}
+                        onValueChange={(value) =>
+                          updateConfig(
+                            "heatClose",
+                            value ? parseInt(value) : null
+                          )
+                        }
+                        placeholder="Select lighting group..."
+                        emptyText="No lighting groups found"
+                      />
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </>
+          )}
         </div>
 
         <DialogFooter>
-          <Button variant="outline" onClick={handleClose} disabled={loading}>
+          <Button
+            variant="outline"
+            onClick={handleClose}
+            disabled={loading || isLoading}
+          >
             Cancel
           </Button>
-          <Button onClick={handleSave} disabled={loading}>
+          <Button onClick={handleSave} disabled={loading || isLoading}>
             {loading ? "Saving..." : "Save Configuration"}
           </Button>
         </DialogFooter>

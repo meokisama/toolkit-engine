@@ -54,6 +54,8 @@ contextBridge.exposeInMainWorld('electronAPI', {
         saveInputConfig: (unitId, inputIndex, functionValue, lightingId, multiGroupConfig, rlcConfig) => ipcRenderer.invoke('unit:saveInputConfig', unitId, inputIndex, functionValue, lightingId, multiGroupConfig, rlcConfig),
         deleteInputConfig: (unitId, inputIndex) => ipcRenderer.invoke('unit:deleteInputConfig', unitId, inputIndex),
         getAllInputConfigs: (unitId) => ipcRenderer.invoke('unit:getAllInputConfigs', unitId),
+        // Clear all I/O configurations (used when unit type changes)
+        clearAllIOConfigs: (unitId) => ipcRenderer.invoke('unit:clearAllIOConfigs', unitId),
     },
     curtain: {
         getAll: (projectId) => ipcRenderer.invoke('curtain:getAll', projectId),

@@ -12,6 +12,7 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Lightbulb, Clock, Timer, Zap } from "lucide-react";
 
 // Validation ranges for different input types
@@ -106,6 +107,7 @@ const LightingOutputConfigDialogComponent = ({
   outputName = "",
   outputType = "",
   initialConfig = {},
+  isLoading = false,
   onSave,
 }) => {
   // State for all configuration options
@@ -132,7 +134,12 @@ const LightingOutputConfigDialogComponent = ({
 
   // Initialize config from props
   useEffect(() => {
-    if (open && initialConfig) {
+    if (
+      open &&
+      !isLoading &&
+      initialConfig !== null &&
+      initialConfig !== undefined
+    ) {
       setConfig({
         delayOffHours: initialConfig.delayOffHours || 0,
         delayOffMinutes: initialConfig.delayOffMinutes || 0,
@@ -149,7 +156,7 @@ const LightingOutputConfigDialogComponent = ({
         scheduleOffMinute: initialConfig.scheduleOffMinute || 0,
       });
     }
-  }, [open, initialConfig]);
+  }, [open, initialConfig, isLoading]);
 
   // Handlers
   const handleClose = useCallback(() => {
@@ -187,190 +194,310 @@ const LightingOutputConfigDialogComponent = ({
         </DialogHeader>
 
         <div className="space-y-6">
-          {/* Delay Configuration */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-base">
-                <Timer className="h-4 w-4" />
-                Delay Configuration
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {/* Delay Off Output */}
-              <div className="space-y-2">
-                <Label className="text-sm font-medium">Delay off output:</Label>
-                <div className="flex items-center gap-2">
-                  <ValidatedInput
-                    value={config.delayOffHours}
-                    onChange={(value) => updateConfig("delayOffHours", value)}
-                    validationRange={VALIDATION_RANGES.HOUR}
-                    className="w-20"
-                  />
-                  <Label className="text-sm">hours</Label>
-
-                  <ValidatedInput
-                    value={config.delayOffMinutes}
-                    onChange={(value) => updateConfig("delayOffMinutes", value)}
-                    validationRange={VALIDATION_RANGES.MINUTE}
-                    className="w-20"
-                  />
-                  <Label className="text-sm">mins</Label>
-
-                  <ValidatedInput
-                    value={config.delayOffSeconds}
-                    onChange={(value) => updateConfig("delayOffSeconds", value)}
-                    validationRange={VALIDATION_RANGES.SECOND}
-                    className="w-20"
-                  />
-                  <Label className="text-sm">secs</Label>
-                </div>
-              </div>
-
-              {/* Delay On Output */}
-              <div className="space-y-2">
-                <Label className="text-sm font-medium">Delay on output:</Label>
-                <div className="flex items-center gap-2">
-                  <ValidatedInput
-                    value={config.delayOnHours}
-                    onChange={(value) => updateConfig("delayOnHours", value)}
-                    validationRange={VALIDATION_RANGES.HOUR}
-                    className="w-20"
-                  />
-                  <Label className="text-sm">hours</Label>
-
-                  <ValidatedInput
-                    value={config.delayOnMinutes}
-                    onChange={(value) => updateConfig("delayOnMinutes", value)}
-                    validationRange={VALIDATION_RANGES.MINUTE}
-                    className="w-20"
-                  />
-                  <Label className="text-sm">mins</Label>
-
-                  <ValidatedInput
-                    value={config.delayOnSeconds}
-                    onChange={(value) => updateConfig("delayOnSeconds", value)}
-                    validationRange={VALIDATION_RANGES.SECOND}
-                    className="w-20"
-                  />
-                  <Label className="text-sm">secs</Label>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Dimming Configuration - Only for dimmer outputs */}
-          {isDimmerOutput && (
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-base">
-                  <Zap className="h-4 w-4" />
-                  Dimming Configuration
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
+          {isLoading ? (
+            // Loading skeleton
+            <>
+              <Card>
+                <CardHeader>
+                  <Skeleton className="h-6 w-48" />
+                </CardHeader>
+                <CardContent className="space-y-4">
                   <div className="space-y-2">
-                    <Label className="text-sm font-medium">Min Dim (%)</Label>
-                    <ValidatedInput
-                      value={config.minDim}
-                      onChange={(value) => updateConfig("minDim", value)}
-                      validationRange={VALIDATION_RANGES.MIN_DIM}
-                      className="w-full"
-                    />
+                    <Skeleton className="h-4 w-32" />
+                    <div className="flex items-center gap-2">
+                      <Skeleton className="h-10 w-20" />
+                      <Skeleton className="h-4 w-12" />
+                      <Skeleton className="h-10 w-20" />
+                      <Skeleton className="h-4 w-12" />
+                      <Skeleton className="h-10 w-20" />
+                      <Skeleton className="h-4 w-12" />
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <Skeleton className="h-4 w-32" />
+                    <div className="flex items-center gap-2">
+                      <Skeleton className="h-10 w-20" />
+                      <Skeleton className="h-4 w-12" />
+                      <Skeleton className="h-10 w-20" />
+                      <Skeleton className="h-4 w-12" />
+                      <Skeleton className="h-10 w-20" />
+                      <Skeleton className="h-4 w-12" />
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+              {isDimmerOutput && (
+                <Card>
+                  <CardHeader>
+                    <Skeleton className="h-6 w-48" />
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Skeleton className="h-4 w-20" />
+                        <Skeleton className="h-10 w-full" />
+                      </div>
+                      <div className="space-y-2">
+                        <Skeleton className="h-4 w-20" />
+                        <Skeleton className="h-10 w-full" />
+                      </div>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <Skeleton className="h-4 w-4" />
+                      <Skeleton className="h-4 w-24" />
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+              <Card>
+                <CardHeader>
+                  <Skeleton className="h-6 w-48" />
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="space-y-2">
+                    <Skeleton className="h-4 w-32" />
+                    <div className="flex items-center gap-2">
+                      <Skeleton className="h-10 w-20" />
+                      <Skeleton className="h-4 w-12" />
+                      <Skeleton className="h-10 w-20" />
+                      <Skeleton className="h-4 w-12" />
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <Skeleton className="h-4 w-32" />
+                    <div className="flex items-center gap-2">
+                      <Skeleton className="h-10 w-20" />
+                      <Skeleton className="h-4 w-12" />
+                      <Skeleton className="h-10 w-20" />
+                      <Skeleton className="h-4 w-12" />
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </>
+          ) : (
+            <>
+              {/* Delay Configuration */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2 text-base">
+                    <Timer className="h-4 w-4" />
+                    Delay Configuration
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  {/* Delay Off Output */}
+                  <div className="space-y-2">
+                    <Label className="text-sm font-medium">
+                      Delay off output:
+                    </Label>
+                    <div className="flex items-center gap-2">
+                      <ValidatedInput
+                        value={config.delayOffHours}
+                        onChange={(value) =>
+                          updateConfig("delayOffHours", value)
+                        }
+                        validationRange={VALIDATION_RANGES.HOUR}
+                        className="w-20"
+                      />
+                      <Label className="text-sm">hours</Label>
+
+                      <ValidatedInput
+                        value={config.delayOffMinutes}
+                        onChange={(value) =>
+                          updateConfig("delayOffMinutes", value)
+                        }
+                        validationRange={VALIDATION_RANGES.MINUTE}
+                        className="w-20"
+                      />
+                      <Label className="text-sm">mins</Label>
+
+                      <ValidatedInput
+                        value={config.delayOffSeconds}
+                        onChange={(value) =>
+                          updateConfig("delayOffSeconds", value)
+                        }
+                        validationRange={VALIDATION_RANGES.SECOND}
+                        className="w-20"
+                      />
+                      <Label className="text-sm">secs</Label>
+                    </div>
                   </div>
 
+                  {/* Delay On Output */}
                   <div className="space-y-2">
-                    <Label className="text-sm font-medium">Max Dim (%)</Label>
-                    <ValidatedInput
-                      value={config.maxDim}
-                      onChange={(value) => updateConfig("maxDim", value)}
-                      validationRange={VALIDATION_RANGES.MAX_DIM}
-                      className="w-full"
-                    />
-                  </div>
-                </div>
+                    <Label className="text-sm font-medium">
+                      Delay on output:
+                    </Label>
+                    <div className="flex items-center gap-2">
+                      <ValidatedInput
+                        value={config.delayOnHours}
+                        onChange={(value) =>
+                          updateConfig("delayOnHours", value)
+                        }
+                        validationRange={VALIDATION_RANGES.HOUR}
+                        className="w-20"
+                      />
+                      <Label className="text-sm">hours</Label>
 
-                <div className="flex items-center space-x-2">
-                  <Checkbox
-                    id="autoTrigger"
-                    checked={config.autoTrigger}
-                    onCheckedChange={(checked) =>
-                      updateConfig("autoTrigger", checked)
-                    }
-                  />
-                  <Label htmlFor="autoTrigger" className="text-sm font-medium">
-                    Auto trigger
-                  </Label>
-                </div>
-              </CardContent>
-            </Card>
+                      <ValidatedInput
+                        value={config.delayOnMinutes}
+                        onChange={(value) =>
+                          updateConfig("delayOnMinutes", value)
+                        }
+                        validationRange={VALIDATION_RANGES.MINUTE}
+                        className="w-20"
+                      />
+                      <Label className="text-sm">mins</Label>
+
+                      <ValidatedInput
+                        value={config.delayOnSeconds}
+                        onChange={(value) =>
+                          updateConfig("delayOnSeconds", value)
+                        }
+                        validationRange={VALIDATION_RANGES.SECOND}
+                        className="w-20"
+                      />
+                      <Label className="text-sm">secs</Label>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Dimming Configuration - Only for dimmer outputs */}
+              {isDimmerOutput && (
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2 text-base">
+                      <Zap className="h-4 w-4" />
+                      Dimming Configuration
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label className="text-sm font-medium">
+                          Min Dim (%)
+                        </Label>
+                        <ValidatedInput
+                          value={config.minDim}
+                          onChange={(value) => updateConfig("minDim", value)}
+                          validationRange={VALIDATION_RANGES.MIN_DIM}
+                          className="w-full"
+                        />
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label className="text-sm font-medium">
+                          Max Dim (%)
+                        </Label>
+                        <ValidatedInput
+                          value={config.maxDim}
+                          onChange={(value) => updateConfig("maxDim", value)}
+                          validationRange={VALIDATION_RANGES.MAX_DIM}
+                          className="w-full"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="flex items-center space-x-2">
+                      <Checkbox
+                        id="autoTrigger"
+                        checked={config.autoTrigger}
+                        onCheckedChange={(checked) =>
+                          updateConfig("autoTrigger", checked)
+                        }
+                      />
+                      <Label
+                        htmlFor="autoTrigger"
+                        className="text-sm font-medium"
+                      >
+                        Auto trigger
+                      </Label>
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+
+              {/* Schedule Configuration */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2 text-base">
+                    <Clock className="h-4 w-4" />
+                    Schedule Configuration
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  {/* Schedule On */}
+                  <div className="space-y-2">
+                    <Label className="text-sm font-medium">
+                      Schedule on at:
+                    </Label>
+                    <div className="flex items-center gap-2">
+                      <ValidatedInput
+                        value={config.scheduleOnHour}
+                        onChange={(value) =>
+                          updateConfig("scheduleOnHour", value)
+                        }
+                        validationRange={VALIDATION_RANGES.SCHEDULE_HOUR}
+                        className="w-20"
+                      />
+                      <Label className="text-sm">hour</Label>
+
+                      <ValidatedInput
+                        value={config.scheduleOnMinute}
+                        onChange={(value) =>
+                          updateConfig("scheduleOnMinute", value)
+                        }
+                        validationRange={VALIDATION_RANGES.MINUTE}
+                        className="w-20"
+                      />
+                      <Label className="text-sm">min</Label>
+                    </div>
+                  </div>
+
+                  {/* Schedule Off */}
+                  <div className="space-y-2">
+                    <Label className="text-sm font-medium">
+                      Schedule off at:
+                    </Label>
+                    <div className="flex items-center gap-2">
+                      <ValidatedInput
+                        value={config.scheduleOffHour}
+                        onChange={(value) =>
+                          updateConfig("scheduleOffHour", value)
+                        }
+                        validationRange={VALIDATION_RANGES.SCHEDULE_HOUR}
+                        className="w-20"
+                      />
+                      <Label className="text-sm">hour</Label>
+
+                      <ValidatedInput
+                        value={config.scheduleOffMinute}
+                        onChange={(value) =>
+                          updateConfig("scheduleOffMinute", value)
+                        }
+                        validationRange={VALIDATION_RANGES.MINUTE}
+                        className="w-20"
+                      />
+                      <Label className="text-sm">min</Label>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </>
           )}
-
-          {/* Schedule Configuration */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-base">
-                <Clock className="h-4 w-4" />
-                Schedule Configuration
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {/* Schedule On */}
-              <div className="space-y-2">
-                <Label className="text-sm font-medium">Schedule on at:</Label>
-                <div className="flex items-center gap-2">
-                  <ValidatedInput
-                    value={config.scheduleOnHour}
-                    onChange={(value) => updateConfig("scheduleOnHour", value)}
-                    validationRange={VALIDATION_RANGES.SCHEDULE_HOUR}
-                    className="w-20"
-                  />
-                  <Label className="text-sm">hour</Label>
-
-                  <ValidatedInput
-                    value={config.scheduleOnMinute}
-                    onChange={(value) =>
-                      updateConfig("scheduleOnMinute", value)
-                    }
-                    validationRange={VALIDATION_RANGES.MINUTE}
-                    className="w-20"
-                  />
-                  <Label className="text-sm">min</Label>
-                </div>
-              </div>
-
-              {/* Schedule Off */}
-              <div className="space-y-2">
-                <Label className="text-sm font-medium">Schedule off at:</Label>
-                <div className="flex items-center gap-2">
-                  <ValidatedInput
-                    value={config.scheduleOffHour}
-                    onChange={(value) => updateConfig("scheduleOffHour", value)}
-                    validationRange={VALIDATION_RANGES.SCHEDULE_HOUR}
-                    className="w-20"
-                  />
-                  <Label className="text-sm">hour</Label>
-
-                  <ValidatedInput
-                    value={config.scheduleOffMinute}
-                    onChange={(value) =>
-                      updateConfig("scheduleOffMinute", value)
-                    }
-                    validationRange={VALIDATION_RANGES.MINUTE}
-                    className="w-20"
-                  />
-                  <Label className="text-sm">min</Label>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
         </div>
 
         <DialogFooter>
-          <Button variant="outline" onClick={handleClose} disabled={loading}>
+          <Button
+            variant="outline"
+            onClick={handleClose}
+            disabled={loading || isLoading}
+          >
             Cancel
           </Button>
-          <Button onClick={handleSave} disabled={loading}>
+          <Button onClick={handleSave} disabled={loading || isLoading}>
             {loading ? "Saving..." : "Save Configuration"}
           </Button>
         </DialogFooter>

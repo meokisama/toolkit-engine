@@ -396,6 +396,15 @@ function setupIpcHandlers() {
     }
   });
 
+  ipcMain.handle('unit:clearAllIOConfigs', async (event, unitId) => {
+    try {
+      return await dbService.clearAllUnitIOConfigs(unitId);
+    } catch (error) {
+      console.error('Error clearing all unit I/O configs:', error);
+      throw error;
+    }
+  });
+
   // Curtain items
   ipcMain.handle('curtain:getAll', async (event, projectId) => {
     try {
