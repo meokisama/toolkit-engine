@@ -8,6 +8,7 @@ export const CONSTANTS = {
     AC_TEMPERATURE: "OBJ_AC_TEMPERATURE",
     AC_SWING: "OBJ_AC_SWING",
     CURTAIN: "OBJ_CURTAIN",
+    KNX: "OBJ_KNX",
     SCENE: "OBJ_SCENE"
   },
 

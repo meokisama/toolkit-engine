@@ -6,13 +6,21 @@ import { ProjectItemsTable } from "./lighting/lighting-table";
 import { UnitTable } from "./unit/unit-table";
 import { AirconCards } from "./aircon/aircon-cards";
 import { CurtainTable } from "./curtain/curtain-table";
+import { KnxTable } from "./knx/knx-table";
 import { SceneTable } from "./scenes/scene-table";
 import { TabContentSkeleton } from "@/components/projects/tabs-skeleton";
 import {
   TabLoadingSkeleton,
   AirconCardsSkeleton,
 } from "@/components/projects/tab-loading-skeleton";
-import { Lightbulb, Wind, Cpu, Blinds, SlidersHorizontal } from "lucide-react";
+import {
+  Lightbulb,
+  Wind,
+  Cpu,
+  Blinds,
+  Network,
+  SlidersHorizontal,
+} from "lucide-react";
 
 // Memoize tab config outside component to prevent recreating on every render
 const tabConfig = {
@@ -30,6 +38,11 @@ const tabConfig = {
     label: "Curtain",
     icon: Blinds,
     description: "Manage curtain and blind controls",
+  },
+  knx: {
+    label: "KNX",
+    icon: Network,
+    description: "Manage KNX devices and controls",
   },
   scene: {
     label: "Scene",
@@ -92,7 +105,7 @@ export function ProjectDetail() {
   return (
     <div className="flex flex-1 flex-col gap-4 p-4 pt-0">
       <Tabs value={activeTab} onValueChange={setActiveTab} className="h-full">
-        <TabsList className="grid w-full grid-cols-5">
+        <TabsList className="grid w-full grid-cols-6">
           {tabEntries.map(([key, config]) => {
             const Icon = config.icon;
             const itemCount = itemCounts[key];
@@ -137,6 +150,12 @@ export function ProjectDetail() {
                       items={projectItems[key] || []}
                       loading={false}
                     />
+                  </CardContent>
+                </Card>
+              ) : key === "knx" ? (
+                <Card className="h-full">
+                  <CardContent className="h-full">
+                    <KnxTable items={projectItems[key] || []} loading={false} />
                   </CardContent>
                 </Card>
               ) : key === "scene" ? (

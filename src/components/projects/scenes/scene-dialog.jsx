@@ -46,6 +46,7 @@ import {
   Lightbulb,
   Wind,
   Blinds,
+  Network,
   Sun,
   Thermometer,
   Edit,
@@ -139,6 +140,10 @@ export function SceneDialog({
         // Load lighting data if not already loaded
         if (!loadedTabs.has("lighting")) {
           loadTabData(selectedProject.id, "lighting");
+        }
+        // Load KNX data if not already loaded
+        if (!loadedTabs.has("knx")) {
+          loadTabData(selectedProject.id, "knx");
         }
       }
     }
@@ -425,6 +430,17 @@ export function SceneDialog({
       ) || []
     );
   }, [projectItems.curtain, sceneItems]);
+
+  const filteredKnxItems = useMemo(() => {
+    return (
+      projectItems.knx?.filter(
+        (item) =>
+          !sceneItems.some(
+            (si) => si.item_type === "knx" && si.item_id === item.id
+          )
+      ) || []
+    );
+  }, [projectItems.knx, sceneItems]);
 
   const removeItemFromScene = useCallback((sceneItemId) => {
     // Always remove from local state only - changes will be saved when user clicks Save
@@ -1033,7 +1049,7 @@ export function SceneDialog({
                   </CardHeader>
                   <CardContent>
                     <Tabs defaultValue="lighting" className="w-full">
-                      <TabsList className="grid w-full grid-cols-3">
+                      <TabsList className="grid w-full grid-cols-4">
                         <TabsTrigger value="lighting">
                           <Lightbulb className="h-4 w-4 mr-2" />
                           Lighting
@@ -1045,6 +1061,10 @@ export function SceneDialog({
                         <TabsTrigger value="curtain">
                           <Blinds className="h-4 w-4 mr-2" />
                           Curtain
+                        </TabsTrigger>
+                        <TabsTrigger value="knx">
+                          <Network className="h-4 w-4 mr-2" />
+                          KNX
                         </TabsTrigger>
                       </TabsList>
 
@@ -1154,6 +1174,47 @@ export function SceneDialog({
                           ) : (
                             <p className="text-sm text-muted-foreground text-center py-4">
                               No curtain items available
+                            </p>
+                          )}
+                        </div>
+                      </TabsContent>
+
+                      <TabsContent value="knx" className="space-y-2">
+                        <div className="max-h-80 overflow-y-auto space-y-2 pr-2">
+                          {filteredKnxItems.length > 0 ? (
+                            filteredKnxItems.map((item) => (
+                              <div
+                                key={item.id}
+                                className="flex items-center justify-between p-2 border rounded-lg"
+                              >
+                                <div>
+                                  <div className="font-medium text-sm">
+                                    {item.name || `KNX ${item.address}`}
+                                  </div>
+                                  <div className="text-xs text-muted-foreground">
+                                    Address: {item.address}
+                                  </div>
+                                  {item.description && (
+                                    <div className="text-xs text-muted-foreground">
+                                      {item.description}
+                                    </div>
+                                  )}
+                                </div>
+                                <Button
+                                  type="button"
+                                  variant="outline"
+                                  size="icon"
+                                  onClick={() =>
+                                    addItemToScene("knx", item.id, "1")
+                                  }
+                                >
+                                  <Plus className="h-4 w-4" />
+                                </Button>
+                              </div>
+                            ))
+                          ) : (
+                            <p className="text-sm text-muted-foreground text-center py-4">
+                              No KNX devices available
                             </p>
                           )}
                         </div>

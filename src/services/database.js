@@ -121,6 +121,20 @@ class DatabaseService {
       )
     `;
 
+    const createKnxTable = `
+      CREATE TABLE IF NOT EXISTS knx (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        project_id INTEGER NOT NULL,
+        name TEXT,
+        address TEXT NOT NULL,
+        description TEXT,
+        object_type TEXT DEFAULT 'OBJ_KNX',
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (project_id) REFERENCES projects (id) ON DELETE CASCADE
+      )
+    `;
+
     const createSceneTable = `
       CREATE TABLE IF NOT EXISTS scene (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -185,6 +199,7 @@ class DatabaseService {
       this.db.exec(createAirconItemsTable);
       this.db.exec(createUnitTable);
       this.db.exec(createCurtainTable);
+      this.db.exec(createKnxTable);
       this.db.exec(createSceneTable);
       this.db.exec(createSceneItemsTable);
       this.db.exec(createUnitOutputConfigsTable);
@@ -348,7 +363,7 @@ class DatabaseService {
 
   // Helper method to copy all project items to a new project
   copyProjectItems(originalItems, newProjectId) {
-    const categories = ['lighting', 'aircon', 'unit', 'curtain', 'scene'];
+    const categories = ['lighting', 'aircon', 'unit', 'curtain', 'knx', 'scene'];
 
     categories.forEach(category => {
       const items = originalItems[category] || [];
@@ -411,6 +426,7 @@ class DatabaseService {
       const aircon = this.db.prepare('SELECT * FROM aircon WHERE project_id = ? ORDER BY address ASC').all(projectId);
       const unit = this.db.prepare('SELECT * FROM unit WHERE project_id = ? ORDER BY created_at DESC').all(projectId);
       const curtain = this.db.prepare('SELECT * FROM curtain WHERE project_id = ? ORDER BY address ASC').all(projectId);
+      const knx = this.db.prepare('SELECT * FROM knx WHERE project_id = ? ORDER BY address ASC').all(projectId);
       const scene = this.db.prepare('SELECT * FROM scene WHERE project_id = ? ORDER BY address ASC').all(projectId);
 
       return {
@@ -418,6 +434,7 @@ class DatabaseService {
         aircon,
         unit,
         curtain,
+        knx,
         scene
       };
     } catch (error) {
@@ -491,6 +508,14 @@ class DatabaseService {
       // Special validation for scene to prevent duplicate addresses
       if (tableName === 'scene' && address) {
         const existingItems = this.db.prepare('SELECT COUNT(*) as count FROM scene WHERE project_id = ? AND address = ?').get(projectId, address);
+        if (existingItems.count > 0) {
+          throw new Error(`Address ${address} already exists.`);
+        }
+      }
+
+      // Special validation for KNX to prevent duplicate addresses
+      if (tableName === 'knx' && address) {
+        const existingItems = this.db.prepare('SELECT COUNT(*) as count FROM knx WHERE project_id = ? AND address = ?').get(projectId, address);
         if (existingItems.count > 0) {
           throw new Error(`Address ${address} already exists.`);
         }
@@ -577,6 +602,18 @@ class DatabaseService {
         if (currentItem && currentItem.address !== address) {
           // Check if new address already exists for this project (excluding current item's address)
           const existingItems = this.db.prepare('SELECT COUNT(*) as count FROM scene WHERE project_id = ? AND address = ? AND id != ?').get(currentItem.project_id, address, id);
+          if (existingItems.count > 0) {
+            throw new Error(`Address ${address} already exists.`);
+          }
+        }
+      }
+
+      // Special validation for KNX to prevent duplicate addresses
+      if (tableName === 'knx' && address) {
+        const currentItem = this.getProjectItemById(id, tableName);
+        if (currentItem && currentItem.address !== address) {
+          // Check if new address already exists for this project (excluding current item's address)
+          const existingItems = this.db.prepare('SELECT COUNT(*) as count FROM knx WHERE project_id = ? AND address = ? AND id != ?').get(currentItem.project_id, address, id);
           if (existingItems.count > 0) {
             throw new Error(`Address ${address} already exists.`);
           }
@@ -691,6 +728,27 @@ class DatabaseService {
         duplicatedItem.address = this.findNextAvailableAddress(originalItem.project_id, 'scene');
       }
 
+      // For KNX, find a unique address if address exists
+      if (tableName === 'knx' && originalItem.address) {
+        // For KNX, we need to find next available address in x.y.z format
+        // For simplicity, we'll increment the device part (z) and keep area.line the same
+        const addressParts = originalItem.address.split('.');
+        if (addressParts.length === 3) {
+          const area = addressParts[0];
+          const line = addressParts[1];
+          let device = parseInt(addressParts[2]);
+
+          // Find next available device number (0-255)
+          let newAddress;
+          do {
+            device = (device + 1) % 256;
+            newAddress = `${area}.${line}.${device}`;
+          } while (this.db.prepare('SELECT COUNT(*) as count FROM knx WHERE project_id = ? AND address = ?').get(originalItem.project_id, newAddress).count > 0 && device !== parseInt(addressParts[2]));
+
+          duplicatedItem.address = newAddress;
+        }
+      }
+
       return this.createProjectItem(originalItem.project_id, duplicatedItem, tableName);
     } catch (error) {
       console.error(`Failed to duplicate ${tableName} item:`, error);
@@ -707,7 +765,7 @@ class DatabaseService {
         const project = this.createProject(projectData);
 
         // Import items for each category
-        const categories = ['lighting', 'aircon', 'unit', 'curtain', 'scene'];
+        const categories = ['lighting', 'aircon', 'unit', 'curtain', 'knx', 'scene'];
         const importedCounts = {};
 
         categories.forEach(category => {

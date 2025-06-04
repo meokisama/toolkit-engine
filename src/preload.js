@@ -65,6 +65,14 @@ contextBridge.exposeInMainWorld('electronAPI', {
         duplicate: (id) => ipcRenderer.invoke('curtain:duplicate', id),
         bulkImport: (projectId, items) => ipcRenderer.invoke('curtain:bulkImport', projectId, items),
     },
+    knx: {
+        getAll: (projectId) => ipcRenderer.invoke('knx:getAll', projectId),
+        create: (projectId, itemData) => ipcRenderer.invoke('knx:create', projectId, itemData),
+        update: (id, itemData) => ipcRenderer.invoke('knx:update', id, itemData),
+        delete: (id) => ipcRenderer.invoke('knx:delete', id),
+        duplicate: (id) => ipcRenderer.invoke('knx:duplicate', id),
+        bulkImport: (projectId, items) => ipcRenderer.invoke('knx:bulkImport', projectId, items),
+    },
     scene: {
         getAll: (projectId) => ipcRenderer.invoke('scene:getAll', projectId),
         create: (projectId, itemData) => ipcRenderer.invoke('scene:create', projectId, itemData),

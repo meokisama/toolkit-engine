@@ -32,6 +32,7 @@ export function ProjectDetailProvider({ children }) {
     aircon: [],
     unit: [],
     curtain: [],
+    knx: [],
     scene: [],
   });
   const [airconCards, setAirconCards] = useState([]);
@@ -114,7 +115,7 @@ export function ProjectDetailProvider({ children }) {
 
       // Mark all tabs as loaded
       setLoadedTabs(
-        new Set(["lighting", "aircon", "unit", "curtain", "scene"])
+        new Set(["lighting", "aircon", "unit", "curtain", "knx", "scene"])
       );
     } catch (err) {
       console.error("Failed to load project items:", err);
@@ -141,6 +142,7 @@ export function ProjectDetailProvider({ children }) {
           aircon: [],
           unit: [],
           curtain: [],
+          knx: [],
           scene: [],
         });
         setAirconCards([]);
@@ -153,6 +155,7 @@ export function ProjectDetailProvider({ children }) {
           aircon: [],
           unit: [],
           curtain: [],
+          knx: [],
           scene: [],
         });
         setAirconCards([]);
