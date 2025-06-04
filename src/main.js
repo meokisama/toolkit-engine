@@ -645,6 +645,89 @@ function setupIpcHandlers() {
     }
   });
 
+  // Schedule items
+  ipcMain.handle('schedule:getAll', async (event, projectId) => {
+    try {
+      return await dbService.getScheduleItems(projectId);
+    } catch (error) {
+      console.error('Error getting schedule items:', error);
+      throw error;
+    }
+  });
+
+  ipcMain.handle('schedule:create', async (event, projectId, itemData) => {
+    try {
+      return await dbService.createScheduleItem(projectId, itemData);
+    } catch (error) {
+      console.error('Error creating schedule item:', error);
+      throw error;
+    }
+  });
+
+  ipcMain.handle('schedule:update', async (event, id, itemData) => {
+    try {
+      return await dbService.updateScheduleItem(id, itemData);
+    } catch (error) {
+      console.error('Error updating schedule item:', error);
+      throw error;
+    }
+  });
+
+  ipcMain.handle('schedule:delete', async (event, id) => {
+    try {
+      return await dbService.deleteScheduleItem(id);
+    } catch (error) {
+      console.error('Error deleting schedule item:', error);
+      throw error;
+    }
+  });
+
+  ipcMain.handle('schedule:duplicate', async (event, id) => {
+    try {
+      return await dbService.duplicateScheduleItem(id);
+    } catch (error) {
+      console.error('Error duplicating schedule item:', error);
+      throw error;
+    }
+  });
+
+  ipcMain.handle('schedule:bulkImport', async (event, projectId, items) => {
+    try {
+      return await dbService.bulkImportItems(projectId, items, 'schedule');
+    } catch (error) {
+      console.error('Error bulk importing schedule items:', error);
+      throw error;
+    }
+  });
+
+  // Schedule-Scene Relationships
+  ipcMain.handle('schedule:getScenesWithDetails', async (event, scheduleId) => {
+    try {
+      return await dbService.getScheduleScenesWithDetails(scheduleId);
+    } catch (error) {
+      console.error('Error getting schedule scenes with details:', error);
+      throw error;
+    }
+  });
+
+  ipcMain.handle('schedule:addScene', async (event, scheduleId, sceneId) => {
+    try {
+      return await dbService.addSceneToSchedule(scheduleId, sceneId);
+    } catch (error) {
+      console.error('Error adding scene to schedule:', error);
+      throw error;
+    }
+  });
+
+  ipcMain.handle('schedule:removeScene', async (event, scheduleSceneId) => {
+    try {
+      return await dbService.removeSceneFromSchedule(scheduleSceneId);
+    } catch (error) {
+      console.error('Error removing scene from schedule:', error);
+      throw error;
+    }
+  });
+
   // UDP Network Scanning
   ipcMain.handle('udp:scanNetwork', async (event, config) => {
     try {

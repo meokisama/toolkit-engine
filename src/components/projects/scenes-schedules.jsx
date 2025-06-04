@@ -3,6 +3,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent } from "@/components/ui/card";
 import { useProjectDetail } from "@/contexts/project-detail-context";
 import { SceneTable } from "./scenes/scene-table";
+import { ScheduleTable } from "./schedules/schedule-table";
 import { TabLoadingSkeleton } from "@/components/projects/tab-loading-skeleton";
 import { SlidersHorizontal, Calendar } from "lucide-react";
 
@@ -41,12 +42,7 @@ export function ScenesSchedules() {
   const itemCounts = useMemo(() => {
     const counts = {};
     Object.keys(scenesSchedulesTabConfig).forEach((key) => {
-      if (key === "schedule") {
-        // TODO: Add schedule items count when schedules are implemented
-        counts[key] = 0;
-      } else {
-        counts[key] = projectItems[key]?.length || 0;
-      }
+      counts[key] = projectItems[key]?.length || 0;
     });
     return counts;
   }, [projectItems]);
@@ -106,15 +102,7 @@ export function ScenesSchedules() {
                       <SceneTable items={projectItems.scene} />
                     )}
                     {key === "schedule" && (
-                      <div className="flex items-center justify-center h-full">
-                        <div className="text-center text-muted-foreground">
-                          <Calendar className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                          <h3 className="text-lg font-medium mb-2">
-                            Schedules
-                          </h3>
-                          <p>Schedule management will be implemented soon.</p>
-                        </div>
-                      </div>
+                      <ScheduleTable items={projectItems.schedule} />
                     )}
                   </CardContent>
                 </Card>

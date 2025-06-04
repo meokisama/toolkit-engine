@@ -1,0 +1,258 @@
+import React, { useState, useCallback, memo, useEffect } from "react";
+import { Button } from "@/components/ui/button";
+import { Plus, Calendar } from "lucide-react";
+import { useProjectDetail } from "@/contexts/project-detail-context";
+import { ScheduleDialog } from "@/components/projects/schedules/schedule-dialog";
+import { ConfirmDialog } from "@/components/projects/confirm-dialog";
+import { DataTable } from "@/components/projects/data-table/data-table";
+import { DataTableToolbar } from "@/components/projects/data-table/data-table-toolbar";
+import { DataTablePagination } from "@/components/projects/data-table/data-table-pagination";
+import { DataTableSkeleton } from "@/components/projects/table-skeleton";
+import { createScheduleColumns } from "./schedule-columns";
+import { toast } from "sonner";
+
+const ScheduleTable = memo(function ScheduleTable({ items = [], loading = false }) {
+  const category = "schedule";
+  const { deleteItem, duplicateItem, updateItem } = useProjectDetail();
+  const [scheduleSceneCounts, setScheduleSceneCounts] = useState({});
+  const [table, setTable] = useState(null);
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [dialogMode, setDialogMode] = useState("create");
+  const [editingItem, setEditingItem] = useState(null);
+  const [confirmDialog, setConfirmDialog] = useState({
+    open: false,
+    title: "",
+    description: "",
+    onConfirm: null,
+  });
+  const [columnVisibility, setColumnVisibility] = useState({});
+  const [pagination, setPagination] = useState({
+    pageIndex: 0,
+    pageSize: 10,
+  });
+
+  // Track pending changes for inline editing
+  const [pendingChanges, setPendingChanges] = useState(new Map());
+  const [saveLoading, setSaveLoading] = useState(false);
+
+  // Load scene counts for each schedule
+  useEffect(() => {
+    const loadSceneCounts = async () => {
+      const counts = {};
+      for (const schedule of items) {
+        try {
+          const scenes = await window.electronAPI.schedule.getScenesWithDetails(schedule.id);
+          counts[schedule.id] = scenes.length;
+        } catch (error) {
+          console.error(`Failed to load scene count for schedule ${schedule.id}:`, error);
+          counts[schedule.id] = 0;
+        }
+      }
+      setScheduleSceneCounts(counts);
+    };
+
+    if (items.length > 0) {
+      loadSceneCounts();
+    }
+  }, [items]);
+
+  const handleCreateItem = useCallback(() => {
+    setEditingItem(null);
+    setDialogMode("create");
+    setDialogOpen(true);
+  }, []);
+
+  const handleEditItem = useCallback((item) => {
+    setEditingItem(item);
+    setDialogMode("edit");
+    setDialogOpen(true);
+  }, []);
+
+  const handleDuplicateItem = useCallback(
+    async (id) => {
+      try {
+        await duplicateItem(category, id);
+        toast.success("Schedule duplicated successfully");
+      } catch (error) {
+        console.error("Failed to duplicate schedule:", error);
+        toast.error("Failed to duplicate schedule");
+      }
+    },
+    [duplicateItem, category]
+  );
+
+  const handleDeleteItem = useCallback(
+    (id) => {
+      setConfirmDialog({
+        open: true,
+        title: "Delete Schedule",
+        description: "Are you sure you want to delete this schedule? This action cannot be undone.",
+        onConfirm: async () => {
+          try {
+            await deleteItem(category, id);
+            toast.success("Schedule deleted successfully");
+          } catch (error) {
+            console.error("Failed to delete schedule:", error);
+            toast.error("Failed to delete schedule");
+          }
+          setConfirmDialog({ ...confirmDialog, open: false });
+        },
+      });
+    },
+    [deleteItem, category, confirmDialog]
+  );
+
+  const handleDialogClose = useCallback((open) => {
+    setDialogOpen(open);
+    if (!open) {
+      setEditingItem(null);
+    }
+  }, []);
+
+  // Handle inline cell editing
+  const handleCellEdit = useCallback((id, field, value) => {
+    setPendingChanges((prev) => {
+      const newChanges = new Map(prev);
+      if (!newChanges.has(id)) {
+        newChanges.set(id, {});
+      }
+      newChanges.get(id)[field] = value;
+      return newChanges;
+    });
+  }, []);
+
+  // Get effective value (pending change or original value)
+  const getEffectiveValue = useCallback(
+    (item, field) => {
+      const pendingChange = pendingChanges.get(item.id);
+      return pendingChange && pendingChange[field] !== undefined
+        ? pendingChange[field]
+        : item[field] || "";
+    },
+    [pendingChanges]
+  );
+
+  // Save pending changes
+  const handleSaveChanges = useCallback(async () => {
+    if (pendingChanges.size === 0) return;
+
+    setSaveLoading(true);
+    try {
+      const updatePromises = Array.from(pendingChanges.entries()).map(
+        ([id, changes]) => updateItem(category, id, changes)
+      );
+
+      await Promise.all(updatePromises);
+      setPendingChanges(new Map());
+      toast.success("Changes saved successfully");
+    } catch (error) {
+      console.error("Failed to save changes:", error);
+      toast.error("Failed to save changes");
+    } finally {
+      setSaveLoading(false);
+    }
+  }, [pendingChanges, updateItem, category]);
+
+  const handleRowSelectionChange = useCallback((newSelection) => {
+    // Handle row selection if needed
+  }, []);
+
+  const handleColumnVisibilityChange = useCallback((newVisibility) => {
+    setColumnVisibility(newVisibility);
+  }, []);
+
+  const handlePaginationChange = useCallback((newPagination) => {
+    setPagination(newPagination);
+  }, []);
+
+  // Add scene counts to items data
+  const itemsWithCounts = items.map((item) => ({
+    ...item,
+    sceneCount: scheduleSceneCounts[item.id] || 0,
+  }));
+
+  const columns = createScheduleColumns(
+    handleEditItem,
+    handleDuplicateItem,
+    handleDeleteItem,
+    handleCellEdit,
+    getEffectiveValue
+  );
+
+  if (loading) {
+    return <DataTableSkeleton />;
+  }
+
+  return (
+    <div className="space-y-4 flex flex-col h-full">
+      <div className="flex-1 space-y-4">
+        {items.length === 0 ? (
+          <div className="text-center text-muted-foreground flex flex-col justify-center items-center h-full -mt-8">
+            <Calendar className="h-12 w-12 mx-auto mb-4 opacity-50" />
+            <p>No schedules found.</p>
+            <p className="text-sm mb-8">
+              Click "Add Schedule" to create your first schedule.
+            </p>
+            <Button onClick={handleCreateItem}>
+              <Plus className="h-4 w-4" />
+              Add Schedule
+            </Button>
+          </div>
+        ) : (
+          <div className="space-y-4 flex flex-col h-full">
+            <div className="flex-1 space-y-4">
+              {table && (
+                <DataTableToolbar
+                  table={table}
+                  category={category}
+                  columnVisibility={columnVisibility}
+                  onAddItem={handleCreateItem}
+                  addItemLabel="Add Schedule"
+                  onSave={handleSaveChanges}
+                  hasPendingChanges={pendingChanges.size > 0}
+                  saveLoading={saveLoading}
+                />
+              )}
+              <DataTable
+                key={category}
+                columns={columns}
+                data={itemsWithCounts}
+                initialPagination={pagination}
+                onTableReady={setTable}
+                onRowSelectionChange={handleRowSelectionChange}
+                onColumnVisibilityChange={handleColumnVisibilityChange}
+                onPaginationChange={handlePaginationChange}
+                onEdit={handleEditItem}
+                onDuplicate={handleDuplicateItem}
+                onDelete={handleDeleteItem}
+                enableRowSelection={true}
+              />
+            </div>
+            {table && (
+              <DataTablePagination table={table} pagination={pagination} />
+            )}
+          </div>
+        )}
+      </div>
+
+      <ScheduleDialog
+        open={dialogOpen}
+        onOpenChange={handleDialogClose}
+        schedule={editingItem}
+        mode={dialogMode}
+      />
+
+      <ConfirmDialog
+        open={confirmDialog.open}
+        onOpenChange={(open) =>
+          setConfirmDialog({ ...confirmDialog, open })
+        }
+        title={confirmDialog.title}
+        description={confirmDialog.description}
+        onConfirm={confirmDialog.onConfirm}
+      />
+    </div>
+  );
+});
+
+export { ScheduleTable };

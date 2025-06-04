@@ -163,6 +163,31 @@ class DatabaseService {
       )
     `;
 
+    const createScheduleTable = `
+      CREATE TABLE IF NOT EXISTS schedule (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        project_id INTEGER NOT NULL,
+        name TEXT,
+        description TEXT,
+        time TEXT NOT NULL,
+        days TEXT NOT NULL,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (project_id) REFERENCES projects (id) ON DELETE CASCADE
+      )
+    `;
+
+    const createScheduleScenesTable = `
+      CREATE TABLE IF NOT EXISTS schedule_scenes (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        schedule_id INTEGER NOT NULL,
+        scene_id INTEGER NOT NULL,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (schedule_id) REFERENCES schedule (id) ON DELETE CASCADE,
+        FOREIGN KEY (scene_id) REFERENCES scene (id) ON DELETE CASCADE
+      )
+    `;
+
     const createUnitOutputConfigsTable = `
       CREATE TABLE IF NOT EXISTS unit_output_configs (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -202,6 +227,8 @@ class DatabaseService {
       this.db.exec(createKnxTable);
       this.db.exec(createSceneTable);
       this.db.exec(createSceneItemsTable);
+      this.db.exec(createScheduleTable);
+      this.db.exec(createScheduleScenesTable);
       this.db.exec(createUnitOutputConfigsTable);
       this.db.exec(createUnitInputConfigsTable);
     } catch (error) {
@@ -428,6 +455,7 @@ class DatabaseService {
       const curtain = this.db.prepare('SELECT * FROM curtain WHERE project_id = ? ORDER BY address ASC').all(projectId);
       const knx = this.db.prepare('SELECT * FROM knx WHERE project_id = ? ORDER BY address ASC').all(projectId);
       const scene = this.db.prepare('SELECT * FROM scene WHERE project_id = ? ORDER BY address ASC').all(projectId);
+      const schedule = this.db.prepare('SELECT * FROM schedule WHERE project_id = ? ORDER BY name ASC').all(projectId);
 
       return {
         lighting,
@@ -435,7 +463,8 @@ class DatabaseService {
         unit,
         curtain,
         knx,
-        scene
+        scene,
+        schedule
       };
     } catch (error) {
       console.error('Failed to get all project items:', error);
@@ -446,7 +475,7 @@ class DatabaseService {
   // Generic CRUD operations for project items
   getProjectItems(projectId, tableName) {
     try {
-      // Sort by address ASC for tables with address field, except unit table
+      // Sort by address ASC for tables with address field, except unit and schedule tables
       if (tableName === 'unit') {
         const stmt = this.db.prepare(`SELECT * FROM ${tableName} WHERE project_id = ? ORDER BY created_at DESC`);
         const items = stmt.all(projectId);
@@ -456,6 +485,9 @@ class DatabaseService {
           rs485_config: item.rs485_config ? JSON.parse(item.rs485_config) : null,
           io_config: item.io_config ? JSON.parse(item.io_config) : null
         }));
+      } else if (tableName === 'schedule') {
+        const stmt = this.db.prepare(`SELECT * FROM ${tableName} WHERE project_id = ? ORDER BY name ASC`);
+        return stmt.all(projectId);
       } else {
         const stmt = this.db.prepare(`SELECT * FROM ${tableName} WHERE project_id = ? ORDER BY address ASC`);
         return stmt.all(projectId);
@@ -765,7 +797,7 @@ class DatabaseService {
         const project = this.createProject(projectData);
 
         // Import items for each category
-        const categories = ['lighting', 'aircon', 'unit', 'curtain', 'knx', 'scene'];
+        const categories = ['lighting', 'aircon', 'unit', 'curtain', 'knx', 'scene', 'schedule'];
         const importedCounts = {};
 
         categories.forEach(category => {
@@ -781,6 +813,8 @@ class DatabaseService {
                 itemData.label = AIRCON_OBJECT_LABELS[itemData.object_type];
               }
               this.createProjectItem(project.id, itemData, 'aircon');
+            } else if (category === 'schedule') {
+              this.createScheduleItem(project.id, itemData);
             } else {
               this.createProjectItem(project.id, itemData, category);
             }
@@ -810,6 +844,8 @@ class DatabaseService {
             item = this.createUnitItem(projectId, itemData);
           } else if (category === 'aircon') {
             item = this.createProjectItem(projectId, itemData, 'aircon');
+          } else if (category === 'schedule') {
+            item = this.createScheduleItem(projectId, itemData);
           } else {
             item = this.createProjectItem(projectId, itemData, category);
           }
@@ -1437,6 +1473,193 @@ class DatabaseService {
       return getStmt.get(sceneItemId);
     } catch (error) {
       console.error('Failed to update scene item value:', error);
+      throw error;
+    }
+  }
+
+  // Schedule Management
+  getScheduleItems(projectId) {
+    try {
+      const stmt = this.db.prepare(`
+        SELECT * FROM schedule
+        WHERE project_id = ?
+        ORDER BY name ASC
+      `);
+      return stmt.all(projectId);
+    } catch (error) {
+      console.error('Failed to get schedule items:', error);
+      throw error;
+    }
+  }
+
+  createScheduleItem(projectId, itemData) {
+    try {
+      const stmt = this.db.prepare(`
+        INSERT INTO schedule (project_id, name, description, time, days)
+        VALUES (?, ?, ?, ?, ?)
+      `);
+
+      const result = stmt.run(
+        projectId,
+        itemData.name,
+        itemData.description,
+        itemData.time,
+        JSON.stringify(itemData.days)
+      );
+
+      // Return the created schedule item
+      const getStmt = this.db.prepare('SELECT * FROM schedule WHERE id = ?');
+      return getStmt.get(result.lastInsertRowid);
+    } catch (error) {
+      console.error('Failed to create schedule item:', error);
+      throw error;
+    }
+  }
+
+  updateScheduleItem(id, itemData) {
+    try {
+      const stmt = this.db.prepare(`
+        UPDATE schedule
+        SET name = ?, description = ?, time = ?, days = ?, updated_at = CURRENT_TIMESTAMP
+        WHERE id = ?
+      `);
+
+      const result = stmt.run(
+        itemData.name,
+        itemData.description,
+        itemData.time,
+        JSON.stringify(itemData.days),
+        id
+      );
+
+      if (result.changes === 0) {
+        throw new Error('Schedule item not found');
+      }
+
+      // Return updated schedule item
+      const getStmt = this.db.prepare('SELECT * FROM schedule WHERE id = ?');
+      return getStmt.get(id);
+    } catch (error) {
+      console.error('Failed to update schedule item:', error);
+      throw error;
+    }
+  }
+
+  deleteScheduleItem(id) {
+    try {
+      const stmt = this.db.prepare('DELETE FROM schedule WHERE id = ?');
+      const result = stmt.run(id);
+
+      if (result.changes === 0) {
+        throw new Error('Schedule item not found');
+      }
+
+      return { success: true };
+    } catch (error) {
+      console.error('Failed to delete schedule item:', error);
+      throw error;
+    }
+  }
+
+  duplicateScheduleItem(id) {
+    try {
+      // Get original schedule item
+      const getStmt = this.db.prepare('SELECT * FROM schedule WHERE id = ?');
+      const original = getStmt.get(id);
+
+      if (!original) {
+        throw new Error('Schedule item not found');
+      }
+
+      // Create duplicate with modified name
+      const duplicateName = `${original.name} (Copy)`;
+      const createStmt = this.db.prepare(`
+        INSERT INTO schedule (project_id, name, description, time, days)
+        VALUES (?, ?, ?, ?, ?)
+      `);
+
+      const result = createStmt.run(
+        original.project_id,
+        duplicateName,
+        original.description,
+        original.time,
+        original.days
+      );
+
+      // Get the duplicated schedule item
+      const newSchedule = getStmt.get(result.lastInsertRowid);
+
+      // Copy schedule-scene relationships
+      const getRelationsStmt = this.db.prepare('SELECT scene_id FROM schedule_scenes WHERE schedule_id = ?');
+      const relations = getRelationsStmt.all(id);
+
+      const addRelationStmt = this.db.prepare(`
+        INSERT INTO schedule_scenes (schedule_id, scene_id)
+        VALUES (?, ?)
+      `);
+
+      for (const relation of relations) {
+        addRelationStmt.run(newSchedule.id, relation.scene_id);
+      }
+
+      return newSchedule;
+    } catch (error) {
+      console.error('Failed to duplicate schedule item:', error);
+      throw error;
+    }
+  }
+
+  // Schedule-Scene Relationships
+  getScheduleScenesWithDetails(scheduleId) {
+    try {
+      const stmt = this.db.prepare(`
+        SELECT
+          ss.*,
+          s.name as scene_name,
+          s.address as scene_address,
+          s.description as scene_description
+        FROM schedule_scenes ss
+        LEFT JOIN scene s ON ss.scene_id = s.id
+        WHERE ss.schedule_id = ?
+        ORDER BY s.name ASC
+      `);
+      return stmt.all(scheduleId);
+    } catch (error) {
+      console.error('Failed to get schedule scenes with details:', error);
+      throw error;
+    }
+  }
+
+  addSceneToSchedule(scheduleId, sceneId) {
+    try {
+      const stmt = this.db.prepare(`
+        INSERT INTO schedule_scenes (schedule_id, scene_id)
+        VALUES (?, ?)
+      `);
+
+      const result = stmt.run(scheduleId, sceneId);
+
+      // Return the created schedule-scene relationship
+      const getStmt = this.db.prepare('SELECT * FROM schedule_scenes WHERE id = ?');
+      return getStmt.get(result.lastInsertRowid);
+    } catch (error) {
+      console.error('Failed to add scene to schedule:', error);
+      throw error;
+    }
+  }
+
+  removeSceneFromSchedule(scheduleSceneId) {
+    try {
+      const stmt = this.db.prepare('DELETE FROM schedule_scenes WHERE id = ?');
+      const result = stmt.run(scheduleSceneId);
+
+      if (result.changes === 0) {
+        throw new Error('Schedule-scene relationship not found');
+      }
+
+      return { success: true };
+    } catch (error) {
+      console.error('Failed to remove scene from schedule:', error);
       throw error;
     }
   }

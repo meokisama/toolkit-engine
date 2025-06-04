@@ -25,6 +25,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
+import { TimePicker } from "@/components/ui/time-picker";
 import {
   Plus,
   Trash2,
@@ -192,6 +193,27 @@ export function MultiGroupConfigDialog({
     },
   });
 
+  // Time picker state for delay off
+  const [delayOffTime, setDelayOffTime] = useState(
+    new Date(new Date().setHours(0, 0, 0, 0))
+  );
+
+  // Helper functions for time conversion
+  const timeToDate = (hours, minutes, seconds = 0) => {
+    const date = new Date();
+    date.setHours(hours || 0, minutes || 0, seconds || 0, 0);
+    return date;
+  };
+
+  const dateToTimeComponents = (date) => {
+    if (!date) return { hours: 0, minutes: 0, seconds: 0 };
+    return {
+      hours: date.getHours(),
+      minutes: date.getMinutes(),
+      seconds: date.getSeconds(),
+    };
+  };
+
   // Load lighting items from projectItems
   const lightingItems = useMemo(() => {
     return projectItems?.lighting || [];
@@ -262,6 +284,11 @@ export function MultiGroupConfigDialog({
         autoMode: initialRlcOptions.autoMode || false,
         delayOff: delayTime,
       });
+
+      // Set time picker state
+      setDelayOffTime(
+        timeToDate(delayTime.hours, delayTime.minutes, delayTime.seconds)
+      );
     }
   }, [open, initialGroups, initialRlcOptions, isLoading]);
 
@@ -434,6 +461,31 @@ export function MultiGroupConfigDialog({
     },
     [rlcOptions.delayOff.hours]
   );
+
+  // Time picker handler for delay off
+  const handleDelayOffTimeChange = useCallback((newDate) => {
+    setDelayOffTime(newDate);
+    const { hours, minutes, seconds } = dateToTimeComponents(newDate);
+
+    // Apply validation constraints
+    let validatedHours = Math.max(0, Math.min(18, hours));
+    let validatedMinutes = Math.max(0, Math.min(59, minutes));
+    let validatedSeconds = Math.max(0, Math.min(59, seconds));
+
+    // Special case: if hours is 18, minutes can only be 0-11
+    if (validatedHours === 18) {
+      validatedMinutes = Math.max(0, Math.min(11, validatedMinutes));
+    }
+
+    setRlcOptions((prev) => ({
+      ...prev,
+      delayOff: {
+        hours: validatedHours,
+        minutes: validatedMinutes,
+        seconds: validatedSeconds,
+      },
+    }));
+  }, []);
 
   // Performance monitoring
   const performanceWarning = useMemo(() => {
@@ -777,52 +829,18 @@ export function MultiGroupConfigDialog({
                   >
                     4. Delay Off
                   </Label>
-                  <div className="grid grid-cols-3 gap-6">
-                    <div className="flex gap-2">
-                      <Input
-                        type="number"
-                        min="0"
-                        max="18"
-                        value={rlcOptions.delayOff.hours}
-                        onChange={(e) =>
-                          handleDelayOffChange("hours", e.target.value)
-                        }
-                        placeholder="0"
-                        className="text-center"
-                        disabled={!rlcOptionsConfig.delayOffEnabled}
-                      />
-                      <Label className="text-sm">hours</Label>
-                    </div>
-                    <div className="flex gap-2">
-                      <Input
-                        type="number"
-                        min="0"
-                        max={rlcOptions.delayOff.hours === 18 ? "11" : "59"}
-                        value={rlcOptions.delayOff.minutes}
-                        onChange={(e) =>
-                          handleDelayOffChange("minutes", e.target.value)
-                        }
-                        placeholder="0"
-                        className="text-center"
-                        disabled={!rlcOptionsConfig.delayOffEnabled}
-                      />
-                      <Label className="text-sm">mins</Label>
-                    </div>
-                    <div className="flex gap-2">
-                      <Input
-                        type="number"
-                        min="0"
-                        max="59"
-                        value={rlcOptions.delayOff.seconds}
-                        onChange={(e) =>
-                          handleDelayOffChange("seconds", e.target.value)
-                        }
-                        placeholder="0"
-                        className="text-center"
-                        disabled={!rlcOptionsConfig.delayOffEnabled}
-                      />
-                      <Label className="text-sm">secs</Label>
-                    </div>
+                  <div
+                    className={
+                      !rlcOptionsConfig.delayOffEnabled
+                        ? "opacity-50 pointer-events-none"
+                        : ""
+                    }
+                  >
+                    <TimePicker
+                      date={delayOffTime}
+                      setDate={handleDelayOffTimeChange}
+                      showSeconds={true}
+                    />
                   </div>
                 </CardContent>
               </Card>

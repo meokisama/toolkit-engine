@@ -13,6 +13,7 @@ import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
+import { TimePicker } from "@/components/ui/time-picker";
 import { Lightbulb, Clock, Timer, Zap } from "lucide-react";
 
 // Validation ranges for different input types
@@ -127,7 +128,37 @@ const LightingOutputConfigDialogComponent = ({
     scheduleOffMinute: 0,
   });
 
+  // Time picker states
+  const [delayOffTime, setDelayOffTime] = useState(
+    new Date(new Date().setHours(0, 0, 0, 0))
+  );
+  const [delayOnTime, setDelayOnTime] = useState(
+    new Date(new Date().setHours(0, 0, 0, 0))
+  );
+  const [scheduleOnTime, setScheduleOnTime] = useState(
+    new Date(new Date().setHours(0, 0, 0, 0))
+  );
+  const [scheduleOffTime, setScheduleOffTime] = useState(
+    new Date(new Date().setHours(0, 0, 0, 0))
+  );
+
   const [loading, setLoading] = useState(false);
+
+  // Helper functions for time conversion
+  const timeToDate = (hours, minutes, seconds = 0) => {
+    const date = new Date();
+    date.setHours(hours || 0, minutes || 0, seconds || 0, 0);
+    return date;
+  };
+
+  const dateToTimeComponents = (date) => {
+    if (!date) return { hours: 0, minutes: 0, seconds: 0 };
+    return {
+      hours: date.getHours(),
+      minutes: date.getMinutes(),
+      seconds: date.getSeconds(),
+    };
+  };
 
   // Check if this is a dimmer output (shows min/max dim options)
   const isDimmerOutput = outputType === "dimmer";
@@ -140,7 +171,7 @@ const LightingOutputConfigDialogComponent = ({
       initialConfig !== null &&
       initialConfig !== undefined
     ) {
-      setConfig({
+      const newConfig = {
         delayOffHours: initialConfig.delayOffHours || 0,
         delayOffMinutes: initialConfig.delayOffMinutes || 0,
         delayOffSeconds: initialConfig.delayOffSeconds || 0,
@@ -154,7 +185,30 @@ const LightingOutputConfigDialogComponent = ({
         scheduleOnMinute: initialConfig.scheduleOnMinute || 0,
         scheduleOffHour: initialConfig.scheduleOffHour || 0,
         scheduleOffMinute: initialConfig.scheduleOffMinute || 0,
-      });
+      };
+      setConfig(newConfig);
+
+      // Set time picker states
+      setDelayOffTime(
+        timeToDate(
+          newConfig.delayOffHours,
+          newConfig.delayOffMinutes,
+          newConfig.delayOffSeconds
+        )
+      );
+      setDelayOnTime(
+        timeToDate(
+          newConfig.delayOnHours,
+          newConfig.delayOnMinutes,
+          newConfig.delayOnSeconds
+        )
+      );
+      setScheduleOnTime(
+        timeToDate(newConfig.scheduleOnHour, newConfig.scheduleOnMinute)
+      );
+      setScheduleOffTime(
+        timeToDate(newConfig.scheduleOffHour, newConfig.scheduleOffMinute)
+      );
     }
   }, [open, initialConfig, isLoading]);
 
@@ -178,6 +232,49 @@ const LightingOutputConfigDialogComponent = ({
   // Generic update handler to replace 12 individual handlers
   const updateConfig = useCallback((field, value) => {
     setConfig((prev) => ({ ...prev, [field]: value }));
+  }, []);
+
+  // Time picker handlers
+  const handleDelayOffTimeChange = useCallback((newDate) => {
+    setDelayOffTime(newDate);
+    const { hours, minutes, seconds } = dateToTimeComponents(newDate);
+    setConfig((prev) => ({
+      ...prev,
+      delayOffHours: hours,
+      delayOffMinutes: minutes,
+      delayOffSeconds: seconds,
+    }));
+  }, []);
+
+  const handleDelayOnTimeChange = useCallback((newDate) => {
+    setDelayOnTime(newDate);
+    const { hours, minutes, seconds } = dateToTimeComponents(newDate);
+    setConfig((prev) => ({
+      ...prev,
+      delayOnHours: hours,
+      delayOnMinutes: minutes,
+      delayOnSeconds: seconds,
+    }));
+  }, []);
+
+  const handleScheduleOnTimeChange = useCallback((newDate) => {
+    setScheduleOnTime(newDate);
+    const { hours, minutes } = dateToTimeComponents(newDate);
+    setConfig((prev) => ({
+      ...prev,
+      scheduleOnHour: hours,
+      scheduleOnMinute: minutes,
+    }));
+  }, []);
+
+  const handleScheduleOffTimeChange = useCallback((newDate) => {
+    setScheduleOffTime(newDate);
+    const { hours, minutes } = dateToTimeComponents(newDate);
+    setConfig((prev) => ({
+      ...prev,
+      scheduleOffHour: hours,
+      scheduleOffMinute: minutes,
+    }));
   }, []);
 
   return (
@@ -291,37 +388,11 @@ const LightingOutputConfigDialogComponent = ({
                     <Label className="text-sm font-medium">
                       Delay off output:
                     </Label>
-                    <div className="flex items-center gap-2">
-                      <ValidatedInput
-                        value={config.delayOffHours}
-                        onChange={(value) =>
-                          updateConfig("delayOffHours", value)
-                        }
-                        validationRange={VALIDATION_RANGES.HOUR}
-                        className="w-20"
-                      />
-                      <Label className="text-sm">hours</Label>
-
-                      <ValidatedInput
-                        value={config.delayOffMinutes}
-                        onChange={(value) =>
-                          updateConfig("delayOffMinutes", value)
-                        }
-                        validationRange={VALIDATION_RANGES.MINUTE}
-                        className="w-20"
-                      />
-                      <Label className="text-sm">mins</Label>
-
-                      <ValidatedInput
-                        value={config.delayOffSeconds}
-                        onChange={(value) =>
-                          updateConfig("delayOffSeconds", value)
-                        }
-                        validationRange={VALIDATION_RANGES.SECOND}
-                        className="w-20"
-                      />
-                      <Label className="text-sm">secs</Label>
-                    </div>
+                    <TimePicker
+                      date={delayOffTime}
+                      setDate={handleDelayOffTimeChange}
+                      showSeconds={true}
+                    />
                   </div>
 
                   {/* Delay On Output */}
@@ -329,37 +400,11 @@ const LightingOutputConfigDialogComponent = ({
                     <Label className="text-sm font-medium">
                       Delay on output:
                     </Label>
-                    <div className="flex items-center gap-2">
-                      <ValidatedInput
-                        value={config.delayOnHours}
-                        onChange={(value) =>
-                          updateConfig("delayOnHours", value)
-                        }
-                        validationRange={VALIDATION_RANGES.HOUR}
-                        className="w-20"
-                      />
-                      <Label className="text-sm">hours</Label>
-
-                      <ValidatedInput
-                        value={config.delayOnMinutes}
-                        onChange={(value) =>
-                          updateConfig("delayOnMinutes", value)
-                        }
-                        validationRange={VALIDATION_RANGES.MINUTE}
-                        className="w-20"
-                      />
-                      <Label className="text-sm">mins</Label>
-
-                      <ValidatedInput
-                        value={config.delayOnSeconds}
-                        onChange={(value) =>
-                          updateConfig("delayOnSeconds", value)
-                        }
-                        validationRange={VALIDATION_RANGES.SECOND}
-                        className="w-20"
-                      />
-                      <Label className="text-sm">secs</Label>
-                    </div>
+                    <TimePicker
+                      date={delayOnTime}
+                      setDate={handleDelayOnTimeChange}
+                      showSeconds={true}
+                    />
                   </div>
                 </CardContent>
               </Card>
@@ -433,27 +478,11 @@ const LightingOutputConfigDialogComponent = ({
                     <Label className="text-sm font-medium">
                       Schedule on at:
                     </Label>
-                    <div className="flex items-center gap-2">
-                      <ValidatedInput
-                        value={config.scheduleOnHour}
-                        onChange={(value) =>
-                          updateConfig("scheduleOnHour", value)
-                        }
-                        validationRange={VALIDATION_RANGES.SCHEDULE_HOUR}
-                        className="w-20"
-                      />
-                      <Label className="text-sm">hour</Label>
-
-                      <ValidatedInput
-                        value={config.scheduleOnMinute}
-                        onChange={(value) =>
-                          updateConfig("scheduleOnMinute", value)
-                        }
-                        validationRange={VALIDATION_RANGES.MINUTE}
-                        className="w-20"
-                      />
-                      <Label className="text-sm">min</Label>
-                    </div>
+                    <TimePicker
+                      date={scheduleOnTime}
+                      setDate={handleScheduleOnTimeChange}
+                      showSeconds={false}
+                    />
                   </div>
 
                   {/* Schedule Off */}
@@ -461,27 +490,11 @@ const LightingOutputConfigDialogComponent = ({
                     <Label className="text-sm font-medium">
                       Schedule off at:
                     </Label>
-                    <div className="flex items-center gap-2">
-                      <ValidatedInput
-                        value={config.scheduleOffHour}
-                        onChange={(value) =>
-                          updateConfig("scheduleOffHour", value)
-                        }
-                        validationRange={VALIDATION_RANGES.SCHEDULE_HOUR}
-                        className="w-20"
-                      />
-                      <Label className="text-sm">hour</Label>
-
-                      <ValidatedInput
-                        value={config.scheduleOffMinute}
-                        onChange={(value) =>
-                          updateConfig("scheduleOffMinute", value)
-                        }
-                        validationRange={VALIDATION_RANGES.MINUTE}
-                        className="w-20"
-                      />
-                      <Label className="text-sm">min</Label>
-                    </div>
+                    <TimePicker
+                      date={scheduleOffTime}
+                      setDate={handleScheduleOffTimeChange}
+                      showSeconds={false}
+                    />
                   </div>
                 </CardContent>
               </Card>
