@@ -277,7 +277,7 @@ const ACOutputConfigDialogComponent = ({
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-4 gap-4">
                     <div className="space-y-2">
                       <Label className="text-sm font-medium">
                         Windows mode
@@ -288,7 +288,7 @@ const ACOutputConfigDialogComponent = ({
                           updateConfig("windowsMode", value)
                         }
                       >
-                        <SelectTrigger>
+                        <SelectTrigger className="w-full">
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
@@ -309,7 +309,7 @@ const ACOutputConfigDialogComponent = ({
                           updateConfig("fanType", value)
                         }
                       >
-                        <SelectTrigger>
+                        <SelectTrigger className="w-full">
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
@@ -330,7 +330,7 @@ const ACOutputConfigDialogComponent = ({
                           updateConfig("tempType", value)
                         }
                       >
-                        <SelectTrigger>
+                        <SelectTrigger className="w-full">
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
@@ -351,7 +351,7 @@ const ACOutputConfigDialogComponent = ({
                           updateConfig("tempUnit", value)
                         }
                       >
-                        <SelectTrigger>
+                        <SelectTrigger className="w-full">
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
@@ -374,7 +374,7 @@ const ACOutputConfigDialogComponent = ({
                           updateConfig("valveContact", value)
                         }
                       >
-                        <SelectTrigger>
+                        <SelectTrigger className="w-full">
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
@@ -395,7 +395,7 @@ const ACOutputConfigDialogComponent = ({
                           updateConfig("valveType", value)
                         }
                       >
-                        <SelectTrigger>
+                        <SelectTrigger className="w-full">
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
@@ -416,7 +416,7 @@ const ACOutputConfigDialogComponent = ({
                           updateConfig("deadBand", value)
                         }
                       >
-                        <SelectTrigger>
+                        <SelectTrigger className="w-full">
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
@@ -437,7 +437,7 @@ const ACOutputConfigDialogComponent = ({
                           updateConfig("windows", value)
                         }
                       >
-                        <SelectTrigger>
+                        <SelectTrigger className="w-full">
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
@@ -462,7 +462,7 @@ const ACOutputConfigDialogComponent = ({
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-3 gap-4">
                     <div className="space-y-2">
                       <Label className="text-sm font-medium">Low fan</Label>
                       <Combobox

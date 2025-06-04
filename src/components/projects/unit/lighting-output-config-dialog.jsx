@@ -382,11 +382,11 @@ const LightingOutputConfigDialogComponent = ({
                     Delay Configuration
                   </CardTitle>
                 </CardHeader>
-                <CardContent className="space-y-4">
+                <CardContent className="flex justify-around">
                   {/* Delay Off Output */}
-                  <div className="space-y-2">
+                  <div className="space-y-2 flex flex-col justify-center items-center">
                     <Label className="text-sm font-medium">
-                      Delay off output:
+                      Delay Off Output
                     </Label>
                     <TimePicker
                       date={delayOffTime}
@@ -396,9 +396,9 @@ const LightingOutputConfigDialogComponent = ({
                   </div>
 
                   {/* Delay On Output */}
-                  <div className="space-y-2">
+                  <div className="space-y-2 flex flex-col justify-center items-center">
                     <Label className="text-sm font-medium">
-                      Delay on output:
+                      Delay On Output
                     </Label>
                     <TimePicker
                       date={delayOnTime}
@@ -472,12 +472,10 @@ const LightingOutputConfigDialogComponent = ({
                     Schedule Configuration
                   </CardTitle>
                 </CardHeader>
-                <CardContent className="space-y-4">
+                <CardContent className="flex justify-around">
                   {/* Schedule On */}
-                  <div className="space-y-2">
-                    <Label className="text-sm font-medium">
-                      Schedule on at:
-                    </Label>
+                  <div className="space-y-2 flex flex-col justify-center items-center">
+                    <Label className="text-sm font-medium">Schedule On</Label>
                     <TimePicker
                       date={scheduleOnTime}
                       setDate={handleScheduleOnTimeChange}
@@ -486,10 +484,8 @@ const LightingOutputConfigDialogComponent = ({
                   </div>
 
                   {/* Schedule Off */}
-                  <div className="space-y-2">
-                    <Label className="text-sm font-medium">
-                      Schedule off at:
-                    </Label>
+                  <div className="space-y-2 flex flex-col justify-center items-center">
+                    <Label className="text-sm font-medium">Schedule Off</Label>
                     <TimePicker
                       date={scheduleOffTime}
                       setDate={handleScheduleOffTimeChange}
