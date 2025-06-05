@@ -13,7 +13,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useProjectDetail } from "@/contexts/project-detail-context";
 import { CONSTANTS } from "@/constants";
-import { KNXAddressInput } from "@/components/ui/knx-input";
+import { KNXAddressInput } from "@/components/custom/knx-input";
 
 export function KnxItemDialog({ open, onOpenChange, mode, item }) {
   const { createItem, updateItem, selectedProject } = useProjectDetail();

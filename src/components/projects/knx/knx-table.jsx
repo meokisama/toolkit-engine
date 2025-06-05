@@ -64,7 +64,22 @@ function KnxTableComponent({ items, loading }) {
     setSaveLoading(true);
     try {
       for (const [itemId, changes] of pendingChanges) {
-        await updateItem(category, itemId, changes);
+        // Find the original item to merge with changes
+        const originalItem = items.find((item) => item.id === itemId);
+        if (!originalItem) {
+          throw new Error(`Original item with id ${itemId} not found`);
+        }
+
+        // Merge changes with original item data to ensure all required fields are present
+        const completeItemData = {
+          name: originalItem.name || "",
+          address: originalItem.address || "",
+          description: originalItem.description || "",
+          object_type: originalItem.object_type || "OBJ_KNX",
+          ...changes, // Apply the pending changes on top
+        };
+
+        await updateItem(category, itemId, completeItemData);
       }
       setPendingChanges(new Map());
     } catch (error) {
@@ -72,7 +87,7 @@ function KnxTableComponent({ items, loading }) {
     } finally {
       setSaveLoading(false);
     }
-  }, [pendingChanges, updateItem, category]);
+  }, [pendingChanges, updateItem, category, items]);
 
   const handleCreateItem = useCallback(() => {
     setEditingItem(null);
@@ -256,7 +271,9 @@ function KnxTableComponent({ items, loading }) {
         open={confirmDialogOpen}
         onOpenChange={setConfirmDialogOpen}
         title="Delete KNX Device"
-        description={`Are you sure you want to delete "${itemToDelete?.name || `Device ${itemToDelete?.address}`}"? This action cannot be undone.`}
+        description={`Are you sure you want to delete "${
+          itemToDelete?.name || `Device ${itemToDelete?.address}`
+        }"? This action cannot be undone.`}
         onConfirm={handleConfirmDelete}
         loading={deleteLoading}
       />
@@ -281,13 +298,10 @@ function KnxTableComponent({ items, loading }) {
 }
 
 // Export memoized component with custom comparison function
-export const KnxTable = memo(
-  KnxTableComponent,
-  (prevProps, nextProps) => {
-    // Only rerender if items array reference or loading state changes
-    return (
-      prevProps.items === nextProps.items &&
-      prevProps.loading === nextProps.loading
-    );
-  }
-);
+export const KnxTable = memo(KnxTableComponent, (prevProps, nextProps) => {
+  // Only rerender if items array reference or loading state changes
+  return (
+    prevProps.items === nextProps.items &&
+    prevProps.loading === nextProps.loading
+  );
+});

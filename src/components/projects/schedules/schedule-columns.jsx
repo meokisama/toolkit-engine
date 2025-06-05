@@ -1,8 +1,10 @@
-import React, { useState, useCallback } from "react";
+import React, { useState, useCallback, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { TimePicker } from "@/components/ui/time-picker";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Switch } from "@/components/ui/switch";
+import { TimePicker } from "@/components/custom/time-picker";
 import { MoreHorizontal, Edit, Copy, Trash2 } from "lucide-react";
 import {
   DropdownMenu,
@@ -23,8 +25,56 @@ const DAYS_OF_WEEK = [
   { key: "sunday", label: "Sun" },
 ];
 
-// Compact time picker component for table cells
-const CompactTimePicker = ({ value, onChange }) => {
+// Debounced input component for table cells
+const DebouncedInput = ({ value, onChange, placeholder, debounceMs = 500 }) => {
+  const [localValue, setLocalValue] = useState(value || "");
+  const debounceTimeoutRef = useRef(null);
+
+  // Update local value when prop changes
+  useEffect(() => {
+    setLocalValue(value || "");
+  }, [value]);
+
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (debounceTimeoutRef.current) {
+        clearTimeout(debounceTimeoutRef.current);
+      }
+    };
+  }, []);
+
+  const handleChange = useCallback(
+    (e) => {
+      const newValue = e.target.value;
+      setLocalValue(newValue);
+
+      // Clear existing timeout
+      if (debounceTimeoutRef.current) {
+        clearTimeout(debounceTimeoutRef.current);
+      }
+
+      // Set new timeout for debounced onChange
+      debounceTimeoutRef.current = setTimeout(() => {
+        onChange(newValue);
+      }, debounceMs);
+    },
+    [onChange, debounceMs]
+  );
+
+  return (
+    <Input
+      value={localValue}
+      onChange={handleChange}
+      placeholder={placeholder}
+    />
+  );
+};
+
+// Compact time picker component for table cells with debounce
+const CompactTimePicker = ({ value, onChange, debounceMs = 300 }) => {
+  const debounceTimeoutRef = useRef(null);
+
   // Helper functions for time conversion
   const timeStringToDate = (timeString) => {
     if (!timeString) return new Date(new Date().setHours(0, 0, 0, 0));
@@ -43,17 +93,36 @@ const CompactTimePicker = ({ value, onChange }) => {
 
   const [timeDate, setTimeDate] = useState(timeStringToDate(value));
 
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (debounceTimeoutRef.current) {
+        clearTimeout(debounceTimeoutRef.current);
+      }
+    };
+  }, []);
+
   const handleTimeChange = useCallback(
     (newDate) => {
+      // Update local state immediately for responsive UI
       setTimeDate(newDate);
-      const timeString = dateToTimeString(newDate);
-      onChange(timeString);
+
+      // Clear existing timeout
+      if (debounceTimeoutRef.current) {
+        clearTimeout(debounceTimeoutRef.current);
+      }
+
+      // Debounce the onChange call
+      debounceTimeoutRef.current = setTimeout(() => {
+        const timeString = dateToTimeString(newDate);
+        onChange(timeString);
+      }, debounceMs);
     },
-    [onChange]
+    [onChange, debounceMs]
   );
 
   // Update timeDate when value prop changes
-  React.useEffect(() => {
+  useEffect(() => {
     setTimeDate(timeStringToDate(value));
   }, [value]);
 
@@ -77,6 +146,32 @@ export function createScheduleColumns(
 ) {
   return [
     {
+      id: "select",
+      header: ({ table }) => (
+        <Checkbox
+          checked={
+            table.getIsAllPageRowsSelected() ||
+            (table.getIsSomePageRowsSelected() && "indeterminate")
+          }
+          onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
+          aria-label="Select all"
+        />
+      ),
+      cell: ({ row }) => (
+        <Checkbox
+          checked={row.getIsSelected()}
+          onCheckedChange={(value) => row.toggleSelected(!!value)}
+          aria-label="Select row"
+          className="mx-1.5"
+        />
+      ),
+      enableSorting: false,
+      enableHiding: false,
+      meta: {
+        className: "w-[3%]",
+      },
+    },
+    {
       accessorKey: "name",
       header: ({ column }) => (
         <DataTableColumnHeader column={column} title="Name" />
@@ -84,14 +179,19 @@ export function createScheduleColumns(
       cell: ({ row }) => {
         const value = getEffectiveValue(row.original, "name");
         return (
-          <Input
+          <DebouncedInput
             value={value}
-            onChange={(e) =>
-              onCellEdit(row.original.id, "name", e.target.value)
+            onChange={(newValue) =>
+              onCellEdit(row.original.id, "name", newValue)
             }
             placeholder="Enter schedule name"
           />
         );
+      },
+      enableSorting: true,
+      enableHiding: true,
+      meta: {
+        className: "w-[15%]",
       },
     },
     {
@@ -102,10 +202,10 @@ export function createScheduleColumns(
       cell: ({ row }) => {
         const value = getEffectiveValue(row.original, "description");
         return (
-          <Input
+          <DebouncedInput
             value={value}
-            onChange={(e) =>
-              onCellEdit(row.original.id, "description", e.target.value)
+            onChange={(newValue) =>
+              onCellEdit(row.original.id, "description", newValue)
             }
             placeholder="Enter description"
           />
@@ -130,6 +230,7 @@ export function createScheduleColumns(
               onChange={(timeString) =>
                 onCellEdit(row.original.id, "time", timeString)
               }
+              debounceMs={300}
             />
           </div>
         );
@@ -175,6 +276,32 @@ export function createScheduleColumns(
       enableHiding: true,
     },
     {
+      accessorKey: "enabled",
+      header: ({ column }) => (
+        <DataTableColumnHeader
+          column={column}
+          title="Enable"
+          className="flex items-center justify-center"
+        />
+      ),
+      cell: ({ row }) => {
+        const value = getEffectiveValue(row.original, "enabled");
+        const isEnabled = Boolean(value);
+        return (
+          <div className="flex items-center justify-center -ml-4">
+            <Switch
+              checked={isEnabled}
+              onCheckedChange={(checked) =>
+                onCellEdit(row.original.id, "enabled", checked)
+              }
+            />
+          </div>
+        );
+      },
+      enableSorting: true,
+      enableHiding: true,
+    },
+    {
       accessorKey: "sceneCount",
       header: ({ column }) => (
         <DataTableColumnHeader column={column} title="Scenes" />
@@ -187,6 +314,8 @@ export function createScheduleColumns(
           </Badge>
         );
       },
+      enableSorting: false,
+      enableHiding: true,
     },
     {
       id: "actions",

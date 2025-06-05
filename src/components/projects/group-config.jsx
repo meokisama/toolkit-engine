@@ -124,7 +124,7 @@ export function GroupConfig() {
                 )
               ) : (
                 <Card className="h-full">
-                  <CardContent className="p-6 h-full">
+                  <CardContent className="h-full">
                     {key === "lighting" && (
                       <ProjectItemsTable
                         items={projectItems.lighting}

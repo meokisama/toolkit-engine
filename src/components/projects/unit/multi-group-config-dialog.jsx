@@ -1,4 +1,11 @@
-import React, { useState, useEffect, useMemo, useCallback, memo } from "react";
+import React, {
+  useState,
+  useEffect,
+  useMemo,
+  useCallback,
+  memo,
+  useRef,
+} from "react";
 import {
   Dialog,
   DialogContent,
@@ -10,7 +17,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
-import { Combobox } from "@/components/ui/combobox";
+import { Combobox } from "@/components/custom/combobox";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -25,17 +32,8 @@ import {
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
-import { TimePicker } from "@/components/ui/time-picker";
-import {
-  Plus,
-  Trash2,
-  Settings,
-  X,
-  Copy,
-  Clock,
-  Lightbulb,
-  Zap,
-} from "lucide-react";
+import { TimePicker } from "@/components/custom/time-picker";
+import { Plus, Trash2, Settings, X, Copy } from "lucide-react";
 import { useProjectDetail } from "@/contexts/project-detail-context";
 import {
   RAMP_OPTIONS,
@@ -47,9 +45,6 @@ import {
   getRlcOptionsConfig,
   getInputFunctionByValue,
 } from "@/constants";
-
-// Performance optimization constants
-const PERFORMANCE_THRESHOLD = 20; // Show warning for large group lists
 
 // Memoized group item component for better performance
 const GroupItem = memo(
@@ -193,10 +188,13 @@ export function MultiGroupConfigDialog({
     },
   });
 
-  // Time picker state for delay off
+  // Time picker state for delay off - local state for immediate UI updates
   const [delayOffTime, setDelayOffTime] = useState(
     new Date(new Date().setHours(0, 0, 0, 0))
   );
+
+  // Debounce timeout ref for time picker
+  const timePickerDebounceRef = useRef(null);
 
   // Helper functions for time conversion
   const timeToDate = (hours, minutes, seconds = 0) => {
@@ -293,6 +291,10 @@ export function MultiGroupConfigDialog({
   }, [open, initialGroups, initialRlcOptions, isLoading]);
 
   const handleClose = useCallback(() => {
+    // Clear any pending debounced updates
+    if (timePickerDebounceRef.current) {
+      clearTimeout(timePickerDebounceRef.current);
+    }
     onOpenChange(false);
   }, [onOpenChange]);
 
@@ -437,36 +439,8 @@ export function MultiGroupConfigDialog({
     }));
   }, []);
 
-  const handleDelayOffChange = useCallback(
-    (field, value) => {
-      let validatedValue = parseInt(value) || 0;
-
-      // Validate based on field type
-      if (field === "hours") {
-        validatedValue = Math.max(0, Math.min(18, validatedValue));
-      } else if (field === "minutes") {
-        const maxMinutes = rlcOptions.delayOff.hours === 18 ? 11 : 59;
-        validatedValue = Math.max(0, Math.min(maxMinutes, validatedValue));
-      } else if (field === "seconds") {
-        validatedValue = Math.max(0, Math.min(59, validatedValue));
-      }
-
-      setRlcOptions((prev) => ({
-        ...prev,
-        delayOff: {
-          ...prev.delayOff,
-          [field]: validatedValue,
-        },
-      }));
-    },
-    [rlcOptions.delayOff.hours]
-  );
-
-  // Time picker handler for delay off
-  const handleDelayOffTimeChange = useCallback((newDate) => {
-    setDelayOffTime(newDate);
-    const { hours, minutes, seconds } = dateToTimeComponents(newDate);
-
+  // Debounced function to update rlcOptions
+  const updateDelayOffOptions = useCallback((hours, minutes, seconds) => {
     // Apply validation constraints
     let validatedHours = Math.max(0, Math.min(18, hours));
     let validatedMinutes = Math.max(0, Math.min(59, minutes));
@@ -487,11 +461,34 @@ export function MultiGroupConfigDialog({
     }));
   }, []);
 
-  // Performance monitoring
-  const performanceWarning = useMemo(() => {
-    const totalGroups = selectedGroups.length + availableLightingGroups.length;
-    return totalGroups > PERFORMANCE_THRESHOLD;
-  }, [selectedGroups.length, availableLightingGroups.length]);
+  // Time picker handler for delay off with debouncing
+  const handleDelayOffTimeChange = useCallback(
+    (newDate) => {
+      // Update local state immediately for responsive UI
+      setDelayOffTime(newDate);
+
+      // Clear existing timeout
+      if (timePickerDebounceRef.current) {
+        clearTimeout(timePickerDebounceRef.current);
+      }
+
+      // Debounce the rlcOptions update
+      timePickerDebounceRef.current = setTimeout(() => {
+        const { hours, minutes, seconds } = dateToTimeComponents(newDate);
+        updateDelayOffOptions(hours, minutes, seconds);
+      }, 300); // 300ms debounce delay
+    },
+    [dateToTimeComponents, updateDelayOffOptions]
+  );
+
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (timePickerDebounceRef.current) {
+        clearTimeout(timePickerDebounceRef.current);
+      }
+    };
+  }, []);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange} modal={true}>

@@ -32,6 +32,9 @@ class DatabaseService {
       // Tạo bảng projects nếu chưa tồn tại
       this.createTables();
 
+      // Run migrations for existing databases
+      this.runMigrations();
+
 
     } catch (error) {
       console.error('Failed to initialize database:', error);
@@ -171,6 +174,7 @@ class DatabaseService {
         description TEXT,
         time TEXT NOT NULL,
         days TEXT NOT NULL,
+        enabled BOOLEAN DEFAULT 1,
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
         updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
         FOREIGN KEY (project_id) REFERENCES projects (id) ON DELETE CASCADE
@@ -234,6 +238,23 @@ class DatabaseService {
     } catch (error) {
       console.error('Failed to create tables:', error);
       throw error;
+    }
+  }
+
+  runMigrations() {
+    try {
+      // Migration 1: Add enabled column to schedule table if it doesn't exist
+      const scheduleColumns = this.db.prepare("PRAGMA table_info(schedule)").all();
+      const hasEnabledColumn = scheduleColumns.some(column => column.name === 'enabled');
+
+      if (!hasEnabledColumn) {
+        console.log('Adding enabled column to schedule table...');
+        this.db.exec('ALTER TABLE schedule ADD COLUMN enabled BOOLEAN DEFAULT 1');
+        console.log('Successfully added enabled column to schedule table');
+      }
+    } catch (error) {
+      console.error('Failed to run migrations:', error);
+      // Don't throw error to prevent app from crashing on migration failures
     }
   }
 
@@ -1495,16 +1516,20 @@ class DatabaseService {
   createScheduleItem(projectId, itemData) {
     try {
       const stmt = this.db.prepare(`
-        INSERT INTO schedule (project_id, name, description, time, days)
-        VALUES (?, ?, ?, ?, ?)
+        INSERT INTO schedule (project_id, name, description, time, days, enabled)
+        VALUES (?, ?, ?, ?, ?, ?)
       `);
+
+      // Convert boolean to integer for SQLite
+      const enabledValue = itemData.enabled !== undefined ? (itemData.enabled ? 1 : 0) : 1;
 
       const result = stmt.run(
         projectId,
         itemData.name,
         itemData.description,
         itemData.time,
-        JSON.stringify(itemData.days)
+        JSON.stringify(itemData.days),
+        enabledValue
       );
 
       // Return the created schedule item
@@ -1520,15 +1545,19 @@ class DatabaseService {
     try {
       const stmt = this.db.prepare(`
         UPDATE schedule
-        SET name = ?, description = ?, time = ?, days = ?, updated_at = CURRENT_TIMESTAMP
+        SET name = ?, description = ?, time = ?, days = ?, enabled = ?, updated_at = CURRENT_TIMESTAMP
         WHERE id = ?
       `);
+
+      // Convert boolean to integer for SQLite
+      const enabledValue = itemData.enabled !== undefined ? (itemData.enabled ? 1 : 0) : 1;
 
       const result = stmt.run(
         itemData.name,
         itemData.description,
         itemData.time,
         JSON.stringify(itemData.days),
+        enabledValue,
         id
       );
 
@@ -1574,16 +1603,20 @@ class DatabaseService {
       // Create duplicate with modified name
       const duplicateName = `${original.name} (Copy)`;
       const createStmt = this.db.prepare(`
-        INSERT INTO schedule (project_id, name, description, time, days)
-        VALUES (?, ?, ?, ?, ?)
+        INSERT INTO schedule (project_id, name, description, time, days, enabled)
+        VALUES (?, ?, ?, ?, ?, ?)
       `);
+
+      // Ensure enabled value is properly converted to integer for SQLite
+      const enabledValue = original.enabled ? 1 : 0;
 
       const result = createStmt.run(
         original.project_id,
         duplicateName,
         original.description,
         original.time,
-        original.days
+        original.days,
+        enabledValue
       );
 
       // Get the duplicated schedule item

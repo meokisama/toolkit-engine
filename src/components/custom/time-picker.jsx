@@ -1,9 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { Clock } from "lucide-react";
-import { Label } from "@/components/ui/label";
-import { TimePickerInput } from "./time-picker-input";
+import { TimePickerInput } from "@/components/custom/time-picker-input";
 
 export function TimePicker({ date, setDate, showSeconds = true }) {
   const minuteRef = React.useRef(null);

@@ -97,7 +97,7 @@ export function ScenesSchedules() {
                 <TabLoadingSkeleton />
               ) : (
                 <Card className="h-full">
-                  <CardContent className="p-6 h-full">
+                  <CardContent className="h-full">
                     {key === "scene" && (
                       <SceneTable items={projectItems.scene} />
                     )}

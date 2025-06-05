@@ -13,7 +13,7 @@ import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { TimePicker } from "@/components/ui/time-picker";
+import { TimePicker } from "@/components/custom/time-picker";
 import { Lightbulb, Clock, Timer, Zap } from "lucide-react";
 
 // Validation ranges for different input types

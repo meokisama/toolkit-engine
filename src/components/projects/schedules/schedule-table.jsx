@@ -11,7 +11,10 @@ import { DataTableSkeleton } from "@/components/projects/table-skeleton";
 import { createScheduleColumns } from "./schedule-columns";
 import { toast } from "sonner";
 
-const ScheduleTable = memo(function ScheduleTable({ items = [], loading = false }) {
+const ScheduleTable = memo(function ScheduleTable({
+  items = [],
+  loading = false,
+}) {
   const category = "schedule";
   const { deleteItem, duplicateItem, updateItem } = useProjectDetail();
   const [scheduleSceneCounts, setScheduleSceneCounts] = useState({});
@@ -35,16 +38,27 @@ const ScheduleTable = memo(function ScheduleTable({ items = [], loading = false 
   const [pendingChanges, setPendingChanges] = useState(new Map());
   const [saveLoading, setSaveLoading] = useState(false);
 
+  // Row selection and bulk delete state
+  const [selectedRowsCount, setSelectedRowsCount] = useState(0);
+  const [itemsToDelete, setItemsToDelete] = useState([]);
+  const [bulkDeleteDialogOpen, setBulkDeleteDialogOpen] = useState(false);
+  const [bulkDeleteLoading, setBulkDeleteLoading] = useState(false);
+
   // Load scene counts for each schedule
   useEffect(() => {
     const loadSceneCounts = async () => {
       const counts = {};
       for (const schedule of items) {
         try {
-          const scenes = await window.electronAPI.schedule.getScenesWithDetails(schedule.id);
+          const scenes = await window.electronAPI.schedule.getScenesWithDetails(
+            schedule.id
+          );
           counts[schedule.id] = scenes.length;
         } catch (error) {
-          console.error(`Failed to load scene count for schedule ${schedule.id}:`, error);
+          console.error(
+            `Failed to load scene count for schedule ${schedule.id}:`,
+            error
+          );
           counts[schedule.id] = 0;
         }
       }
@@ -86,7 +100,8 @@ const ScheduleTable = memo(function ScheduleTable({ items = [], loading = false 
       setConfirmDialog({
         open: true,
         title: "Delete Schedule",
-        description: "Are you sure you want to delete this schedule? This action cannot be undone.",
+        description:
+          "Are you sure you want to delete this schedule? This action cannot be undone.",
         onConfirm: async () => {
           try {
             await deleteItem(category, id);
@@ -139,7 +154,37 @@ const ScheduleTable = memo(function ScheduleTable({ items = [], loading = false 
     setSaveLoading(true);
     try {
       const updatePromises = Array.from(pendingChanges.entries()).map(
-        ([id, changes]) => updateItem(category, id, changes)
+        ([id, changes]) => {
+          // Find the original item to merge with changes
+          const originalItem = items.find((item) => item.id === id);
+          if (!originalItem) {
+            throw new Error(`Original item with id ${id} not found`);
+          }
+
+          // Parse days field to ensure it's an array
+          let parsedDays = [];
+          try {
+            parsedDays =
+              typeof originalItem.days === "string"
+                ? JSON.parse(originalItem.days)
+                : originalItem.days || [];
+          } catch (e) {
+            parsedDays = [];
+          }
+
+          // Merge changes with original item data to ensure all required fields are present
+          const completeItemData = {
+            name: originalItem.name || "",
+            description: originalItem.description || "",
+            time: originalItem.time || "",
+            days: parsedDays, // Ensure days is always an array
+            enabled:
+              originalItem.enabled !== undefined ? originalItem.enabled : true,
+            ...changes, // Apply the pending changes on top
+          };
+
+          return updateItem(category, id, completeItemData);
+        }
       );
 
       await Promise.all(updatePromises);
@@ -151,10 +196,34 @@ const ScheduleTable = memo(function ScheduleTable({ items = [], loading = false 
     } finally {
       setSaveLoading(false);
     }
-  }, [pendingChanges, updateItem, category]);
+  }, [pendingChanges, updateItem, category, items]);
 
-  const handleRowSelectionChange = useCallback((newSelection) => {
-    // Handle row selection if needed
+  // Bulk delete handlers
+  const handleBulkDelete = useCallback((selectedItems) => {
+    setItemsToDelete(selectedItems);
+    setBulkDeleteDialogOpen(true);
+  }, []);
+
+  const handleConfirmBulkDelete = useCallback(async () => {
+    setBulkDeleteLoading(true);
+    try {
+      for (const item of itemsToDelete) {
+        await deleteItem(category, item.id);
+      }
+      setBulkDeleteDialogOpen(false);
+      setItemsToDelete([]);
+      table?.resetRowSelection();
+      toast.success(`${itemsToDelete.length} schedule(s) deleted successfully`);
+    } catch (error) {
+      console.error("Failed to delete schedules:", error);
+      toast.error("Failed to delete schedules");
+    } finally {
+      setBulkDeleteLoading(false);
+    }
+  }, [deleteItem, itemsToDelete, table, category]);
+
+  const handleRowSelectionChange = useCallback((selectedCount) => {
+    setSelectedRowsCount(selectedCount);
   }, []);
 
   const handleColumnVisibilityChange = useCallback((newVisibility) => {
@@ -204,6 +273,10 @@ const ScheduleTable = memo(function ScheduleTable({ items = [], loading = false 
               {table && (
                 <DataTableToolbar
                   table={table}
+                  searchColumn="name"
+                  searchPlaceholder="Search schedules..."
+                  onBulkDelete={handleBulkDelete}
+                  selectedRowsCount={selectedRowsCount}
                   category={category}
                   columnVisibility={columnVisibility}
                   onAddItem={handleCreateItem}
@@ -244,12 +317,19 @@ const ScheduleTable = memo(function ScheduleTable({ items = [], loading = false 
 
       <ConfirmDialog
         open={confirmDialog.open}
-        onOpenChange={(open) =>
-          setConfirmDialog({ ...confirmDialog, open })
-        }
+        onOpenChange={(open) => setConfirmDialog({ ...confirmDialog, open })}
         title={confirmDialog.title}
         description={confirmDialog.description}
         onConfirm={confirmDialog.onConfirm}
+      />
+
+      <ConfirmDialog
+        open={bulkDeleteDialogOpen}
+        onOpenChange={setBulkDeleteDialogOpen}
+        title="Delete Schedules"
+        description={`Are you sure you want to delete ${itemsToDelete.length} selected schedule(s)? This action cannot be undone.`}
+        onConfirm={handleConfirmBulkDelete}
+        loading={bulkDeleteLoading}
       />
     </div>
   );

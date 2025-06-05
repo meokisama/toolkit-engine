@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { DataTableColumnHeader } from "@/components/projects/data-table/data-table-column-header";
 import { EditableCell } from "@/components/projects/data-table/editable-cell";
-import { KNXAddressInput } from "@/components/ui/knx-input";
+import { KNXAddressInput } from "@/components/custom/knx-input";
 
 export const createKnxItemsColumns = (
   onEdit,

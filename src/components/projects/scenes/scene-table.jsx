@@ -225,7 +225,7 @@ const SceneTable = memo(function SceneTable({ items = [], loading = false }) {
             </Button>
           </div>
         ) : (
-          <div className="space-y-4 flex flex-col h-full">
+          <div className="space-y-4 flex flex-col h-full justify-between">
             <div className="flex-1 space-y-4">
               {table && (
                 <DataTableToolbar

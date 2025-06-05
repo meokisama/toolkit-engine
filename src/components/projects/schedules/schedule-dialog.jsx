@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useMemo } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import {
   Dialog,
   DialogContent,
@@ -9,16 +9,16 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Switch } from "@/components/ui/switch";
+import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Separator } from "@/components/ui/separator";
-import { TimePicker } from "@/components/ui/time-picker";
-import { Clock, Calendar, Plus, X } from "lucide-react";
+import { TimePicker } from "@/components/custom/time-picker";
+import { Clock, Calendar, CircleCheck, Lightbulb } from "lucide-react";
 import { useProjectDetail } from "@/contexts/project-detail-context";
 import { toast } from "sonner";
+import * as CheckboxPrimitive from "@radix-ui/react-checkbox";
 
 const DAYS_OF_WEEK = [
   { key: "monday", label: "Monday" },
@@ -51,12 +51,13 @@ export function ScheduleDialog({
     description: "",
     time: "",
     days: [],
+    enabled: true,
   });
   const [timeDate, setTimeDate] = useState(
     new Date(new Date().setHours(0, 0, 0, 0))
   );
   const [errors, setErrors] = useState({});
-  const [scheduleScenes, setScheduleScenes] = useState([]);
+  const [selectedSceneIds, setSelectedSceneIds] = useState([]);
   const [originalScheduleScenes, setOriginalScheduleScenes] = useState([]);
   const [loading, setLoading] = useState(false);
 
@@ -95,6 +96,8 @@ export function ScheduleDialog({
           description: schedule.description || "",
           time: schedule.time || "",
           days: parsedDays,
+          enabled:
+            schedule.enabled !== undefined ? Boolean(schedule.enabled) : true,
         });
         setTimeDate(timeStringToDate(schedule.time || ""));
 
@@ -106,9 +109,10 @@ export function ScheduleDialog({
           description: "",
           time: "",
           days: [],
+          enabled: true,
         });
         setTimeDate(new Date(new Date().setHours(0, 0, 0, 0)));
-        setScheduleScenes([]);
+        setSelectedSceneIds([]);
         setOriginalScheduleScenes([]);
       }
       setErrors({});
@@ -125,11 +129,11 @@ export function ScheduleDialog({
       const scenes = await window.electronAPI.schedule.getScenesWithDetails(
         scheduleId
       );
-      setScheduleScenes(scenes);
+      setSelectedSceneIds(scenes.map((scene) => scene.scene_id));
       setOriginalScheduleScenes([...scenes]);
     } catch (error) {
       console.error("Failed to load schedule scenes:", error);
-      setScheduleScenes([]);
+      setSelectedSceneIds([]);
       setOriginalScheduleScenes([]);
     }
   };
@@ -200,45 +204,30 @@ export function ScheduleDialog({
     return Object.keys(newErrors).length === 0;
   };
 
-  const addSceneToSchedule = useCallback(
-    (scene) => {
-      const isAlreadyAdded = scheduleScenes.some(
-        (ss) => ss.scene_id === scene.id
-      );
-      if (isAlreadyAdded) {
-        toast.error("Scene is already added to this schedule");
-        return;
+  const handleSceneToggle = useCallback((sceneId, checked) => {
+    setSelectedSceneIds((prev) => {
+      if (checked) {
+        return [...prev, sceneId];
+      } else {
+        return prev.filter((id) => id !== sceneId);
       }
-
-      const newScheduleScene = {
-        id: mode === "edit" ? `temp_${Date.now()}` : Date.now(),
-        scene_id: scene.id,
-        scene_name: scene.name,
-        scene_address: scene.address,
-        scene_description: scene.description,
-      };
-      setScheduleScenes((prev) => [...prev, newScheduleScene]);
-    },
-    [scheduleScenes, mode]
-  );
-
-  const removeSceneFromSchedule = useCallback((scheduleSceneId) => {
-    setScheduleScenes((prev) => prev.filter((ss) => ss.id !== scheduleSceneId));
+    });
   }, []);
 
   const applyScheduleScenesChanges = async (scheduleId) => {
-    // Find scenes to remove (in original but not in current)
-    const scenesToRemove = originalScheduleScenes.filter(
-      (original) =>
-        !scheduleScenes.find((current) => current.id === original.id)
+    // Get original scene IDs
+    const originalSceneIds = originalScheduleScenes.map(
+      (scene) => scene.scene_id
     );
 
-    // Find scenes to add (in current but not in original, or have temp IDs)
-    const scenesToAdd = scheduleScenes.filter(
-      (current) =>
-        !originalScheduleScenes.find(
-          (original) => original.id === current.id
-        ) || current.id.toString().startsWith("temp_")
+    // Find scenes to remove (in original but not in current selection)
+    const scenesToRemove = originalScheduleScenes.filter(
+      (original) => !selectedSceneIds.includes(original.scene_id)
+    );
+
+    // Find scenes to add (in current selection but not in original)
+    const scenesToAdd = selectedSceneIds.filter(
+      (sceneId) => !originalSceneIds.includes(sceneId)
     );
 
     // Remove scenes
@@ -247,8 +236,8 @@ export function ScheduleDialog({
     }
 
     // Add new scenes
-    for (const scene of scenesToAdd) {
-      await window.electronAPI.schedule.addScene(scheduleId, scene.scene_id);
+    for (const sceneId of scenesToAdd) {
+      await window.electronAPI.schedule.addScene(scheduleId, sceneId);
     }
   };
 
@@ -271,12 +260,9 @@ export function ScheduleDialog({
         // Create new schedule
         const newSchedule = await createItem("schedule", formData);
 
-        // Add all schedule scenes
-        for (const scheduleScene of scheduleScenes) {
-          await window.electronAPI.schedule.addScene(
-            newSchedule.id,
-            scheduleScene.scene_id
-          );
+        // Add all selected scenes
+        for (const sceneId of selectedSceneIds) {
+          await window.electronAPI.schedule.addScene(newSchedule.id, sceneId);
         }
 
         // Switch to schedule tab to show the newly created schedule
@@ -290,9 +276,10 @@ export function ScheduleDialog({
         description: "",
         time: "",
         days: [],
+        enabled: true,
       });
       setTimeDate(new Date(new Date().setHours(0, 0, 0, 0)));
-      setScheduleScenes([]);
+      setSelectedSceneIds([]);
       setOriginalScheduleScenes([]);
       toast.success(
         mode === "edit"
@@ -316,12 +303,8 @@ export function ScheduleDialog({
     [onOpenChange, loading]
   );
 
-  // Available scenes (not already added to schedule)
-  const availableScenes = useMemo(() => {
-    return (projectItems.scene || []).filter(
-      (scene) => !scheduleScenes.some((ss) => ss.scene_id === scene.id)
-    );
-  }, [projectItems.scene, scheduleScenes]);
+  // Get all available scenes
+  const allScenes = projectItems.scene || [];
 
   return (
     <Dialog open={open} onOpenChange={handleDialogOpenChange}>
@@ -338,201 +321,167 @@ export function ScheduleDialog({
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {/* Basic Information */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-sm">Basic Information</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="name">Name *</Label>
-                  <Input
-                    id="name"
-                    value={formData.name}
-                    onChange={(e) => handleInputChange("name", e.target.value)}
-                    placeholder="Enter schedule name"
-                    className={errors.name ? "border-destructive" : ""}
-                  />
-                  {errors.name && (
-                    <p className="text-sm text-destructive">{errors.name}</p>
-                  )}
-                </div>
+          <div className="grid grid-cols-5 gap-8">
+            <div className="col-span-2 flex flex-col gap-4 justify-center">
+              <div className="space-y-2">
+                <Label htmlFor="name">Name</Label>
+                <Input
+                  id="name"
+                  value={formData.name}
+                  onChange={(e) => handleInputChange("name", e.target.value)}
+                  placeholder="Enter schedule name"
+                  className={errors.name ? "border-destructive" : ""}
+                />
+                {errors.name && (
+                  <p className="text-sm text-destructive">{errors.name}</p>
+                )}
+              </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="description">Description</Label>
-                  <Textarea
-                    id="description"
-                    value={formData.description}
-                    onChange={(e) =>
-                      handleInputChange("description", e.target.value)
-                    }
-                    placeholder="Enter description"
-                    rows={3}
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="time" className="flex items-center gap-2">
-                    <Clock className="h-4 w-4" />
-                    Time *
-                  </Label>
-                  <div
-                    className={
-                      errors.time
-                        ? "border border-destructive rounded-md p-2"
-                        : ""
-                    }
-                  >
-                    <TimePicker
-                      date={timeDate}
-                      setDate={handleTimeChange}
-                      showSeconds={false}
-                    />
-                  </div>
-                  {errors.time && (
-                    <p className="text-sm text-destructive">{errors.time}</p>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
+              <div className="space-y-2">
+                <Label htmlFor="description">Description</Label>
+                <Textarea
+                  id="description"
+                  value={formData.description}
+                  onChange={(e) =>
+                    handleInputChange("description", e.target.value)
+                  }
+                  placeholder="Enter description"
+                  rows={6}
+                />
+              </div>
+            </div>
 
             {/* Days Selection */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-sm flex items-center gap-2">
-                  <Calendar className="h-4 w-4" />
-                  Days of Week *
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="space-y-3">
-                  {DAYS_OF_WEEK.map((day) => (
-                    <div key={day.key} className="flex items-center space-x-2">
-                      <Checkbox
-                        id={day.key}
-                        checked={formData.days.includes(day.key)}
-                        onCheckedChange={() => handleDayToggle(day.key)}
+            <div className="flex flex-col w-full justify-between gap-4 col-span-3">
+              <div className="flex gap-4">
+                <Card className="w-1/3">
+                  <CardContent className="space-y-4 flex flex-col justify-center items-center">
+                    <Label
+                      htmlFor="enabled"
+                      className="flex items-center gap-2"
+                    >
+                      Enable
+                    </Label>
+                    <Switch
+                      id="enabled"
+                      checked={formData.enabled}
+                      onCheckedChange={(checked) =>
+                        handleInputChange("enabled", checked)
+                      }
+                      className="h-7 w-12"
+                      thumbClassName="h-6 w-6 data-[state=checked]:translate-x-5"
+                    />
+                  </CardContent>
+                </Card>
+                <Card className="w-2/3">
+                  <CardContent className="space-y-4 flex flex-col justify-center items-center">
+                    <Label htmlFor="time" className="flex items-center gap-2">
+                      Trigger Time
+                    </Label>
+                    <div
+                      className={
+                        errors.time
+                          ? "border border-destructive rounded-md p-2"
+                          : ""
+                      }
+                    >
+                      <TimePicker
+                        date={timeDate}
+                        setDate={handleTimeChange}
+                        showSeconds={false}
                       />
-                      <Label htmlFor={day.key} className="text-sm font-normal">
-                        {day.label}
-                      </Label>
                     </div>
-                  ))}
-                </div>
-                {errors.days && (
-                  <p className="text-sm text-destructive">{errors.days}</p>
-                )}
-              </CardContent>
-            </Card>
+                    {errors.time && (
+                      <p className="text-sm text-destructive">{errors.time}</p>
+                    )}
+                  </CardContent>
+                </Card>
+              </div>
+              <Card>
+                <CardContent>
+                  <div className="grid md:grid-cols-3 xl:grid-cols-4 gap-2 gap-x-4">
+                    {DAYS_OF_WEEK.map((day) => (
+                      <div
+                        key={day.key}
+                        className="flex items-center space-x-2"
+                      >
+                        <Checkbox
+                          id={day.key}
+                          checked={formData.days.includes(day.key)}
+                          onCheckedChange={() => handleDayToggle(day.key)}
+                        />
+                        <Label
+                          htmlFor={day.key}
+                          className="text-sm font-normal"
+                        >
+                          {day.label}
+                        </Label>
+                      </div>
+                    ))}
+                  </div>
+                  {errors.days && (
+                    <p className="text-sm text-destructive">{errors.days}</p>
+                  )}
+                </CardContent>
+              </Card>
+            </div>
           </div>
 
-          {/* Schedule Scenes Management */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {/* Current Schedule Scenes */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-sm">Schedule Scenes</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <ScrollArea className="h-64">
-                  {scheduleScenes.length === 0 ? (
-                    <div className="text-center text-muted-foreground py-8">
-                      <p>No scenes added to this schedule.</p>
-                      <p className="text-sm">
-                        Add scenes from the available list.
-                      </p>
-                    </div>
-                  ) : (
-                    <div className="space-y-2">
-                      {scheduleScenes.map((scheduleScene) => (
-                        <div
-                          key={scheduleScene.id}
-                          className="flex items-center justify-between p-2 border rounded"
-                        >
-                          <div className="flex-1">
-                            <p className="font-medium text-sm">
-                              {scheduleScene.scene_name}
+          {/* Scene Selection */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-sm">Select Scenes</CardTitle>
+              <p className="text-sm text-muted-foreground">
+                Select the scenes you want to include in this schedule.
+              </p>
+            </CardHeader>
+            <CardContent>
+              <ScrollArea className="h-60">
+                {allScenes.length === 0 ? (
+                  <div className="text-center text-muted-foreground py-8">
+                    <p>No scenes available.</p>
+                    <p className="text-sm">
+                      Create scenes first to add them to schedules.
+                    </p>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 p-2">
+                    {allScenes.map((scene) => (
+                      <CheckboxPrimitive.Root
+                        key={scene.id}
+                        checked={selectedSceneIds.includes(scene.id)}
+                        onCheckedChange={(checked) =>
+                          handleSceneToggle(scene.id, checked)
+                        }
+                        className="relative ring-[1px] ring-border rounded-lg px-4 py-3 text-start text-muted-foreground data-[state=checked]:ring-2 data-[state=checked]:ring-primary data-[state=checked]:text-primary flex flex-row items-center gap-3 cursor-pointer"
+                      >
+                        <Lightbulb className="h-6 w-6" />
+                        <div className="space-y-1">
+                          <span className="font-medium tracking-tight text-sm">
+                            {scene.name}
+                          </span>
+                          {scene.address && (
+                            <p className="text-xs text-muted-foreground">
+                              Address: {scene.address}
                             </p>
-                            {scheduleScene.scene_address && (
-                              <p className="text-xs text-muted-foreground">
-                                Address: {scheduleScene.scene_address}
-                              </p>
-                            )}
-                            {scheduleScene.scene_description && (
-                              <p className="text-xs text-muted-foreground">
-                                {scheduleScene.scene_description}
-                              </p>
-                            )}
-                          </div>
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            size="sm"
-                            onClick={() =>
-                              removeSceneFromSchedule(scheduleScene.id)
-                            }
-                          >
-                            <X className="h-4 w-4" />
-                          </Button>
+                          )}
+                          {scene.description && (
+                            <p className="text-xs text-muted-foreground line-clamp-2">
+                              {scene.description}
+                            </p>
+                          )}
                         </div>
-                      ))}
-                    </div>
-                  )}
-                </ScrollArea>
-              </CardContent>
-            </Card>
 
-            {/* Available Scenes */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-sm">Available Scenes</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <ScrollArea className="h-64">
-                  {availableScenes.length === 0 ? (
-                    <div className="text-center text-muted-foreground py-8">
-                      <p>No available scenes.</p>
-                      <p className="text-sm">
-                        All scenes are already added or no scenes exist.
-                      </p>
-                    </div>
-                  ) : (
-                    <div className="space-y-2">
-                      {availableScenes.map((scene) => (
-                        <div
-                          key={scene.id}
-                          className="flex items-center justify-between p-2 border rounded hover:bg-muted/50"
-                        >
-                          <div className="flex-1">
-                            <p className="font-medium text-sm">{scene.name}</p>
-                            {scene.address && (
-                              <p className="text-xs text-muted-foreground">
-                                Address: {scene.address}
-                              </p>
-                            )}
-                            {scene.description && (
-                              <p className="text-xs text-muted-foreground">
-                                {scene.description}
-                              </p>
-                            )}
-                          </div>
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => addSceneToSchedule(scene)}
-                          >
-                            <Plus className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </ScrollArea>
-              </CardContent>
-            </Card>
-          </div>
+                        <CheckboxPrimitive.Indicator className="absolute top-2 right-2">
+                          <CircleCheck className="fill-primary text-primary-foreground h-4 w-4" />
+                        </CheckboxPrimitive.Indicator>
+                      </CheckboxPrimitive.Root>
+                    ))}
+                  </div>
+                )}
+              </ScrollArea>
+            </CardContent>
+          </Card>
 
           <div className="flex justify-end space-x-2">
             <Button
