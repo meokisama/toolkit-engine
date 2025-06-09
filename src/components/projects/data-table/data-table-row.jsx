@@ -48,14 +48,18 @@ export function DataTableRow({
           <span>Duplicate</span>
         </ContextMenuItem>
         <ContextMenuSeparator />
-        <ContextMenuItem
-          onClick={() => onIOConfig(item)}
-          className="cursor-pointer"
-        >
-          <Settings className="text-muted-foreground" />
-          <span>I/O Config</span>
-        </ContextMenuItem>
-        <ContextMenuSeparator />
+        {onIOConfig && (
+          <>
+            <ContextMenuItem
+              onClick={() => onIOConfig(item)}
+              className="cursor-pointer"
+            >
+              <Settings className="text-muted-foreground" />
+              <span>I/O Config</span>
+            </ContextMenuItem>
+            <ContextMenuSeparator />
+          </>
+        )}
         <ContextMenuItem
           onClick={() => onDelete(item)}
           className="cursor-pointer"
