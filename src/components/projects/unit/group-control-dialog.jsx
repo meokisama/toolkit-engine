@@ -21,7 +21,7 @@ export function GroupControlDialog({
   open,
   onOpenChange,
   unit,
-  onGroupControl
+  onGroupControl,
 }) {
   const [group, setGroup] = useState(1);
   const [value, setValue] = useState([0]);
@@ -29,7 +29,7 @@ export function GroupControlDialog({
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     if (!unit) {
       toast.error("No unit selected");
       return;
@@ -51,21 +51,20 @@ export function GroupControlDialog({
         canId: unit.id_can,
         group: parseInt(group),
         value: value[0],
-        unitIp: unit.ip_address
+        unitIp: unit.ip_address,
       });
 
-      toast.success(`Group ${group} set to ${value[0]} (${Math.round(value[0] * 100 / 255)}%) for unit ${unit.id_can}`);
+      toast.success(
+        `Group ${group} set to ${value[0]} (${Math.round(
+          (value[0] * 100) / 255
+        )}%) for unit ${unit.id_can}`
+      );
     } catch (error) {
       console.error("Group control failed:", error);
       toast.error("Failed to control group: " + error.message);
     } finally {
       setLoading(false);
     }
-  };
-
-  const handleReset = () => {
-    setGroup(1);
-    setValue([0]);
   };
 
   return (
@@ -77,7 +76,8 @@ export function GroupControlDialog({
             Group Control
           </DialogTitle>
           <DialogDescription>
-            Control lighting group for unit {unit?.id_can} at {unit?.ip_address}:{CONSTANTS.UNIT.UDP_CONFIG.UDP_PORT}
+            Control lighting group for unit {unit?.id_can} at {unit?.ip_address}
+            :{CONSTANTS.UNIT.UDP_CONFIG.UDP_PORT}
           </DialogDescription>
         </DialogHeader>
 
@@ -97,7 +97,9 @@ export function GroupControlDialog({
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="value">Value ({Math.round(value[0] * 100 / 255)}%)</Label>
+              <Label htmlFor="value">
+                Value ({Math.round((value[0] * 100) / 255)}%)
+              </Label>
               <Input
                 id="value"
                 type="number"
@@ -127,17 +129,7 @@ export function GroupControlDialog({
             </div>
           </div>
 
-
-
           <DialogFooter className="gap-2">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={handleReset}
-              disabled={loading}
-            >
-              Reset
-            </Button>
             <Button
               type="button"
               variant="outline"
