@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { DataTable } from "@/components/projects/data-table/data-table";
 import { DataTablePagination } from "@/components/projects/data-table/data-table-pagination";
 import { createNetworkUnitColumns } from "@/components/projects/unit/unit-columns";
+import { GroupControlDialog } from "@/components/projects/unit/group-control-dialog";
 import { udpScanner } from "@/services/udp";
 import { toast } from "sonner";
 
@@ -15,6 +16,8 @@ export function NetworkUnitTable({ onTransferToDatabase, existingUnits = [] }) {
   const [selectedNetworkUnits, setSelectedNetworkUnits] = useState([]);
   const [scanLoading, setScanLoading] = useState(false);
   const [networkTable, setNetworkTable] = useState(null);
+  const [groupControlDialogOpen, setGroupControlDialogOpen] = useState(false);
+  const [selectedUnit, setSelectedUnit] = useState(null);
 
   const handleScanNetwork = async () => {
     setScanLoading(true);
@@ -151,6 +154,27 @@ export function NetworkUnitTable({ onTransferToDatabase, existingUnits = [] }) {
     }
   };
 
+  // Handle Group Control
+  const handleGroupControl = useCallback((unit) => {
+    setSelectedUnit(unit);
+    setGroupControlDialogOpen(true);
+  }, []);
+
+  const handleGroupControlSubmit = async (params) => {
+    try {
+      if (typeof window !== 'undefined' && window.electronAPI && window.electronAPI.rcuController) {
+        await window.electronAPI.rcuController.setGroupState(params);
+      } else {
+        // Fallback for development/testing
+        console.log('Group control command:', params);
+        await new Promise(resolve => setTimeout(resolve, 1000)); // Simulate delay
+      }
+    } catch (error) {
+      console.error('Group control failed:', error);
+      throw error;
+    }
+  };
+
   // Handle network unit selection changes
   const handleNetworkRowSelectionChange = useCallback(
     (_, rowSelection) => {
@@ -243,12 +267,20 @@ export function NetworkUnitTable({ onTransferToDatabase, existingUnits = [] }) {
               data={networkUnits}
               onTableReady={setNetworkTable}
               onRowSelectionChange={handleNetworkRowSelectionChange}
+              onGroupControl={handleGroupControl}
               enableRowSelection={true}
             />
             {networkTable && <DataTablePagination table={networkTable} />}
           </div>
         )}
       </CardContent>
+
+      <GroupControlDialog
+        open={groupControlDialogOpen}
+        onOpenChange={setGroupControlDialogOpen}
+        unit={selectedUnit}
+        onGroupControl={handleGroupControlSubmit}
+      />
     </Card>
   );
 }

@@ -31,6 +31,7 @@ export function DataTable({
   onDuplicate,
   onDelete,
   onIOConfig,
+  onGroupControl,
   initialPagination,
   enableRowSelection = false,
 }) {
@@ -181,6 +182,7 @@ export function DataTable({
                   onDuplicate={onDuplicate}
                   onDelete={onDelete}
                   onIOConfig={onIOConfig}
+                  onGroupControl={onGroupControl}
                 />
               ))
           ) : (

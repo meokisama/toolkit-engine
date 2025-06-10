@@ -100,4 +100,12 @@ contextBridge.exposeInMainWorld('electronAPI', {
     },
     // UDP Network Scanning
     scanUDPNetwork: (config) => ipcRenderer.invoke('udp:scanNetwork', config),
+
+    // RCU Group Control
+    rcuController: {
+        setGroupState: (params) => ipcRenderer.invoke('rcu:setGroupState', params),
+        setMultipleGroupStates: (params) => ipcRenderer.invoke('rcu:setMultipleGroupStates', params),
+        getAllGroupStates: (params) => ipcRenderer.invoke('rcu:getAllGroupStates', params),
+        getAllOutputStates: (params) => ipcRenderer.invoke('rcu:getAllOutputStates', params),
+    },
 });

@@ -2,6 +2,7 @@ import { app, BrowserWindow, ipcMain } from 'electron';
 import path from 'node:path';
 import started from 'electron-squirrel-startup';
 import DatabaseService from './services/database.js';
+import { setGroupState, setMultipleGroupStates, getAllGroupStates, getAllOutputStates } from './services/rcu-controller.js';
 import dgram from 'dgram';
 
 // Handle creating/removing shortcuts on Windows when installing/uninstalling.
@@ -734,6 +735,43 @@ function setupIpcHandlers() {
       return await scanUDPNetwork(config);
     } catch (error) {
       console.error('Error scanning UDP network:', error);
+      throw error;
+    }
+  });
+
+  // RCU Group Control
+  ipcMain.handle('rcu:setGroupState', async (event, { canId, group, value, unitIp }) => {
+    try {
+      return await setGroupState(unitIp, canId, group, value);
+    } catch (error) {
+      console.error('Error setting group state:', error);
+      throw error;
+    }
+  });
+
+  ipcMain.handle('rcu:setMultipleGroupStates', async (event, { canId, groupSettings, unitIp }) => {
+    try {
+      return await setMultipleGroupStates(unitIp, canId, groupSettings);
+    } catch (error) {
+      console.error('Error setting multiple group states:', error);
+      throw error;
+    }
+  });
+
+  ipcMain.handle('rcu:getAllGroupStates', async (event, { canId, unitIp }) => {
+    try {
+      return await getAllGroupStates(unitIp, canId);
+    } catch (error) {
+      console.error('Error getting group states:', error);
+      throw error;
+    }
+  });
+
+  ipcMain.handle('rcu:getAllOutputStates', async (event, { canId, unitIp }) => {
+    try {
+      return await getAllOutputStates(unitIp, canId);
+    } catch (error) {
+      console.error('Error getting output states:', error);
       throw error;
     }
   });
