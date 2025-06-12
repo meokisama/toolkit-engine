@@ -20,24 +20,37 @@ export function NetworkUnitTable({ onTransferToDatabase, existingUnits = [] }) {
   const [selectedUnit, setSelectedUnit] = useState(null);
 
   const handleScanNetwork = async () => {
+    console.log('[Network Unit Table] Starting network scan...');
     setScanLoading(true);
+
     try {
       toast.info("Scanning network for units...");
+      console.log('[Network Unit Table] Calling udpScanner.scanNetwork()...');
+
       const discoveredUnits = await udpScanner.scanNetwork();
+      console.log('[Network Unit Table] Scan completed, discovered units:', discoveredUnits);
 
       setNetworkUnits(discoveredUnits);
       setSelectedNetworkUnits([]);
 
       if (discoveredUnits.length > 0) {
+        console.log('[Network Unit Table] Success: Found', discoveredUnits.length, 'units');
         toast.success(`Found ${discoveredUnits.length} unit(s) on network`);
       } else {
+        console.log('[Network Unit Table] Warning: No units found');
         toast.warning("No units found on network");
       }
     } catch (error) {
-      console.error("Failed to scan network:", error);
+      console.error("[Network Unit Table] Failed to scan network:", error);
+      console.error("[Network Unit Table] Error details:", {
+        message: error.message,
+        stack: error.stack,
+        name: error.name
+      });
       toast.error("Failed to scan network: " + error.message);
     } finally {
       setScanLoading(false);
+      console.log('[Network Unit Table] Scan process finished');
     }
   };
 
