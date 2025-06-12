@@ -4,7 +4,6 @@ import started from 'electron-squirrel-startup';
 import DatabaseService from './services/database.js';
 import { setGroupState, setMultipleGroupStates, getAllGroupStates, getAllOutputStates } from './services/rcu-controller.js';
 import dgram from 'dgram';
-import os from 'os';
 
 // Handle creating/removing shortcuts on Windows when installing/uninstalling.
 if (started) {
@@ -732,13 +731,10 @@ function setupIpcHandlers() {
 
   // UDP Network Scanning
   ipcMain.handle('udp:scanNetwork', async (event, config) => {
-    console.log('[Main Process] IPC: udp:scanNetwork called with config:', config);
     try {
-      const results = await scanUDPNetwork(config);
-      console.log('[Main Process] IPC: scanUDPNetwork completed with', results.length, 'results');
-      return results;
+      return await scanUDPNetwork(config);
     } catch (error) {
-      console.error('[Main Process] IPC: Error scanning UDP network:', error);
+      console.error('Error scanning UDP network:', error);
       throw error;
     }
   });
@@ -782,40 +778,11 @@ function setupIpcHandlers() {
 }
 
 /**
- * Log system network information for debugging
- */
-function logNetworkInfo() {
-  console.log('[Main Process] === NETWORK DEBUG INFO ===');
-
-  // Log network interfaces
-  const networkInterfaces = os.networkInterfaces();
-  console.log('[Main Process] Available network interfaces:');
-  Object.keys(networkInterfaces).forEach(interfaceName => {
-    console.log(`[Main Process] Interface: ${interfaceName}`);
-    networkInterfaces[interfaceName].forEach(iface => {
-      console.log(`[Main Process]   - ${iface.family} ${iface.address} (${iface.internal ? 'internal' : 'external'})`);
-    });
-  });
-
-  // Log system info
-  console.log('[Main Process] Platform:', os.platform());
-  console.log('[Main Process] OS Type:', os.type());
-  console.log('[Main Process] OS Release:', os.release());
-  console.log('[Main Process] Hostname:', os.hostname());
-  console.log('[Main Process] === END NETWORK DEBUG INFO ===');
-}
-
-/**
  * UDP Network Scanner Implementation
  * Based on RLC C# implementation
  */
 async function scanUDPNetwork(config) {
   const { broadcastIP, udpPort, localPort, timeout } = config;
-
-  console.log('[Main Process] Starting UDP network scan with config:', config);
-
-  // Log network information for debugging
-  logNetworkInfo();
 
   return new Promise((resolve, reject) => {
     const results = [];
@@ -870,69 +837,49 @@ async function scanUDPNetwork(config) {
     }
 
     // Create single socket for both send and receive
-    console.log('[Main Process] Creating UDP socket...');
     socket = dgram.createSocket('udp4');
 
     socket.on('error', (err) => {
-      console.error('[Main Process] UDP socket error:', err);
+      console.error('UDP socket error:', err);
       cleanup();
       reject(err);
     });
 
     socket.on('message', (msg, rinfo) => {
-      console.log('[Main Process] Received UDP message from:', rinfo.address, 'length:', msg.length);
-
       if (msg.length >= 6) {
         const dataLength = msg[5] * 256 + msg[4];
-        console.log('[Main Process] Data length:', dataLength);
 
         // Check if response is valid (length > 90 as per RLC logic)
         if (dataLength > 90) {
-          console.log('[Main Process] Valid response from:', rinfo.address);
           results.push({
             data: Array.from(msg), // Convert Buffer to Array for JSON serialization
             sourceIP: rinfo.address
           });
-        } else {
-          console.log('[Main Process] Invalid response (too short) from:', rinfo.address);
         }
-      } else {
-        console.log('[Main Process] Message too short from:', rinfo.address);
       }
     });
 
     socket.on('listening', () => {
-      const address = socket.address();
-      console.log('[Main Process] Socket listening on:', address);
-
       // Set socket options
       try {
         socket.setBroadcast(true);
         socket.setRecvBufferSize(0x40000);
-        console.log('[Main Process] Socket options set successfully');
       } catch (e) {
-        console.log('[Main Process] Socket option error (ignored):', e.message);
+        // Ignore socket option errors
       }
 
       // Send broadcast request
       const requestData = createHardwareInfoRequest('0.0.0.0');
-      console.log('[Main Process] Sending broadcast request to:', broadcastIP + ':' + udpPort);
-      console.log('[Main Process] Request data length:', requestData.length);
 
       socket.send(requestData, udpPort, broadcastIP, (err) => {
         if (err) {
-          console.error('[Main Process] Failed to send broadcast:', err);
           cleanup();
           reject(err);
           return;
         }
 
-        console.log('[Main Process] Broadcast sent successfully, waiting for responses...');
-        console.log('[Main Process] Timeout set to:', timeout, 'ms');
-
         // Set timeout for responses
         timeoutHandle = setTimeout(() => {
-          console.log('[Main Process] Scan timeout reached, found', results.length, 'responses');
           cleanup();
           resolve(results);
         }, timeout);
@@ -940,7 +887,6 @@ async function scanUDPNetwork(config) {
     });
 
     // Bind socket to any available port
-    console.log('[Main Process] Binding socket...');
     socket.bind();
   });
 }

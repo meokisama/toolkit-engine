@@ -1,5 +1,4 @@
 import { CONSTANTS } from '@/constants';
-import '@/utils/network-debug.js'; // Import debug utilities
 
 const { UDP_CONFIG, TYPES } = CONSTANTS.UNIT;
 
@@ -200,10 +199,7 @@ class UDPNetworkScanner {
      * Based on RLC Get_Infor_Unit method
      */
     async scanNetwork() {
-        console.log('[UDP Scanner] Starting network scan...');
-
         if (this.isScanning) {
-            console.log('[UDP Scanner] Scan already in progress');
             throw new Error('Scan already in progress');
         }
 
@@ -212,20 +208,7 @@ class UDPNetworkScanner {
 
         try {
             // Check if we're in Electron environment
-            console.log('[UDP Scanner] Checking Electron environment...');
-            console.log('[UDP Scanner] window exists:', typeof window !== 'undefined');
-            console.log('[UDP Scanner] window.electronAPI exists:', typeof window !== 'undefined' && !!window.electronAPI);
-            console.log('[UDP Scanner] scanUDPNetwork method exists:', typeof window !== 'undefined' && window.electronAPI && typeof window.electronAPI.scanUDPNetwork === 'function');
-
             if (typeof window !== 'undefined' && window.electronAPI && window.electronAPI.scanUDPNetwork) {
-                console.log('[UDP Scanner] Using Electron IPC for UDP operations');
-                console.log('[UDP Scanner] Config:', {
-                    broadcastIP: UDP_CONFIG.BROADCAST_IP,
-                    udpPort: UDP_CONFIG.UDP_PORT,
-                    localPort: UDP_CONFIG.LOCAL_UDP_PORT,
-                    timeout: UDP_CONFIG.SCAN_TIMEOUT
-                });
-
                 // Use Electron IPC for UDP operations
                 const results = await window.electronAPI.scanUDPNetwork({
                     broadcastIP: UDP_CONFIG.BROADCAST_IP,
@@ -234,33 +217,19 @@ class UDPNetworkScanner {
                     timeout: UDP_CONFIG.SCAN_TIMEOUT
                 });
 
-                console.log('[UDP Scanner] Raw results from Electron:', results.length, 'responses');
-
-                this.scanResults = results.map(result => {
-                    console.log('[UDP Scanner] Processing response from:', result.sourceIP);
-                    return this.parseUDPResponse(result.data, result.sourceIP);
-                }).filter(unit => {
-                    if (unit !== null) {
-                        console.log('[UDP Scanner] Valid unit found:', unit.type, unit.ip_address);
-                        return true;
-                    }
-                    return false;
-                });
-
-                console.log('[UDP Scanner] Final scan results:', this.scanResults.length, 'units found');
+                this.scanResults = results.map(result => this.parseUDPResponse(result.data, result.sourceIP))
+                    .filter(unit => unit !== null);
             } else {
-                console.log('[UDP Scanner] Electron API not available, using simulation');
                 // Fallback for development/testing - simulate scan results
                 await this.simulateScan();
             }
 
             return this.scanResults;
         } catch (error) {
-            console.error('[UDP Scanner] Network scan failed:', error);
+            console.error('Network scan failed:', error);
             throw error;
         } finally {
             this.isScanning = false;
-            console.log('[UDP Scanner] Scan completed');
         }
     }
 
