@@ -211,15 +211,8 @@ export function NavProjects() {
                         <ContextMenu>
                           <ContextMenuTrigger asChild>
                             <SidebarMenuButton
-                              className={`text-gray-700 cursor-pointer ${
-                                isSelected ? "bg-accent" : ""
-                              }`}
-                              onClick={() => {
-                                if (!isExpanded) {
-                                  toggleProject(project.id);
-                                }
-                                handleSectionSelect(project, "group-config");
-                              }}
+                              className="text-gray-700 cursor-pointer"
+                              onClick={() => toggleProject(project.id)}
                             >
                               <Folder />
                               <span>{project.name}</span>
