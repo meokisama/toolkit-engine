@@ -8,6 +8,7 @@ import { DataTable } from "@/components/projects/data-table/data-table";
 import { DataTablePagination } from "@/components/projects/data-table/data-table-pagination";
 import { createNetworkUnitColumns } from "@/components/projects/unit/unit-columns";
 import { GroupControlDialog } from "@/components/projects/unit/group-control-dialog";
+import { RoomControlDialog } from "@/components/projects/unit/ac-control-dialog";
 import { udpScanner } from "@/services/udp";
 import { toast } from "sonner";
 
@@ -17,6 +18,7 @@ export function NetworkUnitTable({ onTransferToDatabase, existingUnits = [] }) {
   const [scanLoading, setScanLoading] = useState(false);
   const [networkTable, setNetworkTable] = useState(null);
   const [groupControlDialogOpen, setGroupControlDialogOpen] = useState(false);
+  const [airconControlDialogOpen, setAirconControlDialogOpen] = useState(false);
   const [selectedUnit, setSelectedUnit] = useState(null);
 
   const handleScanNetwork = async () => {
@@ -160,6 +162,12 @@ export function NetworkUnitTable({ onTransferToDatabase, existingUnits = [] }) {
     setGroupControlDialogOpen(true);
   }, []);
 
+  // Handle Aircon Control
+  const handleAirconControl = useCallback((unit) => {
+    setSelectedUnit(unit);
+    setAirconControlDialogOpen(true);
+  }, []);
+
   const handleGroupControlSubmit = async (params) => {
     try {
       if (typeof window !== 'undefined' && window.electronAPI && window.electronAPI.rcuController) {
@@ -268,6 +276,7 @@ export function NetworkUnitTable({ onTransferToDatabase, existingUnits = [] }) {
               onTableReady={setNetworkTable}
               onRowSelectionChange={handleNetworkRowSelectionChange}
               onGroupControl={handleGroupControl}
+              onAirconControl={handleAirconControl}
               enableRowSelection={true}
             />
             {networkTable && <DataTablePagination table={networkTable} />}
@@ -280,6 +289,16 @@ export function NetworkUnitTable({ onTransferToDatabase, existingUnits = [] }) {
         onOpenChange={setGroupControlDialogOpen}
         unit={selectedUnit}
         onGroupControl={handleGroupControlSubmit}
+      />
+
+      <RoomControlDialog
+        room={{
+          roomName: selectedUnit?.type || "Network Unit",
+          acGroup: 1,
+          unit: selectedUnit
+        }}
+        open={airconControlDialogOpen}
+        onOpenChange={setAirconControlDialogOpen}
       />
     </Card>
   );

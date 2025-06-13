@@ -2,7 +2,24 @@ import { app, BrowserWindow, ipcMain } from 'electron';
 import path from 'node:path';
 import started from 'electron-squirrel-startup';
 import DatabaseService from './services/database.js';
-import { setGroupState, setMultipleGroupStates, getAllGroupStates, getAllOutputStates } from './services/rcu-controller.js';
+import {
+  setGroupState,
+  setMultipleGroupStates,
+  getAllGroupStates,
+  getAllOutputStates,
+  getACStatus,
+  getRoomTemp,
+  setSettingRoomTemp,
+  getSettingRoomTemp,
+  setFanMode,
+  getFanMode,
+  setPowerMode,
+  getPowerMode,
+  setOperateMode,
+  getOperateMode,
+  setEcoMode,
+  getEcoMode
+} from './services/rcu-controller.js';
 import dgram from 'dgram';
 
 // Handle creating/removing shortcuts on Windows when installing/uninstalling.
@@ -772,6 +789,115 @@ function setupIpcHandlers() {
       return await getAllOutputStates(unitIp, canId);
     } catch (error) {
       console.error('Error getting output states:', error);
+      throw error;
+    }
+  });
+
+  // Air Conditioner Control
+  ipcMain.handle('rcu:getACStatus', async (event, { canId, unitIp, group }) => {
+    try {
+      return await getACStatus(unitIp, canId, group);
+    } catch (error) {
+      console.error('Error getting AC status:', error);
+      throw error;
+    }
+  });
+
+  ipcMain.handle('rcu:getRoomTemp', async (event, { canId, unitIp, group }) => {
+    try {
+      return await getRoomTemp(unitIp, canId, group);
+    } catch (error) {
+      console.error('Error getting room temperature:', error);
+      throw error;
+    }
+  });
+
+  ipcMain.handle('rcu:setSettingRoomTemp', async (event, { canId, unitIp, group, temperature }) => {
+    try {
+      return await setSettingRoomTemp(unitIp, canId, group, temperature);
+    } catch (error) {
+      console.error('Error setting room temperature:', error);
+      throw error;
+    }
+  });
+
+  ipcMain.handle('rcu:getSettingRoomTemp', async (event, { canId, unitIp, group }) => {
+    try {
+      return await getSettingRoomTemp(unitIp, canId, group);
+    } catch (error) {
+      console.error('Error getting setting room temperature:', error);
+      throw error;
+    }
+  });
+
+  ipcMain.handle('rcu:setFanMode', async (event, { canId, unitIp, group, fanSpeed }) => {
+    try {
+      return await setFanMode(unitIp, canId, group, fanSpeed);
+    } catch (error) {
+      console.error('Error setting fan mode:', error);
+      throw error;
+    }
+  });
+
+  ipcMain.handle('rcu:getFanMode', async (event, { canId, unitIp, group }) => {
+    try {
+      return await getFanMode(unitIp, canId, group);
+    } catch (error) {
+      console.error('Error getting fan mode:', error);
+      throw error;
+    }
+  });
+
+  ipcMain.handle('rcu:setPowerMode', async (event, { canId, unitIp, group, power }) => {
+    try {
+      return await setPowerMode(unitIp, canId, group, power);
+    } catch (error) {
+      console.error('Error setting power mode:', error);
+      throw error;
+    }
+  });
+
+  ipcMain.handle('rcu:getPowerMode', async (event, { canId, unitIp, group }) => {
+    try {
+      return await getPowerMode(unitIp, canId, group);
+    } catch (error) {
+      console.error('Error getting power mode:', error);
+      throw error;
+    }
+  });
+
+  ipcMain.handle('rcu:setOperateMode', async (event, { canId, unitIp, group, mode }) => {
+    try {
+      return await setOperateMode(unitIp, canId, group, mode);
+    } catch (error) {
+      console.error('Error setting operate mode:', error);
+      throw error;
+    }
+  });
+
+  ipcMain.handle('rcu:getOperateMode', async (event, { canId, unitIp, group }) => {
+    try {
+      return await getOperateMode(unitIp, canId, group);
+    } catch (error) {
+      console.error('Error getting operate mode:', error);
+      throw error;
+    }
+  });
+
+  ipcMain.handle('rcu:setEcoMode', async (event, { canId, unitIp, group, eco }) => {
+    try {
+      return await setEcoMode(unitIp, canId, group, eco);
+    } catch (error) {
+      console.error('Error setting eco mode:', error);
+      throw error;
+    }
+  });
+
+  ipcMain.handle('rcu:getEcoMode', async (event, { canId, unitIp, group }) => {
+    try {
+      return await getEcoMode(unitIp, canId, group);
+    } catch (error) {
+      console.error('Error getting eco mode:', error);
       throw error;
     }
   });

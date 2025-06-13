@@ -32,6 +32,7 @@ export function DataTable({
   onDelete,
   onIOConfig,
   onGroupControl,
+  onAirconControl,
   initialPagination,
   enableRowSelection = false,
 }) {
@@ -183,6 +184,7 @@ export function DataTable({
                   onDelete={onDelete}
                   onIOConfig={onIOConfig}
                   onGroupControl={onGroupControl}
+                  onAirconControl={onAirconControl}
                 />
               ))
           ) : (

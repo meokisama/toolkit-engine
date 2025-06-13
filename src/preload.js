@@ -107,5 +107,18 @@ contextBridge.exposeInMainWorld('electronAPI', {
         setMultipleGroupStates: (params) => ipcRenderer.invoke('rcu:setMultipleGroupStates', params),
         getAllGroupStates: (params) => ipcRenderer.invoke('rcu:getAllGroupStates', params),
         getAllOutputStates: (params) => ipcRenderer.invoke('rcu:getAllOutputStates', params),
+        // Air Conditioner Control
+        getACStatus: (params) => ipcRenderer.invoke('rcu:getACStatus', params),
+        getRoomTemp: (params) => ipcRenderer.invoke('rcu:getRoomTemp', params),
+        setSettingRoomTemp: (params) => ipcRenderer.invoke('rcu:setSettingRoomTemp', params),
+        getSettingRoomTemp: (params) => ipcRenderer.invoke('rcu:getSettingRoomTemp', params),
+        setFanMode: (params) => ipcRenderer.invoke('rcu:setFanMode', params),
+        getFanMode: (params) => ipcRenderer.invoke('rcu:getFanMode', params),
+        setPowerMode: (params) => ipcRenderer.invoke('rcu:setPowerMode', params),
+        getPowerMode: (params) => ipcRenderer.invoke('rcu:getPowerMode', params),
+        setOperateMode: (params) => ipcRenderer.invoke('rcu:setOperateMode', params),
+        getOperateMode: (params) => ipcRenderer.invoke('rcu:getOperateMode', params),
+        setEcoMode: (params) => ipcRenderer.invoke('rcu:setEcoMode', params),
+        getEcoMode: (params) => ipcRenderer.invoke('rcu:getEcoMode', params),
     },
 });
