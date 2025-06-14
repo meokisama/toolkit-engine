@@ -1,7 +1,14 @@
 "use client";
 
 import { flexRender } from "@tanstack/react-table";
-import { Copy, SquarePen, Trash2, Settings, Settings2, Thermometer } from "lucide-react";
+import {
+  Copy,
+  SquarePen,
+  Trash2,
+  Settings,
+  Settings2,
+  Thermometer,
+} from "lucide-react";
 
 import { TableCell, TableRow } from "@/components/ui/table";
 import {
@@ -35,21 +42,28 @@ export function DataTableRow({
         </TableRow>
       </ContextMenuTrigger>
       <ContextMenuContent className="w-48">
-        <ContextMenuItem
-          onClick={() => onEdit(item)}
-          className="cursor-pointer"
-        >
-          <SquarePen className="text-muted-foreground" />
-          <span>Edit</span>
-        </ContextMenuItem>
-        <ContextMenuItem
-          onClick={() => onDuplicate(item)}
-          className="cursor-pointer"
-        >
-          <Copy className="text-muted-foreground" />
-          <span>Duplicate</span>
-        </ContextMenuItem>
-        <ContextMenuSeparator />
+        {onEdit && (
+          <ContextMenuItem
+            onClick={() => onEdit(item)}
+            className="cursor-pointer"
+          >
+            <SquarePen className="text-muted-foreground" />
+            <span>Edit</span>
+          </ContextMenuItem>
+        )}
+        {onDuplicate && (
+          <ContextMenuItem
+            onClick={() => onDuplicate(item)}
+            className="cursor-pointer"
+          >
+            <Copy className="text-muted-foreground" />
+            <span>Duplicate</span>
+          </ContextMenuItem>
+        )}
+        {(onEdit || onDuplicate) &&
+          (onIOConfig || onGroupControl || onAirconControl || onDelete) && (
+            <ContextMenuSeparator />
+          )}
         {onIOConfig && (
           <>
             <ContextMenuItem
@@ -59,7 +73,9 @@ export function DataTableRow({
               <Settings className="text-muted-foreground" />
               <span>I/O Config</span>
             </ContextMenuItem>
-            <ContextMenuSeparator />
+            {(onGroupControl || onAirconControl || onDelete) && (
+              <ContextMenuSeparator />
+            )}
           </>
         )}
         {onGroupControl && (
@@ -71,7 +87,7 @@ export function DataTableRow({
               <Settings2 className="text-muted-foreground" />
               <span>Group Control</span>
             </ContextMenuItem>
-            <ContextMenuSeparator />
+            {(onAirconControl || onDelete) && <ContextMenuSeparator />}
           </>
         )}
         {onAirconControl && (
@@ -83,17 +99,19 @@ export function DataTableRow({
               <Thermometer className="text-muted-foreground" />
               <span>Aircon Control</span>
             </ContextMenuItem>
-            <ContextMenuSeparator />
+            {onDelete && <ContextMenuSeparator />}
           </>
         )}
-        <ContextMenuItem
-          onClick={() => onDelete(item)}
-          className="cursor-pointer"
-          variant="destructive"
-        >
-          <Trash2 />
-          <span>Delete</span>
-        </ContextMenuItem>
+        {onDelete && (
+          <ContextMenuItem
+            onClick={() => onDelete(item)}
+            className="cursor-pointer"
+            variant="destructive"
+          >
+            <Trash2 />
+            <span>Delete</span>
+          </ContextMenuItem>
+        )}
       </ContextMenuContent>
     </ContextMenu>
   );

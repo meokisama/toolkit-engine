@@ -1,7 +1,12 @@
 "use client";
 
 import { memo, useCallback, useState, useEffect } from "react";
-import { Dialog, DialogContent, DialogFooter } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import {
   Thermometer,
@@ -178,6 +183,7 @@ export const RoomControlDialog = memo(function RoomControlDialog({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="w-[90%] max-w-[400px] max-h-[90%] overflow-y-auto bg-white dark:bg-accent text-gray-800 border-gray-200 dark:border-gray-700 shadow-xl rounded-xl">
+        <DialogTitle className="sr-only">Settings Dialog</DialogTitle>
         <div className="flex flex-col items-center py-4 space-y-8">
           {/* Temperature Control Dial */}
           <div className="relative w-full max-w-[280px] sm:w-64 sm:h-64 flex flex-col items-center justify-center">
