@@ -30,6 +30,9 @@ const DAYS_OF_WEEK = [
   { key: "sunday", label: "Sunday" },
 ];
 
+// Helper constant for all day keys
+const ALL_DAYS = DAYS_OF_WEEK.map((day) => day.key);
+
 export function ScheduleDialog({
   open,
   onOpenChange,
@@ -50,7 +53,7 @@ export function ScheduleDialog({
     name: "",
     description: "",
     time: "",
-    days: [],
+    days: ALL_DAYS,
     enabled: true,
   });
   const [timeDate, setTimeDate] = useState(
@@ -108,7 +111,7 @@ export function ScheduleDialog({
           name: "",
           description: "",
           time: "",
-          days: [],
+          days: ALL_DAYS,
           enabled: true,
         });
         setTimeDate(new Date(new Date().setHours(0, 0, 0, 0)));
@@ -275,7 +278,7 @@ export function ScheduleDialog({
         name: "",
         description: "",
         time: "",
-        days: [],
+        days: ALL_DAYS,
         enabled: true,
       });
       setTimeDate(new Date(new Date().setHours(0, 0, 0, 0)));

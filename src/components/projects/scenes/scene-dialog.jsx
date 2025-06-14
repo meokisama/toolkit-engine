@@ -48,10 +48,10 @@ import {
   Blinds,
   Network,
   Sun,
-  Thermometer,
   Edit,
 } from "lucide-react";
 import { AirconPropertiesDialog } from "./aircon-properties-dialog";
+import { toast } from "sonner";
 
 export function SceneDialog({
   open,
@@ -85,6 +85,7 @@ export function SceneDialog({
     open: false,
     airconGroup: null,
   });
+  const [usedItemsByAddress, setUsedItemsByAddress] = useState([]); // Store items used by other scenes with same address
 
   // Debounce timer for validation
   const validationTimeoutRef = useRef(null);
@@ -92,7 +93,7 @@ export function SceneDialog({
   // Validate address field - memoized
   const validateAddress = useCallback((value) => {
     if (!value.trim()) {
-      return null; // Address is optional for scenes
+      return "Address is required for scenes"; // Address is now required for scenes
     }
 
     const num = parseInt(value, 10);
@@ -107,6 +108,51 @@ export function SceneDialog({
     return null;
   }, []);
 
+  // Validate name field - memoized
+  const validateName = useCallback((value) => {
+    if (!value.trim()) {
+      return "Name is required";
+    }
+
+    if (value.length > 15) {
+      return "Name must be 15 characters or less";
+    }
+
+    return null;
+  }, []);
+
+  const loadSceneItems = useCallback(async (sceneId) => {
+    try {
+      const items = await window.electronAPI.scene.getItemsWithDetails(sceneId);
+      setSceneItems(items);
+      setOriginalSceneItems(items); // Store original items for reset
+    } catch (error) {
+      console.error("Failed to load scene items:", error);
+    }
+  }, []);
+
+  // Load items used by other scenes with the same address
+  const loadUsedItemsByAddress = useCallback(
+    async (address) => {
+      if (!address || !address.trim() || !selectedProject) {
+        setUsedItemsByAddress([]);
+        return;
+      }
+
+      try {
+        const usedItems = await window.electronAPI.scene.getAddressItems(
+          selectedProject.id,
+          address
+        );
+        setUsedItemsByAddress(usedItems);
+      } catch (error) {
+        console.error("Failed to load used items by address:", error);
+        setUsedItemsByAddress([]);
+      }
+    },
+    [selectedProject]
+  );
+
   useEffect(() => {
     if (open) {
       if (mode === "edit" && scene) {
@@ -116,6 +162,10 @@ export function SceneDialog({
           description: scene.description || "",
         });
         loadSceneItems(scene.id);
+        // Load used items for the current address
+        if (scene.address) {
+          loadUsedItemsByAddress(scene.address);
+        }
       } else {
         setFormData({
           name: "",
@@ -124,6 +174,7 @@ export function SceneDialog({
         });
         setSceneItems([]);
         setOriginalSceneItems([]);
+        setUsedItemsByAddress([]);
       }
       setErrors({});
 
@@ -147,7 +198,16 @@ export function SceneDialog({
         }
       }
     }
-  }, [open, mode, scene, selectedProject, loadedTabs, loadTabData]);
+  }, [
+    open,
+    mode,
+    scene,
+    selectedProject,
+    loadedTabs,
+    loadTabData,
+    loadSceneItems,
+    loadUsedItemsByAddress,
+  ]);
 
   // Cleanup timeout on unmount
   useEffect(() => {
@@ -156,16 +216,6 @@ export function SceneDialog({
         clearTimeout(validationTimeoutRef.current);
       }
     };
-  }, []);
-
-  const loadSceneItems = useCallback(async (sceneId) => {
-    try {
-      const items = await window.electronAPI.scene.getItemsWithDetails(sceneId);
-      setSceneItems(items);
-      setOriginalSceneItems(items); // Store original items for reset
-    } catch (error) {
-      console.error("Failed to load scene items:", error);
-    }
   }, []);
 
   const handleInputChange = useCallback(
@@ -196,10 +246,17 @@ export function SceneDialog({
         validationTimeoutRef.current = setTimeout(() => {
           const error = validateAddress(value);
           setErrors((prev) => ({ ...prev, address: error }));
+
+          // Load used items by address after validation
+          if (!error && value.trim()) {
+            loadUsedItemsByAddress(value.trim());
+          } else {
+            setUsedItemsByAddress([]);
+          }
         }, 300); // 300ms debounce
       }
     },
-    [validateAddress]
+    [validateAddress, loadUsedItemsByAddress]
   );
 
   // Memoize getItemDetails to prevent unnecessary recalculations
@@ -245,7 +302,7 @@ export function SceneDialog({
   }, []);
 
   const addItemToScene = useCallback(
-    (itemType, itemId, itemValue = null) => {
+    async (itemType, itemId, itemValue = null) => {
       const item = getItemDetails(itemType, itemId);
       if (!item) return;
 
@@ -256,6 +313,30 @@ export function SceneDialog({
       // For aircon items, get the command based on object_type and value
       if (itemType === "aircon" && itemValue !== null) {
         command = getCommandForAirconItem(item.object_type, itemValue);
+      }
+
+      // Check if this item can be added (not already used by another scene with same address)
+      if (formData.address && selectedProject) {
+        try {
+          const canAdd = await window.electronAPI.scene.canAddItemToScene(
+            selectedProject.id,
+            formData.address,
+            itemType,
+            itemId,
+            objectType,
+            mode === "edit" && scene ? scene.id : null // Exclude current scene when editing
+          );
+
+          if (!canAdd) {
+            toast.error(
+              `This item is already used by another scene with address ${formData.address}`
+            );
+            return;
+          }
+        } catch (error) {
+          console.error("Failed to check if item can be added:", error);
+          // Continue with adding if check fails
+        }
       }
 
       // Always add to local state only - changes will be saved when user clicks Save
@@ -273,18 +354,59 @@ export function SceneDialog({
       };
       setSceneItems((prev) => [...prev, newSceneItem]);
     },
-    [getItemDetails, getCommandForAirconItem, mode]
+    [
+      getItemDetails,
+      getCommandForAirconItem,
+      mode,
+      formData.address,
+      selectedProject,
+      scene,
+    ]
   );
 
   // Add multiple aircon items to scene from a card
   const addAirconCardToScene = useCallback(
-    (address, selectedProperties) => {
+    async (address, selectedProperties) => {
       // Find the single aircon item for this address
       const airconItem = projectItems.aircon?.find(
         (item) => item.address === address
       );
 
       if (!airconItem) return;
+
+      // Check if any of the properties can be added
+      if (formData.address && selectedProject) {
+        for (const property of selectedProperties) {
+          try {
+            const canAdd = await window.electronAPI.scene.canAddItemToScene(
+              selectedProject.id,
+              formData.address,
+              "aircon",
+              airconItem.id,
+              property.objectType,
+              mode === "edit" && scene ? scene.id : null // Exclude current scene when editing
+            );
+
+            if (!canAdd) {
+              toast.error(
+                `Aircon ${
+                  AIRCON_OBJECT_LABELS[property.objectType] ||
+                  property.objectType
+                } is already used by another scene with address ${
+                  formData.address
+                }`
+              );
+              return;
+            }
+          } catch (error) {
+            console.error(
+              "Failed to check if aircon item can be added:",
+              error
+            );
+            // Continue with adding if check fails
+          }
+        }
+      }
 
       selectedProperties.forEach((property) => {
         // Create scene item with the aircon item ID but specific object_type and value
@@ -307,7 +429,14 @@ export function SceneDialog({
         setSceneItems((prev) => [...prev, newSceneItem]);
       });
     },
-    [projectItems.aircon, getCommandForAirconItem, mode]
+    [
+      projectItems.aircon,
+      getCommandForAirconItem,
+      mode,
+      formData.address,
+      selectedProject,
+      scene,
+    ]
   );
 
   // Handle opening aircon properties dialog
@@ -320,11 +449,21 @@ export function SceneDialog({
 
   // Handle confirming aircon properties selection
   const handleAirconPropertiesConfirm = useCallback(
-    (address, selectedProperties) => {
-      addAirconCardToScene(address, selectedProperties);
+    async (address, selectedProperties) => {
+      await addAirconCardToScene(address, selectedProperties);
     },
     [addAirconCardToScene]
   );
+
+  // Remove all aircon items from a specific address
+  const removeAirconGroupFromScene = useCallback((address) => {
+    setSceneItems((prev) =>
+      prev.filter(
+        (item) =>
+          !(item.item_type === "aircon" && item.item_address === address)
+      )
+    );
+  }, []);
 
   // Handle opening edit aircon properties dialog
   const handleEditAirconGroup = useCallback((airconGroup) => {
@@ -336,13 +475,85 @@ export function SceneDialog({
 
   // Handle confirming edit aircon properties
   const handleEditAirconPropertiesConfirm = useCallback(
-    (address, selectedProperties) => {
-      // Remove all existing aircon items for this address
-      removeAirconGroupFromScene(address);
-      // Add the new selected properties
-      addAirconCardToScene(address, selectedProperties);
+    async (address, selectedProperties) => {
+      // Find the single aircon item for this address
+      const airconItem = projectItems.aircon?.find(
+        (item) => item.address === address
+      );
+
+      if (!airconItem) return;
+
+      // Check if any of the new properties can be added (with current scene excluded)
+      if (formData.address && selectedProject) {
+        for (const property of selectedProperties) {
+          try {
+            const canAdd = await window.electronAPI.scene.canAddItemToScene(
+              selectedProject.id,
+              formData.address,
+              "aircon",
+              airconItem.id,
+              property.objectType,
+              mode === "edit" && scene ? scene.id : null // Exclude current scene when editing
+            );
+
+            if (!canAdd) {
+              toast.error(
+                `Aircon ${
+                  AIRCON_OBJECT_LABELS[property.objectType] ||
+                  property.objectType
+                } is already used by another scene with address ${
+                  formData.address
+                }`
+              );
+              return;
+            }
+          } catch (error) {
+            console.error(
+              "Failed to check if aircon item can be added:",
+              error
+            );
+            // Continue with adding if check fails
+          }
+        }
+      }
+
+      // Update scene items directly to avoid UI flicker
+      setSceneItems((prev) => {
+        // Remove existing aircon items for this address
+        const filteredItems = prev.filter(
+          (item) =>
+            !(item.item_type === "aircon" && item.item_address === address)
+        );
+
+        // Add new selected properties
+        const newAirconItems = selectedProperties.map((property) => ({
+          id:
+            mode === "edit"
+              ? `temp_${Date.now()}_${property.objectType}`
+              : `${Date.now()}_${property.objectType}`,
+          item_type: "aircon",
+          item_id: airconItem.id,
+          item_value: property.value,
+          command: getCommandForAirconItem(property.objectType, property.value),
+          object_type: property.objectType,
+          item_name: airconItem.name,
+          item_address: airconItem.address,
+          item_description: airconItem.description,
+          label:
+            AIRCON_OBJECT_LABELS[property.objectType] || property.objectType,
+        }));
+
+        return [...filteredItems, ...newAirconItems];
+      });
     },
-    [addAirconCardToScene]
+    [
+      projectItems.aircon,
+      getCommandForAirconItem,
+      mode,
+      formData.address,
+      selectedProject,
+      scene,
+    ]
   );
 
   // Get aircon cards from aircon items - memoized
@@ -402,59 +613,81 @@ export function SceneDialog({
   // Memoize filtered data for tabs to avoid recalculation on every render
   const filteredLightingItems = useMemo(() => {
     return (
-      projectItems.lighting?.filter(
-        (item) =>
-          !sceneItems.some(
-            (si) => si.item_type === "lighting" && si.item_id === item.id
-          )
-      ) || []
+      projectItems.lighting?.filter((item) => {
+        // Filter out items already in current scene
+        const isInCurrentScene = sceneItems.some(
+          (si) => si.item_type === "lighting" && si.item_id === item.id
+        );
+
+        // Filter out items used by other scenes with same address
+        const isUsedByOtherScene = usedItemsByAddress.some(
+          (usedItem) =>
+            usedItem.item_type === "lighting" && usedItem.item_id === item.id
+        );
+
+        return !isInCurrentScene && !isUsedByOtherScene;
+      }) || []
     );
-  }, [projectItems.lighting, sceneItems]);
+  }, [projectItems.lighting, sceneItems, usedItemsByAddress]);
 
   const filteredAirconCards = useMemo(() => {
-    return availableAirconCards.filter(
-      (card) =>
-        !sceneItems.some(
-          (si) => si.item_type === "aircon" && si.item_address === card.address
-        )
-    );
-  }, [availableAirconCards, sceneItems]);
+    return availableAirconCards.filter((card) => {
+      // Filter out cards already in current scene
+      const isInCurrentScene = sceneItems.some(
+        (si) => si.item_type === "aircon" && si.item_address === card.address
+      );
+
+      // Filter out cards where any aircon item is used by other scenes with same address
+      const isUsedByOtherScene = usedItemsByAddress.some(
+        (usedItem) =>
+          usedItem.item_type === "aircon" && usedItem.item_id === card.item.id
+      );
+
+      return !isInCurrentScene && !isUsedByOtherScene;
+    });
+  }, [availableAirconCards, sceneItems, usedItemsByAddress]);
 
   const filteredCurtainItems = useMemo(() => {
     return (
-      projectItems.curtain?.filter(
-        (item) =>
-          !sceneItems.some(
-            (si) => si.item_type === "curtain" && si.item_id === item.id
-          )
-      ) || []
+      projectItems.curtain?.filter((item) => {
+        // Filter out items already in current scene
+        const isInCurrentScene = sceneItems.some(
+          (si) => si.item_type === "curtain" && si.item_id === item.id
+        );
+
+        // Filter out items used by other scenes with same address
+        const isUsedByOtherScene = usedItemsByAddress.some(
+          (usedItem) =>
+            usedItem.item_type === "curtain" && usedItem.item_id === item.id
+        );
+
+        return !isInCurrentScene && !isUsedByOtherScene;
+      }) || []
     );
-  }, [projectItems.curtain, sceneItems]);
+  }, [projectItems.curtain, sceneItems, usedItemsByAddress]);
 
   const filteredKnxItems = useMemo(() => {
     return (
-      projectItems.knx?.filter(
-        (item) =>
-          !sceneItems.some(
-            (si) => si.item_type === "knx" && si.item_id === item.id
-          )
-      ) || []
+      projectItems.knx?.filter((item) => {
+        // Filter out items already in current scene
+        const isInCurrentScene = sceneItems.some(
+          (si) => si.item_type === "knx" && si.item_id === item.id
+        );
+
+        // Filter out items used by other scenes with same address
+        const isUsedByOtherScene = usedItemsByAddress.some(
+          (usedItem) =>
+            usedItem.item_type === "knx" && usedItem.item_id === item.id
+        );
+
+        return !isInCurrentScene && !isUsedByOtherScene;
+      }) || []
     );
-  }, [projectItems.knx, sceneItems]);
+  }, [projectItems.knx, sceneItems, usedItemsByAddress]);
 
   const removeItemFromScene = useCallback((sceneItemId) => {
     // Always remove from local state only - changes will be saved when user clicks Save
     setSceneItems((prev) => prev.filter((item) => item.id !== sceneItemId));
-  }, []);
-
-  // Remove all aircon items from a specific address
-  const removeAirconGroupFromScene = useCallback((address) => {
-    setSceneItems((prev) =>
-      prev.filter(
-        (item) =>
-          !(item.item_type === "aircon" && item.item_address === address)
-      )
-    );
   }, []);
 
   const updateSceneItemValue = useCallback(
@@ -535,8 +768,9 @@ export function SceneDialog({
     e.preventDefault();
 
     // Validate name
-    if (!formData.name.trim()) {
-      setErrors({ name: "Name is required" });
+    const nameError = validateName(formData.name);
+    if (nameError) {
+      setErrors({ name: nameError });
       return;
     }
 
@@ -588,11 +822,26 @@ export function SceneDialog({
     } catch (error) {
       console.error("Failed to save scene:", error);
 
-      // Handle duplicate address error specifically
-      if (error.message && error.message.includes("already exists")) {
+      // Handle specific error messages
+      if (
+        error.message &&
+        error.message.includes("already used by another scene")
+      ) {
+        setErrors({ general: error.message });
+      } else if (error.message && error.message.includes("already exists")) {
         // Extract the clean error message after the last colon
         const cleanMessage = error.message.split(": ").pop();
         setErrors({ address: cleanMessage });
+      } else if (
+        error.message &&
+        error.message.includes("15 characters or less")
+      ) {
+        setErrors({ name: "Scene name must be 15 characters or less" });
+      } else if (
+        error.message &&
+        error.message.includes("Address is required")
+      ) {
+        setErrors({ address: "Address is required for scenes" });
       } else {
         // Handle other errors generically
         setErrors({ general: "Failed to save scene. Please try again." });
@@ -840,8 +1089,9 @@ export function SceneDialog({
                     id="name"
                     value={formData.name}
                     onChange={(e) => handleInputChange("name", e.target.value)}
-                    placeholder="Enter scene name"
+                    placeholder="Enter scene name (max 15 characters)"
                     className={errors.name ? "border-red-500" : ""}
+                    maxLength={15}
                     required
                   />
                   {errors.name && (
@@ -852,7 +1102,7 @@ export function SceneDialog({
 
               <div className="flex flex-col gap-2">
                 <Label htmlFor="address" className="text-right pl-1">
-                  Address
+                  Address <span className="text-red-500">*</span>
                 </Label>
                 <div className="col-span-5">
                   <Input
@@ -867,6 +1117,7 @@ export function SceneDialog({
                         : ""
                     }
                     placeholder="Enter integer 1-255 (e.g., 1, 2, 255)"
+                    required
                   />
                   {errors.address && (
                     <p className="text-sm text-red-500 mt-1">
@@ -1247,6 +1498,7 @@ export function SceneDialog({
               disabled={
                 loading ||
                 !formData.name.trim() ||
+                !formData.address.trim() ||
                 errors.name ||
                 errors.address
               }

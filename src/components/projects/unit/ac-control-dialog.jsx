@@ -1,13 +1,7 @@
 "use client";
 
 import { memo, useCallback, useState, useEffect } from "react";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-} from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import {
   Thermometer,
@@ -23,7 +17,6 @@ import { cn } from "@/lib/utils";
 import CircularSlider from "@fseehawer/react-circular-slider";
 import { Switch } from "@/components/ui/switch";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 
 const ACModes = [
@@ -67,7 +60,7 @@ export const RoomControlDialog = memo(function RoomControlDialog({
   // Fetch AC status from device
   const fetchRoomStatus = useCallback(async () => {
     if (!room?.unit?.ip_address || !room?.unit?.id_can) return;
-    
+
     setLoading(true);
     try {
       const acStatus = await window.electronAPI.rcuController.getACStatus({
@@ -75,16 +68,16 @@ export const RoomControlDialog = memo(function RoomControlDialog({
         canId: room.unit.id_can,
         group: acGroup,
       });
-      
-      console.log('AC Status received:', acStatus);
-      
+
+      console.log("AC Status received:", acStatus);
+
       setStatus({
         roomTemp: acStatus.roomTemp,
         thermostatStatus: acStatus.thermostatStatus,
         occupancyStatus: acStatus.occupancyStatus,
       });
-      
-      setControlSettings(prev => ({
+
+      setControlSettings((prev) => ({
         ...prev,
         power: acStatus.powerMode === 1,
         acMode: acStatus.operateMode,
@@ -92,9 +85,8 @@ export const RoomControlDialog = memo(function RoomControlDialog({
         setpoint: acStatus.settingTemp,
         ecoMode: acStatus.ecoMode === 1,
       }));
-      
     } catch (error) {
-      console.error('Failed to fetch AC status:', error);
+      console.error("Failed to fetch AC status:", error);
       toast.error(`Failed to fetch AC status: ${error.message}`);
     } finally {
       setLoading(false);
@@ -103,19 +95,19 @@ export const RoomControlDialog = memo(function RoomControlDialog({
 
   // Update control settings
   const updateControlSettings = useCallback((updates) => {
-    setControlSettings(prev => ({ ...prev, ...updates }));
+    setControlSettings((prev) => ({ ...prev, ...updates }));
   }, []);
 
   // Apply settings to device
   const handleApplySettings = useCallback(async () => {
     if (!room?.unit?.ip_address || !room?.unit?.id_can) return;
-    
+
     setLoading(true);
     try {
       const group = acGroup;
       const unitIp = room.unit.ip_address;
       const canId = room.unit.id_can;
-      
+
       // Set power mode
       await window.electronAPI.rcuController.setPowerMode({
         unitIp,
@@ -123,7 +115,7 @@ export const RoomControlDialog = memo(function RoomControlDialog({
         group,
         power: controlSettings.power,
       });
-      
+
       if (controlSettings.power) {
         // Set operate mode
         await window.electronAPI.rcuController.setOperateMode({
@@ -132,7 +124,7 @@ export const RoomControlDialog = memo(function RoomControlDialog({
           group,
           mode: controlSettings.acMode,
         });
-        
+
         // Set fan mode
         await window.electronAPI.rcuController.setFanMode({
           unitIp,
@@ -140,7 +132,7 @@ export const RoomControlDialog = memo(function RoomControlDialog({
           group,
           fanSpeed: controlSettings.fanMode,
         });
-        
+
         // Set temperature
         await window.electronAPI.rcuController.setSettingRoomTemp({
           unitIp,
@@ -148,7 +140,7 @@ export const RoomControlDialog = memo(function RoomControlDialog({
           group,
           temperature: controlSettings.setpoint,
         });
-        
+
         // Set eco mode
         await window.electronAPI.rcuController.setEcoMode({
           unitIp,
@@ -157,16 +149,15 @@ export const RoomControlDialog = memo(function RoomControlDialog({
           eco: controlSettings.ecoMode,
         });
       }
-      
-      toast.success('AC settings applied successfully');
-      
+
+      toast.success("AC settings applied successfully");
+
       // Refresh status after applying
       setTimeout(() => {
         fetchRoomStatus();
       }, 1000);
-      
     } catch (error) {
-      console.error('Failed to apply AC settings:', error);
+      console.error("Failed to apply AC settings:", error);
       toast.error(`Failed to apply settings: ${error.message}`);
     } finally {
       setLoading(false);
@@ -272,7 +263,8 @@ export const RoomControlDialog = memo(function RoomControlDialog({
                   const currentMode = controlSettings.acMode;
                   updateControlSettings({
                     power: false,
-                    lastActiveMode: currentMode || controlSettings.lastActiveMode,
+                    lastActiveMode:
+                      currentMode || controlSettings.lastActiveMode,
                   });
                   console.log("Power OFF, saving last mode:", currentMode);
                 }
@@ -351,23 +343,22 @@ export const RoomControlDialog = memo(function RoomControlDialog({
         <DialogFooter className="flex !justify-between pt-2">
           <div className="flex items-center justify-center gap-2">
             <div className="relative">
-            <Book className="text-sm font-medium absolute left-2 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground"/>
-            <Input
-              id="ac-group"
-              type="number"
-              min="1"
-              max="50"
-              value={acGroup}
-              onChange={(e) => setAcGroup(parseInt(e.target.value) || 1)}
-              className="w-16 text-center font-bold [&::-webkit-inner-spin-button]:appearance-none pl-7"
-              placeholder="1"
-            />
+              <Book className="text-sm font-medium absolute left-2 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                id="ac-group"
+                type="number"
+                min="1"
+                max="50"
+                value={acGroup}
+                onChange={(e) => setAcGroup(parseInt(e.target.value) || 1)}
+                className="w-16 text-center font-bold [&::-webkit-inner-spin-button]:appearance-none pl-7"
+                placeholder="1"
+              />
             </div>
             <Button
               onClick={fetchRoomStatus}
               disabled={loading}
               className="bg-gradient-to-r from-blue-500 to-blue-600 text-white hover:from-blue-600 hover:to-blue-700 transition-all duration-200 shadow-md"
-
             >
               {loading ? (
                 <RefreshCw className="h-4 w-4 animate-spin" />

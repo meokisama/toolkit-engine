@@ -32,9 +32,6 @@ class DatabaseService {
       // Tạo bảng projects nếu chưa tồn tại
       this.createTables();
 
-      // Run migrations for existing databases
-      this.runMigrations();
-
 
     } catch (error) {
       console.error('Failed to initialize database:', error);
@@ -142,8 +139,8 @@ class DatabaseService {
       CREATE TABLE IF NOT EXISTS scene (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         project_id INTEGER NOT NULL,
-        name TEXT,
-        address TEXT,
+        name TEXT NOT NULL CHECK(length(name) <= 15),
+        address TEXT NOT NULL,
         description TEXT,
         object_type TEXT DEFAULT 'OBJ_SCENE',
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
@@ -163,6 +160,20 @@ class DatabaseService {
         object_type TEXT,
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
         FOREIGN KEY (scene_id) REFERENCES scene (id) ON DELETE CASCADE
+      )
+    `;
+
+    const createSceneAddressItemsTable = `
+      CREATE TABLE IF NOT EXISTS scene_address_items (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        project_id INTEGER NOT NULL,
+        address TEXT NOT NULL,
+        item_type TEXT NOT NULL,
+        item_id INTEGER NOT NULL,
+        object_type TEXT,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (project_id) REFERENCES projects (id) ON DELETE CASCADE,
+        UNIQUE(project_id, address, item_type, item_id, object_type)
       )
     `;
 
@@ -231,6 +242,7 @@ class DatabaseService {
       this.db.exec(createKnxTable);
       this.db.exec(createSceneTable);
       this.db.exec(createSceneItemsTable);
+      this.db.exec(createSceneAddressItemsTable);
       this.db.exec(createScheduleTable);
       this.db.exec(createScheduleScenesTable);
       this.db.exec(createUnitOutputConfigsTable);
@@ -241,22 +253,7 @@ class DatabaseService {
     }
   }
 
-  runMigrations() {
-    try {
-      // Migration 1: Add enabled column to schedule table if it doesn't exist
-      const scheduleColumns = this.db.prepare("PRAGMA table_info(schedule)").all();
-      const hasEnabledColumn = scheduleColumns.some(column => column.name === 'enabled');
 
-      if (!hasEnabledColumn) {
-        console.log('Adding enabled column to schedule table...');
-        this.db.exec('ALTER TABLE schedule ADD COLUMN enabled BOOLEAN DEFAULT 1');
-        console.log('Successfully added enabled column to schedule table');
-      }
-    } catch (error) {
-      console.error('Failed to run migrations:', error);
-      // Don't throw error to prevent app from crashing on migration failures
-    }
-  }
 
   // Helper method to find next available address in range 1-255
   findNextAvailableAddress(projectId, tableName) {
@@ -558,11 +555,13 @@ class DatabaseService {
         }
       }
 
-      // Special validation for scene to prevent duplicate addresses
-      if (tableName === 'scene' && address) {
-        const existingItems = this.db.prepare('SELECT COUNT(*) as count FROM scene WHERE project_id = ? AND address = ?').get(projectId, address);
-        if (existingItems.count > 0) {
-          throw new Error(`Address ${address} already exists.`);
+      // Special validation for scene - address is now required
+      if (tableName === 'scene') {
+        if (!address || !address.trim()) {
+          throw new Error('Address is required for scene.');
+        }
+        if (!name || name.length > 15) {
+          throw new Error('Scene name is required and must be 15 characters or less.');
         }
       }
 
@@ -649,15 +648,13 @@ class DatabaseService {
         }
       }
 
-      // Special validation for scene to prevent duplicate addresses
-      if (tableName === 'scene' && address) {
-        const currentItem = this.getProjectItemById(id, tableName);
-        if (currentItem && currentItem.address !== address) {
-          // Check if new address already exists for this project (excluding current item's address)
-          const existingItems = this.db.prepare('SELECT COUNT(*) as count FROM scene WHERE project_id = ? AND address = ? AND id != ?').get(currentItem.project_id, address, id);
-          if (existingItems.count > 0) {
-            throw new Error(`Address ${address} already exists.`);
-          }
+      // Special validation for scene - address is required and name length check
+      if (tableName === 'scene') {
+        if (!address || !address.trim()) {
+          throw new Error('Address is required for scene.');
+        }
+        if (!name || name.length > 15) {
+          throw new Error('Scene name is required and must be 15 characters or less.');
         }
       }
 
@@ -1360,24 +1357,142 @@ class DatabaseService {
   }
 
   updateSceneItem(id, itemData) {
-    return this.updateProjectItem(id, itemData, 'scene');
+    try {
+      // Start transaction to handle address changes
+      const transaction = this.db.transaction(() => {
+        // Get current scene info
+        const currentScene = this.getProjectItemById(id, 'scene');
+        if (!currentScene) {
+          throw new Error('Scene not found');
+        }
+
+        // Check if address is changing
+        if (currentScene.address !== itemData.address) {
+          // Get all scene items for this scene
+          const sceneItems = this.db.prepare('SELECT * FROM scene_items WHERE scene_id = ?').all(id);
+
+          // Remove old address items from scene_address_items
+          const deleteOldAddressItemStmt = this.db.prepare(`
+            DELETE FROM scene_address_items
+            WHERE project_id = ? AND address = ? AND item_type = ? AND item_id = ? AND object_type = ?
+          `);
+
+          for (const sceneItem of sceneItems) {
+            deleteOldAddressItemStmt.run(
+              currentScene.project_id,
+              currentScene.address,
+              sceneItem.item_type,
+              sceneItem.item_id,
+              sceneItem.object_type
+            );
+          }
+
+          // Check if new address items are available
+          const checkNewAddressStmt = this.db.prepare(`
+            SELECT COUNT(*) as count FROM scene_address_items
+            WHERE project_id = ? AND address = ? AND item_type = ? AND item_id = ? AND object_type = ?
+          `);
+
+          for (const sceneItem of sceneItems) {
+            const existingItem = checkNewAddressStmt.get(
+              currentScene.project_id,
+              itemData.address,
+              sceneItem.item_type,
+              sceneItem.item_id,
+              sceneItem.object_type
+            );
+
+            if (existingItem.count > 0) {
+              throw new Error(`Item is already used by another scene with address ${itemData.address}`);
+            }
+          }
+
+          // Add new address items to scene_address_items
+          const addNewAddressItemStmt = this.db.prepare(`
+            INSERT INTO scene_address_items (project_id, address, item_type, item_id, object_type)
+            VALUES (?, ?, ?, ?, ?)
+          `);
+
+          for (const sceneItem of sceneItems) {
+            addNewAddressItemStmt.run(
+              currentScene.project_id,
+              itemData.address,
+              sceneItem.item_type,
+              sceneItem.item_id,
+              sceneItem.object_type
+            );
+          }
+        }
+
+        // Update the scene
+        return this.updateProjectItem(id, itemData, 'scene');
+      });
+
+      return transaction();
+    } catch (error) {
+      console.error('Failed to update scene item:', error);
+      throw error;
+    }
   }
 
   deleteSceneItem(id) {
-    return this.deleteProjectItem(id, 'scene');
+    try {
+      // Start transaction to ensure data consistency
+      const transaction = this.db.transaction(() => {
+        // Get scene info before deleting
+        const scene = this.db.prepare('SELECT project_id, address FROM scene WHERE id = ?').get(id);
+        if (!scene) {
+          throw new Error('Scene not found');
+        }
+
+        // Get all scene items for this scene
+        const sceneItems = this.db.prepare('SELECT * FROM scene_items WHERE scene_id = ?').all(id);
+
+        // Remove all items from scene_address_items
+        const deleteAddressItemStmt = this.db.prepare(`
+          DELETE FROM scene_address_items
+          WHERE project_id = ? AND address = ? AND item_type = ? AND item_id = ? AND object_type = ?
+        `);
+
+        for (const sceneItem of sceneItems) {
+          deleteAddressItemStmt.run(
+            scene.project_id,
+            scene.address,
+            sceneItem.item_type,
+            sceneItem.item_id,
+            sceneItem.object_type
+          );
+        }
+
+        // Delete the scene (this will cascade delete scene_items due to foreign key)
+        const deleteSceneStmt = this.db.prepare('DELETE FROM scene WHERE id = ?');
+        const result = deleteSceneStmt.run(id);
+
+        if (result.changes === 0) {
+          throw new Error('Scene item not found');
+        }
+
+        return { success: true, deletedId: id };
+      });
+
+      return transaction();
+    } catch (error) {
+      console.error('Failed to delete scene item:', error);
+      throw error;
+    }
   }
 
   duplicateSceneItem(id) {
     try {
       // Start transaction
       const transaction = this.db.transaction(() => {
-        // Duplicate the scene
+        // Duplicate the scene (this will automatically find a new unique address)
         const duplicatedScene = this.duplicateProjectItem(id, 'scene');
 
         // Get original scene items
         const originalSceneItems = this.getSceneItemsWithDetails(id);
 
-        // Duplicate scene items
+        // Duplicate scene items - addItemToScene will handle scene_address_items automatically
         for (const sceneItem of originalSceneItems) {
           this.addItemToScene(
             duplicatedScene.id,
@@ -1447,12 +1562,37 @@ class DatabaseService {
 
   addItemToScene(sceneId, itemType, itemId, itemValue = null, command = null, objectType = null) {
     try {
+      // Get scene info to check address and project
+      const scene = this.db.prepare('SELECT project_id, address FROM scene WHERE id = ?').get(sceneId);
+      if (!scene) {
+        throw new Error('Scene not found');
+      }
+
+      // Check if this item is already used by another scene with the same address
+      const existingItem = this.db.prepare(`
+        SELECT COUNT(*) as count FROM scene_address_items
+        WHERE project_id = ? AND address = ? AND item_type = ? AND item_id = ? AND object_type = ?
+      `).get(scene.project_id, scene.address, itemType, itemId, objectType);
+
+      if (existingItem.count > 0) {
+        throw new Error(`This item is already used by another scene with address ${scene.address}`);
+      }
+
+      // Add to scene_items
       const stmt = this.db.prepare(`
         INSERT INTO scene_items (scene_id, item_type, item_id, item_value, command, object_type)
         VALUES (?, ?, ?, ?, ?, ?)
       `);
 
       const result = stmt.run(sceneId, itemType, itemId, itemValue, command, objectType);
+
+      // Add to scene_address_items to track usage
+      const addressItemStmt = this.db.prepare(`
+        INSERT INTO scene_address_items (project_id, address, item_type, item_id, object_type)
+        VALUES (?, ?, ?, ?, ?)
+      `);
+
+      addressItemStmt.run(scene.project_id, scene.address, itemType, itemId, objectType);
 
       // Return the created scene item with details
       const getStmt = this.db.prepare('SELECT * FROM scene_items WHERE id = ?');
@@ -1465,8 +1605,35 @@ class DatabaseService {
 
   removeItemFromScene(sceneItemId) {
     try {
+      // Get scene item info before deleting
+      const sceneItem = this.db.prepare(`
+        SELECT si.*, s.project_id, s.address
+        FROM scene_items si
+        JOIN scene s ON si.scene_id = s.id
+        WHERE si.id = ?
+      `).get(sceneItemId);
+
+      if (!sceneItem) {
+        throw new Error('Scene item not found');
+      }
+
+      // Remove from scene_items
       const stmt = this.db.prepare('DELETE FROM scene_items WHERE id = ?');
       const result = stmt.run(sceneItemId);
+
+      // Remove from scene_address_items
+      const addressItemStmt = this.db.prepare(`
+        DELETE FROM scene_address_items
+        WHERE project_id = ? AND address = ? AND item_type = ? AND item_id = ? AND object_type = ?
+      `);
+
+      addressItemStmt.run(
+        sceneItem.project_id,
+        sceneItem.address,
+        sceneItem.item_type,
+        sceneItem.item_id,
+        sceneItem.object_type
+      );
 
       return result.changes > 0;
     } catch (error) {
@@ -1494,6 +1661,52 @@ class DatabaseService {
       return getStmt.get(sceneItemId);
     } catch (error) {
       console.error('Failed to update scene item value:', error);
+      throw error;
+    }
+  }
+
+  // Check if an item can be added to a scene (not already used by another scene with same address)
+  canAddItemToScene(projectId, address, itemType, itemId, objectType, excludeSceneId = null) {
+    try {
+      let query = `
+        SELECT COUNT(*) as count FROM scene_address_items sai
+        WHERE sai.project_id = ? AND sai.address = ? AND sai.item_type = ? AND sai.item_id = ? AND sai.object_type = ?
+      `;
+
+      const params = [projectId, address, itemType, itemId, objectType];
+
+      // If excludeSceneId is provided, exclude items from that specific scene
+      if (excludeSceneId) {
+        query += `
+          AND NOT EXISTS (
+            SELECT 1 FROM scene_items si
+            WHERE si.scene_id = ? AND si.item_type = sai.item_type AND si.item_id = sai.item_id AND si.object_type = sai.object_type
+          )
+        `;
+        params.push(excludeSceneId);
+      }
+
+      const stmt = this.db.prepare(query);
+      const result = stmt.get(...params);
+      return result.count === 0;
+    } catch (error) {
+      console.error('Failed to check if item can be added to scene:', error);
+      throw error;
+    }
+  }
+
+  // Get all items used by scenes with a specific address
+  getSceneAddressItems(projectId, address) {
+    try {
+      const stmt = this.db.prepare(`
+        SELECT * FROM scene_address_items
+        WHERE project_id = ? AND address = ?
+        ORDER BY created_at ASC
+      `);
+
+      return stmt.all(projectId, address);
+    } catch (error) {
+      console.error('Failed to get scene address items:', error);
       throw error;
     }
   }

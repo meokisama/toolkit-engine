@@ -85,6 +85,8 @@ contextBridge.exposeInMainWorld('electronAPI', {
         addItem: (sceneId, itemType, itemId, itemValue, command, objectType) => ipcRenderer.invoke('scene:addItem', sceneId, itemType, itemId, itemValue, command, objectType),
         removeItem: (sceneItemId) => ipcRenderer.invoke('scene:removeItem', sceneItemId),
         updateItemValue: (sceneItemId, itemValue, command) => ipcRenderer.invoke('scene:updateItemValue', sceneItemId, itemValue, command),
+        canAddItemToScene: (projectId, address, itemType, itemId, objectType, excludeSceneId) => ipcRenderer.invoke('scene:canAddItemToScene', projectId, address, itemType, itemId, objectType, excludeSceneId),
+        getAddressItems: (projectId, address) => ipcRenderer.invoke('scene:getAddressItems', projectId, address),
     },
     schedule: {
         getAll: (projectId) => ipcRenderer.invoke('schedule:getAll', projectId),

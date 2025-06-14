@@ -279,7 +279,7 @@ export function NavProjects() {
                                 }
                               >
                                 <Library className="h-4 w-4" />
-                                <span>Groups Control</span>
+                                <span>Configuration</span>
                               </SidebarMenuSubButton>
                             </SidebarMenuSubItem>
                             <SidebarMenuSubItem>
