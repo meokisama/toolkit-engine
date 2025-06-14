@@ -270,31 +270,31 @@ export function SceneDialog({
   const getCommandForAirconItem = useCallback((objectType, itemValue) => {
     // For aircon items, we need to find the command based on object_type and value
     switch (objectType) {
-      case OBJECT_TYPES.AC_POWER:
+      case OBJECT_TYPES.AC_POWER.obj_name:
         return (
           Object.entries(AC_POWER_VALUES).find(
             ([, value]) => value.toString() === itemValue
           )?.[0] || null
         );
-      case OBJECT_TYPES.AC_FAN_SPEED:
+      case OBJECT_TYPES.AC_FAN_SPEED.obj_name:
         return (
           Object.entries(AC_FAN_SPEED_VALUES).find(
             ([, value]) => value.toString() === itemValue
           )?.[0] || null
         );
-      case OBJECT_TYPES.AC_MODE:
+      case OBJECT_TYPES.AC_MODE.obj_name:
         return (
           Object.entries(AC_MODE_VALUES).find(
             ([, value]) => value.toString() === itemValue
           )?.[0] || null
         );
-      case OBJECT_TYPES.AC_SWING:
+      case OBJECT_TYPES.AC_SWING.obj_name:
         return (
           Object.entries(AC_SWING_VALUES).find(
             ([, value]) => value.toString() === itemValue
           )?.[0] || null
         );
-      case OBJECT_TYPES.AC_TEMPERATURE:
+      case OBJECT_TYPES.AC_TEMPERATURE.obj_name:
         return null; // Temperature doesn't use commands, just direct value
       default:
         return null;
@@ -883,32 +883,32 @@ export function SceneDialog({
   // Memoize value options to prevent recalculation on every render
   const getValueOptions = useMemo(() => {
     const optionsCache = {
-      [OBJECT_TYPES.AC_POWER]: Object.entries(AC_POWER_LABELS).map(
+      [OBJECT_TYPES.AC_POWER.obj_name]: Object.entries(AC_POWER_LABELS).map(
         ([value, label]) => ({
           value,
           label,
         })
       ),
-      [OBJECT_TYPES.AC_FAN_SPEED]: Object.entries(AC_FAN_SPEED_LABELS).map(
+      [OBJECT_TYPES.AC_FAN_SPEED.obj_name]: Object.entries(
+        AC_FAN_SPEED_LABELS
+      ).map(([value, label]) => ({
+        value,
+        label,
+      })),
+      [OBJECT_TYPES.AC_MODE.obj_name]: Object.entries(AC_MODE_LABELS).map(
         ([value, label]) => ({
           value,
           label,
         })
       ),
-      [OBJECT_TYPES.AC_MODE]: Object.entries(AC_MODE_LABELS).map(
+      [OBJECT_TYPES.AC_SWING.obj_name]: Object.entries(AC_SWING_LABELS).map(
         ([value, label]) => ({
           value,
           label,
         })
       ),
-      [OBJECT_TYPES.AC_SWING]: Object.entries(AC_SWING_LABELS).map(
-        ([value, label]) => ({
-          value,
-          label,
-        })
-      ),
-      [OBJECT_TYPES.AC_TEMPERATURE]: [],
-      [OBJECT_TYPES.CURTAIN]: Object.entries(CURTAIN_VALUE_LABELS).map(
+      [OBJECT_TYPES.AC_TEMPERATURE.obj_name]: [],
+      [OBJECT_TYPES.CURTAIN.obj_name]: Object.entries(CURTAIN_VALUE_LABELS).map(
         ([value, label]) => ({
           value,
           label,
@@ -991,7 +991,7 @@ export function SceneDialog({
       }
 
       // For aircon temperature, use number input for decimal values
-      if (sceneItem.object_type === OBJECT_TYPES.AC_TEMPERATURE) {
+      if (sceneItem.object_type === OBJECT_TYPES.AC_TEMPERATURE.obj_name) {
         const handleTemperatureChange = (e) => {
           const inputValue = e.target.value;
           if (inputValue === "") {

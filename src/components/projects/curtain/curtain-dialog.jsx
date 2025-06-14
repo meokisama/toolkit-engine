@@ -124,7 +124,7 @@ export function CurtainDialog({
     name: "",
     address: "",
     description: "",
-    object_type: OBJECT_TYPES.CURTAIN,
+    object_type: OBJECT_TYPES.CURTAIN.obj_name,
     curtain_type: "CURTAIN_PULSE_2P",
     open_group: "",
     close_group: "",

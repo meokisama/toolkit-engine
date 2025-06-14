@@ -95,11 +95,11 @@ export function ProjectItemDialog({
   const getDefaultObjectType = (category) => {
     switch (category) {
       case "lighting":
-        return OBJECT_TYPES.LIGHTING;
+        return OBJECT_TYPES.LIGHTING.obj_name;
       case "curtain":
-        return OBJECT_TYPES.CURTAIN;
+        return OBJECT_TYPES.CURTAIN.obj_name;
       case "scene":
-        return OBJECT_TYPES.SCENE;
+        return "OBJ_SCENE"; // Direct string since SCENE is not in new OBJECT_TYPES
       default:
         return "";
     }

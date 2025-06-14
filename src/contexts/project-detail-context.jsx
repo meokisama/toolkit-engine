@@ -483,7 +483,7 @@ export function ProjectDetailProvider({ children }) {
             name: cardData.name,
             address: cardData.address,
             description: cardData.description,
-            object_type: item.object_type,
+            label: item.label,
           })
         );
 

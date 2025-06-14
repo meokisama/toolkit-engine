@@ -22,7 +22,6 @@ export function KnxItemDialog({ open, onOpenChange, mode, item }) {
     name: "",
     address: "",
     description: "",
-    object_type: CONSTANTS.OBJECT_TYPES.KNX,
   });
   const [errors, setErrors] = useState({});
 
@@ -34,14 +33,12 @@ export function KnxItemDialog({ open, onOpenChange, mode, item }) {
           name: item.name || "",
           address: item.address || "",
           description: item.description || "",
-          object_type: item.object_type || CONSTANTS.OBJECT_TYPES.KNX,
         });
       } else {
         setFormData({
           name: "",
           address: "",
           description: "",
-          object_type: CONSTANTS.OBJECT_TYPES.KNX,
         });
       }
       setErrors({});

@@ -33,7 +33,7 @@ import { Thermometer, Power, Wind, Settings, Move } from "lucide-react";
 
 const AIRCON_PROPERTIES = [
   {
-    objectType: OBJECT_TYPES.AC_POWER,
+    objectType: OBJECT_TYPES.AC_POWER.obj_name,
     label: "Power",
     icon: Power,
     defaultValue: "1",
@@ -43,7 +43,7 @@ const AIRCON_PROPERTIES = [
     })),
   },
   {
-    objectType: OBJECT_TYPES.AC_MODE,
+    objectType: OBJECT_TYPES.AC_MODE.obj_name,
     label: "Mode",
     icon: Settings,
     defaultValue: "0",
@@ -53,7 +53,7 @@ const AIRCON_PROPERTIES = [
     })),
   },
   {
-    objectType: OBJECT_TYPES.AC_FAN_SPEED,
+    objectType: OBJECT_TYPES.AC_FAN_SPEED.obj_name,
     label: "Fan Speed",
     icon: Wind,
     defaultValue: "0",
@@ -63,14 +63,14 @@ const AIRCON_PROPERTIES = [
     })),
   },
   {
-    objectType: OBJECT_TYPES.AC_TEMPERATURE,
+    objectType: OBJECT_TYPES.AC_TEMPERATURE.obj_name,
     label: "Temperature",
     icon: Thermometer,
     defaultValue: "25",
     isTemperature: true,
   },
   {
-    objectType: OBJECT_TYPES.AC_SWING,
+    objectType: OBJECT_TYPES.AC_SWING.obj_name,
     label: "Swing",
     icon: Move,
     defaultValue: "0",

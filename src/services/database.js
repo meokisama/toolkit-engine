@@ -1,7 +1,7 @@
-import path from 'node:path';
-import fs from 'node:fs';
-import { app } from 'electron';
-import { AIRCON_OBJECT_TYPES, AIRCON_OBJECT_LABELS } from '../constants.js';
+import path from "node:path";
+import fs from "node:fs";
+import { app } from "electron";
+import { OBJECT_TYPES } from "../constants.js";
 
 class DatabaseService {
   constructor() {
@@ -9,32 +9,43 @@ class DatabaseService {
     this.init();
   }
 
+  // Helper function to get object_value from object_type
+  getObjectValue(objectType) {
+    // Find the matching object type and return its obj_value
+    for (const [, value] of Object.entries(OBJECT_TYPES)) {
+      if (typeof value === "object" && value.obj_name === objectType) {
+        return value.obj_value;
+      }
+    }
+    // Default fallback
+    console.warn(`Unknown object type: ${objectType}`);
+    return 0;
+  }
+
   init() {
     try {
       // Dynamic import for better-sqlite3
-      const Database = require('better-sqlite3');
+      const Database = require("better-sqlite3");
 
       // Tạo đường dẫn database trong documents directory
-      const documentsPath = app.getPath('documents')
-      const toolkitPath = path.join(documentsPath, 'Toolkit Engine')
+      const documentsPath = app.getPath("documents");
+      const toolkitPath = path.join(documentsPath, "Toolkit Engine");
 
       // Tạo thư mục nếu chưa tồn tại
       if (!fs.existsSync(toolkitPath)) {
-        fs.mkdirSync(toolkitPath, { recursive: true })
+        fs.mkdirSync(toolkitPath, { recursive: true });
       }
 
       // Tạo đường dẫn database
-      const dbPath = path.join(toolkitPath, 'projects.db')
+      const dbPath = path.join(toolkitPath, "projects.db");
 
       // Khởi tạo database
       this.db = new Database(dbPath);
 
       // Tạo bảng projects nếu chưa tồn tại
       this.createTables();
-
-
     } catch (error) {
-      console.error('Failed to initialize database:', error);
+      console.error("Failed to initialize database:", error);
       throw error;
     }
   }
@@ -58,6 +69,7 @@ class DatabaseService {
         address TEXT NOT NULL,
         description TEXT,
         object_type TEXT DEFAULT 'OBJ_LIGHTING',
+        object_value INTEGER DEFAULT 1,
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
         updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
         FOREIGN KEY (project_id) REFERENCES projects (id) ON DELETE CASCADE
@@ -71,7 +83,6 @@ class DatabaseService {
         name TEXT,
         address TEXT NOT NULL,
         description TEXT,
-        object_type TEXT NOT NULL,
         label TEXT,
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
         updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
@@ -111,6 +122,7 @@ class DatabaseService {
         address TEXT NOT NULL,
         description TEXT,
         object_type TEXT DEFAULT 'OBJ_CURTAIN',
+        object_value INTEGER DEFAULT 2,
         curtain_type TEXT DEFAULT 'CURTAIN_PULSE_2P',
         open_group TEXT,
         close_group TEXT,
@@ -128,7 +140,6 @@ class DatabaseService {
         name TEXT,
         address TEXT NOT NULL,
         description TEXT,
-        object_type TEXT DEFAULT 'OBJ_KNX',
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
         updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
         FOREIGN KEY (project_id) REFERENCES projects (id) ON DELETE CASCADE
@@ -142,7 +153,6 @@ class DatabaseService {
         name TEXT NOT NULL CHECK(length(name) <= 15),
         address TEXT NOT NULL,
         description TEXT,
-        object_type TEXT DEFAULT 'OBJ_SCENE',
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
         updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
         FOREIGN KEY (project_id) REFERENCES projects (id) ON DELETE CASCADE
@@ -155,9 +165,11 @@ class DatabaseService {
         scene_id INTEGER NOT NULL,
         item_type TEXT NOT NULL,
         item_id INTEGER NOT NULL,
+        item_address TEXT,
         item_value TEXT,
         command TEXT,
         object_type TEXT,
+        object_value INTEGER,
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
         FOREIGN KEY (scene_id) REFERENCES scene (id) ON DELETE CASCADE
       )
@@ -171,6 +183,7 @@ class DatabaseService {
         item_type TEXT NOT NULL,
         item_id INTEGER NOT NULL,
         object_type TEXT,
+        object_value INTEGER,
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
         FOREIGN KEY (project_id) REFERENCES projects (id) ON DELETE CASCADE,
         UNIQUE(project_id, address, item_type, item_id, object_type)
@@ -248,20 +261,22 @@ class DatabaseService {
       this.db.exec(createUnitOutputConfigsTable);
       this.db.exec(createUnitInputConfigsTable);
     } catch (error) {
-      console.error('Failed to create tables:', error);
+      console.error("Failed to create tables:", error);
       throw error;
     }
   }
 
-
-
   // Helper method to find next available address in range 1-255
   findNextAvailableAddress(projectId, tableName) {
     try {
-      const existingAddresses = this.db.prepare(`SELECT DISTINCT address FROM ${tableName} WHERE project_id = ?`).all(projectId);
+      const existingAddresses = this.db
+        .prepare(
+          `SELECT DISTINCT address FROM ${tableName} WHERE project_id = ?`
+        )
+        .all(projectId);
       const addressNumbers = existingAddresses
-        .map(item => parseInt(item.address))
-        .filter(num => !isNaN(num) && num >= 1 && num <= 255)
+        .map((item) => parseInt(item.address))
+        .filter((num) => !isNaN(num) && num >= 1 && num <= 255)
         .sort((a, b) => a - b);
 
       // Find the first available address in range 1-255
@@ -284,13 +299,18 @@ class DatabaseService {
         }
 
         if (newAddress === null) {
-          throw new Error(`No available addresses in range 1-255 for ${tableName} duplication`);
+          throw new Error(
+            `No available addresses in range 1-255 for ${tableName} duplication`
+          );
         }
       }
 
       return newAddress.toString();
     } catch (error) {
-      console.error(`Failed to find available address for ${tableName}:`, error);
+      console.error(
+        `Failed to find available address for ${tableName}:`,
+        error
+      );
       throw error;
     }
   }
@@ -298,20 +318,22 @@ class DatabaseService {
   // CRUD Operations
   getAllProjects() {
     try {
-      const stmt = this.db.prepare('SELECT * FROM projects ORDER BY created_at DESC');
+      const stmt = this.db.prepare(
+        "SELECT * FROM projects ORDER BY created_at DESC"
+      );
       return stmt.all();
     } catch (error) {
-      console.error('Failed to get all projects:', error);
+      console.error("Failed to get all projects:", error);
       throw error;
     }
   }
 
   getProjectById(id) {
     try {
-      const stmt = this.db.prepare('SELECT * FROM projects WHERE id = ?');
+      const stmt = this.db.prepare("SELECT * FROM projects WHERE id = ?");
       return stmt.get(id);
     } catch (error) {
-      console.error('Failed to get project by id:', error);
+      console.error("Failed to get project by id:", error);
       throw error;
     }
   }
@@ -328,7 +350,7 @@ class DatabaseService {
       const result = stmt.run(name, description);
       return this.getProjectById(result.lastInsertRowid);
     } catch (error) {
-      console.error('Failed to create project:', error);
+      console.error("Failed to create project:", error);
       throw error;
     }
   }
@@ -346,28 +368,28 @@ class DatabaseService {
       const result = stmt.run(name, description, id);
 
       if (result.changes === 0) {
-        throw new Error('Project not found');
+        throw new Error("Project not found");
       }
 
       return this.getProjectById(id);
     } catch (error) {
-      console.error('Failed to update project:', error);
+      console.error("Failed to update project:", error);
       throw error;
     }
   }
 
   deleteProject(id) {
     try {
-      const stmt = this.db.prepare('DELETE FROM projects WHERE id = ?');
+      const stmt = this.db.prepare("DELETE FROM projects WHERE id = ?");
       const result = stmt.run(id);
 
       if (result.changes === 0) {
-        throw new Error('Project not found');
+        throw new Error("Project not found");
       }
 
       return { success: true, deletedId: id };
     } catch (error) {
-      console.error('Failed to delete project:', error);
+      console.error("Failed to delete project:", error);
       throw error;
     }
   }
@@ -377,7 +399,7 @@ class DatabaseService {
       const originalProject = this.getProjectById(id);
 
       if (!originalProject) {
-        throw new Error('Project not found');
+        throw new Error("Project not found");
       }
 
       // Start transaction for atomic operation
@@ -385,7 +407,7 @@ class DatabaseService {
         // Create the new project
         const duplicatedProject = {
           name: `${originalProject.name} (Copy)`,
-          description: originalProject.description
+          description: originalProject.description,
         };
 
         const newProject = this.createProject(duplicatedProject);
@@ -401,20 +423,27 @@ class DatabaseService {
 
       return transaction();
     } catch (error) {
-      console.error('Failed to duplicate project:', error);
+      console.error("Failed to duplicate project:", error);
       throw error;
     }
   }
 
   // Helper method to copy all project items to a new project
   copyProjectItems(originalItems, newProjectId) {
-    const categories = ['lighting', 'aircon', 'unit', 'curtain', 'knx', 'scene'];
+    const categories = [
+      "lighting",
+      "aircon",
+      "unit",
+      "curtain",
+      "knx",
+      "scene",
+    ];
 
-    categories.forEach(category => {
+    categories.forEach((category) => {
       const items = originalItems[category] || [];
 
-      items.forEach(item => {
-        if (category === 'unit') {
+      items.forEach((item) => {
+        if (category === "unit") {
           // Special handling for unit items
           const itemData = {
             name: item.name,
@@ -424,20 +453,19 @@ class DatabaseService {
             id_can: item.id_can,
             mode: item.mode,
             firmware_version: item.firmware_version,
-            description: item.description
+            description: item.description,
           };
           this.createUnitItem(newProjectId, itemData);
-        } else if (category === 'aircon') {
+        } else if (category === "aircon") {
           // Special handling for aircon items (use aircon table)
           const itemData = {
             name: item.name,
             address: item.address,
             description: item.description,
-            object_type: item.object_type || 'OBJ_AIRCON', // Default to general aircon type
-            label: item.label || 'Aircon'
+            label: item.label || "Aircon",
           };
-          this.createProjectItem(newProjectId, itemData, 'aircon');
-        } else if (category === 'curtain') {
+          this.createProjectItem(newProjectId, itemData, "aircon");
+        } else if (category === "curtain") {
           // Special handling for curtain items
           const itemData = {
             name: item.name,
@@ -447,7 +475,7 @@ class DatabaseService {
             curtain_type: item.curtain_type,
             open_group: item.open_group,
             close_group: item.close_group,
-            stop_group: item.stop_group
+            stop_group: item.stop_group,
           };
           this.createProjectItem(newProjectId, itemData, category);
         } else {
@@ -456,7 +484,7 @@ class DatabaseService {
             name: item.name,
             address: item.address,
             description: item.description,
-            object_type: item.object_type
+            object_type: item.object_type,
           };
           this.createProjectItem(newProjectId, itemData, category);
         }
@@ -467,13 +495,39 @@ class DatabaseService {
   // Get all project items in one optimized call
   getAllProjectItems(projectId) {
     try {
-      const lighting = this.db.prepare('SELECT * FROM lighting WHERE project_id = ? ORDER BY address ASC').all(projectId);
-      const aircon = this.db.prepare('SELECT * FROM aircon WHERE project_id = ? ORDER BY address ASC').all(projectId);
-      const unit = this.db.prepare('SELECT * FROM unit WHERE project_id = ? ORDER BY created_at DESC').all(projectId);
-      const curtain = this.db.prepare('SELECT * FROM curtain WHERE project_id = ? ORDER BY address ASC').all(projectId);
-      const knx = this.db.prepare('SELECT * FROM knx WHERE project_id = ? ORDER BY address ASC').all(projectId);
-      const scene = this.db.prepare('SELECT * FROM scene WHERE project_id = ? ORDER BY address ASC').all(projectId);
-      const schedule = this.db.prepare('SELECT * FROM schedule WHERE project_id = ? ORDER BY name ASC').all(projectId);
+      const lighting = this.db
+        .prepare(
+          "SELECT * FROM lighting WHERE project_id = ? ORDER BY address ASC"
+        )
+        .all(projectId);
+      const aircon = this.db
+        .prepare(
+          "SELECT * FROM aircon WHERE project_id = ? ORDER BY address ASC"
+        )
+        .all(projectId);
+      const unit = this.db
+        .prepare(
+          "SELECT * FROM unit WHERE project_id = ? ORDER BY created_at DESC"
+        )
+        .all(projectId);
+      const curtain = this.db
+        .prepare(
+          "SELECT * FROM curtain WHERE project_id = ? ORDER BY address ASC"
+        )
+        .all(projectId);
+      const knx = this.db
+        .prepare("SELECT * FROM knx WHERE project_id = ? ORDER BY address ASC")
+        .all(projectId);
+      const scene = this.db
+        .prepare(
+          "SELECT * FROM scene WHERE project_id = ? ORDER BY address ASC"
+        )
+        .all(projectId);
+      const schedule = this.db
+        .prepare(
+          "SELECT * FROM schedule WHERE project_id = ? ORDER BY name ASC"
+        )
+        .all(projectId);
 
       return {
         lighting,
@@ -482,10 +536,10 @@ class DatabaseService {
         curtain,
         knx,
         scene,
-        schedule
+        schedule,
       };
     } catch (error) {
-      console.error('Failed to get all project items:', error);
+      console.error("Failed to get all project items:", error);
       throw error;
     }
   }
@@ -494,20 +548,28 @@ class DatabaseService {
   getProjectItems(projectId, tableName) {
     try {
       // Sort by address ASC for tables with address field, except unit and schedule tables
-      if (tableName === 'unit') {
-        const stmt = this.db.prepare(`SELECT * FROM ${tableName} WHERE project_id = ? ORDER BY created_at DESC`);
+      if (tableName === "unit") {
+        const stmt = this.db.prepare(
+          `SELECT * FROM ${tableName} WHERE project_id = ? ORDER BY created_at DESC`
+        );
         const items = stmt.all(projectId);
         // Parse RS485 and I/O config from JSON for unit items
-        return items.map(item => ({
+        return items.map((item) => ({
           ...item,
-          rs485_config: item.rs485_config ? JSON.parse(item.rs485_config) : null,
-          io_config: item.io_config ? JSON.parse(item.io_config) : null
+          rs485_config: item.rs485_config
+            ? JSON.parse(item.rs485_config)
+            : null,
+          io_config: item.io_config ? JSON.parse(item.io_config) : null,
         }));
-      } else if (tableName === 'schedule') {
-        const stmt = this.db.prepare(`SELECT * FROM ${tableName} WHERE project_id = ? ORDER BY name ASC`);
+      } else if (tableName === "schedule") {
+        const stmt = this.db.prepare(
+          `SELECT * FROM ${tableName} WHERE project_id = ? ORDER BY name ASC`
+        );
         return stmt.all(projectId);
       } else {
-        const stmt = this.db.prepare(`SELECT * FROM ${tableName} WHERE project_id = ? ORDER BY address ASC`);
+        const stmt = this.db.prepare(
+          `SELECT * FROM ${tableName} WHERE project_id = ? ORDER BY address ASC`
+        );
         return stmt.all(projectId);
       }
     } catch (error) {
@@ -521,7 +583,7 @@ class DatabaseService {
       const item = stmt.get(id);
 
       // Parse RS485 config from JSON for unit items
-      if (tableName === 'unit' && item && item.rs485_config) {
+      if (tableName === "unit" && item && item.rs485_config) {
         item.rs485_config = JSON.parse(item.rs485_config);
       }
 
@@ -533,11 +595,25 @@ class DatabaseService {
 
   createProjectItem(projectId, itemData, tableName) {
     try {
-      const { name, address, description, object_type, label, curtain_type, open_group, close_group, stop_group } = itemData;
+      const {
+        name,
+        address,
+        description,
+        object_type,
+        label,
+        curtain_type,
+        open_group,
+        close_group,
+        stop_group,
+      } = itemData;
 
       // Special validation for lighting to prevent duplicate addresses
-      if (tableName === 'lighting' && address) {
-        const existingItems = this.db.prepare('SELECT COUNT(*) as count FROM lighting WHERE project_id = ? AND address = ?').get(projectId, address);
+      if (tableName === "lighting" && address) {
+        const existingItems = this.db
+          .prepare(
+            "SELECT COUNT(*) as count FROM lighting WHERE project_id = ? AND address = ?"
+          )
+          .get(projectId, address);
         if (existingItems.count > 0) {
           throw new Error(`Address ${address} already exists.`);
         }
@@ -548,58 +624,96 @@ class DatabaseService {
       // with the same address but different object_types
 
       // Special validation for curtain to prevent duplicate addresses
-      if (tableName === 'curtain' && address) {
-        const existingItems = this.db.prepare('SELECT COUNT(*) as count FROM curtain WHERE project_id = ? AND address = ?').get(projectId, address);
+      if (tableName === "curtain" && address) {
+        const existingItems = this.db
+          .prepare(
+            "SELECT COUNT(*) as count FROM curtain WHERE project_id = ? AND address = ?"
+          )
+          .get(projectId, address);
         if (existingItems.count > 0) {
           throw new Error(`Address ${address} already exists.`);
         }
       }
 
       // Special validation for scene - address is now required
-      if (tableName === 'scene') {
+      if (tableName === "scene") {
         if (!address || !address.trim()) {
-          throw new Error('Address is required for scene.');
+          throw new Error("Address is required for scene.");
         }
         if (!name || name.length > 15) {
-          throw new Error('Scene name is required and must be 15 characters or less.');
+          throw new Error(
+            "Scene name is required and must be 15 characters or less."
+          );
         }
       }
 
       // Special validation for KNX to prevent duplicate addresses
-      if (tableName === 'knx' && address) {
-        const existingItems = this.db.prepare('SELECT COUNT(*) as count FROM knx WHERE project_id = ? AND address = ?').get(projectId, address);
+      if (tableName === "knx" && address) {
+        const existingItems = this.db
+          .prepare(
+            "SELECT COUNT(*) as count FROM knx WHERE project_id = ? AND address = ?"
+          )
+          .get(projectId, address);
         if (existingItems.count > 0) {
           throw new Error(`Address ${address} already exists.`);
         }
       }
 
       // For aircon table, include label column
-      if (tableName === 'aircon') {
+      if (tableName === "aircon") {
         const stmt = this.db.prepare(`
-          INSERT INTO ${tableName} (project_id, name, address, description, object_type, label)
-          VALUES (?, ?, ?, ?, ?, ?)
+          INSERT INTO ${tableName} (project_id, name, address, description, label)
+          VALUES (?, ?, ?, ?, ?)
         `);
-        const result = stmt.run(projectId, name, address, description, object_type, label);
+        const result = stmt.run(projectId, name, address, description, label);
         return this.getProjectItemById(result.lastInsertRowid, tableName);
-      } else if (tableName === 'curtain') {
+      } else if (tableName === "curtain") {
         // For curtain table, include curtain-specific fields
         // Address is required for curtain items
         if (!address) {
-          throw new Error('Address is required for curtain items.');
+          throw new Error("Address is required for curtain items.");
         }
+        const object_value = this.getObjectValue(object_type);
         const stmt = this.db.prepare(`
-          INSERT INTO ${tableName} (project_id, name, address, description, object_type, curtain_type, open_group, close_group, stop_group)
-          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+          INSERT INTO ${tableName} (project_id, name, address, description, object_type, object_value, curtain_type, open_group, close_group, stop_group)
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         `);
-        const result = stmt.run(projectId, name, address, description, object_type, curtain_type, open_group || null, close_group || null, stop_group || null);
+        const result = stmt.run(
+          projectId,
+          name,
+          address,
+          description,
+          object_type,
+          object_value,
+          curtain_type,
+          open_group || null,
+          close_group || null,
+          stop_group || null
+        );
+        return this.getProjectItemById(result.lastInsertRowid, tableName);
+      } else if (tableName === "knx" || tableName === "scene") {
+        // For knx and scene tables, don't use object_type and object_value
+        const stmt = this.db.prepare(`
+          INSERT INTO ${tableName} (project_id, name, address, description)
+          VALUES (?, ?, ?, ?)
+        `);
+        const result = stmt.run(projectId, name, address, description);
         return this.getProjectItemById(result.lastInsertRowid, tableName);
       } else {
-        // For other tables, use original structure
+        // For other tables, use original structure with object_type and object_value
+        const object_value = this.getObjectValue(object_type);
         const stmt = this.db.prepare(`
-          INSERT INTO ${tableName} (project_id, name, address, description, object_type)
-          VALUES (?, ?, ?, ?, ?)
+          INSERT INTO ${tableName} (project_id, name, address, description, object_type, object_value)
+          VALUES (?, ?, ?, ?, ?, ?)
         `);
-        const result = stmt.run(projectId, name, address, description, object_type);
+        const result = stmt.run(
+          projectId,
+          name,
+          address,
+          description,
+          object_type,
+          object_value
+        );
         return this.getProjectItemById(result.lastInsertRowid, tableName);
       }
     } catch (error) {
@@ -610,14 +724,28 @@ class DatabaseService {
 
   updateProjectItem(id, itemData, tableName) {
     try {
-      const { name, address, description, object_type, label, curtain_type, open_group, close_group, stop_group } = itemData;
+      const {
+        name,
+        address,
+        description,
+        object_type,
+        label,
+        curtain_type,
+        open_group,
+        close_group,
+        stop_group,
+      } = itemData;
 
       // Special validation for aircon to prevent duplicate addresses
-      if (tableName === 'aircon' && address) {
+      if (tableName === "aircon" && address) {
         const currentItem = this.getProjectItemById(id, tableName);
         if (currentItem && currentItem.address !== address) {
           // Check if new address already exists for this project (excluding current item's address)
-          const existingItems = this.db.prepare('SELECT COUNT(*) as count FROM aircon WHERE project_id = ? AND address = ? AND address != ?').get(currentItem.project_id, address, currentItem.address);
+          const existingItems = this.db
+            .prepare(
+              "SELECT COUNT(*) as count FROM aircon WHERE project_id = ? AND address = ? AND address != ?"
+            )
+            .get(currentItem.project_id, address, currentItem.address);
           if (existingItems.count > 0) {
             throw new Error(`Address ${address} already exists.`);
           }
@@ -625,11 +753,15 @@ class DatabaseService {
       }
 
       // Special validation for lighting to prevent duplicate addresses
-      if (tableName === 'lighting' && address) {
+      if (tableName === "lighting" && address) {
         const currentItem = this.getProjectItemById(id, tableName);
         if (currentItem && currentItem.address !== address) {
           // Check if new address already exists for this project (excluding current item's address)
-          const existingItems = this.db.prepare('SELECT COUNT(*) as count FROM lighting WHERE project_id = ? AND address = ? AND id != ?').get(currentItem.project_id, address, id);
+          const existingItems = this.db
+            .prepare(
+              "SELECT COUNT(*) as count FROM lighting WHERE project_id = ? AND address = ? AND id != ?"
+            )
+            .get(currentItem.project_id, address, id);
           if (existingItems.count > 0) {
             throw new Error(`Address ${address} already exists.`);
           }
@@ -637,11 +769,15 @@ class DatabaseService {
       }
 
       // Special validation for curtain to prevent duplicate addresses
-      if (tableName === 'curtain' && address) {
+      if (tableName === "curtain" && address) {
         const currentItem = this.getProjectItemById(id, tableName);
         if (currentItem && currentItem.address !== address) {
           // Check if new address already exists for this project (excluding current item's address)
-          const existingItems = this.db.prepare('SELECT COUNT(*) as count FROM curtain WHERE project_id = ? AND address = ? AND id != ?').get(currentItem.project_id, address, id);
+          const existingItems = this.db
+            .prepare(
+              "SELECT COUNT(*) as count FROM curtain WHERE project_id = ? AND address = ? AND id != ?"
+            )
+            .get(currentItem.project_id, address, id);
           if (existingItems.count > 0) {
             throw new Error(`Address ${address} already exists.`);
           }
@@ -649,21 +785,27 @@ class DatabaseService {
       }
 
       // Special validation for scene - address is required and name length check
-      if (tableName === 'scene') {
+      if (tableName === "scene") {
         if (!address || !address.trim()) {
-          throw new Error('Address is required for scene.');
+          throw new Error("Address is required for scene.");
         }
         if (!name || name.length > 15) {
-          throw new Error('Scene name is required and must be 15 characters or less.');
+          throw new Error(
+            "Scene name is required and must be 15 characters or less."
+          );
         }
       }
 
       // Special validation for KNX to prevent duplicate addresses
-      if (tableName === 'knx' && address) {
+      if (tableName === "knx" && address) {
         const currentItem = this.getProjectItemById(id, tableName);
         if (currentItem && currentItem.address !== address) {
           // Check if new address already exists for this project (excluding current item's address)
-          const existingItems = this.db.prepare('SELECT COUNT(*) as count FROM knx WHERE project_id = ? AND address = ? AND id != ?').get(currentItem.project_id, address, id);
+          const existingItems = this.db
+            .prepare(
+              "SELECT COUNT(*) as count FROM knx WHERE project_id = ? AND address = ? AND id != ?"
+            )
+            .get(currentItem.project_id, address, id);
           if (existingItems.count > 0) {
             throw new Error(`Address ${address} already exists.`);
           }
@@ -671,41 +813,73 @@ class DatabaseService {
       }
 
       // For aircon table, include label column
-      if (tableName === 'aircon') {
+      if (tableName === "aircon") {
         const stmt = this.db.prepare(`
           UPDATE ${tableName}
-          SET name = ?, address = ?, description = ?, object_type = ?, label = ?, updated_at = CURRENT_TIMESTAMP
+          SET name = ?, address = ?, description = ?, label = ?, updated_at = CURRENT_TIMESTAMP
           WHERE id = ?
         `);
-        const result = stmt.run(name, address, description, object_type, label, id);
+        const result = stmt.run(name, address, description, label, id);
 
         if (result.changes === 0) {
           throw new Error(`${tableName} item not found`);
         }
-      } else if (tableName === 'curtain') {
+      } else if (tableName === "curtain") {
         // For curtain table, include curtain-specific fields
         // Address is required for curtain items
         if (!address) {
-          throw new Error('Address is required for curtain items.');
+          throw new Error("Address is required for curtain items.");
         }
+        const object_value = this.getObjectValue(object_type);
         const stmt = this.db.prepare(`
           UPDATE ${tableName}
-          SET name = ?, address = ?, description = ?, object_type = ?, curtain_type = ?, open_group = ?, close_group = ?, stop_group = ?, updated_at = CURRENT_TIMESTAMP
+          SET name = ?, address = ?, description = ?, object_type = ?, object_value = ?, curtain_type = ?, open_group = ?, close_group = ?, stop_group = ?, updated_at = CURRENT_TIMESTAMP
           WHERE id = ?
         `);
-        const result = stmt.run(name, address, description, object_type, curtain_type, open_group || null, close_group || null, stop_group || null, id);
+        const result = stmt.run(
+          name,
+          address,
+          description,
+          object_type,
+          object_value,
+          curtain_type,
+          open_group || null,
+          close_group || null,
+          stop_group || null,
+          id
+        );
+
+        if (result.changes === 0) {
+          throw new Error(`${tableName} item not found`);
+        }
+      } else if (tableName === "knx" || tableName === "scene") {
+        // For knx and scene tables, don't use object_type and object_value
+        const stmt = this.db.prepare(`
+          UPDATE ${tableName}
+          SET name = ?, address = ?, description = ?, updated_at = CURRENT_TIMESTAMP
+          WHERE id = ?
+        `);
+        const result = stmt.run(name, address, description, id);
 
         if (result.changes === 0) {
           throw new Error(`${tableName} item not found`);
         }
       } else {
-        // For other tables, use original structure
+        // For other tables, use original structure with object_type and object_value
+        const object_value = this.getObjectValue(object_type);
         const stmt = this.db.prepare(`
           UPDATE ${tableName}
-          SET name = ?, address = ?, description = ?, object_type = ?, updated_at = CURRENT_TIMESTAMP
+          SET name = ?, address = ?, description = ?, object_type = ?, object_value = ?, updated_at = CURRENT_TIMESTAMP
           WHERE id = ?
         `);
-        const result = stmt.run(name, address, description, object_type, id);
+        const result = stmt.run(
+          name,
+          address,
+          description,
+          object_type,
+          object_value,
+          id
+        );
 
         if (result.changes === 0) {
           throw new Error(`${tableName} item not found`);
@@ -747,42 +921,63 @@ class DatabaseService {
         name: originalItem.name ? `${originalItem.name} (Copy)` : null,
         address: originalItem.address,
         description: originalItem.description,
-        object_type: originalItem.object_type
       };
 
+      // Add object_type only for tables that use it (not aircon, knx, scene)
+      if (
+        tableName !== "aircon" &&
+        tableName !== "knx" &&
+        tableName !== "scene"
+      ) {
+        duplicatedItem.object_type = originalItem.object_type;
+      }
+
       // For lighting, find a unique address in range 1-255
-      if (tableName === 'lighting' && originalItem.address) {
-        duplicatedItem.address = this.findNextAvailableAddress(originalItem.project_id, 'lighting');
+      if (tableName === "lighting" && originalItem.address) {
+        duplicatedItem.address = this.findNextAvailableAddress(
+          originalItem.project_id,
+          "lighting"
+        );
       }
 
       // For aircon, include label and find unique address in range 1-255
-      if (tableName === 'aircon') {
+      if (tableName === "aircon") {
         duplicatedItem.label = originalItem.label;
 
         if (originalItem.address) {
-          duplicatedItem.address = this.findNextAvailableAddress(originalItem.project_id, 'aircon');
+          duplicatedItem.address = this.findNextAvailableAddress(
+            originalItem.project_id,
+            "aircon"
+          );
         }
       }
 
       // For curtain, find a unique address in range 1-255 and include curtain-specific fields
-      if (tableName === 'curtain' && originalItem.address) {
-        duplicatedItem.address = this.findNextAvailableAddress(originalItem.project_id, 'curtain');
-        duplicatedItem.curtain_type = originalItem.curtain_type || 'CURTAIN_PULSE_2P';
+      if (tableName === "curtain" && originalItem.address) {
+        duplicatedItem.address = this.findNextAvailableAddress(
+          originalItem.project_id,
+          "curtain"
+        );
+        duplicatedItem.curtain_type =
+          originalItem.curtain_type || "CURTAIN_PULSE_2P";
         duplicatedItem.open_group = originalItem.open_group || null;
         duplicatedItem.close_group = originalItem.close_group || null;
         duplicatedItem.stop_group = originalItem.stop_group || null;
       }
 
       // For scene, find a unique address in range 1-255 if address exists
-      if (tableName === 'scene' && originalItem.address) {
-        duplicatedItem.address = this.findNextAvailableAddress(originalItem.project_id, 'scene');
+      if (tableName === "scene" && originalItem.address) {
+        duplicatedItem.address = this.findNextAvailableAddress(
+          originalItem.project_id,
+          "scene"
+        );
       }
 
       // For KNX, find a unique address if address exists
-      if (tableName === 'knx' && originalItem.address) {
+      if (tableName === "knx" && originalItem.address) {
         // For KNX, we need to find next available address in x.y.z format
         // For simplicity, we'll increment the device part (z) and keep area.line the same
-        const addressParts = originalItem.address.split('.');
+        const addressParts = originalItem.address.split(".");
         if (addressParts.length === 3) {
           const area = addressParts[0];
           const line = addressParts[1];
@@ -793,13 +988,24 @@ class DatabaseService {
           do {
             device = (device + 1) % 256;
             newAddress = `${area}.${line}.${device}`;
-          } while (this.db.prepare('SELECT COUNT(*) as count FROM knx WHERE project_id = ? AND address = ?').get(originalItem.project_id, newAddress).count > 0 && device !== parseInt(addressParts[2]));
+          } while (
+            this.db
+              .prepare(
+                "SELECT COUNT(*) as count FROM knx WHERE project_id = ? AND address = ?"
+              )
+              .get(originalItem.project_id, newAddress).count > 0 &&
+            device !== parseInt(addressParts[2])
+          );
 
           duplicatedItem.address = newAddress;
         }
       }
 
-      return this.createProjectItem(originalItem.project_id, duplicatedItem, tableName);
+      return this.createProjectItem(
+        originalItem.project_id,
+        duplicatedItem,
+        tableName
+      );
     } catch (error) {
       console.error(`Failed to duplicate ${tableName} item:`, error);
       throw error;
@@ -815,23 +1021,31 @@ class DatabaseService {
         const project = this.createProject(projectData);
 
         // Import items for each category
-        const categories = ['lighting', 'aircon', 'unit', 'curtain', 'knx', 'scene', 'schedule'];
+        const categories = [
+          "lighting",
+          "aircon",
+          "unit",
+          "curtain",
+          "knx",
+          "scene",
+          "schedule",
+        ];
         const importedCounts = {};
 
-        categories.forEach(category => {
+        categories.forEach((category) => {
           const items = itemsData[category] || [];
           importedCounts[category] = 0;
 
-          items.forEach(itemData => {
-            if (category === 'unit') {
+          items.forEach((itemData) => {
+            if (category === "unit") {
               this.createUnitItem(project.id, itemData);
-            } else if (category === 'aircon') {
+            } else if (category === "aircon") {
               // Ensure label is set for aircon items
-              if (!itemData.label && itemData.object_type) {
-                itemData.label = AIRCON_OBJECT_LABELS[itemData.object_type];
+              if (!itemData.label) {
+                itemData.label = "Aircon";
               }
-              this.createProjectItem(project.id, itemData, 'aircon');
-            } else if (category === 'schedule') {
+              this.createProjectItem(project.id, itemData, "aircon");
+            } else if (category === "schedule") {
               this.createScheduleItem(project.id, itemData);
             } else {
               this.createProjectItem(project.id, itemData, category);
@@ -845,7 +1059,7 @@ class DatabaseService {
 
       return transaction();
     } catch (error) {
-      console.error('Failed to import project:', error);
+      console.error("Failed to import project:", error);
       throw error;
     }
   }
@@ -856,13 +1070,13 @@ class DatabaseService {
       const transaction = this.db.transaction(() => {
         const importedItems = [];
 
-        items.forEach(itemData => {
+        items.forEach((itemData) => {
           let item;
-          if (category === 'unit') {
+          if (category === "unit") {
             item = this.createUnitItem(projectId, itemData);
-          } else if (category === 'aircon') {
-            item = this.createProjectItem(projectId, itemData, 'aircon');
-          } else if (category === 'schedule') {
+          } else if (category === "aircon") {
+            item = this.createProjectItem(projectId, itemData, "aircon");
+          } else if (category === "schedule") {
             item = this.createScheduleItem(projectId, itemData);
           } else {
             item = this.createProjectItem(projectId, itemData, category);
@@ -883,44 +1097,46 @@ class DatabaseService {
   // Specific methods for each category
   // Lighting
   getLightingItems(projectId) {
-    return this.getProjectItems(projectId, 'lighting');
+    return this.getProjectItems(projectId, "lighting");
   }
 
   createLightingItem(projectId, itemData) {
-    return this.createProjectItem(projectId, itemData, 'lighting');
+    return this.createProjectItem(projectId, itemData, "lighting");
   }
 
   updateLightingItem(id, itemData) {
-    return this.updateProjectItem(id, itemData, 'lighting');
+    return this.updateProjectItem(id, itemData, "lighting");
   }
 
   deleteLightingItem(id) {
-    return this.deleteProjectItem(id, 'lighting');
+    return this.deleteProjectItem(id, "lighting");
   }
 
   duplicateLightingItem(id) {
-    return this.duplicateProjectItem(id, 'lighting');
+    return this.duplicateProjectItem(id, "lighting");
   }
 
   // Aircon - Special handling for aircon cards and items
   getAirconItems(projectId) {
-    return this.getProjectItems(projectId, 'aircon');
+    return this.getProjectItems(projectId, "aircon");
   }
 
   // Get aircon cards (each item is now a card)
   getAirconCards(projectId) {
     try {
-      const items = this.db.prepare('SELECT * FROM aircon WHERE project_id = ? ORDER BY address').all(projectId);
+      const items = this.db
+        .prepare("SELECT * FROM aircon WHERE project_id = ? ORDER BY address")
+        .all(projectId);
 
       // Each item is now a card
-      return items.map(item => ({
+      return items.map((item) => ({
         name: item.name,
         address: item.address,
         description: item.description,
-        item: item
+        item: item,
       }));
     } catch (error) {
-      console.error('Failed to get aircon cards:', error);
+      console.error("Failed to get aircon cards:", error);
       throw error;
     }
   }
@@ -934,89 +1150,99 @@ class DatabaseService {
       const addressStr = address.toString();
 
       // Check if address already exists for this project
-      const existingItems = this.db.prepare('SELECT COUNT(*) as count FROM aircon WHERE project_id = ? AND address = ?').get(projectId, addressStr);
+      const existingItems = this.db
+        .prepare(
+          "SELECT COUNT(*) as count FROM aircon WHERE project_id = ? AND address = ?"
+        )
+        .get(projectId, addressStr);
 
       if (existingItems.count > 0) {
         throw new Error(`Address ${addressStr} already exists.`);
       }
 
-      // Create single aircon item with general object type
+      // Create single aircon item
       const itemData = {
         name,
         address: addressStr,
         description,
-        object_type: 'OBJ_AIRCON', // General aircon object type
-        label: 'Aircon'
+        label: "Aircon",
       };
 
-      const item = this.createProjectItem(projectId, itemData, 'aircon');
+      const item = this.createProjectItem(projectId, itemData, "aircon");
       return [item]; // Return as array for compatibility
     } catch (error) {
-      console.error('Failed to create aircon card:', error);
+      console.error("Failed to create aircon card:", error);
       throw error;
     }
   }
 
   createAirconItem(projectId, itemData) {
-    return this.createProjectItem(projectId, itemData, 'aircon');
+    return this.createProjectItem(projectId, itemData, "aircon");
   }
 
   updateAirconItem(id, itemData) {
-    return this.updateProjectItem(id, itemData, 'aircon');
+    return this.updateProjectItem(id, itemData, "aircon");
   }
 
   deleteAirconItem(id) {
-    return this.deleteProjectItem(id, 'aircon');
+    return this.deleteProjectItem(id, "aircon");
   }
 
   // Delete entire aircon card (all items with same address)
   deleteAirconCard(projectId, address) {
     try {
-      const stmt = this.db.prepare('DELETE FROM aircon WHERE project_id = ? AND address = ?');
+      const stmt = this.db.prepare(
+        "DELETE FROM aircon WHERE project_id = ? AND address = ?"
+      );
       const result = stmt.run(projectId, address);
 
       return { success: true, deletedCount: result.changes };
     } catch (error) {
-      console.error('Failed to delete aircon card:', error);
+      console.error("Failed to delete aircon card:", error);
       throw error;
     }
   }
 
   duplicateAirconItem(id) {
-    return this.duplicateProjectItem(id, 'aircon');
+    return this.duplicateProjectItem(id, "aircon");
   }
 
   // Duplicate entire aircon card
   duplicateAirconCard(projectId, address) {
     try {
-      const item = this.db.prepare('SELECT * FROM aircon WHERE project_id = ? AND address = ?').get(projectId, address);
+      const item = this.db
+        .prepare("SELECT * FROM aircon WHERE project_id = ? AND address = ?")
+        .get(projectId, address);
 
       if (!item) {
-        throw new Error('Aircon card not found');
+        throw new Error("Aircon card not found");
       }
 
       // Find a unique numeric address for the duplicated card in range 1-255
-      const newAddress = this.findNextAvailableAddress(projectId, 'aircon');
+      const newAddress = this.findNextAvailableAddress(projectId, "aircon");
 
       const duplicatedItem = {
         name: item.name ? `${item.name} (Copy)` : null,
         address: newAddress,
         description: item.description,
-        object_type: item.object_type,
-        label: item.label
+        label: item.label,
       };
 
-      const newItem = this.createProjectItem(projectId, duplicatedItem, 'aircon');
+      const newItem = this.createProjectItem(
+        projectId,
+        duplicatedItem,
+        "aircon"
+      );
       return [newItem]; // Return as array for compatibility
     } catch (error) {
-      console.error('Failed to duplicate aircon card:', error);
+      console.error("Failed to duplicate aircon card:", error);
       throw error;
     }
   }
 
   // Unit - Special handling for unit table structure
   getUnitItems(projectId) {
-    return this.getProjectItems(projectId, 'unit');
+    return this.getProjectItems(projectId, "unit");
   }
 
   createUnitItem(projectId, itemData) {
@@ -1035,7 +1261,7 @@ class DatabaseService {
         description,
         discovered_at,
         rs485_config,
-        io_config
+        io_config,
       } = itemData;
 
       const stmt = this.db.prepare(`
@@ -1048,16 +1274,26 @@ class DatabaseService {
       `);
 
       const result = stmt.run(
-        projectId, type, serial_no, ip_address,
-        id_can, mode, firmware_version, hardware_version,
-        manufacture_date, can_load ? 1 : 0, recovery_mode ? 1 : 0, description, discovered_at,
+        projectId,
+        type,
+        serial_no,
+        ip_address,
+        id_can,
+        mode,
+        firmware_version,
+        hardware_version,
+        manufacture_date,
+        can_load ? 1 : 0,
+        recovery_mode ? 1 : 0,
+        description,
+        discovered_at,
         rs485_config ? JSON.stringify(rs485_config) : null,
         io_config ? JSON.stringify(io_config) : null
       );
 
-      return this.getProjectItemById(result.lastInsertRowid, 'unit');
+      return this.getProjectItemById(result.lastInsertRowid, "unit");
     } catch (error) {
-      console.error('Failed to create unit item:', error);
+      console.error("Failed to create unit item:", error);
       throw error;
     }
   }
@@ -1078,7 +1314,7 @@ class DatabaseService {
         description,
         discovered_at,
         rs485_config,
-        io_config
+        io_config,
       } = itemData;
 
       const stmt = this.db.prepare(`
@@ -1091,26 +1327,36 @@ class DatabaseService {
       `);
 
       const result = stmt.run(
-        type, serial_no, ip_address,
-        id_can, mode, firmware_version, hardware_version,
-        manufacture_date, can_load ? 1 : 0, recovery_mode ? 1 : 0, description,
-        discovered_at, rs485_config ? JSON.stringify(rs485_config) : null,
-        io_config ? JSON.stringify(io_config) : null, id
+        type,
+        serial_no,
+        ip_address,
+        id_can,
+        mode,
+        firmware_version,
+        hardware_version,
+        manufacture_date,
+        can_load ? 1 : 0,
+        recovery_mode ? 1 : 0,
+        description,
+        discovered_at,
+        rs485_config ? JSON.stringify(rs485_config) : null,
+        io_config ? JSON.stringify(io_config) : null,
+        id
       );
 
       if (result.changes === 0) {
-        throw new Error('Unit item not found');
+        throw new Error("Unit item not found");
       }
 
-      return this.getProjectItemById(id, 'unit');
+      return this.getProjectItemById(id, "unit");
     } catch (error) {
-      console.error('Failed to update unit item:', error);
+      console.error("Failed to update unit item:", error);
       throw error;
     }
   }
 
   deleteUnitItem(id) {
-    return this.deleteProjectItem(id, 'unit');
+    return this.deleteProjectItem(id, "unit");
   }
 
   // Unit Output Configuration methods
@@ -1125,12 +1371,12 @@ class DatabaseService {
       if (result && result.config_data) {
         return {
           ...result,
-          config_data: JSON.parse(result.config_data)
+          config_data: JSON.parse(result.config_data),
         };
       }
       return null;
     } catch (error) {
-      console.error('Failed to get unit output config:', error);
+      console.error("Failed to get unit output config:", error);
       throw error;
     }
   }
@@ -1152,7 +1398,7 @@ class DatabaseService {
 
       return this.getUnitOutputConfig(unitId, outputIndex);
     } catch (error) {
-      console.error('Failed to save unit output config:', error);
+      console.error("Failed to save unit output config:", error);
       throw error;
     }
   }
@@ -1167,7 +1413,7 @@ class DatabaseService {
       const result = stmt.run(unitId, outputIndex);
       return result.changes > 0;
     } catch (error) {
-      console.error('Failed to delete unit output config:', error);
+      console.error("Failed to delete unit output config:", error);
       throw error;
     }
   }
@@ -1181,12 +1427,12 @@ class DatabaseService {
       `);
       const results = stmt.all(unitId);
 
-      return results.map(result => ({
+      return results.map((result) => ({
         ...result,
-        config_data: result.config_data ? JSON.parse(result.config_data) : null
+        config_data: result.config_data ? JSON.parse(result.config_data) : null,
       }));
     } catch (error) {
-      console.error('Failed to get all unit output configs:', error);
+      console.error("Failed to get all unit output configs:", error);
       throw error;
     }
   }
@@ -1203,18 +1449,27 @@ class DatabaseService {
       if (result) {
         return {
           ...result,
-          multi_group_config: result.multi_group_config ? JSON.parse(result.multi_group_config) : [],
-          rlc_config: result.rlc_config ? JSON.parse(result.rlc_config) : {}
+          multi_group_config: result.multi_group_config
+            ? JSON.parse(result.multi_group_config)
+            : [],
+          rlc_config: result.rlc_config ? JSON.parse(result.rlc_config) : {},
         };
       }
       return null;
     } catch (error) {
-      console.error('Failed to get unit input config:', error);
+      console.error("Failed to get unit input config:", error);
       throw error;
     }
   }
 
-  saveUnitInputConfig(unitId, inputIndex, functionValue, lightingId, multiGroupConfig, rlcConfig) {
+  saveUnitInputConfig(
+    unitId,
+    inputIndex,
+    functionValue,
+    lightingId,
+    multiGroupConfig,
+    rlcConfig
+  ) {
     try {
       const stmt = this.db.prepare(`
         INSERT OR REPLACE INTO unit_input_configs
@@ -1233,7 +1488,7 @@ class DatabaseService {
 
       return this.getUnitInputConfig(unitId, inputIndex);
     } catch (error) {
-      console.error('Failed to save unit input config:', error);
+      console.error("Failed to save unit input config:", error);
       throw error;
     }
   }
@@ -1248,7 +1503,7 @@ class DatabaseService {
       const result = stmt.run(unitId, inputIndex);
       return result.changes > 0;
     } catch (error) {
-      console.error('Failed to delete unit input config:', error);
+      console.error("Failed to delete unit input config:", error);
       throw error;
     }
   }
@@ -1262,13 +1517,15 @@ class DatabaseService {
       `);
       const results = stmt.all(unitId);
 
-      return results.map(result => ({
+      return results.map((result) => ({
         ...result,
-        multi_group_config: result.multi_group_config ? JSON.parse(result.multi_group_config) : [],
-        rlc_config: result.rlc_config ? JSON.parse(result.rlc_config) : {}
+        multi_group_config: result.multi_group_config
+          ? JSON.parse(result.multi_group_config)
+          : [],
+        rlc_config: result.rlc_config ? JSON.parse(result.rlc_config) : {},
       }));
     } catch (error) {
-      console.error('Failed to get all unit input configs:', error);
+      console.error("Failed to get all unit input configs:", error);
       throw error;
     }
   }
@@ -1296,17 +1553,17 @@ class DatabaseService {
 
       return true;
     } catch (error) {
-      console.error('Failed to clear all unit I/O configs:', error);
+      console.error("Failed to clear all unit I/O configs:", error);
       throw error;
     }
   }
 
   duplicateUnitItem(id) {
     try {
-      const originalItem = this.getProjectItemById(id, 'unit');
+      const originalItem = this.getProjectItemById(id, "unit");
 
       if (!originalItem) {
-        throw new Error('Unit item not found');
+        throw new Error("Unit item not found");
       }
 
       const duplicatedItem = {
@@ -1316,44 +1573,44 @@ class DatabaseService {
         id_can: originalItem.id_can,
         mode: originalItem.mode,
         firmware_version: originalItem.firmware_version,
-        description: originalItem.description
+        description: originalItem.description,
       };
 
       return this.createUnitItem(originalItem.project_id, duplicatedItem);
     } catch (error) {
-      console.error('Failed to duplicate unit item:', error);
+      console.error("Failed to duplicate unit item:", error);
       throw error;
     }
   }
 
   // Curtain
   getCurtainItems(projectId) {
-    return this.getProjectItems(projectId, 'curtain');
+    return this.getProjectItems(projectId, "curtain");
   }
 
   createCurtainItem(projectId, itemData) {
-    return this.createProjectItem(projectId, itemData, 'curtain');
+    return this.createProjectItem(projectId, itemData, "curtain");
   }
 
   updateCurtainItem(id, itemData) {
-    return this.updateProjectItem(id, itemData, 'curtain');
+    return this.updateProjectItem(id, itemData, "curtain");
   }
 
   deleteCurtainItem(id) {
-    return this.deleteProjectItem(id, 'curtain');
+    return this.deleteProjectItem(id, "curtain");
   }
 
   duplicateCurtainItem(id) {
-    return this.duplicateProjectItem(id, 'curtain');
+    return this.duplicateProjectItem(id, "curtain");
   }
 
   // Scene
   getSceneItems(projectId) {
-    return this.getProjectItems(projectId, 'scene');
+    return this.getProjectItems(projectId, "scene");
   }
 
   createSceneItem(projectId, itemData) {
-    return this.createProjectItem(projectId, itemData, 'scene');
+    return this.createProjectItem(projectId, itemData, "scene");
   }
 
   updateSceneItem(id, itemData) {
@@ -1361,15 +1618,17 @@ class DatabaseService {
       // Start transaction to handle address changes
       const transaction = this.db.transaction(() => {
         // Get current scene info
-        const currentScene = this.getProjectItemById(id, 'scene');
+        const currentScene = this.getProjectItemById(id, "scene");
         if (!currentScene) {
-          throw new Error('Scene not found');
+          throw new Error("Scene not found");
         }
 
         // Check if address is changing
         if (currentScene.address !== itemData.address) {
           // Get all scene items for this scene
-          const sceneItems = this.db.prepare('SELECT * FROM scene_items WHERE scene_id = ?').all(id);
+          const sceneItems = this.db
+            .prepare("SELECT * FROM scene_items WHERE scene_id = ?")
+            .all(id);
 
           // Remove old address items from scene_address_items
           const deleteOldAddressItemStmt = this.db.prepare(`
@@ -1403,34 +1662,38 @@ class DatabaseService {
             );
 
             if (existingItem.count > 0) {
-              throw new Error(`Item is already used by another scene with address ${itemData.address}`);
+              throw new Error(
+                `Item is already used by another scene with address ${itemData.address}`
+              );
             }
           }
 
           // Add new address items to scene_address_items
           const addNewAddressItemStmt = this.db.prepare(`
-            INSERT INTO scene_address_items (project_id, address, item_type, item_id, object_type)
-            VALUES (?, ?, ?, ?, ?)
+            INSERT INTO scene_address_items (project_id, address, item_type, item_id, object_type, object_value)
+            VALUES (?, ?, ?, ?, ?, ?)
           `);
 
           for (const sceneItem of sceneItems) {
+            const object_value = this.getObjectValue(sceneItem.object_type);
             addNewAddressItemStmt.run(
               currentScene.project_id,
               itemData.address,
               sceneItem.item_type,
               sceneItem.item_id,
-              sceneItem.object_type
+              sceneItem.object_type,
+              object_value
             );
           }
         }
 
         // Update the scene
-        return this.updateProjectItem(id, itemData, 'scene');
+        return this.updateProjectItem(id, itemData, "scene");
       });
 
       return transaction();
     } catch (error) {
-      console.error('Failed to update scene item:', error);
+      console.error("Failed to update scene item:", error);
       throw error;
     }
   }
@@ -1440,13 +1703,17 @@ class DatabaseService {
       // Start transaction to ensure data consistency
       const transaction = this.db.transaction(() => {
         // Get scene info before deleting
-        const scene = this.db.prepare('SELECT project_id, address FROM scene WHERE id = ?').get(id);
+        const scene = this.db
+          .prepare("SELECT project_id, address FROM scene WHERE id = ?")
+          .get(id);
         if (!scene) {
-          throw new Error('Scene not found');
+          throw new Error("Scene not found");
         }
 
         // Get all scene items for this scene
-        const sceneItems = this.db.prepare('SELECT * FROM scene_items WHERE scene_id = ?').all(id);
+        const sceneItems = this.db
+          .prepare("SELECT * FROM scene_items WHERE scene_id = ?")
+          .all(id);
 
         // Remove all items from scene_address_items
         const deleteAddressItemStmt = this.db.prepare(`
@@ -1465,11 +1732,13 @@ class DatabaseService {
         }
 
         // Delete the scene (this will cascade delete scene_items due to foreign key)
-        const deleteSceneStmt = this.db.prepare('DELETE FROM scene WHERE id = ?');
+        const deleteSceneStmt = this.db.prepare(
+          "DELETE FROM scene WHERE id = ?"
+        );
         const result = deleteSceneStmt.run(id);
 
         if (result.changes === 0) {
-          throw new Error('Scene item not found');
+          throw new Error("Scene item not found");
         }
 
         return { success: true, deletedId: id };
@@ -1477,7 +1746,7 @@ class DatabaseService {
 
       return transaction();
     } catch (error) {
-      console.error('Failed to delete scene item:', error);
+      console.error("Failed to delete scene item:", error);
       throw error;
     }
   }
@@ -1487,7 +1756,7 @@ class DatabaseService {
       // Start transaction
       const transaction = this.db.transaction(() => {
         // Duplicate the scene (this will automatically find a new unique address)
-        const duplicatedScene = this.duplicateProjectItem(id, 'scene');
+        const duplicatedScene = this.duplicateProjectItem(id, "scene");
 
         // Get original scene items
         const originalSceneItems = this.getSceneItemsWithDetails(id);
@@ -1509,7 +1778,7 @@ class DatabaseService {
 
       return transaction();
     } catch (error) {
-      console.error('Failed to duplicate scene with items:', error);
+      console.error("Failed to duplicate scene with items:", error);
       throw error;
     }
   }
@@ -1525,11 +1794,7 @@ class DatabaseService {
             WHEN si.item_type = 'aircon' THEN ai.name
             WHEN si.item_type = 'curtain' THEN c.name
           END as item_name,
-          CASE
-            WHEN si.item_type = 'lighting' THEN l.address
-            WHEN si.item_type = 'aircon' THEN ai.address
-            WHEN si.item_type = 'curtain' THEN c.address
-          END as item_address,
+          si.item_address,
           CASE
             WHEN si.item_type = 'lighting' THEN l.description
             WHEN si.item_type = 'aircon' THEN ai.description
@@ -1555,50 +1820,101 @@ class DatabaseService {
 
       return stmt.all(sceneId);
     } catch (error) {
-      console.error('Failed to get scene items with details:', error);
+      console.error("Failed to get scene items with details:", error);
       throw error;
     }
   }
 
-  addItemToScene(sceneId, itemType, itemId, itemValue = null, command = null, objectType = null) {
+  addItemToScene(
+    sceneId,
+    itemType,
+    itemId,
+    itemValue = null,
+    command = null,
+    objectType = null
+  ) {
     try {
       // Get scene info to check address and project
-      const scene = this.db.prepare('SELECT project_id, address FROM scene WHERE id = ?').get(sceneId);
+      const scene = this.db
+        .prepare("SELECT project_id, address FROM scene WHERE id = ?")
+        .get(sceneId);
       if (!scene) {
-        throw new Error('Scene not found');
+        throw new Error("Scene not found");
+      }
+
+      // Get item address from the corresponding table
+      let itemAddress = null;
+      if (itemType === "lighting") {
+        const item = this.db
+          .prepare("SELECT address FROM lighting WHERE id = ?")
+          .get(itemId);
+        itemAddress = item?.address;
+      } else if (itemType === "aircon") {
+        const item = this.db
+          .prepare("SELECT address FROM aircon WHERE id = ?")
+          .get(itemId);
+        itemAddress = item?.address;
+      } else if (itemType === "curtain") {
+        const item = this.db
+          .prepare("SELECT address FROM curtain WHERE id = ?")
+          .get(itemId);
+        itemAddress = item?.address;
       }
 
       // Check if this item is already used by another scene with the same address
-      const existingItem = this.db.prepare(`
+      const existingItem = this.db
+        .prepare(
+          `
         SELECT COUNT(*) as count FROM scene_address_items
         WHERE project_id = ? AND address = ? AND item_type = ? AND item_id = ? AND object_type = ?
-      `).get(scene.project_id, scene.address, itemType, itemId, objectType);
+      `
+        )
+        .get(scene.project_id, scene.address, itemType, itemId, objectType);
 
       if (existingItem.count > 0) {
-        throw new Error(`This item is already used by another scene with address ${scene.address}`);
+        throw new Error(
+          `This item is already used by another scene with address ${scene.address}`
+        );
       }
 
       // Add to scene_items
+      const object_value = this.getObjectValue(objectType);
       const stmt = this.db.prepare(`
-        INSERT INTO scene_items (scene_id, item_type, item_id, item_value, command, object_type)
-        VALUES (?, ?, ?, ?, ?, ?)
+        INSERT INTO scene_items (scene_id, item_type, item_id, item_address, item_value, command, object_type, object_value)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
       `);
 
-      const result = stmt.run(sceneId, itemType, itemId, itemValue, command, objectType);
+      const result = stmt.run(
+        sceneId,
+        itemType,
+        itemId,
+        itemAddress,
+        itemValue,
+        command,
+        objectType,
+        object_value
+      );
 
       // Add to scene_address_items to track usage
       const addressItemStmt = this.db.prepare(`
-        INSERT INTO scene_address_items (project_id, address, item_type, item_id, object_type)
-        VALUES (?, ?, ?, ?, ?)
+        INSERT INTO scene_address_items (project_id, address, item_type, item_id, object_type, object_value)
+        VALUES (?, ?, ?, ?, ?, ?)
       `);
 
-      addressItemStmt.run(scene.project_id, scene.address, itemType, itemId, objectType);
+      addressItemStmt.run(
+        scene.project_id,
+        scene.address,
+        itemType,
+        itemId,
+        objectType,
+        object_value
+      );
 
       // Return the created scene item with details
-      const getStmt = this.db.prepare('SELECT * FROM scene_items WHERE id = ?');
+      const getStmt = this.db.prepare("SELECT * FROM scene_items WHERE id = ?");
       return getStmt.get(result.lastInsertRowid);
     } catch (error) {
-      console.error('Failed to add item to scene:', error);
+      console.error("Failed to add item to scene:", error);
       throw error;
     }
   }
@@ -1606,19 +1922,23 @@ class DatabaseService {
   removeItemFromScene(sceneItemId) {
     try {
       // Get scene item info before deleting
-      const sceneItem = this.db.prepare(`
+      const sceneItem = this.db
+        .prepare(
+          `
         SELECT si.*, s.project_id, s.address
         FROM scene_items si
         JOIN scene s ON si.scene_id = s.id
         WHERE si.id = ?
-      `).get(sceneItemId);
+      `
+        )
+        .get(sceneItemId);
 
       if (!sceneItem) {
-        throw new Error('Scene item not found');
+        throw new Error("Scene item not found");
       }
 
       // Remove from scene_items
-      const stmt = this.db.prepare('DELETE FROM scene_items WHERE id = ?');
+      const stmt = this.db.prepare("DELETE FROM scene_items WHERE id = ?");
       const result = stmt.run(sceneItemId);
 
       // Remove from scene_address_items
@@ -1637,7 +1957,7 @@ class DatabaseService {
 
       return result.changes > 0;
     } catch (error) {
-      console.error('Failed to remove item from scene:', error);
+      console.error("Failed to remove item from scene:", error);
       throw error;
     }
   }
@@ -1653,20 +1973,27 @@ class DatabaseService {
       const result = stmt.run(itemValue, command, sceneItemId);
 
       if (result.changes === 0) {
-        throw new Error('Scene item not found');
+        throw new Error("Scene item not found");
       }
 
       // Return updated scene item
-      const getStmt = this.db.prepare('SELECT * FROM scene_items WHERE id = ?');
+      const getStmt = this.db.prepare("SELECT * FROM scene_items WHERE id = ?");
       return getStmt.get(sceneItemId);
     } catch (error) {
-      console.error('Failed to update scene item value:', error);
+      console.error("Failed to update scene item value:", error);
       throw error;
     }
   }
 
   // Check if an item can be added to a scene (not already used by another scene with same address)
-  canAddItemToScene(projectId, address, itemType, itemId, objectType, excludeSceneId = null) {
+  canAddItemToScene(
+    projectId,
+    address,
+    itemType,
+    itemId,
+    objectType,
+    excludeSceneId = null
+  ) {
     try {
       let query = `
         SELECT COUNT(*) as count FROM scene_address_items sai
@@ -1690,7 +2017,7 @@ class DatabaseService {
       const result = stmt.get(...params);
       return result.count === 0;
     } catch (error) {
-      console.error('Failed to check if item can be added to scene:', error);
+      console.error("Failed to check if item can be added to scene:", error);
       throw error;
     }
   }
@@ -1706,7 +2033,7 @@ class DatabaseService {
 
       return stmt.all(projectId, address);
     } catch (error) {
-      console.error('Failed to get scene address items:', error);
+      console.error("Failed to get scene address items:", error);
       throw error;
     }
   }
@@ -1721,7 +2048,7 @@ class DatabaseService {
       `);
       return stmt.all(projectId);
     } catch (error) {
-      console.error('Failed to get schedule items:', error);
+      console.error("Failed to get schedule items:", error);
       throw error;
     }
   }
@@ -1734,7 +2061,8 @@ class DatabaseService {
       `);
 
       // Convert boolean to integer for SQLite
-      const enabledValue = itemData.enabled !== undefined ? (itemData.enabled ? 1 : 0) : 1;
+      const enabledValue =
+        itemData.enabled !== undefined ? (itemData.enabled ? 1 : 0) : 1;
 
       const result = stmt.run(
         projectId,
@@ -1746,10 +2074,10 @@ class DatabaseService {
       );
 
       // Return the created schedule item
-      const getStmt = this.db.prepare('SELECT * FROM schedule WHERE id = ?');
+      const getStmt = this.db.prepare("SELECT * FROM schedule WHERE id = ?");
       return getStmt.get(result.lastInsertRowid);
     } catch (error) {
-      console.error('Failed to create schedule item:', error);
+      console.error("Failed to create schedule item:", error);
       throw error;
     }
   }
@@ -1763,7 +2091,8 @@ class DatabaseService {
       `);
 
       // Convert boolean to integer for SQLite
-      const enabledValue = itemData.enabled !== undefined ? (itemData.enabled ? 1 : 0) : 1;
+      const enabledValue =
+        itemData.enabled !== undefined ? (itemData.enabled ? 1 : 0) : 1;
 
       const result = stmt.run(
         itemData.name,
@@ -1775,30 +2104,30 @@ class DatabaseService {
       );
 
       if (result.changes === 0) {
-        throw new Error('Schedule item not found');
+        throw new Error("Schedule item not found");
       }
 
       // Return updated schedule item
-      const getStmt = this.db.prepare('SELECT * FROM schedule WHERE id = ?');
+      const getStmt = this.db.prepare("SELECT * FROM schedule WHERE id = ?");
       return getStmt.get(id);
     } catch (error) {
-      console.error('Failed to update schedule item:', error);
+      console.error("Failed to update schedule item:", error);
       throw error;
     }
   }
 
   deleteScheduleItem(id) {
     try {
-      const stmt = this.db.prepare('DELETE FROM schedule WHERE id = ?');
+      const stmt = this.db.prepare("DELETE FROM schedule WHERE id = ?");
       const result = stmt.run(id);
 
       if (result.changes === 0) {
-        throw new Error('Schedule item not found');
+        throw new Error("Schedule item not found");
       }
 
       return { success: true };
     } catch (error) {
-      console.error('Failed to delete schedule item:', error);
+      console.error("Failed to delete schedule item:", error);
       throw error;
     }
   }
@@ -1806,11 +2135,11 @@ class DatabaseService {
   duplicateScheduleItem(id) {
     try {
       // Get original schedule item
-      const getStmt = this.db.prepare('SELECT * FROM schedule WHERE id = ?');
+      const getStmt = this.db.prepare("SELECT * FROM schedule WHERE id = ?");
       const original = getStmt.get(id);
 
       if (!original) {
-        throw new Error('Schedule item not found');
+        throw new Error("Schedule item not found");
       }
 
       // Create duplicate with modified name
@@ -1836,7 +2165,9 @@ class DatabaseService {
       const newSchedule = getStmt.get(result.lastInsertRowid);
 
       // Copy schedule-scene relationships
-      const getRelationsStmt = this.db.prepare('SELECT scene_id FROM schedule_scenes WHERE schedule_id = ?');
+      const getRelationsStmt = this.db.prepare(
+        "SELECT scene_id FROM schedule_scenes WHERE schedule_id = ?"
+      );
       const relations = getRelationsStmt.all(id);
 
       const addRelationStmt = this.db.prepare(`
@@ -1850,7 +2181,7 @@ class DatabaseService {
 
       return newSchedule;
     } catch (error) {
-      console.error('Failed to duplicate schedule item:', error);
+      console.error("Failed to duplicate schedule item:", error);
       throw error;
     }
   }
@@ -1871,7 +2202,7 @@ class DatabaseService {
       `);
       return stmt.all(scheduleId);
     } catch (error) {
-      console.error('Failed to get schedule scenes with details:', error);
+      console.error("Failed to get schedule scenes with details:", error);
       throw error;
     }
   }
@@ -1886,26 +2217,28 @@ class DatabaseService {
       const result = stmt.run(scheduleId, sceneId);
 
       // Return the created schedule-scene relationship
-      const getStmt = this.db.prepare('SELECT * FROM schedule_scenes WHERE id = ?');
+      const getStmt = this.db.prepare(
+        "SELECT * FROM schedule_scenes WHERE id = ?"
+      );
       return getStmt.get(result.lastInsertRowid);
     } catch (error) {
-      console.error('Failed to add scene to schedule:', error);
+      console.error("Failed to add scene to schedule:", error);
       throw error;
     }
   }
 
   removeSceneFromSchedule(scheduleSceneId) {
     try {
-      const stmt = this.db.prepare('DELETE FROM schedule_scenes WHERE id = ?');
+      const stmt = this.db.prepare("DELETE FROM schedule_scenes WHERE id = ?");
       const result = stmt.run(scheduleSceneId);
 
       if (result.changes === 0) {
-        throw new Error('Schedule-scene relationship not found');
+        throw new Error("Schedule-scene relationship not found");
       }
 
       return { success: true };
     } catch (error) {
-      console.error('Failed to remove scene from schedule:', error);
+      console.error("Failed to remove scene from schedule:", error);
       throw error;
     }
   }
