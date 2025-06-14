@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { Network, Search, Layers2, Layers } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -9,6 +9,7 @@ import { DataTablePagination } from "@/components/projects/data-table/data-table
 import { createNetworkUnitColumns } from "@/components/projects/unit/unit-columns";
 import { GroupControlDialog } from "@/components/projects/unit/group-control-dialog";
 import { RoomControlDialog } from "@/components/projects/unit/ac-control-dialog";
+import { TriggerSceneDialog } from "@/components/projects/unit/trigger-scene-dialog";
 import { udpScanner } from "@/services/udp";
 import { toast } from "sonner";
 
@@ -19,13 +20,24 @@ export function NetworkUnitTable({ onTransferToDatabase, existingUnits = [] }) {
   const [networkTable, setNetworkTable] = useState(null);
   const [groupControlDialogOpen, setGroupControlDialogOpen] = useState(false);
   const [airconControlDialogOpen, setAirconControlDialogOpen] = useState(false);
+  const [triggerSceneDialogOpen, setTriggerSceneDialogOpen] = useState(false);
   const [selectedUnit, setSelectedUnit] = useState(null);
+
+  // Auto-load cached network units when component mounts
+  useEffect(() => {
+    const cachedUnits = udpScanner.getLastScanResults();
+    if (cachedUnits.length > 0 && udpScanner.isCacheValid()) {
+      setNetworkUnits(cachedUnits);
+      console.log(`Auto-loaded ${cachedUnits.length} cached network units`);
+    }
+  }, []);
 
   const handleScanNetwork = async () => {
     setScanLoading(true);
     try {
-      toast.info("Scanning network for units...");
-      const discoveredUnits = await udpScanner.scanNetwork();
+      toast.info("Scanning network units...");
+
+      const discoveredUnits = await udpScanner.getNetworkUnits(true); // Always force scan when button is clicked
 
       setNetworkUnits(discoveredUnits);
       setSelectedNetworkUnits([]);
@@ -168,17 +180,32 @@ export function NetworkUnitTable({ onTransferToDatabase, existingUnits = [] }) {
     setAirconControlDialogOpen(true);
   }, []);
 
+  // Handle Scene Control
+  const handleTriggerScene = useCallback((unit) => {
+    setSelectedUnit(unit);
+    setTriggerSceneDialogOpen(true);
+  }, []);
+
+  const handleDeleteScene = useCallback((unit) => {
+    // TODO: Implement delete scene functionality
+    console.log("Delete scene for unit:", unit);
+  }, []);
+
   const handleGroupControlSubmit = async (params) => {
     try {
-      if (typeof window !== 'undefined' && window.electronAPI && window.electronAPI.rcuController) {
+      if (
+        typeof window !== "undefined" &&
+        window.electronAPI &&
+        window.electronAPI.rcuController
+      ) {
         await window.electronAPI.rcuController.setGroupState(params);
       } else {
         // Fallback for development/testing
-        console.log('Group control command:', params);
-        await new Promise(resolve => setTimeout(resolve, 1000)); // Simulate delay
+        console.log("Group control command:", params);
+        await new Promise((resolve) => setTimeout(resolve, 1000)); // Simulate delay
       }
     } catch (error) {
-      console.error('Group control failed:', error);
+      console.error("Group control failed:", error);
       throw error;
     }
   };
@@ -214,92 +241,105 @@ export function NetworkUnitTable({ onTransferToDatabase, existingUnits = [] }) {
   const networkColumns = createNetworkUnitColumns();
 
   return (
-    <Card className="h-full">
-      <CardHeader>
-        <div className="flex items-center justify-between">
-          <CardTitle className="flex items-center gap-2">
-            <Network className="h-5 w-5" />
-            Network Units ({networkUnits.length})
-          </CardTitle>
-          <div className="flex items-center gap-2">
-            {networkUnits.length > 0 && (
+    <div className="space-y-4 h-full flex flex-col">
+      {/* Network Units Table */}
+      <Card className="flex-1">
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <CardTitle className="flex items-center gap-2">
+              <Network className="h-5 w-5" />
+              Network Units ({networkUnits.length})
+            </CardTitle>
+            <div className="flex items-center gap-2">
+              {networkUnits.length > 0 && (
+                <Button
+                  onClick={handleTransferAllToDatabase}
+                  variant="outline"
+                  className="flex items-center gap-2"
+                  title="Transfer all network units to database"
+                >
+                  <Layers className="h-4 w-4" />
+                  <span className="hidden lg:inline">
+                    Transfer All to Database
+                  </span>
+                </Button>
+              )}
+              {selectedNetworkUnits.length > 0 && (
+                <Button
+                  onClick={handleTransferSelectedToDatabase}
+                  variant="outline"
+                  className="flex items-center gap-2"
+                  title="Transfer selected network units to database"
+                >
+                  <Layers2 className="h-4 w-4" />
+                  <span className="hidden lg:inline">Transfer Selected</span> (
+                  {selectedNetworkUnits.length})
+                </Button>
+              )}
               <Button
-                onClick={handleTransferAllToDatabase}
-                variant="outline"
+                onClick={handleScanNetwork}
+                disabled={scanLoading}
                 className="flex items-center gap-2"
-                title="Transfer all network units to database"
               >
-                <Layers className="h-4 w-4" />
-                <span className="hidden lg:inline">
-                  Transfer All to Database
-                </span>
+                <Search className="h-4 w-4" />
+                {scanLoading ? "Scanning..." : "Scan Network"}
               </Button>
-            )}
-            {selectedNetworkUnits.length > 0 && (
-              <Button
-                onClick={handleTransferSelectedToDatabase}
-                variant="outline"
-                className="flex items-center gap-2"
-                title="Transfer selected network units to database"
-              >
-                <Layers2 className="h-4 w-4" />
-                <span className="hidden lg:inline">Transfer Selected</span> (
-                {selectedNetworkUnits.length})
-              </Button>
-            )}
-            <Button
-              onClick={handleScanNetwork}
-              disabled={scanLoading}
-              className="flex items-center gap-2"
-            >
-              <Search className="h-4 w-4" />
-              {scanLoading ? "Scanning..." : "Scan Network"}
-            </Button>
+            </div>
           </div>
-        </div>
-      </CardHeader>
-      <CardContent className="h-full">
-        {networkUnits.length === 0 ? (
-          <div className="text-center text-muted-foreground py-8 flex flex-col justify-center items-center h-full -mt-8">
-            <Network className="h-12 w-12 mx-auto mb-4 opacity-50" />
-            <p>No network units found.</p>
-            <p className="text-sm mb-4">
-              Click "Scan Network" to discover units on your network.
-            </p>
-          </div>
-        ) : (
-          <div className="space-y-4 flex flex-col h-full justify-between">
-            <DataTable
-              key="network-unit"
-              columns={networkColumns}
-              data={networkUnits}
-              onTableReady={setNetworkTable}
-              onRowSelectionChange={handleNetworkRowSelectionChange}
-              onGroupControl={handleGroupControl}
-              onAirconControl={handleAirconControl}
-              enableRowSelection={true}
-            />
-            {networkTable && <DataTablePagination table={networkTable} />}
-          </div>
-        )}
-      </CardContent>
+        </CardHeader>
+        <CardContent className="h-full">
+          {networkUnits.length === 0 ? (
+            <div className="text-center text-muted-foreground py-8 flex flex-col justify-center items-center h-full -mt-8">
+              <Network className="h-12 w-12 mx-auto mb-4 opacity-50" />
+              <p>No network units found.</p>
+              <p className="text-sm mb-4">
+                Click "Scan Network" to discover units on your network.
+              </p>
+            </div>
+          ) : (
+            <div className="space-y-4 flex flex-col h-full justify-between">
+              <DataTable
+                key="network-unit"
+                columns={networkColumns}
+                data={networkUnits}
+                onTableReady={setNetworkTable}
+                onRowSelectionChange={handleNetworkRowSelectionChange}
+                onGroupControl={handleGroupControl}
+                onAirconControl={handleAirconControl}
+                onSceneControl={{
+                  onTriggerScene: handleTriggerScene,
+                  onDeleteScene: handleDeleteScene,
+                }}
+                enableRowSelection={true}
+              />
+              {networkTable && <DataTablePagination table={networkTable} />}
+            </div>
+          )}
+        </CardContent>
 
-      <GroupControlDialog
-        open={groupControlDialogOpen}
-        onOpenChange={setGroupControlDialogOpen}
-        unit={selectedUnit}
-        onGroupControl={handleGroupControlSubmit}
-      />
+        <GroupControlDialog
+          open={groupControlDialogOpen}
+          onOpenChange={setGroupControlDialogOpen}
+          unit={selectedUnit}
+          onGroupControl={handleGroupControlSubmit}
+        />
 
-      <RoomControlDialog
-        room={{
-          roomName: selectedUnit?.type || "Network Unit",
-          acGroup: 1,
-          unit: selectedUnit
-        }}
-        open={airconControlDialogOpen}
-        onOpenChange={setAirconControlDialogOpen}
-      />
-    </Card>
+        <RoomControlDialog
+          room={{
+            roomName: selectedUnit?.type || "Network Unit",
+            acGroup: 1,
+            unit: selectedUnit,
+          }}
+          open={airconControlDialogOpen}
+          onOpenChange={setAirconControlDialogOpen}
+        />
+
+        <TriggerSceneDialog
+          open={triggerSceneDialogOpen}
+          onOpenChange={setTriggerSceneDialogOpen}
+          unit={selectedUnit}
+        />
+      </Card>
+    </div>
   );
 }

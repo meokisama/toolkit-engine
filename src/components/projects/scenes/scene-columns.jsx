@@ -11,6 +11,7 @@ import {
   SlidersHorizontal,
   Layers,
   FilePen,
+  Send,
 } from "lucide-react";
 
 export const createSceneColumns = (
@@ -18,7 +19,8 @@ export const createSceneColumns = (
   onDuplicate,
   onDelete,
   onCellEdit,
-  getEffectiveValue
+  getEffectiveValue,
+  onSendToUnit
 ) => [
   {
     id: "select",
@@ -183,6 +185,15 @@ export const createSceneColumns = (
             title="Manage scene items"
           >
             <Settings className="h-4 w-4" />
+          </Button>
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={() => onSendToUnit(item)}
+            className="cursor-pointer"
+            title="Send scene to network unit"
+          >
+            <Send className="h-4 w-4" />
           </Button>
           <Button
             variant="outline"

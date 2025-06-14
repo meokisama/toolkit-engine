@@ -90,11 +90,14 @@ export function AirconCardDialog({
     setLoading(true);
     try {
       if (mode === "edit") {
-        await updateAirconCard({
-          name: formData.name.trim(),
-          address: formData.address.trim(),
-          description: formData.description.trim(),
-        });
+        await updateAirconCard(
+          {
+            name: formData.name.trim(),
+            address: formData.address.trim(),
+            description: formData.description.trim(),
+          },
+          card
+        ); // Pass the original card data
       } else {
         await createAirconCard({
           name: formData.name.trim(),

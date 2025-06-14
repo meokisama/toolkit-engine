@@ -72,14 +72,110 @@ function convertCanIdToInt(canId) {
   }
 }
 
-function processResponse(msg) {
-  if (msg.length < 10) return;
+// Error codes mapping based on RCU protocol
+const ERROR_CODES = {
+  0: "SUCCESS",
+  1: "ERR_CRC",
+  2: "NO_SUPPORT",
+  3: "LIMIT_FRAME_LEN",
+  4: "LIMIT_INPUT_NUMBER",
+  5: "LIMIT_OUTPUT_NUMBER",
+  6: "LIMIT_GROUP_PER_INPUT",
+  7: "ABSENT_UNIT",
+  8: "SLAVE_UNIT",
+  9: "LOWER_FIRMWARE",
+  10: "LICENSE_FAIL",
+  11: "HEX_FILE_CRC",
+  254: "TRANSFERED_FAILED",
+  255: "OTHER",
+};
 
-  const cmd1 = msg[6];
-
-  if (cmd1 & 0x80) {
-    throw new Error(`RCU Error: ${msg[8]}`);
+function processResponse(msg, expectedCmd1, expectedCmd2) {
+  if (msg.length < 10) {
+    throw new Error("Response too short (minimum 10 bytes required)");
   }
+
+  console.log("Processing response:", {
+    length: msg.length,
+    hex: Array.from(msg)
+      .map((b) => b.toString(16).padStart(2, "0"))
+      .join(" "),
+  });
+
+  // Parse response structure: <ID Address><length><cmd1><cmd2><data><crc>
+  const idAddress = (msg[3] << 24) | (msg[2] << 16) | (msg[1] << 8) | msg[0];
+  const length = msg[4] | (msg[5] << 8);
+  const cmd1 = msg[6];
+  const cmd2 = msg[7];
+  const dataStart = 8;
+  const dataLength = length - 4; // length includes cmd1, cmd2, and crc (4 bytes total)
+
+  console.log("Parsed response:", {
+    idAddress: `0x${idAddress.toString(16)}`,
+    length,
+    cmd1: `0x${cmd1.toString(16)}`,
+    cmd2: `0x${cmd2.toString(16)}`,
+    dataLength,
+    expectedCmd1: `0x${expectedCmd1.toString(16)}`,
+    expectedCmd2: `0x${expectedCmd2.toString(16)}`,
+  });
+
+  // Check if this is an error response
+  if (cmd1 & 0x80) {
+    // Error response: cmd1 = original_cmd1 + 0x80
+    const originalCmd1 = cmd1 & 0x7f;
+    const errorCode = msg[dataStart]; // First byte of data contains error code
+    const errorMessage =
+      ERROR_CODES[errorCode] || `Unknown error (${errorCode})`;
+
+    console.error("RCU Error Response:", {
+      originalCmd1: `0x${originalCmd1.toString(16)}`,
+      cmd2: `0x${cmd2.toString(16)}`,
+      errorCode,
+      errorMessage,
+    });
+
+    throw new Error(`RCU Error: ${errorMessage} (Code: ${errorCode})`);
+  }
+
+  // Check if cmd1 and cmd2 match expected values
+  if (cmd1 !== expectedCmd1) {
+    throw new Error(
+      `Unexpected cmd1 in response: got 0x${cmd1.toString(
+        16
+      )}, expected 0x${expectedCmd1.toString(16)}`
+    );
+  }
+
+  if (cmd2 !== expectedCmd2) {
+    throw new Error(
+      `Unexpected cmd2 in response: got 0x${cmd2.toString(
+        16
+      )}, expected 0x${expectedCmd2.toString(16)}`
+    );
+  }
+
+  // For setup commands, check if data field contains success status (0x00)
+  if (dataLength >= 1) {
+    const statusByte = msg[dataStart];
+    console.log("Response status byte:", `0x${statusByte.toString(16)}`);
+
+    if (statusByte !== 0x00) {
+      const errorMessage =
+        ERROR_CODES[statusByte] || `Unknown error (${statusByte})`;
+      throw new Error(`Command failed: ${errorMessage} (Code: ${statusByte})`);
+    }
+  }
+
+  console.log("Command executed successfully");
+  return {
+    idAddress,
+    length,
+    cmd1,
+    cmd2,
+    data: msg.slice(dataStart, dataStart + dataLength - 2), // Exclude CRC
+    success: true,
+  };
 }
 
 function calculateCRC(data) {
@@ -99,7 +195,9 @@ async function sendCommand(unitIp, port, idAddress, cmd1, cmd2, data = []) {
       client.close();
       reject(
         new Error(
-          `Command timeout after 5s for ${unitIp}:${port} cmd1=${cmd1} cmd2=${cmd2}`
+          `Command timeout after 5s for ${unitIp}:${port} cmd1=0x${cmd1.toString(
+            16
+          )} cmd2=0x${cmd2.toString(16)}`
         )
       );
     }, 5000);
@@ -117,9 +215,9 @@ async function sendCommand(unitIp, port, idAddress, cmd1, cmd2, data = []) {
       );
 
       try {
-        processResponse(msg);
+        const result = processResponse(msg, cmd1, cmd2);
         client.close();
-        resolve({ msg, rinfo });
+        resolve({ msg, rinfo, result });
       } catch (error) {
         client.close();
         reject(error);
@@ -195,7 +293,7 @@ async function setGroupState(unitIp, canId, group, value) {
   }
 
   const idAddress = convertCanIdToInt(canId);
-  return await sendCommand(
+  const response = await sendCommand(
     unitIp,
     UDP_PORT,
     idAddress,
@@ -203,6 +301,14 @@ async function setGroupState(unitIp, canId, group, value) {
     PROTOCOL.LIGHTING.CMD2.SET_GROUP_STATE,
     [group, value]
   );
+
+  console.log("Set group state response:", {
+    success: response?.result?.success,
+    group,
+    value,
+  });
+
+  return response;
 }
 
 async function setMultipleGroupStates(unitIp, canId, groupSettings) {
@@ -469,12 +575,13 @@ async function setPowerMode(unitIp, canId, group = 1, power = true) {
     [group, powerValue, 0]
   );
 
-  if (response && response.msg && response.msg.length >= 9) {
-    const data = response.msg.slice(8); // Skip header
-    return data[0] === 0; // 0 means success
-  }
+  console.log("Set power mode response:", {
+    success: response?.result?.success,
+    powerMode: power ? "ON" : "OFF",
+    group,
+  });
 
-  throw new Error("Failed to set power mode");
+  return response?.result?.success || false;
 }
 
 async function getPowerMode(unitIp, canId, group = 1) {
@@ -574,6 +681,146 @@ async function getEcoMode(unitIp, canId, group = 1) {
   throw new Error("Invalid response from eco mode command");
 }
 
+// Scene Setup function
+async function setupScene(
+  unitIp,
+  canId,
+  sceneIndex,
+  sceneName,
+  sceneAddress,
+  sceneItems
+) {
+  if (sceneIndex < 0 || sceneIndex > 255) {
+    throw new Error("Scene index must be between 0 and 255");
+  }
+
+  if (!sceneName || sceneName.length > 15) {
+    throw new Error("Scene name must be provided and not exceed 15 characters");
+  }
+
+  if (!sceneAddress) {
+    throw new Error("Scene address must be provided");
+  }
+
+  if (!Array.isArray(sceneItems)) {
+    throw new Error("Scene items must be an array");
+  }
+
+  if (sceneItems.length > 85) {
+    // Maximum items that can fit in UDP packet
+    throw new Error("Too many scene items. Maximum is 85 items.");
+  }
+
+  const idAddress = convertCanIdToInt(canId);
+
+  // Build data array
+  const data = [];
+
+  // 1. Scene index (1 byte)
+  data.push(sceneIndex);
+
+  // 2. Scene name (15 bytes, null padded)
+  const nameBytes = Buffer.from(sceneName, "utf8");
+  for (let i = 0; i < 15; i++) {
+    if (i < nameBytes.length) {
+      data.push(nameBytes[i]);
+    } else {
+      data.push(0x00); // Null padding
+    }
+  }
+
+  // 3. Scene address (1 byte)
+  const addressValue = parseInt(sceneAddress) || 0;
+  data.push(addressValue);
+
+  // 4. Scene amount - number of items (1 byte)
+  data.push(sceneItems.length);
+
+  // 5. 7 empty bytes
+  for (let i = 0; i < 7; i++) {
+    data.push(0x00);
+  }
+
+  // 6. Scene items (3 bytes per item: object_value, item_address, item_value)
+  for (const item of sceneItems) {
+    // object_value (type)
+    data.push(item.object_value || 0);
+
+    // item_address
+    const itemAddress = parseInt(item.item_address) || 0;
+    data.push(itemAddress);
+
+    // item_value - convert lighting from 0-100% to 0-255
+    let itemValue = parseInt(item.item_value) || 0;
+    if (item.object_value === 1) {
+      // LIGHTING object type
+      // Convert from 0-100% to 0-255
+      itemValue = Math.round((itemValue / 100) * 255);
+    }
+    data.push(itemValue);
+  }
+
+  console.log(
+    `Setting up scene: index=${sceneIndex}, name="${sceneName}", address=${sceneAddress}, items=${sceneItems.length}`
+  );
+  console.log(
+    "Scene data:",
+    data.map((b) => b.toString(16).padStart(2, "0")).join(" ")
+  );
+
+  const response = await sendCommand(
+    unitIp,
+    UDP_PORT,
+    idAddress,
+    PROTOCOL.GENERAL.CMD1,
+    PROTOCOL.GENERAL.CMD2.SETUP_SCENE,
+    data
+  );
+
+  console.log("Scene setup completed successfully:", {
+    unitIp,
+    canId,
+    sceneIndex,
+    sceneName,
+    responseStatus: response.result?.success ? "SUCCESS" : "UNKNOWN",
+  });
+
+  return response;
+}
+
+// Trigger Scene function
+async function triggerScene(unitIp, canId, sceneIndex) {
+  console.log("Triggering scene:", {
+    unitIp,
+    canId,
+    sceneIndex,
+  });
+
+  // Convert CAN ID to address format
+  const idAddress = convertCanIdToInt(canId);
+
+  // Data is just the scene index (1 byte)
+  const data = [sceneIndex];
+
+  const response = await sendCommand(
+    unitIp,
+    UDP_PORT,
+    idAddress,
+    PROTOCOL.GENERAL.CMD1,
+    PROTOCOL.GENERAL.CMD2.TRIGGER_SCENE,
+    data
+  );
+
+  console.log("Scene triggered successfully:", {
+    unitIp,
+    canId,
+    sceneIndex,
+    responseStatus: response.result?.success ? "SUCCESS" : "UNKNOWN",
+  });
+
+  return response;
+}
+
 export {
   setGroupState,
   setMultipleGroupStates,
@@ -592,4 +839,7 @@ export {
   getOperateMode,
   setEcoMode,
   getEcoMode,
+  // Scene functions
+  setupScene,
+  triggerScene,
 };

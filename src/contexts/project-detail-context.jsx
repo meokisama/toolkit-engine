@@ -469,14 +469,23 @@ export function ProjectDetailProvider({ children }) {
   }, []);
 
   const updateAirconCard = useCallback(
-    async (cardData) => {
+    async (cardData, originalCard) => {
       if (!selectedProject) return;
 
       try {
-        // Update all items with the same address
+        // Find items to update using the original address
+        const originalAddress = originalCard
+          ? originalCard.address
+          : cardData.address;
         const itemsToUpdate = projectItems.aircon.filter(
-          (item) => item.address === cardData.address
+          (item) => item.address === originalAddress
         );
+
+        console.log("Updating aircon card:", {
+          originalAddress,
+          newAddress: cardData.address,
+          itemsToUpdate: itemsToUpdate.length,
+        });
 
         const updatePromises = itemsToUpdate.map((item) =>
           window.electronAPI.aircon.update(item.id, {
@@ -500,16 +509,18 @@ export function ProjectDetailProvider({ children }) {
           }),
         }));
 
-        // Update cards with new data
+        // Update cards with new data - use original address to find the card to update
         setAirconCards((prev) =>
           prev.map((card) =>
-            card.address === cardData.address
+            card.address === originalAddress
               ? {
                   ...card,
+                  address: cardData.address, // Update the address
                   name: cardData.name,
                   description: cardData.description,
                   item: {
                     ...card.item,
+                    address: cardData.address, // Update the address in item too
                     name: cardData.name,
                     description: cardData.description,
                   },

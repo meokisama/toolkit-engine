@@ -10,6 +10,8 @@ import { DataTablePagination } from "@/components/projects/data-table/data-table
 import { DataTableSkeleton } from "@/components/projects/table-skeleton";
 import { createSceneColumns } from "@/components/projects/scenes/scene-columns";
 import { SlidersHorizontal } from "lucide-react";
+import { SendSceneDialog } from "@/components/projects/scenes/send-scene-dialog";
+import { toast } from "sonner";
 
 const SceneTable = memo(function SceneTable({ items = [], loading = false }) {
   const category = "scene";
@@ -24,6 +26,10 @@ const SceneTable = memo(function SceneTable({ items = [], loading = false }) {
     title: "",
     description: "",
     onConfirm: null,
+  });
+  const [sendSceneDialog, setSendSceneDialog] = useState({
+    open: false,
+    scene: null,
   });
   const [columnVisibility, setColumnVisibility] = useState({});
   const [pagination, setPagination] = useState({
@@ -179,6 +185,13 @@ const SceneTable = memo(function SceneTable({ items = [], loading = false }) {
     [deleteItem, confirmDialog]
   );
 
+  const handleSendToUnit = useCallback((item) => {
+    setSendSceneDialog({
+      open: true,
+      scene: item,
+    });
+  }, []);
+
   const handleRowSelectionChange = useCallback((selectedRows) => {
     // Handle row selection if needed
   }, []);
@@ -202,7 +215,8 @@ const SceneTable = memo(function SceneTable({ items = [], loading = false }) {
     handleDuplicateItem,
     handleDeleteItem,
     handleCellEdit,
-    getEffectiveValue
+    getEffectiveValue,
+    handleSendToUnit
   );
 
   if (loading) {
@@ -274,6 +288,14 @@ const SceneTable = memo(function SceneTable({ items = [], loading = false }) {
         title={confirmDialog.title}
         description={confirmDialog.description}
         onConfirm={confirmDialog.onConfirm}
+      />
+
+      <SendSceneDialog
+        open={sendSceneDialog.open}
+        onOpenChange={(open) =>
+          setSendSceneDialog({ ...sendSceneDialog, open })
+        }
+        scene={sendSceneDialog.scene}
       />
     </div>
   );

@@ -1,4 +1,4 @@
-import { CONSTANTS } from '@/constants';
+import { CONSTANTS } from "@/constants";
 
 const { UDP_CONFIG, TYPES } = CONSTANTS.UNIT;
 
@@ -7,294 +7,349 @@ const { UDP_CONFIG, TYPES } = CONSTANTS.UNIT;
  * Based on RLC C# implementation for discovering units on network
  */
 class UDPNetworkScanner {
-    constructor() {
-        this.isScanning = false;
-        this.scanResults = [];
-    }
+  constructor() {
+    this.isScanning = false;
+    this.scanResults = [];
+    this.lastScanTime = null;
+    // Cache persists until next scan - no timeout
+  }
 
-    /**
-     * Parse substring from string using delimiter and position
-     * Equivalent to C# Substring method in RLC
-     */
-    parseSubstring(delimiter, position, str) {
-        const parts = str.split(delimiter);
-        if (position < parts.length) {
-            return parts[position];
+  /**
+   * Parse substring from string using delimiter and position
+   * Equivalent to C# Substring method in RLC
+   */
+  parseSubstring(delimiter, position, str) {
+    const parts = str.split(delimiter);
+    if (position < parts.length) {
+      return parts[position];
+    }
+    return "";
+  }
+
+  /**
+   * Map barcode to device type
+   * Based on InfoBarcode function from RLC
+   */
+  mapBarcodeToDeviceType(barcode) {
+    const unit = TYPES.find((unit) => unit.barcode === barcode);
+    return unit ? unit.name : "Unidentified";
+  }
+
+  /**
+   * Calculate CRC checksum for UDP packet
+   * Based on RLC implementation
+   */
+  calculateCRC(data, startIndex, length) {
+    let sum = 0;
+    for (let i = startIndex; i < startIndex + length; i++) {
+      sum += data[i];
+    }
+    return sum;
+  }
+
+  /**
+   * Create UDP request packet for hardware information
+   * Based on RLC Get_Infor_Unit method
+   */
+  createHardwareInfoRequest(targetId = "0.0.0.0") {
+    const data = new Uint8Array(1024);
+
+    // Parse target ID (Address bytes 0-3)
+    const idParts = targetId.split(".");
+    data[0] = parseInt(idParts[3]) || 0;
+    data[1] = parseInt(idParts[2]) || 0;
+    data[2] = parseInt(idParts[1]) || 0;
+    data[3] = parseInt(idParts[0]) || 0;
+
+    // Length (bytes 4-5)
+    data[4] = 4;
+    data[5] = 0;
+
+    // Command (bytes 6-7)
+    data[6] = 1; // CMD
+    data[7] = 4; // Sub-command for hardware info
+
+    // Calculate CRC
+    const crcSum = this.calculateCRC(data, 4, data[4]);
+    data[8] = crcSum & 0xff; // Low byte
+    data[9] = (crcSum >> 8) & 0xff; // High byte
+
+    return data.slice(0, data[4] + 6);
+  }
+
+  /**
+   * Parse UDP response data
+   * Based on RLC response parsing logic
+   */
+  parseUDPResponse(buffer, sourceIP) {
+    try {
+      const data = new Uint8Array(buffer);
+      const dataLength = data[5] * 256 + data[4];
+
+      // Check if response is valid (length > 90 as per RLC logic)
+      if (dataLength <= 90) {
+        return null;
+      }
+
+      const posData = 7; // Data position offset
+
+      // Parse Unit ID from response header
+      const unitId = `${data[3]}.${data[2]}.${data[1]}.${data[0]}`;
+
+      // Parse barcode (13 bytes starting at posData + 70)
+      let barcode = "";
+      const barcodeStart = posData + 70;
+      const barcodeEnd = posData + 83;
+
+      if (barcodeEnd <= data.length) {
+        for (let i = barcodeStart; i < barcodeEnd; i++) {
+          barcode += (data[i] - 48).toString();
         }
-        return '';
-    }
-
-    /**
-     * Map barcode to device type
-     * Based on InfoBarcode function from RLC
-     */
-    mapBarcodeToDeviceType(barcode) {
-        const unit = TYPES.find(unit => unit.barcode === barcode);
-        return unit ? unit.name : 'Unidentified';
-    }
-
-    /**
-     * Calculate CRC checksum for UDP packet
-     * Based on RLC implementation
-     */
-    calculateCRC(data, startIndex, length) {
-        let sum = 0;
-        for (let i = startIndex; i < startIndex + length; i++) {
-            sum += data[i];
+      } else {
+        // Fallback: try to find barcode in different position
+        for (
+          let i = posData + 60;
+          i < Math.min(posData + 80, data.length);
+          i++
+        ) {
+          if (data[i] >= 48 && data[i] <= 57) {
+            // ASCII digits
+            barcode += (data[i] - 48).toString();
+          }
         }
-        return sum;
-    }
+      }
 
-    /**
-     * Create UDP request packet for hardware information
-     * Based on RLC Get_Infor_Unit method
-     */
-    createHardwareInfoRequest(targetId = '0.0.0.0') {
-        const data = new Uint8Array(1024);
+      // Map barcode to device type
+      const deviceType = this.mapBarcodeToDeviceType(barcode);
 
-        // Parse target ID (Address bytes 0-3)
-        const idParts = targetId.split('.');
-        data[0] = parseInt(idParts[3]) || 0;
-        data[1] = parseInt(idParts[2]) || 0;
-        data[2] = parseInt(idParts[1]) || 0;
-        data[3] = parseInt(idParts[0]) || 0;
+      // Parse hardware enable flags
+      const hardwareEnablePos = posData + 84;
+      let hardwareEnable = 0;
+      let recovery = false;
 
-        // Length (bytes 4-5)
-        data[4] = 4;
-        data[5] = 0;
+      if (hardwareEnablePos < data.length) {
+        hardwareEnable = data[hardwareEnablePos];
+        recovery = (hardwareEnable & 0x40) === 0x40;
+      }
 
-        // Command (bytes 6-7)
-        data[6] = 1;  // CMD
-        data[7] = 4;  // Sub-command for hardware info
+      // Parse mode and capabilities
+      let hwFlags = hardwareEnable;
+      let factor = 128;
+      for (let i = 1; i <= 5; i++) {
+        if (hwFlags >= factor) hwFlags -= factor;
+        factor = factor / 2;
+      }
 
-        // Calculate CRC
-        const crcSum = this.calculateCRC(data, 4, data[4]);
-        data[8] = crcSum & 0xFF;        // Low byte
-        data[9] = (crcSum >> 8) & 0xFF; // High byte
+      const canLoad = hwFlags >= 4;
+      if (canLoad) hwFlags -= 4;
 
-        return data.slice(0, data[4] + 6);
-    }
+      let mode;
+      if (hwFlags === 0) mode = "Stand-Alone";
+      else if (hwFlags === 1) mode = "Slave";
+      else mode = "Master";
 
-    /**
-     * Parse UDP response data
-     * Based on RLC response parsing logic
-     */
-    parseUDPResponse(buffer, sourceIP) {
-        try {
-            const data = new Uint8Array(buffer);
-            const dataLength = data[5] * 256 + data[4];
+      // Parse firmware and hardware versions
+      let hwVersion = "0.0.0";
+      let fwVersion = "0.0.0";
 
-            // Check if response is valid (length > 90 as per RLC logic)
-            if (dataLength <= 90) {
-                return null;
-            }
+      const hwVersionPos1 = posData + 85;
+      const hwVersionPos2 = posData + 86;
+      const fwVersionPos1 = posData + 87;
+      const fwVersionPos2 = posData + 88;
 
-            const posData = 7; // Data position offset
+      if (hwVersionPos2 < data.length) {
+        hwVersion = `${data[hwVersionPos2]}.${data[hwVersionPos1] >> 4}.${
+          data[hwVersionPos1] & 0x0f
+        }`;
+      }
 
-            // Parse Unit ID from response header
-            const unitId = `${data[3]}.${data[2]}.${data[1]}.${data[0]}`;
+      if (fwVersionPos2 < data.length) {
+        fwVersion = `${data[fwVersionPos2]}.${data[fwVersionPos1]}.0`;
+      }
 
-            // Parse barcode (13 bytes starting at posData + 70)
-            let barcode = '';
-            const barcodeStart = posData + 70;
-            const barcodeEnd = posData + 83;
+      // Parse manufacture date
+      let manufactureDate = "";
+      const dateStart = 19;
+      const dateEnd = 27;
 
-            if (barcodeEnd <= data.length) {
-                for (let i = barcodeStart; i < barcodeEnd; i++) {
-                    barcode += (data[i] - 48).toString();
-                }
-            } else {
-                // Fallback: try to find barcode in different position
-                for (let i = posData + 60; i < Math.min(posData + 80, data.length); i++) {
-                    if (data[i] >= 48 && data[i] <= 57) { // ASCII digits
-                        barcode += (data[i] - 48).toString();
-                    }
-                }
-            }
-
-            // Map barcode to device type
-            const deviceType = this.mapBarcodeToDeviceType(barcode);
-
-            // Parse hardware enable flags
-            const hardwareEnablePos = posData + 84;
-            let hardwareEnable = 0;
-            let recovery = false;
-
-            if (hardwareEnablePos < data.length) {
-                hardwareEnable = data[hardwareEnablePos];
-                recovery = (hardwareEnable & 0x40) === 0x40;
-            }
-
-            // Parse mode and capabilities
-            let hwFlags = hardwareEnable;
-            let factor = 128;
-            for (let i = 1; i <= 5; i++) {
-                if (hwFlags >= factor) hwFlags -= factor;
-                factor = factor / 2;
-            }
-
-            const canLoad = hwFlags >= 4;
-            if (canLoad) hwFlags -= 4;
-
-            let mode;
-            if (hwFlags === 0) mode = 'Stand-Alone';
-            else if (hwFlags === 1) mode = 'Slave';
-            else mode = 'Master';
-
-            // Parse firmware and hardware versions
-            let hwVersion = '0.0.0';
-            let fwVersion = '0.0.0';
-
-            const hwVersionPos1 = posData + 85;
-            const hwVersionPos2 = posData + 86;
-            const fwVersionPos1 = posData + 87;
-            const fwVersionPos2 = posData + 88;
-
-            if (hwVersionPos2 < data.length) {
-                hwVersion = `${data[hwVersionPos2]}.${data[hwVersionPos1] >> 4}.${data[hwVersionPos1] & 0x0F}`;
-            }
-
-            if (fwVersionPos2 < data.length) {
-                fwVersion = `${data[fwVersionPos2]}.${data[fwVersionPos1]}.0`;
-            }
-
-            // Parse manufacture date
-            let manufactureDate = '';
-            const dateStart = 19;
-            const dateEnd = 27;
-
-            if (dateEnd <= data.length) {
-                for (let i = dateStart; i < dateEnd; i++) {
-                    if (data[i] >= 48 && data[i] <= 57) { // ASCII digits
-                        manufactureDate += (data[i] - 48).toString();
-                    }
-                }
-            }
-
-            const result = {
-                id: `unit_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`,
-                type: deviceType,
-                serial_no: barcode || 'Unknown',
-                ip_address: sourceIP,
-                id_can: unitId,
-                mode: mode,
-                firmware_version: fwVersion,
-                hardware_version: hwVersion,
-                manufacture_date: manufactureDate || 'Unknown',
-                can_load: canLoad,
-                recovery_mode: recovery,
-                description: `${deviceType} discovered on network`,
-                discovered_at: new Date().toISOString()
-            };
-
-            return result;
-        } catch (error) {
-            console.error('Error parsing UDP response:', error);
-            return null;
+      if (dateEnd <= data.length) {
+        for (let i = dateStart; i < dateEnd; i++) {
+          if (data[i] >= 48 && data[i] <= 57) {
+            // ASCII digits
+            manufactureDate += (data[i] - 48).toString();
+          }
         }
+      }
+
+      const result = {
+        id: `unit_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`,
+        type: deviceType,
+        serial_no: barcode || "Unknown",
+        ip_address: sourceIP,
+        id_can: unitId,
+        mode: mode,
+        firmware_version: fwVersion,
+        hardware_version: hwVersion,
+        manufacture_date: manufactureDate || "Unknown",
+        can_load: canLoad,
+        recovery_mode: recovery,
+        description: `${deviceType} discovered on network`,
+        discovered_at: new Date().toISOString(),
+      };
+
+      return result;
+    } catch (error) {
+      console.error("Error parsing UDP response:", error);
+      return null;
+    }
+  }
+
+  /**
+   * Check if cached results are available
+   */
+  isCacheValid() {
+    return this.lastScanTime !== null && this.scanResults.length > 0;
+  }
+
+  /**
+   * Get cached results if available, otherwise scan network
+   * This is the main method to use for getting network units
+   */
+  async getNetworkUnits(forceScan = false) {
+    // Return cached results if available and not forcing scan
+    if (!forceScan && this.isCacheValid()) {
+      console.log("Returning cached network units");
+      return this.scanResults;
     }
 
-    /**
-     * Scan network for units using UDP broadcast
-     * Based on RLC Get_Infor_Unit method
-     */
-    async scanNetwork() {
-        if (this.isScanning) {
-            throw new Error('Scan already in progress');
-        }
+    // If no cache or force scan, scan network
+    return await this.scanNetwork();
+  }
 
-        this.isScanning = true;
-        this.scanResults = [];
-
-        try {
-            // Check if we're in Electron environment
-            if (typeof window !== 'undefined' && window.electronAPI && window.electronAPI.scanUDPNetwork) {
-                // Use Electron IPC for UDP operations
-                const results = await window.electronAPI.scanUDPNetwork({
-                    broadcastIP: UDP_CONFIG.BROADCAST_IP,
-                    udpPort: UDP_CONFIG.UDP_PORT,
-                    localPort: UDP_CONFIG.LOCAL_UDP_PORT,
-                    timeout: UDP_CONFIG.SCAN_TIMEOUT
-                });
-
-                this.scanResults = results.map(result => this.parseUDPResponse(result.data, result.sourceIP))
-                    .filter(unit => unit !== null);
-            } else {
-                // Fallback for development/testing - simulate scan results
-                await this.simulateScan();
-            }
-
-            return this.scanResults;
-        } catch (error) {
-            console.error('Network scan failed:', error);
-            throw error;
-        } finally {
-            this.isScanning = false;
-        }
+  /**
+   * Scan network for units using UDP broadcast
+   * Based on RLC Get_Infor_Unit method
+   */
+  async scanNetwork() {
+    if (this.isScanning) {
+      throw new Error("Scan already in progress");
     }
 
-    /**
-     * Simulate network scan for development/testing
-     */
-    async simulateScan() {
-        // Simulate network delay
-        await new Promise(resolve => setTimeout(resolve, 2000));
+    this.isScanning = true;
+    console.log("Starting network scan...");
 
-        // Mock scan results based on RLC test data
-        this.scanResults = [
-            {
-                id: `unit_${Date.now()}_1`,
-                type: 'Room Logic Controller',
-                serial_no: '8930000000019',
-                ip_address: '192.168.1.23',
-                id_can: '12.43.3.3',
-                mode: 'Stand-Alone',
-                firmware_version: '1.0.4',
-                hardware_version: '3.2.5',
-                manufacture_date: '06072015',
-                can_load: true,
-                recovery_mode: false,
-                description: 'Room Logic Controller discovered on network',
-                discovered_at: new Date().toISOString()
-            },
-            {
-                id: `unit_${Date.now()}_2`,
-                type: 'Bedside-17T',
-                serial_no: '8930000000200',
-                ip_address: '192.168.1.24',
-                id_can: '12.43.3.5',
-                mode: 'Slave',
-                firmware_version: '1.0.4',
-                hardware_version: '3.2.5',
-                manufacture_date: '09032015',
-                can_load: true,
-                recovery_mode: false,
-                description: 'Bedside-17T discovered on network',
-                discovered_at: new Date().toISOString()
-            }
-        ];
-    }
+    try {
+      // Check if we're in Electron environment
+      if (
+        typeof window !== "undefined" &&
+        window.electronAPI &&
+        window.electronAPI.scanUDPNetwork
+      ) {
+        // Use Electron IPC for UDP operations
+        const results = await window.electronAPI.scanUDPNetwork({
+          broadcastIP: UDP_CONFIG.BROADCAST_IP,
+          udpPort: UDP_CONFIG.UDP_PORT,
+          localPort: UDP_CONFIG.LOCAL_UDP_PORT,
+          timeout: UDP_CONFIG.SCAN_TIMEOUT,
+        });
 
-    /**
-     * Get last scan results
-     */
-    getLastScanResults() {
-        return this.scanResults;
-    }
+        this.scanResults = results
+          .map((result) => this.parseUDPResponse(result.data, result.sourceIP))
+          .filter((unit) => unit !== null);
+      } else {
+        // Fallback for development/testing - simulate scan results
+        await this.simulateScan();
+      }
 
-    /**
-     * Check if scanner is currently scanning
-     */
-    isCurrentlyScanning() {
-        return this.isScanning;
-    }
+      // Update cache timestamp
+      this.lastScanTime = Date.now();
+      console.log(
+        `Network scan completed. Found ${this.scanResults.length} units`
+      );
 
-    /**
-     * Clear scan results
-     */
-    clearResults() {
-        this.scanResults = [];
+      return this.scanResults;
+    } catch (error) {
+      console.error("Network scan failed:", error);
+      throw error;
+    } finally {
+      this.isScanning = false;
     }
+  }
+
+  /**
+   * Simulate network scan for development/testing
+   */
+  async simulateScan() {
+    // Simulate network delay
+    await new Promise((resolve) => setTimeout(resolve, 2000));
+
+    // Mock scan results based on RLC test data
+    this.scanResults = [
+      {
+        id: `unit_${Date.now()}_1`,
+        type: "Room Logic Controller",
+        serial_no: "8930000000019",
+        ip_address: "192.168.1.23",
+        id_can: "12.43.3.3",
+        mode: "Stand-Alone",
+        firmware_version: "1.0.4",
+        hardware_version: "3.2.5",
+        manufacture_date: "06072015",
+        can_load: true,
+        recovery_mode: false,
+        description: "Room Logic Controller discovered on network",
+        discovered_at: new Date().toISOString(),
+      },
+      {
+        id: `unit_${Date.now()}_2`,
+        type: "Bedside-17T",
+        serial_no: "8930000000200",
+        ip_address: "192.168.1.24",
+        id_can: "12.43.3.5",
+        mode: "Slave",
+        firmware_version: "1.0.4",
+        hardware_version: "3.2.5",
+        manufacture_date: "09032015",
+        can_load: true,
+        recovery_mode: false,
+        description: "Bedside-17T discovered on network",
+        discovered_at: new Date().toISOString(),
+      },
+    ];
+  }
+
+  /**
+   * Get last scan results
+   */
+  getLastScanResults() {
+    return this.scanResults;
+  }
+
+  /**
+   * Check if scanner is currently scanning
+   */
+  isCurrentlyScanning() {
+    return this.isScanning;
+  }
+
+  /**
+   * Clear scan results
+   */
+  clearResults() {
+    this.scanResults = [];
+    this.lastScanTime = null;
+  }
+
+  /**
+   * Get cache status information
+   */
+  getCacheStatus() {
+    return {
+      isValid: this.isCacheValid(),
+      lastScanTime: this.lastScanTime,
+      unitCount: this.scanResults.length,
+    };
+  }
 }
 
 // Export singleton instance

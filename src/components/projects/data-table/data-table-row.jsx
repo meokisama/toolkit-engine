@@ -8,6 +8,8 @@ import {
   Settings,
   Settings2,
   Thermometer,
+  Play,
+  SlidersHorizontal,
 } from "lucide-react";
 
 import { TableCell, TableRow } from "@/components/ui/table";
@@ -17,6 +19,9 @@ import {
   ContextMenuContent,
   ContextMenuItem,
   ContextMenuSeparator,
+  ContextMenuSub,
+  ContextMenuSubContent,
+  ContextMenuSubTrigger,
 } from "@/components/ui/context-menu";
 
 export function DataTableRow({
@@ -27,6 +32,7 @@ export function DataTableRow({
   onIOConfig,
   onGroupControl,
   onAirconControl,
+  onSceneControl,
 }) {
   const item = row.original;
 
@@ -61,9 +67,11 @@ export function DataTableRow({
           </ContextMenuItem>
         )}
         {(onEdit || onDuplicate) &&
-          (onIOConfig || onGroupControl || onAirconControl || onDelete) && (
-            <ContextMenuSeparator />
-          )}
+          (onIOConfig ||
+            onGroupControl ||
+            onAirconControl ||
+            onSceneControl ||
+            onDelete) && <ContextMenuSeparator />}
         {onIOConfig && (
           <>
             <ContextMenuItem
@@ -73,34 +81,55 @@ export function DataTableRow({
               <Settings className="text-muted-foreground" />
               <span>I/O Config</span>
             </ContextMenuItem>
-            {(onGroupControl || onAirconControl || onDelete) && (
-              <ContextMenuSeparator />
-            )}
+            {(onGroupControl ||
+              onAirconControl ||
+              onSceneControl ||
+              onDelete) && <ContextMenuSeparator />}
           </>
         )}
         {onGroupControl && (
-          <>
-            <ContextMenuItem
-              onClick={() => onGroupControl(item)}
-              className="cursor-pointer"
-            >
-              <Settings2 className="text-muted-foreground" />
-              <span>Group Control</span>
-            </ContextMenuItem>
-            {(onAirconControl || onDelete) && <ContextMenuSeparator />}
-          </>
+          <ContextMenuItem
+            onClick={() => onGroupControl(item)}
+            className="cursor-pointer"
+          >
+            <Settings2 className="text-muted-foreground" />
+            <span>Group Control</span>
+          </ContextMenuItem>
         )}
         {onAirconControl && (
-          <>
-            <ContextMenuItem
-              onClick={() => onAirconControl(item)}
-              className="cursor-pointer"
-            >
-              <Thermometer className="text-muted-foreground" />
-              <span>Aircon Control</span>
-            </ContextMenuItem>
-            {onDelete && <ContextMenuSeparator />}
-          </>
+          <ContextMenuItem
+            onClick={() => onAirconControl(item)}
+            className="cursor-pointer"
+          >
+            <Thermometer className="text-muted-foreground" />
+            <span>Aircon Control</span>
+          </ContextMenuItem>
+        )}
+        {onSceneControl && (
+          <ContextMenuSub>
+            <ContextMenuSubTrigger className="cursor-pointer">
+              <SlidersHorizontal className="text-muted-foreground" />
+              <span className="pl-2">Scene Control</span>
+            </ContextMenuSubTrigger>
+            <ContextMenuSubContent>
+              <ContextMenuItem
+                onClick={() => onSceneControl.onTriggerScene(item)}
+                className="cursor-pointer"
+              >
+                <Play className="text-muted-foreground" />
+                <span>Trigger Scene</span>
+              </ContextMenuItem>
+              <ContextMenuSeparator />
+              <ContextMenuItem
+                onClick={() => onSceneControl.onDeleteScene(item)}
+                className="cursor-pointer"
+                variant="destructive"
+              >
+                <Trash2 className="text-muted-foreground" />
+                <span>Delete Scene</span>
+              </ContextMenuItem>
+            </ContextMenuSubContent>
+          </ContextMenuSub>
         )}
         {onDelete && (
           <ContextMenuItem

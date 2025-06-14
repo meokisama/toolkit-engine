@@ -209,6 +209,14 @@ export function SceneDialog({
     loadUsedItemsByAddress,
   ]);
 
+  // Reload scene items when aircon data changes (to reflect address updates)
+  useEffect(() => {
+    if (open && mode === "edit" && scene && scene.id) {
+      // Reload scene items when aircon data changes to reflect any address updates
+      loadSceneItems(scene.id);
+    }
+  }, [open, mode, scene, projectItems.aircon, loadSceneItems]);
+
   // Cleanup timeout on unmount
   useEffect(() => {
     return () => {
@@ -620,15 +628,40 @@ export function SceneDialog({
         );
 
         // Filter out items used by other scenes with same address
-        const isUsedByOtherScene = usedItemsByAddress.some(
-          (usedItem) =>
-            usedItem.item_type === "lighting" && usedItem.item_id === item.id
-        );
+        // When editing, we need to check if the item is ONLY used by the current scene
+        const isUsedByOtherScene = usedItemsByAddress.some((usedItem) => {
+          if (
+            usedItem.item_type === "lighting" &&
+            usedItem.item_id === item.id
+          ) {
+            // If we're editing a scene, check if this item is only used by the current scene
+            if (mode === "edit" && scene) {
+              // Check if this item exists in the original scene items
+              const isInOriginalScene = originalSceneItems.some(
+                (origItem) =>
+                  origItem.item_type === "lighting" &&
+                  origItem.item_id === item.id
+              );
+              // If it's in the original scene, it means it's used by the current scene
+              // So we should allow it to be available when removed from current scene
+              return !isInOriginalScene;
+            }
+            return true;
+          }
+          return false;
+        });
 
         return !isInCurrentScene && !isUsedByOtherScene;
       }) || []
     );
-  }, [projectItems.lighting, sceneItems, usedItemsByAddress]);
+  }, [
+    projectItems.lighting,
+    sceneItems,
+    usedItemsByAddress,
+    mode,
+    scene,
+    originalSceneItems,
+  ]);
 
   const filteredAirconCards = useMemo(() => {
     return availableAirconCards.filter((card) => {
@@ -638,14 +671,39 @@ export function SceneDialog({
       );
 
       // Filter out cards where any aircon item is used by other scenes with same address
-      const isUsedByOtherScene = usedItemsByAddress.some(
-        (usedItem) =>
-          usedItem.item_type === "aircon" && usedItem.item_id === card.item.id
-      );
+      // When editing, we need to check if the item is ONLY used by the current scene
+      const isUsedByOtherScene = usedItemsByAddress.some((usedItem) => {
+        if (
+          usedItem.item_type === "aircon" &&
+          usedItem.item_id === card.item.id
+        ) {
+          // If we're editing a scene, check if this item is only used by the current scene
+          if (mode === "edit" && scene) {
+            // Check if this aircon address exists in the original scene items
+            const isInOriginalScene = originalSceneItems.some(
+              (origItem) =>
+                origItem.item_type === "aircon" &&
+                origItem.item_address === card.address
+            );
+            // If it's in the original scene, it means it's used by the current scene
+            // So we should allow it to be available when removed from current scene
+            return !isInOriginalScene;
+          }
+          return true;
+        }
+        return false;
+      });
 
       return !isInCurrentScene && !isUsedByOtherScene;
     });
-  }, [availableAirconCards, sceneItems, usedItemsByAddress]);
+  }, [
+    availableAirconCards,
+    sceneItems,
+    usedItemsByAddress,
+    mode,
+    scene,
+    originalSceneItems,
+  ]);
 
   const filteredCurtainItems = useMemo(() => {
     return (
@@ -656,15 +714,40 @@ export function SceneDialog({
         );
 
         // Filter out items used by other scenes with same address
-        const isUsedByOtherScene = usedItemsByAddress.some(
-          (usedItem) =>
-            usedItem.item_type === "curtain" && usedItem.item_id === item.id
-        );
+        // When editing, we need to check if the item is ONLY used by the current scene
+        const isUsedByOtherScene = usedItemsByAddress.some((usedItem) => {
+          if (
+            usedItem.item_type === "curtain" &&
+            usedItem.item_id === item.id
+          ) {
+            // If we're editing a scene, check if this item is only used by the current scene
+            if (mode === "edit" && scene) {
+              // Check if this item exists in the original scene items
+              const isInOriginalScene = originalSceneItems.some(
+                (origItem) =>
+                  origItem.item_type === "curtain" &&
+                  origItem.item_id === item.id
+              );
+              // If it's in the original scene, it means it's used by the current scene
+              // So we should allow it to be available when removed from current scene
+              return !isInOriginalScene;
+            }
+            return true;
+          }
+          return false;
+        });
 
         return !isInCurrentScene && !isUsedByOtherScene;
       }) || []
     );
-  }, [projectItems.curtain, sceneItems, usedItemsByAddress]);
+  }, [
+    projectItems.curtain,
+    sceneItems,
+    usedItemsByAddress,
+    mode,
+    scene,
+    originalSceneItems,
+  ]);
 
   const filteredKnxItems = useMemo(() => {
     return (
@@ -675,15 +758,36 @@ export function SceneDialog({
         );
 
         // Filter out items used by other scenes with same address
-        const isUsedByOtherScene = usedItemsByAddress.some(
-          (usedItem) =>
-            usedItem.item_type === "knx" && usedItem.item_id === item.id
-        );
+        // When editing, we need to check if the item is ONLY used by the current scene
+        const isUsedByOtherScene = usedItemsByAddress.some((usedItem) => {
+          if (usedItem.item_type === "knx" && usedItem.item_id === item.id) {
+            // If we're editing a scene, check if this item is only used by the current scene
+            if (mode === "edit" && scene) {
+              // Check if this item exists in the original scene items
+              const isInOriginalScene = originalSceneItems.some(
+                (origItem) =>
+                  origItem.item_type === "knx" && origItem.item_id === item.id
+              );
+              // If it's in the original scene, it means it's used by the current scene
+              // So we should allow it to be available when removed from current scene
+              return !isInOriginalScene;
+            }
+            return true;
+          }
+          return false;
+        });
 
         return !isInCurrentScene && !isUsedByOtherScene;
       }) || []
     );
-  }, [projectItems.knx, sceneItems, usedItemsByAddress]);
+  }, [
+    projectItems.knx,
+    sceneItems,
+    usedItemsByAddress,
+    mode,
+    scene,
+    originalSceneItems,
+  ]);
 
   const removeItemFromScene = useCallback((sceneItemId) => {
     // Always remove from local state only - changes will be saved when user clicks Save

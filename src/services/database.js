@@ -814,6 +814,9 @@ class DatabaseService {
 
       // For aircon table, include label column
       if (tableName === "aircon") {
+        // Get current item to check if address is changing
+        const currentItem = this.getProjectItemById(id, tableName);
+
         const stmt = this.db.prepare(`
           UPDATE ${tableName}
           SET name = ?, address = ?, description = ?, label = ?, updated_at = CURRENT_TIMESTAMP
@@ -824,12 +827,24 @@ class DatabaseService {
         if (result.changes === 0) {
           throw new Error(`${tableName} item not found`);
         }
+
+        // If address changed, update scene items that reference this aircon item
+        if (currentItem && currentItem.address !== address) {
+          console.log(
+            `Updating scene items for aircon ${id}: ${currentItem.address} -> ${address}`
+          );
+          this.updateSceneItemsAddress(id, "aircon", address);
+        }
       } else if (tableName === "curtain") {
         // For curtain table, include curtain-specific fields
         // Address is required for curtain items
         if (!address) {
           throw new Error("Address is required for curtain items.");
         }
+
+        // Get current item to check if address is changing
+        const currentItem = this.getProjectItemById(id, tableName);
+
         const object_value = this.getObjectValue(object_type);
         const stmt = this.db.prepare(`
           UPDATE ${tableName}
@@ -852,6 +867,14 @@ class DatabaseService {
         if (result.changes === 0) {
           throw new Error(`${tableName} item not found`);
         }
+
+        // If address changed, update scene items that reference this curtain item
+        if (currentItem && currentItem.address !== address) {
+          console.log(
+            `Updating scene items for curtain ${id}: ${currentItem.address} -> ${address}`
+          );
+          this.updateSceneItemsAddress(id, "curtain", address);
+        }
       } else if (tableName === "knx" || tableName === "scene") {
         // For knx and scene tables, don't use object_type and object_value
         const stmt = this.db.prepare(`
@@ -865,7 +888,10 @@ class DatabaseService {
           throw new Error(`${tableName} item not found`);
         }
       } else {
-        // For other tables, use original structure with object_type and object_value
+        // For other tables (like lighting), use original structure with object_type and object_value
+        // Get current item to check if address is changing
+        const currentItem = this.getProjectItemById(id, tableName);
+
         const object_value = this.getObjectValue(object_type);
         const stmt = this.db.prepare(`
           UPDATE ${tableName}
@@ -883,6 +909,18 @@ class DatabaseService {
 
         if (result.changes === 0) {
           throw new Error(`${tableName} item not found`);
+        }
+
+        // If address changed and this is a table that can be used in scenes, update scene items
+        if (
+          currentItem &&
+          currentItem.address !== address &&
+          tableName === "lighting"
+        ) {
+          console.log(
+            `Updating scene items for ${tableName} ${id}: ${currentItem.address} -> ${address}`
+          );
+          this.updateSceneItemsAddress(id, tableName, address);
         }
       }
 
@@ -1779,6 +1817,27 @@ class DatabaseService {
       return transaction();
     } catch (error) {
       console.error("Failed to duplicate scene with items:", error);
+      throw error;
+    }
+  }
+
+  // Helper method to update scene items when item addresses change
+  updateSceneItemsAddress(itemId, itemType, newAddress) {
+    try {
+      const stmt = this.db.prepare(`
+        UPDATE scene_items
+        SET item_address = ?
+        WHERE item_id = ? AND item_type = ?
+      `);
+
+      const result = stmt.run(newAddress, itemId, itemType);
+      console.log(
+        `Updated ${result.changes} scene items with new address ${newAddress} for ${itemType} item ${itemId}`
+      );
+
+      return result.changes;
+    } catch (error) {
+      console.error("Failed to update scene items address:", error);
       throw error;
     }
   }
