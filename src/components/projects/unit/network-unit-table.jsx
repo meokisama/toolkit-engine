@@ -10,6 +10,7 @@ import { createNetworkUnitColumns } from "@/components/projects/unit/unit-column
 import { GroupControlDialog } from "@/components/projects/unit/group-control-dialog";
 import { RoomControlDialog } from "@/components/projects/unit/ac-control-dialog";
 import { TriggerSceneDialog } from "@/components/projects/unit/trigger-scene-dialog";
+import { DeleteSceneDialog } from "@/components/projects/unit/delete-scene-dialog";
 import { udpScanner } from "@/services/udp";
 import { toast } from "sonner";
 
@@ -21,6 +22,7 @@ export function NetworkUnitTable({ onTransferToDatabase, existingUnits = [] }) {
   const [groupControlDialogOpen, setGroupControlDialogOpen] = useState(false);
   const [airconControlDialogOpen, setAirconControlDialogOpen] = useState(false);
   const [triggerSceneDialogOpen, setTriggerSceneDialogOpen] = useState(false);
+  const [deleteSceneDialogOpen, setDeleteSceneDialogOpen] = useState(false);
   const [selectedUnit, setSelectedUnit] = useState(null);
 
   // Auto-load cached network units when component mounts
@@ -187,8 +189,8 @@ export function NetworkUnitTable({ onTransferToDatabase, existingUnits = [] }) {
   }, []);
 
   const handleDeleteScene = useCallback((unit) => {
-    // TODO: Implement delete scene functionality
-    console.log("Delete scene for unit:", unit);
+    setSelectedUnit(unit);
+    setDeleteSceneDialogOpen(true);
   }, []);
 
   const handleGroupControlSubmit = async (params) => {
@@ -337,6 +339,12 @@ export function NetworkUnitTable({ onTransferToDatabase, existingUnits = [] }) {
         <TriggerSceneDialog
           open={triggerSceneDialogOpen}
           onOpenChange={setTriggerSceneDialogOpen}
+          unit={selectedUnit}
+        />
+
+        <DeleteSceneDialog
+          open={deleteSceneDialogOpen}
+          onOpenChange={setDeleteSceneDialogOpen}
           unit={selectedUnit}
         />
       </Card>

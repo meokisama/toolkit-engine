@@ -21,6 +21,7 @@ import {
   getEcoMode,
   setupScene,
   triggerScene,
+  deleteScene,
 } from "./services/rcu-controller.js";
 import dgram from "dgram";
 
@@ -891,6 +892,18 @@ function setupIpcHandlers() {
         return await triggerScene(unitIp, canId, sceneIndex);
       } catch (error) {
         console.error("Error triggering scene:", error);
+        throw error;
+      }
+    }
+  );
+
+  ipcMain.handle(
+    "rcu:deleteScene",
+    async (event, unitIp, canId, sceneIndex) => {
+      try {
+        return await deleteScene(unitIp, canId, sceneIndex);
+      } catch (error) {
+        console.error("Error deleting scene:", error);
         throw error;
       }
     }

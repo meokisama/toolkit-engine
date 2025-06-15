@@ -821,6 +821,66 @@ async function triggerScene(unitIp, canId, sceneIndex) {
   return response;
 }
 
+// Delete Scene function
+async function deleteScene(unitIp, canId, sceneIndex) {
+  console.log("Deleting scene:", {
+    unitIp,
+    canId,
+    sceneIndex,
+  });
+
+  // Convert CAN ID to address format
+  const idAddress = convertCanIdToInt(canId);
+
+  // Build data array for delete scene
+  const data = [];
+
+  // 1. Scene index (1 byte)
+  data.push(sceneIndex);
+
+  // 2. Scene name (15 bytes, all null for delete)
+  for (let i = 0; i < 15; i++) {
+    data.push(0x00);
+  }
+
+  // 3. Scene address (1 byte) - set to 0 for delete
+  data.push(0x00);
+
+  // 4. Scene amount - number of items (1 byte) - set to 0 for delete
+  data.push(0x00);
+
+  // 5. 7 empty bytes
+  for (let i = 0; i < 7; i++) {
+    data.push(0x00);
+  }
+
+  // No scene items for delete operation
+
+  console.log(`Deleting scene: index=${sceneIndex}, address=0, amount=0`);
+  console.log(
+    "Delete scene data:",
+    data.map((b) => b.toString(16).padStart(2, "0")).join(" ")
+  );
+
+  const response = await sendCommand(
+    unitIp,
+    UDP_PORT,
+    idAddress,
+    PROTOCOL.GENERAL.CMD1,
+    PROTOCOL.GENERAL.CMD2.SETUP_SCENE,
+    data
+  );
+
+  console.log("Scene deleted successfully:", {
+    unitIp,
+    canId,
+    sceneIndex,
+    responseStatus: response.result?.success ? "SUCCESS" : "UNKNOWN",
+  });
+
+  return response;
+}
+
 export {
   setGroupState,
   setMultipleGroupStates,
@@ -842,4 +902,5 @@ export {
   // Scene functions
   setupScene,
   triggerScene,
+  deleteScene,
 };

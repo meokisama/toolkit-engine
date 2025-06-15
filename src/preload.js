@@ -239,5 +239,8 @@ contextBridge.exposeInMainWorld("electronAPI", {
       ),
     // Scene Trigger
     triggerScene: (params) => ipcRenderer.invoke("rcu:triggerScene", params),
+    // Scene Delete
+    deleteScene: (unitIp, canId, sceneIndex) =>
+      ipcRenderer.invoke("rcu:deleteScene", unitIp, canId, sceneIndex),
   },
 });
