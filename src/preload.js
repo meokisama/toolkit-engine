@@ -237,6 +237,12 @@ contextBridge.exposeInMainWorld("electronAPI", {
         sceneAddress,
         sceneItems
       ),
+    // Scene Information
+    getSceneInformation: (params) =>
+      ipcRenderer.invoke("rcu:getSceneInformation", params),
+    // All Scenes Information
+    getAllScenesInformation: (params) =>
+      ipcRenderer.invoke("rcu:getAllScenesInformation", params),
     // Scene Trigger
     triggerScene: (params) => ipcRenderer.invoke("rcu:triggerScene", params),
     // Scene Delete

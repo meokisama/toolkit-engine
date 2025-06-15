@@ -30,7 +30,7 @@ import {
 export function SendSceneDialog({ open, onOpenChange, scene = null }) {
   const { selectedProject } = useProjectDetail();
   const [formData, setFormData] = useState({
-    sceneIndex: 0,
+    sceneIndex: 1,
   });
   const [loading, setLoading] = useState(false);
   const [scanLoading, setScanLoading] = useState(false);
@@ -43,7 +43,7 @@ export function SendSceneDialog({ open, onOpenChange, scene = null }) {
     if (open && scene) {
       loadSceneItems();
       setFormData({
-        sceneIndex: 0,
+        sceneIndex: 1,
       });
       setSelectedUnitIds([]);
 
@@ -135,10 +135,14 @@ export function SendSceneDialog({ open, onOpenChange, scene = null }) {
       // Send scene to all selected units
       for (const unit of selectedUnits) {
         try {
+          // Convert UI scene index (1-100) to protocol index (0-99)
+          const protocolSceneIndex = formData.sceneIndex - 1;
+
           console.log("Sending scene to unit:", {
             unitIp: unit.ip_address,
             canId: unit.id_can,
             sceneIndex: formData.sceneIndex,
+            protocolSceneIndex: protocolSceneIndex,
             sceneName: scene.name,
             sceneAddress: scene.address,
             sceneItems: sceneItemsData,
@@ -147,7 +151,7 @@ export function SendSceneDialog({ open, onOpenChange, scene = null }) {
           const response = await window.electronAPI.rcuController.setupScene(
             unit.ip_address,
             unit.id_can,
-            formData.sceneIndex,
+            protocolSceneIndex,
             scene.name,
             scene.address,
             sceneItemsData
@@ -234,23 +238,23 @@ export function SendSceneDialog({ open, onOpenChange, scene = null }) {
         <div className="space-y-3">
           {/* Scene Configuration */}
           <div className="space-y-2">
-            <Label htmlFor="scene-index">Scene Index (0-99)</Label>
+            <Label htmlFor="scene-index">Scene Index (1-100)</Label>
             <Input
               id="scene-index"
               type="number"
-              min="0"
-              max="99"
+              min="1"
+              max="100"
               value={formData.sceneIndex}
               onChange={(e) =>
                 setFormData((prev) => ({
                   ...prev,
                   sceneIndex: Math.max(
-                    0,
-                    Math.min(99, parseInt(e.target.value) || 0)
+                    1,
+                    Math.min(100, parseInt(e.target.value) || 1)
                   ),
                 }))
               }
-              placeholder="0"
+              placeholder="1"
             />
           </div>
 

@@ -90,7 +90,12 @@ const ERROR_CODES = {
   255: "OTHER",
 };
 
-function processResponse(msg, expectedCmd1, expectedCmd2) {
+function processResponse(
+  msg,
+  expectedCmd1,
+  expectedCmd2,
+  skipStatusCheck = false
+) {
   if (msg.length < 10) {
     throw new Error("Response too short (minimum 10 bytes required)");
   }
@@ -118,6 +123,7 @@ function processResponse(msg, expectedCmd1, expectedCmd2) {
     dataLength,
     expectedCmd1: `0x${expectedCmd1.toString(16)}`,
     expectedCmd2: `0x${expectedCmd2.toString(16)}`,
+    skipStatusCheck,
   });
 
   // Check if this is an error response
@@ -156,7 +162,8 @@ function processResponse(msg, expectedCmd1, expectedCmd2) {
   }
 
   // For setup commands, check if data field contains success status (0x00)
-  if (dataLength >= 1) {
+  // Skip status check for GET_SCENE_INFOR and similar data retrieval commands
+  if (!skipStatusCheck && dataLength >= 1) {
     const statusByte = msg[dataStart];
     console.log("Response status byte:", `0x${statusByte.toString(16)}`);
 
@@ -186,7 +193,15 @@ function calculateCRC(data) {
   return crc & 0xffff;
 }
 
-async function sendCommand(unitIp, port, idAddress, cmd1, cmd2, data = []) {
+async function sendCommand(
+  unitIp,
+  port,
+  idAddress,
+  cmd1,
+  cmd2,
+  data = [],
+  skipStatusCheck = false
+) {
   return new Promise((resolve, reject) => {
     const dgram = require("dgram");
     const client = dgram.createSocket("udp4");
@@ -215,7 +230,7 @@ async function sendCommand(unitIp, port, idAddress, cmd1, cmd2, data = []) {
       );
 
       try {
-        const result = processResponse(msg, cmd1, cmd2);
+        const result = processResponse(msg, cmd1, cmd2, skipStatusCheck);
         client.close();
         resolve({ msg, rinfo, result });
       } catch (error) {
@@ -750,12 +765,19 @@ async function setupScene(
     const itemAddress = parseInt(item.item_address) || 0;
     data.push(itemAddress);
 
-    // item_value - convert lighting from 0-100% to 0-255
-    let itemValue = parseInt(item.item_value) || 0;
+    // item_value - convert values based on object type
+    let itemValue = parseFloat(item.item_value) || 0;
     if (item.object_value === 1) {
       // LIGHTING object type
       // Convert from 0-100% to 0-255
       itemValue = Math.round((itemValue / 100) * 255);
+    } else if (item.object_value === 6) {
+      // AC_TEMPERATURE object type
+      // Convert temperature to protocol format (multiply by 10)
+      itemValue = Math.round(itemValue * 10);
+    } else {
+      // For other types, convert to integer
+      itemValue = parseInt(itemValue) || 0;
     }
     data.push(itemValue);
   }
@@ -788,9 +810,9 @@ async function setupScene(
   return response;
 }
 
-// Trigger Scene function
-async function triggerScene(unitIp, canId, sceneIndex) {
-  console.log("Triggering scene:", {
+// Get Scene Information function
+async function getSceneInformation(unitIp, canId, sceneIndex) {
+  console.log("Getting scene information:", {
     unitIp,
     canId,
     sceneIndex,
@@ -807,6 +829,291 @@ async function triggerScene(unitIp, canId, sceneIndex) {
     UDP_PORT,
     idAddress,
     PROTOCOL.GENERAL.CMD1,
+    PROTOCOL.GENERAL.CMD2.GET_SCENE_INFOR,
+    data,
+    true // Skip status check for GET_SCENE_INFOR
+  );
+
+  console.log("Scene information retrieved:", {
+    unitIp,
+    canId,
+    sceneIndex,
+    responseStatus: response.result?.success ? "SUCCESS" : "UNKNOWN",
+    responseLength: response.msg ? response.msg.length : 0,
+  });
+
+  if (response && response.msg && response.msg.length >= 10) {
+    const data = response.msg.slice(8); // Skip header (4 bytes ID + 2 bytes length + 2 bytes cmd)
+
+    console.log(
+      "Scene data:",
+      Array.from(data)
+        .map((b) => b.toString(16).padStart(2, "0"))
+        .join(" ")
+    );
+
+    // Parse scene information
+    // Data structure: scene index, 15-byte name, address, item count, 7 empty bytes, then 3-byte items
+    const sceneIndex = data[0];
+    const sceneName = String.fromCharCode(...data.slice(1, 16))
+      .replace(/\0/g, "")
+      .trim();
+    const sceneAddress = data[16];
+    const itemCount = data[17];
+
+    const items = [];
+    const itemsStartIndex = 25; // Skip scene index(1) + name(15) + address(1) + count(1) + empty(7)
+
+    for (
+      let i = 0;
+      i < itemCount && itemsStartIndex + i * 3 + 2 < data.length;
+      i++
+    ) {
+      const itemIndex = itemsStartIndex + i * 3;
+      items.push({
+        objectValue: data[itemIndex],
+        itemAddress: data[itemIndex + 1],
+        itemValue: data[itemIndex + 2],
+      });
+    }
+
+    return {
+      sceneIndex,
+      sceneName,
+      sceneAddress,
+      itemCount,
+      items,
+    };
+  }
+
+  throw new Error("Invalid response from get scene information command");
+}
+
+// Send command and collect multiple responses (for Load All Scenes)
+async function sendCommandMultipleResponses(
+  unitIp,
+  port,
+  idAddress,
+  cmd1,
+  cmd2,
+  data = [],
+  expectedResponses = 100,
+  timeoutMs = 10000
+) {
+  return new Promise((resolve, reject) => {
+    const dgram = require("dgram");
+    const client = dgram.createSocket("udp4");
+    const responses = [];
+    let responseCount = 0;
+
+    const timeout = setTimeout(() => {
+      client.close();
+      console.log(
+        `Timeout reached. Collected ${responseCount} responses out of ${expectedResponses} expected`
+      );
+      resolve(responses); // Return what we have collected so far
+    }, timeoutMs);
+
+    client.on("message", (msg, rinfo) => {
+      console.log(
+        `Received response ${responseCount + 1} from ${rinfo.address}:${
+          rinfo.port
+        }, length: ${msg.length}`
+      );
+      console.log(
+        "Response hex:",
+        Array.from(msg)
+          .map((b) => b.toString(16).padStart(2, "0"))
+          .join(" ")
+      );
+
+      try {
+        const result = processResponse(msg, cmd1, cmd2, true); // Skip status check
+        responses.push({ msg, rinfo, result });
+        responseCount++;
+
+        // Check if we have collected all expected responses
+        if (responseCount >= expectedResponses) {
+          clearTimeout(timeout);
+          client.close();
+          console.log(`Collected all ${responseCount} responses successfully`);
+          resolve(responses);
+        }
+      } catch (error) {
+        console.error(`Error processing response ${responseCount + 1}:`, error);
+        // Continue collecting other responses even if one fails
+      }
+    });
+
+    client.on("error", (err) => {
+      clearTimeout(timeout);
+      client.close();
+      reject(err);
+    });
+
+    try {
+      const idBuffer = Buffer.alloc(4);
+      idBuffer.writeUInt32LE(idAddress, 0);
+
+      const len = 2 + 2 + data.length;
+      const packetArray = [];
+
+      packetArray.push(len & 0xff);
+      packetArray.push((len >> 8) & 0xff);
+      packetArray.push(cmd1);
+      packetArray.push(cmd2);
+
+      for (let i = 0; i < data.length; i++) {
+        packetArray.push(data[i]);
+      }
+
+      const crc = calculateCRC(packetArray);
+      packetArray.push(crc & 0xff);
+      packetArray.push((crc >> 8) & 0xff);
+
+      const packetBuffer = Buffer.from(packetArray);
+      const buffer = Buffer.concat([idBuffer, packetBuffer]);
+
+      console.log(
+        `Sending command to ${unitIp}:${port} expecting ${expectedResponses} responses`
+      );
+      console.log(
+        `ID: 0x${idAddress.toString(
+          16
+        )}, CMD1: ${cmd1}, CMD2: ${cmd2}, Data: [${data.join(", ")}]`
+      );
+      console.log(
+        "Full packet hex:",
+        Array.from(buffer)
+          .map((b) => b.toString(16).padStart(2, "0"))
+          .join(" ")
+      );
+
+      client.send(buffer, 0, buffer.length, port, unitIp, (err) => {
+        if (err) {
+          console.error("Send error:", err);
+          clearTimeout(timeout);
+          client.close();
+          reject(err);
+        }
+      });
+    } catch (error) {
+      console.error("Command preparation error:", error);
+      clearTimeout(timeout);
+      client.close();
+      reject(error);
+    }
+  });
+}
+
+// Get All Scenes Information function
+async function getAllScenesInformation(unitIp, canId) {
+  console.log("Getting all scenes information:", {
+    unitIp,
+    canId,
+  });
+
+  // Convert CAN ID to address format
+  const idAddress = convertCanIdToInt(canId);
+
+  // No data parameter for loading all scenes
+  const data = [];
+
+  const responses = await sendCommandMultipleResponses(
+    unitIp,
+    UDP_PORT,
+    idAddress,
+    PROTOCOL.GENERAL.CMD1,
+    PROTOCOL.GENERAL.CMD2.GET_SCENE_INFOR,
+    data,
+    100, // Expect 100 scene responses
+    10000 // 10 second timeout
+  );
+
+  console.log("All scenes information retrieved:", {
+    unitIp,
+    canId,
+    responseCount: responses.length,
+  });
+
+  if (responses.length > 0) {
+    const scenes = [];
+
+    // Process each response (each response contains one scene)
+    for (let i = 0; i < responses.length; i++) {
+      const response = responses[i];
+
+      if (response.result?.success && response.msg && response.msg.length > 0) {
+        try {
+          // Parse scene information from this response
+          // Data structure: scene index, 15-byte name, address, item count, 7 empty bytes, then 3-byte items
+          const data = response.msg.slice(8); // Skip header
+
+          if (data.length >= 18) {
+            // Minimum data for scene info
+            const sceneIndex = data[0];
+            const sceneName = String.fromCharCode(...data.slice(1, 16))
+              .replace(/\0/g, "")
+              .trim();
+            const sceneAddress = data[16];
+            const itemCount = data[17];
+
+            // Only add scenes that have actual data (non-empty name or items)
+            if (sceneName.length > 0 || itemCount > 0) {
+              scenes.push({
+                index: sceneIndex,
+                name: sceneName || `Scene ${sceneIndex + 1}`,
+                address: sceneAddress,
+                itemCount: itemCount,
+                displayIndex: sceneIndex + 1, // Convert 0-99 to 1-100 for display
+              });
+            }
+          }
+        } catch (error) {
+          console.error(`Error parsing scene response ${i + 1}:`, error);
+        }
+      }
+    }
+
+    console.log(
+      `Parsed ${scenes.length} valid scenes from ${responses.length} responses`
+    );
+    return {
+      result: { success: true },
+      scenes: scenes,
+    };
+  }
+
+  throw new Error(
+    "No valid responses received from get all scenes information command"
+  );
+}
+
+// Trigger Scene function
+async function triggerScene(unitIp, canId, sceneIndex, sceneAddress) {
+  console.log("Triggering scene:", {
+    unitIp,
+    canId,
+    sceneIndex,
+    sceneAddress,
+  });
+
+  // Convert CAN ID to address format
+  const idAddress = convertCanIdToInt(canId);
+
+  // Data is scene address + 1 (1 byte)
+  const triggerData = sceneAddress + 1;
+  const data = [triggerData];
+
+  console.log(
+    `Sending trigger command with data: ${triggerData} (scene address ${sceneAddress} + 1)`
+  );
+
+  const response = await sendCommand(
+    unitIp,
+    UDP_PORT,
+    idAddress,
+    PROTOCOL.GENERAL.CMD1,
     PROTOCOL.GENERAL.CMD2.TRIGGER_SCENE,
     data
   );
@@ -815,6 +1122,8 @@ async function triggerScene(unitIp, canId, sceneIndex) {
     unitIp,
     canId,
     sceneIndex,
+    sceneAddress,
+    triggerData,
     responseStatus: response.result?.success ? "SUCCESS" : "UNKNOWN",
   });
 
@@ -901,6 +1210,8 @@ export {
   getEcoMode,
   // Scene functions
   setupScene,
+  getSceneInformation,
+  getAllScenesInformation,
   triggerScene,
   deleteScene,
 };

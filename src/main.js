@@ -20,6 +20,8 @@ import {
   setEcoMode,
   getEcoMode,
   setupScene,
+  getSceneInformation,
+  getAllScenesInformation,
   triggerScene,
   deleteScene,
 } from "./services/rcu-controller.js";
@@ -886,10 +888,34 @@ function setupIpcHandlers() {
   );
 
   ipcMain.handle(
-    "rcu:triggerScene",
+    "rcu:getSceneInformation",
     async (event, { unitIp, canId, sceneIndex }) => {
       try {
-        return await triggerScene(unitIp, canId, sceneIndex);
+        return await getSceneInformation(unitIp, canId, sceneIndex);
+      } catch (error) {
+        console.error("Error getting scene information:", error);
+        throw error;
+      }
+    }
+  );
+
+  ipcMain.handle(
+    "rcu:getAllScenesInformation",
+    async (event, { unitIp, canId }) => {
+      try {
+        return await getAllScenesInformation(unitIp, canId);
+      } catch (error) {
+        console.error("Error getting all scenes information:", error);
+        throw error;
+      }
+    }
+  );
+
+  ipcMain.handle(
+    "rcu:triggerScene",
+    async (event, { unitIp, canId, sceneIndex, sceneAddress }) => {
+      try {
+        return await triggerScene(unitIp, canId, sceneIndex, sceneAddress);
       } catch (error) {
         console.error("Error triggering scene:", error);
         throw error;
