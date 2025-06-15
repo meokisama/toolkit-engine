@@ -100,7 +100,7 @@ function processResponse(
     throw new Error("Response too short (minimum 10 bytes required)");
   }
 
-  console.log("Processing response:", {
+  console.log("Response packet:", {
     length: msg.length,
     hex: Array.from(msg)
       .map((b) => b.toString(16).padStart(2, "0"))
@@ -115,28 +115,24 @@ function processResponse(
   const dataStart = 8;
   const dataLength = length - 4; // length includes cmd1, cmd2, and crc (4 bytes total)
 
-  console.log("Parsed response:", {
-    idAddress: `0x${idAddress.toString(16)}`,
-    length,
-    cmd1: `0x${cmd1.toString(16)}`,
-    cmd2: `0x${cmd2.toString(16)}`,
-    dataLength,
-    expectedCmd1: `0x${expectedCmd1.toString(16)}`,
-    expectedCmd2: `0x${expectedCmd2.toString(16)}`,
-    skipStatusCheck,
-  });
-
   // Check if this is an error response
-  if (cmd1 & 0x80) {
-    // Error response: cmd1 = original_cmd1 + 0x80
+  const isErrorResponse = cmd1 & 0x80 || cmd2 & 0x80;
+
+  if (isErrorResponse) {
+    // Error response: either cmd1 or cmd2 has 0x80 added
     const originalCmd1 = cmd1 & 0x7f;
+    const originalCmd2 = cmd2 & 0x7f;
     const errorCode = msg[dataStart]; // First byte of data contains error code
     const errorMessage =
       ERROR_CODES[errorCode] || `Unknown error (${errorCode})`;
 
     console.error("RCU Error Response:", {
+      receivedCmd1: `0x${cmd1.toString(16)}`,
+      receivedCmd2: `0x${cmd2.toString(16)}`,
       originalCmd1: `0x${originalCmd1.toString(16)}`,
-      cmd2: `0x${cmd2.toString(16)}`,
+      originalCmd2: `0x${originalCmd2.toString(16)}`,
+      expectedCmd1: `0x${expectedCmd1.toString(16)}`,
+      expectedCmd2: `0x${expectedCmd2.toString(16)}`,
       errorCode,
       errorMessage,
     });
@@ -144,7 +140,7 @@ function processResponse(
     throw new Error(`RCU Error: ${errorMessage} (Code: ${errorCode})`);
   }
 
-  // Check if cmd1 and cmd2 match expected values
+  // Check if cmd1 and cmd2 match expected values (only for success responses)
   if (cmd1 !== expectedCmd1) {
     throw new Error(
       `Unexpected cmd1 in response: got 0x${cmd1.toString(
@@ -165,7 +161,6 @@ function processResponse(
   // Skip status check for GET_SCENE_INFOR and similar data retrieval commands
   if (!skipStatusCheck && dataLength >= 1) {
     const statusByte = msg[dataStart];
-    console.log("Response status byte:", `0x${statusByte.toString(16)}`);
 
     if (statusByte !== 0x00) {
       const errorMessage =
@@ -174,7 +169,6 @@ function processResponse(
     }
   }
 
-  console.log("Command executed successfully");
   return {
     idAddress,
     length,
@@ -219,15 +213,7 @@ async function sendCommand(
 
     client.on("message", (msg, rinfo) => {
       clearTimeout(timeout);
-      console.log(
-        `Received response from ${rinfo.address}:${rinfo.port}, length: ${msg.length}`
-      );
-      console.log(
-        "Response hex:",
-        Array.from(msg)
-          .map((b) => b.toString(16).padStart(2, "0"))
-          .join(" ")
-      );
+      console.log(`Received from ${rinfo.address}:${rinfo.port}`);
 
       try {
         const result = processResponse(msg, cmd1, cmd2, skipStatusCheck);
@@ -268,14 +254,13 @@ async function sendCommand(
       const packetBuffer = Buffer.from(packetArray);
       const buffer = Buffer.concat([idBuffer, packetBuffer]);
 
-      console.log(`Sending command to ${unitIp}:${port}`);
       console.log(
-        `ID: 0x${idAddress.toString(
-          16
-        )}, CMD1: ${cmd1}, CMD2: ${cmd2}, Data: [${data.join(", ")}]`
+        `Send to ${unitIp}:${port} - CMD1:${cmd1} CMD2:${cmd2} Data:[${data.join(
+          ","
+        )}]`
       );
       console.log(
-        "Full packet hex:",
+        "Packet:",
         Array.from(buffer)
           .map((b) => b.toString(16).padStart(2, "0"))
           .join(" ")
@@ -316,12 +301,6 @@ async function setGroupState(unitIp, canId, group, value) {
     PROTOCOL.LIGHTING.CMD2.SET_GROUP_STATE,
     [group, value]
   );
-
-  console.log("Set group state response:", {
-    success: response?.result?.success,
-    group,
-    value,
-  });
 
   return response;
 }
@@ -388,11 +367,6 @@ async function getAllOutputStates(unitIp, canId) {
 async function getACStatus(unitIp, canId, group = 1) {
   const idAddress = convertCanIdToInt(canId);
 
-  console.log(
-    `Getting AC status for IP: ${unitIp}, CAN ID: ${canId}, Group: ${group}`
-  );
-  console.log(`Converted ID Address: 0x${idAddress.toString(16)}`);
-
   const response = await sendCommand(
     unitIp,
     UDP_PORT,
@@ -401,18 +375,6 @@ async function getACStatus(unitIp, canId, group = 1) {
     PROTOCOL.AC.CMD2.GET_AC_STATUS,
     [group]
   );
-
-  console.log("AC Status Response:", {
-    hasResponse: !!response,
-    hasMsg: !!(response && response.msg),
-    msgLength: response && response.msg ? response.msg.length : 0,
-    msgHex:
-      response && response.msg
-        ? Array.from(response.msg)
-            .map((b) => b.toString(16).padStart(2, "0"))
-            .join(" ")
-        : "N/A",
-  });
 
   if (response && response.msg) {
     const msgLength = response.msg.length;
@@ -426,31 +388,12 @@ async function getACStatus(unitIp, canId, group = 1) {
 
     // Check if we have enough data for AC status (need at least 26 bytes total)
     if (msgLength < 26) {
-      console.warn(
-        `AC Status response shorter than expected: ${msgLength} bytes (expected 26+)`
-      );
-      // Try to parse what we have
-      const data = response.msg.slice(8);
-      console.log("Available data bytes:", data.length);
-      console.log(
-        "Data hex:",
-        Array.from(data)
-          .map((b) => b.toString(16).padStart(2, "0"))
-          .join(" ")
-      );
-
       throw new Error(
         `Insufficient data in AC status response: ${msgLength} bytes (expected 26+)`
       );
     }
 
     const data = response.msg.slice(8); // Skip header
-    console.log(
-      "Parsed AC data:",
-      Array.from(data)
-        .map((b) => b.toString(16).padStart(2, "0"))
-        .join(" ")
-    );
 
     return {
       group: data[0],
@@ -589,12 +532,6 @@ async function setPowerMode(unitIp, canId, group = 1, power = true) {
     PROTOCOL.AC.CMD2.SET_POWER_MODE,
     [group, powerValue, 0]
   );
-
-  console.log("Set power mode response:", {
-    success: response?.result?.success,
-    powerMode: power ? "ON" : "OFF",
-    group,
-  });
 
   return response?.result?.success || false;
 }
@@ -782,14 +719,6 @@ async function setupScene(
     data.push(itemValue);
   }
 
-  console.log(
-    `Setting up scene: index=${sceneIndex}, name="${sceneName}", address=${sceneAddress}, items=${sceneItems.length}`
-  );
-  console.log(
-    "Scene data:",
-    data.map((b) => b.toString(16).padStart(2, "0")).join(" ")
-  );
-
   const response = await sendCommand(
     unitIp,
     UDP_PORT,
@@ -799,25 +728,11 @@ async function setupScene(
     data
   );
 
-  console.log("Scene setup completed successfully:", {
-    unitIp,
-    canId,
-    sceneIndex,
-    sceneName,
-    responseStatus: response.result?.success ? "SUCCESS" : "UNKNOWN",
-  });
-
   return response;
 }
 
 // Get Scene Information function
 async function getSceneInformation(unitIp, canId, sceneIndex) {
-  console.log("Getting scene information:", {
-    unitIp,
-    canId,
-    sceneIndex,
-  });
-
   // Convert CAN ID to address format
   const idAddress = convertCanIdToInt(canId);
 
@@ -834,23 +749,8 @@ async function getSceneInformation(unitIp, canId, sceneIndex) {
     true // Skip status check for GET_SCENE_INFOR
   );
 
-  console.log("Scene information retrieved:", {
-    unitIp,
-    canId,
-    sceneIndex,
-    responseStatus: response.result?.success ? "SUCCESS" : "UNKNOWN",
-    responseLength: response.msg ? response.msg.length : 0,
-  });
-
   if (response && response.msg && response.msg.length >= 10) {
     const data = response.msg.slice(8); // Skip header (4 bytes ID + 2 bytes length + 2 bytes cmd)
-
-    console.log(
-      "Scene data:",
-      Array.from(data)
-        .map((b) => b.toString(16).padStart(2, "0"))
-        .join(" ")
-    );
 
     // Parse scene information
     // Data structure: scene index, 15-byte name, address, item count, 7 empty bytes, then 3-byte items
@@ -909,22 +809,16 @@ async function sendCommandMultipleResponses(
     const timeout = setTimeout(() => {
       client.close();
       console.log(
-        `Timeout reached. Collected ${responseCount} responses out of ${expectedResponses} expected`
+        `Timeout: collected ${responseCount}/${expectedResponses} responses`
       );
       resolve(responses); // Return what we have collected so far
     }, timeoutMs);
 
     client.on("message", (msg, rinfo) => {
       console.log(
-        `Received response ${responseCount + 1} from ${rinfo.address}:${
-          rinfo.port
-        }, length: ${msg.length}`
-      );
-      console.log(
-        "Response hex:",
-        Array.from(msg)
-          .map((b) => b.toString(16).padStart(2, "0"))
-          .join(" ")
+        `Response ${responseCount + 1}/${expectedResponses} from ${
+          rinfo.address
+        }`
       );
 
       try {
@@ -936,7 +830,6 @@ async function sendCommandMultipleResponses(
         if (responseCount >= expectedResponses) {
           clearTimeout(timeout);
           client.close();
-          console.log(`Collected all ${responseCount} responses successfully`);
           resolve(responses);
         }
       } catch (error) {
@@ -975,15 +868,10 @@ async function sendCommandMultipleResponses(
       const buffer = Buffer.concat([idBuffer, packetBuffer]);
 
       console.log(
-        `Sending command to ${unitIp}:${port} expecting ${expectedResponses} responses`
+        `Send to ${unitIp}:${port} expecting ${expectedResponses} responses - CMD1:${cmd1} CMD2:${cmd2}`
       );
       console.log(
-        `ID: 0x${idAddress.toString(
-          16
-        )}, CMD1: ${cmd1}, CMD2: ${cmd2}, Data: [${data.join(", ")}]`
-      );
-      console.log(
-        "Full packet hex:",
+        "Packet:",
         Array.from(buffer)
           .map((b) => b.toString(16).padStart(2, "0"))
           .join(" ")
@@ -1008,11 +896,6 @@ async function sendCommandMultipleResponses(
 
 // Get All Scenes Information function
 async function getAllScenesInformation(unitIp, canId) {
-  console.log("Getting all scenes information:", {
-    unitIp,
-    canId,
-  });
-
   // Convert CAN ID to address format
   const idAddress = convertCanIdToInt(canId);
 
@@ -1029,12 +912,6 @@ async function getAllScenesInformation(unitIp, canId) {
     100, // Expect 100 scene responses
     10000 // 10 second timeout
   );
-
-  console.log("All scenes information retrieved:", {
-    unitIp,
-    canId,
-    responseCount: responses.length,
-  });
 
   if (responses.length > 0) {
     const scenes = [];
@@ -1075,9 +952,6 @@ async function getAllScenesInformation(unitIp, canId) {
       }
     }
 
-    console.log(
-      `Parsed ${scenes.length} valid scenes from ${responses.length} responses`
-    );
     return {
       result: { success: true },
       scenes: scenes,
@@ -1091,23 +965,12 @@ async function getAllScenesInformation(unitIp, canId) {
 
 // Trigger Scene function
 async function triggerScene(unitIp, canId, sceneIndex, sceneAddress) {
-  console.log("Triggering scene:", {
-    unitIp,
-    canId,
-    sceneIndex,
-    sceneAddress,
-  });
-
   // Convert CAN ID to address format
   const idAddress = convertCanIdToInt(canId);
 
   // Data is scene address + 1 (1 byte)
   const triggerData = sceneAddress + 1;
   const data = [triggerData];
-
-  console.log(
-    `Sending trigger command with data: ${triggerData} (scene address ${sceneAddress} + 1)`
-  );
 
   const response = await sendCommand(
     unitIp,
@@ -1118,26 +981,11 @@ async function triggerScene(unitIp, canId, sceneIndex, sceneAddress) {
     data
   );
 
-  console.log("Scene triggered successfully:", {
-    unitIp,
-    canId,
-    sceneIndex,
-    sceneAddress,
-    triggerData,
-    responseStatus: response.result?.success ? "SUCCESS" : "UNKNOWN",
-  });
-
   return response;
 }
 
 // Delete Scene function
 async function deleteScene(unitIp, canId, sceneIndex) {
-  console.log("Deleting scene:", {
-    unitIp,
-    canId,
-    sceneIndex,
-  });
-
   // Convert CAN ID to address format
   const idAddress = convertCanIdToInt(canId);
 
@@ -1165,12 +1013,6 @@ async function deleteScene(unitIp, canId, sceneIndex) {
 
   // No scene items for delete operation
 
-  console.log(`Deleting scene: index=${sceneIndex}, address=0, amount=0`);
-  console.log(
-    "Delete scene data:",
-    data.map((b) => b.toString(16).padStart(2, "0")).join(" ")
-  );
-
   const response = await sendCommand(
     unitIp,
     UDP_PORT,
@@ -1180,12 +1022,81 @@ async function deleteScene(unitIp, canId, sceneIndex) {
     data
   );
 
-  console.log("Scene deleted successfully:", {
+  return response;
+}
+
+// Setup Schedule function
+async function setupSchedule(
+  unitIp,
+  canId,
+  scheduleIndex,
+  enabled,
+  weekDays,
+  hour,
+  minute,
+  sceneAddresses
+) {
+  // Convert CAN ID to address format
+  const idAddress = convertCanIdToInt(canId);
+
+  // Validate inputs
+  if (scheduleIndex < 1 || scheduleIndex > 32) {
+    throw new Error("Schedule index must be between 1 and 32");
+  }
+  if (hour < 0 || hour > 23) {
+    throw new Error("Hour must be between 0 and 23");
+  }
+  if (minute < 0 || minute > 59) {
+    throw new Error("Minute must be between 0 and 59");
+  }
+  if (sceneAddresses.length > 32) {
+    throw new Error("Maximum 32 scenes allowed per schedule");
+  }
+
+  const data = [];
+
+  // 1. Schedule Index (0-31 for protocol, input is 1-32)
+  data.push(scheduleIndex - 1);
+
+  // 2. Enable (0/1)
+  data.push(enabled ? 1 : 0);
+
+  // 3. Reserve 10 bytes (0x00)
+  for (let i = 0; i < 10; i++) {
+    data.push(0x00);
+  }
+
+  // 4. Week: 7 bytes (each byte corresponds to one day, 0/1 for each day)
+  // weekDays should be array of 7 boolean values [Mon, Tue, Wed, Thu, Fri, Sat, Sun]
+  for (let i = 0; i < 7; i++) {
+    data.push(weekDays[i] ? 1 : 0);
+  }
+
+  // 5. Hour (0-23)
+  data.push(hour);
+
+  // 6. Minutes (0-59)
+  data.push(minute);
+
+  // 7. Second (always 0)
+  data.push(0);
+
+  // 8. Scene amount (max 32)
+  data.push(sceneAddresses.length);
+
+  // 9. Scene addresses (1 byte per address)
+  for (const address of sceneAddresses) {
+    data.push(parseInt(address) || 0);
+  }
+
+  const response = await sendCommand(
     unitIp,
-    canId,
-    sceneIndex,
-    responseStatus: response.result?.success ? "SUCCESS" : "UNKNOWN",
-  });
+    UDP_PORT,
+    idAddress,
+    PROTOCOL.GENERAL.CMD1,
+    PROTOCOL.GENERAL.CMD2.SETUP_SCHEDULE,
+    data
+  );
 
   return response;
 }
@@ -1214,4 +1125,6 @@ export {
   getAllScenesInformation,
   triggerScene,
   deleteScene,
+  // Schedule functions
+  setupSchedule,
 };

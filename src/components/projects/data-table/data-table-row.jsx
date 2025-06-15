@@ -10,6 +10,7 @@ import {
   Thermometer,
   Play,
   SlidersHorizontal,
+  Send,
 } from "lucide-react";
 
 import { TableCell, TableRow } from "@/components/ui/table";
@@ -19,9 +20,6 @@ import {
   ContextMenuContent,
   ContextMenuItem,
   ContextMenuSeparator,
-  ContextMenuSub,
-  ContextMenuSubContent,
-  ContextMenuSubTrigger,
 } from "@/components/ui/context-menu";
 
 export function DataTableRow({
@@ -33,6 +31,8 @@ export function DataTableRow({
   onGroupControl,
   onAirconControl,
   onSceneControl,
+  onSendSchedule,
+  onSendScene,
 }) {
   const item = row.original;
 
@@ -49,19 +49,13 @@ export function DataTableRow({
       </ContextMenuTrigger>
       <ContextMenuContent className="w-48">
         {onEdit && (
-          <ContextMenuItem
-            onClick={() => onEdit(item)}
-            className="cursor-pointer"
-          >
+          <ContextMenuItem onClick={() => onEdit(item)}>
             <SquarePen className="text-muted-foreground" />
             <span>Edit</span>
           </ContextMenuItem>
         )}
         {onDuplicate && (
-          <ContextMenuItem
-            onClick={() => onDuplicate(item)}
-            className="cursor-pointer"
-          >
+          <ContextMenuItem onClick={() => onDuplicate(item)}>
             <Copy className="text-muted-foreground" />
             <span>Duplicate</span>
           </ContextMenuItem>
@@ -71,55 +65,61 @@ export function DataTableRow({
             onGroupControl ||
             onAirconControl ||
             onSceneControl ||
+            onSendSchedule ||
+            onSendScene ||
             onDelete) && <ContextMenuSeparator />}
         {onIOConfig && (
           <>
-            <ContextMenuItem
-              onClick={() => onIOConfig(item)}
-              className="cursor-pointer"
-            >
+            <ContextMenuItem onClick={() => onIOConfig(item)}>
               <Settings className="text-muted-foreground" />
               <span>I/O Config</span>
             </ContextMenuItem>
             {(onGroupControl ||
               onAirconControl ||
               onSceneControl ||
+              onSendSchedule ||
+              onSendScene ||
               onDelete) && <ContextMenuSeparator />}
           </>
         )}
         {onGroupControl && (
-          <ContextMenuItem
-            onClick={() => onGroupControl(item)}
-            className="cursor-pointer"
-          >
+          <ContextMenuItem onClick={() => onGroupControl(item)}>
             <Settings2 className="text-muted-foreground" />
             <span>Group Control</span>
           </ContextMenuItem>
         )}
         {onAirconControl && (
-          <ContextMenuItem
-            onClick={() => onAirconControl(item)}
-            className="cursor-pointer"
-          >
+          <ContextMenuItem onClick={() => onAirconControl(item)}>
             <Thermometer className="text-muted-foreground" />
             <span>Aircon Control</span>
           </ContextMenuItem>
         )}
         {onSceneControl && (
-          <ContextMenuItem
-            onClick={() => onSceneControl.onTriggerScene(item)}
-            className="cursor-pointer"
-          >
+          <ContextMenuItem onClick={() => onSceneControl.onTriggerScene(item)}>
             <Play className="text-muted-foreground" />
             <span>Scene Control</span>
           </ContextMenuItem>
         )}
+        {onSendSchedule && (
+          <>
+            <ContextMenuItem onClick={() => onSendSchedule(item)}>
+              <Send className="text-muted-foreground" />
+              <span>Send Schedule</span>
+            </ContextMenuItem>
+            {onDelete && <ContextMenuSeparator />}
+          </>
+        )}
+        {onSendScene && (
+          <>
+            <ContextMenuItem onClick={() => onSendScene(item)}>
+              <Send className="text-muted-foreground" />
+              <span>Send Scene</span>
+            </ContextMenuItem>
+            {onDelete && <ContextMenuSeparator />}
+          </>
+        )}
         {onDelete && (
-          <ContextMenuItem
-            onClick={() => onDelete(item)}
-            className="cursor-pointer"
-            variant="destructive"
-          >
+          <ContextMenuItem onClick={() => onDelete(item)} variant="destructive">
             <Trash2 />
             <span>Delete</span>
           </ContextMenuItem>

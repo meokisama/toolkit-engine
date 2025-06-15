@@ -24,6 +24,7 @@ import {
   getAllScenesInformation,
   triggerScene,
   deleteScene,
+  setupSchedule,
 } from "./services/rcu-controller.js";
 import dgram from "dgram";
 
@@ -845,6 +846,44 @@ function setupIpcHandlers() {
       return await dbService.removeSceneFromSchedule(scheduleSceneId);
     } catch (error) {
       console.error("Error removing scene from schedule:", error);
+      throw error;
+    }
+  });
+
+  ipcMain.handle("schedule:getForSending", async (event, scheduleId) => {
+    try {
+      return await dbService.getScheduleForSending(scheduleId);
+    } catch (error) {
+      console.error("Error getting schedule for sending:", error);
+      throw error;
+    }
+  });
+
+  ipcMain.handle("schedule:send", async (event, params) => {
+    try {
+      const {
+        unitIp,
+        canId,
+        scheduleIndex,
+        enabled,
+        weekDays,
+        hour,
+        minute,
+        sceneAddresses,
+      } = params;
+
+      return await setupSchedule(
+        unitIp,
+        canId,
+        scheduleIndex,
+        enabled,
+        weekDays,
+        hour,
+        minute,
+        sceneAddresses
+      );
+    } catch (error) {
+      console.error("Error sending schedule:", error);
       throw error;
     }
   });

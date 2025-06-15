@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Switch } from "@/components/ui/switch";
 import { TimePicker } from "@/components/custom/time-picker";
-import { MoreHorizontal, Edit, Copy, Trash2 } from "lucide-react";
+import { MoreHorizontal, Edit, Copy, Trash2, Send } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -142,7 +142,8 @@ export function createScheduleColumns(
   onDuplicate,
   onDelete,
   onCellEdit,
-  getEffectiveValue
+  getEffectiveValue,
+  onSendSchedule
 ) {
   return [
     {
@@ -338,6 +339,11 @@ export function createScheduleColumns(
               <DropdownMenuItem onClick={() => onDuplicate(schedule.id)}>
                 <Copy className="mr-2 h-4 w-4" />
                 Duplicate
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={() => onSendSchedule(schedule)}>
+                <Send className="mr-2 h-4 w-4" />
+                Send Schedule
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem

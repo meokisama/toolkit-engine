@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Plus, Calendar } from "lucide-react";
 import { useProjectDetail } from "@/contexts/project-detail-context";
 import { ScheduleDialog } from "@/components/projects/schedules/schedule-dialog";
+import { SendScheduleDialog } from "@/components/projects/schedules/send-schedule-dialog";
 import { ConfirmDialog } from "@/components/projects/confirm-dialog";
 import { DataTable } from "@/components/projects/data-table/data-table";
 import { DataTableToolbar } from "@/components/projects/data-table/data-table-toolbar";
@@ -22,6 +23,8 @@ const ScheduleTable = memo(function ScheduleTable({
   const [dialogOpen, setDialogOpen] = useState(false);
   const [dialogMode, setDialogMode] = useState("create");
   const [editingItem, setEditingItem] = useState(null);
+  const [sendScheduleDialogOpen, setSendScheduleDialogOpen] = useState(false);
+  const [scheduleToSend, setScheduleToSend] = useState(null);
   const [confirmDialog, setConfirmDialog] = useState({
     open: false,
     title: "",
@@ -122,6 +125,16 @@ const ScheduleTable = memo(function ScheduleTable({
     if (!open) {
       setEditingItem(null);
     }
+  }, []);
+
+  const handleSendSchedule = useCallback((schedule) => {
+    setScheduleToSend(schedule);
+    setSendScheduleDialogOpen(true);
+  }, []);
+
+  const handleSendScheduleDialogClose = useCallback(() => {
+    setSendScheduleDialogOpen(false);
+    setScheduleToSend(null);
   }, []);
 
   // Handle inline cell editing
@@ -245,7 +258,8 @@ const ScheduleTable = memo(function ScheduleTable({
     handleDuplicateItem,
     handleDeleteItem,
     handleCellEdit,
-    getEffectiveValue
+    getEffectiveValue,
+    handleSendSchedule
   );
 
   if (loading) {
@@ -298,6 +312,7 @@ const ScheduleTable = memo(function ScheduleTable({
                 onEdit={handleEditItem}
                 onDuplicate={handleDuplicateItem}
                 onDelete={handleDeleteItem}
+                onSendSchedule={handleSendSchedule}
                 enableRowSelection={true}
               />
             </div>
@@ -313,6 +328,12 @@ const ScheduleTable = memo(function ScheduleTable({
         onOpenChange={handleDialogClose}
         schedule={editingItem}
         mode={dialogMode}
+      />
+
+      <SendScheduleDialog
+        open={sendScheduleDialogOpen}
+        onOpenChange={handleSendScheduleDialogClose}
+        schedule={scheduleToSend}
       />
 
       <ConfirmDialog

@@ -1,4 +1,11 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+
+import { toast } from "sonner";
 import {
   Dialog,
   DialogContent,
@@ -7,44 +14,23 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import * as CheckboxPrimitive from "@radix-ui/react-checkbox";
-import { useProjectDetail } from "@/contexts/project-detail-context";
-import { udpScanner } from "@/services/udp";
-import { toast } from "sonner";
-import {
-  Send,
-  Network,
-  SlidersHorizontal,
-  Loader2,
-  Scan,
-  Wifi,
-  CircleCheck,
-} from "lucide-react";
 
-export function SendSceneDialog({ open, onOpenChange, scene = null }) {
-  const { selectedProject } = useProjectDetail();
-  const [formData, setFormData] = useState({
-    sceneIndex: 1,
-  });
+import { Wifi, Send, Loader2, CircleCheck, Network } from "lucide-react";
+import * as CheckboxPrimitive from "@radix-ui/react-checkbox";
+import { udpScanner } from "@/services/udp";
+
+export function SendScheduleDialog({ open, onOpenChange, schedule = null }) {
   const [loading, setLoading] = useState(false);
   const [scanLoading, setScanLoading] = useState(false);
-  const [sceneItems, setSceneItems] = useState([]);
   const [networkUnits, setNetworkUnits] = useState([]);
   const [selectedUnitIds, setSelectedUnitIds] = useState([]);
+  const [scheduleIndex, setScheduleIndex] = useState(1);
+  const [scheduleData, setScheduleData] = useState(null);
 
-  // Load scene items and cached network units when dialog opens
+  // Load schedule data and cached network units when dialog opens
   useEffect(() => {
-    if (open && scene) {
-      loadSceneItems();
-      setFormData({
-        sceneIndex: 1,
-      });
+    if (open && schedule) {
+      loadScheduleData();
       setSelectedUnitIds([]);
 
       // Auto-load cached network units if available
@@ -56,19 +42,16 @@ export function SendSceneDialog({ open, onOpenChange, scene = null }) {
         setNetworkUnits([]);
       }
     }
-  }, [open, scene]);
+  }, [open, schedule]);
 
-  const loadSceneItems = async () => {
-    if (!scene) return;
-
+  const loadScheduleData = async () => {
     try {
-      const items = await window.electronAPI.scene.getItemsWithDetails(
-        scene.id
-      );
-      setSceneItems(items);
+      const data = await window.electronAPI.schedule.getForSending(schedule.id);
+      setScheduleData(data);
+      console.log("Loaded schedule data:", data);
     } catch (error) {
-      console.error("Failed to load scene items:", error);
-      toast.error("Failed to load scene items");
+      console.error("Failed to load schedule data:", error);
+      toast.error("Failed to load schedule data: " + error.message);
     }
   };
 
@@ -95,123 +78,109 @@ export function SendSceneDialog({ open, onOpenChange, scene = null }) {
     }
   };
 
-  const handleUnitToggle = useCallback((unitId, checked) => {
-    setSelectedUnitIds((prev) => {
-      if (checked) {
-        return [...prev, unitId];
-      } else {
-        return prev.filter((id) => id !== unitId);
-      }
-    });
-  }, []);
+  const handleUnitToggle = (unitId, checked) => {
+    setSelectedUnitIds((prev) =>
+      checked ? [...prev, unitId] : prev.filter((id) => id !== unitId)
+    );
+  };
 
-  const handleSendScene = async () => {
-    if (!scene || selectedUnitIds.length === 0) {
+  const handleSendSchedule = async () => {
+    if (!scheduleData) {
+      toast.error("No schedule data loaded");
+      return;
+    }
+
+    if (selectedUnitIds.length === 0) {
       toast.error("Please select at least one network unit");
       return;
     }
 
-    if (sceneItems.length === 0) {
-      toast.error("Scene has no items to send");
+    if (scheduleIndex < 1 || scheduleIndex > 32) {
+      toast.error("Schedule index must be between 1 and 32");
       return;
     }
 
-    const selectedUnits = networkUnits.filter((unit) =>
-      selectedUnitIds.includes(unit.id)
-    );
+    if (scheduleData.sceneAddresses.length === 0) {
+      toast.error("Schedule has no scenes to send");
+      return;
+    }
 
     setLoading(true);
+    let successCount = 0;
+    let errorCount = 0;
+
     try {
-      // Prepare scene items data for sending
-      const sceneItemsData = sceneItems.map((item) => ({
-        object_value: item.object_value || 0,
-        item_address: item.item_address || "0",
-        item_value: item.item_value || "0",
-      }));
+      const selectedUnits = networkUnits.filter((unit) =>
+        selectedUnitIds.includes(unit.id)
+      );
 
-      let successCount = 0;
-      let failedUnits = [];
-
-      // Send scene to all selected units
       for (const unit of selectedUnits) {
         try {
-          // Convert UI scene index (1-100) to protocol index (0-99)
-          const protocolSceneIndex = formData.sceneIndex - 1;
-
-          console.log("Sending scene to unit:", {
+          console.log("Sending schedule to unit:", {
             unitIp: unit.ip_address,
             canId: unit.id_can,
-            sceneIndex: formData.sceneIndex,
-            protocolSceneIndex: protocolSceneIndex,
-            sceneName: scene.name,
-            sceneAddress: scene.address,
-            sceneItems: sceneItemsData,
+            scheduleIndex,
+            enabled: scheduleData.enabled,
+            weekDays: scheduleData.parsedDays,
+            hour: scheduleData.hour,
+            minute: scheduleData.minute,
+            sceneAddresses: scheduleData.sceneAddresses,
           });
 
-          const response = await window.electronAPI.rcuController.setupScene(
-            unit.ip_address,
-            unit.id_can,
-            protocolSceneIndex,
-            scene.name,
-            scene.address,
-            sceneItemsData
-          );
-
-          console.log(`Scene sent successfully to ${unit.ip_address}:`, {
-            responseLength: response?.msg?.length,
-            success: response?.result?.success,
+          await window.electronAPI.schedule.send({
+            unitIp: unit.ip_address,
+            canId: unit.id_can,
+            scheduleIndex,
+            enabled: scheduleData.enabled,
+            weekDays: scheduleData.parsedDays,
+            hour: scheduleData.hour,
+            minute: scheduleData.minute,
+            sceneAddresses: scheduleData.sceneAddresses,
           });
 
           successCount++;
+          toast.success(
+            `Schedule sent successfully to ${unit.unit_type} (${unit.ip_address})`
+          );
         } catch (error) {
+          errorCount++;
           console.error(
-            `Failed to send scene to unit ${unit.ip_address}:`,
+            `Failed to send schedule to ${unit.ip_address}:`,
             error
           );
-
-          // Extract more detailed error information
-          let errorDetail = error.message;
-          if (error.message.includes("RCU Error:")) {
-            // Extract just the error part for display
-            errorDetail = error.message.replace("RCU Error: ", "");
-          } else if (error.message.includes("Command timeout")) {
-            errorDetail = "Timeout - Unit not responding";
-          } else if (error.message.includes("Command failed:")) {
-            errorDetail = error.message.replace("Command failed: ", "");
-          }
-
-          failedUnits.push(`${unit.type} (${unit.ip_address}): ${errorDetail}`);
+          toast.error(
+            `Failed to send schedule to ${unit.unit_type} (${unit.ip_address}): ${error.message}`
+          );
         }
       }
 
-      // Show results
-      if (successCount === selectedUnits.length) {
-        toast.success(
-          `Scene "${scene.name}" sent to ${successCount} unit${
-            successCount > 1 ? "s" : ""
-          } successfully`
-        );
-      } else if (successCount > 0) {
-        toast.warning(
-          `Scene sent to ${successCount}/${
-            selectedUnits.length
-          } units. Failed: ${failedUnits.join(", ")}`
-        );
-      } else {
-        toast.error(
-          `Failed to send scene to all units: ${failedUnits.join(", ")}`
-        );
+      if (successCount > 0) {
+        toast.success(`Schedule sent successfully to ${successCount} unit(s)`);
       }
 
-      if (successCount > 0) {
+      if (errorCount === 0) {
         onOpenChange(false);
       }
     } catch (error) {
-      console.error("Failed to send scene:", error);
-      toast.error(`Failed to send scene: ${error.message}`);
+      console.error("Error sending schedule:", error);
+      toast.error("Error sending schedule: " + error.message);
     } finally {
       setLoading(false);
     }
+  };
+
+  const formatTime = (hour, minute) => {
+    return `${hour.toString().padStart(2, "0")}:${minute
+      .toString()
+      .padStart(2, "0")}`;
+  };
+
+  const formatDays = (days) => {
+    const dayNames = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+    return days
+      .map((enabled, index) => (enabled ? dayNames[index] : null))
+      .filter(Boolean)
+      .join(", ");
   };
 
   const handleDialogOpenChange = (newOpen) => {
@@ -220,7 +189,7 @@ export function SendSceneDialog({ open, onOpenChange, scene = null }) {
     }
   };
 
-  if (!scene) return null;
+  if (!schedule) return null;
 
   return (
     <Dialog open={open} onOpenChange={handleDialogOpenChange}>
@@ -228,57 +197,52 @@ export function SendSceneDialog({ open, onOpenChange, scene = null }) {
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Send className="h-5 w-5" />
-            Send {scene.name} to Network Unit
+            Send {schedule.name} to Network Unit
           </DialogTitle>
           <DialogDescription>
-            Send scene "{scene.name}" configuration to a network unit.
+            Send schedule "{schedule.name}" configuration to a network unit.
           </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-3">
-          {/* Scene Configuration */}
+          {/* Schedule Configuration */}
           <div className="space-y-2">
-            <Label htmlFor="scene-index">Scene Index (1-100)</Label>
+            <Label htmlFor="schedule-index">Schedule Index (1-32)</Label>
             <Input
-              id="scene-index"
+              id="schedule-index"
               type="number"
               min="1"
-              max="100"
-              value={formData.sceneIndex}
+              max="32"
+              value={scheduleIndex}
               onChange={(e) =>
-                setFormData((prev) => ({
-                  ...prev,
-                  sceneIndex: Math.max(
-                    1,
-                    Math.min(100, parseInt(e.target.value) || 1)
-                  ),
-                }))
+                setScheduleIndex(
+                  Math.max(1, Math.min(32, parseInt(e.target.value) || 1))
+                )
               }
               placeholder="1"
             />
           </div>
 
-          {/* Network Unit Selection */}
+          {/* Network Units */}
           <Card>
-            <CardHeader className="flex items-center justify-between -mt-1 -mx-1">
-              <CardTitle className="text-sm flex items-center gap-2">
-                <Network className="h-4 w-4" />
-                Network Units ({selectedUnitIds.length} selected)
-              </CardTitle>
-              <div className="flex items-center gap-2">
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-sm flex items-center gap-2">
+                  <Wifi className="h-4 w-4" />
+                  Network Units ({selectedUnitIds.length} selected)
+                </CardTitle>
                 <Button
-                  type="button"
-                  variant="outline"
                   onClick={handleScanNetwork}
                   disabled={scanLoading}
-                  className="flex items-center gap-2"
+                  size="sm"
+                  variant="outline"
                 >
                   {scanLoading ? (
-                    <Loader2 className="h-4 w-4 animate-spin" />
+                    <Loader2 className="h-4 w-4 animate-spin mr-2" />
                   ) : (
-                    <Scan className="h-4 w-4" />
+                    <Wifi className="h-4 w-4 mr-2" />
                   )}
-                  {scanLoading ? "Scanning..." : "Scan Network"}
+                  Scan Network
                 </Button>
               </div>
             </CardHeader>
@@ -306,7 +270,7 @@ export function SendSceneDialog({ open, onOpenChange, scene = null }) {
                         <Network className="h-6 w-6" />
                         <div className="space-y-1">
                           <span className="font-medium tracking-tight text-sm">
-                            {unit.type || "Unknown Unit"}
+                            {unit.unit_type || "Unknown Unit"}
                           </span>
                           <p className="text-xs text-muted-foreground">
                             IP: {unit.ip_address}
@@ -339,13 +303,13 @@ export function SendSceneDialog({ open, onOpenChange, scene = null }) {
             Cancel
           </Button>
           <Button
-            onClick={handleSendScene}
+            onClick={handleSendSchedule}
             disabled={loading || scanLoading || selectedUnitIds.length === 0}
           >
             {loading && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
             {selectedUnitIds.length === 0
-              ? "Send Scene"
-              : `Send Scene to ${selectedUnitIds.length} Unit${
+              ? "Send Schedule"
+              : `Send Schedule to ${selectedUnitIds.length} Unit${
                   selectedUnitIds.length !== 1 ? "s" : ""
                 }`}
           </Button>

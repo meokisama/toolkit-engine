@@ -189,6 +189,9 @@ contextBridge.exposeInMainWorld("electronAPI", {
       ipcRenderer.invoke("schedule:addScene", scheduleId, sceneId),
     removeScene: (scheduleSceneId) =>
       ipcRenderer.invoke("schedule:removeScene", scheduleSceneId),
+    getForSending: (scheduleId) =>
+      ipcRenderer.invoke("schedule:getForSending", scheduleId),
+    send: (params) => ipcRenderer.invoke("schedule:send", params),
   },
   // UDP Network Scanning
   scanUDPNetwork: (config) => ipcRenderer.invoke("udp:scanNetwork", config),

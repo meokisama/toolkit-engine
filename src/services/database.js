@@ -2302,6 +2302,77 @@ class DatabaseService {
     }
   }
 
+  // Get schedule with scene addresses for sending
+  getScheduleForSending(scheduleId) {
+    try {
+      // Get schedule basic info
+      const scheduleStmt = this.db.prepare(`
+        SELECT * FROM schedule WHERE id = ?
+      `);
+      const schedule = scheduleStmt.get(scheduleId);
+
+      if (!schedule) {
+        throw new Error("Schedule not found");
+      }
+
+      // Get scene addresses
+      const scenesStmt = this.db.prepare(`
+        SELECT s.address as scene_address
+        FROM schedule_scenes ss
+        LEFT JOIN scene s ON ss.scene_id = s.id
+        WHERE ss.schedule_id = ?
+        ORDER BY s.address ASC
+      `);
+      const scenes = scenesStmt.all(scheduleId);
+
+      // Parse days from JSON and convert to boolean array
+      let days = [false, false, false, false, false, false, false]; // [Mon, Tue, Wed, Thu, Fri, Sat, Sun]
+      try {
+        const dayKeys = JSON.parse(schedule.days);
+        const dayMapping = {
+          monday: 0,
+          tuesday: 1,
+          wednesday: 2,
+          thursday: 3,
+          friday: 4,
+          saturday: 5,
+          sunday: 6,
+        };
+
+        // Convert day keys to boolean array
+        if (Array.isArray(dayKeys)) {
+          dayKeys.forEach((dayKey) => {
+            const index = dayMapping[dayKey];
+            if (index !== undefined) {
+              days[index] = true;
+            }
+          });
+        }
+      } catch (error) {
+        console.error("Failed to parse schedule days:", error);
+        days = [false, false, false, false, false, false, false]; // Default to no days
+      }
+
+      // Parse time
+      const timeParts = schedule.time.split(":");
+      const hour = parseInt(timeParts[0]) || 0;
+      const minute = parseInt(timeParts[1]) || 0;
+
+      return {
+        ...schedule,
+        parsedDays: days,
+        hour,
+        minute,
+        sceneAddresses: scenes
+          .map((scene) => scene.scene_address)
+          .filter((addr) => addr !== null),
+      };
+    } catch (error) {
+      console.error("Failed to get schedule for sending:", error);
+      throw error;
+    }
+  }
+
   close() {
     if (this.db) {
       this.db.close();

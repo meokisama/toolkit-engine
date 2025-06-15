@@ -265,6 +265,7 @@ const SceneTable = memo(function SceneTable({ items = [], loading = false }) {
                 onEdit={handleEditItem}
                 onDuplicate={handleDuplicateItem}
                 onDelete={handleDeleteItem}
+                onSendScene={handleSendToUnit}
                 enableRowSelection={true}
               />
             </div>

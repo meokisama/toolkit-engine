@@ -34,6 +34,8 @@ export function DataTable({
   onGroupControl,
   onAirconControl,
   onSceneControl,
+  onSendSchedule,
+  onSendScene,
   initialPagination,
   enableRowSelection = false,
 }) {
@@ -187,6 +189,8 @@ export function DataTable({
                   onGroupControl={onGroupControl}
                   onAirconControl={onAirconControl}
                   onSceneControl={onSceneControl}
+                  onSendSchedule={onSendSchedule}
+                  onSendScene={onSendScene}
                 />
               ))
           ) : (
