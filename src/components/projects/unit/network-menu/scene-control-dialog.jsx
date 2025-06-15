@@ -1,7 +1,7 @@
-import React, { useState, useCallback } from "react";
+import React, { useState, useCallback, useEffect } from "react";
 import { toast } from "sonner";
 import { Play, GitCompare, List, Trash2, Loader2 } from "lucide-react";
-import { DeleteSceneDialog } from "./delete-scene-dialog";
+import { DeleteSceneDialog } from "./delete-scene-popover";
 import {
   Dialog,
   DialogContent,
@@ -12,8 +12,7 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import {
@@ -90,6 +89,13 @@ const getFormattedValue = (objectValue, itemValue) => {
   }
 };
 
+const initialDeleteDialogState = {
+  open: false,
+  sceneIndex: null,
+  sceneName: "",
+  displayIndex: null,
+};
+
 export function TriggerSceneDialog({ open, onOpenChange, unit }) {
   const [sceneIndex, setSceneIndex] = useState("");
   const [loading, setLoading] = useState(false);
@@ -97,15 +103,26 @@ export function TriggerSceneDialog({ open, onOpenChange, unit }) {
   const [loadingAllScenes, setLoadingAllScenes] = useState(false);
   const [scenes, setScenes] = useState([]);
   const [showScenes, setShowScenes] = useState(false);
-  const [scenesTitle, setScenesTitle] = useState("");
   const [loadingSceneDetails, setLoadingSceneDetails] = useState({});
-  const [deleteConfirmDialog, setDeleteConfirmDialog] = useState({
-    open: false,
-    sceneIndex: null,
-    sceneName: "",
-    displayIndex: null,
-  });
+  const [deleteConfirmDialog, setDeleteConfirmDialog] = useState(
+    initialDeleteDialogState
+  );
   const [deletePopoverOpen, setDeletePopoverOpen] = useState(false);
+
+  // Reset state when unit changes
+  useEffect(() => {
+    if (open) {
+      setSceneIndex("");
+      setLoading(false);
+      setLoadingInfo(false);
+      setLoadingAllScenes(false);
+      setScenes([]);
+      setShowScenes(false);
+      setLoadingSceneDetails({});
+      setDeleteConfirmDialog(initialDeleteDialogState);
+      setDeletePopoverOpen(false);
+    }
+  }, [unit?.ip_address, unit?.id_can]);
 
   const handleLoadSceneInfo = useCallback(async () => {
     if (!unit || !sceneIndex) {
@@ -151,7 +168,6 @@ export function TriggerSceneDialog({ open, onOpenChange, unit }) {
 
         setScenes([sceneCard]);
         setShowScenes(true);
-        setScenesTitle(`Scene ${index} Information`);
         toast.success(`Scene ${index} information loaded successfully`);
       }
     } catch (error) {
@@ -186,12 +202,10 @@ export function TriggerSceneDialog({ open, onOpenChange, unit }) {
       if (result.scenes && result.scenes.length > 0) {
         setScenes(result.scenes);
         setShowScenes(true);
-        setScenesTitle(`All Scenes (${result.scenes.length})`);
         toast.success(`Loaded ${result.scenes.length} scenes successfully`);
       } else {
         setScenes([]);
         setShowScenes(false);
-        setScenesTitle("");
         toast.info("No scenes found");
       }
     } catch (error) {
@@ -199,7 +213,6 @@ export function TriggerSceneDialog({ open, onOpenChange, unit }) {
       toast.error(`Failed to load all scenes: ${error.message}`);
       setScenes([]);
       setShowScenes(false);
-      setScenesTitle("");
     } finally {
       setLoadingAllScenes(false);
     }
@@ -217,15 +230,15 @@ export function TriggerSceneDialog({ open, onOpenChange, unit }) {
         console.log("Triggering scene from card:", {
           unitIp: unit.ip_address,
           canId: unit.id_can,
-          sceneIndex: sceneIndex,
-          sceneAddress: sceneAddress,
+          sceneIndex,
+          sceneAddress,
         });
 
         await window.electronAPI.rcuController.triggerScene({
           unitIp: unit.ip_address,
           canId: unit.id_can,
-          sceneIndex: sceneIndex,
-          sceneAddress: sceneAddress,
+          sceneIndex,
+          sceneAddress,
         });
 
         toast.success(`Scene ${sceneIndex + 1} triggered successfully`);
@@ -243,9 +256,9 @@ export function TriggerSceneDialog({ open, onOpenChange, unit }) {
     (sceneIndex, sceneName, displayIndex) => {
       setDeleteConfirmDialog({
         open: true,
-        sceneIndex: sceneIndex,
+        sceneIndex,
         sceneName: sceneName || `Scene ${displayIndex}`,
-        displayIndex: displayIndex,
+        displayIndex,
       });
     },
     []
@@ -276,12 +289,7 @@ export function TriggerSceneDialog({ open, onOpenChange, unit }) {
       );
 
       // Close the confirmation dialog
-      setDeleteConfirmDialog({
-        open: false,
-        sceneIndex: null,
-        sceneName: "",
-        displayIndex: null,
-      });
+      setDeleteConfirmDialog(initialDeleteDialogState);
 
       // Optionally refresh the scenes list
       // You could call handleLoadAllScenes() here if needed
@@ -305,14 +313,14 @@ export function TriggerSceneDialog({ open, onOpenChange, unit }) {
         console.log("Loading scene details:", {
           unitIp: unit.ip_address,
           canId: unit.id_can,
-          sceneIndex: sceneIndex,
+          sceneIndex,
         });
 
         const result =
           await window.electronAPI.rcuController.getSceneInformation({
             unitIp: unit.ip_address,
             canId: unit.id_can,
-            sceneIndex: sceneIndex,
+            sceneIndex,
           });
 
         if (result && result.items) {
@@ -419,25 +427,26 @@ export function TriggerSceneDialog({ open, onOpenChange, unit }) {
             </div>
           </div>
 
-          {/* Scenes Display - Unified for both single scene and all scenes */}
-          {showScenes && scenes.length > 0 && (
-            <div className="space-y-4">
-              <ScrollArea className="h-[450px] w-full rounded-md border p-4">
+          {/* Scenes Display - Always show ScrollArea */}
+          <div className="space-y-4">
+            <ScrollArea className="h-[450px] w-full rounded-md border p-4">
+              {showScenes && scenes.length > 0 ? (
                 <div className="grid gap-3">
                   {scenes.map((scene) => (
                     <Card key={scene.index} className="relative">
-                      <CardContent className="pb-2">
+                      <CardContent>
                         <div className="flex items-center justify-between">
-                          <CardTitle className="flex flex-col gap-4">
-                            <div className="flex gap-2">
-                              <Badge variant="outline">
-                                #{scene.displayIndex}
-                              </Badge>
-                              <Badge variant="outline">
-                                Group: {scene.address}
-                              </Badge>
+                          <CardTitle className="flex flex-col gap-2">
+                            <span className="text-lg font-bold">
+                              {scene.name || "No name"}
+                            </span>
+                            <div className="text-sm text-muted-foreground font-light">
+                              <span className="font-bold">Scene:</span> #
+                              {scene.displayIndex}
+                              <span className="mx-1"> | </span>
+                              <span className="font-bold">Group:</span>{" "}
+                              {scene.address}
                             </div>
-                            {scene.name || "No name"}
                           </CardTitle>
 
                           <div className="flex items-center gap-2">
@@ -572,9 +581,19 @@ export function TriggerSceneDialog({ open, onOpenChange, unit }) {
                     </Card>
                   ))}
                 </div>
-              </ScrollArea>
-            </div>
-          )}
+              ) : (
+                <div className="flex items-center justify-center h-full mt-10">
+                  <div className="text-center text-muted-foreground">
+                    <p className="text-lg font-medium mb-2">No scenes loaded</p>
+                    <p className="text-sm">
+                      Use "Load Scene" or "Load All Scenes" to display scene
+                      information
+                    </p>
+                  </div>
+                </div>
+              )}
+            </ScrollArea>
+          </div>
         </div>
 
         <DialogFooter>
@@ -593,7 +612,7 @@ export function TriggerSceneDialog({ open, onOpenChange, unit }) {
       <AlertDialog
         open={deleteConfirmDialog.open}
         onOpenChange={(open) =>
-          setDeleteConfirmDialog((prev) => ({ ...prev, open }))
+          !open && setDeleteConfirmDialog(initialDeleteDialogState)
         }
       >
         <AlertDialogContent>

@@ -111,7 +111,7 @@ export function DataTableRow({
             className="cursor-pointer"
           >
             <Play className="text-muted-foreground" />
-            <span>Trigger Scene</span>
+            <span>Scene Control</span>
           </ContextMenuItem>
         )}
         {onDelete && (
