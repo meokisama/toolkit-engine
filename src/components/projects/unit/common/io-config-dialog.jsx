@@ -23,7 +23,7 @@ import {
   isMultipleGroupFunction,
 } from "@/constants";
 import { useProjectDetail } from "@/contexts/project-detail-context";
-import { MultiGroupConfigDialog } from "./multi-group-config-dialog";
+import { MultiGroupConfigDialog } from "./input-config-dialog";
 import { LightingOutputConfigDialog } from "./lighting-output-config-dialog";
 import { ACOutputConfigDialog } from "./ac-output-config-dialog";
 import {

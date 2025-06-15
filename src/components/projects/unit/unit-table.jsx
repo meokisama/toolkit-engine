@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Plus, Database } from "lucide-react";
 import { useProjectDetail } from "@/contexts/project-detail-context";
 import { UnitDialog } from "@/components/projects/unit/unit-dialog";
-import { IOConfigDialog } from "@/components/projects/unit/io-config-dialog";
+import { IOConfigDialog } from "@/components/projects/unit/common/io-config-dialog";
 import { ConfirmDialog } from "@/components/projects/confirm-dialog";
 import { ImportItemsDialog } from "@/components/projects/import-category-dialog";
 import { DataTable } from "@/components/projects/data-table/data-table";

@@ -7,10 +7,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { DataTable } from "@/components/projects/data-table/data-table";
 import { DataTablePagination } from "@/components/projects/data-table/data-table-pagination";
 import { createNetworkUnitColumns } from "@/components/projects/unit/unit-columns";
-import { GroupControlDialog } from "@/components/projects/unit/group-control-dialog";
-import { RoomControlDialog } from "@/components/projects/unit/ac-control-dialog";
-import { TriggerSceneDialog } from "@/components/projects/unit/trigger-scene-dialog";
-import { DeleteSceneDialog } from "@/components/projects/unit/delete-scene-dialog";
+import { GroupControlDialog } from "@/components/projects/unit/network-menu/group-control-dialog";
+import { RoomControlDialog } from "@/components/projects/unit/network-menu/ac-control-dialog";
+import { TriggerSceneDialog } from "@/components/projects/unit/network-menu/scene-control-dialog";
 import { udpScanner } from "@/services/udp";
 import { toast } from "sonner";
 
@@ -22,7 +21,6 @@ export function NetworkUnitTable({ onTransferToDatabase, existingUnits = [] }) {
   const [groupControlDialogOpen, setGroupControlDialogOpen] = useState(false);
   const [airconControlDialogOpen, setAirconControlDialogOpen] = useState(false);
   const [triggerSceneDialogOpen, setTriggerSceneDialogOpen] = useState(false);
-  const [deleteSceneDialogOpen, setDeleteSceneDialogOpen] = useState(false);
   const [selectedUnit, setSelectedUnit] = useState(null);
 
   // Auto-load cached network units when component mounts
@@ -188,11 +186,6 @@ export function NetworkUnitTable({ onTransferToDatabase, existingUnits = [] }) {
     setTriggerSceneDialogOpen(true);
   }, []);
 
-  const handleDeleteScene = useCallback((unit) => {
-    setSelectedUnit(unit);
-    setDeleteSceneDialogOpen(true);
-  }, []);
-
   const handleGroupControlSubmit = async (params) => {
     try {
       if (
@@ -310,7 +303,6 @@ export function NetworkUnitTable({ onTransferToDatabase, existingUnits = [] }) {
                 onAirconControl={handleAirconControl}
                 onSceneControl={{
                   onTriggerScene: handleTriggerScene,
-                  onDeleteScene: handleDeleteScene,
                 }}
                 enableRowSelection={true}
               />
@@ -339,12 +331,6 @@ export function NetworkUnitTable({ onTransferToDatabase, existingUnits = [] }) {
         <TriggerSceneDialog
           open={triggerSceneDialogOpen}
           onOpenChange={setTriggerSceneDialogOpen}
-          unit={selectedUnit}
-        />
-
-        <DeleteSceneDialog
-          open={deleteSceneDialogOpen}
-          onOpenChange={setDeleteSceneDialogOpen}
           unit={selectedUnit}
         />
       </Card>

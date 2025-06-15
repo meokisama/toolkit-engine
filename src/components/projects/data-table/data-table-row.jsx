@@ -106,30 +106,13 @@ export function DataTableRow({
           </ContextMenuItem>
         )}
         {onSceneControl && (
-          <ContextMenuSub>
-            <ContextMenuSubTrigger className="cursor-pointer">
-              <SlidersHorizontal className="text-muted-foreground" />
-              <span className="pl-2">Scene Control</span>
-            </ContextMenuSubTrigger>
-            <ContextMenuSubContent>
-              <ContextMenuItem
-                onClick={() => onSceneControl.onTriggerScene(item)}
-                className="cursor-pointer"
-              >
-                <Play className="text-muted-foreground" />
-                <span>Trigger Scene</span>
-              </ContextMenuItem>
-              <ContextMenuSeparator />
-              <ContextMenuItem
-                onClick={() => onSceneControl.onDeleteScene(item)}
-                className="cursor-pointer"
-                variant="destructive"
-              >
-                <Trash2 className="text-muted-foreground" />
-                <span>Delete Scene</span>
-              </ContextMenuItem>
-            </ContextMenuSubContent>
-          </ContextMenuSub>
+          <ContextMenuItem
+            onClick={() => onSceneControl.onTriggerScene(item)}
+            className="cursor-pointer"
+          >
+            <Play className="text-muted-foreground" />
+            <span>Trigger Scene</span>
+          </ContextMenuItem>
         )}
         {onDelete && (
           <ContextMenuItem

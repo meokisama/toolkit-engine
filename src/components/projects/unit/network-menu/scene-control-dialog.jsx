@@ -1,6 +1,7 @@
 import React, { useState, useCallback } from "react";
 import { toast } from "sonner";
-import { Play, Info, List, Trash2, Loader2 } from "lucide-react";
+import { Play, GitCompare, List, Trash2, Loader2 } from "lucide-react";
+import { DeleteSceneDialog } from "./delete-scene-dialog";
 import {
   Dialog,
   DialogContent,
@@ -104,6 +105,7 @@ export function TriggerSceneDialog({ open, onOpenChange, unit }) {
     sceneName: "",
     displayIndex: null,
   });
+  const [deletePopoverOpen, setDeletePopoverOpen] = useState(false);
 
   const handleLoadSceneInfo = useCallback(async () => {
     if (!unit || !sceneIndex) {
@@ -355,7 +357,7 @@ export function TriggerSceneDialog({ open, onOpenChange, unit }) {
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[900px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Trigger Scene</DialogTitle>
+          <DialogTitle>Scene Control</DialogTitle>
           <DialogDescription>
             Load information and trigger scene on unit {unit?.ip_address} (CAN
             ID: {unit?.id_can}).
@@ -383,17 +385,37 @@ export function TriggerSceneDialog({ open, onOpenChange, unit }) {
                   disabled={loadingInfo || !sceneIndex || loadingAllScenes}
                   className="flex items-center gap-2"
                 >
+                  <GitCompare className="h-4 w-4" />
                   {loadingInfo ? "Loading..." : "Load Scene"}
                 </Button>
               </div>
-              <Button
-                onClick={handleLoadAllScenes}
-                disabled={loadingAllScenes || loadingInfo}
-                className="flex items-center gap-2"
-              >
-                <List className="h-4 w-4" />
-                {loadingAllScenes ? "Loading..." : "All Scenes"}
-              </Button>
+              <div className="flex items-center gap-2">
+                <DeleteSceneDialog
+                  open={deletePopoverOpen}
+                  onOpenChange={setDeletePopoverOpen}
+                  unit={unit}
+                  asPopover={true}
+                  trigger={
+                    <Button
+                      variant="outline"
+                      size="lg"
+                      className="flex items-center gap-2"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                      Delete Scenes
+                    </Button>
+                  }
+                />
+                <Button
+                  onClick={handleLoadAllScenes}
+                  size="lg"
+                  disabled={loadingAllScenes || loadingInfo}
+                  className="flex items-center gap-2"
+                >
+                  <List className="h-4 w-4" />
+                  {loadingAllScenes ? "Loading..." : "Load All Scenes"}
+                </Button>
+              </div>
             </div>
           </div>
 
