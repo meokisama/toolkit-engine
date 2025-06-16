@@ -51,16 +51,16 @@ export function DeleteSceneDialog({
 
     if (deleteMode === "single") {
       const index = parseInt(singleIndex, 10);
-      if (isNaN(index) || index < 1 || index > 100) {
-        toast.error("Scene index must be between 1 and 100");
+      if (isNaN(index) || index < 0 || index > 99) {
+        toast.error("Scene index must be between 0 and 99");
         return false;
       }
     } else if (deleteMode === "range") {
       const start = parseInt(rangeStart, 10);
       const end = parseInt(rangeEnd, 10);
-      if (isNaN(start) || isNaN(end) || start < 1 || end > 100 || start > end) {
+      if (isNaN(start) || isNaN(end) || start < 0 || end > 99 || start > end) {
         toast.error(
-          "Invalid range. Start and end must be between 1-100, and start ≤ end"
+          "Invalid range. Start and end must be between 0-99, and start ≤ end"
         );
         return false;
       }
@@ -78,9 +78,9 @@ export function DeleteSceneDialog({
 
       for (const indexStr of indexes) {
         const index = parseInt(indexStr, 10);
-        if (isNaN(index) || index < 1 || index > 100) {
+        if (isNaN(index) || index < 0 || index > 99) {
           toast.error(
-            `Invalid scene index: ${indexStr}. All indexes must be between 1-100`
+            `Invalid scene index: ${indexStr}. All indexes must be between 0-99`
           );
           return false;
         }
@@ -97,12 +97,12 @@ export function DeleteSceneDialog({
 
   const getSceneIndexesToDelete = () => {
     if (deleteMode === "single") {
-      // Convert from 1-100 (UI) to 0-99 (protocol)
-      return [parseInt(singleIndex, 10) - 1];
+      // Use index directly (0-99)
+      return [parseInt(singleIndex, 10)];
     } else if (deleteMode === "range") {
-      // Convert from 1-100 (UI) to 0-99 (protocol)
-      const start = parseInt(rangeStart, 10) - 1;
-      const end = parseInt(rangeEnd, 10) - 1;
+      // Use indexes directly (0-99)
+      const start = parseInt(rangeStart, 10);
+      const end = parseInt(rangeEnd, 10);
       const indexes = [];
       for (let i = start; i <= end; i++) {
         indexes.push(i);
@@ -113,8 +113,8 @@ export function DeleteSceneDialog({
         .split(",")
         .map((s) => s.trim())
         .filter((s) => s !== "")
-        .map((s) => parseInt(s, 10) - 1) // Convert from 1-100 (UI) to 0-99 (protocol)
-        .filter((index) => !isNaN(index) && index >= 0);
+        .map((s) => parseInt(s, 10)) // Use indexes directly (0-99)
+        .filter((index) => !isNaN(index) && index >= 0 && index <= 99);
 
       // Remove duplicates and sort
       return [...new Set(indexes)].sort((a, b) => a - b);
@@ -181,7 +181,7 @@ export function DeleteSceneDialog({
             ? `scenes ${rangeStart}-${rangeEnd}`
             : deleteMode === "specific"
             ? `scenes [${specificIndexes}]`
-            : "all scenes (1-100)";
+            : "all scenes (0-99)";
         toast.success(
           `Successfully deleted ${modeText} from unit ${unit.ip_address}`
         );
@@ -242,7 +242,7 @@ export function DeleteSceneDialog({
             </div>
             <div className="flex items-center space-x-2">
               <RadioGroupItem value="all" id="all" />
-              <Label htmlFor="all">Delete All Scenes (1-100)</Label>
+              <Label htmlFor="all">Delete All Scenes (0-99)</Label>
             </div>
           </RadioGroup>
         </div>
@@ -250,15 +250,15 @@ export function DeleteSceneDialog({
         {/* Scene Configuration */}
         {deleteMode === "single" && (
           <div className="space-y-2">
-            <Label htmlFor="single-index">Scene Index (1-100)</Label>
+            <Label htmlFor="single-index">Scene Index (0-99)</Label>
             <Input
               id="single-index"
               type="number"
-              min="1"
-              max="100"
+              min="0"
+              max="99"
               value={singleIndex}
               onChange={(e) => setSingleIndex(e.target.value)}
-              placeholder="1"
+              placeholder="0"
               disabled={loading}
             />
           </div>
@@ -267,28 +267,28 @@ export function DeleteSceneDialog({
         {deleteMode === "range" && (
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="range-start">Start Index (1-100)</Label>
+              <Label htmlFor="range-start">Start Index (0-99)</Label>
               <Input
                 id="range-start"
                 type="number"
-                min="1"
-                max="100"
+                min="0"
+                max="99"
                 value={rangeStart}
                 onChange={(e) => setRangeStart(e.target.value)}
-                placeholder="1"
+                placeholder="0"
                 disabled={loading}
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="range-end">End Index (1-100)</Label>
+              <Label htmlFor="range-end">End Index (0-99)</Label>
               <Input
                 id="range-end"
                 type="number"
-                min="1"
-                max="100"
+                min="0"
+                max="99"
                 value={rangeEnd}
                 onChange={(e) => setRangeEnd(e.target.value)}
-                placeholder="100"
+                placeholder="99"
                 disabled={loading}
               />
             </div>
@@ -305,7 +305,7 @@ export function DeleteSceneDialog({
               type="text"
               value={specificIndexes}
               onChange={(e) => setSpecificIndexes(e.target.value)}
-              placeholder="e.g., 1, 5, 10, 15"
+              placeholder="e.g., 0, 5, 10, 15"
               disabled={loading}
             />
           </div>
@@ -314,8 +314,7 @@ export function DeleteSceneDialog({
         {deleteMode === "all" && (
           <div className="p-3 bg-yellow-50 border border-yellow-200 rounded-md">
             <p className="text-sm text-yellow-800">
-              ⚠️ This will delete all scenes (index 1-100) from the network
-              unit.
+              ⚠️ This will delete all scenes (index 0-99) from the network unit.
             </p>
           </div>
         )}

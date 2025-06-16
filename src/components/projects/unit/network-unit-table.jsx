@@ -10,6 +10,8 @@ import { createNetworkUnitColumns } from "@/components/projects/unit/unit-column
 import { GroupControlDialog } from "@/components/projects/unit/network-menu/group-control-dialog";
 import { RoomControlDialog } from "@/components/projects/unit/network-menu/ac-control-dialog";
 import { TriggerSceneDialog } from "@/components/projects/unit/network-menu/scene-control-dialog";
+import { TriggerScheduleDialog } from "@/components/projects/unit/network-menu/schedule-control-dialog";
+import { ClockControlDialog } from "@/components/projects/unit/network-menu/clock-control-dialog";
 import { udpScanner } from "@/services/udp";
 import { toast } from "sonner";
 
@@ -21,6 +23,9 @@ export function NetworkUnitTable({ onTransferToDatabase, existingUnits = [] }) {
   const [groupControlDialogOpen, setGroupControlDialogOpen] = useState(false);
   const [airconControlDialogOpen, setAirconControlDialogOpen] = useState(false);
   const [triggerSceneDialogOpen, setTriggerSceneDialogOpen] = useState(false);
+  const [triggerScheduleDialogOpen, setTriggerScheduleDialogOpen] =
+    useState(false);
+  const [clockControlDialogOpen, setClockControlDialogOpen] = useState(false);
   const [selectedUnit, setSelectedUnit] = useState(null);
 
   // Auto-load cached network units when component mounts
@@ -186,6 +191,18 @@ export function NetworkUnitTable({ onTransferToDatabase, existingUnits = [] }) {
     setTriggerSceneDialogOpen(true);
   }, []);
 
+  // Handle Schedule Control
+  const handleTriggerSchedule = useCallback((unit) => {
+    setSelectedUnit(unit);
+    setTriggerScheduleDialogOpen(true);
+  }, []);
+
+  // Handle Clock Control
+  const handleClockControl = useCallback((unit) => {
+    setSelectedUnit(unit);
+    setClockControlDialogOpen(true);
+  }, []);
+
   const handleGroupControlSubmit = async (params) => {
     try {
       if (
@@ -304,6 +321,10 @@ export function NetworkUnitTable({ onTransferToDatabase, existingUnits = [] }) {
                 onSceneControl={{
                   onTriggerScene: handleTriggerScene,
                 }}
+                onScheduleControl={{
+                  onTriggerSchedule: handleTriggerSchedule,
+                }}
+                onClockControl={handleClockControl}
                 enableRowSelection={true}
               />
               {networkTable && <DataTablePagination table={networkTable} />}
@@ -331,6 +352,18 @@ export function NetworkUnitTable({ onTransferToDatabase, existingUnits = [] }) {
         <TriggerSceneDialog
           open={triggerSceneDialogOpen}
           onOpenChange={setTriggerSceneDialogOpen}
+          unit={selectedUnit}
+        />
+
+        <TriggerScheduleDialog
+          open={triggerScheduleDialogOpen}
+          onOpenChange={setTriggerScheduleDialogOpen}
+          unit={selectedUnit}
+        />
+
+        <ClockControlDialog
+          open={clockControlDialogOpen}
+          onOpenChange={setClockControlDialogOpen}
           unit={selectedUnit}
         />
       </Card>

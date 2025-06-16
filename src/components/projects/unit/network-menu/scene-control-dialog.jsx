@@ -93,7 +93,6 @@ const initialDeleteDialogState = {
   open: false,
   sceneIndex: null,
   sceneName: "",
-  displayIndex: null,
 };
 
 export function TriggerSceneDialog({ open, onOpenChange, unit }) {
@@ -131,13 +130,13 @@ export function TriggerSceneDialog({ open, onOpenChange, unit }) {
     }
 
     const index = parseInt(sceneIndex, 10);
-    if (isNaN(index) || index < 1 || index > 100) {
-      toast.error("Scene index must be between 1 and 100");
+    if (isNaN(index) || index < 0 || index > 99) {
+      toast.error("Scene index must be between 0 and 99");
       return;
     }
 
-    // Convert 1-100 to 0-99 for protocol
-    const protocolIndex = index - 1;
+    // Use index directly as protocol index (0-99)
+    const protocolIndex = index;
 
     setLoadingInfo(true);
     try {
@@ -162,7 +161,6 @@ export function TriggerSceneDialog({ open, onOpenChange, unit }) {
           name: result.sceneName || `No name`,
           address: result.sceneAddress || 0,
           itemCount: result.itemCount || 0,
-          displayIndex: index,
           items: result.items || [],
         };
 
@@ -241,7 +239,7 @@ export function TriggerSceneDialog({ open, onOpenChange, unit }) {
           sceneAddress,
         });
 
-        toast.success(`Scene ${sceneIndex + 1} triggered successfully`);
+        toast.success(`Scene ${sceneIndex} triggered successfully`);
       } catch (error) {
         console.error("Failed to trigger scene:", error);
         toast.error(`Failed to trigger scene: ${error.message}`);
@@ -252,17 +250,13 @@ export function TriggerSceneDialog({ open, onOpenChange, unit }) {
     [unit]
   );
 
-  const handleDeleteSceneFromCard = useCallback(
-    (sceneIndex, sceneName, displayIndex) => {
-      setDeleteConfirmDialog({
-        open: true,
-        sceneIndex,
-        sceneName: sceneName || `Scene ${displayIndex}`,
-        displayIndex,
-      });
-    },
-    []
-  );
+  const handleDeleteSceneFromCard = useCallback((sceneIndex, sceneName) => {
+    setDeleteConfirmDialog({
+      open: true,
+      sceneIndex,
+      sceneName: sceneName || `Scene ${sceneIndex}`,
+    });
+  }, []);
 
   const handleConfirmDeleteScene = useCallback(async () => {
     if (!unit || deleteConfirmDialog.sceneIndex === null) {
@@ -285,7 +279,7 @@ export function TriggerSceneDialog({ open, onOpenChange, unit }) {
       );
 
       toast.success(
-        `Scene ${deleteConfirmDialog.displayIndex} deleted successfully`
+        `Scene ${deleteConfirmDialog.sceneIndex} deleted successfully`
       );
 
       // Close the confirmation dialog
@@ -302,7 +296,7 @@ export function TriggerSceneDialog({ open, onOpenChange, unit }) {
   }, [unit, deleteConfirmDialog]);
 
   const handleLoadSceneDetails = useCallback(
-    async (sceneIndex, displayIndex) => {
+    async (sceneIndex) => {
       if (!unit) {
         toast.error("No unit selected");
         return;
@@ -332,7 +326,7 @@ export function TriggerSceneDialog({ open, onOpenChange, unit }) {
                 : scene
             )
           );
-          toast.success(`Scene ${displayIndex} details loaded successfully`);
+          toast.success(`Scene ${sceneIndex} details loaded successfully`);
         }
       } catch (error) {
         console.error("Failed to load scene details:", error);
@@ -383,7 +377,7 @@ export function TriggerSceneDialog({ open, onOpenChange, unit }) {
                   value={sceneIndex}
                   onChange={handleSceneIndexChange}
                   onKeyPress={handleKeyPress}
-                  placeholder="Scene (1-100)"
+                  placeholder="Scene (0-99)"
                   disabled={loading || loadingInfo || loadingAllScenes}
                   autoFocus
                   className="max-w-[150px]"
@@ -442,7 +436,7 @@ export function TriggerSceneDialog({ open, onOpenChange, unit }) {
                             </span>
                             <div className="text-sm text-muted-foreground font-light">
                               <span className="font-bold">Scene:</span> #
-                              {scene.displayIndex}
+                              {scene.index}
                               <span className="mx-1"> | </span>
                               <span className="font-bold">Group:</span>{" "}
                               {scene.address}
@@ -461,10 +455,7 @@ export function TriggerSceneDialog({ open, onOpenChange, unit }) {
                                       !scene.items ||
                                       scene.items.length === 0
                                     ) {
-                                      handleLoadSceneDetails(
-                                        scene.index,
-                                        scene.displayIndex
-                                      );
+                                      handleLoadSceneDetails(scene.index);
                                     }
                                   }}
                                 >
@@ -550,8 +541,7 @@ export function TriggerSceneDialog({ open, onOpenChange, unit }) {
                               onClick={() =>
                                 handleDeleteSceneFromCard(
                                   scene.index,
-                                  scene.name,
-                                  scene.displayIndex
+                                  scene.name
                                 )
                               }
                               disabled={loading}

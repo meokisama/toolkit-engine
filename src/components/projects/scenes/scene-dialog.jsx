@@ -946,6 +946,13 @@ export function SceneDialog({
         error.message.includes("Address is required")
       ) {
         setErrors({ address: "Address is required for scenes" });
+      } else if (
+        error.message &&
+        error.message.includes("Maximum 100 scenes allowed")
+      ) {
+        setErrors({
+          general: "Maximum 100 scenes allowed per project (indexed 0-99)",
+        });
       } else {
         // Handle other errors generically
         setErrors({ general: "Failed to save scene. Please try again." });
@@ -1094,17 +1101,14 @@ export function SceneDialog({
         );
       }
 
-      // For aircon temperature, use number input for decimal values
+      // For aircon temperature, use number input for integer values
       if (sceneItem.object_type === OBJECT_TYPES.AC_TEMPERATURE.obj_name) {
         const handleTemperatureChange = (e) => {
           const inputValue = e.target.value;
           if (inputValue === "") {
             updateSceneItemValue(sceneItem.id, "25");
           } else {
-            const value = Math.min(
-              40,
-              Math.max(0, parseFloat(inputValue) || 25)
-            );
+            const value = Math.min(40, Math.max(0, parseInt(inputValue) || 25));
             updateSceneItemValue(sceneItem.id, value.toString());
           }
         };
@@ -1115,11 +1119,10 @@ export function SceneDialog({
               type="number"
               min="0"
               max="40"
-              step="0.5"
               value={sceneItem.item_value || "25"}
               onChange={handleTemperatureChange}
               className="w-40 font-semibold"
-              placeholder="25.5"
+              placeholder="25"
             />
           </div>
         );

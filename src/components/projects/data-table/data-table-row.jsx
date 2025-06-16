@@ -11,6 +11,8 @@ import {
   Play,
   SlidersHorizontal,
   Send,
+  Calendar,
+  Clock,
 } from "lucide-react";
 
 import { TableCell, TableRow } from "@/components/ui/table";
@@ -31,6 +33,8 @@ export function DataTableRow({
   onGroupControl,
   onAirconControl,
   onSceneControl,
+  onScheduleControl,
+  onClockControl,
   onSendSchedule,
   onSendScene,
 }) {
@@ -65,6 +69,8 @@ export function DataTableRow({
             onGroupControl ||
             onAirconControl ||
             onSceneControl ||
+            onScheduleControl ||
+            onClockControl ||
             onSendSchedule ||
             onSendScene ||
             onDelete) && <ContextMenuSeparator />}
@@ -77,6 +83,8 @@ export function DataTableRow({
             {(onGroupControl ||
               onAirconControl ||
               onSceneControl ||
+              onScheduleControl ||
+              onClockControl ||
               onSendSchedule ||
               onSendScene ||
               onDelete) && <ContextMenuSeparator />}
@@ -95,9 +103,31 @@ export function DataTableRow({
           </ContextMenuItem>
         )}
         {onSceneControl && (
-          <ContextMenuItem onClick={() => onSceneControl.onTriggerScene(item)}>
-            <Play className="text-muted-foreground" />
-            <span>Scene Control</span>
+          <>
+            <ContextMenuSeparator />
+            <ContextMenuItem
+              onClick={() => onSceneControl.onTriggerScene(item)}
+            >
+              <Play className="text-muted-foreground" />
+              <span>Scene Control</span>
+            </ContextMenuItem>
+          </>
+        )}
+        {onScheduleControl && (
+          <>
+            <ContextMenuItem
+              onClick={() => onScheduleControl.onTriggerSchedule(item)}
+            >
+              <Calendar className="text-muted-foreground" />
+              <span>Schedule Control</span>
+            </ContextMenuItem>
+            <ContextMenuSeparator />
+          </>
+        )}
+        {onClockControl && (
+          <ContextMenuItem onClick={() => onClockControl(item)}>
+            <Clock className="text-muted-foreground" />
+            <span>Clock Control</span>
           </ContextMenuItem>
         )}
         {onSendSchedule && (

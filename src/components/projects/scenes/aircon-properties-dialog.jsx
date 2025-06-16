@@ -176,7 +176,6 @@ export function AirconPropertiesDialog({
           type="number"
           min="0"
           max="40"
-          step="0.5"
           value={value}
           onChange={(e) =>
             handleValueChange(property.objectType, e.target.value)

@@ -645,6 +645,14 @@ class DatabaseService {
             "Scene name is required and must be 15 characters or less."
           );
         }
+
+        // Check maximum scene limit (100 scenes)
+        const sceneCount = this.db
+          .prepare("SELECT COUNT(*) as count FROM scene WHERE project_id = ?")
+          .get(projectId);
+        if (sceneCount.count >= 100) {
+          throw new Error("Maximum 100 scenes allowed per project.");
+        }
       }
 
       // Special validation for KNX to prevent duplicate addresses
@@ -2114,6 +2122,14 @@ class DatabaseService {
 
   createScheduleItem(projectId, itemData) {
     try {
+      // Check maximum schedule limit (32 schedules)
+      const scheduleCount = this.db
+        .prepare("SELECT COUNT(*) as count FROM schedule WHERE project_id = ?")
+        .get(projectId);
+      if (scheduleCount.count >= 32) {
+        throw new Error("Maximum 32 schedules allowed per project.");
+      }
+
       const stmt = this.db.prepare(`
         INSERT INTO schedule (project_id, name, description, time, days, enabled)
         VALUES (?, ?, ?, ?, ?, ?)

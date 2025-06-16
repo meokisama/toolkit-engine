@@ -29,9 +29,6 @@ import {
 
 export function SendSceneDialog({ open, onOpenChange, scene = null }) {
   const { selectedProject } = useProjectDetail();
-  const [formData, setFormData] = useState({
-    sceneIndex: 1,
-  });
   const [loading, setLoading] = useState(false);
   const [scanLoading, setScanLoading] = useState(false);
   const [sceneItems, setSceneItems] = useState([]);
@@ -42,9 +39,6 @@ export function SendSceneDialog({ open, onOpenChange, scene = null }) {
   useEffect(() => {
     if (open && scene) {
       loadSceneItems();
-      setFormData({
-        sceneIndex: 1,
-      });
       setSelectedUnitIds([]);
 
       // Auto-load cached network units if available
@@ -135,14 +129,10 @@ export function SendSceneDialog({ open, onOpenChange, scene = null }) {
       // Send scene to all selected units
       for (const unit of selectedUnits) {
         try {
-          // Convert UI scene index (1-100) to protocol index (0-99)
-          const protocolSceneIndex = formData.sceneIndex - 1;
-
           console.log("Sending scene to unit:", {
             unitIp: unit.ip_address,
             canId: unit.id_can,
-            sceneIndex: formData.sceneIndex,
-            protocolSceneIndex: protocolSceneIndex,
+            sceneIndex: scene.calculatedIndex ?? 0,
             sceneName: scene.name,
             sceneAddress: scene.address,
             sceneItems: sceneItemsData,
@@ -151,7 +141,7 @@ export function SendSceneDialog({ open, onOpenChange, scene = null }) {
           const response = await window.electronAPI.rcuController.setupScene(
             unit.ip_address,
             unit.id_can,
-            protocolSceneIndex,
+            scene.calculatedIndex ?? 0,
             scene.name,
             scene.address,
             sceneItemsData
@@ -238,24 +228,16 @@ export function SendSceneDialog({ open, onOpenChange, scene = null }) {
         <div className="space-y-3">
           {/* Scene Configuration */}
           <div className="space-y-2">
-            <Label htmlFor="scene-index">Scene Index (1-100)</Label>
-            <Input
-              id="scene-index"
-              type="number"
-              min="1"
-              max="100"
-              value={formData.sceneIndex}
-              onChange={(e) =>
-                setFormData((prev) => ({
-                  ...prev,
-                  sceneIndex: Math.max(
-                    1,
-                    Math.min(100, parseInt(e.target.value) || 1)
-                  ),
-                }))
-              }
-              placeholder="1"
-            />
+            <Label>Scene Index</Label>
+            <div className="p-3 bg-muted rounded-md">
+              <span className="text-sm font-medium">
+                Index {scene.calculatedIndex ?? 0} (Database ID: {scene.id})
+              </span>
+              <p className="text-xs text-muted-foreground mt-1">
+                Scene index is automatically calculated based on array position
+                (0-99 range)
+              </p>
+            </div>
           </div>
 
           {/* Network Unit Selection */}

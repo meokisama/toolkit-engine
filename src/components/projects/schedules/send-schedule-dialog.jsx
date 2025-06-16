@@ -24,7 +24,6 @@ export function SendScheduleDialog({ open, onOpenChange, schedule = null }) {
   const [scanLoading, setScanLoading] = useState(false);
   const [networkUnits, setNetworkUnits] = useState([]);
   const [selectedUnitIds, setSelectedUnitIds] = useState([]);
-  const [scheduleIndex, setScheduleIndex] = useState(1);
   const [scheduleData, setScheduleData] = useState(null);
 
   // Load schedule data and cached network units when dialog opens
@@ -95,11 +94,6 @@ export function SendScheduleDialog({ open, onOpenChange, schedule = null }) {
       return;
     }
 
-    if (scheduleIndex < 1 || scheduleIndex > 32) {
-      toast.error("Schedule index must be between 1 and 32");
-      return;
-    }
-
     if (scheduleData.sceneAddresses.length === 0) {
       toast.error("Schedule has no scenes to send");
       return;
@@ -119,7 +113,7 @@ export function SendScheduleDialog({ open, onOpenChange, schedule = null }) {
           console.log("Sending schedule to unit:", {
             unitIp: unit.ip_address,
             canId: unit.id_can,
-            scheduleIndex,
+            scheduleIndex: schedule.calculatedIndex ?? 0,
             enabled: scheduleData.enabled,
             weekDays: scheduleData.parsedDays,
             hour: scheduleData.hour,
@@ -130,7 +124,7 @@ export function SendScheduleDialog({ open, onOpenChange, schedule = null }) {
           await window.electronAPI.schedule.send({
             unitIp: unit.ip_address,
             canId: unit.id_can,
-            scheduleIndex,
+            scheduleIndex: schedule.calculatedIndex ?? 0,
             enabled: scheduleData.enabled,
             weekDays: scheduleData.parsedDays,
             hour: scheduleData.hour,
@@ -207,20 +201,17 @@ export function SendScheduleDialog({ open, onOpenChange, schedule = null }) {
         <div className="space-y-3">
           {/* Schedule Configuration */}
           <div className="space-y-2">
-            <Label htmlFor="schedule-index">Schedule Index (1-32)</Label>
-            <Input
-              id="schedule-index"
-              type="number"
-              min="1"
-              max="32"
-              value={scheduleIndex}
-              onChange={(e) =>
-                setScheduleIndex(
-                  Math.max(1, Math.min(32, parseInt(e.target.value) || 1))
-                )
-              }
-              placeholder="1"
-            />
+            <Label>Schedule Index</Label>
+            <div className="p-3 bg-muted rounded-md">
+              <span className="text-sm font-medium">
+                Index {schedule.calculatedIndex ?? 0} (Database ID:{" "}
+                {schedule.id})
+              </span>
+              <p className="text-xs text-muted-foreground mt-1">
+                Schedule index is automatically calculated based on array
+                position (0-31 range)
+              </p>
+            </div>
           </div>
 
           {/* Network Units */}

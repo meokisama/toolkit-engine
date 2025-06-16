@@ -25,6 +25,11 @@ import {
   triggerScene,
   deleteScene,
   setupSchedule,
+  getScheduleInformation,
+  getAllSchedulesInformation,
+  deleteSchedule,
+  syncClock,
+  getClock,
 } from "./services/rcu-controller.js";
 import dgram from "dgram";
 
@@ -888,6 +893,43 @@ function setupIpcHandlers() {
     }
   });
 
+  // RCU Schedule Information functions
+  ipcMain.handle(
+    "rcu:getScheduleInformation",
+    async (event, { unitIp, canId, scheduleIndex }) => {
+      try {
+        return await getScheduleInformation(unitIp, canId, scheduleIndex);
+      } catch (error) {
+        console.error("Error getting schedule information:", error);
+        throw error;
+      }
+    }
+  );
+
+  ipcMain.handle(
+    "rcu:getAllSchedulesInformation",
+    async (event, { unitIp, canId }) => {
+      try {
+        return await getAllSchedulesInformation(unitIp, canId);
+      } catch (error) {
+        console.error("Error getting all schedules information:", error);
+        throw error;
+      }
+    }
+  );
+
+  ipcMain.handle(
+    "rcu:deleteSchedule",
+    async (event, { unitIp, canId, scheduleIndex }) => {
+      try {
+        return await deleteSchedule(unitIp, canId, scheduleIndex);
+      } catch (error) {
+        console.error("Error deleting schedule:", error);
+        throw error;
+      }
+    }
+  );
+
   // UDP Network Scanning
   ipcMain.handle("udp:scanNetwork", async (event, config) => {
     try {
@@ -1146,6 +1188,28 @@ function setupIpcHandlers() {
       return await getEcoMode(unitIp, canId, group);
     } catch (error) {
       console.error("Error getting eco mode:", error);
+      throw error;
+    }
+  });
+
+  // Clock Control functions
+  ipcMain.handle(
+    "rcu:syncClock",
+    async (event, { unitIp, canId, clockData }) => {
+      try {
+        return await syncClock(unitIp, canId, clockData);
+      } catch (error) {
+        console.error("Error syncing clock:", error);
+        throw error;
+      }
+    }
+  );
+
+  ipcMain.handle("rcu:getClock", async (event, { unitIp, canId }) => {
+    try {
+      return await getClock(unitIp, canId);
+    } catch (error) {
+      console.error("Error getting clock:", error);
       throw error;
     }
   });

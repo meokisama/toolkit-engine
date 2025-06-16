@@ -6,6 +6,8 @@ const PROTOCOL = {
   GENERAL: {
     CMD1: 1,
     CMD2: {
+      SYNC_CLOCK: 9,
+      GET_CLOCK: 10,
       GET_RS485_CH1_CONFIG: 13,
       GET_RS485_CH2_CONFIG: 14,
       SET_RS485_CH1_CONFIG: 15,
@@ -642,8 +644,8 @@ async function setupScene(
   sceneAddress,
   sceneItems
 ) {
-  if (sceneIndex < 0 || sceneIndex > 255) {
-    throw new Error("Scene index must be between 0 and 255");
+  if (sceneIndex < 0 || sceneIndex > 99) {
+    throw new Error("Scene index must be between 0 and 99");
   }
 
   if (!sceneName || sceneName.length > 15) {
@@ -706,12 +708,10 @@ async function setupScene(
     let itemValue = parseFloat(item.item_value) || 0;
     if (item.object_value === 1) {
       // LIGHTING object type
-      // Convert from 0-100% to 0-255
       itemValue = Math.round((itemValue / 100) * 255);
     } else if (item.object_value === 6) {
       // AC_TEMPERATURE object type
-      // Convert temperature to protocol format (multiply by 10)
-      itemValue = Math.round(itemValue * 10);
+      itemValue = parseInt(itemValue) || 0;
     } else {
       // For other types, convert to integer
       itemValue = parseInt(itemValue) || 0;
@@ -789,7 +789,7 @@ async function getSceneInformation(unitIp, canId, sceneIndex) {
   throw new Error("Invalid response from get scene information command");
 }
 
-// Send command and collect multiple responses (for Load All Scenes)
+// Send command and collect multiple responses until success packet
 async function sendCommandMultipleResponses(
   unitIp,
   port,
@@ -797,43 +797,68 @@ async function sendCommandMultipleResponses(
   cmd1,
   cmd2,
   data = [],
-  expectedResponses = 100,
-  timeoutMs = 10000
+  timeoutMs = 15000
 ) {
   return new Promise((resolve, reject) => {
     const dgram = require("dgram");
     const client = dgram.createSocket("udp4");
     const responses = [];
     let responseCount = 0;
+    let successPacketReceived = false;
 
     const timeout = setTimeout(() => {
       client.close();
       console.log(
-        `Timeout: collected ${responseCount}/${expectedResponses} responses`
+        `Timeout: collected ${responseCount} responses, success packet: ${successPacketReceived}`
       );
-      resolve(responses); // Return what we have collected so far
+      resolve({ responses, successPacketReceived });
     }, timeoutMs);
 
     client.on("message", (msg, rinfo) => {
+      console.log(`Response ${responseCount + 1} from ${rinfo.address}`);
       console.log(
-        `Response ${responseCount + 1}/${expectedResponses} from ${
-          rinfo.address
-        }`
+        "Raw packet:",
+        Array.from(msg)
+          .map((b) => b.toString(16).padStart(2, "0"))
+          .join(" ")
+          .toUpperCase()
       );
 
       try {
         const result = processResponse(msg, cmd1, cmd2, true); // Skip status check
-        responses.push({ msg, rinfo, result });
-        responseCount++;
 
-        // Check if we have collected all expected responses
-        if (responseCount >= expectedResponses) {
+        // Check if this is a success packet
+        // Success packet format: <ID><length><cmd1><cmd2><0x00><crc>
+        // Length should be 5 (cmd1 + cmd2 + data + crc = 1+1+1+2 = 5)
+        const packetLength = msg[4] | (msg[5] << 8);
+        const dataSection = msg.slice(8, 8 + packetLength - 4); // Exclude cmd1, cmd2, and CRC
+        const isSuccessPacket =
+          packetLength === 5 &&
+          dataSection.length === 1 &&
+          dataSection[0] === 0x00;
+
+        if (isSuccessPacket) {
+          console.log(
+            "✅ Success packet received - all data transmitted successfully"
+          );
+          successPacketReceived = true;
           clearTimeout(timeout);
           client.close();
-          resolve(responses);
+          resolve({ responses, successPacketReceived });
+        } else {
+          // This is a data packet, add to responses
+          responses.push({ msg, rinfo, result });
+          responseCount++;
+          console.log(`📦 Data packet ${responseCount} collected`);
         }
       } catch (error) {
         console.error(`Error processing response ${responseCount + 1}:`, error);
+        console.error(
+          "Packet data:",
+          Array.from(msg)
+            .map((b) => b.toString(16).padStart(2, "0"))
+            .join(" ")
+        );
         // Continue collecting other responses even if one fails
       }
     });
@@ -868,7 +893,7 @@ async function sendCommandMultipleResponses(
       const buffer = Buffer.concat([idBuffer, packetBuffer]);
 
       console.log(
-        `Send to ${unitIp}:${port} expecting ${expectedResponses} responses - CMD1:${cmd1} CMD2:${cmd2}`
+        `Send to ${unitIp}:${port} listening for success packet - CMD1:${cmd1} CMD2:${cmd2}`
       );
       console.log(
         "Packet:",
@@ -902,16 +927,17 @@ async function getAllScenesInformation(unitIp, canId) {
   // No data parameter for loading all scenes
   const data = [];
 
-  const responses = await sendCommandMultipleResponses(
+  const result = await sendCommandMultipleResponses(
     unitIp,
     UDP_PORT,
     idAddress,
     PROTOCOL.GENERAL.CMD1,
     PROTOCOL.GENERAL.CMD2.GET_SCENE_INFOR,
     data,
-    100, // Expect 100 scene responses
-    10000 // 10 second timeout
+    15000 // 15 second timeout
   );
+
+  const { responses, successPacketReceived } = result;
 
   if (responses.length > 0) {
     const scenes = [];
@@ -939,10 +965,9 @@ async function getAllScenesInformation(unitIp, canId) {
             if (sceneName.length > 0 || itemCount > 0) {
               scenes.push({
                 index: sceneIndex,
-                name: sceneName || `Scene ${sceneIndex + 1}`,
+                name: sceneName || `Scene ${sceneIndex}`,
                 address: sceneAddress,
                 itemCount: itemCount,
-                displayIndex: sceneIndex + 1, // Convert 0-99 to 1-100 for display
               });
             }
           }
@@ -953,8 +978,10 @@ async function getAllScenesInformation(unitIp, canId) {
     }
 
     return {
-      result: { success: true },
+      result: { success: successPacketReceived },
       scenes: scenes,
+      successPacketReceived: successPacketReceived,
+      totalResponses: responses.length,
     };
   }
 
@@ -968,8 +995,7 @@ async function triggerScene(unitIp, canId, sceneIndex, sceneAddress) {
   // Convert CAN ID to address format
   const idAddress = convertCanIdToInt(canId);
 
-  // Data is scene address + 1 (1 byte)
-  const triggerData = sceneAddress + 1;
+  const triggerData = parseInt(sceneAddress);
   const data = [triggerData];
 
   const response = await sendCommand(
@@ -1040,8 +1066,8 @@ async function setupSchedule(
   const idAddress = convertCanIdToInt(canId);
 
   // Validate inputs
-  if (scheduleIndex < 1 || scheduleIndex > 32) {
-    throw new Error("Schedule index must be between 1 and 32");
+  if (scheduleIndex < 0 || scheduleIndex > 31) {
+    throw new Error("Schedule index must be between 0 and 31");
   }
   if (hour < 0 || hour > 23) {
     throw new Error("Hour must be between 0 and 23");
@@ -1055,8 +1081,8 @@ async function setupSchedule(
 
   const data = [];
 
-  // 1. Schedule Index (0-31 for protocol, input is 1-32)
-  data.push(scheduleIndex - 1);
+  // 1. Schedule Index (0-31 for protocol)
+  data.push(scheduleIndex);
 
   // 2. Enable (0/1)
   data.push(enabled ? 1 : 0);
@@ -1101,6 +1127,328 @@ async function setupSchedule(
   return response;
 }
 
+// Get Schedule Information function
+async function getScheduleInformation(unitIp, canId, scheduleIndex) {
+  // Convert CAN ID to address format
+  const idAddress = convertCanIdToInt(canId);
+
+  // Validate schedule index
+  if (scheduleIndex < 0 || scheduleIndex > 31) {
+    throw new Error("Schedule index must be between 0 and 31");
+  }
+
+  // Data is the schedule index (0-31 for protocol)
+  const data = [scheduleIndex];
+
+  const response = await sendCommand(
+    unitIp,
+    UDP_PORT,
+    idAddress,
+    PROTOCOL.GENERAL.CMD1,
+    PROTOCOL.GENERAL.CMD2.GET_SCHEDULE_INFOR,
+    data,
+    true // Skip status check for GET_SCHEDULE_INFOR
+  );
+
+  if (response && response.msg && response.msg.length >= 8) {
+    const data = response.msg.slice(8); // Skip header
+
+    // Debug logging
+    console.log(
+      "Schedule response raw data:",
+      Array.from(data)
+        .map((b) => "0x" + b.toString(16).padStart(2, "0"))
+        .join(" ")
+    );
+    console.log("Schedule response data length:", data.length);
+
+    if (data.length >= 23) {
+      // Minimum data length for schedule
+      const scheduleInfo = {
+        scheduleIndex: data[0], // Keep 0-31 range
+        enabled: data[1] === 1,
+        // Skip 10 reserved bytes (positions 2-11)
+        weekDays: [
+          data[12] === 1, // Monday
+          data[13] === 1, // Tuesday
+          data[14] === 1, // Wednesday
+          data[15] === 1, // Thursday
+          data[16] === 1, // Friday
+          data[17] === 1, // Saturday
+          data[18] === 1, // Sunday
+        ],
+        hour: data[19],
+        minute: data[20],
+        second: data[21],
+        sceneAmount: data[22],
+        sceneAddresses: [],
+      };
+
+      // Extract scene addresses
+      for (let i = 0; i < scheduleInfo.sceneAmount && i < 32; i++) {
+        if (data.length > 23 + i) {
+          scheduleInfo.sceneAddresses.push(data[23 + i]);
+        }
+      }
+
+      console.log("Parsed schedule info:", scheduleInfo);
+
+      return {
+        success: true,
+        data: scheduleInfo,
+        rawData: Array.from(data),
+      };
+    }
+  }
+
+  throw new Error(
+    "No valid response received from get schedule information command"
+  );
+}
+
+// Get All Schedules Information function
+async function getAllSchedulesInformation(unitIp, canId) {
+  // Convert CAN ID to address format
+  const idAddress = convertCanIdToInt(canId);
+
+  // No data parameter for loading all schedules
+  const data = [];
+
+  const result = await sendCommandMultipleResponses(
+    unitIp,
+    UDP_PORT,
+    idAddress,
+    PROTOCOL.GENERAL.CMD1,
+    PROTOCOL.GENERAL.CMD2.GET_SCHEDULE_INFOR,
+    data,
+    15000 // 15 second timeout
+  );
+
+  const { responses, successPacketReceived } = result;
+  const schedules = [];
+
+  for (const response of responses) {
+    if (response && response.msg && response.msg.length >= 8) {
+      const data = response.msg.slice(8); // Skip header
+
+      // Debug logging for each schedule response
+      console.log(
+        "All schedules response raw data:",
+        Array.from(data)
+          .map((b) => "0x" + b.toString(16).padStart(2, "0"))
+          .join(" ")
+      );
+
+      if (data.length >= 23) {
+        // Minimum data length for schedule
+        const scheduleInfo = {
+          scheduleIndex: data[0], // Keep 0-31 range
+          enabled: data[1] === 1,
+          // Skip 10 reserved bytes (positions 2-11)
+          weekDays: [
+            data[12] === 1, // Monday
+            data[13] === 1, // Tuesday
+            data[14] === 1, // Wednesday
+            data[15] === 1, // Thursday
+            data[16] === 1, // Friday
+            data[17] === 1, // Saturday
+            data[18] === 1, // Sunday
+          ],
+          hour: data[19],
+          minute: data[20],
+          second: data[21],
+          sceneAmount: data[22],
+          sceneAddresses: [],
+        };
+
+        // Extract scene addresses
+        for (let i = 0; i < scheduleInfo.sceneAmount && i < 32; i++) {
+          if (data.length > 23 + i) {
+            scheduleInfo.sceneAddresses.push(data[23 + i]);
+          }
+        }
+
+        console.log("Parsed schedule info (all schedules):", scheduleInfo);
+        schedules.push(scheduleInfo);
+      }
+    }
+  }
+
+  if (schedules.length > 0 || successPacketReceived) {
+    // Sort schedules by index to ensure proper order
+    schedules.sort((a, b) => a.scheduleIndex - b.scheduleIndex);
+
+    return {
+      success: successPacketReceived,
+      data: schedules,
+      totalSchedules: schedules.length,
+      successPacketReceived: successPacketReceived,
+      totalResponses: responses.length,
+    };
+  }
+
+  throw new Error(
+    "No valid responses received from get all schedules information command"
+  );
+}
+
+// Delete Schedule function
+async function deleteSchedule(unitIp, canId, scheduleIndex) {
+  // Convert CAN ID to address format
+  const idAddress = convertCanIdToInt(canId);
+
+  // Validate schedule index
+  if (scheduleIndex < 0 || scheduleIndex > 31) {
+    throw new Error("Schedule index must be between 0 and 31");
+  }
+
+  const data = [];
+
+  // 1. Schedule Index (0-31 for protocol)
+  data.push(scheduleIndex);
+
+  // 2. Enable (0 for delete)
+  data.push(0);
+
+  // 3. Reserve 10 bytes (0x00)
+  for (let i = 0; i < 10; i++) {
+    data.push(0x00);
+  }
+
+  // 4. Week: 7 bytes (all 0 for delete)
+  for (let i = 0; i < 7; i++) {
+    data.push(0);
+  }
+
+  // 5. Hour (0 for delete)
+  data.push(0);
+
+  // 6. Minutes (0 for delete)
+  data.push(0);
+
+  // 7. Second (0 for delete)
+  data.push(0);
+
+  // 8. Scene amount (0 for delete)
+  data.push(0);
+
+  // No scene addresses for delete operation
+
+  const response = await sendCommand(
+    unitIp,
+    UDP_PORT,
+    idAddress,
+    PROTOCOL.GENERAL.CMD1,
+    PROTOCOL.GENERAL.CMD2.SETUP_SCHEDULE,
+    data
+  );
+
+  return response;
+}
+
+// Clock Control Functions
+
+// Sync Clock function - sets the unit's clock
+async function syncClock(unitIp, canId, clockData) {
+  // Convert CAN ID to address format
+  const idAddress = convertCanIdToInt(canId);
+
+  // Validate clock data
+  if (!clockData) {
+    throw new Error("Clock data is required");
+  }
+
+  const { year, month, day, dayOfWeek, hour, minute, second } = clockData;
+
+  // Validate date/time values
+  if (year < 0 || year > 99) {
+    throw new Error("Year must be between 0 and 99 (2000-2099)");
+  }
+  if (month < 1 || month > 12) {
+    throw new Error("Month must be between 1 and 12");
+  }
+  if (day < 1 || day > 31) {
+    throw new Error("Day must be between 1 and 31");
+  }
+  if (dayOfWeek < 0 || dayOfWeek > 6) {
+    throw new Error("Day of week must be between 0 and 6 (Monday-Sunday)");
+  }
+  if (hour < 0 || hour > 23) {
+    throw new Error("Hour must be between 0 and 23");
+  }
+  if (minute < 0 || minute > 59) {
+    throw new Error("Minute must be between 0 and 59");
+  }
+  if (second < 0 || second > 59) {
+    throw new Error("Second must be between 0 and 59");
+  }
+
+  // Build data array: 7 bytes in order year, month, day, dayOfWeek, hour, minute, second
+  const data = [year, month, day, dayOfWeek, hour, minute, second];
+
+  const response = await sendCommand(
+    unitIp,
+    UDP_PORT,
+    idAddress,
+    PROTOCOL.GENERAL.CMD1,
+    PROTOCOL.GENERAL.CMD2.SYNC_CLOCK,
+    data
+  );
+
+  return response;
+}
+
+// Get Clock function - retrieves the unit's current clock
+async function getClock(unitIp, canId) {
+  // Convert CAN ID to address format
+  const idAddress = convertCanIdToInt(canId);
+
+  // No data parameter for getting clock
+  const data = [];
+
+  const response = await sendCommand(
+    unitIp,
+    UDP_PORT,
+    idAddress,
+    PROTOCOL.GENERAL.CMD1,
+    PROTOCOL.GENERAL.CMD2.GET_CLOCK,
+    data,
+    true // Skip status check for GET_CLOCK
+  );
+
+  if (response && response.msg && response.msg.length >= 15) {
+    // Expected response: header (8 bytes) + clock data (7 bytes)
+    const clockData = response.msg.slice(8); // Skip header
+
+    if (clockData.length >= 7) {
+      return {
+        year: clockData[0], // 0-99 (2000-2099)
+        month: clockData[1], // 1-12
+        day: clockData[2], // 1-31
+        dayOfWeek: clockData[3], // 0-6 (Monday-Sunday)
+        hour: clockData[4], // 0-23
+        minute: clockData[5], // 0-59
+        second: clockData[6], // 0-59
+        // Convert to full year for display
+        fullYear: 2000 + clockData[0],
+        // Convert day of week to string
+        dayOfWeekString:
+          [
+            "Monday",
+            "Tuesday",
+            "Wednesday",
+            "Thursday",
+            "Friday",
+            "Saturday",
+            "Sunday",
+          ][clockData[3]] || "Unknown",
+      };
+    }
+  }
+
+  throw new Error("Invalid response from get clock command");
+}
+
 export {
   setGroupState,
   setMultipleGroupStates,
@@ -1127,4 +1475,10 @@ export {
   deleteScene,
   // Schedule functions
   setupSchedule,
+  getScheduleInformation,
+  getAllSchedulesInformation,
+  deleteSchedule,
+  // Clock functions
+  syncClock,
+  getClock,
 };

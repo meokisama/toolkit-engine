@@ -185,12 +185,17 @@ const SceneTable = memo(function SceneTable({ items = [], loading = false }) {
     [deleteItem, confirmDialog]
   );
 
-  const handleSendToUnit = useCallback((item) => {
-    setSendSceneDialog({
-      open: true,
-      scene: item,
-    });
-  }, []);
+  const handleSendToUnit = useCallback(
+    (item) => {
+      // Calculate index based on array position instead of database ID
+      const sceneIndex = items.findIndex((scene) => scene.id === item.id);
+      setSendSceneDialog({
+        open: true,
+        scene: { ...item, calculatedIndex: sceneIndex },
+      });
+    },
+    [items]
+  );
 
   const handleRowSelectionChange = useCallback((selectedRows) => {
     // Handle row selection if needed

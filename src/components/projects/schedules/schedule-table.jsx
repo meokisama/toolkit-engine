@@ -127,10 +127,15 @@ const ScheduleTable = memo(function ScheduleTable({
     }
   }, []);
 
-  const handleSendSchedule = useCallback((schedule) => {
-    setScheduleToSend(schedule);
-    setSendScheduleDialogOpen(true);
-  }, []);
+  const handleSendSchedule = useCallback(
+    (schedule) => {
+      // Calculate index based on array position instead of database ID
+      const scheduleIndex = items.findIndex((item) => item.id === schedule.id);
+      setScheduleToSend({ ...schedule, calculatedIndex: scheduleIndex });
+      setSendScheduleDialogOpen(true);
+    },
+    [items]
+  );
 
   const handleSendScheduleDialogClose = useCallback(() => {
     setSendScheduleDialogOpen(false);

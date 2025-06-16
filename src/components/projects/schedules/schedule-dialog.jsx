@@ -291,7 +291,14 @@ export function ScheduleDialog({
       );
     } catch (error) {
       console.error("Failed to save schedule:", error);
-      toast.error("Failed to save schedule");
+      if (
+        error.message &&
+        error.message.includes("Maximum 32 schedules allowed")
+      ) {
+        toast.error("Maximum 32 schedules allowed per project");
+      } else {
+        toast.error("Failed to save schedule");
+      }
     } finally {
       setLoading(false);
     }

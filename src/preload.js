@@ -251,5 +251,17 @@ contextBridge.exposeInMainWorld("electronAPI", {
     // Scene Delete
     deleteScene: (unitIp, canId, sceneIndex) =>
       ipcRenderer.invoke("rcu:deleteScene", unitIp, canId, sceneIndex),
+    // Schedule Information
+    getScheduleInformation: (params) =>
+      ipcRenderer.invoke("rcu:getScheduleInformation", params),
+    // All Schedules Information
+    getAllSchedulesInformation: (params) =>
+      ipcRenderer.invoke("rcu:getAllSchedulesInformation", params),
+    // Delete Schedule
+    deleteSchedule: (params) =>
+      ipcRenderer.invoke("rcu:deleteSchedule", params),
+    // Clock Control
+    syncClock: (params) => ipcRenderer.invoke("rcu:syncClock", params),
+    getClock: (params) => ipcRenderer.invoke("rcu:getClock", params),
   },
 });
