@@ -28,45 +28,44 @@ const GroupCard = memo(({ state, onSwitchToggle, onSliderChange, loading }) => {
             src={state.value > 0 ? "/light-on.png" : "/light-off.png"}
             alt="Lighting State"
             className="w-[50px] h-auto rounded-lg"
-            
           />
         </div>
         <div className="flex-1">
-        <div className="pb-3">
-          <div className="text-base flex items-center justify-between">
-            <Label className="font-bold text-md">{state.name}</Label>
-            <Switch
-              checked={state.value > 0}
-              onCheckedChange={(checked) => onSwitchToggle(state.group, checked)}
+          <div className="pb-3">
+            <div className="text-base flex items-center justify-between">
+              <Label className="font-bold text-md">{state.name}</Label>
+              <Switch
+                checked={state.value > 0}
+                onCheckedChange={(checked) =>
+                  onSwitchToggle(state.group, checked)
+                }
+                disabled={loading}
+              />
+            </div>
+          </div>
+          <div className="space-y-2 pb-3">
+            <Label className="text-xs font-normal italic text-muted-foreground">
+              Value: {state.value} ({Math.round((state.value * 100) / 255)}%)
+            </Label>
+            <Slider
+              value={[state.value]}
+              onValueChange={(value) => onSliderChange(state.group, value)}
+              max={255}
+              min={0}
+              step={1}
+              className="w-full"
               disabled={loading}
             />
           </div>
-        </div>
-        <div className="space-y-2 pb-3">
-          <Label className="text-xs font-normal italic text-muted-foreground">Value: {state.value} ({Math.round((state.value * 100) / 255)}%)</Label>
-          <Slider
-            value={[state.value]}
-            onValueChange={(value) => onSliderChange(state.group, value)}
-            max={255}
-            min={0}
-            step={1}
-            className="w-full"
-            disabled={loading}
-          />
-        </div>
         </div>
       </CardContent>
     </Card>
   );
 });
 
-GroupCard.displayName = 'GroupCard';
+GroupCard.displayName = "GroupCard";
 
-export function GroupControlDialog({
-  open,
-  onOpenChange,
-  unit,
-}) {
+export function GroupControlDialog({ open, onOpenChange, unit }) {
   const [fromGroup, setFromGroup] = useState(1);
   const [toGroup, setToGroup] = useState(10);
   const [groupStates, setGroupStates] = useState([]);
@@ -74,6 +73,7 @@ export function GroupControlDialog({
 
   // Debounce refs for slider changes
   const debounceRefs = useRef({});
+  const autoRefreshInterval = useRef(null);
 
   // Get all group states for the specified range
   const handleGetStates = useCallback(async () => {
@@ -94,10 +94,12 @@ export function GroupControlDialog({
 
     setGetStateLoading(true);
     try {
-      const response = await window.electronAPI.rcuController.getAllGroupStates({
-        canId: unit.id_can,
-        unitIp: unit.ip_address,
-      });
+      const response = await window.electronAPI.rcuController.getAllGroupStates(
+        {
+          canId: unit.id_can,
+          unitIp: unit.ip_address,
+        }
+      );
 
       const states = [];
       if (response && response.msg) {
@@ -105,7 +107,7 @@ export function GroupControlDialog({
 
         // Check if response is valid
         if (data.length < 8) {
-          throw new Error('Invalid response format');
+          throw new Error("Invalid response format");
         }
 
         // Group states start at position 8 (after header)
@@ -114,7 +116,7 @@ export function GroupControlDialog({
         const actualDataLength = dataLength - 4;
 
         for (let groupNum = fromGroup; groupNum <= toGroup; groupNum++) {
-          const stateIndex = dataStartPos + groupNum; 
+          const stateIndex = dataStartPos + groupNum;
           let value = 0;
 
           if (stateIndex < data.length && groupNum < actualDataLength) {
@@ -131,8 +133,8 @@ export function GroupControlDialog({
         }
 
         // If no valid data found, try alternative parsing
-        if (states.every(s => s.value === 0) && data.length > 9) {
-          console.log('Trying alternative parsing method...');
+        if (states.every((s) => s.value === 0) && data.length > 9) {
+          console.log("Trying alternative parsing method...");
           for (let groupNum = fromGroup; groupNum <= toGroup; groupNum++) {
             const altIndex = 8 + (groupNum - 1);
             let value = 0;
@@ -142,7 +144,9 @@ export function GroupControlDialog({
             }
 
             states[groupNum - fromGroup].value = value;
-            console.log(`Alt Group ${groupNum}: index=${altIndex}, value=${value}`);
+            console.log(
+              `Alt Group ${groupNum}: index=${altIndex}, value=${value}`
+            );
           }
         }
       }
@@ -157,74 +161,195 @@ export function GroupControlDialog({
     }
   }, [unit, fromGroup, toGroup]);
 
-  const handleSwitchToggle = useCallback(async (groupNum, isOn) => {
-    if (!unit) return;
-
-    const value = isOn ? 255 : 0;
-
-    setGroupStates(prev => prev.map(state =>
-      state.group === groupNum ? { ...state, value } : state
-    ));
+  // Auto refresh function (separate from manual button click)
+  const autoRefreshStates = useCallback(async () => {
+    if (!unit || groupStates.length === 0) return;
 
     try {
-      await window.electronAPI.rcuController.setGroupState({
-        canId: unit.id_can,
-        group: groupNum,
-        value: value,
-        unitIp: unit.ip_address,
-      });
+      const response = await window.electronAPI.rcuController.getAllGroupStates(
+        {
+          canId: unit.id_can,
+          unitIp: unit.ip_address,
+        }
+      );
 
-      toast.success(`Group ${groupNum} turned ${isOn ? 'on' : 'off'}`);
+      const states = [];
+      if (response && response.msg) {
+        const data = new Uint8Array(response.msg);
+
+        // Check if response is valid
+        if (data.length < 8) {
+          return; // Silently fail for auto refresh
+        }
+
+        // Group states start at position 8 (after header)
+        const dataStartPos = 8;
+        const dataLength = data[4] + (data[5] << 8); // Length from header
+        const actualDataLength = dataLength - 4;
+
+        // Use current group range from existing states
+        const currentFromGroup = Math.min(...groupStates.map((s) => s.group));
+        const currentToGroup = Math.max(...groupStates.map((s) => s.group));
+
+        for (
+          let groupNum = currentFromGroup;
+          groupNum <= currentToGroup;
+          groupNum++
+        ) {
+          const stateIndex = dataStartPos + groupNum;
+          let value = 0;
+
+          if (stateIndex < data.length && groupNum < actualDataLength) {
+            value = data[stateIndex];
+          }
+
+          states.push({
+            group: groupNum,
+            value: value,
+            name: `Group ${groupNum}`,
+          });
+        }
+
+        // If no valid data found, try alternative parsing
+        if (states.every((s) => s.value === 0) && data.length > 9) {
+          for (
+            let groupNum = currentFromGroup;
+            groupNum <= currentToGroup;
+            groupNum++
+          ) {
+            const altIndex = 8 + (groupNum - 1);
+            let value = 0;
+
+            if (altIndex < data.length) {
+              value = data[altIndex];
+            }
+
+            states[groupNum - currentFromGroup].value = value;
+          }
+        }
+      }
+
+      // Only update if we have valid states
+      if (states.length > 0) {
+        setGroupStates(states);
+      }
     } catch (error) {
-      console.error("Failed to toggle group:", error);
-      toast.error(`Failed to toggle group ${groupNum}: ${error.message}`);
-
-      // Revert local state on error
-      setGroupStates(prev => prev.map(state =>
-        state.group === groupNum ? { ...state, value: isOn ? 0 : 255 } : state
-      ));
+      // Silently fail for auto refresh to avoid spam
+      console.error("Auto refresh failed:", error);
     }
-  }, [unit]);
+  }, [unit, groupStates]);
 
-  // Handle slider change with debounce
-  const handleSliderChange = useCallback((groupNum, newValue) => {
-    setGroupStates(prev => prev.map(state =>
-      state.group === groupNum ? { ...state, value: newValue[0] } : state
-    ));
-
-    // Clear existing timeout for this group
-    if (debounceRefs.current[groupNum]) {
-      clearTimeout(debounceRefs.current[groupNum]);
-    }
-
-    // Set new timeout for debounced command
-    debounceRefs.current[groupNum] = setTimeout(async () => {
+  const handleSwitchToggle = useCallback(
+    async (groupNum, isOn) => {
       if (!unit) return;
+
+      const value = isOn ? 255 : 0;
+
+      setGroupStates((prev) =>
+        prev.map((state) =>
+          state.group === groupNum ? { ...state, value } : state
+        )
+      );
 
       try {
         await window.electronAPI.rcuController.setGroupState({
           canId: unit.id_can,
           group: groupNum,
-          value: newValue[0],
+          value: value,
           unitIp: unit.ip_address,
         });
 
-        toast.success(
-          `Group ${groupNum} set to ${newValue[0]} (${Math.round((newValue[0] * 100) / 255)}%)`
-        );
+        toast.success(`Group ${groupNum} turned ${isOn ? "on" : "off"}`);
       } catch (error) {
-        console.error("Failed to set group value:", error);
-        toast.error(`Failed to set group ${groupNum}: ${error.message}`);
-      }
-    }, 500);
-  }, [unit]);
+        console.error("Failed to toggle group:", error);
+        toast.error(`Failed to toggle group ${groupNum}: ${error.message}`);
 
-  // Cleanup debounce timers on unmount
+        // Revert local state on error
+        setGroupStates((prev) =>
+          prev.map((state) =>
+            state.group === groupNum
+              ? { ...state, value: isOn ? 0 : 255 }
+              : state
+          )
+        );
+      }
+    },
+    [unit]
+  );
+
+  // Handle slider change with debounce
+  const handleSliderChange = useCallback(
+    (groupNum, newValue) => {
+      setGroupStates((prev) =>
+        prev.map((state) =>
+          state.group === groupNum ? { ...state, value: newValue[0] } : state
+        )
+      );
+
+      // Clear existing timeout for this group
+      if (debounceRefs.current[groupNum]) {
+        clearTimeout(debounceRefs.current[groupNum]);
+      }
+
+      // Set new timeout for debounced command
+      debounceRefs.current[groupNum] = setTimeout(async () => {
+        if (!unit) return;
+
+        try {
+          await window.electronAPI.rcuController.setGroupState({
+            canId: unit.id_can,
+            group: groupNum,
+            value: newValue[0],
+            unitIp: unit.ip_address,
+          });
+
+          toast.success(
+            `Group ${groupNum} set to ${newValue[0]} (${Math.round(
+              (newValue[0] * 100) / 255
+            )}%)`
+          );
+        } catch (error) {
+          console.error("Failed to set group value:", error);
+          toast.error(`Failed to set group ${groupNum}: ${error.message}`);
+        }
+      }, 500);
+    },
+    [unit]
+  );
+
+  // Auto refresh effect - automatically start when dialog is open and group states are loaded
+  useEffect(() => {
+    if (open && groupStates.length > 0) {
+      // Start auto refresh interval only when dialog is open
+      autoRefreshInterval.current = setInterval(() => {
+        autoRefreshStates();
+      }, 1000);
+    } else {
+      // Stop auto refresh interval when dialog is closed or no group states
+      if (autoRefreshInterval.current) {
+        clearInterval(autoRefreshInterval.current);
+        autoRefreshInterval.current = null;
+      }
+    }
+
+    return () => {
+      if (autoRefreshInterval.current) {
+        clearInterval(autoRefreshInterval.current);
+        autoRefreshInterval.current = null;
+      }
+    };
+  }, [open, groupStates.length, autoRefreshStates]);
+
+  // Cleanup debounce timers and auto refresh on unmount
   useEffect(() => {
     return () => {
-      Object.values(debounceRefs.current).forEach(timeout => {
+      Object.values(debounceRefs.current).forEach((timeout) => {
         if (timeout) clearTimeout(timeout);
       });
+      if (autoRefreshInterval.current) {
+        clearInterval(autoRefreshInterval.current);
+        autoRefreshInterval.current = null;
+      }
     };
   }, []);
 
@@ -237,8 +362,8 @@ export function GroupControlDialog({
             Group Control
           </DialogTitle>
           <DialogDescription>
-            Control multiple lighting groups for unit {unit?.id_can} at {unit?.ip_address}
-            :{CONSTANTS.UNIT.UDP_CONFIG.UDP_PORT}
+            Control multiple lighting groups for unit {unit?.id_can} at{" "}
+            {unit?.ip_address}:{CONSTANTS.UNIT.UDP_CONFIG.UDP_PORT}
           </DialogDescription>
         </DialogHeader>
 
@@ -289,7 +414,7 @@ export function GroupControlDialog({
               <div className="flex items-center justify-between">
                 <h3 className="text-lg font-medium">Group States</h3>
                 <span className="text-sm text-muted-foreground">
-                  {groupStates.length} groups loaded
+                  {groupStates.length} groups loaded (auto-refreshing every 1s)
                 </span>
               </div>
 

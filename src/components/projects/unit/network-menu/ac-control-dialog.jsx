@@ -1,6 +1,6 @@
 "use client";
 
-import { memo, useCallback, useState, useEffect } from "react";
+import { memo, useCallback, useState, useEffect, useRef } from "react";
 import {
   Dialog,
   DialogContent,
@@ -13,7 +13,6 @@ import {
   Power,
   Sun,
   Fan,
-  Check,
   RefreshCw,
   Droplet,
   Book,
@@ -25,18 +24,18 @@ import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 
 const ACModes = [
-  { value: 1, label: "Cool", icon: <Thermometer className="h-5 w-5" /> },
-  { value: 2, label: "Heat", icon: <Sun className="h-5 w-5" /> },
-  { value: 3, label: "Fan", icon: <Fan className="h-5 w-5" /> },
-  { value: 4, label: "Dry", icon: <Droplet className="h-5 w-5" /> },
-  { value: 5, label: "Auto", icon: <RefreshCw className="h-5 w-5" /> },
+  { value: 0, label: "Cool", icon: <Thermometer className="h-5 w-5" /> },
+  { value: 1, label: "Heat", icon: <Sun className="h-5 w-5" /> },
+  { value: 2, label: "Ventilation", icon: <Fan className="h-5 w-5" /> },
+  { value: 3, label: "Dry", icon: <Droplet className="h-5 w-5" /> },
 ];
 
 const FanModes = [
-  { value: 3, label: "Auto" },
   { value: 0, label: "Low" },
   { value: 1, label: "Med" },
   { value: 2, label: "High" },
+  { value: 3, label: "Auto" },
+  { value: 4, label: "Off" },
 ];
 
 export const RoomControlDialog = memo(function RoomControlDialog({
@@ -55,14 +54,28 @@ export const RoomControlDialog = memo(function RoomControlDialog({
 
   const [controlSettings, setControlSettings] = useState({
     power: false,
-    acMode: 1, // Cool mode
+    acMode: 0, // Cool mode (updated to match new protocol)
     fanMode: 3, // Auto
     setpoint: 25.0,
     ecoMode: false,
-    lastActiveMode: 1,
+    lastActiveMode: 0, // Cool mode (updated to match new protocol)
   });
 
-  // Fetch AC status from device
+  // Loading states for individual controls
+  const [loadingStates, setLoadingStates] = useState({
+    power: false,
+    acMode: false,
+    fanMode: false,
+    temperature: false,
+  });
+
+  // Debounce timer for temperature changes
+  const temperatureTimeoutRef = useRef(null);
+
+  // Auto refresh interval
+  const autoRefreshIntervalRef = useRef(null);
+
+  // Fetch AC status from device (with loading indicator)
   const fetchRoomStatus = useCallback(async () => {
     if (!room?.unit?.ip_address || !room?.unit?.id_can) return;
 
@@ -77,18 +90,23 @@ export const RoomControlDialog = memo(function RoomControlDialog({
       console.log("AC Status received:", acStatus);
 
       setStatus({
-        roomTemp: acStatus.roomTemp,
-        thermostatStatus: acStatus.thermostatStatus,
-        occupancyStatus: acStatus.occupancyStatus,
+        roomTemp: acStatus.roomTemperature, // Updated field name
+        thermostatStatus: acStatus.status, // Updated field name
+        occupancyStatus: 1, // Default value since not in new protocol
       });
+
+      const newSettings = {
+        power: acStatus.power, // Already boolean in new protocol
+        acMode: acStatus.mode, // Updated field name
+        fanMode: acStatus.fanSpeed, // Updated field name
+        setpoint: acStatus.temperature, // Updated field name
+        ecoMode: false, // Default value since not in new protocol
+        lastActiveMode: acStatus.mode || 0,
+      };
 
       setControlSettings((prev) => ({
         ...prev,
-        power: acStatus.powerMode === 1,
-        acMode: acStatus.operateMode,
-        fanMode: acStatus.occupiedFanSpeed,
-        setpoint: acStatus.settingTemp,
-        ecoMode: acStatus.ecoMode === 1,
+        ...newSettings,
       }));
     } catch (error) {
       console.error("Failed to fetch AC status:", error);
@@ -98,76 +116,209 @@ export const RoomControlDialog = memo(function RoomControlDialog({
     }
   }, [room, acGroup]);
 
-  // Update control settings
-  const updateControlSettings = useCallback((updates) => {
-    setControlSettings((prev) => ({ ...prev, ...updates }));
-  }, []);
-
-  // Apply settings to device
-  const handleApplySettings = useCallback(async () => {
+  // Auto refresh AC status (without loading indicator)
+  const autoRefreshStatus = useCallback(async () => {
     if (!room?.unit?.ip_address || !room?.unit?.id_can) return;
 
-    setLoading(true);
     try {
-      const group = acGroup;
-      const unitIp = room.unit.ip_address;
-      const canId = room.unit.id_can;
-
-      // Set power mode
-      await window.electronAPI.rcuController.setPowerMode({
-        unitIp,
-        canId,
-        group,
-        power: controlSettings.power,
+      const acStatus = await window.electronAPI.rcuController.getACStatus({
+        unitIp: room.unit.ip_address,
+        canId: room.unit.id_can,
+        group: acGroup,
       });
 
-      if (controlSettings.power) {
-        // Set operate mode
-        await window.electronAPI.rcuController.setOperateMode({
-          unitIp,
-          canId,
-          group,
-          mode: controlSettings.acMode,
-        });
+      console.log("Auto refresh - AC Status received:", acStatus);
 
-        // Set fan mode
-        await window.electronAPI.rcuController.setFanMode({
-          unitIp,
-          canId,
-          group,
-          fanSpeed: controlSettings.fanMode,
-        });
+      setStatus({
+        roomTemp: acStatus.roomTemperature,
+        thermostatStatus: acStatus.status,
+        occupancyStatus: 1,
+      });
 
-        // Set temperature
-        await window.electronAPI.rcuController.setSettingRoomTemp({
-          unitIp,
-          canId,
-          group,
-          temperature: controlSettings.setpoint,
-        });
+      const newSettings = {
+        power: acStatus.power,
+        acMode: acStatus.mode,
+        fanMode: acStatus.fanSpeed,
+        setpoint: acStatus.temperature,
+        ecoMode: false,
+        lastActiveMode: acStatus.mode || 0,
+      };
 
-        // Set eco mode
-        await window.electronAPI.rcuController.setEcoMode({
-          unitIp,
-          canId,
-          group,
-          eco: controlSettings.ecoMode,
-        });
-      }
-
-      toast.success("AC settings applied successfully");
-
-      // Refresh status after applying
-      setTimeout(() => {
-        fetchRoomStatus();
-      }, 1000);
+      setControlSettings((prev) => ({
+        ...prev,
+        ...newSettings,
+      }));
     } catch (error) {
-      console.error("Failed to apply AC settings:", error);
-      toast.error(`Failed to apply settings: ${error.message}`);
-    } finally {
-      setLoading(false);
+      console.error("Auto refresh failed:", error);
+      // Don't show toast for auto refresh errors to avoid spam
     }
-  }, [room, controlSettings, fetchRoomStatus, acGroup]);
+  }, [room, acGroup]);
+
+  // Send power mode command immediately
+  const sendPowerMode = useCallback(
+    async (power) => {
+      if (!room?.unit?.ip_address || !room?.unit?.id_can) return;
+
+      setLoadingStates((prev) => ({ ...prev, power: true }));
+      try {
+        await window.electronAPI.rcuController.setPowerMode({
+          unitIp: room.unit.ip_address,
+          canId: room.unit.id_can,
+          group: acGroup,
+          power,
+        });
+        console.log("Power mode set:", power);
+        toast.success(`Đã ${power ? "bật" : "tắt"} điều hòa`);
+      } catch (error) {
+        console.error("Failed to set power mode:", error);
+        toast.error(
+          `Lỗi khi ${power ? "bật" : "tắt"} điều hòa: ${error.message}`
+        );
+        // Revert the change on error
+        setControlSettings((prev) => ({ ...prev, power: !power }));
+      } finally {
+        setLoadingStates((prev) => ({ ...prev, power: false }));
+      }
+    },
+    [room, acGroup]
+  );
+
+  // Send AC mode command immediately
+  const sendACMode = useCallback(
+    async (acMode) => {
+      if (!room?.unit?.ip_address || !room?.unit?.id_can) return;
+
+      setLoadingStates((prev) => ({ ...prev, acMode: true }));
+      try {
+        await window.electronAPI.rcuController.setOperateMode({
+          unitIp: room.unit.ip_address,
+          canId: room.unit.id_can,
+          group: acGroup,
+          mode: acMode,
+        });
+        console.log("AC mode set:", acMode);
+        const modeNames = ["Cool", "Heat", "Ventilation", "Dry"];
+        toast.success(`Đã chuyển sang chế độ ${modeNames[acMode] || acMode}`);
+      } catch (error) {
+        console.error("Failed to set AC mode:", error);
+        toast.error(`Lỗi khi đổi chế độ điều hòa: ${error.message}`);
+        // Revert the change on error
+        setControlSettings((prev) => ({
+          ...prev,
+          acMode: prev.lastActiveMode || 0,
+        }));
+      } finally {
+        setLoadingStates((prev) => ({ ...prev, acMode: false }));
+      }
+    },
+    [room, acGroup]
+  );
+
+  // Send fan mode command immediately
+  const sendFanMode = useCallback(
+    async (fanMode) => {
+      if (!room?.unit?.ip_address || !room?.unit?.id_can) return;
+
+      setLoadingStates((prev) => ({ ...prev, fanMode: true }));
+      try {
+        await window.electronAPI.rcuController.setFanMode({
+          unitIp: room.unit.ip_address,
+          canId: room.unit.id_can,
+          group: acGroup,
+          fanSpeed: fanMode,
+        });
+        console.log("Fan mode set:", fanMode);
+        const fanNames = ["Low", "Med", "High", "Auto", "Off"];
+        toast.success(
+          `Đã chuyển tốc độ quạt sang ${fanNames[fanMode] || fanMode}`
+        );
+      } catch (error) {
+        console.error("Failed to set fan mode:", error);
+        toast.error(`Lỗi khi đổi tốc độ quạt: ${error.message}`);
+        // Revert the change on error
+        setControlSettings((prev) => ({ ...prev, fanMode: 3 })); // Default to Auto
+      } finally {
+        setLoadingStates((prev) => ({ ...prev, fanMode: false }));
+      }
+    },
+    [room, acGroup]
+  );
+
+  // Send temperature command with debounce
+  const sendTemperature = useCallback(
+    async (temperature) => {
+      if (!room?.unit?.ip_address || !room?.unit?.id_can) return;
+
+      setLoadingStates((prev) => ({ ...prev, temperature: true }));
+      try {
+        await window.electronAPI.rcuController.setSettingRoomTemp({
+          unitIp: room.unit.ip_address,
+          canId: room.unit.id_can,
+          group: acGroup,
+          temperature,
+        });
+        console.log("Temperature set:", temperature);
+        toast.success(`Đã đặt nhiệt độ ${temperature}°C`);
+      } catch (error) {
+        console.error("Failed to set temperature:", error);
+        toast.error(`Lỗi khi đặt nhiệt độ: ${error.message}`);
+      } finally {
+        setLoadingStates((prev) => ({ ...prev, temperature: false }));
+      }
+    },
+    [room, acGroup]
+  );
+
+  // Update control settings with immediate command sending
+  const updateControlSettings = useCallback(
+    (updates) => {
+      setControlSettings((prev) => {
+        const newSettings = { ...prev, ...updates };
+
+        // Send commands immediately based on what changed
+        if (updates.hasOwnProperty("power")) {
+          sendPowerMode(updates.power);
+          if (updates.power) {
+            // If turning on, use the last active mode or default to cool (0)
+            const activeMode =
+              updates.lastActiveMode || prev.lastActiveMode || 0;
+            newSettings.acMode = activeMode;
+            if (activeMode !== prev.acMode) {
+              setTimeout(() => sendACMode(activeMode), 500); // Small delay after power on
+            }
+          } else {
+            // If turning off, save the current mode as lastActiveMode
+            newSettings.lastActiveMode =
+              prev.acMode !== undefined ? prev.acMode : prev.lastActiveMode;
+          }
+        }
+
+        if (updates.hasOwnProperty("acMode") && prev.power) {
+          sendACMode(updates.acMode);
+          // Save as last active mode
+          newSettings.lastActiveMode = updates.acMode;
+        }
+
+        if (updates.hasOwnProperty("fanMode") && prev.power) {
+          sendFanMode(updates.fanMode);
+        }
+
+        if (updates.hasOwnProperty("setpoint") && prev.power) {
+          // Clear existing timeout
+          if (temperatureTimeoutRef.current) {
+            clearTimeout(temperatureTimeoutRef.current);
+          }
+          // Set new timeout for debounced temperature sending
+          temperatureTimeoutRef.current = setTimeout(() => {
+            sendTemperature(updates.setpoint);
+          }, 500); // 500ms debounce
+        }
+
+        return newSettings;
+      });
+    },
+    [sendPowerMode, sendACMode, sendFanMode, sendTemperature]
+  );
 
   const getTemperatureColor = useCallback((temp) => {
     if (temp < 20) return "#3b82f6"; // Blue for cold
@@ -179,6 +330,42 @@ export const RoomControlDialog = memo(function RoomControlDialog({
   useEffect(() => {
     setAcGroup(room?.acGroup || 1);
   }, [room]);
+
+  // Auto refresh when dialog is open
+  useEffect(() => {
+    if (open && room?.unit?.ip_address && room?.unit?.id_can) {
+      // Initial fetch when dialog opens
+      autoRefreshStatus();
+
+      // Setup auto refresh interval
+      autoRefreshIntervalRef.current = setInterval(() => {
+        autoRefreshStatus();
+      }, 1000); // Refresh every 1 second
+
+      console.log("Auto refresh started for AC control");
+    }
+
+    // Cleanup when dialog closes or dependencies change
+    return () => {
+      if (autoRefreshIntervalRef.current) {
+        clearInterval(autoRefreshIntervalRef.current);
+        autoRefreshIntervalRef.current = null;
+        console.log("Auto refresh stopped for AC control");
+      }
+    };
+  }, [open, room?.unit?.ip_address, room?.unit?.id_can, autoRefreshStatus]);
+
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (temperatureTimeoutRef.current) {
+        clearTimeout(temperatureTimeoutRef.current);
+      }
+      if (autoRefreshIntervalRef.current) {
+        clearInterval(autoRefreshIntervalRef.current);
+      }
+    };
+  }, []);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -221,10 +408,13 @@ export const RoomControlDialog = memo(function RoomControlDialog({
                       color: getTemperatureColor(controlSettings.setpoint),
                     }}
                   >
-                    <p className="uppercase text-xs font-light mb-2 text-gray-400">
+                    <p className="uppercase text-xs font-light mb-2 text-gray-400 flex items-center justify-center gap-2">
                       Cài đặt nhiệt độ
+                      {loadingStates.temperature && (
+                        <RefreshCw className="h-3 w-3 animate-spin text-blue-500" />
+                      )}
                     </p>
-                    {loading
+                    {loading || loadingStates.temperature
                       ? "..."
                       : controlSettings.setpoint !== undefined
                       ? controlSettings.setpoint.toFixed(1)
@@ -252,28 +442,15 @@ export const RoomControlDialog = memo(function RoomControlDialog({
               <span className="font-medium text-gray-700 dark:text-gray-300">
                 Power
               </span>
+              {loadingStates.power && (
+                <RefreshCw className="h-4 w-4 animate-spin text-blue-500" />
+              )}
             </div>
             <Switch
               checked={controlSettings.power}
+              disabled={loadingStates.power}
               onCheckedChange={(checked) => {
-                if (checked) {
-                  // If turning on, use the last active mode or default to cool
-                  const activeMode = controlSettings.lastActiveMode || 1;
-                  updateControlSettings({
-                    power: true,
-                    acMode: activeMode,
-                  });
-                  console.log("Power ON, setting mode to:", activeMode);
-                } else {
-                  // If turning off, save the current mode as lastActiveMode
-                  const currentMode = controlSettings.acMode;
-                  updateControlSettings({
-                    power: false,
-                    lastActiveMode:
-                      currentMode || controlSettings.lastActiveMode,
-                  });
-                  console.log("Power OFF, saving last mode:", currentMode);
-                }
+                updateControlSettings({ power: checked });
               }}
               thumbClassName="h-6 w-6 data-[state=checked]:translate-x-5"
               className={
@@ -286,20 +463,25 @@ export const RoomControlDialog = memo(function RoomControlDialog({
 
           {/* AC Mode Selection */}
           <div className="w-full">
-            <div className="text-xs uppercase tracking-wider text-gray-500 mb-1 text-center">
+            <div className="text-xs uppercase tracking-wider text-gray-500 mb-1 text-center flex items-center justify-center gap-2">
               CHẾ ĐỘ ĐIỀU HÒA
+              {loadingStates.acMode && (
+                <RefreshCw className="h-3 w-3 animate-spin text-blue-500" />
+              )}
             </div>
             <div
               className={cn(
-                "grid grid-cols-5 gap-0.5 border border-blue-200 dark:border-gray-700 bg-card rounded-lg overflow-hidden shadow-sm",
-                !controlSettings.power ? "opacity-50 pointer-events-none" : ""
+                "grid grid-cols-4 gap-0.5 border border-blue-200 dark:border-gray-700 bg-card rounded-lg overflow-hidden shadow-sm",
+                !controlSettings.power || loadingStates.acMode
+                  ? "opacity-50 pointer-events-none"
+                  : ""
               )}
             >
               {ACModes.map((mode) => (
                 <Button
                   key={mode.value}
                   variant="ghost"
-                  disabled={!controlSettings.power}
+                  disabled={!controlSettings.power || loadingStates.acMode}
                   className={cn(
                     "flex flex-col items-center justify-center h-16 rounded-none border-0 transition-all duration-200",
                     controlSettings.acMode === mode.value
@@ -317,20 +499,25 @@ export const RoomControlDialog = memo(function RoomControlDialog({
 
           {/* Fan Mode Selection */}
           <div className="w-full">
-            <div className="text-xs uppercase tracking-wider text-gray-500 mb-1 text-center">
+            <div className="text-xs uppercase tracking-wider text-gray-500 mb-1 text-center flex items-center justify-center gap-2">
               TỐC ĐỘ QUẠT
+              {loadingStates.fanMode && (
+                <RefreshCw className="h-3 w-3 animate-spin text-blue-500" />
+              )}
             </div>
             <div
               className={cn(
-                "grid grid-cols-4 border border-blue-200 dark:border-gray-700 bg-card rounded-lg overflow-hidden shadow-sm",
-                !controlSettings.power ? "opacity-50 pointer-events-none" : ""
+                "grid grid-cols-5 border border-blue-200 dark:border-gray-700 bg-card rounded-lg overflow-hidden shadow-sm",
+                !controlSettings.power || loadingStates.fanMode
+                  ? "opacity-50 pointer-events-none"
+                  : ""
               )}
             >
               {FanModes.map((mode) => (
                 <Button
                   key={mode.value}
                   variant="ghost"
-                  disabled={!controlSettings.power}
+                  disabled={!controlSettings.power || loadingStates.fanMode}
                   className={cn(
                     "h-12 rounded-none border-0 transition-all duration-200",
                     controlSettings.fanMode === mode.value
@@ -346,7 +533,7 @@ export const RoomControlDialog = memo(function RoomControlDialog({
           </div>
         </div>
 
-        <DialogFooter className="flex !justify-between pt-2">
+        <DialogFooter className="flex !justify-center pt-2">
           <div className="flex items-center justify-center gap-2">
             <div className="relative">
               <Book className="text-sm font-medium absolute left-2 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -374,19 +561,6 @@ export const RoomControlDialog = memo(function RoomControlDialog({
               <span>Get State</span>
             </Button>
           </div>
-          <Button
-            onClick={handleApplySettings}
-            disabled={loading}
-            className="bg-gradient-to-r from-blue-500 to-blue-600 text-white hover:from-blue-600 hover:to-blue-700 transition-all duration-200 shadow-md"
-          >
-            {loading ? (
-              <RefreshCw className="h-4 w-4 animate-spin" />
-            ) : (
-              <Check className="h-4 w-4" />
-            )}
-            <span>{loading ? "Applying..." : "Apply"}</span>
-            <span className="sm:hidden">{loading ? "..." : ""}</span>
-          </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

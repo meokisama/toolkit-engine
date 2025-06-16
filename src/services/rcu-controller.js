@@ -36,7 +36,7 @@ const PROTOCOL = {
   AC: {
     CMD1: 30,
     CMD2: {
-      GET_AC_STATUS: 13,
+      GET_AC_GROUP: 14,
       GET_ROOM_TEMP: 21,
       SET_SETTING_ROOM_TEMP: 22,
       GET_SETTING_ROOM_TEMP: 23,
@@ -374,42 +374,64 @@ async function getACStatus(unitIp, canId, group = 1) {
     UDP_PORT,
     idAddress,
     PROTOCOL.AC.CMD1,
-    PROTOCOL.AC.CMD2.GET_AC_STATUS,
-    [group]
+    PROTOCOL.AC.CMD2.GET_AC_GROUP,
+    [group],
+    true // Skip status check for GET_AC_GROUP
   );
 
   if (response && response.msg) {
     const msgLength = response.msg.length;
 
-    // Check minimum length for basic response
-    if (msgLength < 8) {
+    // Check minimum length for basic response (header + 10 bytes data)
+    if (msgLength < 18) {
       throw new Error(
-        `Response too short: ${msgLength} bytes (minimum 8 required)`
-      );
-    }
-
-    // Check if we have enough data for AC status (need at least 26 bytes total)
-    if (msgLength < 26) {
-      throw new Error(
-        `Insufficient data in AC status response: ${msgLength} bytes (expected 26+)`
+        `Response too short: ${msgLength} bytes (minimum 18 required)`
       );
     }
 
     const data = response.msg.slice(8); // Skip header
 
+    // Check if we have at least 10 bytes of AC status data
+    if (data.length < 10) {
+      throw new Error(
+        `Insufficient AC status data: ${data.length} bytes (expected 10)`
+      );
+    }
+
+    // Parse the 10-byte AC status data structure:
+    // 1 byte status
+    // 1 byte power (0:Off, 1:On)
+    // 1 byte fanSpeed (0:Low, 1:Med, 2:High, 3:Auto, 4:Off)
+    // 1 byte mode (0:Cool, 1:Heat, 2:Ventilation, 3:Dry)
+    // 1 byte swing
+    // 1 byte reserved
+    // 2 byte temperature (180 -> 18 degrees)
+    // 2 byte roomTemperature (250 -> 25 degrees)
+
+    const status = data[0];
+    const power = data[1];
+    const fanSpeed = data[2];
+    const mode = data[3];
+    const swing = data[4];
+    const reserved = data[5];
+    const temperature = (data[7] << 8) | data[6]; // Little endian 2 bytes
+    const roomTemperature = (data[9] << 8) | data[8]; // Little endian 2 bytes
+
     return {
-      group: data[0],
-      thermostatStatus: data[1],
-      roomTemp: (data[3] * 256 + data[2]) / 10, // Convert to celsius
-      occupancyStatus: data[5] * 256 + data[4],
-      powerMode: data[7] * 256 + data[6],
-      operateMode: data[9] * 256 + data[8],
-      occupiedFanSpeed: data[11] * 256 + data[10],
-      unoccupiedFanSpeed: data[13] * 256 + data[12],
-      settingTemp: (data[15] * 256 + data[14]) / 10, // Convert to celsius
-      unoccupiedCoolTemp: (data[17] * 256 + data[16]) / 10,
-      unoccupiedHeatTemp: (data[19] * 256 + data[18]) / 10,
-      ecoMode: data[21] * 256 + data[20],
+      group: group,
+      status: status,
+      power: power === 1, // Convert to boolean
+      fanSpeed: fanSpeed,
+      mode: mode,
+      swing: swing,
+      reserved: reserved,
+      temperature: temperature / 10, // Convert to celsius (180 -> 18.0)
+      roomTemperature: roomTemperature / 10, // Convert to celsius (250 -> 25.0)
+      // Add human-readable descriptions
+      powerText: power === 1 ? "On" : "Off",
+      fanSpeedText:
+        ["Low", "Med", "High", "Auto", "Off"][fanSpeed] || "Unknown",
+      modeText: ["Cool", "Heat", "Ventilation", "Dry"][mode] || "Unknown",
     };
   }
 
