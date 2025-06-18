@@ -1,66 +1,78 @@
-const { FusesPlugin } = require('@electron-forge/plugin-fuses');
-const { FuseV1Options, FuseVersion } = require('@electron/fuses');
+const { FusesPlugin } = require("@electron-forge/plugin-fuses");
+const { FuseV1Options, FuseVersion } = require("@electron/fuses");
 
 module.exports = {
   packagerConfig: {
     asar: true,
-    icon: 'assets/icon',
-    ignore: [
-      /node_modules\/(?!(better-sqlite3|bindings|file-uri-to-path)\/)/,
-    ],
+    icon: "assets/icon",
+    ignore: [/node_modules\/(?!(better-sqlite3|bindings|file-uri-to-path)\/)/],
   },
   rebuildConfig: {},
   makers: [
     {
-      name: '@electron-forge/maker-squirrel',
+      name: "@electron-forge/maker-squirrel",
       config: {
-        setupIcon: 'assets/icon.ico'
+        setupIcon: "assets/icon.ico",
+        executableName: "toolkit-engine",
+        authors: "VIS Solutions",
+        description: "Professional automation and control toolkit",
       },
     },
     {
-      name: '@electron-forge/maker-zip',
-      platforms: ['darwin'],
+      name: "@electron-forge/maker-zip",
+      platforms: ["darwin"],
     },
     {
-      name: '@electron-forge/maker-deb',
+      name: "@electron-forge/maker-deb",
       config: {
         options: {
-          icon: 'assets/icon.png',
-        }
+          icon: "assets/icon.png",
+          name: "toolkit-engine",
+          productName: "GNT Toolkit Engine",
+          maintainer: "VIS Solutions",
+          description: "Professional automation and control toolkit",
+        },
       },
     },
     {
-      name: '@electron-forge/maker-rpm',
-      config: {},
+      name: "@electron-forge/maker-rpm",
+      config: {
+        options: {
+          name: "toolkit-engine",
+          productName: "GNT Toolkit Engine",
+          maintainer: "VIS Solutions",
+          description: "Professional automation and control toolkit",
+        },
+      },
     },
   ],
   plugins: [
     {
-      name: '@electron-forge/plugin-auto-unpack-natives',
+      name: "@electron-forge/plugin-auto-unpack-natives",
       config: {},
     },
     {
-      name: '@electron-forge/plugin-vite',
+      name: "@electron-forge/plugin-vite",
       config: {
         // `build` can specify multiple entry builds, which can be Main process, Preload scripts, Worker process, etc.
         // If you are familiar with Vite configuration, it will look really familiar.
         build: [
           {
             // `entry` is just an alias for `build.lib.entry` in the corresponding file of `config`.
-            entry: 'src/main.js',
-            config: 'vite.main.config.mjs',
-            target: 'main',
+            entry: "src/main.js",
+            config: "vite.main.config.mjs",
+            target: "main",
           },
           {
-            entry: 'src/preload.js',
-            config: 'vite.preload.config.mjs',
-            target: 'preload',
+            entry: "src/preload.js",
+            config: "vite.preload.config.mjs",
+            target: "preload",
           },
         ],
         renderer: [
           {
-            name: 'main_window',
-            config: 'vite.renderer.config.mjs',
+            name: "main_window",
+            config: "vite.renderer.config.mjs",
           },
         ],
       },

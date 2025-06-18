@@ -1,8 +1,8 @@
 {
-  "name": "engine",
-  "productName": "engine",
+  "name": "toolkit-engine",
+  "productName": "GNT Toolkit Engine",
   "version": "1.0.0",
-  "description": "My Electron application description",
+  "description": "Professional automation and control toolkit for smart building management",
   "main": ".vite/build/main.js",
   "scripts": {
     "start": "electron-forge start",
@@ -11,10 +11,15 @@
     "publish": "electron-forge publish",
     "lint": "echo \"No linting configured\""
   },
-  "keywords": [],
+  "keywords": ["automation", "smart-building", "control-system", "iot", "building-management"],
   "author": {
-    "name": "meokisama",
-    "email": "hoangdinhsang123@gmail.com"
+    "name": "VIS Solutions",
+    "email": "support@vis.solutions"
+  },
+  "homepage": "https://github.com/meokisama/toolkit-engine",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/meokisama/toolkit-engine.git"
   },
   "license": "MIT",
   "devDependencies": {
