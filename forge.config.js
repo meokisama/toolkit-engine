@@ -4,7 +4,7 @@ const { FuseV1Options, FuseVersion } = require("@electron/fuses");
 module.exports = {
   packagerConfig: {
     asar: true,
-    icon: "assets/icon",
+    icon: "assets/app",
     executableName: "toolkit-engine",
     appCopyright: "Copyright © 2025 VIS Solutions.",
     ignore: [/node_modules\/(?!(better-sqlite3|bindings|file-uri-to-path)\/)/],
@@ -16,8 +16,8 @@ module.exports = {
       config: {
         productName: "GNT Toolkit Engine",
         executableName: "toolkit-engine",
-        setupIcon: "assets/icon.ico",
-        iconUrl: "https://raw.githubusercontent.com/meokisama/toolkit-engine/refs/heads/master/assets/icon.ico",
+        setupIcon: "assets/app.ico",
+        iconUrl: "https://raw.githubusercontent.com/meokisama/toolkit-engine/refs/heads/master/assets/app.ico",
         authors: "VIS Solutions",
         description: "Professional automation and control toolkit",
       },
@@ -30,7 +30,7 @@ module.exports = {
       name: "@electron-forge/maker-deb",
       config: {
         options: {
-          icon: "assets/icon.png",
+          icon: "assets/app.png",
           productName: "GNT Toolkit Engine",
           executableName: "toolkit-engine",
           maintainer: "VIS Solutions",
