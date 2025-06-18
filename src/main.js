@@ -54,7 +54,7 @@ const createWindow = () => {
     titleBarOverlay: {
       color: "#fafafa",
     },
-    icon: path.join(__dirname, "/icon.ico"),
+    icon: path.join(__dirname, "/app.ico"),
     webPreferences: {
       preload: path.join(__dirname, "preload.js"),
     },

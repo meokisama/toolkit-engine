@@ -18,6 +18,8 @@ import { Switch } from "@/components/ui/switch";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { toast } from "sonner";
+import lightOn from "@/assets/light-on.png";
+import lightOff from "@/assets/light-off.png";
 
 const GroupCard = memo(({ state, onSwitchToggle, onSliderChange, loading }) => {
   return (
@@ -25,7 +27,7 @@ const GroupCard = memo(({ state, onSwitchToggle, onSliderChange, loading }) => {
       <CardContent className="space-y-4 flex gap-4 w-full justify-between !px-0">
         <div className="flex-shrink-0 flex items-center justify-center h-full">
           <img
-            src={state.value > 0 ? "/light-on.png" : "/light-off.png"}
+            src={state.value > 0 ? lightOn : lightOff}
             alt="Lighting State"
             className="w-[50px] h-auto rounded-lg"
           />

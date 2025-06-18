@@ -23,12 +23,13 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
+import meoki from "@/assets/meoki.jpg";
 
 const data = {
   user: {
     name: "Meoki",
     email: "hi@vis.solutions",
-    avatar: "/meoki.jpg",
+    avatar: meoki,
   },
   navMain: [
     {
