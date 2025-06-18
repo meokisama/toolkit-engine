@@ -5,7 +5,6 @@ module.exports = {
   packagerConfig: {
     asar: true,
     icon: "assets/icon",
-    productName: "GNT Toolkit Engine",
     executableName: "toolkit-engine",
     appCopyright: "Copyright © 2025 VIS Solutions.",
     ignore: [/node_modules\/(?!(better-sqlite3|bindings|file-uri-to-path)\/)/],
@@ -18,7 +17,7 @@ module.exports = {
         productName: "GNT Toolkit Engine",
         executableName: "toolkit-engine",
         setupIcon: "assets/icon.ico",
-        iconUrl: "assets/icon.ico",
+        iconUrl: "https://raw.githubusercontent.com/meokisama/toolkit-engine/refs/heads/master/assets/icon.ico",
         authors: "VIS Solutions",
         description: "Professional automation and control toolkit",
       },
