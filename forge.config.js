@@ -5,6 +5,7 @@ module.exports = {
   packagerConfig: {
     asar: true,
     icon: "assets/icon",
+    executableName: "toolkit-engine",
     ignore: [/node_modules\/(?!(better-sqlite3|bindings|file-uri-to-path)\/)/],
   },
   rebuildConfig: {},
@@ -13,7 +14,6 @@ module.exports = {
       name: "@electron-forge/maker-squirrel",
       config: {
         setupIcon: "assets/icon.ico",
-        executableName: "toolkit-engine",
         authors: "VIS Solutions",
         description: "Professional automation and control toolkit",
       },
