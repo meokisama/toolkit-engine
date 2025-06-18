@@ -4,14 +4,17 @@ const { FuseV1Options, FuseVersion } = require('@electron/fuses');
 module.exports = {
   packagerConfig: {
     asar: true,
-    icon: '/icon',
+    icon: 'assets/icon',
+    ignore: [
+      /node_modules\/(?!(better-sqlite3|bindings|file-uri-to-path)\/)/,
+    ],
   },
   rebuildConfig: {},
   makers: [
     {
       name: '@electron-forge/maker-squirrel',
       config: {
-        setupIcon: '/icon.ico'
+        setupIcon: 'assets/icon.ico'
       },
     },
     {
@@ -22,7 +25,7 @@ module.exports = {
       name: '@electron-forge/maker-deb',
       config: {
         options: {
-          icon: '/icon.png',
+          icon: 'assets/icon.png',
         }
       },
     },
