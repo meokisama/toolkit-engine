@@ -6,6 +6,7 @@ module.exports = {
     asar: true,
     icon: "assets/icon",
     name: "toolkit-engine",
+    productName: "GNT Toolkit Engine",
     executableName: "toolkit-engine",
     ignore: [/node_modules\/(?!(better-sqlite3|bindings|file-uri-to-path)\/)/],
   },
@@ -14,7 +15,6 @@ module.exports = {
     {
       name: "@electron-forge/maker-squirrel",
       config: {
-        productName: "GNT Toolkit Engine",
         executableName: "toolkit-engine",
         setupIcon: "assets/icon.ico",
         authors: "VIS Solutions",
@@ -30,7 +30,6 @@ module.exports = {
       config: {
         options: {
           icon: "assets/icon.png",
-          productName: "GNT Toolkit Engine",
           executableName: "toolkit-engine",
           maintainer: "VIS Solutions",
           description: "Professional automation and control toolkit",
@@ -41,7 +40,6 @@ module.exports = {
       name: "@electron-forge/maker-rpm",
       config: {
         options: {
-          productName: "GNT Toolkit Engine",
           executableName: "toolkit-engine",
           maintainer: "VIS Solutions",
           description: "Professional automation and control toolkit",
