@@ -32,5 +32,7 @@ jobs:
             out/make/**/*.zip
             out/make/**/*.deb
             out/make/**/*.rpm
+            out/make/**/*.nupkg
+            out/make/**/RELEASES
         env:
           GITHUB_TOKEN: ${{ secrets.GNT_ENGINE }}
