@@ -1,311 +1,191 @@
-import React, { useState, useEffect } from "react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-
+import React from "react";
 import { toast } from "sonner";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { SendItemsDialog } from "@/components/shared/send-items-dialog";
 
-import { Wifi, Send, Loader2, CircleCheck, Network } from "lucide-react";
-import * as CheckboxPrimitive from "@radix-ui/react-checkbox";
-import { udpScanner } from "@/services/udp";
-
-export function SendScheduleDialog({ open, onOpenChange, schedule = null }) {
-  const [loading, setLoading] = useState(false);
-  const [scanLoading, setScanLoading] = useState(false);
-  const [networkUnits, setNetworkUnits] = useState([]);
-  const [selectedUnitIds, setSelectedUnitIds] = useState([]);
-  const [scheduleData, setScheduleData] = useState(null);
-
-  // Load schedule data and cached network units when dialog opens
-  useEffect(() => {
-    if (open && schedule) {
-      loadScheduleData();
-      setSelectedUnitIds([]);
-
-      // Auto-load cached network units if available
-      const cachedUnits = udpScanner.getLastScanResults();
-      if (cachedUnits.length > 0 && udpScanner.isCacheValid()) {
-        setNetworkUnits(cachedUnits);
-        console.log(`Auto-loaded ${cachedUnits.length} cached network units`);
-      } else {
-        setNetworkUnits([]);
-      }
-    }
-  }, [open, schedule]);
-
-  const loadScheduleData = async () => {
-    try {
-      const data = await window.electronAPI.schedule.getForSending(schedule.id);
-      setScheduleData(data);
-      console.log("Loaded schedule data:", data);
-    } catch (error) {
-      console.error("Failed to load schedule data:", error);
-      toast.error("Failed to load schedule data: " + error.message);
-    }
+export function SendScheduleDialog({ open, onOpenChange, items = [] }) {
+  const handleLoadSingleSchedule = async (schedule) => {
+    const data = await window.electronAPI.schedule.getForSending(schedule.id);
+    return data;
   };
 
-  const handleScanNetwork = async () => {
-    setScanLoading(true);
-    try {
-      toast.info("Scanning network units...");
-
-      const discoveredUnits = await udpScanner.getNetworkUnits(true); // Always force scan when button is clicked
-
-      setNetworkUnits(discoveredUnits);
-      setSelectedUnitIds([]);
-
-      if (discoveredUnits.length > 0) {
-        toast.success(`Found ${discoveredUnits.length} unit(s) on network`);
-      } else {
-        toast.warning("No units found on network");
-      }
-    } catch (error) {
-      console.error("Failed to scan network:", error);
-      toast.error("Failed to scan network: " + error.message);
-    } finally {
-      setScanLoading(false);
-    }
-  };
-
-  const handleUnitToggle = (unitId, checked) => {
-    setSelectedUnitIds((prev) =>
-      checked ? [...prev, unitId] : prev.filter((id) => id !== unitId)
-    );
-  };
-
-  const handleSendSchedule = async () => {
-    if (!scheduleData) {
-      toast.error("No schedule data loaded");
-      return;
-    }
-
-    if (selectedUnitIds.length === 0) {
-      toast.error("Please select at least one network unit");
-      return;
-    }
-
-    if (scheduleData.sceneAddresses.length === 0) {
+  const handleValidateSingleSchedule = (scheduleData) => {
+    if (!scheduleData || scheduleData.sceneAddresses.length === 0) {
       toast.error("Schedule has no scenes to send");
-      return;
+      return false;
     }
+    return true;
+  };
 
-    setLoading(true);
+  const handleSendSingleSchedule = async (schedule, scheduleData, selectedUnits) => {
     let successCount = 0;
     let errorCount = 0;
 
-    try {
-      const selectedUnits = networkUnits.filter((unit) =>
-        selectedUnitIds.includes(unit.id)
+    // Send schedule to all selected units
+    for (const unit of selectedUnits) {
+      try {
+        console.log("Sending schedule to unit:", {
+          unitIp: unit.ip_address,
+          canId: unit.id_can,
+          scheduleIndex: schedule.calculatedIndex ?? 0,
+          enabled: scheduleData.enabled,
+          weekDays: scheduleData.parsedDays,
+          hour: scheduleData.hour,
+          minute: scheduleData.minute,
+          sceneAddresses: scheduleData.sceneAddresses,
+        });
+
+        await window.electronAPI.schedule.send({
+          unitIp: unit.ip_address,
+          canId: unit.id_can,
+          scheduleIndex: schedule.calculatedIndex ?? 0,
+          enabled: scheduleData.enabled,
+          weekDays: scheduleData.parsedDays,
+          hour: scheduleData.hour,
+          minute: scheduleData.minute,
+          sceneAddresses: scheduleData.sceneAddresses,
+        });
+
+        successCount++;
+        toast.success(
+          `Schedule sent successfully to ${unit.type || unit.unit_type} (${
+            unit.ip_address
+          })`
+        );
+      } catch (error) {
+        errorCount++;
+        console.error(
+          `Failed to send schedule to ${unit.ip_address}:`,
+          error
+        );
+        toast.error(
+          `Failed to send schedule to ${unit.type || unit.unit_type} (${
+            unit.ip_address
+          }): ${error.message}`
+        );
+      }
+    }
+
+    if (successCount > 0) {
+      toast.success(`Schedule sent successfully to ${successCount} unit(s)`);
+    }
+
+    if (errorCount > 0) {
+      throw new Error(`Failed to send to ${errorCount} unit(s)`);
+    }
+  };
+
+  const handleSendBulkSchedules = async (schedules, selectedUnits, onProgress) => {
+    const totalOperations = schedules.length * selectedUnits.length;
+    let completedOperations = 0;
+    const operationResults = [];
+
+    for (let scheduleIndex = 0; scheduleIndex < schedules.length; scheduleIndex++) {
+      const currentScheduleData = schedules[scheduleIndex];
+      onProgress(
+        (completedOperations / totalOperations) * 100,
+        `${currentScheduleData.name} (${scheduleIndex + 1}/${schedules.length})`
       );
 
+      // Get schedule data
+      let schedulePayload = null;
+      try {
+        const scheduleScenes = await window.electronAPI.schedule.getForSending(
+          currentScheduleData.id
+        );
+
+        schedulePayload = {
+          enabled: currentScheduleData.enabled || false,
+          parsedDays: scheduleScenes.parsedDays,
+          hour: scheduleScenes.hour,
+          minute: scheduleScenes.minute,
+          sceneAddresses: scheduleScenes.sceneAddresses,
+        };
+      } catch (error) {
+        console.error(
+          `Failed to load data for schedule ${currentScheduleData.id}:`,
+          error
+        );
+        // Skip schedules without data
+        completedOperations += selectedUnits.length;
+        onProgress((completedOperations / totalOperations) * 100, "");
+        continue;
+      }
+
+      if (!schedulePayload || schedulePayload.sceneAddresses.length === 0) {
+        // Skip schedules without scenes
+        completedOperations += selectedUnits.length;
+        onProgress((completedOperations / totalOperations) * 100, "");
+        continue;
+      }
+
+      // Send schedule to all selected units
       for (const unit of selectedUnits) {
         try {
           console.log("Sending schedule to unit:", {
             unitIp: unit.ip_address,
             canId: unit.id_can,
-            scheduleIndex: schedule.calculatedIndex ?? 0,
-            enabled: scheduleData.enabled,
-            weekDays: scheduleData.parsedDays,
-            hour: scheduleData.hour,
-            minute: scheduleData.minute,
-            sceneAddresses: scheduleData.sceneAddresses,
+            scheduleIndex: scheduleIndex,
+            enabled: schedulePayload.enabled,
+            weekDays: schedulePayload.parsedDays,
+            hour: schedulePayload.hour,
+            minute: schedulePayload.minute,
+            sceneAddresses: schedulePayload.sceneAddresses,
           });
 
           await window.electronAPI.schedule.send({
             unitIp: unit.ip_address,
             canId: unit.id_can,
-            scheduleIndex: schedule.calculatedIndex ?? 0,
-            enabled: scheduleData.enabled,
-            weekDays: scheduleData.parsedDays,
-            hour: scheduleData.hour,
-            minute: scheduleData.minute,
-            sceneAddresses: scheduleData.sceneAddresses,
+            scheduleIndex: scheduleIndex,
+            enabled: schedulePayload.enabled,
+            weekDays: schedulePayload.parsedDays,
+            hour: schedulePayload.hour,
+            minute: schedulePayload.minute,
+            sceneAddresses: schedulePayload.sceneAddresses,
           });
 
-          successCount++;
-          toast.success(
-            `Schedule sent successfully to ${unit.unit_type} (${unit.ip_address})`
-          );
+          operationResults.push({
+            schedule: currentScheduleData.name,
+            unit: `${unit.type || unit.unit_type || "Unknown Unit"} (${
+              unit.ip_address
+            })`,
+            success: true,
+            message: "Sent successfully",
+          });
+
+          console.log(`Schedule sent successfully to ${unit.ip_address}`);
         } catch (error) {
-          errorCount++;
           console.error(
-            `Failed to send schedule to ${unit.ip_address}:`,
+            `Failed to send schedule ${currentScheduleData.name} to unit ${unit.ip_address}:`,
             error
           );
-          toast.error(
-            `Failed to send schedule to ${unit.unit_type} (${unit.ip_address}): ${error.message}`
-          );
+          operationResults.push({
+            schedule: currentScheduleData.name,
+            unit: `${unit.type || unit.unit_type || "Unknown Unit"} (${
+              unit.ip_address
+            })`,
+            success: false,
+            message: error.message || "Failed to send",
+          });
         }
-      }
 
-      if (successCount > 0) {
-        toast.success(`Schedule sent successfully to ${successCount} unit(s)`);
+        completedOperations++;
+        onProgress((completedOperations / totalOperations) * 100, "");
       }
-
-      if (errorCount === 0) {
-        onOpenChange(false);
-      }
-    } catch (error) {
-      console.error("Error sending schedule:", error);
-      toast.error("Error sending schedule: " + error.message);
-    } finally {
-      setLoading(false);
     }
-  };
 
-  const formatTime = (hour, minute) => {
-    return `${hour.toString().padStart(2, "0")}:${minute
-      .toString()
-      .padStart(2, "0")}`;
+    return operationResults;
   };
-
-  const formatDays = (days) => {
-    const dayNames = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
-    return days
-      .map((enabled, index) => (enabled ? dayNames[index] : null))
-      .filter(Boolean)
-      .join(", ");
-  };
-
-  const handleDialogOpenChange = (newOpen) => {
-    if (!loading) {
-      onOpenChange(newOpen);
-    }
-  };
-
-  if (!schedule) return null;
 
   return (
-    <Dialog open={open} onOpenChange={handleDialogOpenChange}>
-      <DialogContent className="sm:max-w-2xl">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <Send className="h-5 w-5" />
-            Send {schedule.name} to Network Unit
-          </DialogTitle>
-          <DialogDescription>
-            Send schedule "{schedule.name}" configuration to a network unit.
-          </DialogDescription>
-        </DialogHeader>
-
-        <div className="space-y-3">
-          {/* Schedule Configuration */}
-          <div className="space-y-2">
-            <Label>Schedule Index</Label>
-            <div className="p-3 bg-muted rounded-md">
-              <span className="text-sm font-medium">
-                Index {schedule.calculatedIndex ?? 0} (Database ID:{" "}
-                {schedule.id})
-              </span>
-              <p className="text-xs text-muted-foreground mt-1">
-                Schedule index is automatically calculated based on array
-                position (0-31 range)
-              </p>
-            </div>
-          </div>
-
-          {/* Network Units */}
-          <Card>
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <CardTitle className="text-sm flex items-center gap-2">
-                  <Wifi className="h-4 w-4" />
-                  Network Units ({selectedUnitIds.length} selected)
-                </CardTitle>
-                <Button
-                  onClick={handleScanNetwork}
-                  disabled={scanLoading}
-                  size="sm"
-                  variant="outline"
-                >
-                  {scanLoading ? (
-                    <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                  ) : (
-                    <Wifi className="h-4 w-4 mr-2" />
-                  )}
-                  Scan Network
-                </Button>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <ScrollArea className="h-60">
-                {networkUnits.length === 0 ? (
-                  <div className="text-center text-muted-foreground py-8">
-                    <Wifi className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                    <p>No network units found.</p>
-                    <p className="text-sm">
-                      Click "Scan Network" to discover units on your network.
-                    </p>
-                  </div>
-                ) : (
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3 p-2">
-                    {networkUnits.map((unit) => (
-                      <CheckboxPrimitive.Root
-                        key={unit.id}
-                        checked={selectedUnitIds.includes(unit.id)}
-                        onCheckedChange={(checked) =>
-                          handleUnitToggle(unit.id, checked)
-                        }
-                        className="relative ring-[1px] ring-border rounded-lg px-4 py-3 text-start text-muted-foreground data-[state=checked]:ring-2 data-[state=checked]:ring-primary data-[state=checked]:text-primary flex flex-row items-center gap-3 cursor-pointer"
-                      >
-                        <Network className="h-6 w-6" />
-                        <div className="space-y-1">
-                          <span className="font-medium tracking-tight text-sm">
-                            {unit.unit_type || "Unknown Unit"}
-                          </span>
-                          <p className="text-xs text-muted-foreground">
-                            IP: {unit.ip_address}
-                          </p>
-                          {unit.id_can && (
-                            <p className="text-xs text-muted-foreground">
-                              CAN ID: {unit.id_can}
-                            </p>
-                          )}
-                        </div>
-
-                        <CheckboxPrimitive.Indicator className="absolute top-2 right-2">
-                          <CircleCheck className="fill-primary text-primary-foreground h-4 w-4" />
-                        </CheckboxPrimitive.Indicator>
-                      </CheckboxPrimitive.Root>
-                    ))}
-                  </div>
-                )}
-              </ScrollArea>
-            </CardContent>
-          </Card>
-        </div>
-
-        <DialogFooter>
-          <Button
-            variant="outline"
-            onClick={() => onOpenChange(false)}
-            disabled={loading || scanLoading}
-          >
-            Cancel
-          </Button>
-          <Button
-            onClick={handleSendSchedule}
-            disabled={loading || scanLoading || selectedUnitIds.length === 0}
-          >
-            {loading && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-            {selectedUnitIds.length === 0
-              ? "Send Schedule"
-              : `Send Schedule to ${selectedUnitIds.length} Unit${
-                  selectedUnitIds.length !== 1 ? "s" : ""
-                }`}
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+    <SendItemsDialog
+      open={open}
+      onOpenChange={onOpenChange}
+      items={items}
+      itemType="schedule"
+      onLoadSingleItem={handleLoadSingleSchedule}
+      onSendSingle={handleSendSingleSchedule}
+      onSendBulk={handleSendBulkSchedules}
+      validateSingleItem={handleValidateSingleSchedule}
+    />
   );
 }

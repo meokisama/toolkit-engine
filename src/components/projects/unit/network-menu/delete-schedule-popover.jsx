@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from "react";
+import React, { useState, useCallback, useEffect } from "react";
 import { toast } from "sonner";
 import { Trash2, Loader2 } from "lucide-react";
 import {
@@ -17,6 +17,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 
 export function DeleteScheduleDialog({
   open,
@@ -25,8 +26,17 @@ export function DeleteScheduleDialog({
   asPopover = false,
   trigger = null,
 }) {
+  const [deleteMode, setDeleteMode] = useState("specific"); // specific, all
   const [scheduleIndices, setScheduleIndices] = useState("");
   const [loading, setLoading] = useState(false);
+
+  // Reset form when dialog opens/closes
+  useEffect(() => {
+    if (open) {
+      setDeleteMode("specific");
+      setScheduleIndices("");
+    }
+  }, [open]);
 
   const handleScheduleIndicesChange = useCallback((e) => {
     const value = e.target.value;
@@ -52,8 +62,8 @@ export function DeleteScheduleDialog({
         if (
           !isNaN(start) &&
           !isNaN(end) &&
-          start >= 1 &&
-          end <= 32 &&
+          start >= 0 &&
+          end <= 31 &&
           start <= end
         ) {
           for (let i = start; i <= end; i++) {
@@ -63,7 +73,7 @@ export function DeleteScheduleDialog({
       } else {
         // Handle single number
         const num = parseInt(trimmed);
-        if (!isNaN(num) && num >= 1 && num <= 32) {
+        if (!isNaN(num) && num >= 0 && num <= 31) {
           indices.add(num);
         }
       }
@@ -78,61 +88,89 @@ export function DeleteScheduleDialog({
       return;
     }
 
-    if (!scheduleIndices.trim()) {
-      toast.error("Please enter schedule indices to delete");
-      return;
-    }
-
-    const indicesToDelete = parseScheduleIndices(scheduleIndices);
-
-    if (indicesToDelete.length === 0) {
-      toast.error("Please enter valid schedule indices (1-32)");
-      return;
-    }
-
     setLoading(true);
-    let successCount = 0;
-    let errorCount = 0;
-
     try {
-      console.log("Deleting schedules:", {
-        unitIp: unit.ip_address,
-        canId: unit.id_can,
-        scheduleIndices: indicesToDelete,
-      });
+      if (deleteMode === "all") {
+        // Use the new deleteAllSchedules function for deleting all schedules
+        console.log("Deleting all schedules from unit:", {
+          unitIp: unit.ip_address,
+          canId: unit.id_can,
+        });
 
-      for (const scheduleIndex of indicesToDelete) {
-        try {
-          await window.electronAPI.rcuController.deleteSchedule({
-            unitIp: unit.ip_address,
-            canId: unit.id_can,
-            scheduleIndex,
-          });
-          successCount++;
-        } catch (error) {
-          console.error(`Failed to delete schedule ${scheduleIndex}:`, error);
-          errorCount++;
-        }
-      }
+        const response =
+          await window.electronAPI.rcuController.deleteAllSchedules(
+            unit.ip_address,
+            unit.id_can
+          );
 
-      if (successCount > 0) {
+        console.log("All schedules deleted successfully:", {
+          responseLength: response?.msg?.length,
+          success: response?.result?.success,
+        });
+
         toast.success(
-          `Successfully deleted ${successCount} schedule${
-            successCount > 1 ? "s" : ""
-          }`
+          `Successfully deleted all schedules from unit ${unit.ip_address}`
         );
-      }
-
-      if (errorCount > 0) {
-        toast.error(
-          `Failed to delete ${errorCount} schedule${errorCount > 1 ? "s" : ""}`
-        );
-      }
-
-      // Clear the input and close dialog on success
-      if (successCount > 0) {
-        setScheduleIndices("");
         onOpenChange(false);
+      } else {
+        // Handle specific schedule deletions
+        if (!scheduleIndices.trim()) {
+          toast.error("Please enter schedule indices to delete");
+          return;
+        }
+
+        const indicesToDelete = parseScheduleIndices(scheduleIndices);
+
+        if (indicesToDelete.length === 0) {
+          toast.error("Please enter valid schedule indices (0-31)");
+          return;
+        }
+
+        let successCount = 0;
+        let errorCount = 0;
+
+        console.log("Deleting schedules:", {
+          unitIp: unit.ip_address,
+          canId: unit.id_can,
+          scheduleIndices: indicesToDelete,
+        });
+
+        for (const scheduleIndex of indicesToDelete) {
+          try {
+            // scheduleIndex is already in 0-31 range
+            await window.electronAPI.rcuController.deleteSchedule({
+              unitIp: unit.ip_address,
+              canId: unit.id_can,
+              scheduleIndex: scheduleIndex,
+            });
+            successCount++;
+          } catch (error) {
+            console.error(`Failed to delete schedule ${scheduleIndex}:`, error);
+            errorCount++;
+          }
+        }
+
+        if (successCount > 0) {
+          toast.success(
+            `Successfully deleted ${successCount} schedule${
+              successCount > 1 ? "s" : ""
+            }`
+          );
+        }
+
+        if (errorCount > 0) {
+          toast.error(
+            `Failed to delete ${errorCount} schedule${
+              errorCount > 1 ? "s" : ""
+            }`
+          );
+        }
+
+        // Clear the input and close dialog on success
+        if (successCount > 0) {
+          setScheduleIndices("");
+          onOpenChange(false);
+        }
       }
     } catch (error) {
       console.error("Failed to delete schedules:", error);
@@ -140,7 +178,7 @@ export function DeleteScheduleDialog({
     } finally {
       setLoading(false);
     }
-  }, [unit, scheduleIndices, parseScheduleIndices, onOpenChange]);
+  }, [unit, deleteMode, scheduleIndices, parseScheduleIndices, onOpenChange]);
 
   const handleKeyPress = useCallback(
     (e) => {
@@ -153,35 +191,63 @@ export function DeleteScheduleDialog({
 
   const content = (
     <div className="space-y-4">
-      <div className="space-y-2">
-        <Label htmlFor="scheduleIndices">Schedule Indices</Label>
-        <Input
-          id="scheduleIndices"
-          type="text"
-          value={scheduleIndices}
-          onChange={handleScheduleIndicesChange}
-          onKeyPress={handleKeyPress}
-          placeholder="e.g., 1,3,5-10,15"
-          disabled={loading}
-          autoFocus
-        />
-        <p className="text-xs text-muted-foreground">
-          Enter schedule indices (1-32) separated by commas. Use hyphens for
-          ranges (e.g., 1-5).
-        </p>
+      {/* Delete Mode Selection */}
+      <div className="space-y-3">
+        <Label>Delete Mode</Label>
+        <RadioGroup value={deleteMode} onValueChange={setDeleteMode}>
+          <div className="flex items-center space-x-2">
+            <RadioGroupItem value="specific" id="specific" />
+            <Label htmlFor="specific">Delete Specific Schedules</Label>
+          </div>
+          <div className="flex items-center space-x-2">
+            <RadioGroupItem value="all" id="all" />
+            <Label htmlFor="all">Delete All Schedules (0-31)</Label>
+          </div>
+        </RadioGroup>
       </div>
 
-      <div className="space-y-2">
-        <Label>Examples:</Label>
-        <Textarea
-          readOnly
-          value={`Single: 1
-Multiple: 1,3,5,7
-Range: 1-10
-Mixed: 1,3,5-10,15,20-25`}
-          className="h-20 text-xs font-mono"
-        />
-      </div>
+      {deleteMode === "specific" && (
+        <>
+          <div className="space-y-2">
+            <Label htmlFor="scheduleIndices">Schedule Indices</Label>
+            <Input
+              id="scheduleIndices"
+              type="text"
+              value={scheduleIndices}
+              onChange={handleScheduleIndicesChange}
+              onKeyPress={handleKeyPress}
+              placeholder="e.g., 0,2,4-9,14"
+              disabled={loading}
+              autoFocus
+            />
+            <p className="text-xs text-muted-foreground">
+              Enter schedule indices (0-31) separated by commas. Use hyphens for
+              ranges (e.g., 0-4).
+            </p>
+          </div>
+
+          <div className="space-y-2">
+            <Label>Examples:</Label>
+            <Textarea
+              readOnly
+              value={`Single: 0
+Multiple: 0,2,4,6
+Range: 0-9
+Mixed: 0,2,4-9,14,19-24`}
+              className="h-20 text-xs font-mono"
+            />
+          </div>
+        </>
+      )}
+
+      {deleteMode === "all" && (
+        <div className="p-3 bg-yellow-50 border border-yellow-200 rounded-md">
+          <p className="text-sm text-yellow-800">
+            ⚠️ This will delete all schedules (index 0-31) from the network
+            unit.
+          </p>
+        </div>
+      )}
 
       <div className="flex justify-end gap-2">
         <Button
@@ -193,7 +259,9 @@ Mixed: 1,3,5-10,15,20-25`}
         </Button>
         <Button
           onClick={handleDeleteSchedules}
-          disabled={loading || !scheduleIndices.trim()}
+          disabled={
+            loading || (deleteMode === "specific" && !scheduleIndices.trim())
+          }
           className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
         >
           {loading ? (
@@ -221,8 +289,8 @@ Mixed: 1,3,5-10,15,20-25`}
             <div>
               <h4 className="font-medium text-sm">Delete Schedules</h4>
               <p className="text-sm text-muted-foreground">
-                Delete multiple schedules from unit {unit?.ip_address} (CAN ID:{" "}
-                {unit?.id_can}).
+                Delete schedules from unit {unit?.ip_address} (CAN ID:{" "}
+                {unit?.id_can}). Use indices 0-31.
               </p>
             </div>
             {content}
@@ -241,8 +309,8 @@ Mixed: 1,3,5-10,15,20-25`}
             Delete Schedules
           </DialogTitle>
           <DialogDescription>
-            Delete multiple schedules from unit {unit?.ip_address} (CAN ID:{" "}
-            {unit?.id_can}).
+            Delete schedules from unit {unit?.ip_address} (CAN ID:{" "}
+            {unit?.id_can}). Use indices 0-31.
           </DialogDescription>
         </DialogHeader>
         {content}

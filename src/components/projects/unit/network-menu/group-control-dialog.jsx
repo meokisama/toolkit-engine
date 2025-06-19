@@ -416,7 +416,7 @@ export function GroupControlDialog({ open, onOpenChange, unit }) {
               <div className="flex items-center justify-between">
                 <h3 className="text-lg font-medium">Group States</h3>
                 <span className="text-sm text-muted-foreground">
-                  {groupStates.length} groups loaded (auto-refreshing every 1s)
+                  {groupStates.length} groups loaded
                 </span>
               </div>
 

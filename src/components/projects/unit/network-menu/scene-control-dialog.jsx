@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect } from "react";
+import React, { useState, useCallback, useEffect, useMemo, memo } from "react";
 import { toast } from "sonner";
 import { Play, GitCompare, List, Trash2, Loader2 } from "lucide-react";
 import { DeleteSceneDialog } from "./delete-scene-popover";
@@ -39,7 +39,7 @@ import {
   CURTAIN_VALUE_LABELS,
 } from "@/constants";
 
-// Helper function to get object type label
+// Memoized helper functions for better performance
 const getObjectTypeInfo = (objectValue) => {
   switch (objectValue) {
     case OBJECT_TYPES.OUTPUT_NONE.obj_value:
@@ -65,7 +65,6 @@ const getObjectTypeInfo = (objectValue) => {
   }
 };
 
-// Helper function to get formatted value based on object type
 const getFormattedValue = (objectValue, itemValue) => {
   const percentage = Math.round((itemValue / 255) * 100);
 
@@ -95,41 +94,200 @@ const initialDeleteDialogState = {
   sceneName: "",
 };
 
-export function TriggerSceneDialog({ open, onOpenChange, unit }) {
-  const [sceneIndex, setSceneIndex] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [loadingInfo, setLoadingInfo] = useState(false);
-  const [loadingAllScenes, setLoadingAllScenes] = useState(false);
-  const [scenes, setScenes] = useState([]);
-  const [showScenes, setShowScenes] = useState(false);
-  const [loadingSceneDetails, setLoadingSceneDetails] = useState({});
-  const [deleteConfirmDialog, setDeleteConfirmDialog] = useState(
-    initialDeleteDialogState
-  );
-  const [deletePopoverOpen, setDeletePopoverOpen] = useState(false);
+// Initial state for better state management
+const initialState = {
+  sceneIndex: "",
+  scenes: [],
+  showScenes: false,
+  deleteConfirmDialog: initialDeleteDialogState,
+  deletePopoverOpen: false,
+};
 
-  // Reset state when unit changes
+const initialLoadingState = {
+  loading: false,
+  loadingInfo: false,
+  loadingAllScenes: false,
+  loadingSceneDetails: {},
+};
+
+// Memoized SceneItem component for better performance
+const SceneItem = memo(
+  ({ item, index, getObjectTypeInfo, getFormattedValue }) => {
+    const typeInfo = getObjectTypeInfo(item.objectValue);
+    const formattedValue = getFormattedValue(item.objectValue, item.itemValue);
+
+    return (
+      <div
+        key={index}
+        className="p-3 rounded-lg border bg-muted/20 transition-all hover:shadow-sm"
+      >
+        <div className="flex justify-between items-center">
+          <div className="flex items-center gap-2">
+            <Badge
+              variant="outline"
+              className="text-xs px-1.5 py-0.5 font-mono"
+            >
+              Group: {item.itemAddress}
+            </Badge>
+            <span className="font-medium text-xs">{typeInfo.label}</span>
+          </div>
+          <span className="text-xs font-semibold px-2 py-0.5 rounded bg-background border">
+            {formattedValue}
+          </span>
+        </div>
+      </div>
+    );
+  }
+);
+
+SceneItem.displayName = "SceneItem";
+
+// Memoized SceneCard component to prevent unnecessary re-renders
+const SceneCard = memo(
+  ({
+    scene,
+    onTrigger,
+    onDelete,
+    onLoadDetails,
+    loading,
+    loadingSceneDetails,
+    memoizedGetObjectTypeInfo,
+    memoizedGetFormattedValue,
+  }) => (
+    <Card key={scene.index} className="relative">
+      <CardContent>
+        <div className="flex items-center justify-between">
+          <CardTitle className="flex flex-col gap-2">
+            <span className="text-lg font-bold">{scene.name || "No name"}</span>
+            <div className="text-sm text-muted-foreground font-light">
+              <span className="font-bold">Scene:</span> #{scene.index}
+              <span className="mx-1"> | </span>
+              <span className="font-bold">Group:</span> {scene.address}
+            </div>
+          </CardTitle>
+
+          <div className="flex items-center gap-2">
+            {/* Items Button with Popover */}
+            <Popover modal={true}>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    // Auto-load scene details when popover opens
+                    if (!scene.items || scene.items.length === 0) {
+                      onLoadDetails(scene.index);
+                    }
+                  }}
+                >
+                  <span className="font-light">Items:</span> {scene.itemCount}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-108" align="end">
+                <div className="space-y-3">
+                  <div className="flex justify-between">
+                    <h4 className="font-medium text-sm">
+                      {scene.name || "No name"}
+                    </h4>
+                    <div className="text-xs text-muted-foreground">
+                      <strong>Group:</strong> {scene.address} |{" "}
+                      <strong>Total Items:</strong> {scene.itemCount}
+                    </div>
+                  </div>
+
+                  {loadingSceneDetails[scene.index] ? (
+                    <div className="flex items-center justify-center py-4">
+                      <div className="text-xs text-muted-foreground">
+                        Loading items...
+                      </div>
+                    </div>
+                  ) : scene.items && scene.items.length > 0 ? (
+                    <div className="space-y-2">
+                      <ScrollArea className="h-64 w-full rounded border pr-2">
+                        <div className="p-2 space-y-2">
+                          {scene.items.map((item, index) => (
+                            <SceneItem
+                              key={index}
+                              item={item}
+                              index={index}
+                              getObjectTypeInfo={memoizedGetObjectTypeInfo}
+                              getFormattedValue={memoizedGetFormattedValue}
+                            />
+                          ))}
+                        </div>
+                      </ScrollArea>
+                    </div>
+                  ) : (
+                    <div className="space-y-2">
+                      <p className="text-xs text-muted-foreground">
+                        No items found for this scene.
+                      </p>
+                    </div>
+                  )}
+                </div>
+              </PopoverContent>
+            </Popover>
+
+            {/* Delete Scene Button */}
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={() => onDelete(scene.index, scene.name)}
+              disabled={loading}
+              className="flex items-center gap-1 shadow text-destructive hover:text-destructive"
+            >
+              <Trash2 className="h-3 w-3" />
+            </Button>
+
+            {/* Trigger Scene Button */}
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={() => onTrigger(scene.index, scene.address)}
+              disabled={loading}
+              className="flex items-center gap-1 shadow"
+            >
+              <Play className="h-3 w-3" />
+            </Button>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  )
+);
+
+SceneCard.displayName = "SceneCard";
+
+export function TriggerSceneDialog({ open, onOpenChange, unit }) {
+  // Consolidated state management
+  const [state, setState] = useState(initialState);
+  const [loadingState, setLoadingState] = useState(initialLoadingState);
+
+  // Memoized values for better performance
+  const filteredScenes = useMemo(() => {
+    return state.scenes.filter((scene) => {
+      return !(scene.address === 0 && scene.itemCount === 0);
+    });
+  }, [state.scenes]);
+
+  // Memoized helper functions
+  const memoizedGetObjectTypeInfo = useCallback(getObjectTypeInfo, []);
+  const memoizedGetFormattedValue = useCallback(getFormattedValue, []);
+
+  // Reset state when dialog opens/closes or unit changes
   useEffect(() => {
-    if (open) {
-      setSceneIndex("");
-      setLoading(false);
-      setLoadingInfo(false);
-      setLoadingAllScenes(false);
-      setScenes([]);
-      setShowScenes(false);
-      setLoadingSceneDetails({});
-      setDeleteConfirmDialog(initialDeleteDialogState);
-      setDeletePopoverOpen(false);
+    if (!open) {
+      setState(initialState);
+      setLoadingState(initialLoadingState);
     }
-  }, [unit?.ip_address, unit?.id_can]);
+  }, [open, unit?.ip_address, unit?.id_can]);
 
   const handleLoadSceneInfo = useCallback(async () => {
-    if (!unit || !sceneIndex) {
+    if (!unit || !state.sceneIndex) {
       toast.error("Please enter a scene index to load");
       return;
     }
 
-    const index = parseInt(sceneIndex, 10);
+    const index = parseInt(state.sceneIndex, 10);
     if (isNaN(index) || index < 0 || index > 99) {
       toast.error("Scene index must be between 0 and 99");
       return;
@@ -138,7 +296,7 @@ export function TriggerSceneDialog({ open, onOpenChange, unit }) {
     // Use index directly as protocol index (0-99)
     const protocolIndex = index;
 
-    setLoadingInfo(true);
+    setLoadingState((prev) => ({ ...prev, loadingInfo: true }));
     try {
       console.log("Loading scene information:", {
         unitIp: unit.ip_address,
@@ -164,19 +322,25 @@ export function TriggerSceneDialog({ open, onOpenChange, unit }) {
           items: result.items || [],
         };
 
-        setScenes([sceneCard]);
-        setShowScenes(true);
+        setState((prev) => ({
+          ...prev,
+          scenes: [sceneCard],
+          showScenes: true,
+        }));
         toast.success(`Scene ${index} information loaded successfully`);
       }
     } catch (error) {
       console.error("Failed to load scene information:", error);
       toast.error(`Failed to load scene information: ${error.message}`);
-      setScenes([]);
-      setShowScenes(false);
+      setState((prev) => ({
+        ...prev,
+        scenes: [],
+        showScenes: false,
+      }));
     } finally {
-      setLoadingInfo(false);
+      setLoadingState((prev) => ({ ...prev, loadingInfo: false }));
     }
-  }, [unit, sceneIndex]);
+  }, [unit, state.sceneIndex]);
 
   const handleLoadAllScenes = useCallback(async () => {
     if (!unit) {
@@ -184,7 +348,7 @@ export function TriggerSceneDialog({ open, onOpenChange, unit }) {
       return;
     }
 
-    setLoadingAllScenes(true);
+    setLoadingState((prev) => ({ ...prev, loadingAllScenes: true }));
     try {
       console.log("Loading all scenes information:", {
         unitIp: unit.ip_address,
@@ -198,21 +362,44 @@ export function TriggerSceneDialog({ open, onOpenChange, unit }) {
         });
 
       if (result.scenes && result.scenes.length > 0) {
-        setScenes(result.scenes);
-        setShowScenes(true);
-        toast.success(`Loaded ${result.scenes.length} scenes successfully`);
+        // Filter out scenes with group = 0 and itemCount = 0
+        const filteredScenes = result.scenes.filter((scene) => {
+          return !(scene.address === 0 && scene.itemCount === 0);
+        });
+
+        if (filteredScenes.length > 0) {
+          setState((prev) => ({
+            ...prev,
+            scenes: filteredScenes,
+            showScenes: true,
+          }));
+          toast.success(`Loaded ${filteredScenes.length} scenes successfully`);
+        } else {
+          setState((prev) => ({
+            ...prev,
+            scenes: [],
+            showScenes: false,
+          }));
+          toast.info("No valid scenes found (filtered out empty scenes)");
+        }
       } else {
-        setScenes([]);
-        setShowScenes(false);
+        setState((prev) => ({
+          ...prev,
+          scenes: [],
+          showScenes: false,
+        }));
         toast.info("No scenes found");
       }
     } catch (error) {
       console.error("Failed to load all scenes:", error);
       toast.error(`Failed to load all scenes: ${error.message}`);
-      setScenes([]);
-      setShowScenes(false);
+      setState((prev) => ({
+        ...prev,
+        scenes: [],
+        showScenes: false,
+      }));
     } finally {
-      setLoadingAllScenes(false);
+      setLoadingState((prev) => ({ ...prev, loadingAllScenes: false }));
     }
   }, [unit]);
 
@@ -223,7 +410,7 @@ export function TriggerSceneDialog({ open, onOpenChange, unit }) {
         return;
       }
 
-      setLoading(true);
+      setLoadingState((prev) => ({ ...prev, loading: true }));
       try {
         console.log("Triggering scene from card:", {
           unitIp: unit.ip_address,
@@ -244,46 +431,52 @@ export function TriggerSceneDialog({ open, onOpenChange, unit }) {
         console.error("Failed to trigger scene:", error);
         toast.error(`Failed to trigger scene: ${error.message}`);
       } finally {
-        setLoading(false);
+        setLoadingState((prev) => ({ ...prev, loading: false }));
       }
     },
     [unit]
   );
 
   const handleDeleteSceneFromCard = useCallback((sceneIndex, sceneName) => {
-    setDeleteConfirmDialog({
-      open: true,
-      sceneIndex,
-      sceneName: sceneName || `Scene ${sceneIndex}`,
-    });
+    setState((prev) => ({
+      ...prev,
+      deleteConfirmDialog: {
+        open: true,
+        sceneIndex,
+        sceneName: sceneName || `Scene ${sceneIndex}`,
+      },
+    }));
   }, []);
 
   const handleConfirmDeleteScene = useCallback(async () => {
-    if (!unit || deleteConfirmDialog.sceneIndex === null) {
+    if (!unit || state.deleteConfirmDialog.sceneIndex === null) {
       toast.error("No scene selected for deletion");
       return;
     }
 
-    setLoading(true);
+    setLoadingState((prev) => ({ ...prev, loading: true }));
     try {
       console.log("Deleting scene from card:", {
         unitIp: unit.ip_address,
         canId: unit.id_can,
-        sceneIndex: deleteConfirmDialog.sceneIndex,
+        sceneIndex: state.deleteConfirmDialog.sceneIndex,
       });
 
       await window.electronAPI.rcuController.deleteScene(
         unit.ip_address,
         unit.id_can,
-        deleteConfirmDialog.sceneIndex
+        state.deleteConfirmDialog.sceneIndex
       );
 
       toast.success(
-        `Scene ${deleteConfirmDialog.sceneIndex} deleted successfully`
+        `Scene ${state.deleteConfirmDialog.sceneIndex} deleted successfully`
       );
 
       // Close the confirmation dialog
-      setDeleteConfirmDialog(initialDeleteDialogState);
+      setState((prev) => ({
+        ...prev,
+        deleteConfirmDialog: initialDeleteDialogState,
+      }));
 
       // Optionally refresh the scenes list
       // You could call handleLoadAllScenes() here if needed
@@ -291,9 +484,9 @@ export function TriggerSceneDialog({ open, onOpenChange, unit }) {
       console.error("Failed to delete scene:", error);
       toast.error(`Failed to delete scene: ${error.message}`);
     } finally {
-      setLoading(false);
+      setLoadingState((prev) => ({ ...prev, loading: false }));
     }
-  }, [unit, deleteConfirmDialog]);
+  }, [unit, state.deleteConfirmDialog]);
 
   const handleLoadSceneDetails = useCallback(
     async (sceneIndex) => {
@@ -302,7 +495,13 @@ export function TriggerSceneDialog({ open, onOpenChange, unit }) {
         return;
       }
 
-      setLoadingSceneDetails((prev) => ({ ...prev, [sceneIndex]: true }));
+      setLoadingState((prev) => ({
+        ...prev,
+        loadingSceneDetails: {
+          ...prev.loadingSceneDetails,
+          [sceneIndex]: true,
+        },
+      }));
       try {
         console.log("Loading scene details:", {
           unitIp: unit.ip_address,
@@ -319,20 +518,27 @@ export function TriggerSceneDialog({ open, onOpenChange, unit }) {
 
         if (result && result.items) {
           // Update the specific scene with detailed items
-          setScenes((prevScenes) =>
-            prevScenes.map((scene) =>
+          setState((prevState) => ({
+            ...prevState,
+            scenes: prevState.scenes.map((scene) =>
               scene.index === sceneIndex
                 ? { ...scene, items: result.items }
                 : scene
-            )
-          );
+            ),
+          }));
           toast.success(`Scene ${sceneIndex} details loaded successfully`);
         }
       } catch (error) {
         console.error("Failed to load scene details:", error);
         toast.error(`Failed to load scene details: ${error.message}`);
       } finally {
-        setLoadingSceneDetails((prev) => ({ ...prev, [sceneIndex]: false }));
+        setLoadingState((prev) => ({
+          ...prev,
+          loadingSceneDetails: {
+            ...prev.loadingSceneDetails,
+            [sceneIndex]: false,
+          },
+        }));
       }
     },
     [unit]
@@ -342,17 +548,21 @@ export function TriggerSceneDialog({ open, onOpenChange, unit }) {
     const value = e.target.value;
     // Only allow numbers
     if (value === "" || /^\d+$/.test(value)) {
-      setSceneIndex(value);
+      setState((prev) => ({ ...prev, sceneIndex: value }));
     }
   }, []);
 
   const handleKeyPress = useCallback(
     (e) => {
-      if (e.key === "Enter" && !loading && !loadingInfo) {
+      if (
+        e.key === "Enter" &&
+        !loadingState.loading &&
+        !loadingState.loadingInfo
+      ) {
         handleLoadSceneInfo();
       }
     },
-    [handleLoadSceneInfo, loading, loadingInfo]
+    [handleLoadSceneInfo, loadingState.loading, loadingState.loadingInfo]
   );
 
   return (
@@ -374,27 +584,37 @@ export function TriggerSceneDialog({ open, onOpenChange, unit }) {
                 <Input
                   id="sceneIndex"
                   type="text"
-                  value={sceneIndex}
+                  value={state.sceneIndex}
                   onChange={handleSceneIndexChange}
                   onKeyPress={handleKeyPress}
                   placeholder="Scene (0-99)"
-                  disabled={loading || loadingInfo || loadingAllScenes}
+                  disabled={
+                    loadingState.loading ||
+                    loadingState.loadingInfo ||
+                    loadingState.loadingAllScenes
+                  }
                   autoFocus
                   className="max-w-[150px]"
                 />
                 <Button
                   onClick={handleLoadSceneInfo}
-                  disabled={loadingInfo || !sceneIndex || loadingAllScenes}
+                  disabled={
+                    loadingState.loadingInfo ||
+                    !state.sceneIndex ||
+                    loadingState.loadingAllScenes
+                  }
                   className="flex items-center gap-2"
                 >
                   <GitCompare className="h-4 w-4" />
-                  {loadingInfo ? "Loading..." : "Load Scene"}
+                  {loadingState.loadingInfo ? "Loading..." : "Load Scene"}
                 </Button>
               </div>
               <div className="flex items-center gap-2">
                 <DeleteSceneDialog
-                  open={deletePopoverOpen}
-                  onOpenChange={setDeletePopoverOpen}
+                  open={state.deletePopoverOpen}
+                  onOpenChange={(open) =>
+                    setState((prev) => ({ ...prev, deletePopoverOpen: open }))
+                  }
                   unit={unit}
                   asPopover={true}
                   trigger={
@@ -411,11 +631,15 @@ export function TriggerSceneDialog({ open, onOpenChange, unit }) {
                 <Button
                   onClick={handleLoadAllScenes}
                   size="lg"
-                  disabled={loadingAllScenes || loadingInfo}
+                  disabled={
+                    loadingState.loadingAllScenes || loadingState.loadingInfo
+                  }
                   className="flex items-center gap-2"
                 >
                   <List className="h-4 w-4" />
-                  {loadingAllScenes ? "Loading..." : "Load All Scenes"}
+                  {loadingState.loadingAllScenes
+                    ? "Loading..."
+                    : "Load All Scenes"}
                 </Button>
               </div>
             </div>
@@ -424,151 +648,20 @@ export function TriggerSceneDialog({ open, onOpenChange, unit }) {
           {/* Scenes Display - Always show ScrollArea */}
           <div className="space-y-4">
             <ScrollArea className="h-[450px] w-full rounded-md border p-4">
-              {showScenes && scenes.length > 0 ? (
+              {state.showScenes && state.scenes.length > 0 ? (
                 <div className="grid gap-3">
-                  {scenes.map((scene) => (
-                    <Card key={scene.index} className="relative">
-                      <CardContent>
-                        <div className="flex items-center justify-between">
-                          <CardTitle className="flex flex-col gap-2">
-                            <span className="text-lg font-bold">
-                              {scene.name || "No name"}
-                            </span>
-                            <div className="text-sm text-muted-foreground font-light">
-                              <span className="font-bold">Scene:</span> #
-                              {scene.index}
-                              <span className="mx-1"> | </span>
-                              <span className="font-bold">Group:</span>{" "}
-                              {scene.address}
-                            </div>
-                          </CardTitle>
-
-                          <div className="flex items-center gap-2">
-                            {/* Items Button with Popover */}
-                            <Popover modal={true}>
-                              <PopoverTrigger asChild>
-                                <Button
-                                  variant="outline"
-                                  onClick={() => {
-                                    // Auto-load scene details when popover opens
-                                    if (
-                                      !scene.items ||
-                                      scene.items.length === 0
-                                    ) {
-                                      handleLoadSceneDetails(scene.index);
-                                    }
-                                  }}
-                                >
-                                  <span className="font-light">Items:</span>{" "}
-                                  {scene.itemCount}
-                                </Button>
-                              </PopoverTrigger>
-                              <PopoverContent className="w-108" align="end">
-                                <div className="space-y-3">
-                                  <div className="flex justify-between">
-                                    <h4 className="font-medium text-sm">
-                                      {scene.name || "No name"}
-                                    </h4>
-                                    <div className="text-xs text-muted-foreground">
-                                      <strong>Group:</strong> {scene.address} |{" "}
-                                      <strong>Total Items:</strong>{" "}
-                                      {scene.itemCount}
-                                    </div>
-                                  </div>
-
-                                  {loadingSceneDetails[scene.index] ? (
-                                    <div className="flex items-center justify-center py-4">
-                                      <div className="text-xs text-muted-foreground">
-                                        Loading items...
-                                      </div>
-                                    </div>
-                                  ) : scene.items && scene.items.length > 0 ? (
-                                    <div className="space-y-2">
-                                      <ScrollArea className="h-64 w-full rounded border pr-2">
-                                        <div className="p-2 space-y-2">
-                                          {scene.items.map((item, index) => {
-                                            const typeInfo = getObjectTypeInfo(
-                                              item.objectValue
-                                            );
-                                            const formattedValue =
-                                              getFormattedValue(
-                                                item.objectValue,
-                                                item.itemValue
-                                              );
-
-                                            return (
-                                              <div
-                                                key={index}
-                                                className="p-3 rounded-lg border bg-muted/20 transition-all hover:shadow-sm"
-                                              >
-                                                <div className="flex justify-between items-center">
-                                                  <div className="flex items-center gap-2">
-                                                    <Badge
-                                                      variant="outline"
-                                                      className="text-xs px-1.5 py-0.5 font-mono"
-                                                    >
-                                                      Group: {item.itemAddress}
-                                                    </Badge>
-                                                    <span className="font-medium text-xs">
-                                                      {typeInfo.label}
-                                                    </span>
-                                                  </div>
-                                                  <span className="text-xs font-semibold px-2 py-0.5 rounded bg-background border">
-                                                    {formattedValue}
-                                                  </span>
-                                                </div>
-                                              </div>
-                                            );
-                                          })}
-                                        </div>
-                                      </ScrollArea>
-                                    </div>
-                                  ) : (
-                                    <div className="space-y-2">
-                                      <p className="text-xs text-muted-foreground">
-                                        No items found for this scene.
-                                      </p>
-                                    </div>
-                                  )}
-                                </div>
-                              </PopoverContent>
-                            </Popover>
-
-                            {/* Delete Scene Button */}
-                            <Button
-                              variant="outline"
-                              size="icon"
-                              onClick={() =>
-                                handleDeleteSceneFromCard(
-                                  scene.index,
-                                  scene.name
-                                )
-                              }
-                              disabled={loading}
-                              className="flex items-center gap-1 shadow text-destructive hover:text-destructive"
-                            >
-                              <Trash2 className="h-3 w-3" />
-                            </Button>
-
-                            {/* Trigger Scene Button */}
-                            <Button
-                              variant="outline"
-                              size="icon"
-                              onClick={() =>
-                                handleTriggerSceneFromCard(
-                                  scene.index,
-                                  scene.address
-                                )
-                              }
-                              disabled={loading}
-                              className="flex items-center gap-1 shadow"
-                            >
-                              <Play className="h-3 w-3" />
-                            </Button>
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
+                  {state.scenes.map((scene) => (
+                    <SceneCard
+                      key={scene.index}
+                      scene={scene}
+                      onTrigger={handleTriggerSceneFromCard}
+                      onDelete={handleDeleteSceneFromCard}
+                      onLoadDetails={handleLoadSceneDetails}
+                      loading={loadingState.loading}
+                      loadingSceneDetails={loadingState.loadingSceneDetails}
+                      memoizedGetObjectTypeInfo={memoizedGetObjectTypeInfo}
+                      memoizedGetFormattedValue={memoizedGetFormattedValue}
+                    />
                   ))}
                 </div>
               ) : (
@@ -591,7 +684,11 @@ export function TriggerSceneDialog({ open, onOpenChange, unit }) {
             type="button"
             variant="outline"
             onClick={() => onOpenChange(false)}
-            disabled={loading || loadingInfo || loadingAllScenes}
+            disabled={
+              loadingState.loading ||
+              loadingState.loadingInfo ||
+              loadingState.loadingAllScenes
+            }
           >
             Close
           </Button>
@@ -600,9 +697,13 @@ export function TriggerSceneDialog({ open, onOpenChange, unit }) {
 
       {/* Delete Confirmation Dialog */}
       <AlertDialog
-        open={deleteConfirmDialog.open}
+        open={state.deleteConfirmDialog.open}
         onOpenChange={(open) =>
-          !open && setDeleteConfirmDialog(initialDeleteDialogState)
+          !open &&
+          setState((prev) => ({
+            ...prev,
+            deleteConfirmDialog: initialDeleteDialogState,
+          }))
         }
       >
         <AlertDialogContent>
@@ -612,19 +713,24 @@ export function TriggerSceneDialog({ open, onOpenChange, unit }) {
               Delete Scene
             </AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to delete "{deleteConfirmDialog.sceneName}"
-              from unit {unit?.ip_address}?
+              Are you sure you want to delete "
+              {state.deleteConfirmDialog.sceneName}" from unit{" "}
+              {unit?.ip_address}?
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel disabled={loading}>Cancel</AlertDialogCancel>
+            <AlertDialogCancel disabled={loadingState.loading}>
+              Cancel
+            </AlertDialogCancel>
             <AlertDialogAction
               onClick={handleConfirmDeleteScene}
-              disabled={loading}
+              disabled={loadingState.loading}
               className="bg-destructive text-white hover:bg-destructive/90"
             >
-              {loading && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-              {loading ? "Deleting..." : "Delete"}
+              {loadingState.loading && (
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+              )}
+              {loadingState.loading ? "Deleting..." : "Delete"}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
@@ -632,3 +738,6 @@ export function TriggerSceneDialog({ open, onOpenChange, unit }) {
     </Dialog>
   );
 }
+
+// Export the memoized component for better performance
+export default memo(TriggerSceneDialog);

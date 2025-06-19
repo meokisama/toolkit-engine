@@ -8,6 +8,7 @@ import {
   Upload,
   FileText,
   Save,
+  Send,
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -35,6 +36,8 @@ export function DataTableToolbar({
   onSave,
   hasPendingChanges = false,
   saveLoading = false,
+  onSendAll,
+  sendAllLabel = "Send All",
 }) {
   const [searchValue, setSearchValue] = useState("");
 
@@ -85,6 +88,12 @@ export function DataTableToolbar({
     }
   }, [onSave]);
 
+  const handleSendAll = useCallback(() => {
+    if (onSendAll) {
+      onSendAll();
+    }
+  }, [onSendAll]);
+
   return (
     <div className="flex items-center justify-between gap-2">
       <div className="flex flex-1 items-center space-x-2">
@@ -128,6 +137,12 @@ export function DataTableToolbar({
         )}
       </div>
       <div className="flex items-center space-x-2">
+        {onSendAll && (category === "scene" || category === "schedule") && (
+          <Button variant="outline" onClick={handleSendAll}>
+            <Send className="h-4 w-4" />
+            <span className="hidden lg:inline">{sendAllLabel}</span>
+          </Button>
+        )}
         {(onExport || onImport) && (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>

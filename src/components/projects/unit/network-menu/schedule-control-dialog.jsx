@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect } from "react";
+import React, { useState, useCallback, useEffect, useMemo, memo } from "react";
 import { toast } from "sonner";
 import { Calendar, GitCompare, List, Trash2, Loader2 } from "lucide-react";
 import { DeleteScheduleDialog } from "./delete-schedule-popover";
@@ -31,6 +31,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 
+// Memoized utility functions for better performance
 const formatTime = (hour, minute) => {
   return `${hour.toString().padStart(2, "0")}:${minute
     .toString()
@@ -56,30 +57,139 @@ const initialDeleteDialogState = {
   scheduleName: "",
 };
 
+// Initial state for better state management
+const initialState = {
+  scheduleIndex: "",
+  schedules: [],
+  showSchedules: false,
+  deleteConfirmDialog: initialDeleteDialogState,
+  deletePopoverOpen: false,
+};
+
+const initialLoadingState = {
+  loading: false,
+  loadingInfo: false,
+  loadingAllSchedules: false,
+};
+
+// Memoized ScheduleCard component to prevent unnecessary re-renders
+const ScheduleCard = memo(
+  ({ schedule, onDelete, loading, formatTime, formatDays }) => (
+    <Card key={schedule.index} className="relative">
+      <CardContent>
+        <div className="flex items-center justify-between">
+          <CardTitle className="flex flex-col gap-2">
+            <span className="text-lg font-bold">
+              Schedule #{schedule.index}
+            </span>
+            <div className="text-sm text-muted-foreground font-light">
+              <span className="font-bold">Time:</span>{" "}
+              {formatTime(schedule.hour, schedule.minute)}
+              <span className="mx-1"> | </span>
+              <span className="font-bold">Status:</span>{" "}
+              <Badge variant={schedule.enabled ? "default" : "secondary"}>
+                {schedule.enabled ? "Enabled" : "Disabled"}
+              </Badge>
+            </div>
+            <div className="text-sm text-muted-foreground font-light">
+              <span className="font-bold">Days:</span>{" "}
+              {formatDays(schedule.weekDays)}
+            </div>
+          </CardTitle>
+
+          <div className="flex items-center gap-2">
+            {/* Scenes Button with Popover */}
+            <Popover modal={true}>
+              <PopoverTrigger asChild>
+                <Button variant="outline">
+                  <span className="font-light">Scenes:</span>{" "}
+                  {schedule.sceneCount}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-108" align="end">
+                <div className="space-y-3">
+                  <div className="flex justify-between">
+                    <h4 className="font-medium text-sm">
+                      Schedule #{schedule.index}
+                    </h4>
+                    <div className="text-xs text-muted-foreground">
+                      <strong>Time:</strong>{" "}
+                      {formatTime(schedule.hour, schedule.minute)} |{" "}
+                      <strong>Total Scenes:</strong> {schedule.sceneCount}
+                    </div>
+                  </div>
+
+                  {schedule.sceneAddresses &&
+                  schedule.sceneAddresses.length > 0 ? (
+                    <div className="space-y-2">
+                      <h5 className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                        Scene Addresses
+                      </h5>
+                      <div className="grid grid-cols-4 gap-2 max-h-40 overflow-y-auto">
+                        {schedule.sceneAddresses.map((address, index) => (
+                          <Badge
+                            key={index}
+                            variant="outline"
+                            className="text-xs justify-center"
+                          >
+                            {address}
+                          </Badge>
+                        ))}
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="text-center text-muted-foreground py-4">
+                      <p className="text-sm">No scenes configured</p>
+                    </div>
+                  )}
+                </div>
+              </PopoverContent>
+            </Popover>
+
+            {/* Delete Schedule Button */}
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={() => onDelete(schedule.index)}
+              disabled={loading}
+              className="flex items-center gap-1 shadow text-destructive hover:text-destructive"
+            >
+              <Trash2 className="h-3 w-3" />
+            </Button>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  )
+);
+
+ScheduleCard.displayName = "ScheduleCard";
+
 export function TriggerScheduleDialog({ open, onOpenChange, unit }) {
-  const [scheduleIndex, setScheduleIndex] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [loadingInfo, setLoadingInfo] = useState(false);
-  const [loadingAllSchedules, setLoadingAllSchedules] = useState(false);
-  const [schedules, setSchedules] = useState([]);
-  const [showSchedules, setShowSchedules] = useState(false);
-  const [loadingScheduleDetails, setLoadingScheduleDetails] = useState({});
-  const [deleteConfirmDialog, setDeleteConfirmDialog] = useState(
-    initialDeleteDialogState
-  );
-  const [deletePopoverOpen, setDeletePopoverOpen] = useState(false);
+  // Consolidated state management
+  const [state, setState] = useState(initialState);
+  const [loadingState, setLoadingState] = useState(initialLoadingState);
+
+  // Memoized values for better performance
+  const filteredSchedules = useMemo(() => {
+    return state.schedules.filter((schedule) => {
+      return !(schedule.enabled === false && schedule.sceneCount === 0);
+    });
+  }, [state.schedules]);
+
+  // Memoized format functions
+  const memoizedFormatTime = useCallback(formatTime, []);
+  const memoizedFormatDays = useCallback(formatDays, []);
 
   // Reset state when dialog opens/closes
   useEffect(() => {
     if (!open) {
-      setScheduleIndex("");
-      setSchedules([]);
-      setShowSchedules(false);
-      setLoadingScheduleDetails({});
-      setDeleteConfirmDialog(initialDeleteDialogState);
+      setState(initialState);
+      setLoadingState(initialLoadingState);
     }
   }, [open]);
 
+  // Optimized event handlers with proper state management
   const handleScheduleIndexChange = useCallback((e) => {
     const value = e.target.value;
     // Allow only numbers and limit to 0-31
@@ -87,32 +197,32 @@ export function TriggerScheduleDialog({ open, onOpenChange, unit }) {
       value === "" ||
       (/^\d+$/.test(value) && parseInt(value) >= 0 && parseInt(value) <= 31)
     ) {
-      setScheduleIndex(value);
+      setState((prev) => ({ ...prev, scheduleIndex: value }));
     }
   }, []);
 
   const handleKeyPress = useCallback(
     (e) => {
-      if (e.key === "Enter" && scheduleIndex) {
+      if (e.key === "Enter" && state.scheduleIndex) {
         handleLoadScheduleInfo();
       }
     },
-    [scheduleIndex]
+    [state.scheduleIndex]
   );
 
   const handleLoadScheduleInfo = useCallback(async () => {
-    if (!unit || !scheduleIndex) {
+    if (!unit || !state.scheduleIndex) {
       toast.error("Please enter a schedule index");
       return;
     }
 
-    const index = parseInt(scheduleIndex);
+    const index = parseInt(state.scheduleIndex);
     if (index < 0 || index > 31) {
       toast.error("Schedule index must be between 0 and 31");
       return;
     }
 
-    setLoadingInfo(true);
+    setLoadingState((prev) => ({ ...prev, loadingInfo: true }));
     try {
       console.log("Loading schedule information:", {
         unitIp: unit.ip_address,
@@ -150,19 +260,25 @@ export function TriggerScheduleDialog({ open, onOpenChange, unit }) {
           sceneAddresses: scheduleData.sceneAddresses || [],
         };
 
-        setSchedules([scheduleCard]);
-        setShowSchedules(true);
+        setState((prev) => ({
+          ...prev,
+          schedules: [scheduleCard],
+          showSchedules: true,
+        }));
         toast.success(`Schedule ${index} information loaded successfully`);
       }
     } catch (error) {
       console.error("Failed to load schedule information:", error);
       toast.error(`Failed to load schedule information: ${error.message}`);
-      setSchedules([]);
-      setShowSchedules(false);
+      setState((prev) => ({
+        ...prev,
+        schedules: [],
+        showSchedules: false,
+      }));
     } finally {
-      setLoadingInfo(false);
+      setLoadingState((prev) => ({ ...prev, loadingInfo: false }));
     }
-  }, [unit, scheduleIndex]);
+  }, [unit, state.scheduleIndex]);
 
   const handleLoadAllSchedules = useCallback(async () => {
     if (!unit) {
@@ -170,7 +286,7 @@ export function TriggerScheduleDialog({ open, onOpenChange, unit }) {
       return;
     }
 
-    setLoadingAllSchedules(true);
+    setLoadingState((prev) => ({ ...prev, loadingAllSchedules: true }));
     try {
       console.log("Loading all schedules information:", {
         unitIp: unit.ip_address,
@@ -205,58 +321,91 @@ export function TriggerScheduleDialog({ open, onOpenChange, unit }) {
           sceneAddresses: schedule.sceneAddresses || [],
         }));
 
-        setSchedules(scheduleCards);
-        setShowSchedules(true);
-        toast.success(`Loaded ${scheduleCards.length} schedules successfully`);
+        // Filter out schedules that are disabled and have 0 scenes
+        const filteredSchedules = scheduleCards.filter((schedule) => {
+          return !(schedule.enabled === false && schedule.sceneCount === 0);
+        });
+
+        if (filteredSchedules.length > 0) {
+          setState((prev) => ({
+            ...prev,
+            schedules: filteredSchedules,
+            showSchedules: true,
+          }));
+          toast.success(
+            `Loaded ${filteredSchedules.length} schedules successfully`
+          );
+        } else {
+          setState((prev) => ({
+            ...prev,
+            schedules: [],
+            showSchedules: false,
+          }));
+          toast.info(
+            "No valid schedules found (filtered out disabled empty schedules)"
+          );
+        }
       } else {
-        setSchedules([]);
-        setShowSchedules(false);
+        setState((prev) => ({
+          ...prev,
+          schedules: [],
+          showSchedules: false,
+        }));
         toast.info("No schedules found");
       }
     } catch (error) {
       console.error("Failed to load all schedules:", error);
       toast.error(`Failed to load all schedules: ${error.message}`);
-      setSchedules([]);
-      setShowSchedules(false);
+      setState((prev) => ({
+        ...prev,
+        schedules: [],
+        showSchedules: false,
+      }));
     } finally {
-      setLoadingAllSchedules(false);
+      setLoadingState((prev) => ({ ...prev, loadingAllSchedules: false }));
     }
   }, [unit]);
 
   const handleDeleteScheduleFromCard = useCallback((scheduleIndex) => {
-    setDeleteConfirmDialog({
-      open: true,
-      scheduleIndex,
-      scheduleName: `Schedule ${scheduleIndex}`,
-    });
+    setState((prev) => ({
+      ...prev,
+      deleteConfirmDialog: {
+        open: true,
+        scheduleIndex,
+        scheduleName: `Schedule ${scheduleIndex}`,
+      },
+    }));
   }, []);
 
   const handleConfirmDeleteSchedule = useCallback(async () => {
-    if (!unit || deleteConfirmDialog.scheduleIndex === null) {
+    if (!unit || state.deleteConfirmDialog.scheduleIndex === null) {
       toast.error("Invalid schedule or unit");
       return;
     }
 
-    setLoading(true);
+    setLoadingState((prev) => ({ ...prev, loading: true }));
     try {
       console.log("Deleting schedule from card:", {
         unitIp: unit.ip_address,
         canId: unit.id_can,
-        scheduleIndex: deleteConfirmDialog.scheduleIndex, // Keep 0-31 range
+        scheduleIndex: state.deleteConfirmDialog.scheduleIndex, // Keep 0-31 range
       });
 
       await window.electronAPI.rcuController.deleteSchedule({
         unitIp: unit.ip_address,
         canId: unit.id_can,
-        scheduleIndex: deleteConfirmDialog.scheduleIndex, // Keep 0-31 range
+        scheduleIndex: state.deleteConfirmDialog.scheduleIndex, // Keep 0-31 range
       });
 
       toast.success(
-        `Schedule ${deleteConfirmDialog.scheduleIndex} deleted successfully`
+        `Schedule ${state.deleteConfirmDialog.scheduleIndex} deleted successfully`
       );
 
       // Close the confirmation dialog
-      setDeleteConfirmDialog(initialDeleteDialogState);
+      setState((prev) => ({
+        ...prev,
+        deleteConfirmDialog: initialDeleteDialogState,
+      }));
 
       // Optionally refresh the schedules list
       // You could call handleLoadAllSchedules() here if needed
@@ -264,9 +413,9 @@ export function TriggerScheduleDialog({ open, onOpenChange, unit }) {
       console.error("Failed to delete schedule:", error);
       toast.error(`Failed to delete schedule: ${error.message}`);
     } finally {
-      setLoading(false);
+      setLoadingState((prev) => ({ ...prev, loading: false }));
     }
-  }, [unit, deleteConfirmDialog]);
+  }, [unit, state.deleteConfirmDialog]);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -287,29 +436,37 @@ export function TriggerScheduleDialog({ open, onOpenChange, unit }) {
                 <Input
                   id="scheduleIndex"
                   type="text"
-                  value={scheduleIndex}
+                  value={state.scheduleIndex}
                   onChange={handleScheduleIndexChange}
                   onKeyPress={handleKeyPress}
                   placeholder="Schedule (0-31)"
-                  disabled={loading || loadingInfo || loadingAllSchedules}
+                  disabled={
+                    loadingState.loading ||
+                    loadingState.loadingInfo ||
+                    loadingState.loadingAllSchedules
+                  }
                   autoFocus
                   className="max-w-[150px]"
                 />
                 <Button
                   onClick={handleLoadScheduleInfo}
                   disabled={
-                    loadingInfo || !scheduleIndex || loadingAllSchedules
+                    loadingState.loadingInfo ||
+                    !state.scheduleIndex ||
+                    loadingState.loadingAllSchedules
                   }
                   className="flex items-center gap-2"
                 >
                   <GitCompare className="h-4 w-4" />
-                  {loadingInfo ? "Loading..." : "Load Schedule"}
+                  {loadingState.loadingInfo ? "Loading..." : "Load Schedule"}
                 </Button>
               </div>
               <div className="flex items-center gap-2">
                 <DeleteScheduleDialog
-                  open={deletePopoverOpen}
-                  onOpenChange={setDeletePopoverOpen}
+                  open={state.deletePopoverOpen}
+                  onOpenChange={(open) =>
+                    setState((prev) => ({ ...prev, deletePopoverOpen: open }))
+                  }
                   unit={unit}
                   asPopover={true}
                   trigger={
@@ -326,11 +483,15 @@ export function TriggerScheduleDialog({ open, onOpenChange, unit }) {
                 <Button
                   onClick={handleLoadAllSchedules}
                   size="lg"
-                  disabled={loadingAllSchedules || loadingInfo}
+                  disabled={
+                    loadingState.loadingAllSchedules || loadingState.loadingInfo
+                  }
                   className="flex items-center gap-2"
                 >
                   <List className="h-4 w-4" />
-                  {loadingAllSchedules ? "Loading..." : "Load All Schedules"}
+                  {loadingState.loadingAllSchedules
+                    ? "Loading..."
+                    : "Load All Schedules"}
                 </Button>
               </div>
             </div>
@@ -339,108 +500,17 @@ export function TriggerScheduleDialog({ open, onOpenChange, unit }) {
           {/* Schedules Display - Always show ScrollArea */}
           <div className="space-y-4">
             <ScrollArea className="h-[450px] w-full rounded-md border p-4">
-              {showSchedules && schedules.length > 0 ? (
+              {state.showSchedules && state.schedules.length > 0 ? (
                 <div className="grid gap-3">
-                  {schedules.map((schedule) => (
-                    <Card key={schedule.index} className="relative">
-                      <CardContent>
-                        <div className="flex items-center justify-between">
-                          <CardTitle className="flex flex-col gap-2">
-                            <span className="text-lg font-bold">
-                              Schedule #{schedule.index}
-                            </span>
-                            <div className="text-sm text-muted-foreground font-light">
-                              <span className="font-bold">Time:</span>{" "}
-                              {formatTime(schedule.hour, schedule.minute)}
-                              <span className="mx-1"> | </span>
-                              <span className="font-bold">Status:</span>{" "}
-                              <Badge
-                                variant={
-                                  schedule.enabled ? "default" : "secondary"
-                                }
-                              >
-                                {schedule.enabled ? "Enabled" : "Disabled"}
-                              </Badge>
-                            </div>
-                            <div className="text-sm text-muted-foreground font-light">
-                              <span className="font-bold">Days:</span>{" "}
-                              {formatDays(schedule.weekDays)}
-                            </div>
-                          </CardTitle>
-
-                          <div className="flex items-center gap-2">
-                            {/* Scenes Button with Popover */}
-                            <Popover modal={true}>
-                              <PopoverTrigger asChild>
-                                <Button variant="outline">
-                                  <span className="font-light">Scenes:</span>{" "}
-                                  {schedule.sceneCount}
-                                </Button>
-                              </PopoverTrigger>
-                              <PopoverContent className="w-108" align="end">
-                                <div className="space-y-3">
-                                  <div className="flex justify-between">
-                                    <h4 className="font-medium text-sm">
-                                      Schedule #{schedule.index}
-                                    </h4>
-                                    <div className="text-xs text-muted-foreground">
-                                      <strong>Time:</strong>{" "}
-                                      {formatTime(
-                                        schedule.hour,
-                                        schedule.minute
-                                      )}{" "}
-                                      | <strong>Total Scenes:</strong>{" "}
-                                      {schedule.sceneCount}
-                                    </div>
-                                  </div>
-
-                                  {schedule.sceneAddresses &&
-                                  schedule.sceneAddresses.length > 0 ? (
-                                    <div className="space-y-2">
-                                      <h5 className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-                                        Scene Addresses
-                                      </h5>
-                                      <div className="grid grid-cols-4 gap-2 max-h-40 overflow-y-auto">
-                                        {schedule.sceneAddresses.map(
-                                          (address, index) => (
-                                            <Badge
-                                              key={index}
-                                              variant="outline"
-                                              className="text-xs justify-center"
-                                            >
-                                              {address}
-                                            </Badge>
-                                          )
-                                        )}
-                                      </div>
-                                    </div>
-                                  ) : (
-                                    <div className="text-center text-muted-foreground py-4">
-                                      <p className="text-sm">
-                                        No scenes configured
-                                      </p>
-                                    </div>
-                                  )}
-                                </div>
-                              </PopoverContent>
-                            </Popover>
-
-                            {/* Delete Schedule Button */}
-                            <Button
-                              variant="outline"
-                              size="icon"
-                              onClick={() =>
-                                handleDeleteScheduleFromCard(schedule.index)
-                              }
-                              disabled={loading}
-                              className="flex items-center gap-1 shadow text-destructive hover:text-destructive"
-                            >
-                              <Trash2 className="h-3 w-3" />
-                            </Button>
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
+                  {state.schedules.map((schedule) => (
+                    <ScheduleCard
+                      key={schedule.index}
+                      schedule={schedule}
+                      onDelete={handleDeleteScheduleFromCard}
+                      loading={loadingState.loading}
+                      formatTime={memoizedFormatTime}
+                      formatDays={memoizedFormatDays}
+                    />
                   ))}
                 </div>
               ) : (
@@ -465,7 +535,11 @@ export function TriggerScheduleDialog({ open, onOpenChange, unit }) {
             type="button"
             variant="outline"
             onClick={() => onOpenChange(false)}
-            disabled={loading || loadingInfo || loadingAllSchedules}
+            disabled={
+              loadingState.loading ||
+              loadingState.loadingInfo ||
+              loadingState.loadingAllSchedules
+            }
           >
             Close
           </Button>
@@ -474,27 +548,34 @@ export function TriggerScheduleDialog({ open, onOpenChange, unit }) {
 
       {/* Delete Confirmation Dialog */}
       <AlertDialog
-        open={deleteConfirmDialog.open}
+        open={state.deleteConfirmDialog.open}
         onOpenChange={(open) =>
-          !open && setDeleteConfirmDialog(initialDeleteDialogState)
+          !open &&
+          setState((prev) => ({
+            ...prev,
+            deleteConfirmDialog: initialDeleteDialogState,
+          }))
         }
       >
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Delete Schedule</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to delete {deleteConfirmDialog.scheduleName}
-              ? This action cannot be undone.
+              Are you sure you want to delete{" "}
+              {state.deleteConfirmDialog.scheduleName}? This action cannot be
+              undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel disabled={loading}>Cancel</AlertDialogCancel>
+            <AlertDialogCancel disabled={loadingState.loading}>
+              Cancel
+            </AlertDialogCancel>
             <AlertDialogAction
               onClick={handleConfirmDeleteSchedule}
-              disabled={loading}
+              disabled={loadingState.loading}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
-              {loading ? (
+              {loadingState.loading ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                   Deleting...
@@ -509,3 +590,6 @@ export function TriggerScheduleDialog({ open, onOpenChange, unit }) {
     </Dialog>
   );
 }
+
+// Export the memoized component for better performance
+export default memo(TriggerScheduleDialog);

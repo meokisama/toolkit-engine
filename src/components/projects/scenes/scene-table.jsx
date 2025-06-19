@@ -29,7 +29,7 @@ const SceneTable = memo(function SceneTable({ items = [], loading = false }) {
   });
   const [sendSceneDialog, setSendSceneDialog] = useState({
     open: false,
-    scene: null,
+    items: [],
   });
   const [columnVisibility, setColumnVisibility] = useState({});
   const [pagination, setPagination] = useState({
@@ -191,7 +191,7 @@ const SceneTable = memo(function SceneTable({ items = [], loading = false }) {
       const sceneIndex = items.findIndex((scene) => scene.id === item.id);
       setSendSceneDialog({
         open: true,
-        scene: { ...item, calculatedIndex: sceneIndex },
+        items: [{ ...item, calculatedIndex: sceneIndex }], // Single scene as array
       });
     },
     [items]
@@ -208,6 +208,19 @@ const SceneTable = memo(function SceneTable({ items = [], loading = false }) {
   const handlePaginationChange = useCallback((newPagination) => {
     setPagination(newPagination);
   }, []);
+
+  const handleSendAllScenes = useCallback(() => {
+    // Add calculated index to all scenes
+    const scenesWithIndex = items.map((scene, index) => ({
+      ...scene,
+      calculatedIndex: index,
+    }));
+
+    setSendSceneDialog({
+      open: true,
+      items: scenesWithIndex, // Pass all scenes as array
+    });
+  }, [items]);
 
   // Add item counts to items data
   const itemsWithCounts = items.map((item) => ({
@@ -256,6 +269,8 @@ const SceneTable = memo(function SceneTable({ items = [], loading = false }) {
                   onSave={handleSaveChanges}
                   hasPendingChanges={pendingChanges.size > 0}
                   saveLoading={saveLoading}
+                  onSendAll={handleSendAllScenes}
+                  sendAllLabel="Send All Scenes"
                 />
               )}
               <DataTable
@@ -301,7 +316,7 @@ const SceneTable = memo(function SceneTable({ items = [], loading = false }) {
         onOpenChange={(open) =>
           setSendSceneDialog({ ...sendSceneDialog, open })
         }
-        scene={sendSceneDialog.scene}
+        items={sendSceneDialog.items}
       />
     </div>
   );

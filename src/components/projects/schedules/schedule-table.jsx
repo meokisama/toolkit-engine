@@ -23,8 +23,10 @@ const ScheduleTable = memo(function ScheduleTable({
   const [dialogOpen, setDialogOpen] = useState(false);
   const [dialogMode, setDialogMode] = useState("create");
   const [editingItem, setEditingItem] = useState(null);
-  const [sendScheduleDialogOpen, setSendScheduleDialogOpen] = useState(false);
-  const [scheduleToSend, setScheduleToSend] = useState(null);
+  const [sendScheduleDialog, setSendScheduleDialog] = useState({
+    open: false,
+    items: [],
+  });
   const [confirmDialog, setConfirmDialog] = useState({
     open: false,
     title: "",
@@ -131,16 +133,13 @@ const ScheduleTable = memo(function ScheduleTable({
     (schedule) => {
       // Calculate index based on array position instead of database ID
       const scheduleIndex = items.findIndex((item) => item.id === schedule.id);
-      setScheduleToSend({ ...schedule, calculatedIndex: scheduleIndex });
-      setSendScheduleDialogOpen(true);
+      setSendScheduleDialog({
+        open: true,
+        items: [{ ...schedule, calculatedIndex: scheduleIndex }], // Single schedule as array
+      });
     },
     [items]
   );
-
-  const handleSendScheduleDialogClose = useCallback(() => {
-    setSendScheduleDialogOpen(false);
-    setScheduleToSend(null);
-  }, []);
 
   // Handle inline cell editing
   const handleCellEdit = useCallback((id, field, value) => {
@@ -252,6 +251,19 @@ const ScheduleTable = memo(function ScheduleTable({
     setPagination(newPagination);
   }, []);
 
+  const handleSendAllSchedules = useCallback(() => {
+    // Add calculated index to all schedules
+    const schedulesWithIndex = items.map((schedule, index) => ({
+      ...schedule,
+      calculatedIndex: index,
+    }));
+
+    setSendScheduleDialog({
+      open: true,
+      items: schedulesWithIndex, // Pass all schedules as array
+    });
+  }, [items]);
+
   // Add scene counts to items data
   const itemsWithCounts = items.map((item) => ({
     ...item,
@@ -303,6 +315,8 @@ const ScheduleTable = memo(function ScheduleTable({
                   onSave={handleSaveChanges}
                   hasPendingChanges={pendingChanges.size > 0}
                   saveLoading={saveLoading}
+                  onSendAll={handleSendAllSchedules}
+                  sendAllLabel="Send All Schedules"
                 />
               )}
               <DataTable
@@ -336,9 +350,11 @@ const ScheduleTable = memo(function ScheduleTable({
       />
 
       <SendScheduleDialog
-        open={sendScheduleDialogOpen}
-        onOpenChange={handleSendScheduleDialogClose}
-        schedule={scheduleToSend}
+        open={sendScheduleDialog.open}
+        onOpenChange={(open) =>
+          setSendScheduleDialog({ ...sendScheduleDialog, open })
+        }
+        items={sendScheduleDialog.items}
       />
 
       <ConfirmDialog

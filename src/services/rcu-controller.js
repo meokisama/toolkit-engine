@@ -1,4 +1,4 @@
-import { CONSTANTS } from "../constants.js";
+import { CONSTANTS } from "../constants";
 
 const { UDP_PORT } = CONSTANTS.UNIT.UDP_CONFIG;
 
@@ -23,6 +23,10 @@ const PROTOCOL = {
       SETUP_MULTI_SCENE_SEQ: 27,
       GET_MULTI_SCENE_SEQ: 28,
       TRIGGER_MULTI_SCENE_SEQ: 29,
+      CLEAR_SCENE: 30,
+      CLEAR_MULTI_SCENE: 31,
+      CLEAR_MULTI_SCENE_SEQ: 32,
+      CLEAR_SCHEDULE: 33,
     },
   },
   LIGHTING: {
@@ -48,6 +52,30 @@ const PROTOCOL = {
       GET_OPERATE_MODE: 31,
       SET_ECO_MODE: 32,
       GET_ECO_MODE: 33,
+    },
+  },
+  CURTAIN: {
+    CMD1: 40,
+    CMD2: {
+      GET_CURTAIN_CONFIG: 0,
+      SET_CURTAIN_CONFIG: 1,
+      SET_CURTAIN: 2,
+      GET_CURTAIN: 3,
+      CLEAR_CURTAIN: 4,
+    },
+  },
+  KNX: {
+    CMD1: 50,
+    CMD2: {
+      GET_KNX_OUT_CONFIG: 0,
+      SET_KNX_OUT_CONFIG: 1,
+      SET_KNX_OUT: 2,
+      GET_KNX_OUT: 3,
+      GET_KNX_IN_CONFIG: 4,
+      SET_KNX_IN_CONFIG: 5,
+      SET_KNX_IN: 6,
+      GET_KNX_IN: 7,
+      CLEAR_KNX: 8,
     },
   },
 };
@@ -1033,44 +1061,40 @@ async function triggerScene(unitIp, canId, sceneIndex, sceneAddress) {
 }
 
 // Delete Scene function
-async function deleteScene(unitIp, canId, sceneIndex) {
+async function deleteScene(unitIp, canId, sceneIndex = null) {
   // Convert CAN ID to address format
   const idAddress = convertCanIdToInt(canId);
 
   // Build data array for delete scene
   const data = [];
 
-  // 1. Scene index (1 byte)
-  data.push(sceneIndex);
-
-  // 2. Scene name (15 bytes, all null for delete)
-  for (let i = 0; i < 15; i++) {
-    data.push(0x00);
+  // If sceneIndex is provided, delete specific scene
+  // If sceneIndex is null/undefined, delete all scenes
+  if (sceneIndex !== null && sceneIndex !== undefined) {
+    // Validate scene index
+    if (sceneIndex < 0 || sceneIndex > 99) {
+      throw new Error("Scene index must be between 0 and 99");
+    }
+    // Add scene index to data for specific scene deletion
+    data.push(sceneIndex);
   }
-
-  // 3. Scene address (1 byte) - set to 0 for delete
-  data.push(0x00);
-
-  // 4. Scene amount - number of items (1 byte) - set to 0 for delete
-  data.push(0x00);
-
-  // 5. 7 empty bytes
-  for (let i = 0; i < 7; i++) {
-    data.push(0x00);
-  }
-
-  // No scene items for delete operation
+  // If no sceneIndex provided, data array remains empty to delete all scenes
 
   const response = await sendCommand(
     unitIp,
     UDP_PORT,
     idAddress,
     PROTOCOL.GENERAL.CMD1,
-    PROTOCOL.GENERAL.CMD2.SETUP_SCENE,
+    PROTOCOL.GENERAL.CMD2.CLEAR_SCENE,
     data
   );
 
   return response;
+}
+
+// Delete All Scenes function
+async function deleteAllScenes(unitIp, canId) {
+  return await deleteScene(unitIp, canId); // Call without sceneIndex to delete all
 }
 
 // Setup Schedule function
@@ -1315,57 +1339,40 @@ async function getAllSchedulesInformation(unitIp, canId) {
 }
 
 // Delete Schedule function
-async function deleteSchedule(unitIp, canId, scheduleIndex) {
+async function deleteSchedule(unitIp, canId, scheduleIndex = null) {
   // Convert CAN ID to address format
   const idAddress = convertCanIdToInt(canId);
 
-  // Validate schedule index
-  if (scheduleIndex < 0 || scheduleIndex > 31) {
-    throw new Error("Schedule index must be between 0 and 31");
-  }
-
+  // Build data array for delete schedule
   const data = [];
 
-  // 1. Schedule Index (0-31 for protocol)
-  data.push(scheduleIndex);
-
-  // 2. Enable (0 for delete)
-  data.push(0);
-
-  // 3. Reserve 10 bytes (0x00)
-  for (let i = 0; i < 10; i++) {
-    data.push(0x00);
+  // If scheduleIndex is provided, delete specific schedule
+  // If scheduleIndex is null/undefined, delete all schedules
+  if (scheduleIndex !== null && scheduleIndex !== undefined) {
+    // Validate schedule index
+    if (scheduleIndex < 0 || scheduleIndex > 31) {
+      throw new Error("Schedule index must be between 0 and 31");
+    }
+    // Add schedule index to data for specific schedule deletion
+    data.push(scheduleIndex);
   }
-
-  // 4. Week: 7 bytes (all 0 for delete)
-  for (let i = 0; i < 7; i++) {
-    data.push(0);
-  }
-
-  // 5. Hour (0 for delete)
-  data.push(0);
-
-  // 6. Minutes (0 for delete)
-  data.push(0);
-
-  // 7. Second (0 for delete)
-  data.push(0);
-
-  // 8. Scene amount (0 for delete)
-  data.push(0);
-
-  // No scene addresses for delete operation
+  // If no scheduleIndex provided, data array remains empty to delete all schedules
 
   const response = await sendCommand(
     unitIp,
     UDP_PORT,
     idAddress,
     PROTOCOL.GENERAL.CMD1,
-    PROTOCOL.GENERAL.CMD2.SETUP_SCHEDULE,
+    PROTOCOL.GENERAL.CMD2.CLEAR_SCHEDULE,
     data
   );
 
   return response;
+}
+
+// Delete All Schedules function
+async function deleteAllSchedules(unitIp, canId) {
+  return await deleteSchedule(unitIp, canId); // Call without scheduleIndex to delete all
 }
 
 // Clock Control Functions
@@ -1495,11 +1502,13 @@ export {
   getAllScenesInformation,
   triggerScene,
   deleteScene,
+  deleteAllScenes,
   // Schedule functions
   setupSchedule,
   getScheduleInformation,
   getAllSchedulesInformation,
   deleteSchedule,
+  deleteAllSchedules,
   // Clock functions
   syncClock,
   getClock,

@@ -133,65 +133,86 @@ export function DeleteSceneDialog({
       return;
     }
 
-    const sceneIndexes = getSceneIndexesToDelete();
-
     setLoading(true);
     try {
-      let successCount = 0;
-      let totalOperations = sceneIndexes.length;
+      if (deleteMode === "all") {
+        // Use the new deleteAllScenes function for deleting all scenes
+        console.log("Deleting all scenes from unit:", {
+          unitIp: unit.ip_address,
+          canId: unit.id_can,
+        });
 
-      // Delete scenes from the unit
-      for (const sceneIndex of sceneIndexes) {
-        try {
-          console.log("Deleting scene from unit:", {
-            unitIp: unit.ip_address,
-            canId: unit.id_can,
-            sceneIndex,
-          });
+        const response = await window.electronAPI.rcuController.deleteAllScenes(
+          unit.ip_address,
+          unit.id_can
+        );
 
-          const response = await window.electronAPI.rcuController.deleteScene(
-            unit.ip_address,
-            unit.id_can,
-            sceneIndex
-          );
+        console.log("All scenes deleted successfully:", {
+          responseLength: response?.msg?.length,
+          success: response?.result?.success,
+        });
 
-          console.log(
-            `Scene ${sceneIndex} deleted successfully from ${unit.ip_address}:`,
-            {
-              responseLength: response?.msg?.length,
-              success: response?.result?.success,
-            }
-          );
-
-          successCount++;
-        } catch (error) {
-          console.error(
-            `Failed to delete scene ${sceneIndex} from unit ${unit.ip_address}:`,
-            error
-          );
-        }
-      }
-
-      // Show results
-      if (successCount === totalOperations) {
-        const modeText =
-          deleteMode === "single"
-            ? `scene ${singleIndex}`
-            : deleteMode === "range"
-            ? `scenes ${rangeStart}-${rangeEnd}`
-            : deleteMode === "specific"
-            ? `scenes [${specificIndexes}]`
-            : "all scenes (0-99)";
         toast.success(
-          `Successfully deleted ${modeText} from unit ${unit.ip_address}`
+          `Successfully deleted all scenes from unit ${unit.ip_address}`
         );
         onOpenChange(false);
-      } else if (successCount > 0) {
-        toast.warning(
-          `Partially successful: ${successCount}/${totalOperations} scenes deleted`
-        );
       } else {
-        toast.error("Failed to delete scenes from unit");
+        // Handle individual scene deletions
+        const sceneIndexes = getSceneIndexesToDelete();
+        let successCount = 0;
+        let totalOperations = sceneIndexes.length;
+
+        // Delete scenes from the unit
+        for (const sceneIndex of sceneIndexes) {
+          try {
+            console.log("Deleting scene from unit:", {
+              unitIp: unit.ip_address,
+              canId: unit.id_can,
+              sceneIndex,
+            });
+
+            const response = await window.electronAPI.rcuController.deleteScene(
+              unit.ip_address,
+              unit.id_can,
+              sceneIndex
+            );
+
+            console.log(
+              `Scene ${sceneIndex} deleted successfully from ${unit.ip_address}:`,
+              {
+                responseLength: response?.msg?.length,
+                success: response?.result?.success,
+              }
+            );
+
+            successCount++;
+          } catch (error) {
+            console.error(
+              `Failed to delete scene ${sceneIndex} from unit ${unit.ip_address}:`,
+              error
+            );
+          }
+        }
+
+        // Show results
+        if (successCount === totalOperations) {
+          const modeText =
+            deleteMode === "single"
+              ? `scene ${singleIndex}`
+              : deleteMode === "range"
+              ? `scenes ${rangeStart}-${rangeEnd}`
+              : `scenes [${specificIndexes}]`;
+          toast.success(
+            `Successfully deleted ${modeText} from unit ${unit.ip_address}`
+          );
+          onOpenChange(false);
+        } else if (successCount > 0) {
+          toast.warning(
+            `Partially successful: ${successCount}/${totalOperations} scenes deleted`
+          );
+        } else {
+          toast.error("Failed to delete scenes from unit");
+        }
       }
     } catch (error) {
       console.error("Failed to delete scenes:", error);

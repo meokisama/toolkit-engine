@@ -24,17 +24,19 @@ import {
   getAllScenesInformation,
   triggerScene,
   deleteScene,
+  deleteAllScenes,
   setupSchedule,
   getScheduleInformation,
   getAllSchedulesInformation,
   deleteSchedule,
+  deleteAllSchedules,
   syncClock,
   getClock,
 } from "./services/rcu-controller.js";
 import dgram from "dgram";
 import { updateElectronApp } from "update-electron-app";
 
-updateElectronApp()
+updateElectronApp();
 
 // Handle creating/removing shortcuts on Windows when installing/uninstalling.
 if (started) {
@@ -933,6 +935,15 @@ function setupIpcHandlers() {
     }
   );
 
+  ipcMain.handle("rcu:deleteAllSchedules", async (event, unitIp, canId) => {
+    try {
+      return await deleteAllSchedules(unitIp, canId);
+    } catch (error) {
+      console.error("Error deleting all schedules:", error);
+      throw error;
+    }
+  });
+
   // UDP Network Scanning
   ipcMain.handle("udp:scanNetwork", async (event, config) => {
     try {
@@ -1018,6 +1029,15 @@ function setupIpcHandlers() {
       }
     }
   );
+
+  ipcMain.handle("rcu:deleteAllScenes", async (event, unitIp, canId) => {
+    try {
+      return await deleteAllScenes(unitIp, canId);
+    } catch (error) {
+      console.error("Error deleting all scenes:", error);
+      throw error;
+    }
+  });
 
   // RCU Group Control
   ipcMain.handle(
