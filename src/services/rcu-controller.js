@@ -74,6 +74,47 @@ const PROTOCOL = {
   },
 };
 
+// Helper functions for validation
+const validators = {
+  range: (value, min, max, name) => {
+    if (value < min || value > max) {
+      throw new Error(`${name} must be between ${min} and ${max}`);
+    }
+  },
+  group: (group) => validators.range(group, 1, 255, "Group number"),
+  value: (value) => validators.range(value, 0, 255, "Value"),
+  sceneIndex: (index) => validators.range(index, 0, 99, "Scene index"),
+  scheduleIndex: (index) => validators.range(index, 0, 31, "Schedule index"),
+  curtainIndex: (index) => validators.range(index, 0, 31, "Curtain index"),
+  hour: (hour) => validators.range(hour, 0, 23, "Hour"),
+  minute: (minute) => validators.range(minute, 0, 59, "Minute"),
+  second: (second) => validators.range(second, 0, 59, "Second"),
+  year: (year) => validators.range(year, 0, 99, "Year"),
+  month: (month) => validators.range(month, 1, 12, "Month"),
+  day: (day) => validators.range(day, 1, 31, "Day"),
+  dayOfWeek: (day) => validators.range(day, 0, 6, "Day of week"),
+};
+
+// Helper function for response parsing
+const parseResponse = {
+  success: (response) => {
+    if (response?.msg?.length >= 9) {
+      const data = response.msg.slice(8);
+      return data[0] === 0;
+    }
+    return false;
+  },
+  data: (response, minLength = 8) => {
+    if (response?.msg?.length >= minLength) {
+      return response.msg.slice(8);
+    }
+    throw new Error("Invalid response data");
+  },
+  temperature: (data, offset = 1) => {
+    return ((data[offset + 1] << 8) | data[offset]) / 10;
+  },
+};
+
 function convertCanIdToInt(canId) {
   if (!canId || typeof canId !== "string") {
     return 0x00000101;
@@ -307,26 +348,28 @@ async function sendCommand(
   });
 }
 
-async function setGroupState(unitIp, canId, group, value) {
-  if (group < 1 || group > 255) {
-    throw new Error("Group number must be between 1 and 255");
-  }
-
-  if (value < 0 || value > 255) {
-    throw new Error("Value must be between 0 and 255");
-  }
-
+// Generic lighting command helper
+async function sendLightingCommand(unitIp, canId, cmd2, data) {
   const idAddress = convertCanIdToInt(canId);
-  const response = await sendCommand(
+  return sendCommand(
     unitIp,
     UDP_PORT,
     idAddress,
     PROTOCOL.LIGHTING.CMD1,
+    cmd2,
+    data
+  );
+}
+
+async function setGroupState(unitIp, canId, group, value) {
+  validators.group(group);
+  validators.value(value);
+  return sendLightingCommand(
+    unitIp,
+    canId,
     PROTOCOL.LIGHTING.CMD2.SET_GROUP_STATE,
     [group, value]
   );
-
-  return response;
 }
 
 async function setMultipleGroupStates(unitIp, canId, groupSettings) {
@@ -335,15 +378,11 @@ async function setMultipleGroupStates(unitIp, canId, groupSettings) {
   }
 
   const data = [];
-  for (let i = 0; i < groupSettings.length; i++) {
-    const pair = groupSettings[i];
+  for (const pair of groupSettings) {
     if (Array.isArray(pair) && pair.length === 2) {
-      const group = pair[0];
-      const value = pair[1];
-
+      const [group, value] = pair;
       if (group >= 1 && group <= 255 && value >= 0 && value <= 255) {
-        data.push(group);
-        data.push(value);
+        data.push(group, value);
       }
     }
   }
@@ -352,36 +391,27 @@ async function setMultipleGroupStates(unitIp, canId, groupSettings) {
     throw new Error("No valid groups to set");
   }
 
-  const idAddress = convertCanIdToInt(canId);
-  return await sendCommand(
+  return sendLightingCommand(
     unitIp,
-    UDP_PORT,
-    idAddress,
-    PROTOCOL.LIGHTING.CMD1,
+    canId,
     PROTOCOL.LIGHTING.CMD2.SET_GROUP_STATE,
     data
   );
 }
 
 async function getAllGroupStates(unitIp, canId) {
-  const idAddress = convertCanIdToInt(canId);
-  return await sendCommand(
+  return sendLightingCommand(
     unitIp,
-    UDP_PORT,
-    idAddress,
-    PROTOCOL.LIGHTING.CMD1,
+    canId,
     PROTOCOL.LIGHTING.CMD2.GET_GROUP_STATE,
     []
   );
 }
 
 async function getAllOutputStates(unitIp, canId) {
-  const idAddress = convertCanIdToInt(canId);
-  return await sendCommand(
+  return sendLightingCommand(
     unitIp,
-    UDP_PORT,
-    idAddress,
-    PROTOCOL.LIGHTING.CMD1,
+    canId,
     PROTOCOL.LIGHTING.CMD2.GET_OUTPUT_STATE,
     []
   );
@@ -461,23 +491,17 @@ async function getACStatus(unitIp, canId, group = 1) {
 }
 
 async function getRoomTemp(unitIp, canId, group = 1) {
-  const idAddress = convertCanIdToInt(canId);
-  const response = await sendCommand(
+  return getACData(
     unitIp,
-    UDP_PORT,
-    idAddress,
-    PROTOCOL.AC.CMD1,
+    canId,
     PROTOCOL.AC.CMD2.GET_ROOM_TEMP,
-    [group]
+    [group],
+    (data) => ({
+      group: data[0],
+      temperature: parseResponse.temperature(data, 1),
+    }),
+    "Invalid response from room temperature command"
   );
-
-  if (response && response.msg && response.msg.length >= 11) {
-    const data = response.msg.slice(8); // Skip header
-    const temp = (data[2] * 256 + data[1]) / 10; // Convert to celsius
-    return { group: data[0], temperature: temp };
-  }
-
-  throw new Error("Invalid response from room temperature command");
 }
 
 async function setSettingRoomTemp(
@@ -486,211 +510,167 @@ async function setSettingRoomTemp(
   group = 1,
   temperature = 25.0
 ) {
-  const idAddress = convertCanIdToInt(canId);
-  const tempValue = Math.round(temperature * 10); // Convert to protocol format
+  const tempValue = Math.round(temperature * 10);
   const lowByte = tempValue & 0xff;
   const highByte = (tempValue >> 8) & 0xff;
 
-  const response = await sendCommand(
+  return sendACCommand(
     unitIp,
-    UDP_PORT,
-    idAddress,
-    PROTOCOL.AC.CMD1,
+    canId,
     PROTOCOL.AC.CMD2.SET_SETTING_ROOM_TEMP,
-    [group, lowByte, highByte]
+    [group, lowByte, highByte],
+    "Failed to set room temperature"
   );
-
-  if (response && response.msg && response.msg.length >= 9) {
-    const data = response.msg.slice(8); // Skip header
-    return data[0] === 0; // 0 means success
-  }
-
-  throw new Error("Failed to set room temperature");
 }
 
 async function getSettingRoomTemp(unitIp, canId, group = 1) {
+  return getACData(
+    unitIp,
+    canId,
+    PROTOCOL.AC.CMD2.GET_SETTING_ROOM_TEMP,
+    [group],
+    (data) => ({
+      group: data[0],
+      temperature: parseResponse.temperature(data, 1),
+    }),
+    "Invalid response from setting temperature command"
+  );
+}
+
+// Generic AC command helper
+async function sendACCommand(unitIp, canId, cmd2, data, errorMsg) {
   const idAddress = convertCanIdToInt(canId);
   const response = await sendCommand(
     unitIp,
     UDP_PORT,
     idAddress,
     PROTOCOL.AC.CMD1,
-    PROTOCOL.AC.CMD2.GET_SETTING_ROOM_TEMP,
-    [group]
+    cmd2,
+    data
   );
 
-  if (response && response.msg && response.msg.length >= 11) {
-    const data = response.msg.slice(8); // Skip header
-    const temp = (data[2] * 256 + data[1]) / 10; // Convert to celsius
-    return { group: data[0], temperature: temp };
+  if (!parseResponse.success(response)) {
+    throw new Error(errorMsg);
+  }
+  return true;
+}
+
+async function getACData(unitIp, canId, cmd2, data, parser, errorMsg) {
+  const idAddress = convertCanIdToInt(canId);
+  const response = await sendCommand(
+    unitIp,
+    UDP_PORT,
+    idAddress,
+    PROTOCOL.AC.CMD1,
+    cmd2,
+    data
+  );
+
+  if (response?.msg?.length >= 11) {
+    const responseData = parseResponse.data(response);
+    return parser(responseData);
   }
 
-  throw new Error("Invalid response from setting temperature command");
+  throw new Error(errorMsg);
 }
 
 async function setFanMode(unitIp, canId, group = 1, fanSpeed = 0) {
-  const idAddress = convertCanIdToInt(canId);
-  // fanSpeed: 0=low, 1=medium, 2=high, 3=auto
-  const response = await sendCommand(
+  return sendACCommand(
     unitIp,
-    UDP_PORT,
-    idAddress,
-    PROTOCOL.AC.CMD1,
+    canId,
     PROTOCOL.AC.CMD2.SET_FAN_MODE,
-    [group, fanSpeed, 0]
+    [group, fanSpeed, 0],
+    "Failed to set fan mode"
   );
-
-  if (response && response.msg && response.msg.length >= 9) {
-    const data = response.msg.slice(8); // Skip header
-    return data[0] === 0; // 0 means success
-  }
-
-  throw new Error("Failed to set fan mode");
 }
 
 async function getFanMode(unitIp, canId, group = 1) {
-  const idAddress = convertCanIdToInt(canId);
-  const response = await sendCommand(
+  return getACData(
     unitIp,
-    UDP_PORT,
-    idAddress,
-    PROTOCOL.AC.CMD1,
+    canId,
     PROTOCOL.AC.CMD2.GET_FAN_MODE,
-    [group]
+    [group],
+    (data) => ({ group: data[0], fanSpeed: data[1] }),
+    "Invalid response from fan mode command"
   );
-
-  if (response && response.msg && response.msg.length >= 11) {
-    const data = response.msg.slice(8); // Skip header
-    return { group: data[0], fanSpeed: data[1] };
-  }
-
-  throw new Error("Invalid response from fan mode command");
 }
 
 async function setPowerMode(unitIp, canId, group = 1, power = true) {
-  const idAddress = convertCanIdToInt(canId);
   const powerValue = power ? 1 : 0;
-  const response = await sendCommand(
-    unitIp,
-    UDP_PORT,
-    idAddress,
-    PROTOCOL.AC.CMD1,
-    PROTOCOL.AC.CMD2.SET_POWER_MODE,
-    [group, powerValue, 0]
-  );
-
-  return response?.result?.success || false;
+  try {
+    await sendACCommand(
+      unitIp,
+      canId,
+      PROTOCOL.AC.CMD2.SET_POWER_MODE,
+      [group, powerValue, 0],
+      "Failed to set power mode"
+    );
+    return true;
+  } catch {
+    return false;
+  }
 }
 
 async function getPowerMode(unitIp, canId, group = 1) {
-  const idAddress = convertCanIdToInt(canId);
-  const response = await sendCommand(
+  return getACData(
     unitIp,
-    UDP_PORT,
-    idAddress,
-    PROTOCOL.AC.CMD1,
+    canId,
     PROTOCOL.AC.CMD2.GET_POWER_MODE,
-    [group]
+    [group],
+    (data) => ({ group: data[0], power: data[1] === 1 }),
+    "Invalid response from power mode command"
   );
-
-  if (response && response.msg && response.msg.length >= 11) {
-    const data = response.msg.slice(8); // Skip header
-    return { group: data[0], power: data[1] === 1 };
-  }
-
-  throw new Error("Invalid response from power mode command");
 }
 
 async function setOperateMode(unitIp, canId, group = 1, mode = 1) {
-  const idAddress = convertCanIdToInt(canId);
-  // mode: 1=cool, 2=heat, 3=ventilation/fan
-  const response = await sendCommand(
+  return sendACCommand(
     unitIp,
-    UDP_PORT,
-    idAddress,
-    PROTOCOL.AC.CMD1,
+    canId,
     PROTOCOL.AC.CMD2.SET_OPERATE_MODE,
-    [group, mode, 0]
+    [group, mode, 0],
+    "Failed to set operate mode"
   );
-
-  if (response && response.msg && response.msg.length >= 9) {
-    const data = response.msg.slice(8); // Skip header
-    return data[0] === 0; // 0 means success
-  }
-
-  throw new Error("Failed to set operate mode");
 }
 
 async function getOperateMode(unitIp, canId, group = 1) {
-  const idAddress = convertCanIdToInt(canId);
-  const response = await sendCommand(
+  return getACData(
     unitIp,
-    UDP_PORT,
-    idAddress,
-    PROTOCOL.AC.CMD1,
+    canId,
     PROTOCOL.AC.CMD2.GET_OPERATE_MODE,
-    [group]
+    [group],
+    (data) => ({ group: data[0], mode: data[1] }),
+    "Invalid response from operate mode command"
   );
-
-  if (response && response.msg && response.msg.length >= 11) {
-    const data = response.msg.slice(8); // Skip header
-    return { group: data[0], mode: data[1] };
-  }
-
-  throw new Error("Invalid response from operate mode command");
 }
 
 async function setEcoMode(unitIp, canId, group = 1, eco = false) {
-  const idAddress = convertCanIdToInt(canId);
   const ecoValue = eco ? 1 : 0;
-  const response = await sendCommand(
+  return sendACCommand(
     unitIp,
-    UDP_PORT,
-    idAddress,
-    PROTOCOL.AC.CMD1,
+    canId,
     PROTOCOL.AC.CMD2.SET_ECO_MODE,
-    [group, ecoValue, 0]
+    [group, ecoValue, 0],
+    "Failed to set eco mode"
   );
-
-  if (response && response.msg && response.msg.length >= 9) {
-    const data = response.msg.slice(8); // Skip header
-    return data[0] === 0; // 0 means success
-  }
-
-  throw new Error("Failed to set eco mode");
 }
 
 async function getEcoMode(unitIp, canId, group = 1) {
-  const idAddress = convertCanIdToInt(canId);
-  const response = await sendCommand(
+  return getACData(
     unitIp,
-    UDP_PORT,
-    idAddress,
-    PROTOCOL.AC.CMD1,
+    canId,
     PROTOCOL.AC.CMD2.GET_ECO_MODE,
-    [group]
+    [group],
+    (data) => ({ group: data[0], eco: data[1] === 1 }),
+    "Invalid response from eco mode command"
   );
-
-  if (response && response.msg && response.msg.length >= 11) {
-    const data = response.msg.slice(8); // Skip header
-    return { group: data[0], eco: data[1] === 1 };
-  }
-
-  throw new Error("Invalid response from eco mode command");
 }
 
 // Scene Setup function
-async function setupScene(
-  unitIp,
-  canId,
-  sceneIndex,
-  sceneName,
-  sceneAddress,
-  sceneItems
-) {
-  if (sceneIndex < 0 || sceneIndex > 99) {
-    throw new Error("Scene index must be between 0 and 99");
-  }
+async function setupScene(unitIp, canId, sceneConfig) {
+  const { sceneIndex, sceneName, sceneAddress, sceneItems } = sceneConfig;
+
+  // Validations
+  validators.sceneIndex(sceneIndex);
 
   if (!sceneName || sceneName.length > 15) {
     throw new Error("Scene name must be provided and not exceed 15 characters");
@@ -705,65 +685,41 @@ async function setupScene(
   }
 
   if (sceneItems.length > 85) {
-    // Maximum items that can fit in UDP packet
     throw new Error("Too many scene items. Maximum is 85 items.");
   }
 
   const idAddress = convertCanIdToInt(canId);
+  const data = [sceneIndex];
 
-  // Build data array
-  const data = [];
-
-  // 1. Scene index (1 byte)
-  data.push(sceneIndex);
-
-  // 2. Scene name (15 bytes, null padded)
+  // Scene name (15 bytes, null padded)
   const nameBytes = Buffer.from(sceneName, "utf8");
   for (let i = 0; i < 15; i++) {
-    if (i < nameBytes.length) {
-      data.push(nameBytes[i]);
-    } else {
-      data.push(0x00); // Null padding
-    }
+    data.push(i < nameBytes.length ? nameBytes[i] : 0x00);
   }
 
-  // 3. Scene address (1 byte)
-  const addressValue = parseInt(sceneAddress) || 0;
-  data.push(addressValue);
+  // Scene address and amount
+  data.push(parseInt(sceneAddress) || 0, sceneItems.length);
 
-  // 4. Scene amount - number of items (1 byte)
-  data.push(sceneItems.length);
+  // 7 empty bytes
+  data.push(...Array(7).fill(0x00));
 
-  // 5. 7 empty bytes
-  for (let i = 0; i < 7; i++) {
-    data.push(0x00);
-  }
-
-  // 6. Scene items (3 bytes per item: object_value, item_address, item_value)
+  // Scene items (3 bytes per item)
   for (const item of sceneItems) {
-    // object_value (type)
     data.push(item.object_value || 0);
+    data.push(parseInt(item.item_address) || 0);
 
-    // item_address
-    const itemAddress = parseInt(item.item_address) || 0;
-    data.push(itemAddress);
-
-    // item_value - convert values based on object type
     let itemValue = parseFloat(item.item_value) || 0;
     if (item.object_value === 1) {
-      // LIGHTING object type
-      itemValue = Math.round((itemValue / 100) * 255);
+      itemValue = Math.round((itemValue / 100) * 255); // LIGHTING
     } else if (item.object_value === 6) {
-      // AC_TEMPERATURE object type
-      itemValue = parseInt(itemValue) || 0;
+      itemValue = parseInt(itemValue) || 0; // AC_TEMPERATURE
     } else {
-      // For other types, convert to integer
-      itemValue = parseInt(itemValue) || 0;
+      itemValue = parseInt(itemValue) || 0; // Other types
     }
     data.push(itemValue);
   }
 
-  const response = await sendCommand(
+  return sendCommand(
     unitIp,
     UDP_PORT,
     idAddress,
@@ -771,8 +727,6 @@ async function setupScene(
     PROTOCOL.GENERAL.CMD2.SETUP_SCENE,
     data
   );
-
-  return response;
 }
 
 // Get Scene Information function
@@ -1035,127 +989,102 @@ async function getAllScenesInformation(unitIp, canId) {
 }
 
 // Trigger Scene function
-async function triggerScene(unitIp, canId, sceneIndex, sceneAddress) {
-  // Convert CAN ID to address format
+async function triggerScene(unitIp, canId, sceneAddress) {
   const idAddress = convertCanIdToInt(canId);
-
   const triggerData = parseInt(sceneAddress);
-  const data = [triggerData];
 
-  const response = await sendCommand(
+  return sendCommand(
     unitIp,
     UDP_PORT,
     idAddress,
     PROTOCOL.GENERAL.CMD1,
     PROTOCOL.GENERAL.CMD2.TRIGGER_SCENE,
-    data
+    [triggerData]
   );
-
-  return response;
 }
 
-// Delete Scene function
-async function deleteScene(unitIp, canId, sceneIndex = null) {
-  // Convert CAN ID to address format
+// Generic delete function
+async function deleteItem(unitIp, canId, config, index = null) {
   const idAddress = convertCanIdToInt(canId);
-
-  // Build data array for delete scene
   const data = [];
 
-  // If sceneIndex is provided, delete specific scene
-  // If sceneIndex is null/undefined, delete all scenes
-  if (sceneIndex !== null && sceneIndex !== undefined) {
-    // Validate scene index
-    if (sceneIndex < 0 || sceneIndex > 99) {
-      throw new Error("Scene index must be between 0 and 99");
-    }
-    // Add scene index to data for specific scene deletion
-    data.push(sceneIndex);
+  if (index !== null && index !== undefined) {
+    config.validator(index);
+    data.push(index);
   }
-  // If no sceneIndex provided, data array remains empty to delete all scenes
 
   const response = await sendCommand(
     unitIp,
     UDP_PORT,
     idAddress,
-    PROTOCOL.GENERAL.CMD1,
-    PROTOCOL.GENERAL.CMD2.CLEAR_SCENE,
+    config.cmd1,
+    config.cmd2,
     data
   );
 
-  return response;
+  return config.needsSuccessCheck ? parseResponse.success(response) : response;
+}
+
+// Delete configurations
+const deleteConfigs = {
+  scene: {
+    cmd1: PROTOCOL.GENERAL.CMD1,
+    cmd2: PROTOCOL.GENERAL.CMD2.CLEAR_SCENE,
+    validator: validators.sceneIndex,
+    needsSuccessCheck: false,
+  },
+  schedule: {
+    cmd1: PROTOCOL.GENERAL.CMD1,
+    cmd2: PROTOCOL.GENERAL.CMD2.CLEAR_SCHEDULE,
+    validator: validators.scheduleIndex,
+    needsSuccessCheck: false,
+  },
+  curtain: {
+    cmd1: PROTOCOL.CURTAIN.CMD1,
+    cmd2: PROTOCOL.CURTAIN.CMD2.CLEAR_CURTAIN,
+    validator: validators.curtainIndex,
+    needsSuccessCheck: true,
+  },
+};
+
+// Delete Scene function
+async function deleteScene(unitIp, canId, sceneIndex = null) {
+  return deleteItem(unitIp, canId, deleteConfigs.scene, sceneIndex);
 }
 
 // Delete All Scenes function
 async function deleteAllScenes(unitIp, canId) {
-  return await deleteScene(unitIp, canId); // Call without sceneIndex to delete all
+  return deleteScene(unitIp, canId);
 }
 
 // Setup Schedule function
-async function setupSchedule(
-  unitIp,
-  canId,
-  scheduleIndex,
-  enabled,
-  weekDays,
-  hour,
-  minute,
-  sceneAddresses
-) {
-  // Convert CAN ID to address format
-  const idAddress = convertCanIdToInt(canId);
+async function setupSchedule(unitIp, canId, scheduleConfig) {
+  const { scheduleIndex, enabled, weekDays, hour, minute, sceneAddresses } =
+    scheduleConfig;
 
-  // Validate inputs
-  if (scheduleIndex < 0 || scheduleIndex > 31) {
-    throw new Error("Schedule index must be between 0 and 31");
-  }
-  if (hour < 0 || hour > 23) {
-    throw new Error("Hour must be between 0 and 23");
-  }
-  if (minute < 0 || minute > 59) {
-    throw new Error("Minute must be between 0 and 59");
-  }
+  // Validations
+  validators.scheduleIndex(scheduleIndex);
+  validators.hour(hour);
+  validators.minute(minute);
+
   if (sceneAddresses.length > 32) {
     throw new Error("Maximum 32 scenes allowed per schedule");
   }
 
-  const data = [];
+  const idAddress = convertCanIdToInt(canId);
+  const data = [
+    scheduleIndex,
+    enabled ? 1 : 0,
+    ...Array(10).fill(0x00), // Reserve 10 bytes
+    ...weekDays.map((day) => (day ? 1 : 0)), // Week days (7 bytes)
+    hour,
+    minute,
+    0, // Second (always 0)
+    sceneAddresses.length,
+    ...sceneAddresses.map((addr) => parseInt(addr) || 0),
+  ];
 
-  // 1. Schedule Index (0-31 for protocol)
-  data.push(scheduleIndex);
-
-  // 2. Enable (0/1)
-  data.push(enabled ? 1 : 0);
-
-  // 3. Reserve 10 bytes (0x00)
-  for (let i = 0; i < 10; i++) {
-    data.push(0x00);
-  }
-
-  // 4. Week: 7 bytes (each byte corresponds to one day, 0/1 for each day)
-  // weekDays should be array of 7 boolean values [Mon, Tue, Wed, Thu, Fri, Sat, Sun]
-  for (let i = 0; i < 7; i++) {
-    data.push(weekDays[i] ? 1 : 0);
-  }
-
-  // 5. Hour (0-23)
-  data.push(hour);
-
-  // 6. Minutes (0-59)
-  data.push(minute);
-
-  // 7. Second (always 0)
-  data.push(0);
-
-  // 8. Scene amount (max 32)
-  data.push(sceneAddresses.length);
-
-  // 9. Scene addresses (1 byte per address)
-  for (const address of sceneAddresses) {
-    data.push(parseInt(address) || 0);
-  }
-
-  const response = await sendCommand(
+  return sendCommand(
     unitIp,
     UDP_PORT,
     idAddress,
@@ -1163,8 +1092,6 @@ async function setupSchedule(
     PROTOCOL.GENERAL.CMD2.SETUP_SCHEDULE,
     data
   );
-
-  return response;
 }
 
 // Get Schedule Information function
@@ -1334,77 +1261,37 @@ async function getAllSchedulesInformation(unitIp, canId) {
 
 // Delete Schedule function
 async function deleteSchedule(unitIp, canId, scheduleIndex = null) {
-  const idAddress = convertCanIdToInt(canId);
-
-  const data = [];
-
-  if (scheduleIndex !== null && scheduleIndex !== undefined) {
-    // Validate schedule index
-    if (scheduleIndex < 0 || scheduleIndex > 31) {
-      throw new Error("Schedule index must be between 0 and 31");
-    }
-    // Add schedule index to data for specific schedule deletion
-    data.push(scheduleIndex);
-  }
-
-  const response = await sendCommand(
-    unitIp,
-    UDP_PORT,
-    idAddress,
-    PROTOCOL.GENERAL.CMD1,
-    PROTOCOL.GENERAL.CMD2.CLEAR_SCHEDULE,
-    data
-  );
-
-  return response;
+  return deleteItem(unitIp, canId, deleteConfigs.schedule, scheduleIndex);
 }
 
 // Delete All Schedules function
 async function deleteAllSchedules(unitIp, canId) {
-  return await deleteSchedule(unitIp, canId); // Call without scheduleIndex to delete all
+  return deleteSchedule(unitIp, canId);
 }
 
 // Clock Control Functions
 
 // Sync Clock function - sets the unit's clock
 async function syncClock(unitIp, canId, clockData) {
-  // Convert CAN ID to address format
-  const idAddress = convertCanIdToInt(canId);
-
-  // Validate clock data
   if (!clockData) {
     throw new Error("Clock data is required");
   }
 
   const { year, month, day, dayOfWeek, hour, minute, second } = clockData;
 
-  // Validate date/time values
-  if (year < 0 || year > 99) {
-    throw new Error("Year must be between 0 and 99 (2000-2099)");
-  }
-  if (month < 1 || month > 12) {
-    throw new Error("Month must be between 1 and 12");
-  }
-  if (day < 1 || day > 31) {
-    throw new Error("Day must be between 1 and 31");
-  }
-  if (dayOfWeek < 0 || dayOfWeek > 6) {
-    throw new Error("Day of week must be between 0 and 6 (Monday-Sunday)");
-  }
-  if (hour < 0 || hour > 23) {
-    throw new Error("Hour must be between 0 and 23");
-  }
-  if (minute < 0 || minute > 59) {
-    throw new Error("Minute must be between 0 and 59");
-  }
-  if (second < 0 || second > 59) {
-    throw new Error("Second must be between 0 and 59");
-  }
+  // Validate all clock data
+  validators.year(year);
+  validators.month(month);
+  validators.day(day);
+  validators.dayOfWeek(dayOfWeek);
+  validators.hour(hour);
+  validators.minute(minute);
+  validators.second(second);
 
-  // Build data array: 7 bytes in order year, month, day, dayOfWeek, hour, minute, second
+  const idAddress = convertCanIdToInt(canId);
   const data = [year, month, day, dayOfWeek, hour, minute, second];
 
-  const response = await sendCommand(
+  return sendCommand(
     unitIp,
     UDP_PORT,
     idAddress,
@@ -1412,8 +1299,6 @@ async function syncClock(unitIp, canId, clockData) {
     PROTOCOL.GENERAL.CMD2.SYNC_CLOCK,
     data
   );
-
-  return response;
 }
 
 // Get Clock function - retrieves the unit's current clock
@@ -1652,68 +1537,8 @@ async function setCurtain(unitIp, canId, curtainAddress, value) {
 }
 
 // Set Curtain Configuration function
-async function setCurtainConfig(
-  unitIp,
-  canId,
-  index,
-  address,
-  curtainType,
-  pausePeriod,
-  transitionPeriod,
-  openGroup,
-  closeGroup,
-  stopGroup
-) {
-  // Convert CAN ID to address format
-  const idAddress = convertCanIdToInt(canId);
-
-  // Prepare data according to protocol specification:
-  // • index: 1 byte
-  // • address: 1 byte
-  // • curtain type: 1 byte
-  // • Pause period: 1 byte
-  // • Transition period: 2 bytes (low byte, high byte)
-  // • Reserve 6 Bytes 0x00
-  // • Open group: 1 byte
-  // • Close group: 1 byte
-  // • Stop group: 1 byte
-  const data = [];
-
-  // Index (1 byte)
-  data.push(index & 0xff);
-
-  // Address (1 byte)
-  data.push(address & 0xff);
-
-  // Curtain type (1 byte)
-  data.push(curtainType & 0xff);
-
-  // Pause period (1 byte)
-  data.push(pausePeriod & 0xff);
-
-  // Transition period (2 bytes - low byte, high byte)
-  const transitionLow = transitionPeriod & 0xff;
-  const transitionHigh = (transitionPeriod >> 8) & 0xff;
-  data.push(transitionLow);
-  data.push(transitionHigh);
-
-  // Reserve 6 bytes (0x00)
-  for (let i = 0; i < 6; i++) {
-    data.push(0x00);
-  }
-
-  // Open group (1 byte)
-  data.push(openGroup & 0xff);
-
-  // Close group (1 byte)
-  data.push(closeGroup & 0xff);
-
-  // Stop group (1 byte)
-  data.push(stopGroup & 0xff);
-
-  console.log("Sending curtain config:", {
-    unitIp,
-    canId,
+async function setCurtainConfig(unitIp, canId, curtainConfig) {
+  const {
     index,
     address,
     curtainType,
@@ -1722,6 +1547,29 @@ async function setCurtainConfig(
     openGroup,
     closeGroup,
     stopGroup,
+  } = curtainConfig;
+
+  const idAddress = convertCanIdToInt(canId);
+  const transitionLow = transitionPeriod & 0xff;
+  const transitionHigh = (transitionPeriod >> 8) & 0xff;
+
+  const data = [
+    index & 0xff,
+    address & 0xff,
+    curtainType & 0xff,
+    pausePeriod & 0xff,
+    transitionLow,
+    transitionHigh,
+    ...Array(6).fill(0x00), // Reserve 6 bytes
+    openGroup & 0xff,
+    closeGroup & 0xff,
+    stopGroup & 0xff,
+  ];
+
+  console.log("Sending curtain config:", {
+    unitIp,
+    canId,
+    ...curtainConfig,
     dataLength: data.length,
   });
 
@@ -1734,78 +1582,32 @@ async function setCurtainConfig(
     data
   );
 
-  if (response && response.msg && response.msg.length >= 9) {
-    const responseData = response.msg.slice(8); // Skip header
-    return responseData[0] === 0; // 0 means success
+  if (!parseResponse.success(response)) {
+    throw new Error("Failed to set curtain configuration");
   }
 
-  throw new Error("Failed to set curtain configuration");
+  return true;
 }
 
 // Delete Curtain function
 async function deleteCurtain(unitIp, canId, curtainIndex) {
-  // Convert CAN ID to address format
-  const idAddress = convertCanIdToInt(canId);
-
-  // Validate curtain index (0-31)
-  if (curtainIndex < 0 || curtainIndex > 31) {
-    throw new Error("Curtain index must be between 0 and 31");
-  }
-
-  // Data is curtain index (1 byte)
-  const data = [curtainIndex & 0xff];
-
-  console.log("Deleting curtain:", {
+  console.log("Deleting curtain:", { unitIp, canId, curtainIndex });
+  const result = await deleteItem(
     unitIp,
     canId,
-    curtainIndex,
-  });
-
-  const response = await sendCommand(
-    unitIp,
-    UDP_PORT,
-    idAddress,
-    PROTOCOL.CURTAIN.CMD1,
-    PROTOCOL.CURTAIN.CMD2.CLEAR_CURTAIN,
-    data
+    deleteConfigs.curtain,
+    curtainIndex
   );
-
-  if (response && response.msg && response.msg.length >= 9) {
-    const responseData = response.msg.slice(8); // Skip header
-    return responseData[0] === 0; // 0 means success
-  }
-
-  throw new Error("Failed to delete curtain");
+  if (!result) throw new Error("Failed to delete curtain");
+  return result;
 }
 
 // Delete All Curtains function
 async function deleteAllCurtains(unitIp, canId) {
-  // Convert CAN ID to address format
-  const idAddress = convertCanIdToInt(canId);
-
-  // No data parameter for deleting all curtains
-  const data = [];
-
-  console.log("Deleting all curtains:", {
-    unitIp,
-    canId,
-  });
-
-  const response = await sendCommand(
-    unitIp,
-    UDP_PORT,
-    idAddress,
-    PROTOCOL.CURTAIN.CMD1,
-    PROTOCOL.CURTAIN.CMD2.CLEAR_CURTAIN,
-    data
-  );
-
-  if (response && response.msg && response.msg.length >= 9) {
-    const responseData = response.msg.slice(8); // Skip header
-    return responseData[0] === 0; // 0 means success
-  }
-
-  throw new Error("Failed to delete all curtains");
+  console.log("Deleting all curtains:", { unitIp, canId });
+  const result = await deleteItem(unitIp, canId, deleteConfigs.curtain);
+  if (!result) throw new Error("Failed to delete all curtains");
+  return result;
 }
 
 export {
