@@ -269,5 +269,16 @@ contextBridge.exposeInMainWorld("electronAPI", {
     // Clock Control
     syncClock: (params) => ipcRenderer.invoke("rcu:syncClock", params),
     getClock: (params) => ipcRenderer.invoke("rcu:getClock", params),
+    // Curtain Control
+    getCurtainConfig: (params) =>
+      ipcRenderer.invoke("rcu:getCurtainConfig", params),
+    setCurtain: (params) => ipcRenderer.invoke("rcu:setCurtain", params),
+    setCurtainConfig: (params) =>
+      ipcRenderer.invoke("rcu:setCurtainConfig", params),
+    // Delete Curtain
+    deleteCurtain: (params) => ipcRenderer.invoke("rcu:deleteCurtain", params),
+    // Delete All Curtains
+    deleteAllCurtains: (unitIp, canId) =>
+      ipcRenderer.invoke("rcu:deleteAllCurtains", unitIp, canId),
   },
 });

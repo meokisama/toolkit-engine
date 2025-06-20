@@ -12,6 +12,7 @@ import { RoomControlDialog } from "@/components/projects/unit/network-menu/ac-co
 import { TriggerSceneDialog } from "@/components/projects/unit/network-menu/scene-control-dialog";
 import { TriggerScheduleDialog } from "@/components/projects/unit/network-menu/schedule-control-dialog";
 import { ClockControlDialog } from "@/components/projects/unit/network-menu/clock-control-dialog";
+import { TriggerCurtainDialog } from "@/components/projects/unit/network-menu/curtain-control-dialog";
 import { udpScanner } from "@/services/udp";
 import { toast } from "sonner";
 
@@ -26,6 +27,8 @@ export function NetworkUnitTable({ onTransferToDatabase, existingUnits = [] }) {
   const [triggerScheduleDialogOpen, setTriggerScheduleDialogOpen] =
     useState(false);
   const [clockControlDialogOpen, setClockControlDialogOpen] = useState(false);
+  const [triggerCurtainDialogOpen, setTriggerCurtainDialogOpen] =
+    useState(false);
   const [selectedUnit, setSelectedUnit] = useState(null);
 
   // Auto-load cached network units when component mounts
@@ -203,6 +206,12 @@ export function NetworkUnitTable({ onTransferToDatabase, existingUnits = [] }) {
     setClockControlDialogOpen(true);
   }, []);
 
+  // Handle Curtain Control
+  const handleTriggerCurtain = useCallback((unit) => {
+    setSelectedUnit(unit);
+    setTriggerCurtainDialogOpen(true);
+  }, []);
+
   const handleGroupControlSubmit = async (params) => {
     try {
       if (
@@ -325,6 +334,9 @@ export function NetworkUnitTable({ onTransferToDatabase, existingUnits = [] }) {
                   onTriggerSchedule: handleTriggerSchedule,
                 }}
                 onClockControl={handleClockControl}
+                onCurtainControl={{
+                  onTriggerCurtain: handleTriggerCurtain,
+                }}
                 enableRowSelection={true}
               />
               {networkTable && <DataTablePagination table={networkTable} />}
@@ -364,6 +376,12 @@ export function NetworkUnitTable({ onTransferToDatabase, existingUnits = [] }) {
         <ClockControlDialog
           open={clockControlDialogOpen}
           onOpenChange={setClockControlDialogOpen}
+          unit={selectedUnit}
+        />
+
+        <TriggerCurtainDialog
+          open={triggerCurtainDialogOpen}
+          onOpenChange={setTriggerCurtainDialogOpen}
           unit={selectedUnit}
         />
       </Card>

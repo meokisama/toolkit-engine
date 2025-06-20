@@ -125,10 +125,13 @@ export function CurtainDialog({
     address: "",
     description: "",
     object_type: OBJECT_TYPES.CURTAIN.obj_name,
-    curtain_type: "CURTAIN_PULSE_2P",
+    curtain_type: "",
+    curtain_value: 0, // Default to no selection
     open_group: "",
     close_group: "",
     stop_group: "",
+    pause_period: 0,
+    transition_period: 0,
   });
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({});
@@ -151,29 +154,53 @@ export function CurtainDialog({
           name: item.name || "",
           address: item.address || "",
           description: item.description || "",
-          object_type: item.object_type || OBJECT_TYPES.CURTAIN,
-          curtain_type: item.curtain_type || "CURTAIN_PULSE_2P",
+          object_type: item.object_type || OBJECT_TYPES.CURTAIN.obj_name,
+          curtain_type: item.curtain_type || "",
+          curtain_value: item.curtain_value || 0,
           open_group: item.open_group || "",
           close_group: item.close_group || "",
           stop_group: item.stop_group || "",
+          pause_period: item.pause_period || 0,
+          transition_period: item.transition_period || 0,
         });
       } else {
         setFormData({
           name: "",
           address: "",
           description: "",
-          object_type: OBJECT_TYPES.CURTAIN,
-          curtain_type: "CURTAIN_PULSE_2P",
+          object_type: OBJECT_TYPES.CURTAIN.obj_name,
+          curtain_type: "",
+          curtain_value: 0,
           open_group: "",
           close_group: "",
           stop_group: "",
+          pause_period: 0,
+          transition_period: 0,
         });
       }
     }
   }, [open, item, mode]);
 
+  // Helper function to check if curtain type has 3 groups
+  const hasThreeGroups = (curtainType) => {
+    return curtainType.includes("3P");
+  };
+
   const handleInputChange = (field, value) => {
-    setFormData((prev) => ({ ...prev, [field]: value }));
+    setFormData((prev) => {
+      const newData = { ...prev, [field]: value };
+
+      // Update curtain_value when curtain_type changes
+      if (field === "curtain_type") {
+        const curtainType = CURTAIN_TYPES.find((type) => type.name === value);
+        if (curtainType) {
+          newData.curtain_value = curtainType.value;
+        }
+      }
+
+      return newData;
+    });
+
     // Clear error when user starts typing
     if (errors[field]) {
       setErrors((prev) => ({ ...prev, [field]: null }));
@@ -190,6 +217,17 @@ export function CurtainDialog({
       if (isNaN(addressNum) || addressNum < 1 || addressNum > 255) {
         newErrors.address = "Address must be a number between 1 and 255";
       }
+    }
+
+    // Validate pause_period
+    if (formData.pause_period < 0 || formData.pause_period > 65535) {
+      newErrors.pause_period = "Pause period must be between 0 and 65535";
+    }
+
+    // Validate transition_period
+    if (formData.transition_period < 0 || formData.transition_period > 65535) {
+      newErrors.transition_period =
+        "Transition period must be between 0 and 65535";
     }
 
     // Open, close, and stop groups are all optional for curtain items
@@ -231,8 +269,10 @@ export function CurtainDialog({
     }
   };
 
-  const curtainTypeOptions = CURTAIN_TYPES.map((type) => ({
-    value: type.value,
+  const curtainTypeOptions = CURTAIN_TYPES.filter(
+    (type) => type.value !== 0
+  ).map((type) => ({
+    value: type.name,
     label: type.label,
   }));
 
@@ -322,9 +362,7 @@ export function CurtainDialog({
             <div className="flex gap-2">
               <div
                 className={`flex flex-col gap-2 ${
-                  formData.curtain_type === "CURTAIN_PULSE_3P"
-                    ? "w-1/3"
-                    : "w-1/2"
+                  hasThreeGroups(formData.curtain_type) ? "w-1/3" : "w-1/2"
                 }`}
               >
                 <Label htmlFor="open_group" className="text-right">
@@ -339,7 +377,7 @@ export function CurtainDialog({
                     options={lightingOptions}
                     placeholder="Select group"
                     className={`${
-                      formData.curtain_type === "CURTAIN_PULSE_3P"
+                      hasThreeGroups(formData.curtain_type)
                         ? "max-w-36"
                         : "max-w-55"
                     }`}
@@ -354,9 +392,7 @@ export function CurtainDialog({
 
               <div
                 className={`flex flex-col gap-2 ${
-                  formData.curtain_type === "CURTAIN_PULSE_3P"
-                    ? "w-1/3"
-                    : "w-1/2"
+                  hasThreeGroups(formData.curtain_type) ? "w-1/3" : "w-1/2"
                 }`}
               >
                 <Label htmlFor="close_group" className="text-right">
@@ -371,7 +407,7 @@ export function CurtainDialog({
                     options={lightingOptions}
                     placeholder="Select group"
                     className={`${
-                      formData.curtain_type === "CURTAIN_PULSE_3P"
+                      hasThreeGroups(formData.curtain_type)
                         ? "max-w-36"
                         : "max-w-55"
                     }`}
@@ -384,7 +420,7 @@ export function CurtainDialog({
                 )}
               </div>
 
-              {formData.curtain_type === "CURTAIN_PULSE_3P" && (
+              {hasThreeGroups(formData.curtain_type) && (
                 <div className="flex flex-col gap-2 w-1/3">
                   <Label htmlFor="stop_group" className="text-right">
                     Stop Group
@@ -398,7 +434,7 @@ export function CurtainDialog({
                       options={lightingOptions}
                       placeholder="Select group"
                       className={`${
-                        formData.curtain_type === "CURTAIN_PULSE_3P"
+                        hasThreeGroups(formData.curtain_type)
                           ? "max-w-36"
                           : "max-w-55"
                       }`}
@@ -411,6 +447,58 @@ export function CurtainDialog({
                   )}
                 </div>
               )}
+            </div>
+
+            <div className="flex gap-4">
+              <div className="flex flex-col gap-2 w-1/2">
+                <Label htmlFor="pause_period" className="text-right">
+                  Pause Period (1 = 100ms)
+                </Label>
+                <Input
+                  id="pause_period"
+                  type="number"
+                  min="0"
+                  max="65535"
+                  value={formData.pause_period}
+                  onChange={(e) =>
+                    handleInputChange(
+                      "pause_period",
+                      parseInt(e.target.value) || 0
+                    )
+                  }
+                  placeholder="0"
+                />
+                {errors.pause_period && (
+                  <div className="text-sm text-red-600">
+                    {errors.pause_period}
+                  </div>
+                )}
+              </div>
+
+              <div className="flex flex-col gap-2 w-1/2">
+                <Label htmlFor="transition_period" className="text-right">
+                  Transition Period (s)
+                </Label>
+                <Input
+                  id="transition_period"
+                  type="number"
+                  min="0"
+                  max="65535"
+                  value={formData.transition_period}
+                  onChange={(e) =>
+                    handleInputChange(
+                      "transition_period",
+                      parseInt(e.target.value) || 0
+                    )
+                  }
+                  placeholder="0"
+                />
+                {errors.transition_period && (
+                  <div className="text-sm text-red-600">
+                    {errors.transition_period}
+                  </div>
+                )}
+              </div>
             </div>
 
             <div className="flex flex-col gap-2">

@@ -123,10 +123,13 @@ class DatabaseService {
         description TEXT,
         object_type TEXT DEFAULT 'OBJ_CURTAIN',
         object_value INTEGER DEFAULT 2,
-        curtain_type TEXT DEFAULT 'CURTAIN_PULSE_2P',
+        curtain_type TEXT DEFAULT '',
+        curtain_value INTEGER DEFAULT 0,
         open_group TEXT,
         close_group TEXT,
         stop_group TEXT,
+        pause_period INTEGER DEFAULT 0,
+        transition_period INTEGER DEFAULT 0,
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
         updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
         FOREIGN KEY (project_id) REFERENCES projects (id) ON DELETE CASCADE
@@ -473,9 +476,12 @@ class DatabaseService {
             description: item.description,
             object_type: item.object_type,
             curtain_type: item.curtain_type,
+            curtain_value: item.curtain_value,
             open_group: item.open_group,
             close_group: item.close_group,
             stop_group: item.stop_group,
+            pause_period: item.pause_period,
+            transition_period: item.transition_period,
           };
           this.createProjectItem(newProjectId, itemData, category);
         } else {
@@ -602,9 +608,12 @@ class DatabaseService {
         object_type,
         label,
         curtain_type,
+        curtain_value,
         open_group,
         close_group,
         stop_group,
+        pause_period,
+        transition_period,
       } = itemData;
 
       // Special validation for lighting to prevent duplicate addresses
@@ -682,9 +691,10 @@ class DatabaseService {
           throw new Error("Address is required for curtain items.");
         }
         const object_value = this.getObjectValue(object_type);
+
         const stmt = this.db.prepare(`
-          INSERT INTO ${tableName} (project_id, name, address, description, object_type, object_value, curtain_type, open_group, close_group, stop_group)
-          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+          INSERT INTO ${tableName} (project_id, name, address, description, object_type, object_value, curtain_type, curtain_value, open_group, close_group, stop_group, pause_period, transition_period)
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         `);
         const result = stmt.run(
           projectId,
@@ -694,9 +704,12 @@ class DatabaseService {
           object_type,
           object_value,
           curtain_type,
+          curtain_value || 3, // Default to CURTAIN_PULSE_2P value
           open_group || null,
           close_group || null,
-          stop_group || null
+          stop_group || null,
+          pause_period || 0,
+          transition_period || 0
         );
         return this.getProjectItemById(result.lastInsertRowid, tableName);
       } else if (tableName === "knx" || tableName === "scene") {
@@ -739,9 +752,12 @@ class DatabaseService {
         object_type,
         label,
         curtain_type,
+        curtain_value,
         open_group,
         close_group,
         stop_group,
+        pause_period,
+        transition_period,
       } = itemData;
 
       // Special validation for aircon to prevent duplicate addresses
@@ -854,9 +870,10 @@ class DatabaseService {
         const currentItem = this.getProjectItemById(id, tableName);
 
         const object_value = this.getObjectValue(object_type);
+
         const stmt = this.db.prepare(`
           UPDATE ${tableName}
-          SET name = ?, address = ?, description = ?, object_type = ?, object_value = ?, curtain_type = ?, open_group = ?, close_group = ?, stop_group = ?, updated_at = CURRENT_TIMESTAMP
+          SET name = ?, address = ?, description = ?, object_type = ?, object_value = ?, curtain_type = ?, curtain_value = ?, open_group = ?, close_group = ?, stop_group = ?, pause_period = ?, transition_period = ?, updated_at = CURRENT_TIMESTAMP
           WHERE id = ?
         `);
         const result = stmt.run(
@@ -866,9 +883,12 @@ class DatabaseService {
           object_type,
           object_value,
           curtain_type,
+          curtain_value || 3,
           open_group || null,
           close_group || null,
           stop_group || null,
+          pause_period || 0,
+          transition_period || 0,
           id
         );
 
@@ -1006,9 +1026,12 @@ class DatabaseService {
         );
         duplicatedItem.curtain_type =
           originalItem.curtain_type || "CURTAIN_PULSE_2P";
+        duplicatedItem.curtain_value = originalItem.curtain_value || 3;
         duplicatedItem.open_group = originalItem.open_group || null;
         duplicatedItem.close_group = originalItem.close_group || null;
         duplicatedItem.stop_group = originalItem.stop_group || null;
+        duplicatedItem.pause_period = originalItem.pause_period || 0;
+        duplicatedItem.transition_period = originalItem.transition_period || 0;
       }
 
       // For scene, find a unique address in range 1-255 if address exists

@@ -39,8 +39,10 @@ export const createCurtainColumns = (
       : `Group ${item.address}`,
   }));
 
-  const curtainTypeOptions = CURTAIN_TYPES.map((type) => ({
-    value: type.value,
+  const curtainTypeOptions = CURTAIN_TYPES.filter(
+    (type) => type.value !== 0
+  ).map((type) => ({
+    value: type.name,
     label: type.label,
   }));
 
@@ -256,8 +258,8 @@ export const createCurtainColumns = (
           stopGroup
         );
 
-        // Only show stop group for 3P type
-        if (effectiveCurtainType !== "CURTAIN_PULSE_3P") {
+        // Only show stop group for 3P types
+        if (!effectiveCurtainType || !effectiveCurtainType.includes("3P")) {
           return <p className="text-muted-foreground text-center">-</p>;
         }
 
@@ -276,6 +278,82 @@ export const createCurtainColumns = (
       enableHiding: true,
       meta: {
         className: "w-[10%]",
+      },
+    },
+    {
+      accessorKey: "pause_period",
+      header: ({ column }) => (
+        <DataTableColumnHeader
+          column={column}
+          title="Pause"
+          className="text-center"
+        />
+      ),
+      cell: ({ row }) => {
+        const pausePeriod = row.getValue("pause_period");
+        const effectiveValue = getEffectiveValue(
+          row.original.id,
+          "pause_period",
+          pausePeriod
+        );
+        return (
+          <EditableCell
+            value={effectiveValue}
+            onSave={(value) =>
+              onCellEdit(row.original.id, "pause_period", parseInt(value) || 0)
+            }
+            placeholder="0"
+            className="text-center"
+            type="number"
+            min="0"
+            max="65535"
+          />
+        );
+      },
+      enableSorting: true,
+      enableHiding: true,
+      meta: {
+        className: "w-[8%]",
+      },
+    },
+    {
+      accessorKey: "transition_period",
+      header: ({ column }) => (
+        <DataTableColumnHeader
+          column={column}
+          title="Transition"
+          className="text-center"
+        />
+      ),
+      cell: ({ row }) => {
+        const transitionPeriod = row.getValue("transition_period");
+        const effectiveValue = getEffectiveValue(
+          row.original.id,
+          "transition_period",
+          transitionPeriod
+        );
+        return (
+          <EditableCell
+            value={effectiveValue}
+            onSave={(value) =>
+              onCellEdit(
+                row.original.id,
+                "transition_period",
+                parseInt(value) || 0
+              )
+            }
+            placeholder="0"
+            className="text-center"
+            type="number"
+            min="0"
+            max="65535"
+          />
+        );
+      },
+      enableSorting: true,
+      enableHiding: true,
+      meta: {
+        className: "w-[8%]",
       },
     },
     {
@@ -303,7 +381,7 @@ export const createCurtainColumns = (
       enableSorting: false,
       enableHiding: true,
       meta: {
-        className: "w-[25%]",
+        className: "w-[19%]",
       },
     },
     {

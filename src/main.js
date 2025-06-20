@@ -32,6 +32,11 @@ import {
   deleteAllSchedules,
   syncClock,
   getClock,
+  getCurtainConfig,
+  setCurtain,
+  setCurtainConfig,
+  deleteCurtain,
+  deleteAllCurtains,
 } from "./services/rcu-controller.js";
 import dgram from "dgram";
 import { updateElectronApp } from "update-electron-app";
@@ -1233,6 +1238,89 @@ function setupIpcHandlers() {
       return await getClock(unitIp, canId);
     } catch (error) {
       console.error("Error getting clock:", error);
+      throw error;
+    }
+  });
+
+  // Curtain Control functions
+  ipcMain.handle(
+    "rcu:getCurtainConfig",
+    async (event, { unitIp, canId, curtainIndex }) => {
+      try {
+        return await getCurtainConfig(unitIp, canId, curtainIndex);
+      } catch (error) {
+        console.error("Error getting curtain configuration:", error);
+        throw error;
+      }
+    }
+  );
+
+  ipcMain.handle(
+    "rcu:setCurtain",
+    async (event, { unitIp, canId, curtainAddress, value }) => {
+      try {
+        return await setCurtain(unitIp, canId, curtainAddress, value);
+      } catch (error) {
+        console.error("Error setting curtain:", error);
+        throw error;
+      }
+    }
+  );
+
+  ipcMain.handle(
+    "rcu:setCurtainConfig",
+    async (
+      event,
+      {
+        unitIp,
+        canId,
+        index,
+        address,
+        curtainType,
+        pausePeriod,
+        transitionPeriod,
+        openGroup,
+        closeGroup,
+        stopGroup,
+      }
+    ) => {
+      try {
+        return await setCurtainConfig(
+          unitIp,
+          canId,
+          index,
+          address,
+          curtainType,
+          pausePeriod,
+          transitionPeriod,
+          openGroup,
+          closeGroup,
+          stopGroup
+        );
+      } catch (error) {
+        console.error("Error setting curtain configuration:", error);
+        throw error;
+      }
+    }
+  );
+
+  ipcMain.handle(
+    "rcu:deleteCurtain",
+    async (event, { unitIp, canId, curtainIndex }) => {
+      try {
+        return await deleteCurtain(unitIp, canId, curtainIndex);
+      } catch (error) {
+        console.error("Error deleting curtain:", error);
+        throw error;
+      }
+    }
+  );
+
+  ipcMain.handle("rcu:deleteAllCurtains", async (event, unitIp, canId) => {
+    try {
+      return await deleteAllCurtains(unitIp, canId);
+    } catch (error) {
+      console.error("Error deleting all curtains:", error);
       throw error;
     }
   });

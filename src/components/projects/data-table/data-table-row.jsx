@@ -13,6 +13,7 @@ import {
   Send,
   Calendar,
   Clock,
+  ChevronsUpDown,
 } from "lucide-react";
 
 import { TableCell, TableRow } from "@/components/ui/table";
@@ -35,6 +36,7 @@ export function DataTableRow({
   onSceneControl,
   onScheduleControl,
   onClockControl,
+  onCurtainControl,
   onSendSchedule,
   onSendScene,
 }) {
@@ -71,6 +73,7 @@ export function DataTableRow({
             onSceneControl ||
             onScheduleControl ||
             onClockControl ||
+            onCurtainControl ||
             onSendSchedule ||
             onSendScene ||
             onDelete) && <ContextMenuSeparator />}
@@ -85,6 +88,7 @@ export function DataTableRow({
               onSceneControl ||
               onScheduleControl ||
               onClockControl ||
+              onCurtainControl ||
               onSendSchedule ||
               onSendScene ||
               onDelete) && <ContextMenuSeparator />}
@@ -129,6 +133,17 @@ export function DataTableRow({
             <Clock className="text-muted-foreground" />
             <span>Clock Control</span>
           </ContextMenuItem>
+        )}
+        {onCurtainControl && (
+          <>
+            <ContextMenuItem
+              onClick={() => onCurtainControl.onTriggerCurtain(item)}
+            >
+              <ChevronsUpDown className="text-muted-foreground" />
+              <span>Curtain Control</span>
+            </ContextMenuItem>
+            <ContextMenuSeparator />
+          </>
         )}
         {onSendSchedule && (
           <>

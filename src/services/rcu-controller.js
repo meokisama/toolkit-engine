@@ -60,7 +60,6 @@ const PROTOCOL = {
       GET_CURTAIN_CONFIG: 0,
       SET_CURTAIN_CONFIG: 1,
       SET_CURTAIN: 2,
-      GET_CURTAIN: 3,
       CLEAR_CURTAIN: 4,
     },
   },
@@ -70,11 +69,6 @@ const PROTOCOL = {
       GET_KNX_OUT_CONFIG: 0,
       SET_KNX_OUT_CONFIG: 1,
       SET_KNX_OUT: 2,
-      GET_KNX_OUT: 3,
-      GET_KNX_IN_CONFIG: 4,
-      SET_KNX_IN_CONFIG: 5,
-      SET_KNX_IN: 6,
-      GET_KNX_IN: 7,
       CLEAR_KNX: 8,
     },
   },
@@ -1340,14 +1334,10 @@ async function getAllSchedulesInformation(unitIp, canId) {
 
 // Delete Schedule function
 async function deleteSchedule(unitIp, canId, scheduleIndex = null) {
-  // Convert CAN ID to address format
   const idAddress = convertCanIdToInt(canId);
 
-  // Build data array for delete schedule
   const data = [];
 
-  // If scheduleIndex is provided, delete specific schedule
-  // If scheduleIndex is null/undefined, delete all schedules
   if (scheduleIndex !== null && scheduleIndex !== undefined) {
     // Validate schedule index
     if (scheduleIndex < 0 || scheduleIndex > 31) {
@@ -1356,7 +1346,6 @@ async function deleteSchedule(unitIp, canId, scheduleIndex = null) {
     // Add schedule index to data for specific schedule deletion
     data.push(scheduleIndex);
   }
-  // If no scheduleIndex provided, data array remains empty to delete all schedules
 
   const response = await sendCommand(
     unitIp,
@@ -1478,6 +1467,347 @@ async function getClock(unitIp, canId) {
   throw new Error("Invalid response from get clock command");
 }
 
+// Get Curtain Configuration function
+async function getCurtainConfig(unitIp, canId, curtainIndex = null) {
+  // Convert CAN ID to address format
+  const idAddress = convertCanIdToInt(canId);
+
+  // Data is curtain index (1 byte) if specified, empty for all curtains
+  let data = [];
+  if (curtainIndex !== null) {
+    data = [curtainIndex & 0xff];
+  }
+
+  console.log("Getting curtain config:", {
+    unitIp,
+    canId,
+    curtainIndex,
+    dataLength: data.length,
+  });
+
+  if (curtainIndex !== null) {
+    // Get single curtain configuration
+    const response = await sendCommand(
+      unitIp,
+      UDP_PORT,
+      idAddress,
+      PROTOCOL.CURTAIN.CMD1,
+      PROTOCOL.CURTAIN.CMD2.GET_CURTAIN_CONFIG,
+      data,
+      true // Skip status check for GET commands
+    );
+
+    if (response && response.msg && response.msg.length >= 9) {
+      const responseData = response.msg.slice(8); // Skip header
+      console.log(
+        "Single curtain response data:",
+        Array.from(responseData)
+          .map((b) => "0x" + b.toString(16).padStart(2, "0"))
+          .join(" ")
+      );
+      const result = parseCurtainConfigResponse(responseData);
+      console.log("Parsed single curtain config:", result);
+      return result;
+    }
+
+    throw new Error("Failed to get curtain configuration");
+  } else {
+    // Get all curtain configurations
+    const result = await sendCommandMultipleResponses(
+      unitIp,
+      UDP_PORT,
+      idAddress,
+      PROTOCOL.CURTAIN.CMD1,
+      PROTOCOL.CURTAIN.CMD2.GET_CURTAIN_CONFIG,
+      data,
+      15000 // 15 second timeout
+    );
+
+    console.log("Get all curtains result:", {
+      hasResult: !!result,
+      hasResponses: !!(result && result.responses),
+      responseCount: result?.responses?.length || 0,
+      successPacketReceived: result?.successPacketReceived,
+    });
+
+    if (result && result.responses && result.responses.length > 0) {
+      const curtains = [];
+
+      console.log(`Processing ${result.responses.length} curtain responses`);
+
+      for (let i = 0; i < result.responses.length; i++) {
+        const response = result.responses[i];
+        try {
+          if (response && response.msg && response.msg.length >= 9) {
+            const responseData = response.msg.slice(8); // Skip header
+            console.log(
+              `Curtain response ${i + 1} data:`,
+              Array.from(responseData)
+                .map((b) => "0x" + b.toString(16).padStart(2, "0"))
+                .join(" ")
+            );
+            const curtainConfig = parseCurtainConfigResponse(responseData);
+            if (curtainConfig) {
+              console.log(`Parsed curtain config ${i + 1}:`, curtainConfig);
+              curtains.push(curtainConfig);
+            } else {
+              console.log(`Failed to parse curtain config ${i + 1}`);
+            }
+          } else {
+            console.log(
+              `Invalid response ${i + 1}:`,
+              response ? `msg length: ${response.msg?.length}` : "null response"
+            );
+          }
+        } catch (error) {
+          console.error(`Error parsing curtain response ${i + 1}:`, error);
+        }
+      }
+
+      console.log(`Total curtains parsed: ${curtains.length}`);
+      return {
+        result: { success: result.successPacketReceived },
+        curtains: curtains,
+        successPacketReceived: result.successPacketReceived,
+        totalResponses: result.responses.length,
+      };
+    }
+
+    throw new Error(
+      "No valid responses received from get curtain configuration command"
+    );
+  }
+}
+
+// Helper function to parse curtain configuration response
+function parseCurtainConfigResponse(data) {
+  if (!data || data.length < 14) {
+    console.warn("Invalid curtain config response data length:", data?.length);
+    return null;
+  }
+
+  try {
+    const index = data[0];
+    const address = data[1];
+    const curtainType = data[2];
+    const pausePeriod = data[3];
+    const transitionPeriod = data[4] | (data[5] << 8); // Low byte + high byte
+    // Skip 6 reserved bytes (data[6] to data[11]) - same as SET packet structure
+    const openGroup = data[12];
+    const closeGroup = data[13];
+    const stopGroup = data[14];
+
+    return {
+      index,
+      address,
+      curtainType,
+      pausePeriod,
+      transitionPeriod,
+      openGroup,
+      closeGroup,
+      stopGroup,
+    };
+  } catch (error) {
+    console.error("Error parsing curtain config response:", error);
+    return null;
+  }
+}
+
+// Set Curtain function (control curtain - stop, open, close)
+async function setCurtain(unitIp, canId, curtainAddress, value) {
+  // Convert CAN ID to address format
+  const idAddress = convertCanIdToInt(canId);
+
+  // Validate curtain value (0=Stop, 1=Open, 2=Close)
+  if (value < 0 || value > 2) {
+    throw new Error("Curtain value must be 0 (Stop), 1 (Open), or 2 (Close)");
+  }
+
+  // Data is curtain address (1 byte) + value (1 byte)
+  const data = [curtainAddress & 0xff, value & 0xff];
+
+  console.log("Setting curtain:", {
+    unitIp,
+    canId,
+    curtainAddress,
+    value,
+    valueLabel: ["Stop", "Open", "Close"][value],
+  });
+
+  const response = await sendCommand(
+    unitIp,
+    UDP_PORT,
+    idAddress,
+    PROTOCOL.CURTAIN.CMD1,
+    PROTOCOL.CURTAIN.CMD2.SET_CURTAIN,
+    data
+  );
+
+  if (response && response.msg && response.msg.length >= 9) {
+    const responseData = response.msg.slice(8); // Skip header
+    return responseData[0] === 0; // 0 means success
+  }
+
+  throw new Error("Failed to set curtain");
+}
+
+// Set Curtain Configuration function
+async function setCurtainConfig(
+  unitIp,
+  canId,
+  index,
+  address,
+  curtainType,
+  pausePeriod,
+  transitionPeriod,
+  openGroup,
+  closeGroup,
+  stopGroup
+) {
+  // Convert CAN ID to address format
+  const idAddress = convertCanIdToInt(canId);
+
+  // Prepare data according to protocol specification:
+  // • index: 1 byte
+  // • address: 1 byte
+  // • curtain type: 1 byte
+  // • Pause period: 1 byte
+  // • Transition period: 2 bytes (low byte, high byte)
+  // • Reserve 6 Bytes 0x00
+  // • Open group: 1 byte
+  // • Close group: 1 byte
+  // • Stop group: 1 byte
+  const data = [];
+
+  // Index (1 byte)
+  data.push(index & 0xff);
+
+  // Address (1 byte)
+  data.push(address & 0xff);
+
+  // Curtain type (1 byte)
+  data.push(curtainType & 0xff);
+
+  // Pause period (1 byte)
+  data.push(pausePeriod & 0xff);
+
+  // Transition period (2 bytes - low byte, high byte)
+  const transitionLow = transitionPeriod & 0xff;
+  const transitionHigh = (transitionPeriod >> 8) & 0xff;
+  data.push(transitionLow);
+  data.push(transitionHigh);
+
+  // Reserve 6 bytes (0x00)
+  for (let i = 0; i < 6; i++) {
+    data.push(0x00);
+  }
+
+  // Open group (1 byte)
+  data.push(openGroup & 0xff);
+
+  // Close group (1 byte)
+  data.push(closeGroup & 0xff);
+
+  // Stop group (1 byte)
+  data.push(stopGroup & 0xff);
+
+  console.log("Sending curtain config:", {
+    unitIp,
+    canId,
+    index,
+    address,
+    curtainType,
+    pausePeriod,
+    transitionPeriod,
+    openGroup,
+    closeGroup,
+    stopGroup,
+    dataLength: data.length,
+  });
+
+  const response = await sendCommand(
+    unitIp,
+    UDP_PORT,
+    idAddress,
+    PROTOCOL.CURTAIN.CMD1,
+    PROTOCOL.CURTAIN.CMD2.SET_CURTAIN_CONFIG,
+    data
+  );
+
+  if (response && response.msg && response.msg.length >= 9) {
+    const responseData = response.msg.slice(8); // Skip header
+    return responseData[0] === 0; // 0 means success
+  }
+
+  throw new Error("Failed to set curtain configuration");
+}
+
+// Delete Curtain function
+async function deleteCurtain(unitIp, canId, curtainIndex) {
+  // Convert CAN ID to address format
+  const idAddress = convertCanIdToInt(canId);
+
+  // Validate curtain index (0-31)
+  if (curtainIndex < 0 || curtainIndex > 31) {
+    throw new Error("Curtain index must be between 0 and 31");
+  }
+
+  // Data is curtain index (1 byte)
+  const data = [curtainIndex & 0xff];
+
+  console.log("Deleting curtain:", {
+    unitIp,
+    canId,
+    curtainIndex,
+  });
+
+  const response = await sendCommand(
+    unitIp,
+    UDP_PORT,
+    idAddress,
+    PROTOCOL.CURTAIN.CMD1,
+    PROTOCOL.CURTAIN.CMD2.CLEAR_CURTAIN,
+    data
+  );
+
+  if (response && response.msg && response.msg.length >= 9) {
+    const responseData = response.msg.slice(8); // Skip header
+    return responseData[0] === 0; // 0 means success
+  }
+
+  throw new Error("Failed to delete curtain");
+}
+
+// Delete All Curtains function
+async function deleteAllCurtains(unitIp, canId) {
+  // Convert CAN ID to address format
+  const idAddress = convertCanIdToInt(canId);
+
+  // No data parameter for deleting all curtains
+  const data = [];
+
+  console.log("Deleting all curtains:", {
+    unitIp,
+    canId,
+  });
+
+  const response = await sendCommand(
+    unitIp,
+    UDP_PORT,
+    idAddress,
+    PROTOCOL.CURTAIN.CMD1,
+    PROTOCOL.CURTAIN.CMD2.CLEAR_CURTAIN,
+    data
+  );
+
+  if (response && response.msg && response.msg.length >= 9) {
+    const responseData = response.msg.slice(8); // Skip header
+    return responseData[0] === 0; // 0 means success
+  }
+
+  throw new Error("Failed to delete all curtains");
+}
+
 export {
   setGroupState,
   setMultipleGroupStates,
@@ -1512,4 +1842,10 @@ export {
   // Clock functions
   syncClock,
   getClock,
+  // Curtain functions
+  getCurtainConfig,
+  setCurtain,
+  setCurtainConfig,
+  deleteCurtain,
+  deleteAllCurtains,
 };

@@ -137,12 +137,15 @@ export function DataTableToolbar({
         )}
       </div>
       <div className="flex items-center space-x-2">
-        {onSendAll && (category === "scene" || category === "schedule") && (
-          <Button variant="outline" onClick={handleSendAll}>
-            <Send className="h-4 w-4" />
-            <span className="hidden lg:inline">{sendAllLabel}</span>
-          </Button>
-        )}
+        {onSendAll &&
+          (category === "scene" ||
+            category === "schedule" ||
+            category === "curtain") && (
+            <Button variant="outline" onClick={handleSendAll}>
+              <Send className="h-4 w-4" />
+              <span className="hidden lg:inline">{sendAllLabel}</span>
+            </Button>
+          )}
         {(onExport || onImport) && (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>

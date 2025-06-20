@@ -6,6 +6,7 @@ import { DataTableToolbar } from "@/components/projects/data-table/data-table-to
 import { DataTablePagination } from "@/components/projects/data-table/data-table-pagination";
 import { createCurtainColumns } from "@/components/projects/curtain/curtain-columns";
 import { CurtainDialog } from "@/components/projects/curtain/curtain-dialog";
+import { SendCurtainConfigDialog } from "@/components/projects/curtain/send-curtain-config-dialog";
 import { ConfirmDialog } from "@/components/projects/confirm-dialog";
 import { ImportItemsDialog } from "@/components/projects/import-category-dialog";
 import { useProjectDetail } from "@/contexts/project-detail-context";
@@ -41,6 +42,9 @@ export function CurtainTable({ items = [], loading = false }) {
 
   // Import state
   const [importDialogOpen, setImportDialogOpen] = useState(false);
+
+  // Send config state
+  const [sendConfigDialogOpen, setSendConfigDialogOpen] = useState(false);
 
   // Get lighting items for group selection
   const lightingItems = projectItems.lighting || [];
@@ -208,6 +212,11 @@ export function CurtainTable({ items = [], loading = false }) {
     setDialogOpen(true);
   }, []);
 
+  // Send config handler
+  const handleSendConfig = useCallback(() => {
+    setSendConfigDialogOpen(true);
+  }, []);
+
   // Memoize columns to prevent unnecessary re-renders
   const columns = useMemo(
     () =>
@@ -267,6 +276,8 @@ export function CurtainTable({ items = [], loading = false }) {
                   onSave={handleSaveChanges}
                   hasPendingChanges={pendingChanges.size > 0}
                   saveLoading={saveLoading}
+                  onSendAll={handleSendConfig}
+                  sendAllLabel="Send Config"
                 />
               )}
               <DataTable
@@ -331,6 +342,12 @@ export function CurtainTable({ items = [], loading = false }) {
         onOpenChange={setImportDialogOpen}
         onImport={handleImportConfirm}
         category={category}
+      />
+
+      <SendCurtainConfigDialog
+        open={sendConfigDialogOpen}
+        onOpenChange={setSendConfigDialogOpen}
+        items={items}
       />
     </>
   );
