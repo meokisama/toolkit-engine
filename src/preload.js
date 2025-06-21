@@ -280,5 +280,13 @@ contextBridge.exposeInMainWorld("electronAPI", {
     // Delete All Curtains
     deleteAllCurtains: (unitIp, canId) =>
       ipcRenderer.invoke("rcu:deleteAllCurtains", unitIp, canId),
+    // KNX Control
+    setKnxConfig: (params) => ipcRenderer.invoke("rcu:setKnxConfig", params),
+    getKnxConfig: (params) => ipcRenderer.invoke("rcu:getKnxConfig", params),
+    triggerKnx: (params) => ipcRenderer.invoke("rcu:triggerKnx", params),
+    deleteKnxConfig: (params) =>
+      ipcRenderer.invoke("rcu:deleteKnxConfig", params),
+    deleteAllKnxConfigs: (unitIp, canId) =>
+      ipcRenderer.invoke("rcu:deleteAllKnxConfigs", unitIp, canId),
   },
 });

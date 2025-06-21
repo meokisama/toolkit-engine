@@ -141,11 +141,20 @@ class DatabaseService {
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         project_id INTEGER NOT NULL,
         name TEXT,
-        address TEXT NOT NULL,
+        address INTEGER NOT NULL CHECK(address >= 0 AND address <= 511),
+        type INTEGER NOT NULL DEFAULT 0,
+        factor INTEGER NOT NULL DEFAULT 1 CHECK(factor > 1),
+        feedback INTEGER NOT NULL DEFAULT 0,
+        rcu_group_id INTEGER,
+        knx_switch_group TEXT,
+        knx_dimming_group TEXT,
+        knx_value_group TEXT,
         description TEXT,
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
         updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-        FOREIGN KEY (project_id) REFERENCES projects (id) ON DELETE CASCADE
+        FOREIGN KEY (project_id) REFERENCES projects (id) ON DELETE CASCADE,
+        FOREIGN KEY (rcu_group_id) REFERENCES lighting (id) ON DELETE SET NULL,
+        UNIQUE(project_id, address)
       )
     `;
 
@@ -614,6 +623,13 @@ class DatabaseService {
         stop_group,
         pause_period,
         transition_period,
+        type,
+        factor,
+        feedback,
+        rcu_group_id,
+        knx_switch_group,
+        knx_dimming_group,
+        knx_value_group,
       } = itemData;
 
       // Special validation for lighting to prevent duplicate addresses
@@ -625,6 +641,29 @@ class DatabaseService {
           .get(projectId, address);
         if (existingItems.count > 0) {
           throw new Error(`Address ${address} already exists.`);
+        }
+      }
+
+      // Special validation for KNX
+      if (tableName === "knx") {
+        // Validate address range
+        if (address < 0 || address > 511) {
+          throw new Error("KNX address must be between 0 and 511.");
+        }
+
+        // Check for duplicate addresses
+        const existingItems = this.db
+          .prepare(
+            "SELECT COUNT(*) as count FROM knx WHERE project_id = ? AND address = ?"
+          )
+          .get(projectId, address);
+        if (existingItems.count > 0) {
+          throw new Error(`KNX address ${address} already exists.`);
+        }
+
+        // Validate factor
+        if (itemData.factor && itemData.factor < 1) {
+          throw new Error("Factor must be greater than or equal to 1.");
         }
       }
 
@@ -664,18 +703,6 @@ class DatabaseService {
         }
       }
 
-      // Special validation for KNX to prevent duplicate addresses
-      if (tableName === "knx" && address) {
-        const existingItems = this.db
-          .prepare(
-            "SELECT COUNT(*) as count FROM knx WHERE project_id = ? AND address = ?"
-          )
-          .get(projectId, address);
-        if (existingItems.count > 0) {
-          throw new Error(`Address ${address} already exists.`);
-        }
-      }
-
       // For aircon table, include label column
       if (tableName === "aircon") {
         const stmt = this.db.prepare(`
@@ -712,8 +739,28 @@ class DatabaseService {
           transition_period || 0
         );
         return this.getProjectItemById(result.lastInsertRowid, tableName);
-      } else if (tableName === "knx" || tableName === "scene") {
-        // For knx and scene tables, don't use object_type and object_value
+      } else if (tableName === "knx") {
+        // For knx table, use new KNX-specific fields
+        const stmt = this.db.prepare(`
+          INSERT INTO ${tableName} (project_id, name, address, type, factor, feedback, rcu_group_id, knx_switch_group, knx_dimming_group, knx_value_group, description)
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        `);
+        const result = stmt.run(
+          projectId,
+          name,
+          address,
+          type || 0,
+          factor || 2,
+          feedback || 0,
+          rcu_group_id || null,
+          knx_switch_group || null,
+          knx_dimming_group || null,
+          knx_value_group || null,
+          description
+        );
+        return this.getProjectItemById(result.lastInsertRowid, tableName);
+      } else if (tableName === "scene") {
+        // For scene table, don't use object_type and object_value
         const stmt = this.db.prepare(`
           INSERT INTO ${tableName} (project_id, name, address, description)
           VALUES (?, ?, ?, ?)
@@ -758,6 +805,13 @@ class DatabaseService {
         stop_group,
         pause_period,
         transition_period,
+        type,
+        factor,
+        feedback,
+        rcu_group_id,
+        knx_switch_group,
+        knx_dimming_group,
+        knx_value_group,
       } = itemData;
 
       // Special validation for aircon to prevent duplicate addresses
@@ -820,19 +874,29 @@ class DatabaseService {
         }
       }
 
-      // Special validation for KNX to prevent duplicate addresses
-      if (tableName === "knx" && address) {
+      // Special validation for KNX
+      if (tableName === "knx") {
+        // Validate address range
+        if (address < 0 || address > 511) {
+          throw new Error("KNX address must be between 0 and 511.");
+        }
+
+        // Check for duplicate addresses
         const currentItem = this.getProjectItemById(id, tableName);
         if (currentItem && currentItem.address !== address) {
-          // Check if new address already exists for this project (excluding current item's address)
           const existingItems = this.db
             .prepare(
               "SELECT COUNT(*) as count FROM knx WHERE project_id = ? AND address = ? AND id != ?"
             )
             .get(currentItem.project_id, address, id);
           if (existingItems.count > 0) {
-            throw new Error(`Address ${address} already exists.`);
+            throw new Error(`KNX address ${address} already exists.`);
           }
+        }
+
+        // Validate factor
+        if (factor && factor < 1) {
+          throw new Error("Factor must be greater than or equal to 1.");
         }
       }
 
@@ -903,8 +967,32 @@ class DatabaseService {
           );
           this.updateSceneItemsAddress(id, "curtain", address);
         }
-      } else if (tableName === "knx" || tableName === "scene") {
-        // For knx and scene tables, don't use object_type and object_value
+      } else if (tableName === "knx") {
+        // For knx table, use new KNX-specific fields
+        const stmt = this.db.prepare(`
+          UPDATE ${tableName}
+          SET name = ?, address = ?, type = ?, factor = ?, feedback = ?, rcu_group_id = ?, knx_switch_group = ?, knx_dimming_group = ?, knx_value_group = ?, description = ?, updated_at = CURRENT_TIMESTAMP
+          WHERE id = ?
+        `);
+        const result = stmt.run(
+          name,
+          address,
+          type || 0,
+          factor || 2,
+          feedback || 0,
+          rcu_group_id || null,
+          knx_switch_group || null,
+          knx_dimming_group || null,
+          knx_value_group || null,
+          description,
+          id
+        );
+
+        if (result.changes === 0) {
+          throw new Error(`${tableName} item not found`);
+        }
+      } else if (tableName === "scene") {
+        // For scene table, don't use object_type and object_value
         const stmt = this.db.prepare(`
           UPDATE ${tableName}
           SET name = ?, address = ?, description = ?, updated_at = CURRENT_TIMESTAMP
@@ -1043,31 +1131,35 @@ class DatabaseService {
       }
 
       // For KNX, find a unique address if address exists
-      if (tableName === "knx" && originalItem.address) {
-        // For KNX, we need to find next available address in x.y.z format
-        // For simplicity, we'll increment the device part (z) and keep area.line the same
-        const addressParts = originalItem.address.split(".");
-        if (addressParts.length === 3) {
-          const area = addressParts[0];
-          const line = addressParts[1];
-          let device = parseInt(addressParts[2]);
+      if (
+        tableName === "knx" &&
+        originalItem.address !== null &&
+        originalItem.address !== undefined
+      ) {
+        // For KNX, find next available address in range 0-511
+        let newAddress = originalItem.address;
+        do {
+          newAddress = (newAddress + 1) % 512;
+        } while (
+          this.db
+            .prepare(
+              "SELECT COUNT(*) as count FROM knx WHERE project_id = ? AND address = ?"
+            )
+            .get(originalItem.project_id, newAddress).count > 0 &&
+          newAddress !== originalItem.address
+        );
 
-          // Find next available device number (0-255)
-          let newAddress;
-          do {
-            device = (device + 1) % 256;
-            newAddress = `${area}.${line}.${device}`;
-          } while (
-            this.db
-              .prepare(
-                "SELECT COUNT(*) as count FROM knx WHERE project_id = ? AND address = ?"
-              )
-              .get(originalItem.project_id, newAddress).count > 0 &&
-            device !== parseInt(addressParts[2])
-          );
+        duplicatedItem.address = newAddress;
 
-          duplicatedItem.address = newAddress;
-        }
+        // Copy KNX-specific fields
+        duplicatedItem.type = originalItem.type || 0;
+        duplicatedItem.factor = originalItem.factor || 2;
+        duplicatedItem.feedback = originalItem.feedback || 0;
+        duplicatedItem.rcu_group_id = originalItem.rcu_group_id || null;
+        duplicatedItem.knx_switch_group = originalItem.knx_switch_group || null;
+        duplicatedItem.knx_dimming_group =
+          originalItem.knx_dimming_group || null;
+        duplicatedItem.knx_value_group = originalItem.knx_value_group || null;
       }
 
       return this.createProjectItem(

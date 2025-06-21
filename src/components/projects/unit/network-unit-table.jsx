@@ -13,6 +13,7 @@ import { TriggerSceneDialog } from "@/components/projects/unit/network-menu/scen
 import { TriggerScheduleDialog } from "@/components/projects/unit/network-menu/schedule-control-dialog";
 import { ClockControlDialog } from "@/components/projects/unit/network-menu/clock-control-dialog";
 import { TriggerCurtainDialog } from "@/components/projects/unit/network-menu/curtain-control-dialog";
+import { TriggerKnxDialog } from "@/components/projects/unit/network-menu/knx-control-dialog";
 import { udpScanner } from "@/services/udp";
 import { toast } from "sonner";
 
@@ -29,6 +30,7 @@ export function NetworkUnitTable({ onTransferToDatabase, existingUnits = [] }) {
   const [clockControlDialogOpen, setClockControlDialogOpen] = useState(false);
   const [triggerCurtainDialogOpen, setTriggerCurtainDialogOpen] =
     useState(false);
+  const [triggerKnxDialogOpen, setTriggerKnxDialogOpen] = useState(false);
   const [selectedUnit, setSelectedUnit] = useState(null);
 
   // Auto-load cached network units when component mounts
@@ -212,6 +214,12 @@ export function NetworkUnitTable({ onTransferToDatabase, existingUnits = [] }) {
     setTriggerCurtainDialogOpen(true);
   }, []);
 
+  // Handle KNX Control
+  const handleTriggerKnx = useCallback((unit) => {
+    setSelectedUnit(unit);
+    setTriggerKnxDialogOpen(true);
+  }, []);
+
   const handleGroupControlSubmit = async (params) => {
     try {
       if (
@@ -337,6 +345,9 @@ export function NetworkUnitTable({ onTransferToDatabase, existingUnits = [] }) {
                 onCurtainControl={{
                   onTriggerCurtain: handleTriggerCurtain,
                 }}
+                onKnxControl={{
+                  onTriggerKnx: handleTriggerKnx,
+                }}
                 enableRowSelection={true}
               />
               {networkTable && <DataTablePagination table={networkTable} />}
@@ -382,6 +393,12 @@ export function NetworkUnitTable({ onTransferToDatabase, existingUnits = [] }) {
         <TriggerCurtainDialog
           open={triggerCurtainDialogOpen}
           onOpenChange={setTriggerCurtainDialogOpen}
+          unit={selectedUnit}
+        />
+
+        <TriggerKnxDialog
+          open={triggerKnxDialogOpen}
+          onOpenChange={setTriggerKnxDialogOpen}
           unit={selectedUnit}
         />
       </Card>

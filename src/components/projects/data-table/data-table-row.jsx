@@ -14,6 +14,7 @@ import {
   Calendar,
   Clock,
   ChevronsUpDown,
+  Network,
 } from "lucide-react";
 
 import { TableCell, TableRow } from "@/components/ui/table";
@@ -37,6 +38,7 @@ export function DataTableRow({
   onScheduleControl,
   onClockControl,
   onCurtainControl,
+  onKnxControl,
   onSendSchedule,
   onSendScene,
 }) {
@@ -74,6 +76,7 @@ export function DataTableRow({
             onScheduleControl ||
             onClockControl ||
             onCurtainControl ||
+            onKnxControl ||
             onSendSchedule ||
             onSendScene ||
             onDelete) && <ContextMenuSeparator />}
@@ -89,6 +92,7 @@ export function DataTableRow({
               onScheduleControl ||
               onClockControl ||
               onCurtainControl ||
+              onKnxControl ||
               onSendSchedule ||
               onSendScene ||
               onDelete) && <ContextMenuSeparator />}
@@ -141,6 +145,17 @@ export function DataTableRow({
             >
               <ChevronsUpDown className="text-muted-foreground" />
               <span>Curtain Control</span>
+            </ContextMenuItem>
+            <ContextMenuSeparator />
+          </>
+        )}
+        {onKnxControl && (
+          <>
+            <ContextMenuItem
+              onClick={() => onKnxControl.onTriggerKnx(item)}
+            >
+              <Network className="text-muted-foreground" />
+              <span>KNX Control</span>
             </ContextMenuItem>
             <ContextMenuSeparator />
           </>

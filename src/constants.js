@@ -552,6 +552,33 @@ export const CONSTANTS = {
     ],
   },
 
+  KNX: {
+    KNX_OUTPUT_TYPES: [
+      { value: 0, name: "KNX_OUTPUT_DISABLE", label: "Disable" },
+      { value: 1, name: "KNX_OUTPUT_SWITCH", label: "Switch" },
+      { value: 2, name: "KNX_OUTPUT_DIMMER", label: "Dimmer" },
+      { value: 3, name: "KNX_OUTPUT_CURTAIN", label: "Curtain" },
+      { value: 4, name: "KNX_OUTPUT_SCENE", label: "Scene" },
+      { value: 5, name: "KNX_OUTPUT_MULTI_SCENE", label: "Multi Scene" },
+      {
+        value: 6,
+        name: "KNX_OUTPUT_MULTI_SCENE_SEQ",
+        label: "Multi Scene Sequence",
+      },
+      { value: 7, name: "KNX_AC_POWER", label: "AC Power" },
+      { value: 8, name: "KNX_AC_MODE", label: "AC Mode" },
+      { value: 9, name: "KNX_AC_FAN_SPEED", label: "AC Fan Speed" },
+      { value: 10, name: "KNX_AC_SWING", label: "AC Swing" },
+      { value: 11, name: "KNX_AC_SET_POINT", label: "AC Set Point" },
+    ],
+
+    KNX_FEEDBACK_TYPES: [
+      { value: 0, name: "KNX_FB_DISABLE", label: "Disable" },
+      { value: 1, name: "KNX_FB_ACTIVE", label: "Active" },
+      { value: 2, name: "KNX_FB_PASSIVE", label: "Passive" },
+    ],
+  },
+
   RS485: {
     MAX_CONFIG: 2,
     SLAVE_MAX_DEVS: 10,

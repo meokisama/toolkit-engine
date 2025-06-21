@@ -37,6 +37,11 @@ import {
   setCurtainConfig,
   deleteCurtain,
   deleteAllCurtains,
+  setKnxConfig,
+  getKnxConfig,
+  triggerKnx,
+  deleteKnxConfig,
+  deleteAllKnxConfigs,
 } from "./services/rcu-controller.js";
 import dgram from "dgram";
 import { updateElectronApp } from "update-electron-app";
@@ -1324,6 +1329,87 @@ function setupIpcHandlers() {
       throw error;
     }
   });
+
+  // KNX Control functions
+  ipcMain.handle(
+    "rcu:setKnxConfig",
+    async (
+      event,
+      {
+        unitIp,
+        canId,
+        address,
+        type,
+        factor,
+        feedback,
+        rcuGroup,
+        knxSwitchGroup,
+        knxDimmingGroup,
+        knxValueGroup,
+      }
+    ) => {
+      try {
+        return await setKnxConfig(unitIp, canId, {
+          address,
+          type,
+          factor,
+          feedback,
+          rcuGroup,
+          knxSwitchGroup,
+          knxDimmingGroup,
+          knxValueGroup,
+        });
+      } catch (error) {
+        console.error("Error setting KNX config:", error);
+        throw error;
+      }
+    }
+  );
+
+  ipcMain.handle(
+    "rcu:getKnxConfig",
+    async (event, { unitIp, canId, knxAddress }) => {
+      try {
+        return await getKnxConfig(unitIp, canId, knxAddress);
+      } catch (error) {
+        console.error("Error getting KNX config:", error);
+        throw error;
+      }
+    }
+  );
+
+  ipcMain.handle(
+    "rcu:deleteKnxConfig",
+    async (event, { unitIp, canId, knxAddress }) => {
+      try {
+        return await deleteKnxConfig(unitIp, canId, knxAddress);
+      } catch (error) {
+        console.error("Error deleting KNX config:", error);
+        throw error;
+      }
+    }
+  );
+
+  ipcMain.handle("rcu:deleteAllKnxConfigs", async (event, unitIp, canId) => {
+    try {
+      return await deleteAllKnxConfigs(unitIp, canId);
+    } catch (error) {
+      console.error("Error deleting all KNX configs:", error);
+      throw error;
+    }
+  });
+
+  ipcMain.handle(
+    "rcu:triggerKnx",
+    async (event, { unitIp, canId, knxAddress }) => {
+      try {
+        return await triggerKnx(unitIp, canId, knxAddress);
+      } catch (error) {
+        console.error("Error triggering KNX:", error);
+        throw error;
+      }
+    }
+  );
 }
 
 /**

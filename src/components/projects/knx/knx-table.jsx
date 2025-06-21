@@ -10,11 +10,12 @@ import { DataTablePagination } from "@/components/projects/data-table/data-table
 import { DataTableSkeleton } from "@/components/projects/table-skeleton";
 import { createKnxItemsColumns } from "@/components/projects/knx/knx-columns";
 import { ImportItemsDialog } from "@/components/projects/import-category-dialog";
-import { Network } from "lucide-react";
+import { SendKnxDialog } from "@/components/projects/knx/send-knx-dialog";
+import { Network, Send } from "lucide-react";
 
 // Memoized component to prevent unnecessary rerenders
 function KnxTableComponent({ items, loading }) {
-  const { deleteItem, duplicateItem, exportItems, importItems, updateItem } =
+  const { deleteItem, duplicateItem, exportItems, importItems, updateItem, projectItems } =
     useProjectDetail();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingItem, setEditingItem] = useState(null);
@@ -32,6 +33,8 @@ function KnxTableComponent({ items, loading }) {
   const [pagination, setPagination] = useState({ pageIndex: 0, pageSize: 10 });
   const [pendingChanges, setPendingChanges] = useState(new Map());
   const [saveLoading, setSaveLoading] = useState(false);
+  const [sendDialogOpen, setSendDialogOpen] = useState(false);
+  const [itemsToSend, setItemsToSend] = useState([]);
 
   const category = "knx";
 
@@ -73,9 +76,15 @@ function KnxTableComponent({ items, loading }) {
         // Merge changes with original item data to ensure all required fields are present
         const completeItemData = {
           name: originalItem.name || "",
-          address: originalItem.address || "",
+          address: originalItem.address || 0,
+          type: originalItem.type || 0,
+          factor: originalItem.factor || 2,
+          feedback: originalItem.feedback || 0,
+          rcu_group_id: originalItem.rcu_group_id || null,
+          knx_switch_group: originalItem.knx_switch_group || "",
+          knx_dimming_group: originalItem.knx_dimming_group || "",
+          knx_value_group: originalItem.knx_value_group || "",
           description: originalItem.description || "",
-          object_type: originalItem.object_type || "OBJ_KNX",
           ...changes, // Apply the pending changes on top
         };
 
@@ -189,13 +198,24 @@ function KnxTableComponent({ items, loading }) {
     [importItems, category]
   );
 
+  const handleSendToUnit = useCallback((selectedItems) => {
+    setItemsToSend(selectedItems);
+    setSendDialogOpen(true);
+  }, []);
+
+  const handleSendAll = useCallback(() => {
+    setItemsToSend(items);
+    setSendDialogOpen(true);
+  }, [items]);
+
   // Create columns with handlers after they are defined
   const columns = createKnxItemsColumns(
     handleEditItem,
     handleDuplicateItem,
     handleDeleteItem,
     handleCellEdit,
-    getEffectiveValue
+    getEffectiveValue,
+    projectItems?.lighting || []
   );
 
   if (loading) {
@@ -236,6 +256,11 @@ function KnxTableComponent({ items, loading }) {
                   onSave={handleSaveChanges}
                   hasPendingChanges={pendingChanges.size > 0}
                   saveLoading={saveLoading}
+                  onSendToUnit={handleSendToUnit}
+                  sendToUnitLabel="Send to Unit"
+                  sendToUnitIcon={Send}
+                  onSendAll={handleSendAll}
+                  sendAllLabel="Send All to Unit"
                 />
               )}
               <DataTable
@@ -292,6 +317,12 @@ function KnxTableComponent({ items, loading }) {
         onOpenChange={setImportDialogOpen}
         category={category}
         onConfirm={handleImportConfirm}
+      />
+
+      <SendKnxDialog
+        open={sendDialogOpen}
+        onOpenChange={setSendDialogOpen}
+        items={itemsToSend}
       />
     </>
   );
