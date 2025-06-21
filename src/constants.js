@@ -579,6 +579,13 @@ export const CONSTANTS = {
     ],
   },
 
+  MULTI_SCENES: {
+    TYPES: [
+      { value: 0, name: "TRIGGER", label: "Trigger" },
+      { value: 1, name: "SEQUENCE", label: "Sequence" },
+    ],
+  },
+
   RS485: {
     MAX_CONFIG: 2,
     SLAVE_MAX_DEVS: 10,
@@ -703,58 +710,6 @@ export const UNIT_TYPES = CONSTANTS.UNIT.TYPES;
 export const UNIT_MODES = CONSTANTS.UNIT.MODES;
 export const CURTAIN_TYPES = CONSTANTS.CURTAIN.TYPES;
 export const CURTAIN_VALUES = CONSTANTS.CURTAIN.VALUES;
-export const CURTAIN_VALUE_LABELS = Object.fromEntries(
-  CONSTANTS.CURTAIN.VALUES.map((item) => [item.value, item.label])
-);
-export const CURTAIN_TYPE_LABELS = Object.fromEntries(
-  CONSTANTS.CURTAIN.TYPES.map((item) => [item.value, item.label])
-);
-
-// Extract aircon object types and labels from new structure
-export const AIRCON_OBJECT_TYPES = CONSTANTS.AIRCON.map(
-  (item) => item.obj_type
-);
-export const AIRCON_OBJECT_LABELS = Object.fromEntries(
-  CONSTANTS.AIRCON.map((item) => [item.obj_type, item.label])
-);
-
-// Helper functions to extract values and labels from new structure
-const getPowerConfig = () =>
-  CONSTANTS.AIRCON.find((item) => item.obj_type === "OBJ_AC_POWER");
-const getFanSpeedConfig = () =>
-  CONSTANTS.AIRCON.find((item) => item.obj_type === "OBJ_AC_FAN_SPEED");
-const getModeConfig = () =>
-  CONSTANTS.AIRCON.find((item) => item.obj_type === "OBJ_AC_MODE");
-const getSwingConfig = () =>
-  CONSTANTS.AIRCON.find((item) => item.obj_type === "OBJ_AC_SWING");
-
-export const AC_POWER_VALUES = Object.fromEntries(
-  getPowerConfig().values.map((item) => [item.command, item.value])
-);
-export const AC_POWER_LABELS = Object.fromEntries(
-  getPowerConfig().values.map((item) => [item.value, item.label])
-);
-
-export const AC_FAN_SPEED_VALUES = Object.fromEntries(
-  getFanSpeedConfig().values.map((item) => [item.command, item.value])
-);
-export const AC_FAN_SPEED_LABELS = Object.fromEntries(
-  getFanSpeedConfig().values.map((item) => [item.value, item.label])
-);
-
-export const AC_MODE_VALUES = Object.fromEntries(
-  getModeConfig().values.map((item) => [item.command, item.value])
-);
-export const AC_MODE_LABELS = Object.fromEntries(
-  getModeConfig().values.map((item) => [item.value, item.label])
-);
-
-export const AC_SWING_VALUES = Object.fromEntries(
-  getSwingConfig().values.map((item) => [item.command, item.value])
-);
-export const AC_SWING_LABELS = Object.fromEntries(
-  getSwingConfig().values.map((item) => [item.value, item.label])
-);
 
 // Helper functions for unit I/O specifications
 export const getUnitIOSpec = (unitName) => {

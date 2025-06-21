@@ -127,9 +127,9 @@ export function CurtainDialog({
     object_type: OBJECT_TYPES.CURTAIN.obj_name,
     curtain_type: "",
     curtain_value: 0, // Default to no selection
-    open_group: "",
-    close_group: "",
-    stop_group: "",
+    open_group_id: null,
+    close_group_id: null,
+    stop_group_id: null,
     pause_period: 0,
     transition_period: 0,
   });
@@ -139,7 +139,7 @@ export function CurtainDialog({
   // Get lighting items for group selection
   const lightingItems = projectItems.lighting || [];
   const lightingOptions = lightingItems.map((item) => ({
-    value: item.address,
+    value: item.id,
     label: item.name
       ? `${item.name} (${item.address})`
       : `Group ${item.address}`,
@@ -157,9 +157,9 @@ export function CurtainDialog({
           object_type: item.object_type || OBJECT_TYPES.CURTAIN.obj_name,
           curtain_type: item.curtain_type || "",
           curtain_value: item.curtain_value || 0,
-          open_group: item.open_group || "",
-          close_group: item.close_group || "",
-          stop_group: item.stop_group || "",
+          open_group_id: item.open_group_id || null,
+          close_group_id: item.close_group_id || null,
+          stop_group_id: item.stop_group_id || null,
           pause_period: item.pause_period || 0,
           transition_period: item.transition_period || 0,
         });
@@ -171,9 +171,9 @@ export function CurtainDialog({
           object_type: OBJECT_TYPES.CURTAIN.obj_name,
           curtain_type: "",
           curtain_value: 0,
-          open_group: "",
-          close_group: "",
-          stop_group: "",
+          open_group_id: null,
+          close_group_id: null,
+          stop_group_id: null,
           pause_period: 0,
           transition_period: 0,
         });
@@ -365,14 +365,14 @@ export function CurtainDialog({
                   hasThreeGroups(formData.curtain_type) ? "w-1/3" : "w-1/2"
                 }`}
               >
-                <Label htmlFor="open_group" className="text-right">
+                <Label htmlFor="open_group_id" className="text-right">
                   Open Group
                 </Label>
                 <div>
                   <LightingCombobox
-                    value={formData.open_group}
+                    value={formData.open_group_id}
                     onValueChange={(value) =>
-                      handleInputChange("open_group", value)
+                      handleInputChange("open_group_id", value)
                     }
                     options={lightingOptions}
                     placeholder="Select group"
@@ -383,9 +383,9 @@ export function CurtainDialog({
                     }`}
                   />
                 </div>
-                {errors.open_group && (
+                {errors.open_group_id && (
                   <div className="col-span-4 text-sm text-red-600">
-                    {errors.open_group}
+                    {errors.open_group_id}
                   </div>
                 )}
               </div>
@@ -395,14 +395,14 @@ export function CurtainDialog({
                   hasThreeGroups(formData.curtain_type) ? "w-1/3" : "w-1/2"
                 }`}
               >
-                <Label htmlFor="close_group" className="text-right">
+                <Label htmlFor="close_group_id" className="text-right">
                   Close Group
                 </Label>
                 <div>
                   <LightingCombobox
-                    value={formData.close_group}
+                    value={formData.close_group_id}
                     onValueChange={(value) =>
-                      handleInputChange("close_group", value)
+                      handleInputChange("close_group_id", value)
                     }
                     options={lightingOptions}
                     placeholder="Select group"
@@ -413,23 +413,23 @@ export function CurtainDialog({
                     }`}
                   />
                 </div>
-                {errors.close_group && (
+                {errors.close_group_id && (
                   <div className="col-span-4 text-sm text-red-600">
-                    {errors.close_group}
+                    {errors.close_group_id}
                   </div>
                 )}
               </div>
 
               {hasThreeGroups(formData.curtain_type) && (
                 <div className="flex flex-col gap-2 w-1/3">
-                  <Label htmlFor="stop_group" className="text-right">
+                  <Label htmlFor="stop_group_id" className="text-right">
                     Stop Group
                   </Label>
                   <div>
                     <LightingCombobox
-                      value={formData.stop_group}
+                      value={formData.stop_group_id}
                       onValueChange={(value) =>
-                        handleInputChange("stop_group", value)
+                        handleInputChange("stop_group_id", value)
                       }
                       options={lightingOptions}
                       placeholder="Select group"
@@ -440,9 +440,9 @@ export function CurtainDialog({
                       }`}
                     />
                   </div>
-                  {errors.stop_group && (
+                  {errors.stop_group_id && (
                     <div className="col-span-4 text-sm text-red-600">
-                      {errors.stop_group}
+                      {errors.stop_group_id}
                     </div>
                   )}
                 </div>

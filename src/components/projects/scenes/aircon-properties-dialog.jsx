@@ -18,17 +18,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  OBJECT_TYPES,
-  AC_POWER_VALUES,
-  AC_FAN_SPEED_VALUES,
-  AC_MODE_VALUES,
-  AC_SWING_VALUES,
-  AC_POWER_LABELS,
-  AC_FAN_SPEED_LABELS,
-  AC_MODE_LABELS,
-  AC_SWING_LABELS,
-} from "@/constants";
+import { OBJECT_TYPES, CONSTANTS } from "@/constants";
 import { Thermometer, Power, Wind, Settings, Move } from "lucide-react";
 
 const AIRCON_PROPERTIES = [
@@ -37,9 +27,9 @@ const AIRCON_PROPERTIES = [
     label: "Power",
     icon: Power,
     defaultValue: "1",
-    options: Object.entries(AC_POWER_LABELS).map(([value, label]) => ({
-      value,
-      label,
+    options: CONSTANTS.AIRCON.find(item => item.obj_type === "OBJ_AC_POWER").values.map(item => ({
+      value: item.value.toString(),
+      label: item.label,
     })),
   },
   {
@@ -47,9 +37,9 @@ const AIRCON_PROPERTIES = [
     label: "Mode",
     icon: Settings,
     defaultValue: "0",
-    options: Object.entries(AC_MODE_LABELS).map(([value, label]) => ({
-      value,
-      label,
+    options: CONSTANTS.AIRCON.find(item => item.obj_type === "OBJ_AC_MODE").values.map(item => ({
+      value: item.value.toString(),
+      label: item.label,
     })),
   },
   {
@@ -57,9 +47,9 @@ const AIRCON_PROPERTIES = [
     label: "Fan Speed",
     icon: Wind,
     defaultValue: "0",
-    options: Object.entries(AC_FAN_SPEED_LABELS).map(([value, label]) => ({
-      value,
-      label,
+    options: CONSTANTS.AIRCON.find(item => item.obj_type === "OBJ_AC_FAN_SPEED").values.map(item => ({
+      value: item.value.toString(),
+      label: item.label,
     })),
   },
   {
@@ -74,9 +64,9 @@ const AIRCON_PROPERTIES = [
     label: "Swing",
     icon: Move,
     defaultValue: "0",
-    options: Object.entries(AC_SWING_LABELS).map(([value, label]) => ({
-      value,
-      label,
+    options: CONSTANTS.AIRCON.find(item => item.obj_type === "OBJ_AC_SWING").values.map(item => ({
+      value: item.value.toString(),
+      label: item.label,
     })),
   },
 ];

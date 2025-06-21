@@ -193,6 +193,31 @@ contextBridge.exposeInMainWorld("electronAPI", {
       ipcRenderer.invoke("schedule:getForSending", scheduleId),
     send: (params) => ipcRenderer.invoke("schedule:send", params),
   },
+  multiScenes: {
+    getAll: (projectId) => ipcRenderer.invoke("multiScenes:getAll", projectId),
+    create: (projectId, itemData) =>
+      ipcRenderer.invoke("multiScenes:create", projectId, itemData),
+    update: (id, itemData) =>
+      ipcRenderer.invoke("multiScenes:update", id, itemData),
+    delete: (id) => ipcRenderer.invoke("multiScenes:delete", id),
+    duplicate: (id) => ipcRenderer.invoke("multiScenes:duplicate", id),
+    bulkImport: (projectId, items) =>
+      ipcRenderer.invoke("multiScenes:bulkImport", projectId, items),
+    // Multi-Scene scenes management
+    getScenes: (multiSceneId) =>
+      ipcRenderer.invoke("multiScenes:getScenes", multiSceneId),
+    addScene: (multiSceneId, sceneId, sceneOrder) =>
+      ipcRenderer.invoke(
+        "multiScenes:addScene",
+        multiSceneId,
+        sceneId,
+        sceneOrder
+      ),
+    removeScene: (multiSceneId, sceneId) =>
+      ipcRenderer.invoke("multiScenes:removeScene", multiSceneId, sceneId),
+    updateScenes: (multiSceneId, sceneIds) =>
+      ipcRenderer.invoke("multiScenes:updateScenes", multiSceneId, sceneIds),
+  },
   // UDP Network Scanning
   scanUDPNetwork: (config) => ipcRenderer.invoke("udp:scanNetwork", config),
 

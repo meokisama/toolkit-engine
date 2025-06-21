@@ -29,16 +29,7 @@ import {
 import { useProjectDetail } from "@/contexts/project-detail-context";
 import {
   OBJECT_TYPES,
-  AC_POWER_VALUES,
-  AC_FAN_SPEED_VALUES,
-  AC_MODE_VALUES,
-  AC_SWING_VALUES,
-  AC_POWER_LABELS,
-  AC_FAN_SPEED_LABELS,
-  AC_MODE_LABELS,
-  AC_SWING_LABELS,
-  CURTAIN_VALUE_LABELS,
-  AIRCON_OBJECT_LABELS,
+  CONSTANTS,
 } from "@/constants";
 import {
   Plus,
@@ -280,27 +271,27 @@ export function SceneDialog({
     switch (objectType) {
       case OBJECT_TYPES.AC_POWER.obj_name:
         return (
-          Object.entries(AC_POWER_VALUES).find(
-            ([, value]) => value.toString() === itemValue
-          )?.[0] || null
+          CONSTANTS.AIRCON.find(item => item.obj_type === "OBJ_AC_POWER").values.find(
+            item => item.value.toString() === itemValue
+          )?.command || null
         );
       case OBJECT_TYPES.AC_FAN_SPEED.obj_name:
         return (
-          Object.entries(AC_FAN_SPEED_VALUES).find(
-            ([, value]) => value.toString() === itemValue
-          )?.[0] || null
+          CONSTANTS.AIRCON.find(item => item.obj_type === "OBJ_AC_FAN_SPEED").values.find(
+            item => item.value.toString() === itemValue
+          )?.command || null
         );
       case OBJECT_TYPES.AC_MODE.obj_name:
         return (
-          Object.entries(AC_MODE_VALUES).find(
-            ([, value]) => value.toString() === itemValue
-          )?.[0] || null
+          CONSTANTS.AIRCON.find(item => item.obj_type === "OBJ_AC_MODE").values.find(
+            item => item.value.toString() === itemValue
+          )?.command || null
         );
       case OBJECT_TYPES.AC_SWING.obj_name:
         return (
-          Object.entries(AC_SWING_VALUES).find(
-            ([, value]) => value.toString() === itemValue
-          )?.[0] || null
+          CONSTANTS.AIRCON.find(item => item.obj_type === "OBJ_AC_SWING").values.find(
+            item => item.value.toString() === itemValue
+          )?.command || null
         );
       case OBJECT_TYPES.AC_TEMPERATURE.obj_name:
         return null; // Temperature doesn't use commands, just direct value
@@ -398,7 +389,7 @@ export function SceneDialog({
             if (!canAdd) {
               toast.error(
                 `Aircon ${
-                  AIRCON_OBJECT_LABELS[property.objectType] ||
+                  CONSTANTS.AIRCON.find(item => item.obj_type === property.objectType)?.label ||
                   property.objectType
                 } is already used by another scene with address ${
                   formData.address
@@ -432,7 +423,7 @@ export function SceneDialog({
           item_address: airconItem.address,
           item_description: airconItem.description,
           label:
-            AIRCON_OBJECT_LABELS[property.objectType] || property.objectType,
+            CONSTANTS.AIRCON.find(item => item.obj_type === property.objectType)?.label || property.objectType,
         };
         setSceneItems((prev) => [...prev, newSceneItem]);
       });
@@ -507,7 +498,7 @@ export function SceneDialog({
             if (!canAdd) {
               toast.error(
                 `Aircon ${
-                  AIRCON_OBJECT_LABELS[property.objectType] ||
+                  CONSTANTS.AIRCON.find(item => item.obj_type === property.objectType)?.label ||
                   property.objectType
                 } is already used by another scene with address ${
                   formData.address
@@ -548,7 +539,7 @@ export function SceneDialog({
           item_address: airconItem.address,
           item_description: airconItem.description,
           label:
-            AIRCON_OBJECT_LABELS[property.objectType] || property.objectType,
+            CONSTANTS.AIRCON.find(item => item.obj_type === property.objectType)?.label || property.objectType,
         }));
 
         return [...filteredItems, ...newAirconItems];
@@ -1019,15 +1010,15 @@ export function SceneDialog({
         })
       ),
       [OBJECT_TYPES.AC_TEMPERATURE.obj_name]: [],
-      [OBJECT_TYPES.CURTAIN.obj_name]: Object.entries(CURTAIN_VALUE_LABELS).map(
-        ([value, label]) => ({
-          value,
-          label,
+      [OBJECT_TYPES.CURTAIN.obj_name]: CONSTANTS.CURTAIN.VALUES.map(
+        item => ({
+          value: item.value.toString(),
+          label: item.label,
         })
       ),
-      curtain: Object.entries(CURTAIN_VALUE_LABELS).map(([value, label]) => ({
-        value,
-        label,
+      curtain: CONSTANTS.CURTAIN.VALUES.map(item => ({
+        value: item.value.toString(),
+        label: item.label,
       })),
     };
 
@@ -1323,9 +1314,7 @@ export function SceneDialog({
                                       className="flex items-center justify-between text-sm"
                                     >
                                       <span className="text-muted-foreground">
-                                        {AIRCON_OBJECT_LABELS[
-                                          airconItem.object_type
-                                        ] || airconItem.object_type}
+                                        {CONSTANTS.AIRCON.find(item => item.obj_type === airconItem.object_type)?.label || airconItem.object_type}
                                       </span>
                                       <div className="flex items-center gap-2">
                                         {renderValueControl(airconItem)}

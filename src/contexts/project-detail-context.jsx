@@ -36,6 +36,7 @@ export function ProjectDetailProvider({ children }) {
     knx: [],
     scene: [],
     schedule: [],
+    multi_scenes: [],
   });
   const [airconCards, setAirconCards] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -73,7 +74,9 @@ export function ProjectDetailProvider({ children }) {
         setAirconCards(cards);
       } else {
         // Load specific category items using individual API calls
-        const items = await window.electronAPI[tabName].getAll(projectId);
+        // Map tab name to API name
+        const apiName = tabName === "multi_scenes" ? "multiScenes" : tabName;
+        const items = await window.electronAPI[apiName].getAll(projectId);
         setProjectItems((prev) => ({
           ...prev,
           [tabName]: items,
@@ -125,6 +128,7 @@ export function ProjectDetailProvider({ children }) {
           "knx",
           "scene",
           "schedule",
+          "multi_scenes",
         ])
       );
     } catch (err) {
@@ -161,6 +165,7 @@ export function ProjectDetailProvider({ children }) {
           knx: [],
           scene: [],
           schedule: [],
+          multi_scenes: [],
         });
         setAirconCards([]);
 
@@ -176,6 +181,7 @@ export function ProjectDetailProvider({ children }) {
           knx: [],
           scene: [],
           schedule: [],
+          multi_scenes: [],
         });
         setAirconCards([]);
         setLoadedTabs(new Set());
@@ -212,7 +218,9 @@ export function ProjectDetailProvider({ children }) {
       if (!selectedProject) return;
 
       try {
-        const newItem = await window.electronAPI[category].create(
+        // Map category to API name
+        const apiName = category === "multi_scenes" ? "multiScenes" : category;
+        const newItem = await window.electronAPI[apiName].create(
           selectedProject.id,
           itemData
         );
@@ -235,7 +243,9 @@ export function ProjectDetailProvider({ children }) {
 
   const updateItem = useCallback(async (category, id, itemData) => {
     try {
-      const updatedItem = await window.electronAPI[category].update(
+      // Map category to API name
+      const apiName = category === "multi_scenes" ? "multiScenes" : category;
+      const updatedItem = await window.electronAPI[apiName].update(
         id,
         itemData
       );
@@ -258,7 +268,9 @@ export function ProjectDetailProvider({ children }) {
 
   const deleteItem = useCallback(async (category, id) => {
     try {
-      await window.electronAPI[category].delete(id);
+      // Map category to API name
+      const apiName = category === "multi_scenes" ? "multiScenes" : category;
+      await window.electronAPI[apiName].delete(id);
       setProjectItems((prev) => ({
         ...prev,
         [category]: prev[category].filter((item) => item.id !== id),
@@ -275,7 +287,9 @@ export function ProjectDetailProvider({ children }) {
 
   const duplicateItem = useCallback(async (category, id) => {
     try {
-      const duplicatedItem = await window.electronAPI[category].duplicate(id);
+      // Map category to API name
+      const apiName = category === "multi_scenes" ? "multiScenes" : category;
+      const duplicatedItem = await window.electronAPI[apiName].duplicate(id);
       setProjectItems((prev) => ({
         ...prev,
         [category]: [...prev[category], duplicatedItem],
@@ -353,7 +367,9 @@ export function ProjectDetailProvider({ children }) {
             `${items.length} aircon cards (${importedItems.length} items) imported successfully`
           );
         } else {
-          importedItems = await window.electronAPI[category].bulkImport(
+          // Map category to API name
+          const apiName = category === "multi_scenes" ? "multiScenes" : category;
+          importedItems = await window.electronAPI[apiName].bulkImport(
             selectedProject.id,
             items
           );

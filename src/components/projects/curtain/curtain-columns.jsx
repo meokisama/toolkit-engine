@@ -33,7 +33,7 @@ export const createCurtainColumns = (
 ) => {
   // Create lighting options for group selection
   const lightingOptions = lightingItems.map((item) => ({
-    value: item.address,
+    value: item.id,
     label: item.name
       ? `${item.name} (${item.address})`
       : `Group ${item.address}`,
@@ -166,7 +166,7 @@ export const createCurtainColumns = (
       },
     },
     {
-      accessorKey: "open_group",
+      accessorKey: "open_group_id",
       header: ({ column }) => (
         <DataTableColumnHeader
           column={column}
@@ -175,18 +175,18 @@ export const createCurtainColumns = (
         />
       ),
       cell: ({ row }) => {
-        const openGroup = row.getValue("open_group");
+        const openGroupId = row.getValue("open_group_id");
         const effectiveValue = getEffectiveValue(
           row.original.id,
-          "open_group",
-          openGroup
+          "open_group_id",
+          openGroupId
         );
 
         return (
           <EditableComboboxCell
             value={effectiveValue}
             options={lightingOptions}
-            onSave={(value) => onCellEdit(row.original.id, "open_group", value)}
+            onSave={(value) => onCellEdit(row.original.id, "open_group_id", value)}
             placeholder="Select group"
             searchPlaceholder="Search lighting groups..."
             emptyMessage="No lighting groups found."
@@ -200,7 +200,7 @@ export const createCurtainColumns = (
       },
     },
     {
-      accessorKey: "close_group",
+      accessorKey: "close_group_id",
       header: ({ column }) => (
         <DataTableColumnHeader
           column={column}
@@ -209,11 +209,11 @@ export const createCurtainColumns = (
         />
       ),
       cell: ({ row }) => {
-        const closeGroup = row.getValue("close_group");
+        const closeGroupId = row.getValue("close_group_id");
         const effectiveValue = getEffectiveValue(
           row.original.id,
-          "close_group",
-          closeGroup
+          "close_group_id",
+          closeGroupId
         );
 
         return (
@@ -221,7 +221,7 @@ export const createCurtainColumns = (
             value={effectiveValue}
             options={lightingOptions}
             onSave={(value) =>
-              onCellEdit(row.original.id, "close_group", value)
+              onCellEdit(row.original.id, "close_group_id", value)
             }
             placeholder="Select group"
             searchPlaceholder="Search lighting groups..."
@@ -236,7 +236,7 @@ export const createCurtainColumns = (
       },
     },
     {
-      accessorKey: "stop_group",
+      accessorKey: "stop_group_id",
       header: ({ column }) => (
         <DataTableColumnHeader
           column={column}
@@ -246,7 +246,7 @@ export const createCurtainColumns = (
       ),
       cell: ({ row }) => {
         const curtainType = row.getValue("curtain_type");
-        const stopGroup = row.getValue("stop_group");
+        const stopGroupId = row.getValue("stop_group_id");
         const effectiveCurtainType = getEffectiveValue(
           row.original.id,
           "curtain_type",
@@ -254,8 +254,8 @@ export const createCurtainColumns = (
         );
         const effectiveValue = getEffectiveValue(
           row.original.id,
-          "stop_group",
-          stopGroup
+          "stop_group_id",
+          stopGroupId
         );
 
         // Only show stop group for 3P types
@@ -267,7 +267,7 @@ export const createCurtainColumns = (
           <EditableComboboxCell
             value={effectiveValue}
             options={lightingOptions}
-            onSave={(value) => onCellEdit(row.original.id, "stop_group", value)}
+            onSave={(value) => onCellEdit(row.original.id, "stop_group_id", value)}
             placeholder="Select group"
             searchPlaceholder="Search lighting groups..."
             emptyMessage="No lighting groups found."

@@ -4,15 +4,21 @@ import { Card, CardContent } from "@/components/ui/card";
 import { useProjectDetail } from "@/contexts/project-detail-context";
 import { SceneTable } from "./scenes/scene-table";
 import { ScheduleTable } from "./schedules/schedule-table";
+import { MultiSceneTable } from "./multi-scenes/multi-scene-table";
 import { TabLoadingSkeleton } from "@/components/projects/tab-loading-skeleton";
-import { SlidersHorizontal, Calendar } from "lucide-react";
+import { SlidersHorizontal, Calendar, Layers } from "lucide-react";
 
-// Tab config for Scenes & Schedules (2 tabs: scenes, schedules)
+// Tab config for Scenes & Schedules (3 tabs: scenes, multi-scenes, schedules)
 const scenesSchedulesTabConfig = {
   scene: {
     label: "Scenes",
     icon: SlidersHorizontal,
     description: "Manage lighting and automation scenes",
+  },
+  multi_scenes: {
+    label: "Multi-Scenes",
+    icon: Layers,
+    description: "Manage multi-scene sequences",
   },
   schedule: {
     label: "Schedules",
@@ -65,7 +71,7 @@ export function ScenesSchedules() {
   return (
     <div className="flex flex-1 flex-col gap-4 p-4 pt-0">
       <Tabs value={activeTab} onValueChange={setActiveTab} className="h-full">
-        <TabsList className="grid w-full grid-cols-2">
+        <TabsList className="grid w-full grid-cols-3">
           {tabEntries.map(([key, config]) => {
             const Icon = config.icon;
             const itemCount = itemCounts[key];
@@ -100,6 +106,9 @@ export function ScenesSchedules() {
                   <CardContent className="h-full">
                     {key === "scene" && (
                       <SceneTable items={projectItems.scene} />
+                    )}
+                    {key === "multi_scenes" && (
+                      <MultiSceneTable items={projectItems.multi_scenes} />
                     )}
                     {key === "schedule" && (
                       <ScheduleTable items={projectItems.schedule} />

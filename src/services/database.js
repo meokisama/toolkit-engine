@@ -125,14 +125,17 @@ class DatabaseService {
         object_value INTEGER DEFAULT 2,
         curtain_type TEXT DEFAULT '',
         curtain_value INTEGER DEFAULT 0,
-        open_group TEXT,
-        close_group TEXT,
-        stop_group TEXT,
+        open_group_id INTEGER,
+        close_group_id INTEGER,
+        stop_group_id INTEGER,
         pause_period INTEGER DEFAULT 0,
         transition_period INTEGER DEFAULT 0,
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
         updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-        FOREIGN KEY (project_id) REFERENCES projects (id) ON DELETE CASCADE
+        FOREIGN KEY (project_id) REFERENCES projects (id) ON DELETE CASCADE,
+        FOREIGN KEY (open_group_id) REFERENCES lighting (id) ON DELETE SET NULL,
+        FOREIGN KEY (close_group_id) REFERENCES lighting (id) ON DELETE SET NULL,
+        FOREIGN KEY (stop_group_id) REFERENCES lighting (id) ON DELETE SET NULL
       )
     `;
 
@@ -228,6 +231,31 @@ class DatabaseService {
       )
     `;
 
+    const createMultiScenesTable = `
+      CREATE TABLE IF NOT EXISTS multi_scenes (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        project_id INTEGER NOT NULL,
+        name TEXT NOT NULL,
+        type INTEGER NOT NULL DEFAULT 0,
+        description TEXT,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (project_id) REFERENCES projects (id) ON DELETE CASCADE
+      )
+    `;
+
+    const createMultiSceneScenesTable = `
+      CREATE TABLE IF NOT EXISTS multi_scene_scenes (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        multi_scene_id INTEGER NOT NULL,
+        scene_id INTEGER NOT NULL,
+        scene_order INTEGER NOT NULL DEFAULT 0,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (multi_scene_id) REFERENCES multi_scenes (id) ON DELETE CASCADE,
+        FOREIGN KEY (scene_id) REFERENCES scene (id) ON DELETE CASCADE
+      )
+    `;
+
     const createUnitOutputConfigsTable = `
       CREATE TABLE IF NOT EXISTS unit_output_configs (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -270,6 +298,8 @@ class DatabaseService {
       this.db.exec(createSceneAddressItemsTable);
       this.db.exec(createScheduleTable);
       this.db.exec(createScheduleScenesTable);
+      this.db.exec(createMultiScenesTable);
+      this.db.exec(createMultiSceneScenesTable);
       this.db.exec(createUnitOutputConfigsTable);
       this.db.exec(createUnitInputConfigsTable);
     } catch (error) {
@@ -449,6 +479,7 @@ class DatabaseService {
       "curtain",
       "knx",
       "scene",
+      "multi_scenes",
     ];
 
     categories.forEach((category) => {
@@ -491,6 +522,14 @@ class DatabaseService {
             stop_group: item.stop_group,
             pause_period: item.pause_period,
             transition_period: item.transition_period,
+          };
+          this.createProjectItem(newProjectId, itemData, category);
+        } else if (category === "multi_scenes") {
+          // Special handling for multi_scenes items
+          const itemData = {
+            name: item.name,
+            type: item.type,
+            description: item.description,
           };
           this.createProjectItem(newProjectId, itemData, category);
         } else {
@@ -543,6 +582,11 @@ class DatabaseService {
           "SELECT * FROM schedule WHERE project_id = ? ORDER BY name ASC"
         )
         .all(projectId);
+      const multi_scenes = this.db
+        .prepare(
+          "SELECT * FROM multi_scenes WHERE project_id = ? ORDER BY name ASC"
+        )
+        .all(projectId);
 
       return {
         lighting,
@@ -552,6 +596,7 @@ class DatabaseService {
         knx,
         scene,
         schedule,
+        multi_scenes,
       };
     } catch (error) {
       console.error("Failed to get all project items:", error);
@@ -576,7 +621,7 @@ class DatabaseService {
             : null,
           io_config: item.io_config ? JSON.parse(item.io_config) : null,
         }));
-      } else if (tableName === "schedule") {
+      } else if (tableName === "schedule" || tableName === "multi_scenes") {
         const stmt = this.db.prepare(
           `SELECT * FROM ${tableName} WHERE project_id = ? ORDER BY name ASC`
         );
@@ -618,9 +663,9 @@ class DatabaseService {
         label,
         curtain_type,
         curtain_value,
-        open_group,
-        close_group,
-        stop_group,
+        open_group_id,
+        close_group_id,
+        stop_group_id,
         pause_period,
         transition_period,
         type,
@@ -703,6 +748,23 @@ class DatabaseService {
         }
       }
 
+      // Special validation for multi_scenes
+      if (tableName === "multi_scenes") {
+        if (!name || !name.trim()) {
+          throw new Error("Name is required for multi-scene.");
+        }
+
+        // Check maximum multi-scene limit (40 multi-scenes)
+        const multiSceneCount = this.db
+          .prepare(
+            "SELECT COUNT(*) as count FROM multi_scenes WHERE project_id = ?"
+          )
+          .get(projectId);
+        if (multiSceneCount.count >= 40) {
+          throw new Error("Maximum 40 multi-scenes allowed per project.");
+        }
+      }
+
       // For aircon table, include label column
       if (tableName === "aircon") {
         const stmt = this.db.prepare(`
@@ -720,7 +782,7 @@ class DatabaseService {
         const object_value = this.getObjectValue(object_type);
 
         const stmt = this.db.prepare(`
-          INSERT INTO ${tableName} (project_id, name, address, description, object_type, object_value, curtain_type, curtain_value, open_group, close_group, stop_group, pause_period, transition_period)
+          INSERT INTO ${tableName} (project_id, name, address, description, object_type, object_value, curtain_type, curtain_value, open_group_id, close_group_id, stop_group_id, pause_period, transition_period)
           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         `);
         const result = stmt.run(
@@ -732,9 +794,9 @@ class DatabaseService {
           object_value,
           curtain_type,
           curtain_value || 3, // Default to CURTAIN_PULSE_2P value
-          open_group || null,
-          close_group || null,
-          stop_group || null,
+          open_group_id || null,
+          close_group_id || null,
+          stop_group_id || null,
           pause_period || 0,
           transition_period || 0
         );
@@ -766,6 +828,15 @@ class DatabaseService {
           VALUES (?, ?, ?, ?)
         `);
         const result = stmt.run(projectId, name, address, description);
+        return this.getProjectItemById(result.lastInsertRowid, tableName);
+      } else if (tableName === "multi_scenes") {
+        // For multi_scenes table, use type field
+        const { type } = itemData;
+        const stmt = this.db.prepare(`
+          INSERT INTO ${tableName} (project_id, name, type, description)
+          VALUES (?, ?, ?, ?)
+        `);
+        const result = stmt.run(projectId, name, type || 0, description);
         return this.getProjectItemById(result.lastInsertRowid, tableName);
       } else {
         // For other tables, use original structure with object_type and object_value
@@ -800,9 +871,9 @@ class DatabaseService {
         label,
         curtain_type,
         curtain_value,
-        open_group,
-        close_group,
-        stop_group,
+        open_group_id,
+        close_group_id,
+        stop_group_id,
         pause_period,
         transition_period,
         type,
@@ -937,7 +1008,7 @@ class DatabaseService {
 
         const stmt = this.db.prepare(`
           UPDATE ${tableName}
-          SET name = ?, address = ?, description = ?, object_type = ?, object_value = ?, curtain_type = ?, curtain_value = ?, open_group = ?, close_group = ?, stop_group = ?, pause_period = ?, transition_period = ?, updated_at = CURRENT_TIMESTAMP
+          SET name = ?, address = ?, description = ?, object_type = ?, object_value = ?, curtain_type = ?, curtain_value = ?, open_group_id = ?, close_group_id = ?, stop_group_id = ?, pause_period = ?, transition_period = ?, updated_at = CURRENT_TIMESTAMP
           WHERE id = ?
         `);
         const result = stmt.run(
@@ -948,9 +1019,9 @@ class DatabaseService {
           object_value,
           curtain_type,
           curtain_value || 3,
-          open_group || null,
-          close_group || null,
-          stop_group || null,
+          open_group_id || null,
+          close_group_id || null,
+          stop_group_id || null,
           pause_period || 0,
           transition_period || 0,
           id
@@ -999,6 +1070,19 @@ class DatabaseService {
           WHERE id = ?
         `);
         const result = stmt.run(name, address, description, id);
+
+        if (result.changes === 0) {
+          throw new Error(`${tableName} item not found`);
+        }
+      } else if (tableName === "multi_scenes") {
+        // For multi_scenes table, use type field
+        const { type } = itemData;
+        const stmt = this.db.prepare(`
+          UPDATE ${tableName}
+          SET name = ?, type = ?, description = ?, updated_at = CURRENT_TIMESTAMP
+          WHERE id = ?
+        `);
+        const result = stmt.run(name, type || 0, description, id);
 
         if (result.changes === 0) {
           throw new Error(`${tableName} item not found`);
@@ -1077,11 +1161,12 @@ class DatabaseService {
         description: originalItem.description,
       };
 
-      // Add object_type only for tables that use it (not aircon, knx, scene)
+      // Add object_type only for tables that use it (not aircon, knx, scene, multi_scenes)
       if (
         tableName !== "aircon" &&
         tableName !== "knx" &&
-        tableName !== "scene"
+        tableName !== "scene" &&
+        tableName !== "multi_scenes"
       ) {
         duplicatedItem.object_type = originalItem.object_type;
       }
@@ -1115,9 +1200,9 @@ class DatabaseService {
         duplicatedItem.curtain_type =
           originalItem.curtain_type || "CURTAIN_PULSE_2P";
         duplicatedItem.curtain_value = originalItem.curtain_value || 3;
-        duplicatedItem.open_group = originalItem.open_group || null;
-        duplicatedItem.close_group = originalItem.close_group || null;
-        duplicatedItem.stop_group = originalItem.stop_group || null;
+        duplicatedItem.open_group_id = originalItem.open_group_id || null;
+        duplicatedItem.close_group_id = originalItem.close_group_id || null;
+        duplicatedItem.stop_group_id = originalItem.stop_group_id || null;
         duplicatedItem.pause_period = originalItem.pause_period || 0;
         duplicatedItem.transition_period = originalItem.transition_period || 0;
       }
@@ -1160,6 +1245,11 @@ class DatabaseService {
         duplicatedItem.knx_dimming_group =
           originalItem.knx_dimming_group || null;
         duplicatedItem.knx_value_group = originalItem.knx_value_group || null;
+      }
+
+      // For multi_scenes, copy type field
+      if (tableName === "multi_scenes") {
+        duplicatedItem.type = originalItem.type || 0;
       }
 
       return this.createProjectItem(
@@ -2500,6 +2590,104 @@ class DatabaseService {
       };
     } catch (error) {
       console.error("Failed to get schedule for sending:", error);
+      throw error;
+    }
+  }
+
+  // Multi-Scene management methods
+  getMultiSceneScenes(multiSceneId) {
+    try {
+      const stmt = this.db.prepare(`
+        SELECT mss.*, s.name as scene_name, s.address as scene_address
+        FROM multi_scene_scenes mss
+        JOIN scene s ON mss.scene_id = s.id
+        WHERE mss.multi_scene_id = ?
+        ORDER BY mss.scene_order ASC
+      `);
+      return stmt.all(multiSceneId);
+    } catch (error) {
+      console.error("Failed to get multi-scene scenes:", error);
+      throw error;
+    }
+  }
+
+  addSceneToMultiScene(multiSceneId, sceneId, sceneOrder = 0) {
+    try {
+      // Check if multi-scene already has 20 scenes
+      const sceneCount = this.db
+        .prepare(
+          "SELECT COUNT(*) as count FROM multi_scene_scenes WHERE multi_scene_id = ?"
+        )
+        .get(multiSceneId);
+      if (sceneCount.count >= 20) {
+        throw new Error("Maximum 20 scenes allowed per multi-scene.");
+      }
+
+      // Check if scene is already in this multi-scene
+      const existingScene = this.db
+        .prepare(
+          "SELECT COUNT(*) as count FROM multi_scene_scenes WHERE multi_scene_id = ? AND scene_id = ?"
+        )
+        .get(multiSceneId, sceneId);
+      if (existingScene.count > 0) {
+        throw new Error("Scene is already in this multi-scene.");
+      }
+
+      const stmt = this.db.prepare(`
+        INSERT INTO multi_scene_scenes (multi_scene_id, scene_id, scene_order)
+        VALUES (?, ?, ?)
+      `);
+      const result = stmt.run(multiSceneId, sceneId, sceneOrder);
+      return {
+        id: result.lastInsertRowid,
+        multi_scene_id: multiSceneId,
+        scene_id: sceneId,
+        scene_order: sceneOrder,
+      };
+    } catch (error) {
+      console.error("Failed to add scene to multi-scene:", error);
+      throw error;
+    }
+  }
+
+  removeSceneFromMultiScene(multiSceneId, sceneId) {
+    try {
+      const stmt = this.db.prepare(`
+        DELETE FROM multi_scene_scenes
+        WHERE multi_scene_id = ? AND scene_id = ?
+      `);
+      const result = stmt.run(multiSceneId, sceneId);
+
+      if (result.changes === 0) {
+        throw new Error("Scene not found in multi-scene");
+      }
+
+      return { success: true };
+    } catch (error) {
+      console.error("Failed to remove scene from multi-scene:", error);
+      throw error;
+    }
+  }
+
+  updateMultiSceneScenes(multiSceneId, sceneIds) {
+    try {
+      // Start transaction for atomic operation
+      const transaction = this.db.transaction(() => {
+        // Remove all existing scenes from multi-scene
+        this.db
+          .prepare("DELETE FROM multi_scene_scenes WHERE multi_scene_id = ?")
+          .run(multiSceneId);
+
+        // Add new scenes with order
+        sceneIds.forEach((sceneId, index) => {
+          this.addSceneToMultiScene(multiSceneId, sceneId, index);
+        });
+      });
+
+      transaction();
+      return { success: true };
+    } catch (error) {
+      console.error("Failed to update multi-scene scenes:", error);
       throw error;
     }
   }

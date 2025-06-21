@@ -23,11 +23,7 @@ import {
   Trash2,
 } from "lucide-react";
 import { toast } from "sonner";
-import {
-  CURTAIN_VALUES,
-  CURTAIN_VALUE_LABELS,
-  CURTAIN_TYPE_LABELS,
-} from "@/constants";
+import { CONSTANTS } from "@/constants";
 import { DeleteCurtainDialog } from "./delete-curtain-popover";
 
 // Initial state for better state management
@@ -59,7 +55,7 @@ const CurtainCard = memo(({ curtain, onControl, onDelete, loading }) => (
             </p>
             <p>
               <span className="font-bold">Type:</span>{" "}
-              {CURTAIN_TYPE_LABELS[curtain.curtainType] ||
+              {CONSTANTS.CURTAIN.TYPES.find(t => t.value === curtain.curtainType)?.label ||
                 `Unknown (${curtain.curtainType})`}
               <span className="mx-1"> | </span>
               <span className="font-bold">Address:</span> {curtain.address}
@@ -265,7 +261,7 @@ export function CurtainControlDialog({ open, onOpenChange, unit }) {
 
       setLoadingState((prev) => ({ ...prev, loading: true }));
       try {
-        const valueLabel = CURTAIN_VALUE_LABELS[value] || value;
+        const valueLabel = CONSTANTS.CURTAIN.VALUES.find(v => v.value === value)?.label || value;
         console.log("Controlling curtain:", {
           unitIp: unit.ip_address,
           canId: unit.id_can,

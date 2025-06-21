@@ -22,7 +22,7 @@ import { useProjectDetail } from "@/contexts/project-detail-context";
 import { AirconCardDialog } from "@/components/projects/aircon/aircon-card-dialog";
 import { ConfirmDialog } from "@/components/projects/confirm-dialog";
 import { ImportItemsDialog } from "@/components/projects/import-category-dialog";
-import { AIRCON_OBJECT_LABELS } from "@/constants";
+import { CONSTANTS } from "@/constants";
 
 // Memoized component to prevent unnecessary rerenders
 function AirconCardsComponent({ cards, loading }) {
