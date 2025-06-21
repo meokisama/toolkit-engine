@@ -32,12 +32,34 @@ import {
 } from "@/components/ui/alert-dialog";
 import {
   OBJECT_TYPES,
-  AC_POWER_LABELS,
-  AC_MODE_LABELS,
-  AC_FAN_SPEED_LABELS,
-  AC_SWING_LABELS,
-  CURTAIN_VALUE_LABELS,
+  CONSTANTS,
 } from "@/constants";
+
+// Create label mappings directly from CONSTANTS.AIRCON
+const AC_POWER_LABELS = CONSTANTS.AIRCON.find(item => item.obj_type === "OBJ_AC_POWER")?.values.reduce((acc, item) => {
+  acc[item.value] = item.label;
+  return acc;
+}, {}) || {};
+
+const AC_MODE_LABELS = CONSTANTS.AIRCON.find(item => item.obj_type === "OBJ_AC_MODE")?.values.reduce((acc, item) => {
+  acc[item.value] = item.label;
+  return acc;
+}, {}) || {};
+
+const AC_FAN_SPEED_LABELS = CONSTANTS.AIRCON.find(item => item.obj_type === "OBJ_AC_FAN_SPEED")?.values.reduce((acc, item) => {
+  acc[item.value] = item.label;
+  return acc;
+}, {}) || {};
+
+const AC_SWING_LABELS = CONSTANTS.AIRCON.find(item => item.obj_type === "OBJ_AC_SWING")?.values.reduce((acc, item) => {
+  acc[item.value] = item.label;
+  return acc;
+}, {}) || {};
+
+const CURTAIN_VALUE_LABELS = CONSTANTS.CURTAIN?.VALUES?.reduce((acc, item) => {
+  acc[item.value] = item.label;
+  return acc;
+}, {}) || {};
 
 // Memoized helper functions for better performance
 const getObjectTypeInfo = (objectValue) => {

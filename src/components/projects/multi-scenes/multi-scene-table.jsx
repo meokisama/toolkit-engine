@@ -6,7 +6,7 @@ import { DataTableToolbar } from "@/components/projects/data-table/data-table-to
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 import { useProjectDetail } from "@/contexts/project-detail-context";
-import { ConfirmDialog } from "@/components/shared/confirm-dialog";
+import { ConfirmDialog } from "@/components/projects/confirm-dialog";
 import { createMultiSceneColumns } from "@/components/projects/multi-scenes/multi-scene-columns";
 import { MultiSceneDialog } from "@/components/projects/multi-scenes/multi-scene-dialog";
 import { SendMultiSceneDialog } from "@/components/projects/multi-scenes/send-multi-scene-dialog";

@@ -31,6 +31,28 @@ import {
   OBJECT_TYPES,
   CONSTANTS,
 } from "@/constants";
+
+// Create label mappings directly from CONSTANTS.AIRCON
+const AC_POWER_LABELS = CONSTANTS.AIRCON.find(item => item.obj_type === "OBJ_AC_POWER")?.values.reduce((acc, item) => {
+  acc[item.value] = item.label;
+  return acc;
+}, {}) || {};
+
+const AC_MODE_LABELS = CONSTANTS.AIRCON.find(item => item.obj_type === "OBJ_AC_MODE")?.values.reduce((acc, item) => {
+  acc[item.value] = item.label;
+  return acc;
+}, {}) || {};
+
+const AC_FAN_SPEED_LABELS = CONSTANTS.AIRCON.find(item => item.obj_type === "OBJ_AC_FAN_SPEED")?.values.reduce((acc, item) => {
+  acc[item.value] = item.label;
+  return acc;
+}, {}) || {};
+
+const AC_SWING_LABELS = CONSTANTS.AIRCON.find(item => item.obj_type === "OBJ_AC_SWING")?.values.reduce((acc, item) => {
+  acc[item.value] = item.label;
+  return acc;
+}, {}) || {};
+
 import {
   Plus,
   Trash2,
