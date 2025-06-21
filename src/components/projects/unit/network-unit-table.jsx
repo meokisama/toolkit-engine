@@ -9,10 +9,10 @@ import { DataTablePagination } from "@/components/projects/data-table/data-table
 import { createNetworkUnitColumns } from "@/components/projects/unit/unit-columns";
 import { GroupControlDialog } from "@/components/projects/unit/network-menu/group-control-dialog";
 import { RoomControlDialog } from "@/components/projects/unit/network-menu/ac-control-dialog";
-import { SceneDialog as TriggerSceneDialog } from "@/components/projects/unit/network-menu/scene-dialog";
-import { ScheduleDialog as TriggerScheduleDialog } from "@/components/projects/unit/network-menu/schedule-dialog";
+import { TriggerSceneDialog } from "@/components/projects/unit/network-menu/scene-control-dialog";
+import { TriggerScheduleDialog } from "@/components/projects/unit/network-menu/schedule-control-dialog";
 import { ClockControlDialog } from "@/components/projects/unit/network-menu/clock-control-dialog";
-import { CurtainDialog as TriggerCurtainDialog } from "@/components/projects/unit/network-menu/curtain-dialog";
+import { TriggerCurtainDialog } from "@/components/projects/unit/network-menu/curtain-control-dialog";
 import { udpScanner } from "@/services/udp";
 import { toast } from "sonner";
 

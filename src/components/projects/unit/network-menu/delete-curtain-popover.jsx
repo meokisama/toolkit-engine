@@ -14,8 +14,6 @@ export function DeleteCurtainDialog({
     indexRange: [0, 31],
     modes: [
       { id: "specific", label: "Delete Specific Curtains" },
-      { id: "single", label: "Delete Single Curtain" },
-      { id: "range", label: "Delete Range of Curtains" },
       { id: "all", label: "Delete All Curtains (0-31)" },
     ],
     apiMethods: {

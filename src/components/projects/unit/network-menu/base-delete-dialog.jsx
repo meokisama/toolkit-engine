@@ -68,9 +68,6 @@ export function BaseDeleteDialog({
 }) {
   const [deleteMode, setDeleteMode] = useState(config.modes[0]?.id || "specific");
   const [specificIndices, setSpecificIndices] = useState("");
-  const [singleIndex, setSingleIndex] = useState("");
-  const [rangeStart, setRangeStart] = useState("");
-  const [rangeEnd, setRangeEnd] = useState("");
   const [loading, setLoading] = useState(false);
 
   const { entityName, entityNameSingular, indexRange, modes, apiMethods } = config;
@@ -81,9 +78,6 @@ export function BaseDeleteDialog({
     if (open) {
       setDeleteMode(config.modes[0]?.id || "specific");
       setSpecificIndices("");
-      setSingleIndex("");
-      setRangeStart("");
-      setRangeEnd("");
     }
   }, [open, config.modes]);
 
@@ -99,42 +93,14 @@ export function BaseDeleteDialog({
     switch (deleteMode) {
       case "specific":
         return parseIndices(specificIndices, maxIndex);
-      
-      case "single": {
-        const index = parseInt(singleIndex, 10);
-        if (isNaN(index) || index < minIndex || index > maxIndex) {
-          throw new Error(`${entityNameSingular} index must be between ${minIndex}-${maxIndex}`);
-        }
-        return [index];
-      }
-      
-      case "range": {
-        const start = parseInt(rangeStart, 10);
-        const end = parseInt(rangeEnd, 10);
-        if (
-          isNaN(start) || isNaN(end) ||
-          start < minIndex || start > maxIndex ||
-          end < minIndex || end > maxIndex ||
-          start > end
-        ) {
-          throw new Error(
-            `Range values must be between ${minIndex}-${maxIndex}, and start must be <= end`
-          );
-        }
-        const indices = [];
-        for (let i = start; i <= end; i++) {
-          indices.push(i);
-        }
-        return indices;
-      }
-      
+
       case "all":
         return [];
-      
+
       default:
         return [];
     }
-  }, [deleteMode, specificIndices, singleIndex, rangeStart, rangeEnd, minIndex, maxIndex, entityNameSingular]);
+  }, [deleteMode, specificIndices, maxIndex]);
 
   const handleDelete = useCallback(async () => {
     if (!unit) {
@@ -216,9 +182,6 @@ export function BaseDeleteDialog({
   }, [
     deleteMode,
     specificIndices,
-    singleIndex,
-    rangeStart,
-    rangeEnd,
     unit,
     onOpenChange,
     getIndicesToDelete,
@@ -232,16 +195,14 @@ export function BaseDeleteDialog({
       if (e.key === "Enter" && !loading) {
         const canSubmit =
           deleteMode === "all" ||
-          (deleteMode === "specific" && specificIndices.trim()) ||
-          (deleteMode === "single" && singleIndex.trim()) ||
-          (deleteMode === "range" && rangeStart.trim() && rangeEnd.trim());
+          (deleteMode === "specific" && specificIndices.trim());
 
         if (canSubmit) {
           handleDelete();
         }
       }
     },
-    [deleteMode, specificIndices, singleIndex, rangeStart, rangeEnd, loading, handleDelete]
+    [deleteMode, specificIndices, loading, handleDelete]
   );
 
   const content = (
@@ -280,58 +241,6 @@ export function BaseDeleteDialog({
         </div>
       )}
 
-      {deleteMode === "single" && (
-        <div className="space-y-2">
-          <Label htmlFor="single-index">
-            {entityNameSingular} Index ({minIndex}-{maxIndex})
-          </Label>
-          <Input
-            id="single-index"
-            type="number"
-            min={minIndex}
-            max={maxIndex}
-            value={singleIndex}
-            onChange={(e) => setSingleIndex(e.target.value)}
-            onKeyPress={handleKeyPress}
-            placeholder={minIndex.toString()}
-            disabled={loading}
-          />
-        </div>
-      )}
-
-      {deleteMode === "range" && (
-        <div className="grid grid-cols-2 gap-4">
-          <div className="space-y-2">
-            <Label htmlFor="range-start">Start Index ({minIndex}-{maxIndex})</Label>
-            <Input
-              id="range-start"
-              type="number"
-              min={minIndex}
-              max={maxIndex}
-              value={rangeStart}
-              onChange={(e) => setRangeStart(e.target.value)}
-              onKeyPress={handleKeyPress}
-              placeholder="Start"
-              disabled={loading}
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="range-end">End Index ({minIndex}-{maxIndex})</Label>
-            <Input
-              id="range-end"
-              type="number"
-              min={minIndex}
-              max={maxIndex}
-              value={rangeEnd}
-              onChange={(e) => setRangeEnd(e.target.value)}
-              onKeyPress={handleKeyPress}
-              placeholder="End"
-              disabled={loading}
-            />
-          </div>
-        </div>
-      )}
-
       {deleteMode === "all" && (
         <div className="p-3 bg-yellow-50 border border-yellow-200 rounded-md">
           <p className="text-sm text-yellow-800">
@@ -352,9 +261,7 @@ export function BaseDeleteDialog({
           onClick={handleDelete}
           disabled={
             loading ||
-            (deleteMode === "specific" && !specificIndices.trim()) ||
-            (deleteMode === "single" && !singleIndex.trim()) ||
-            (deleteMode === "range" && (!rangeStart.trim() || !rangeEnd.trim()))
+            (deleteMode === "specific" && !specificIndices.trim())
           }
           className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
         >

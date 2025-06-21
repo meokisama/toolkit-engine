@@ -11,12 +11,10 @@ export function DeleteSceneDialog({
   const config = {
     entityName: "Scenes",
     entityNameSingular: "Scene",
-    indexRange: [0, 99],
+    indexRange: [0, 31],
     modes: [
       { id: "specific", label: "Delete Specific Scenes" },
-      { id: "single", label: "Delete Single Scene" },
-      { id: "range", label: "Delete Scene Range" },
-      { id: "all", label: "Delete All Scenes (0-99)" },
+      { id: "all", label: "Delete All Scenes (0-31)" },
     ],
     apiMethods: {
       deleteOne: async ({ unitIp, canId, index }) => {
