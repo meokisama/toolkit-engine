@@ -235,7 +235,8 @@ class DatabaseService {
       CREATE TABLE IF NOT EXISTS multi_scenes (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         project_id INTEGER NOT NULL,
-        name TEXT NOT NULL,
+        name TEXT NOT NULL CHECK(length(name) <= 15),
+        address TEXT NOT NULL,
         type INTEGER NOT NULL DEFAULT 0,
         description TEXT,
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
@@ -754,6 +755,14 @@ class DatabaseService {
           throw new Error("Name is required for multi-scene.");
         }
 
+        if (name.length > 15) {
+          throw new Error("Multi-scene name must be 15 characters or less.");
+        }
+
+        if (!address || !address.trim()) {
+          throw new Error("Address is required for multi-scene.");
+        }
+
         // Check maximum multi-scene limit (40 multi-scenes)
         const multiSceneCount = this.db
           .prepare(
@@ -830,13 +839,19 @@ class DatabaseService {
         const result = stmt.run(projectId, name, address, description);
         return this.getProjectItemById(result.lastInsertRowid, tableName);
       } else if (tableName === "multi_scenes") {
-        // For multi_scenes table, use type field
-        const { type } = itemData;
+        // For multi_scenes table, use type and address fields
+        const { type, address } = itemData;
         const stmt = this.db.prepare(`
-          INSERT INTO ${tableName} (project_id, name, type, description)
-          VALUES (?, ?, ?, ?)
+          INSERT INTO ${tableName} (project_id, name, address, type, description)
+          VALUES (?, ?, ?, ?, ?)
         `);
-        const result = stmt.run(projectId, name, type || 0, description);
+        const result = stmt.run(
+          projectId,
+          name,
+          address,
+          type || 0,
+          description
+        );
         return this.getProjectItemById(result.lastInsertRowid, tableName);
       } else {
         // For other tables, use original structure with object_type and object_value
@@ -1075,14 +1090,26 @@ class DatabaseService {
           throw new Error(`${tableName} item not found`);
         }
       } else if (tableName === "multi_scenes") {
-        // For multi_scenes table, use type field
-        const { type } = itemData;
+        // For multi_scenes table, use type and address fields
+        const { type, address } = itemData;
+
+        // Validation for multi_scenes
+        if (!name || !name.trim()) {
+          throw new Error("Name is required for multi-scene.");
+        }
+        if (name.length > 15) {
+          throw new Error("Multi-scene name must be 15 characters or less.");
+        }
+        if (!address || !address.trim()) {
+          throw new Error("Address is required for multi-scene.");
+        }
+
         const stmt = this.db.prepare(`
           UPDATE ${tableName}
-          SET name = ?, type = ?, description = ?, updated_at = CURRENT_TIMESTAMP
+          SET name = ?, address = ?, type = ?, description = ?, updated_at = CURRENT_TIMESTAMP
           WHERE id = ?
         `);
-        const result = stmt.run(name, type || 0, description, id);
+        const result = stmt.run(name, address, type || 0, description, id);
 
         if (result.changes === 0) {
           throw new Error(`${tableName} item not found`);
@@ -1247,9 +1274,10 @@ class DatabaseService {
         duplicatedItem.knx_value_group = originalItem.knx_value_group || null;
       }
 
-      // For multi_scenes, copy type field
+      // For multi_scenes, copy type and address fields
       if (tableName === "multi_scenes") {
         duplicatedItem.type = originalItem.type || 0;
+        duplicatedItem.address = originalItem.address || "";
       }
 
       return this.createProjectItem(
@@ -2613,14 +2641,42 @@ class DatabaseService {
 
   addSceneToMultiScene(multiSceneId, sceneId, sceneOrder = 0) {
     try {
-      // Check if multi-scene already has 20 scenes
-      const sceneCount = this.db
+      // Get the address of the scene being added
+      const sceneToAdd = this.db
+        .prepare("SELECT address FROM scene WHERE id = ?")
+        .get(sceneId);
+
+      if (!sceneToAdd) {
+        throw new Error("Scene not found.");
+      }
+
+      // Check if multi-scene already has 20 unique addresses
+      const uniqueAddresses = this.db
         .prepare(
-          "SELECT COUNT(*) as count FROM multi_scene_scenes WHERE multi_scene_id = ?"
+          `
+          SELECT COUNT(DISTINCT s.address) as count
+          FROM multi_scene_scenes mss
+          JOIN scene s ON mss.scene_id = s.id
+          WHERE mss.multi_scene_id = ?
+        `
         )
         .get(multiSceneId);
-      if (sceneCount.count >= 20) {
-        throw new Error("Maximum 20 scenes allowed per multi-scene.");
+
+      // Check if this address is already in the multi-scene
+      const addressExists = this.db
+        .prepare(
+          `
+          SELECT COUNT(*) as count
+          FROM multi_scene_scenes mss
+          JOIN scene s ON mss.scene_id = s.id
+          WHERE mss.multi_scene_id = ? AND s.address = ?
+        `
+        )
+        .get(multiSceneId, sceneToAdd.address);
+
+      // If this is a new address and we already have 20 addresses, reject
+      if (addressExists.count === 0 && uniqueAddresses.count >= 20) {
+        throw new Error("Maximum 20 addresses allowed per multi-scene.");
       }
 
       // Check if scene is already in this multi-scene

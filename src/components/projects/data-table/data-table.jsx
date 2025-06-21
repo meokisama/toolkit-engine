@@ -38,6 +38,7 @@ export function DataTable({
   onClockControl,
   onCurtainControl,
   onKnxControl,
+  onMultiSceneControl,
   onSendSchedule,
   onSendScene,
   initialPagination,
@@ -197,6 +198,7 @@ export function DataTable({
                   onClockControl={onClockControl}
                   onCurtainControl={onCurtainControl}
                   onKnxControl={onKnxControl}
+                  onMultiSceneControl={onMultiSceneControl}
                   onSendSchedule={onSendSchedule}
                   onSendScene={onSendScene}
                 />

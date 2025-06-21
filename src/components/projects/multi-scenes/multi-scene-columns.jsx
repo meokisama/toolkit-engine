@@ -9,7 +9,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { MoreHorizontal, Edit, Copy, Trash2 } from "lucide-react";
+import { MoreHorizontal, Edit, Copy, Trash2, Send } from "lucide-react";
 import { CONSTANTS } from "@/constants";
 
 export function createMultiSceneColumns(
@@ -17,7 +17,8 @@ export function createMultiSceneColumns(
   onDuplicate,
   onDelete,
   onCellEdit,
-  getEffectiveValue
+  getEffectiveValue,
+  onSendToUnit
 ) {
   return [
     {
@@ -62,7 +63,26 @@ export function createMultiSceneColumns(
         );
       },
       meta: {
-        className: "w-[25%]",
+        className: "w-[20%]",
+      },
+    },
+    {
+      accessorKey: "address",
+      header: "Address",
+      cell: ({ row, getValue }) => {
+        const value = getValue();
+        const effectiveValue = getEffectiveValue(row.original, "address", value);
+        return (
+          <div
+            className="cursor-pointer hover:bg-gray-100 px-2 py-1 rounded min-h-[2rem] flex items-center"
+            onClick={() => onCellEdit(row.original, "address", effectiveValue)}
+          >
+            {effectiveValue || ""}
+          </div>
+        );
+      },
+      meta: {
+        className: "w-[15%]",
       },
     },
     {
@@ -82,7 +102,7 @@ export function createMultiSceneColumns(
         );
       },
       meta: {
-        className: "w-[15%]",
+        className: "w-[12%]",
       },
     },
     {
@@ -101,7 +121,7 @@ export function createMultiSceneColumns(
         );
       },
       meta: {
-        className: "w-[35%]",
+        className: "w-[30%]",
       },
     },
     {
@@ -118,7 +138,7 @@ export function createMultiSceneColumns(
         );
       },
       meta: {
-        className: "w-[10%]",
+        className: "w-[8%]",
       },
     },
     {
@@ -141,6 +161,10 @@ export function createMultiSceneColumns(
               <DropdownMenuItem onClick={() => onEdit(multiScene)}>
                 <Edit className="mr-2 h-4 w-4" />
                 Edit
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => onSendToUnit(multiScene)}>
+                <Send className="mr-2 h-4 w-4" />
+                Send to Unit
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => onDuplicate(multiScene.id)}>
                 <Copy className="mr-2 h-4 w-4" />

@@ -279,6 +279,34 @@ contextBridge.exposeInMainWorld("electronAPI", {
     // Delete All Scenes
     deleteAllScenes: (unitIp, canId) =>
       ipcRenderer.invoke("rcu:deleteAllScenes", unitIp, canId),
+    // Multi-Scene Setup
+    setupMultiScene: (unitIp, canId, multiSceneConfig) =>
+      ipcRenderer.invoke(
+        "rcu:setupMultiScene",
+        unitIp,
+        canId,
+        multiSceneConfig
+      ),
+    // Multi-Scene Information
+    getMultiSceneInformation: (params) =>
+      ipcRenderer.invoke("rcu:getMultiSceneInformation", params),
+    // All Multi-Scenes Information
+    getAllMultiScenesInformation: (params) =>
+      ipcRenderer.invoke("rcu:getAllMultiScenesInformation", params),
+    // Multi-Scene Trigger
+    triggerMultiScene: (params) =>
+      ipcRenderer.invoke("rcu:triggerMultiScene", params),
+    // Multi-Scene Delete
+    deleteMultiScene: (unitIp, canId, multiSceneIndex) =>
+      ipcRenderer.invoke(
+        "rcu:deleteMultiScene",
+        unitIp,
+        canId,
+        multiSceneIndex
+      ),
+    // Delete All Multi-Scenes
+    deleteAllMultiScenes: (unitIp, canId) =>
+      ipcRenderer.invoke("rcu:deleteAllMultiScenes", unitIp, canId),
     // Schedule Information
     getScheduleInformation: (params) =>
       ipcRenderer.invoke("rcu:getScheduleInformation", params),

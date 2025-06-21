@@ -157,6 +157,7 @@ export function DataTableToolbar({
       <div className="flex items-center space-x-2">
         {onSendAll &&
           (category === "scene" ||
+            category === "multi_scenes" ||
             category === "schedule" ||
             category === "curtain" ||
             category === "knx") && (

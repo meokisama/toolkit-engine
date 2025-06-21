@@ -85,6 +85,8 @@ const validators = {
   value: (value) => validators.range(value, 0, 255, "Value"),
   sceneIndex: (index) => validators.range(index, 0, 99, "Scene index"),
   scheduleIndex: (index) => validators.range(index, 0, 31, "Schedule index"),
+  multiSceneIndex: (index) =>
+    validators.range(index, 0, 39, "Multi-scene index"),
   curtainIndex: (index) => validators.range(index, 0, 31, "Curtain index"),
   knxAddress: (address) => validators.range(address, 0, 511, "KNX address"),
   hour: (hour) => validators.range(hour, 0, 23, "Hour"),
@@ -1089,6 +1091,12 @@ const deleteConfigs = {
     validator: validators.scheduleIndex,
     needsSuccessCheck: false,
   },
+  multiScene: {
+    cmd1: PROTOCOL.GENERAL.CMD1,
+    cmd2: PROTOCOL.GENERAL.CMD2.CLEAR_MULTI_SCENE,
+    validator: validators.multiSceneIndex,
+    needsSuccessCheck: false,
+  },
   curtain: {
     cmd1: PROTOCOL.CURTAIN.CMD1,
     cmd2: PROTOCOL.CURTAIN.CMD2.CLEAR_CURTAIN,
@@ -1140,6 +1148,267 @@ async function setupSchedule(unitIp, canId, scheduleConfig) {
     idAddress,
     PROTOCOL.GENERAL.CMD1,
     PROTOCOL.GENERAL.CMD2.SETUP_SCHEDULE,
+    data
+  );
+}
+
+// Get Multi-Scene Information function
+async function getMultiSceneInformation(unitIp, canId, multiSceneIndex = null) {
+  // Convert CAN ID to address format
+  const idAddress = convertCanIdToInt(canId);
+
+  // Prepare data parameter
+  const data = [];
+  if (multiSceneIndex !== null) {
+    validators.multiSceneIndex(multiSceneIndex);
+    data.push(parseInt(multiSceneIndex));
+  }
+  // If multiSceneIndex is null, send empty data to get all multi-scenes
+
+  const response = await sendCommand(
+    unitIp,
+    UDP_PORT,
+    idAddress,
+    PROTOCOL.GENERAL.CMD1,
+    PROTOCOL.GENERAL.CMD2.GET_MULTI_SCENE,
+    data,
+    true // Skip status check for GET_MULTI_SCENE
+  );
+
+  if (response && response.msg) {
+    const data = response.msg.slice(8); // Skip header
+
+    if (data.length < 24) {
+      throw new Error(
+        `Insufficient multi-scene data: ${data.length} bytes (expected at least 24)`
+      );
+    }
+
+    // Parse multi-scene data structure:
+    // 1 byte index
+    // 15 bytes name
+    // 1 byte address
+    // 1 byte type
+    // 5 bytes reserved
+    // 1 byte amount (number of scene addresses)
+    // N bytes scene addresses (1 byte each)
+
+    const index = data[0];
+    const nameBytes = data.slice(1, 16);
+    const address = data[16];
+    const type = data[17];
+    // Skip 5 reserved bytes (18-22)
+    const amount = data[23];
+
+    // Extract scene addresses
+    const sceneAddresses = [];
+    for (let i = 0; i < amount && i < data.length - 24; i++) {
+      sceneAddresses.push(data[24 + i]);
+    }
+
+    // Convert name bytes to string (remove null terminators)
+    let multiSceneName = "";
+    for (let i = 0; i < nameBytes.length; i++) {
+      if (nameBytes[i] === 0) break;
+      multiSceneName += String.fromCharCode(nameBytes[i]);
+    }
+
+    return {
+      multiSceneIndex: index,
+      multiSceneName: multiSceneName || `Multi-Scene ${index}`,
+      multiSceneAddress: address,
+      multiSceneType: type,
+      sceneCount: amount,
+      sceneAddresses: sceneAddresses,
+    };
+  }
+
+  throw new Error(
+    "No response received from get multi-scene information command"
+  );
+}
+
+// Get All Multi-Scenes Information function
+async function getAllMultiScenesInformation(unitIp, canId) {
+  // Convert CAN ID to address format
+  const idAddress = convertCanIdToInt(canId);
+
+  // No data parameter for loading all multi-scenes
+  const data = [];
+
+  const result = await sendCommandMultipleResponses(
+    unitIp,
+    UDP_PORT,
+    idAddress,
+    PROTOCOL.GENERAL.CMD1,
+    PROTOCOL.GENERAL.CMD2.GET_MULTI_SCENE,
+    data,
+    15000 // 15 second timeout
+  );
+
+  if (result && result.responses && result.responses.length > 0) {
+    const multiScenes = [];
+    let successPacketReceived = false;
+
+    for (let i = 0; i < result.responses.length; i++) {
+      const response = result.responses[i];
+      if (response && response.msg) {
+        try {
+          const msg = response.msg;
+
+          // Check for success packet (indicates end of data)
+          if (msg.length >= 10) {
+            // Success packet format: <ID><length><cmd1><cmd2><0x00><crc>
+            const packetLength = msg[4] | (msg[5] << 8);
+            const dataSection = msg.slice(8, 8 + packetLength - 4);
+            const isSuccessPacket =
+              packetLength === 5 &&
+              dataSection.length === 1 &&
+              dataSection[0] === 0x00;
+
+            if (isSuccessPacket) {
+              successPacketReceived = true;
+              console.log(
+                `Success packet received for multi-scene response ${i + 1}`
+              );
+              continue;
+            }
+          }
+
+          // Parse multi-scene data
+          const data = msg.slice(8);
+          if (data.length >= 24) {
+            const index = data[0];
+            const nameBytes = data.slice(1, 16);
+            const address = data[16];
+            const type = data[17];
+            const amount = data[23];
+
+            // Extract scene addresses
+            const sceneAddresses = [];
+            for (let j = 0; j < amount && j < data.length - 24; j++) {
+              sceneAddresses.push(data[24 + j]);
+            }
+
+            // Convert name bytes to string
+            let multiSceneName = "";
+            for (let j = 0; j < nameBytes.length; j++) {
+              if (nameBytes[j] === 0) break;
+              multiSceneName += String.fromCharCode(nameBytes[j]);
+            }
+
+            multiScenes.push({
+              multiSceneIndex: index,
+              multiSceneName: multiSceneName || `Multi-Scene ${index}`,
+              multiSceneAddress: address,
+              multiSceneType: type,
+              sceneCount: amount,
+              sceneAddresses: sceneAddresses,
+            });
+          }
+        } catch (error) {
+          console.error(`Error parsing multi-scene response ${i + 1}:`, error);
+        }
+      }
+    }
+
+    return {
+      result: { success: successPacketReceived },
+      multiScenes: multiScenes,
+      successPacketReceived: successPacketReceived,
+      totalResponses: result.responses.length,
+    };
+  }
+
+  throw new Error(
+    "No valid responses received from get all multi-scenes information command"
+  );
+}
+
+// Trigger Multi-Scene function
+async function triggerMultiScene(unitIp, canId, multiSceneAddress) {
+  const idAddress = convertCanIdToInt(canId);
+  const triggerData = parseInt(multiSceneAddress);
+
+  return sendCommand(
+    unitIp,
+    UDP_PORT,
+    idAddress,
+    PROTOCOL.GENERAL.CMD1,
+    PROTOCOL.GENERAL.CMD2.TRIGGER_MULTI_SCENE,
+    [triggerData]
+  );
+}
+
+// Setup Multi-Scene function
+async function setupMultiScene(unitIp, canId, multiSceneConfig) {
+  const {
+    multiSceneIndex,
+    multiSceneName,
+    multiSceneAddress,
+    multiSceneType,
+    sceneAddresses,
+  } = multiSceneConfig;
+
+  // Validations
+  if (multiSceneIndex < 0 || multiSceneIndex > 39) {
+    throw new Error("Multi-scene index must be between 0 and 39");
+  }
+
+  if (!multiSceneName || multiSceneName.length > 15) {
+    throw new Error(
+      "Multi-scene name must be provided and not exceed 15 characters"
+    );
+  }
+
+  if (!multiSceneAddress) {
+    throw new Error("Multi-scene address must be provided");
+  }
+
+  if (!Array.isArray(sceneAddresses)) {
+    throw new Error("Scene addresses must be an array");
+  }
+
+  if (sceneAddresses.length > 20) {
+    throw new Error("Maximum 20 scene addresses allowed per multi-scene");
+  }
+
+  const idAddress = convertCanIdToInt(canId);
+  const data = [];
+
+  // 1 byte index
+  data.push(multiSceneIndex);
+
+  // 15 byte name (pad with 0x00 if shorter)
+  const nameBytes = Array(15).fill(0x00);
+  for (let i = 0; i < Math.min(multiSceneName.length, 15); i++) {
+    nameBytes[i] = multiSceneName.charCodeAt(i);
+  }
+  data.push(...nameBytes);
+
+  // 1 byte address
+  data.push(parseInt(multiSceneAddress) || 0);
+
+  // 1 byte type
+  data.push(parseInt(multiSceneType) || 0);
+
+  // 5 byte reserved (0x00)
+  data.push(...Array(5).fill(0x00));
+
+  // 1 byte amount (total number of scene addresses)
+  data.push(sceneAddresses.length);
+
+  // Scene addresses (1 byte each)
+  for (const address of sceneAddresses) {
+    data.push(parseInt(address) || 0);
+  }
+
+  return sendCommand(
+    unitIp,
+    UDP_PORT,
+    idAddress,
+    PROTOCOL.GENERAL.CMD1,
+    PROTOCOL.GENERAL.CMD2.SETUP_MULTI_SCENE,
     data
   );
 }
@@ -1317,6 +1586,16 @@ async function deleteSchedule(unitIp, canId, scheduleIndex = null) {
 // Delete All Schedules function
 async function deleteAllSchedules(unitIp, canId) {
   return deleteSchedule(unitIp, canId);
+}
+
+// Delete Multi-Scene function
+async function deleteMultiScene(unitIp, canId, multiSceneIndex = null) {
+  return deleteItem(unitIp, canId, deleteConfigs.multiScene, multiSceneIndex);
+}
+
+// Delete All Multi-Scenes function
+async function deleteAllMultiScenes(unitIp, canId) {
+  return deleteMultiScene(unitIp, canId);
 }
 
 // Clock Control Functions
@@ -2000,6 +2279,13 @@ export {
   getAllSchedulesInformation,
   deleteSchedule,
   deleteAllSchedules,
+  // Multi-Scene functions
+  setupMultiScene,
+  getMultiSceneInformation,
+  getAllMultiScenesInformation,
+  triggerMultiScene,
+  deleteMultiScene,
+  deleteAllMultiScenes,
   // Clock functions
   syncClock,
   getClock,

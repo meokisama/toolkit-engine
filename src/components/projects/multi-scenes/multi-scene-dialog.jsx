@@ -44,6 +44,7 @@ export function MultiSceneDialog({
 
   const [formData, setFormData] = useState({
     name: "",
+    address: "",
     type: 0,
     description: "",
   });
@@ -69,6 +70,7 @@ export function MultiSceneDialog({
       if (mode === "edit" && multiScene) {
         setFormData({
           name: multiScene.name || "",
+          address: multiScene.address || "",
           type: multiScene.type || 0,
           description: multiScene.description || "",
         });
@@ -76,6 +78,7 @@ export function MultiSceneDialog({
       } else {
         setFormData({
           name: "",
+          address: "",
           type: 0,
           description: "",
         });
@@ -107,20 +110,59 @@ export function MultiSceneDialog({
 
   const handleSceneToggle = (sceneId) => {
     setSelectedSceneIds((prev) => {
+      const availableScenes = projectItems.scene || [];
+      const clickedScene = availableScenes.find(scene => scene.id === sceneId);
+
+      if (!clickedScene) return prev;
+
+      // Find all scenes with the same address
+      const scenesWithSameAddress = availableScenes.filter(
+        scene => scene.address === clickedScene.address
+      );
+      const sceneIdsWithSameAddress = scenesWithSameAddress.map(scene => scene.id);
+
       if (prev.includes(sceneId)) {
-        return prev.filter(id => id !== sceneId);
+        // If the clicked scene is selected, remove all scenes with the same address
+        return prev.filter(id => !sceneIdsWithSameAddress.includes(id));
       } else {
-        if (prev.length >= 20) {
-          toast.error("Maximum 20 scenes allowed per multi-scene");
+        // Check if adding this address would exceed the limit of 20 addresses
+        const currentSelectedScenes = availableScenes.filter(scene => prev.includes(scene.id));
+        const currentAddresses = new Set(currentSelectedScenes.map(scene => scene.address));
+
+        if (!currentAddresses.has(clickedScene.address) && currentAddresses.size >= 20) {
+          toast.error("Maximum 20 addresses allowed per multi-scene");
           return prev;
         }
-        return [...prev, sceneId];
+
+        // If the clicked scene is not selected, add all scenes with the same address
+        const newSelectedIds = [...prev];
+
+        for (const id of sceneIdsWithSameAddress) {
+          if (!newSelectedIds.includes(id)) {
+            newSelectedIds.push(id);
+          }
+        }
+
+        return newSelectedIds;
       }
     });
   };
 
   const removeSelectedScene = (sceneId) => {
-    setSelectedSceneIds((prev) => prev.filter(id => id !== sceneId));
+    setSelectedSceneIds((prev) => {
+      const availableScenes = projectItems.scene || [];
+      const clickedScene = availableScenes.find(scene => scene.id === sceneId);
+
+      if (!clickedScene) return prev;
+
+      // Find all scenes with the same address and remove them
+      const scenesWithSameAddress = availableScenes.filter(
+        scene => scene.address === clickedScene.address
+      );
+      const sceneIdsWithSameAddress = scenesWithSameAddress.map(scene => scene.id);
+
+      return prev.filter(id => !sceneIdsWithSameAddress.includes(id));
+    });
   };
 
   const validateForm = () => {
@@ -128,6 +170,12 @@ export function MultiSceneDialog({
 
     if (!formData.name.trim()) {
       newErrors.name = "Name is required";
+    } else if (formData.name.length > 15) {
+      newErrors.name = "Name must be 15 characters or less";
+    }
+
+    if (!formData.address.trim()) {
+      newErrors.address = "Address is required";
     }
 
     if (selectedSceneIds.length === 0) {
@@ -170,6 +218,7 @@ export function MultiSceneDialog({
       // Reset form data after successful creation
       setFormData({
         name: "",
+        address: "",
         type: 0,
         description: "",
       });
@@ -185,6 +234,21 @@ export function MultiSceneDialog({
   const availableScenes = projectItems.scene || [];
   const selectedScenes = availableScenes.filter(scene => selectedSceneIds.includes(scene.id));
 
+  // Group scenes by address for better display
+  const groupScenesByAddress = (scenes) => {
+    const groups = {};
+    scenes.forEach(scene => {
+      if (!groups[scene.address]) {
+        groups[scene.address] = [];
+      }
+      groups[scene.address].push(scene);
+    });
+    return groups;
+  };
+
+  const availableSceneGroups = groupScenesByAddress(availableScenes);
+  const selectedSceneGroups = groupScenesByAddress(selectedScenes);
+
   return (
     <Dialog open={open} onOpenChange={() => onOpenChange(false)}>
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden">
@@ -195,7 +259,7 @@ export function MultiSceneDialog({
           <DialogDescription>
             {mode === "edit"
               ? "Update the multi-scene details and selected scenes."
-              : "Create a new multi-scene with selected scenes (max 20)."}
+              : "Create a new multi-scene with selected scenes (max 20 addresses)."}
           </DialogDescription>
         </DialogHeader>
 
@@ -208,6 +272,7 @@ export function MultiSceneDialog({
                 value={formData.name}
                 onChange={(e) => handleInputChange("name", e.target.value)}
                 placeholder="Enter multi-scene name"
+                maxLength={15}
                 className={errors.name ? "border-red-500" : ""}
               />
               {errors.name && (
@@ -215,6 +280,22 @@ export function MultiSceneDialog({
               )}
             </div>
 
+            <div className="space-y-2">
+              <Label htmlFor="address">Address *</Label>
+              <Input
+                id="address"
+                value={formData.address}
+                onChange={(e) => handleInputChange("address", e.target.value)}
+                placeholder="Enter address"
+                className={errors.address ? "border-red-500" : ""}
+              />
+              {errors.address && (
+                <p className="text-sm text-red-500">{errors.address}</p>
+              )}
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="type">Type</Label>
               <Select
@@ -250,7 +331,7 @@ export function MultiSceneDialog({
             <Card>
               <CardHeader>
                 <CardTitle className="text-sm flex items-center justify-between">
-                  Selected Scenes ({selectedScenes.length}/20)
+                  Selected Scenes ({selectedScenes.length} scenes, {Object.keys(selectedSceneGroups).length}/20 addresses)
                   {errors.scenes && (
                     <span className="text-red-500 text-xs">{errors.scenes}</span>
                   )}
@@ -264,26 +345,36 @@ export function MultiSceneDialog({
                     </p>
                   ) : (
                     <div className="space-y-2">
-                      {selectedScenes.map((scene) => (
-                        <div
-                          key={scene.id}
-                          className="flex items-center justify-between p-2 bg-gray-50 rounded"
-                        >
-                          <div className="flex items-center space-x-2">
-                            <SlidersHorizontal className="h-4 w-4 text-gray-500" />
-                            <span className="text-sm font-medium">{scene.name}</span>
-                            <Badge variant="outline" className="text-xs">
-                              {scene.address}
-                            </Badge>
+                      {Object.entries(selectedSceneGroups).map(([address, scenes]) => (
+                        <div key={address} className="space-y-1">
+                          <div className="flex items-center justify-between p-2 bg-gray-50 rounded">
+                            <div className="flex items-center space-x-2">
+                              <SlidersHorizontal className="h-4 w-4 text-gray-500" />
+                              <span className="text-sm font-medium">
+                                Address {address}
+                              </span>
+                              <Badge variant="outline" className="text-xs">
+                                {scenes.length} scene{scenes.length > 1 ? 's' : ''}
+                              </Badge>
+                            </div>
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => removeSelectedScene(scenes[0].id)}
+                            >
+                              <X className="h-4 w-4" />
+                            </Button>
                           </div>
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => removeSelectedScene(scene.id)}
-                          >
-                            <X className="h-4 w-4" />
-                          </Button>
+                          {scenes.length > 1 && (
+                            <div className="ml-6 space-y-1">
+                              {scenes.map((scene) => (
+                                <div key={scene.id} className="text-xs text-gray-600 pl-2">
+                                  • {scene.name}
+                                </div>
+                              ))}
+                            </div>
+                          )}
                         </div>
                       ))}
                     </div>
@@ -305,22 +396,40 @@ export function MultiSceneDialog({
                     </p>
                   ) : (
                     <div className="space-y-2">
-                      {availableScenes.map((scene) => (
-                        <div
-                          key={scene.id}
-                          className="flex items-center space-x-2 p-2 hover:bg-gray-50 rounded"
-                        >
-                          <Checkbox
-                            checked={selectedSceneIds.includes(scene.id)}
-                            onCheckedChange={() => handleSceneToggle(scene.id)}
-                          />
-                          <SlidersHorizontal className="h-4 w-4 text-gray-500" />
-                          <span className="text-sm font-medium">{scene.name}</span>
-                          <Badge variant="outline" className="text-xs">
-                            {scene.address}
-                          </Badge>
-                        </div>
-                      ))}
+                      {Object.entries(availableSceneGroups).map(([address, scenes]) => {
+                        const isGroupSelected = scenes.every(scene => selectedSceneIds.includes(scene.id));
+                        const isGroupPartiallySelected = scenes.some(scene => selectedSceneIds.includes(scene.id)) && !isGroupSelected;
+
+                        return (
+                          <div key={address} className="space-y-1">
+                            <div className="flex items-center space-x-2 p-2 hover:bg-gray-50 rounded">
+                              <Checkbox
+                                checked={isGroupSelected}
+                                ref={(el) => {
+                                  if (el) el.indeterminate = isGroupPartiallySelected;
+                                }}
+                                onCheckedChange={() => handleSceneToggle(scenes[0].id)}
+                              />
+                              <SlidersHorizontal className="h-4 w-4 text-gray-500" />
+                              <span className="text-sm font-medium">
+                                Address {address}
+                              </span>
+                              <Badge variant="outline" className="text-xs">
+                                {scenes.length} scene{scenes.length > 1 ? 's' : ''}
+                              </Badge>
+                            </div>
+                            {scenes.length > 1 && (
+                              <div className="ml-6 space-y-1">
+                                {scenes.map((scene) => (
+                                  <div key={scene.id} className="text-xs text-gray-600 pl-2">
+                                    • {scene.name}
+                                  </div>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })}
                     </div>
                   )}
                 </ScrollArea>

@@ -1,13 +1,15 @@
 import React, { memo, useState, useCallback, useEffect } from "react";
-import { DataTable } from "@/components/ui/data-table";
-import { DataTableSkeleton } from "@/components/ui/data-table-skeleton";
-import { DataTablePagination } from "@/components/ui/data-table-pagination";
+import { DataTable } from "@/components/projects/data-table/data-table";
+import { DataTableSkeleton } from "@/components/projects/table-skeleton";
+import { DataTablePagination } from "@/components/projects/data-table/data-table-pagination";
+import { DataTableToolbar } from "@/components/projects/data-table/data-table-toolbar";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 import { useProjectDetail } from "@/contexts/project-detail-context";
 import { ConfirmDialog } from "@/components/shared/confirm-dialog";
 import { createMultiSceneColumns } from "@/components/projects/multi-scenes/multi-scene-columns";
 import { MultiSceneDialog } from "@/components/projects/multi-scenes/multi-scene-dialog";
+import { SendMultiSceneDialog } from "@/components/projects/multi-scenes/send-multi-scene-dialog";
 import { Layers } from "lucide-react";
 import { toast } from "sonner";
 
@@ -24,6 +26,10 @@ const MultiSceneTable = memo(function MultiSceneTable({ items = [], loading = fa
     title: "",
     description: "",
     onConfirm: null,
+  });
+  const [sendMultiSceneDialog, setSendMultiSceneDialog] = useState({
+    open: false,
+    items: [],
   });
 
   // Load scene counts for each multi-scene
@@ -110,6 +116,31 @@ const MultiSceneTable = memo(function MultiSceneTable({ items = [], loading = fa
     return currentValue;
   }, []);
 
+  const handleSendToUnit = useCallback(
+    (item) => {
+      // Calculate index based on array position instead of database ID
+      const multiSceneIndex = items.findIndex((multiScene) => multiScene.id === item.id);
+      setSendMultiSceneDialog({
+        open: true,
+        items: [{ ...item, calculatedIndex: multiSceneIndex }], // Single multi-scene as array
+      });
+    },
+    [items]
+  );
+
+  const handleSendAllMultiScenes = useCallback(() => {
+    // Add calculated index to all multi-scenes
+    const multiScenesWithIndex = items.map((multiScene, index) => ({
+      ...multiScene,
+      calculatedIndex: index,
+    }));
+
+    setSendMultiSceneDialog({
+      open: true,
+      items: multiScenesWithIndex, // Pass all multi-scenes as array
+    });
+  }, [items]);
+
   const handleDialogClose = useCallback(
     (success) => {
       setDialogOpen(false);
@@ -133,7 +164,8 @@ const MultiSceneTable = memo(function MultiSceneTable({ items = [], loading = fa
     handleDuplicateItem,
     handleDeleteItem,
     handleCellEdit,
-    getEffectiveValue
+    getEffectiveValue,
+    handleSendToUnit
   );
 
   if (loading) {
@@ -163,6 +195,14 @@ const MultiSceneTable = memo(function MultiSceneTable({ items = [], loading = fa
           </div>
         ) : (
           <div className="space-y-4">
+            {table && (
+              <DataTableToolbar
+                table={table}
+                category={category}
+                onSendAll={handleSendAllMultiScenes}
+                sendAllLabel="Send All Multi-Scenes"
+              />
+            )}
             <div className="rounded-md border">
               <DataTable
                 key={category}
@@ -185,6 +225,14 @@ const MultiSceneTable = memo(function MultiSceneTable({ items = [], loading = fa
         onOpenChange={handleDialogClose}
         multiScene={editingItem}
         mode={dialogMode}
+      />
+
+      <SendMultiSceneDialog
+        open={sendMultiSceneDialog.open}
+        onOpenChange={(open) =>
+          setSendMultiSceneDialog((prev) => ({ ...prev, open }))
+        }
+        items={sendMultiSceneDialog.items}
       />
 
       <ConfirmDialog

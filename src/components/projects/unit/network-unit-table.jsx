@@ -14,6 +14,7 @@ import { TriggerScheduleDialog } from "@/components/projects/unit/network-menu/s
 import { ClockControlDialog } from "@/components/projects/unit/network-menu/clock-control-dialog";
 import { TriggerCurtainDialog } from "@/components/projects/unit/network-menu/curtain-control-dialog";
 import { TriggerKnxDialog } from "@/components/projects/unit/network-menu/knx-control-dialog";
+import { TriggerMultiSceneDialog } from "@/components/projects/unit/network-menu/multi-scene-control-dialog";
 import { udpScanner } from "@/services/udp";
 import { toast } from "sonner";
 
@@ -31,6 +32,8 @@ export function NetworkUnitTable({ onTransferToDatabase, existingUnits = [] }) {
   const [triggerCurtainDialogOpen, setTriggerCurtainDialogOpen] =
     useState(false);
   const [triggerKnxDialogOpen, setTriggerKnxDialogOpen] = useState(false);
+  const [triggerMultiSceneDialogOpen, setTriggerMultiSceneDialogOpen] =
+    useState(false);
   const [selectedUnit, setSelectedUnit] = useState(null);
 
   // Auto-load cached network units when component mounts
@@ -220,6 +223,12 @@ export function NetworkUnitTable({ onTransferToDatabase, existingUnits = [] }) {
     setTriggerKnxDialogOpen(true);
   }, []);
 
+  // Handle Multi-Scene Control
+  const handleTriggerMultiScene = useCallback((unit) => {
+    setSelectedUnit(unit);
+    setTriggerMultiSceneDialogOpen(true);
+  }, []);
+
   const handleGroupControlSubmit = async (params) => {
     try {
       if (
@@ -348,6 +357,9 @@ export function NetworkUnitTable({ onTransferToDatabase, existingUnits = [] }) {
                 onKnxControl={{
                   onTriggerKnx: handleTriggerKnx,
                 }}
+                onMultiSceneControl={{
+                  onTriggerMultiScene: handleTriggerMultiScene,
+                }}
                 enableRowSelection={true}
               />
               {networkTable && <DataTablePagination table={networkTable} />}
@@ -399,6 +411,12 @@ export function NetworkUnitTable({ onTransferToDatabase, existingUnits = [] }) {
         <TriggerKnxDialog
           open={triggerKnxDialogOpen}
           onOpenChange={setTriggerKnxDialogOpen}
+          unit={selectedUnit}
+        />
+
+        <TriggerMultiSceneDialog
+          open={triggerMultiSceneDialogOpen}
+          onOpenChange={setTriggerMultiSceneDialogOpen}
           unit={selectedUnit}
         />
       </Card>

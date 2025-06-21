@@ -25,6 +25,12 @@ import {
   triggerScene,
   deleteScene,
   deleteAllScenes,
+  setupMultiScene,
+  getMultiSceneInformation,
+  getAllMultiScenesInformation,
+  triggerMultiScene,
+  deleteMultiScene,
+  deleteAllMultiScenes,
   setupSchedule,
   getScheduleInformation,
   getAllSchedulesInformation,
@@ -1154,6 +1160,80 @@ function setupIpcHandlers() {
       return await deleteAllScenes(unitIp, canId);
     } catch (error) {
       console.error("Error deleting all scenes:", error);
+      throw error;
+    }
+  });
+
+  // Multi-Scene Setup
+  ipcMain.handle(
+    "rcu:setupMultiScene",
+    async (event, unitIp, canId, multiSceneConfig) => {
+      try {
+        return await setupMultiScene(unitIp, canId, multiSceneConfig);
+      } catch (error) {
+        console.error("Error setting up multi-scene:", error);
+        throw error;
+      }
+    }
+  );
+
+  // Multi-Scene Information
+  ipcMain.handle(
+    "rcu:getMultiSceneInformation",
+    async (event, { unitIp, canId, multiSceneIndex }) => {
+      try {
+        return await getMultiSceneInformation(unitIp, canId, multiSceneIndex);
+      } catch (error) {
+        console.error("Error getting multi-scene information:", error);
+        throw error;
+      }
+    }
+  );
+
+  // All Multi-Scenes Information
+  ipcMain.handle(
+    "rcu:getAllMultiScenesInformation",
+    async (event, { unitIp, canId }) => {
+      try {
+        return await getAllMultiScenesInformation(unitIp, canId);
+      } catch (error) {
+        console.error("Error getting all multi-scenes information:", error);
+        throw error;
+      }
+    }
+  );
+
+  // Trigger Multi-Scene
+  ipcMain.handle(
+    "rcu:triggerMultiScene",
+    async (event, { unitIp, canId, multiSceneAddress }) => {
+      try {
+        return await triggerMultiScene(unitIp, canId, multiSceneAddress);
+      } catch (error) {
+        console.error("Error triggering multi-scene:", error);
+        throw error;
+      }
+    }
+  );
+
+  // Delete Multi-Scene
+  ipcMain.handle(
+    "rcu:deleteMultiScene",
+    async (event, unitIp, canId, multiSceneIndex) => {
+      try {
+        return await deleteMultiScene(unitIp, canId, multiSceneIndex);
+      } catch (error) {
+        console.error("Error deleting multi-scene:", error);
+        throw error;
+      }
+    }
+  );
+
+  ipcMain.handle("rcu:deleteAllMultiScenes", async (event, unitIp, canId) => {
+    try {
+      return await deleteAllMultiScenes(unitIp, canId);
+    } catch (error) {
+      console.error("Error deleting all multi-scenes:", error);
       throw error;
     }
   });

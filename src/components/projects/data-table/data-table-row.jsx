@@ -14,6 +14,7 @@ import {
   Calendar,
   Clock,
   ChevronsUpDown,
+  GitCompare,
   Network,
 } from "lucide-react";
 
@@ -39,6 +40,7 @@ export function DataTableRow({
   onClockControl,
   onCurtainControl,
   onKnxControl,
+  onMultiSceneControl,
   onSendSchedule,
   onSendScene,
 }) {
@@ -77,6 +79,7 @@ export function DataTableRow({
             onClockControl ||
             onCurtainControl ||
             onKnxControl ||
+            onMultiSceneControl ||
             onSendSchedule ||
             onSendScene ||
             onDelete) && <ContextMenuSeparator />}
@@ -93,6 +96,7 @@ export function DataTableRow({
               onClockControl ||
               onCurtainControl ||
               onKnxControl ||
+              onMultiSceneControl ||
               onSendSchedule ||
               onSendScene ||
               onDelete) && <ContextMenuSeparator />}
@@ -156,6 +160,17 @@ export function DataTableRow({
             >
               <Network className="text-muted-foreground" />
               <span>KNX Control</span>
+            </ContextMenuItem>
+            <ContextMenuSeparator />
+          </>
+        )}
+        {onMultiSceneControl && (
+          <>
+            <ContextMenuItem
+              onClick={() => onMultiSceneControl.onTriggerMultiScene(item)}
+            >
+              <GitCompare className="text-muted-foreground" />
+              <span>Multi-Scene Control</span>
             </ContextMenuItem>
             <ContextMenuSeparator />
           </>
