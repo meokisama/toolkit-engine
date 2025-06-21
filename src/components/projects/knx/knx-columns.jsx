@@ -282,7 +282,6 @@ export const createKnxItemsColumns = (
           value={effectiveValue || ""}
           onSave={(newValue) => onCellEdit(item.id, "description", newValue)}
           placeholder="Enter description"
-          multiline={true}
         />
       );
     },

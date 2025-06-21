@@ -45,9 +45,8 @@ export function SendKnxDialog({ open, onOpenChange, items = [] }) {
     let errorCount = 0;
 
     // Get RCU group value from the lighting items
-    const lightingItems = await window.electronAPI.database.getProjectItems(
-      knxData.project_id,
-      "lighting"
+    const lightingItems = await window.electronAPI.lighting.getAll(
+      knxData.project_id
     );
     const rcuGroup = lightingItems.find(item => item.id === knxData.rcu_group_id);
     
@@ -124,9 +123,8 @@ export function SendKnxDialog({ open, onOpenChange, items = [] }) {
     const operationResults = [];
 
     // Get all lighting items for RCU group lookup
-    const lightingItems = await window.electronAPI.database.getProjectItems(
-      knxConfigs[0].project_id,
-      "lighting"
+    const lightingItems = await window.electronAPI.lighting.getAll(
+      knxConfigs[0].project_id
     );
 
     for (let i = 0; i < knxConfigs.length; i++) {

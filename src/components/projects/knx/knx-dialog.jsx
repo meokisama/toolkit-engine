@@ -467,12 +467,11 @@ export function KnxItemDialog({ open, onOpenChange, mode, item }) {
 
           <div className="space-y-2">
             <Label htmlFor="description">Description</Label>
-            <Textarea
+            <Input
               id="description"
               value={formData.description}
               onChange={(e) => handleInputChange("description", e.target.value)}
               placeholder="Enter device description (optional)"
-              rows={3}
             />
             {errors.description && (
               <p className="text-sm text-red-500">{errors.description}</p>

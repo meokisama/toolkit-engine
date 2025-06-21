@@ -2,7 +2,6 @@
 
 import React, { useState, useRef, useEffect, useCallback } from "react";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
 
 export function EditableCell({
@@ -13,7 +12,6 @@ export function EditableCell({
   placeholder,
   displayValue,
   icon: Icon,
-  multiline = false,
   ...props
 }) {
   const [editValue, setEditValue] = useState(value || "");
@@ -47,7 +45,7 @@ export function EditableCell({
   };
 
   const handleKeyDown = (e) => {
-    if (e.key === "Enter" && !multiline) {
+    if (e.key === "Enter") {
       e.preventDefault();
       if (editValue !== value) {
         onSave(editValue);
@@ -70,22 +68,17 @@ export function EditableCell({
     onChange: handleChange,
     onKeyDown: handleKeyDown,
     onBlur: handleBlur,
-    className: cn(
-      multiline ? "min-h-[60px] resize-none" : "h-10",
-      Icon ? "pl-8 pr-2" : "px-2",
-      className
-    ),
+    className: cn("h-10", Icon ? "pl-8 pr-2" : "px-2", className),
     placeholder: placeholder || "-",
     ...props,
   };
 
-  const inputElement = multiline ? (
-    <Textarea {...inputProps} />
-  ) : type === "number" ? (
-    <Input {...inputProps} type="number" min="1" max="255" step="1" />
-  ) : (
-    <Input {...inputProps} type="text" />
-  );
+  const inputElement =
+    type === "number" ? (
+      <Input {...inputProps} type="number" min="1" max="255" step="1" />
+    ) : (
+      <Input {...inputProps} type="text" />
+    );
 
   if (Icon) {
     return (
