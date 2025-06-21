@@ -40,13 +40,13 @@ const initialLoadingState = {
 
 // Helper function to get KNX type label
 const getKnxTypeLabel = (type) => {
-  const knxType = CONSTANTS.KNX_OUTPUT_TYPES.find(t => t.value === type);
+  const knxType = CONSTANTS.KNX.KNX_OUTPUT_TYPES.find(t => t.value === type);
   return knxType ? knxType.label : `Type ${type}`;
 };
 
 // Helper function to get KNX feedback label
 const getKnxFeedbackLabel = (feedback) => {
-  const knxFeedback = CONSTANTS.KNX_FEEDBACK.find(f => f.value === feedback);
+  const knxFeedback = CONSTANTS.KNX.KNX_FEEDBACK_TYPES.find(f => f.value === feedback);
   return knxFeedback ? knxFeedback.label : `Feedback ${feedback}`;
 };
 

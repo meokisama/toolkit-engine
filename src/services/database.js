@@ -143,7 +143,7 @@ class DatabaseService {
         name TEXT,
         address INTEGER NOT NULL CHECK(address >= 0 AND address <= 511),
         type INTEGER NOT NULL DEFAULT 0,
-        factor INTEGER NOT NULL DEFAULT 1 CHECK(factor > 1),
+        factor INTEGER NOT NULL DEFAULT 1 CHECK(factor >= 1),
         feedback INTEGER NOT NULL DEFAULT 0,
         rcu_group_id INTEGER,
         knx_switch_group TEXT,
