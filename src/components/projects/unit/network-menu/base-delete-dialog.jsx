@@ -27,16 +27,24 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
  */
 const parseIndices = (indicesStr, maxIndex) => {
   if (!indicesStr.trim()) return [];
-  
+
   const indices = new Set();
-  const parts = indicesStr.split(',').map(part => part.trim());
-  
+  const parts = indicesStr.split(",").map((part) => part.trim());
+
   for (const part of parts) {
-    if (part.includes('-')) {
+    if (part.includes("-")) {
       // Handle range like "1-5"
-      const [start, end] = part.split('-').map(s => parseInt(s.trim(), 10));
-      if (isNaN(start) || isNaN(end) || start < 0 || end > maxIndex || start > end) {
-        throw new Error(`Invalid range: ${part}. Must be between 0-${maxIndex} and start <= end`);
+      const [start, end] = part.split("-").map((s) => parseInt(s.trim(), 10));
+      if (
+        isNaN(start) ||
+        isNaN(end) ||
+        start < 0 ||
+        end > maxIndex ||
+        start > end
+      ) {
+        throw new Error(
+          `Invalid range: ${part}. Must be between 0-${maxIndex} and start <= end`
+        );
       }
       for (let i = start; i <= end; i++) {
         indices.add(i);
@@ -45,12 +53,14 @@ const parseIndices = (indicesStr, maxIndex) => {
       // Handle single number
       const num = parseInt(part, 10);
       if (isNaN(num) || num < 0 || num > maxIndex) {
-        throw new Error(`Invalid index: ${part}. Must be between 0-${maxIndex}`);
+        throw new Error(
+          `Invalid index: ${part}. Must be between 0-${maxIndex}`
+        );
       }
       indices.add(num);
     }
   }
-  
+
   return Array.from(indices).sort((a, b) => a - b);
 };
 
@@ -66,11 +76,14 @@ export function BaseDeleteDialog({
   trigger = null,
   config,
 }) {
-  const [deleteMode, setDeleteMode] = useState(config.modes[0]?.id || "specific");
+  const [deleteMode, setDeleteMode] = useState(
+    config.modes[0]?.id || "specific"
+  );
   const [specificIndices, setSpecificIndices] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const { entityName, entityNameSingular, indexRange, modes, apiMethods } = config;
+  const { entityName, entityNameSingular, indexRange, modes, apiMethods } =
+    config;
   const [minIndex, maxIndex] = indexRange;
 
   // Reset form when dialog opens/closes
@@ -116,7 +129,10 @@ export function BaseDeleteDialog({
           canId: unit.id_can,
         });
 
-        const response = await apiMethods.deleteAll(unit.ip_address, unit.id_can);
+        const response = await apiMethods.deleteAll(
+          unit.ip_address,
+          unit.id_can
+        );
 
         console.log(`All ${entityName.toLowerCase()} deleted successfully:`, {
           responseLength: response?.msg?.length,
@@ -124,7 +140,9 @@ export function BaseDeleteDialog({
         });
 
         toast.success(
-          `Successfully deleted all ${entityName.toLowerCase()} from unit ${unit.ip_address}`
+          `Successfully deleted all ${entityName.toLowerCase()} from unit ${
+            unit.ip_address
+          }`
         );
         onOpenChange(false);
       } else {
@@ -132,7 +150,9 @@ export function BaseDeleteDialog({
         const indicesToDelete = getIndicesToDelete();
 
         if (indicesToDelete.length === 0) {
-          toast.error(`Please enter ${entityName.toLowerCase()} indices to delete`);
+          toast.error(
+            `Please enter ${entityName.toLowerCase()} indices to delete`
+          );
           return;
         }
 
@@ -154,7 +174,10 @@ export function BaseDeleteDialog({
             });
             successCount++;
           } catch (error) {
-            console.error(`Failed to delete ${entityNameSingular.toLowerCase()} ${index}:`, error);
+            console.error(
+              `Failed to delete ${entityNameSingular.toLowerCase()} ${index}:`,
+              error
+            );
             errorCount++;
           }
         }
@@ -162,12 +185,16 @@ export function BaseDeleteDialog({
         // Show results
         if (successCount === indicesToDelete.length) {
           toast.success(
-            `Successfully deleted ${successCount} ${entityName.toLowerCase()} from unit ${unit.ip_address}`
+            `Successfully deleted ${successCount} ${entityName.toLowerCase()} from unit ${
+              unit.ip_address
+            }`
           );
           onOpenChange(false);
         } else if (successCount > 0) {
           toast.warning(
-            `Partially successful: ${successCount}/${indicesToDelete.length} ${entityName.toLowerCase()} deleted`
+            `Partially successful: ${successCount}/${
+              indicesToDelete.length
+            } ${entityName.toLowerCase()} deleted`
           );
         } else {
           toast.error(`Failed to delete ${entityName.toLowerCase()} from unit`);
@@ -175,7 +202,9 @@ export function BaseDeleteDialog({
       }
     } catch (error) {
       console.error(`Failed to delete ${entityName.toLowerCase()}:`, error);
-      toast.error(`Failed to delete ${entityName.toLowerCase()}: ${error.message}`);
+      toast.error(
+        `Failed to delete ${entityName.toLowerCase()}: ${error.message}`
+      );
     } finally {
       setLoading(false);
     }
@@ -223,16 +252,14 @@ export function BaseDeleteDialog({
       {/* Input Fields Based on Mode */}
       {deleteMode === "specific" && (
         <div className="space-y-2">
-          <Label htmlFor="specific-indices">
-            {entityName} Indices (comma-separated, ranges supported)
-          </Label>
+          <Label htmlFor="specific-indices">{entityName} Indices</Label>
           <Input
             id="specific-indices"
             type="text"
             value={specificIndices}
             onChange={handleSpecificIndicesChange}
             onKeyPress={handleKeyPress}
-            placeholder={`e.g., 0,5,10-15 (${minIndex}-${maxIndex})`}
+            placeholder={`e.g., 0,5,10-15,...`}
             disabled={loading}
           />
           <p className="text-xs text-muted-foreground">
@@ -244,7 +271,8 @@ export function BaseDeleteDialog({
       {deleteMode === "all" && (
         <div className="p-3 bg-yellow-50 border border-yellow-200 rounded-md">
           <p className="text-sm text-yellow-800">
-            ⚠️ This will delete all {entityName.toLowerCase()} (index {minIndex}-{maxIndex}) from the network unit.
+            This will delete all {entityName.toLowerCase()} (index {minIndex}-
+            {maxIndex}) from the network unit.
           </p>
         </div>
       )}
@@ -258,21 +286,20 @@ export function BaseDeleteDialog({
           Cancel
         </Button>
         <Button
+          variant="destructive"
           onClick={handleDelete}
           disabled={
-            loading ||
-            (deleteMode === "specific" && !specificIndices.trim())
+            loading || (deleteMode === "specific" && !specificIndices.trim())
           }
-          className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
         >
           {loading ? (
             <>
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              <Loader2 className="h-4 w-4 animate-spin" />
               Deleting...
             </>
           ) : (
             <>
-              <Trash2 className="mr-2 h-4 w-4" />
+              <Trash2 className="h-4 w-4" />
               Delete {entityName}
             </>
           )}
@@ -290,8 +317,7 @@ export function BaseDeleteDialog({
             <div>
               <h4 className="font-medium text-sm">Delete {entityName}</h4>
               <p className="text-sm text-muted-foreground">
-                Delete {entityName.toLowerCase()} from unit {unit?.ip_address} (CAN ID:{" "}
-                {unit?.id_can}). Use indices {minIndex}-{maxIndex}.
+                Delete {entityName.toLowerCase()} from unit {unit?.ip_address}.
               </p>
             </div>
             {content}
@@ -310,8 +336,8 @@ export function BaseDeleteDialog({
             Delete {entityName}
           </DialogTitle>
           <DialogDescription>
-            Delete {entityName.toLowerCase()} from unit {unit?.ip_address} (CAN ID:{" "}
-            {unit?.id_can}). Use indices {minIndex}-{maxIndex}.
+            Delete {entityName.toLowerCase()} from unit {unit?.ip_address} (CAN
+            ID: {unit?.id_can}). Use indices {minIndex}-{maxIndex}.
           </DialogDescription>
         </DialogHeader>
         {content}
