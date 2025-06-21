@@ -34,9 +34,8 @@ export function SendKnxDialog({ open, onOpenChange, items = [] }) {
     return true;
   };
 
-  const handleSendSingleKnx = async (knx, selectedUnits) => {
-    const knxData = await handleLoadSingleKnx(knx);
-
+  const handleSendSingleKnx = async (knx, knxData, selectedUnits) => {
+    // knxData is already loaded and passed from the parent component
     if (!handleValidateSingleKnx(knxData)) {
       return;
     }
