@@ -21,11 +21,89 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
-import { SlidersHorizontal, CircleCheck, Lightbulb } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  SlidersHorizontal,
+  CircleCheck,
+  Lightbulb,
+  List,
+  GripVertical,
+} from "lucide-react";
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+} from "@dnd-kit/core";
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  verticalListSortingStrategy,
+} from "@dnd-kit/sortable";
+import { useSortable } from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 import * as CheckboxPrimitive from "@radix-ui/react-checkbox";
 import { useProjectDetail } from "@/contexts/project-detail-context";
 import { CONSTANTS } from "@/constants";
 import { toast } from "sonner";
+
+// Sortable Address Item Component
+function SortableAddressItem({ address, scenes, onRemove }) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: address });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+  };
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={style}
+      className="flex items-center gap-3 p-3 bg-muted/50 rounded-lg border"
+    >
+      <div
+        {...attributes}
+        {...listeners}
+        className="cursor-grab active:cursor-grabbing"
+      >
+        <GripVertical className="h-4 w-4 text-muted-foreground" />
+      </div>
+
+      <div className="flex-1">
+        <div className="flex items-center gap-2 mb-1">
+          <span className="font-medium text-sm">Address: {address}</span>
+          <Badge variant="secondary" className="text-xs">
+            {scenes.length} scene{scenes.length > 1 ? "s" : ""}
+          </Badge>
+        </div>
+        <div className="text-xs text-muted-foreground">
+          {scenes.map((scene) => scene.name).join(", ")}
+        </div>
+      </div>
+
+      <Button
+        variant="ghost"
+        size="sm"
+        onClick={() => onRemove(address)}
+        className="text-red-500 hover:text-red-700"
+      >
+        Remove
+      </Button>
+    </div>
+  );
+}
 
 export function MultiSceneDialog({
   open,
@@ -50,22 +128,37 @@ export function MultiSceneDialog({
     description: "",
   });
   const [selectedSceneIds, setSelectedSceneIds] = useState([]);
+  const [addressOrder, setAddressOrder] = useState([]);
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({});
 
   // Load existing multi-scene scenes when editing
-  const loadMultiSceneScenes = useCallback(async (multiSceneId) => {
-    try {
-      const scenes = await window.electronAPI.multiScenes.getScenes(
-        multiSceneId
-      );
-      const sceneIds = scenes.map((scene) => scene.scene_id);
-      setSelectedSceneIds(sceneIds);
-    } catch (error) {
-      console.error("Failed to load multi-scene scenes:", error);
-      toast.error("Failed to load multi-scene scenes");
-    }
-  }, []);
+  const loadMultiSceneScenes = useCallback(
+    async (multiSceneId) => {
+      try {
+        const scenes = await window.electronAPI.multiScenes.getScenes(
+          multiSceneId
+        );
+        const sceneIds = scenes.map((scene) => scene.scene_id);
+        setSelectedSceneIds(sceneIds);
+
+        // Initialize address order based on existing scenes, preserving database order
+        const addresses = [];
+        const seenAddresses = new Set();
+        for (const scene of scenes) {
+          if (!seenAddresses.has(scene.scene_address)) {
+            addresses.push(scene.scene_address);
+            seenAddresses.add(scene.scene_address);
+          }
+        }
+        setAddressOrder(addresses);
+      } catch (error) {
+        console.error("Failed to load multi-scene scenes:", error);
+        toast.error("Failed to load multi-scene scenes");
+      }
+    },
+    [projectItems.scene]
+  );
 
   // Reset form when dialog opens/closes
   useEffect(() => {
@@ -86,6 +179,7 @@ export function MultiSceneDialog({
           description: "",
         });
         setSelectedSceneIds([]);
+        setAddressOrder([]);
       }
       setErrors({});
 
@@ -154,12 +248,62 @@ export function MultiSceneDialog({
           }
         }
 
+        // Update address order when adding new address
+        setAddressOrder((prevOrder) => {
+          if (!prevOrder.includes(clickedScene.address)) {
+            return [...prevOrder, clickedScene.address];
+          }
+          return prevOrder;
+        });
+
         return newSelectedIds;
       } else {
         // If the clicked scene is being deselected, remove all scenes with the same address
-        return prev.filter((id) => !sceneIdsWithSameAddress.includes(id));
+        const newSelectedIds = prev.filter(
+          (id) => !sceneIdsWithSameAddress.includes(id)
+        );
+
+        // Remove address from order if no scenes with this address are selected
+        setAddressOrder((prevOrder) =>
+          prevOrder.filter((addr) => addr !== clickedScene.address)
+        );
+
+        return newSelectedIds;
       }
     });
+  };
+
+  // Handle drag and drop for address ordering
+  const sensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
+
+  const handleDragEnd = (event) => {
+    const { active, over } = event;
+
+    if (active.id !== over?.id) {
+      setAddressOrder((items) => {
+        const oldIndex = items.indexOf(active.id);
+        const newIndex = items.indexOf(over.id);
+
+        return arrayMove(items, oldIndex, newIndex);
+      });
+    }
+  };
+
+  const handleRemoveAddress = (addressToRemove) => {
+    const availableScenes = projectItems.scene || [];
+    const scenesToRemove = availableScenes
+      .filter((scene) => scene.address === addressToRemove)
+      .map((scene) => scene.id);
+
+    setSelectedSceneIds((prev) =>
+      prev.filter((id) => !scenesToRemove.includes(id))
+    );
+    setAddressOrder((prev) => prev.filter((addr) => addr !== addressToRemove));
   };
 
   const validateForm = () => {
@@ -196,22 +340,38 @@ export function MultiSceneDialog({
         // Update multi-scene basic info
         await updateItem("multi_scenes", multiScene.id, formData);
 
-        // Update scenes in multi-scene
+        // Update scenes in multi-scene with proper ordering
+        const orderedSceneIds = [];
+        for (const address of addressOrder) {
+          const scenesForAddress = selectedScenes.filter(
+            (scene) => scene.address === address
+          );
+          for (const scene of scenesForAddress) {
+            orderedSceneIds.push(scene.id);
+          }
+        }
         await window.electronAPI.multiScenes.updateScenes(
           multiScene.id,
-          selectedSceneIds
+          orderedSceneIds
         );
       } else {
         // Create new multi-scene
         const newMultiScene = await createItem("multi_scenes", formData);
 
-        // Add all selected scenes
-        for (let i = 0; i < selectedSceneIds.length; i++) {
-          await window.electronAPI.multiScenes.addScene(
-            newMultiScene.id,
-            selectedSceneIds[i],
-            i
+        // Add all selected scenes in the order specified by addressOrder
+        let sceneIndex = 0;
+        for (const address of addressOrder) {
+          const scenesForAddress = selectedScenes.filter(
+            (scene) => scene.address === address
           );
+          for (const scene of scenesForAddress) {
+            await window.electronAPI.multiScenes.addScene(
+              newMultiScene.id,
+              scene.id,
+              sceneIndex
+            );
+            sceneIndex++;
+          }
         }
 
         // Switch to multi-scenes tab to show the newly created multi-scene
@@ -227,6 +387,7 @@ export function MultiSceneDialog({
         description: "",
       });
       setSelectedSceneIds([]);
+      setAddressOrder([]);
     } catch (error) {
       console.error("Failed to save multi-scene:", error);
       toast.error("Failed to save multi-scene");
@@ -252,7 +413,6 @@ export function MultiSceneDialog({
     return groups;
   };
 
-  const availableSceneGroups = groupScenesByAddress(availableScenes);
   const selectedSceneGroups = groupScenesByAddress(selectedScenes);
 
   return (
@@ -352,50 +512,111 @@ export function MultiSceneDialog({
               )}
             </CardHeader>
             <CardContent>
-              <ScrollArea className="h-60">
-                {availableScenes.length === 0 ? (
-                  <div className="text-center text-muted-foreground py-8">
-                    <p>No scenes available.</p>
-                    <p className="text-sm">
-                      Create scenes first to add them to multi-scenes.
-                    </p>
-                  </div>
-                ) : (
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 p-2">
-                    {availableScenes.map((scene) => (
-                      <CheckboxPrimitive.Root
-                        key={scene.id}
-                        checked={selectedSceneIds.includes(scene.id)}
-                        onCheckedChange={(checked) =>
-                          handleSceneToggle(scene.id, checked)
-                        }
-                        className="relative ring-[1px] ring-border rounded-lg px-4 py-3 text-start text-muted-foreground data-[state=checked]:ring-2 data-[state=checked]:ring-primary data-[state=checked]:text-primary flex flex-row items-center gap-3 cursor-pointer"
-                      >
-                        <Lightbulb className="h-6 w-6" />
-                        <div className="space-y-1">
-                          <span className="font-medium tracking-tight text-sm">
-                            {scene.name}
-                          </span>
-                          {scene.address && (
-                            <p className="text-xs text-muted-foreground">
-                              Address: {scene.address}
-                            </p>
-                          )}
-                          {scene.description && (
-                            <p className="text-xs text-muted-foreground line-clamp-2">
-                              {scene.description}
-                            </p>
-                          )}
-                        </div>
+              <Tabs defaultValue="selection" className="w-full">
+                <TabsList className="grid w-full grid-cols-2">
+                  <TabsTrigger
+                    value="selection"
+                    className="flex items-center gap-2"
+                  >
+                    <Lightbulb className="h-4 w-4" />
+                    Scene Selection
+                  </TabsTrigger>
+                  <TabsTrigger
+                    value="ordering"
+                    className="flex items-center gap-2"
+                  >
+                    <List className="h-4 w-4" />
+                    Address Ordering
+                  </TabsTrigger>
+                </TabsList>
 
-                        <CheckboxPrimitive.Indicator className="absolute top-2 right-2">
-                          <CircleCheck className="fill-primary text-primary-foreground h-4 w-4" />
-                        </CheckboxPrimitive.Indicator>
-                      </CheckboxPrimitive.Root>
-                    ))}
-                  </div>
-                )}
-              </ScrollArea>
+                <TabsContent value="selection" className="mt-4">
+                  <ScrollArea className="h-60">
+                    {availableScenes.length === 0 ? (
+                      <div className="text-center text-muted-foreground py-8">
+                        <p>No scenes available.</p>
+                        <p className="text-sm">
+                          Create scenes first to add them to multi-scenes.
+                        </p>
+                      </div>
+                    ) : (
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 p-2">
+                        {availableScenes.map((scene) => (
+                          <CheckboxPrimitive.Root
+                            key={scene.id}
+                            checked={selectedSceneIds.includes(scene.id)}
+                            onCheckedChange={(checked) =>
+                              handleSceneToggle(scene.id, checked)
+                            }
+                            className="relative ring-[1px] ring-border rounded-lg px-4 py-3 text-start text-muted-foreground data-[state=checked]:ring-2 data-[state=checked]:ring-primary data-[state=checked]:text-primary flex flex-row items-center gap-3 cursor-pointer"
+                          >
+                            <Lightbulb className="h-6 w-6" />
+                            <div className="space-y-1">
+                              <span className="font-medium tracking-tight text-sm">
+                                {scene.name}
+                              </span>
+                              {scene.address && (
+                                <p className="text-xs text-muted-foreground">
+                                  Address: {scene.address}
+                                </p>
+                              )}
+                              {scene.description && (
+                                <p className="text-xs text-muted-foreground line-clamp-2">
+                                  {scene.description}
+                                </p>
+                              )}
+                            </div>
+
+                            <CheckboxPrimitive.Indicator className="absolute top-2 right-2">
+                              <CircleCheck className="fill-primary text-primary-foreground h-4 w-4" />
+                            </CheckboxPrimitive.Indicator>
+                          </CheckboxPrimitive.Root>
+                        ))}
+                      </div>
+                    )}
+                  </ScrollArea>
+                </TabsContent>
+
+                <TabsContent value="ordering" className="mt-4">
+                  <ScrollArea className="h-60">
+                    {addressOrder.length === 0 ? (
+                      <div className="text-center text-muted-foreground py-8">
+                        <p>No addresses selected.</p>
+                        <p className="text-sm">
+                          Select scenes first to manage address ordering.
+                        </p>
+                      </div>
+                    ) : (
+                      <DndContext
+                        sensors={sensors}
+                        collisionDetection={closestCenter}
+                        onDragEnd={handleDragEnd}
+                      >
+                        <SortableContext
+                          items={addressOrder}
+                          strategy={verticalListSortingStrategy}
+                        >
+                          <div className="space-y-2 p-2">
+                            {addressOrder.map((address) => {
+                              const scenesForAddress = selectedScenes.filter(
+                                (scene) => scene.address === address
+                              );
+                              return (
+                                <SortableAddressItem
+                                  key={address}
+                                  address={address}
+                                  scenes={scenesForAddress}
+                                  onRemove={handleRemoveAddress}
+                                />
+                              );
+                            })}
+                          </div>
+                        </SortableContext>
+                      </DndContext>
+                    )}
+                  </ScrollArea>
+                </TabsContent>
+              </Tabs>
             </CardContent>
           </Card>
 

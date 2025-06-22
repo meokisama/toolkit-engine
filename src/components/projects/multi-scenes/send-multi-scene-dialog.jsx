@@ -18,12 +18,23 @@ export function SendMultiSceneDialog({ open, onOpenChange, items = [] }) {
     return true;
   };
 
-  const handleSendSingleMultiScene = async (multiScene, multiSceneData, selectedUnits) => {
+  const handleSendSingleMultiScene = async (
+    multiScene,
+    multiSceneData,
+    selectedUnits
+  ) => {
     let successCount = 0;
     let errorCount = 0;
 
-    // Get unique scene addresses from the multi-scene data
-    const sceneAddresses = [...new Set(multiSceneData.map(scene => scene.scene_address))];
+    // Get unique scene addresses from the multi-scene data, preserving order
+    const sceneAddresses = [];
+    const seenAddresses = new Set();
+    for (const scene of multiSceneData) {
+      if (!seenAddresses.has(scene.scene_address)) {
+        sceneAddresses.push(scene.scene_address);
+        seenAddresses.add(scene.scene_address);
+      }
+    }
 
     // Send multi-scene to all selected units
     for (const unit of selectedUnits) {
@@ -84,7 +95,11 @@ export function SendMultiSceneDialog({ open, onOpenChange, items = [] }) {
     }
   };
 
-  const handleSendBulkMultiScenes = async (multiScenes, selectedUnits, onProgress) => {
+  const handleSendBulkMultiScenes = async (
+    multiScenes,
+    selectedUnits,
+    onProgress
+  ) => {
     const totalOperations = multiScenes.length * selectedUnits.length;
     let completedOperations = 0;
     const operationResults = [];
@@ -135,8 +150,15 @@ export function SendMultiSceneDialog({ open, onOpenChange, items = [] }) {
         continue;
       }
 
-      // Get unique scene addresses
-      const sceneAddresses = [...new Set(multiSceneData.map(scene => scene.scene_address))];
+      // Get unique scene addresses, preserving order
+      const sceneAddresses = [];
+      const seenAddresses = new Set();
+      for (const scene of multiSceneData) {
+        if (!seenAddresses.has(scene.scene_address)) {
+          sceneAddresses.push(scene.scene_address);
+          seenAddresses.add(scene.scene_address);
+        }
+      }
 
       // Send multi-scene to all selected units
       for (const unit of selectedUnits) {
@@ -151,17 +173,18 @@ export function SendMultiSceneDialog({ open, onOpenChange, items = [] }) {
             sceneAddresses: sceneAddresses,
           });
 
-          const response = await window.electronAPI.rcuController.setupMultiScene(
-            unit.ip_address,
-            unit.id_can,
-            {
-              multiSceneIndex: multiSceneIndex,
-              multiSceneName: currentMultiScene.name,
-              multiSceneAddress: currentMultiScene.address,
-              multiSceneType: currentMultiScene.type,
-              sceneAddresses: sceneAddresses,
-            }
-          );
+          const response =
+            await window.electronAPI.rcuController.setupMultiScene(
+              unit.ip_address,
+              unit.id_can,
+              {
+                multiSceneIndex: multiSceneIndex,
+                multiSceneName: currentMultiScene.name,
+                multiSceneAddress: currentMultiScene.address,
+                multiSceneType: currentMultiScene.type,
+                sceneAddresses: sceneAddresses,
+              }
+            );
 
           operationResults.push({
             scene: currentMultiScene.name,

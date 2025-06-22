@@ -22,6 +22,7 @@ import { CONSTANTS } from "@/constants";
 import { EditableCell } from "@/components/projects/data-table/editable-cell";
 import { EditableSelectCell } from "@/components/projects/data-table/editable-select-cell";
 import { DataTableColumnHeader } from "@/components/projects/data-table/data-table-column-header";
+import { Badge } from "@/components/ui/badge";
 
 export function createMultiSceneColumns(
   onEdit,
@@ -179,10 +180,10 @@ export function createMultiSceneColumns(
       cell: ({ row }) => {
         const sceneCount = row.original.sceneCount || 0;
         return (
-          <div className="text-center">
-            <span className="bg-blue-100 text-blue-800 text-xs font-medium px-2.5 py-0.5 rounded">
-              {sceneCount}
-            </span>
+          <div className="flex justify-center">
+            <Badge>
+              {sceneCount} scene{sceneCount !== 1 ? "s" : ""}
+            </Badge>
           </div>
         );
       },
