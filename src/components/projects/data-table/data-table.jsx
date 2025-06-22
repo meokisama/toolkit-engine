@@ -41,6 +41,7 @@ export function DataTable({
   onMultiSceneControl,
   onSendSchedule,
   onSendScene,
+  onFirmwareUpdate,
   initialPagination,
   initialColumnVisibility,
   enableRowSelection = false,
@@ -211,6 +212,7 @@ export function DataTable({
                   onMultiSceneControl={onMultiSceneControl}
                   onSendSchedule={onSendSchedule}
                   onSendScene={onSendScene}
+                  onFirmwareUpdate={onFirmwareUpdate}
                 />
               ))
           ) : (

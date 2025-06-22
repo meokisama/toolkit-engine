@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useCallback, useEffect } from "react";
-import { Network, Search, Layers2, Layers } from "lucide-react";
+import { Network, Search, Layers2, Layers, Upload } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { DataTable } from "@/components/projects/data-table/data-table";
@@ -15,6 +15,7 @@ import { ClockControlDialog } from "@/components/projects/unit/network-menu/cloc
 import { TriggerCurtainDialog } from "@/components/projects/unit/network-menu/curtain-control-dialog";
 import { TriggerKnxDialog } from "@/components/projects/unit/network-menu/knx-control-dialog";
 import { TriggerMultiSceneDialog } from "@/components/projects/unit/network-menu/multi-scene-control-dialog";
+import { FirmwareUpdateDialog } from "@/components/projects/unit/network-menu/firmware-update-dialog";
 import { udpScanner } from "@/services/udp";
 import { toast } from "sonner";
 
@@ -33,6 +34,8 @@ export function NetworkUnitTable({ onTransferToDatabase, existingUnits = [] }) {
     useState(false);
   const [triggerKnxDialogOpen, setTriggerKnxDialogOpen] = useState(false);
   const [triggerMultiSceneDialogOpen, setTriggerMultiSceneDialogOpen] =
+    useState(false);
+  const [firmwareUpdateDialogOpen, setFirmwareUpdateDialogOpen] =
     useState(false);
   const [selectedUnit, setSelectedUnit] = useState(null);
 
@@ -248,6 +251,47 @@ export function NetworkUnitTable({ onTransferToDatabase, existingUnits = [] }) {
     }
   };
 
+  // Handle firmware update
+  const handleFirmwareUpdate = (unit) => {
+    if (unit) {
+      setSelectedNetworkUnits([unit]);
+    }
+    setFirmwareUpdateDialogOpen(true);
+  };
+
+  const handleFirmwareUpdateSelected = () => {
+    if (selectedNetworkUnits.length > 0) {
+      setFirmwareUpdateDialogOpen(true);
+    } else {
+      toast.error("Please select units to update firmware");
+    }
+  };
+
+  const handleFirmwareUpdateAll = () => {
+    if (networkUnits.length > 0) {
+      setSelectedNetworkUnits(networkUnits);
+      setFirmwareUpdateDialogOpen(true);
+    } else {
+      toast.error("No units available for firmware update");
+    }
+  };
+
+  const handleFirmwareUpdateComplete = (results) => {
+    // Optionally refresh network scan after firmware update
+    const successCount = results.filter((r) => r.success).length;
+    if (successCount > 0) {
+      toast.success(
+        `Firmware update completed for ${successCount} unit${
+          successCount !== 1 ? "s" : ""
+        }`
+      );
+      // Refresh network scan after a delay to allow units to restart
+      setTimeout(() => {
+        handleScanNetwork();
+      }, 5000);
+    }
+  };
+
   // Handle network unit selection changes
   const handleNetworkRowSelectionChange = useCallback(
     (_, rowSelection) => {
@@ -303,16 +347,30 @@ export function NetworkUnitTable({ onTransferToDatabase, existingUnits = [] }) {
                 </Button>
               )}
               {selectedNetworkUnits.length > 0 && (
-                <Button
-                  onClick={handleTransferSelectedToDatabase}
-                  variant="outline"
-                  className="flex items-center gap-2"
-                  title="Transfer selected network units to database"
-                >
-                  <Layers2 className="h-4 w-4" />
-                  <span className="hidden lg:inline">Transfer Selected</span> (
-                  {selectedNetworkUnits.length})
-                </Button>
+                <>
+                  <Button
+                    onClick={handleTransferSelectedToDatabase}
+                    variant="outline"
+                    className="flex items-center gap-2"
+                    title="Transfer selected network units to database"
+                  >
+                    <Layers2 className="h-4 w-4" />
+                    <span className="hidden lg:inline">
+                      Transfer Selected
+                    </span>{" "}
+                    ({selectedNetworkUnits.length})
+                  </Button>
+                  <Button
+                    onClick={handleFirmwareUpdateSelected}
+                    variant="outline"
+                    className="flex items-center gap-2"
+                    title="Update firmware for selected units"
+                  >
+                    <Upload className="h-4 w-4" />
+                    <span className="hidden lg:inline">Update Firmware</span> (
+                    {selectedNetworkUnits.length})
+                  </Button>
+                </>
               )}
               <Button
                 onClick={handleScanNetwork}
@@ -360,6 +418,7 @@ export function NetworkUnitTable({ onTransferToDatabase, existingUnits = [] }) {
                 onMultiSceneControl={{
                   onTriggerMultiScene: handleTriggerMultiScene,
                 }}
+                onFirmwareUpdate={handleFirmwareUpdate}
                 enableRowSelection={true}
               />
               {networkTable && <DataTablePagination table={networkTable} />}
@@ -418,6 +477,13 @@ export function NetworkUnitTable({ onTransferToDatabase, existingUnits = [] }) {
           open={triggerMultiSceneDialogOpen}
           onOpenChange={setTriggerMultiSceneDialogOpen}
           unit={selectedUnit}
+        />
+
+        <FirmwareUpdateDialog
+          open={firmwareUpdateDialogOpen}
+          onOpenChange={setFirmwareUpdateDialogOpen}
+          units={selectedNetworkUnits}
+          onFirmwareUpdate={handleFirmwareUpdateComplete}
         />
       </Card>
     </div>

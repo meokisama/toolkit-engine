@@ -48,6 +48,7 @@ import {
   triggerKnx,
   deleteKnxConfig,
   deleteAllKnxConfigs,
+  updateFirmware,
 } from "./services/rcu-controller.js";
 import dgram from "dgram";
 import { updateElectronApp } from "update-electron-app";
@@ -1068,6 +1069,30 @@ function setupIpcHandlers() {
       throw error;
     }
   });
+
+  // Firmware Update
+  ipcMain.handle(
+    "firmware:update",
+    async (event, { unitIp, canId, hexContent, unitType }) => {
+      try {
+        // Create progress callback that sends to renderer
+        const onProgress = (progress, status) => {
+          event.sender.send("firmware:progress", { progress, status });
+        };
+
+        return await updateFirmware(
+          unitIp,
+          canId,
+          hexContent,
+          onProgress,
+          unitType
+        );
+      } catch (error) {
+        console.error("Error updating firmware:", error);
+        throw error;
+      }
+    }
+  );
 
   // UDP Network Scanning
   ipcMain.handle("udp:scanNetwork", async (event, config) => {

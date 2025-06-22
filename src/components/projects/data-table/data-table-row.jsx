@@ -16,6 +16,7 @@ import {
   ChevronsUpDown,
   GitCompare,
   Network,
+  Upload,
 } from "lucide-react";
 
 import { TableCell, TableRow } from "@/components/ui/table";
@@ -46,6 +47,7 @@ export function DataTableRow({
   onMultiSceneControl,
   onSendSchedule,
   onSendScene,
+  onFirmwareUpdate,
 }) {
   const item = row.original;
 
@@ -85,6 +87,7 @@ export function DataTableRow({
             onMultiSceneControl ||
             onSendSchedule ||
             onSendScene ||
+            onFirmwareUpdate ||
             onDelete) && <ContextMenuSeparator />}
         {onIOConfig && (
           <>
@@ -102,6 +105,7 @@ export function DataTableRow({
               onMultiSceneControl ||
               onSendSchedule ||
               onSendScene ||
+              onFirmwareUpdate ||
               onDelete) && <ContextMenuSeparator />}
           </>
         )}
@@ -145,7 +149,9 @@ export function DataTableRow({
                 )}
                 {onMultiSceneControl && (
                   <ContextMenuItem
-                    onClick={() => onMultiSceneControl.onTriggerMultiScene(item)}
+                    onClick={() =>
+                      onMultiSceneControl.onTriggerMultiScene(item)
+                    }
                   >
                     <GitCompare className="text-muted-foreground" />
                     <span>Multi-Scene Control</span>
@@ -175,9 +181,7 @@ export function DataTableRow({
         )}
         {onKnxControl && (
           <>
-            <ContextMenuItem
-              onClick={() => onKnxControl.onTriggerKnx(item)}
-            >
+            <ContextMenuItem onClick={() => onKnxControl.onTriggerKnx(item)}>
               <Network className="text-muted-foreground" />
               <span>KNX Control</span>
             </ContextMenuItem>
@@ -198,6 +202,15 @@ export function DataTableRow({
             <ContextMenuItem onClick={() => onSendScene(item)}>
               <Send className="text-muted-foreground" />
               <span>Send Scene</span>
+            </ContextMenuItem>
+            {(onFirmwareUpdate || onDelete) && <ContextMenuSeparator />}
+          </>
+        )}
+        {onFirmwareUpdate && (
+          <>
+            <ContextMenuItem onClick={() => onFirmwareUpdate(item)}>
+              <Upload className="text-muted-foreground" />
+              <span>Update Firmware</span>
             </ContextMenuItem>
             {onDelete && <ContextMenuSeparator />}
           </>

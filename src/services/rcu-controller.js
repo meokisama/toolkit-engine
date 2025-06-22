@@ -2,10 +2,15 @@ import { CONSTANTS } from "../constants";
 
 const { UDP_PORT } = CONSTANTS.UNIT.UDP_CONFIG;
 
+// Configuration flag to control whether to send name in multi-scene packets
+const isSendName = false;
+
 const PROTOCOL = {
   GENERAL: {
     CMD1: 1,
     CMD2: {
+      REQUEST_UNIT: 1,
+      UPDATE_FIRMWARE: 6,
       SYNC_CLOCK: 9,
       GET_CLOCK: 10,
       GET_RS485_CH1_CONFIG: 13,
@@ -702,7 +707,7 @@ async function setupScene(unitIp, canId, sceneConfig) {
   // Validations
   validators.sceneIndex(sceneIndex);
 
-  if (!sceneName || sceneName.length > 15) {
+  if (isSendName && (!sceneName || sceneName.length > 15)) {
     throw new Error("Scene name must be provided and not exceed 15 characters");
   }
 
@@ -721,10 +726,12 @@ async function setupScene(unitIp, canId, sceneConfig) {
   const idAddress = convertCanIdToInt(canId);
   const data = [sceneIndex];
 
-  // Scene name (15 bytes, null padded)
-  const nameBytes = Buffer.from(sceneName, "utf8");
-  for (let i = 0; i < 15; i++) {
-    data.push(i < nameBytes.length ? nameBytes[i] : 0x00);
+  // Scene name (15 bytes, null padded) - controlled by isSendName flag
+  if (isSendName) {
+    const nameBytes = Buffer.from(sceneName, "utf8");
+    for (let i = 0; i < 15; i++) {
+      data.push(i < nameBytes.length ? nameBytes[i] : 0x00);
+    }
   }
 
   // Scene address and amount
@@ -777,20 +784,37 @@ async function getSceneInformation(unitIp, canId, sceneIndex) {
     true // Skip status check for GET_SCENE_INFOR
   );
 
-  if (response && response.msg && response.msg.length >= 10) {
+  const minResponseLength = isSendName ? 10 : 10; // Keep minimum at 10 for header + basic data
+  if (response && response.msg && response.msg.length >= minResponseLength) {
     const data = response.msg.slice(8); // Skip header (4 bytes ID + 2 bytes length + 2 bytes cmd)
 
+    const minDataLength = isSendName ? 18 : 3; // Adjust minimum data length based on isSendName
+    if (data.length < minDataLength) {
+      throw new Error(
+        `Insufficient scene data: ${data.length} bytes (expected at least ${minDataLength})`
+      );
+    }
+
     // Parse scene information
-    // Data structure: scene index, 15-byte name, address, item count, 7 empty bytes, then 3-byte items
-    const sceneIndex = data[0];
-    const sceneName = String.fromCharCode(...data.slice(1, 16))
-      .replace(/\0/g, "")
-      .trim();
-    const sceneAddress = data[16];
-    const itemCount = data[17];
+    // Data structure: scene index, 15-byte name (if isSendName), address, item count, 7 empty bytes, then 3-byte items
+    let offset = 0;
+    const sceneIndex = data[offset++];
+
+    let sceneName = "";
+    if (isSendName) {
+      const nameBytes = data.slice(offset, offset + 15);
+      offset += 15;
+
+      sceneName = String.fromCharCode(...nameBytes)
+        .replace(/\0/g, "")
+        .trim();
+    }
+
+    const sceneAddress = data[offset++];
+    const itemCount = data[offset++];
 
     const items = [];
-    const itemsStartIndex = 25; // Skip scene index(1) + name(15) + address(1) + count(1) + empty(7)
+    const itemsStartIndex = offset + 7; // Skip 7 empty bytes
 
     for (
       let i = 0;
@@ -977,17 +1001,26 @@ async function getAllScenesInformation(unitIp, canId) {
       if (response.result?.success && response.msg && response.msg.length > 0) {
         try {
           // Parse scene information from this response
-          // Data structure: scene index, 15-byte name, address, item count, 7 empty bytes, then 3-byte items
+          // Data structure: scene index, 15-byte name (if isSendName), address, item count, 7 empty bytes, then 3-byte items
           const data = response.msg.slice(8); // Skip header
 
-          if (data.length >= 18) {
-            // Minimum data for scene info
-            const sceneIndex = data[0];
-            const sceneName = String.fromCharCode(...data.slice(1, 16))
-              .replace(/\0/g, "")
-              .trim();
-            const sceneAddress = data[16];
-            const itemCount = data[17];
+          const minLength = isSendName ? 18 : 3; // Adjust minimum length based on isSendName
+          if (data.length >= minLength) {
+            let offset = 0;
+            const sceneIndex = data[offset++];
+
+            let sceneName = "";
+            if (isSendName) {
+              const nameBytes = data.slice(offset, offset + 15);
+              offset += 15;
+
+              sceneName = String.fromCharCode(...nameBytes)
+                .replace(/\0/g, "")
+                .trim();
+            }
+
+            const sceneAddress = data[offset++];
+            const itemCount = data[offset++];
 
             // Only add scenes that have actual data (non-empty name or items)
             if (sceneName.length > 0 || itemCount > 0) {
@@ -1178,39 +1211,47 @@ async function getMultiSceneInformation(unitIp, canId, multiSceneIndex = null) {
   if (response && response.msg) {
     const data = response.msg.slice(8); // Skip header
 
-    if (data.length < 24) {
+    const minLength = isSendName ? 24 : 9; // Adjust minimum length based on isSendName
+    if (data.length < minLength) {
       throw new Error(
-        `Insufficient multi-scene data: ${data.length} bytes (expected at least 24)`
+        `Insufficient multi-scene data: ${data.length} bytes (expected at least ${minLength})`
       );
     }
 
     // Parse multi-scene data structure:
     // 1 byte index
-    // 15 bytes name
+    // 15 bytes name (if isSendName is true)
     // 1 byte address
     // 1 byte type
     // 5 bytes reserved
     // 1 byte amount (number of scene addresses)
     // N bytes scene addresses (1 byte each)
 
-    const index = data[0];
-    const nameBytes = data.slice(1, 16);
-    const address = data[16];
-    const type = data[17];
-    // Skip 5 reserved bytes (18-22)
-    const amount = data[23];
+    let offset = 0;
+    const index = data[offset++];
+
+    let multiSceneName = "";
+    if (isSendName) {
+      const nameBytes = data.slice(offset, offset + 15);
+      offset += 15;
+
+      // Convert name bytes to string (remove null terminators)
+      for (let i = 0; i < nameBytes.length; i++) {
+        if (nameBytes[i] === 0) break;
+        multiSceneName += String.fromCharCode(nameBytes[i]);
+      }
+    }
+
+    const address = data[offset++];
+    const type = data[offset++];
+    // Skip 5 reserved bytes
+    offset += 5;
+    const amount = data[offset++];
 
     // Extract scene addresses
     const sceneAddresses = [];
-    for (let i = 0; i < amount && i < data.length - 24; i++) {
-      sceneAddresses.push(data[24 + i]);
-    }
-
-    // Convert name bytes to string (remove null terminators)
-    let multiSceneName = "";
-    for (let i = 0; i < nameBytes.length; i++) {
-      if (nameBytes[i] === 0) break;
-      multiSceneName += String.fromCharCode(nameBytes[i]);
+    for (let i = 0; i < amount && i < data.length - offset; i++) {
+      sceneAddresses.push(data[offset + i]);
     }
 
     return {
@@ -1277,24 +1318,33 @@ async function getAllMultiScenesInformation(unitIp, canId) {
 
           // Parse multi-scene data
           const data = msg.slice(8);
-          if (data.length >= 24) {
-            const index = data[0];
-            const nameBytes = data.slice(1, 16);
-            const address = data[16];
-            const type = data[17];
-            const amount = data[23];
+          const minLength = isSendName ? 24 : 9; // Adjust minimum length based on isSendName
+          if (data.length >= minLength) {
+            let offset = 0;
+            const index = data[offset++];
+
+            let multiSceneName = "";
+            if (isSendName) {
+              const nameBytes = data.slice(offset, offset + 15);
+              offset += 15;
+
+              // Convert name bytes to string
+              for (let j = 0; j < nameBytes.length; j++) {
+                if (nameBytes[j] === 0) break;
+                multiSceneName += String.fromCharCode(nameBytes[j]);
+              }
+            }
+
+            const address = data[offset++];
+            const type = data[offset++];
+            // Skip 5 reserved bytes
+            offset += 5;
+            const amount = data[offset++];
 
             // Extract scene addresses
             const sceneAddresses = [];
-            for (let j = 0; j < amount && j < data.length - 24; j++) {
-              sceneAddresses.push(data[24 + j]);
-            }
-
-            // Convert name bytes to string
-            let multiSceneName = "";
-            for (let j = 0; j < nameBytes.length; j++) {
-              if (nameBytes[j] === 0) break;
-              multiSceneName += String.fromCharCode(nameBytes[j]);
+            for (let j = 0; j < amount && j < data.length - offset; j++) {
+              sceneAddresses.push(data[offset + j]);
             }
 
             multiScenes.push({
@@ -1355,7 +1405,7 @@ async function setupMultiScene(unitIp, canId, multiSceneConfig) {
     throw new Error("Multi-scene index must be between 0 and 39");
   }
 
-  if (!multiSceneName || multiSceneName.length > 15) {
+  if (isSendName && (!multiSceneName || multiSceneName.length > 15)) {
     throw new Error(
       "Multi-scene name must be provided and not exceed 15 characters"
     );
@@ -1379,12 +1429,14 @@ async function setupMultiScene(unitIp, canId, multiSceneConfig) {
   // 1 byte index
   data.push(multiSceneIndex);
 
-  // 15 byte name (pad with 0x00 if shorter)
-  const nameBytes = Array(15).fill(0x00);
-  for (let i = 0; i < Math.min(multiSceneName.length, 15); i++) {
-    nameBytes[i] = multiSceneName.charCodeAt(i);
+  // 15 byte name (pad with 0x00 if shorter) - controlled by isSendName flag
+  if (isSendName) {
+    const nameBytes = Array(15).fill(0x00);
+    for (let i = 0; i < Math.min(multiSceneName.length, 15); i++) {
+      nameBytes[i] = multiSceneName.charCodeAt(i);
+    }
+    data.push(...nameBytes);
   }
-  data.push(...nameBytes);
 
   // 1 byte address
   data.push(parseInt(multiSceneAddress) || 0);
@@ -2248,6 +2300,304 @@ async function deleteAllKnxConfigs(unitIp, canId) {
   return deleteKnxConfig(unitIp, canId);
 }
 
+// Firmware Update Functions
+function parseHexLine(line) {
+  if (!line.startsWith(":")) {
+    throw new Error("Invalid HEX line format");
+  }
+
+  // Remove the ":" and convert ASCII hex characters to bytes
+  const hexString = line.slice(1);
+  const bytes = [];
+
+  // Convert ASCII hex pairs to actual bytes
+  for (let i = 0; i < hexString.length; i += 2) {
+    const hexPair = hexString.slice(i, i + 2);
+    const byte = parseInt(hexPair, 16);
+    bytes.push(byte);
+  }
+
+  return {
+    rawBytes: bytes,
+    hexString: hexString,
+    originalLine: line,
+  };
+}
+
+function validateHexFile(hexContent, expectedBoardType) {
+  const lines = hexContent.split("\n").filter((line) => line.trim());
+
+  if (lines.length === 0) {
+    throw new Error("Empty HEX file");
+  }
+
+  // Check first line for board type validation (if header exists)
+  const firstLineCheck = lines[0].trim();
+  if (firstLineCheck.includes(",")) {
+    const parts = firstLineCheck.split(",");
+    if (
+      parts.length > 1 &&
+      expectedBoardType &&
+      parts[1] !== expectedBoardType
+    ) {
+      throw new Error(
+        `Firmware is not correct for board type: ${expectedBoardType}`
+      );
+    }
+  }
+
+  // Validate HEX format - all lines must start with ":"
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i].trim();
+    if (line && !line.startsWith(":")) {
+      throw new Error(
+        `Invalid HEX format at line ${i + 1}: must start with ":"`
+      );
+    }
+  }
+
+  const hexLines = lines.filter((line) => line.startsWith(":"));
+
+  if (hexLines.length === 0) {
+    throw new Error("No valid HEX lines found");
+  }
+
+  // Parse first line to get firmware version
+  const firstLine = hexLines[0];
+  const firstLineData = parseHexLine(firstLine);
+
+  if (firstLineData.rawBytes.length >= 2) {
+    const majorVersion = firstLineData.rawBytes[0];
+    const minorVersion = firstLineData.rawBytes[1];
+    console.log(`Firmware version detected: ${majorVersion}.${minorVersion}`);
+  }
+
+  return hexLines;
+}
+
+async function sendFirmwarePacket(unitIp, canId, packetData, retryCount = 6) {
+  const idAddress = convertCanIdToInt(canId);
+
+  for (let attempt = 0; attempt < retryCount; attempt++) {
+    try {
+      const response = await sendCommand(
+        unitIp,
+        UDP_PORT,
+        idAddress,
+        PROTOCOL.GENERAL.CMD1,
+        PROTOCOL.GENERAL.CMD2.UPDATE_FIRMWARE,
+        packetData,
+        false
+      );
+
+      // Check for successful response (cmd2 = 6)
+      if (response.result.cmd2 === PROTOCOL.GENERAL.CMD2.UPDATE_FIRMWARE) {
+        return response;
+      }
+    } catch (error) {
+      console.warn(
+        `Firmware packet send attempt ${attempt + 1} failed:`,
+        error.message
+      );
+
+      // If this is the last attempt, throw the error
+      if (attempt === retryCount - 1) {
+        throw error;
+      }
+
+      // Wait before retry
+      await new Promise((resolve) => setTimeout(resolve, 300));
+    }
+  }
+}
+
+async function requestUnitAfterFirmware(unitIp, canId, maxRetries = 10) {
+  const idAddress = convertCanIdToInt(canId);
+  let retryCount = 0;
+
+  for (let attempt = 0; attempt < maxRetries; attempt++) {
+    try {
+      const response = await sendCommand(
+        unitIp,
+        UDP_PORT,
+        idAddress,
+        PROTOCOL.GENERAL.CMD1,
+        PROTOCOL.GENERAL.CMD2.REQUEST_UNIT, // CMD1: 1, CMD2: 1
+        [],
+        true
+      );
+
+      // Check if response indicates successful firmware update
+      if (response.result.data && response.result.data.length >= 1) {
+        const statusByte = response.result.data[0];
+        if (statusByte >= 10) {
+          // Follow RLC original logic: if retryCount < 3 (slave units), wait 8 seconds
+          if (retryCount < 3) {
+            console.log(
+              "Slave unit detected, waiting 8 seconds for firmware completion..."
+            );
+            await new Promise((resolve) => setTimeout(resolve, 8000));
+          }
+          return true;
+        }
+      }
+    } catch (error) {
+      console.warn(
+        `Unit request attempt ${attempt + 1} failed:`,
+        error.message
+      );
+      retryCount++;
+    }
+
+    // Wait before retry
+    await new Promise((resolve) => setTimeout(resolve, 1000));
+  }
+
+  return false;
+}
+
+async function updateFirmware(
+  unitIp,
+  canId,
+  hexContent,
+  onProgress,
+  unitType = null
+) {
+  try {
+    // Validate HEX file
+    const hexLines = validateHexFile(hexContent, unitType);
+
+    if (hexLines.length === 0) {
+      throw new Error("No valid HEX data found");
+    }
+
+    const totalLines = hexLines.length;
+    let processedLines = 0;
+    let firmwareCRC = 0;
+
+    // Step 1: Send first HEX line (firmware version) to initialize firmware update
+    if (hexLines.length > 0) {
+      const firstLine = hexLines[0];
+      const hexData = parseHexLine(firstLine);
+
+      // Send the raw bytes (converted from ASCII hex to actual bytes)
+      await sendFirmwarePacket(unitIp, canId, hexData.rawBytes);
+
+      // Calculate CRC for firmware verification
+      hexData.rawBytes.forEach((byte) => {
+        firmwareCRC += byte;
+      });
+
+      processedLines++;
+      if (onProgress) {
+        onProgress(5, "Sending firmware version...");
+      }
+    }
+
+    // Step 2: Process remaining HEX lines
+    // Group complete lines into packets, ensuring total packet size <= 1024 bytes
+    const maxPacketSize = 1000; // Maximum bytes per packet (reserve space for headers)
+    let currentPacketData = [];
+    let currentPacketLines = [];
+
+    for (let i = 1; i < hexLines.length; i++) {
+      const line = hexLines[i];
+
+      try {
+        const hexData = parseHexLine(line);
+
+        // Check if adding this complete line would exceed packet size
+        if (
+          currentPacketData.length + hexData.rawBytes.length >
+          maxPacketSize
+        ) {
+          // Send current packet if it has data (complete lines only)
+          if (currentPacketData.length > 0) {
+            await sendFirmwarePacket(unitIp, canId, currentPacketData);
+            currentPacketData = [];
+            currentPacketLines = [];
+          }
+        }
+
+        // Add this complete line's bytes to current packet
+        currentPacketData.push(...hexData.rawBytes);
+        currentPacketLines.push(line);
+
+        // Calculate CRC for firmware verification
+        hexData.rawBytes.forEach((byte) => {
+          firmwareCRC += byte;
+        });
+
+        processedLines++;
+
+        // Update progress
+        if (onProgress) {
+          const progress = Math.round((processedLines / totalLines) * 90); // Reserve 10% for final steps
+          onProgress(
+            Math.min(progress, 90),
+            `Processing line ${processedLines}/${totalLines}`
+          );
+        }
+      } catch (error) {
+        throw new Error(`Error processing HEX line ${i + 1}: ${error.message}`);
+      }
+    }
+
+    // Send any remaining data (complete lines only)
+    if (currentPacketData.length > 0) {
+      await sendFirmwarePacket(unitIp, canId, currentPacketData);
+    }
+
+    // Step 3: Send firmware CRC for verification
+    if (onProgress) {
+      onProgress(95, "Sending firmware CRC...");
+    }
+
+    // Follow RLC original byte order: low byte first, high byte second
+    const crcData = [firmwareCRC & 0xff, (firmwareCRC >> 8) & 0xff];
+
+    await sendFirmwarePacket(unitIp, canId, crcData);
+
+    // Step 4: Wait for unit to process firmware update
+    if (onProgress) {
+      onProgress(98, "Unit is updating firmware, please wait...");
+    }
+
+    // Give unit time to process firmware (varies by file size)
+    // Estimate: ~1-2 seconds per KB of firmware data
+    const estimatedWaitTime = Math.max(
+      5000,
+      Math.min(30000, processedLines * 50)
+    ); // 5-30 seconds
+    await new Promise((resolve) => setTimeout(resolve, estimatedWaitTime));
+
+    // Step 5: Request unit to verify firmware update completion
+    if (onProgress) {
+      onProgress(99, "Verifying firmware update...");
+    }
+
+    const success = await requestUnitAfterFirmware(unitIp, canId);
+
+    if (!success) {
+      throw new Error(
+        "Failed to complete firmware update - unit not responding after update"
+      );
+    }
+
+    if (onProgress) {
+      onProgress(100, "Firmware update completed successfully");
+    }
+
+    return {
+      success: true,
+      message: "Firmware updated successfully",
+    };
+  } catch (error) {
+    console.error("Firmware update failed:", error);
+    throw error;
+  }
+}
+
 export {
   setGroupState,
   setMultipleGroupStates,
@@ -2301,4 +2651,6 @@ export {
   triggerKnx,
   deleteKnxConfig,
   deleteAllKnxConfigs,
+  // Firmware functions
+  updateFirmware,
 };
