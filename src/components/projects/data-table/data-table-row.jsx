@@ -25,6 +25,9 @@ import {
   ContextMenuContent,
   ContextMenuItem,
   ContextMenuSeparator,
+  ContextMenuSub,
+  ContextMenuSubContent,
+  ContextMenuSubTrigger,
 } from "@/components/ui/context-menu";
 
 export function DataTableRow({
@@ -114,25 +117,42 @@ export function DataTableRow({
             <span>Aircon Control</span>
           </ContextMenuItem>
         )}
-        {onSceneControl && (
+        {/* Automation Submenu */}
+        {(onSceneControl || onScheduleControl || onMultiSceneControl) && (
           <>
             <ContextMenuSeparator />
-            <ContextMenuItem
-              onClick={() => onSceneControl.onTriggerScene(item)}
-            >
-              <Play className="text-muted-foreground" />
-              <span>Scene Control</span>
-            </ContextMenuItem>
-          </>
-        )}
-        {onScheduleControl && (
-          <>
-            <ContextMenuItem
-              onClick={() => onScheduleControl.onTriggerSchedule(item)}
-            >
-              <Calendar className="text-muted-foreground" />
-              <span>Schedule Control</span>
-            </ContextMenuItem>
+            <ContextMenuSub>
+              <ContextMenuSubTrigger>
+                <SlidersHorizontal className="text-muted-foreground" />
+                <span>Automation</span>
+              </ContextMenuSubTrigger>
+              <ContextMenuSubContent>
+                {onSceneControl && (
+                  <ContextMenuItem
+                    onClick={() => onSceneControl.onTriggerScene(item)}
+                  >
+                    <Play className="text-muted-foreground" />
+                    <span>Scene Control</span>
+                  </ContextMenuItem>
+                )}
+                {onScheduleControl && (
+                  <ContextMenuItem
+                    onClick={() => onScheduleControl.onTriggerSchedule(item)}
+                  >
+                    <Calendar className="text-muted-foreground" />
+                    <span>Schedule Control</span>
+                  </ContextMenuItem>
+                )}
+                {onMultiSceneControl && (
+                  <ContextMenuItem
+                    onClick={() => onMultiSceneControl.onTriggerMultiScene(item)}
+                  >
+                    <GitCompare className="text-muted-foreground" />
+                    <span>Multi-Scene Control</span>
+                  </ContextMenuItem>
+                )}
+              </ContextMenuSubContent>
+            </ContextMenuSub>
             <ContextMenuSeparator />
           </>
         )}
@@ -160,17 +180,6 @@ export function DataTableRow({
             >
               <Network className="text-muted-foreground" />
               <span>KNX Control</span>
-            </ContextMenuItem>
-            <ContextMenuSeparator />
-          </>
-        )}
-        {onMultiSceneControl && (
-          <>
-            <ContextMenuItem
-              onClick={() => onMultiSceneControl.onTriggerMultiScene(item)}
-            >
-              <GitCompare className="text-muted-foreground" />
-              <span>Multi-Scene Control</span>
             </ContextMenuItem>
             <ContextMenuSeparator />
           </>

@@ -32,6 +32,16 @@ const MultiSceneTable = memo(function MultiSceneTable({ items = [], loading = fa
     items: [],
   });
 
+  // Add states for table functionality
+  const [selectedRowsCount, setSelectedRowsCount] = useState(0);
+  const [columnVisibility, setColumnVisibility] = useState({});
+  const [pagination, setPagination] = useState({
+    pageIndex: 0,
+    pageSize: 10,
+  });
+  const [pendingChanges, setPendingChanges] = useState(new Map());
+  const [saveLoading, setSaveLoading] = useState(false);
+
   // Load scene counts for each multi-scene
   const loadMultiSceneCounts = useCallback(async () => {
     try {
@@ -141,6 +151,60 @@ const MultiSceneTable = memo(function MultiSceneTable({ items = [], loading = fa
     });
   }, [items]);
 
+  // Add handlers for table functionality
+  const handleRowSelectionChange = useCallback((selectedRows) => {
+    setSelectedRowsCount(selectedRows.length);
+  }, []);
+
+  const handleColumnVisibilityChange = useCallback((visibility) => {
+    setColumnVisibility(visibility);
+  }, []);
+
+  const handlePaginationChange = useCallback((newPagination) => {
+    setPagination(newPagination);
+  }, []);
+
+  const handleBulkDelete = useCallback(
+    async (selectedItems) => {
+      setConfirmDialog({
+        open: true,
+        title: "Delete Multi-Scenes",
+        description: `Are you sure you want to delete ${selectedItems.length} multi-scene(s)? This action cannot be undone.`,
+        onConfirm: async () => {
+          try {
+            for (const item of selectedItems) {
+              await deleteItem(category, item.id);
+            }
+            toast.success(`Successfully deleted ${selectedItems.length} multi-scene(s)`);
+            setConfirmDialog({ ...confirmDialog, open: false });
+          } catch (error) {
+            console.error("Failed to delete multi-scenes:", error);
+            toast.error("Failed to delete multi-scenes");
+          }
+        },
+      });
+    },
+    [deleteItem, confirmDialog]
+  );
+
+  const handleSaveChanges = useCallback(async () => {
+    if (pendingChanges.size === 0) return;
+
+    setSaveLoading(true);
+    try {
+      for (const [itemId, changes] of pendingChanges) {
+        await updateItem(category, itemId, changes);
+      }
+      setPendingChanges(new Map());
+      toast.success("Changes saved successfully");
+    } catch (error) {
+      console.error("Failed to save changes:", error);
+      toast.error("Failed to save changes");
+    } finally {
+      setSaveLoading(false);
+    }
+  }, [pendingChanges, updateItem]);
+
   const handleDialogClose = useCallback(
     (success) => {
       setDialogOpen(false);
@@ -151,6 +215,26 @@ const MultiSceneTable = memo(function MultiSceneTable({ items = [], loading = fa
       }
     },
     [loadMultiSceneCounts]
+  );
+
+  // Add cell edit handlers
+  const handleCellEdit = useCallback((itemId, field, value) => {
+    setPendingChanges((prev) => {
+      const newChanges = new Map(prev);
+      const existingChanges = newChanges.get(itemId) || {};
+      newChanges.set(itemId, { ...existingChanges, [field]: value });
+      return newChanges;
+    });
+  }, []);
+
+  const getEffectiveValue = useCallback(
+    (item, field) => {
+      const pendingChange = pendingChanges.get(item.id);
+      return pendingChange && pendingChange[field] !== undefined
+        ? pendingChange[field]
+        : item[field];
+    },
+    [pendingChanges]
   );
 
   // Add scene counts to items data
@@ -173,49 +257,57 @@ const MultiSceneTable = memo(function MultiSceneTable({ items = [], loading = fa
   }
 
   return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center space-x-2">
-          <Layers className="h-5 w-5 text-gray-600" />
-          <h2 className="text-lg font-semibold">Multi-Scenes</h2>
-          <span className="text-sm text-gray-500">({items.length})</span>
-        </div>
-        <Button onClick={handleCreateItem} size="sm">
-          <Plus className="h-4 w-4 mr-2" />
-          Add Multi-Scene
-        </Button>
-      </div>
-
-      <div className="space-y-4">
+    <div className="space-y-4 flex flex-col h-full">
+      <div className="flex-1 space-y-4">
         {items.length === 0 ? (
-          <div className="text-center py-8 text-gray-500">
-            <Layers className="h-12 w-12 mx-auto mb-4 text-gray-300" />
-            <p>No multi-scenes found</p>
-            <p className="text-sm">Create your first multi-scene to get started</p>
+          <div className="text-center text-muted-foreground flex flex-col justify-center items-center h-full -mt-8">
+            <Layers className="h-12 w-12 mx-auto mb-4 opacity-50" />
+            <p>No multi-scenes found.</p>
+            <p className="text-sm mb-8">
+              Click "Add Multi-Scene" to create your first multi-scene.
+            </p>
+            <Button onClick={handleCreateItem}>
+              <Plus className="h-4 w-4" />
+              Add Multi-Scene
+            </Button>
           </div>
         ) : (
-          <div className="space-y-4">
-            {table && (
-              <DataTableToolbar
-                table={table}
-                category={category}
-                onSendAll={handleSendAllMultiScenes}
-                sendAllLabel="Send All Multi-Scenes"
-              />
-            )}
-            <div className="rounded-md border">
+          <div className="space-y-4 flex flex-col h-full">
+            <div className="flex-1 space-y-4">
+              {table && (
+                <DataTableToolbar
+                  table={table}
+                  searchColumn="name"
+                  searchPlaceholder="Search multi-scenes..."
+                  onBulkDelete={handleBulkDelete}
+                  selectedRowsCount={selectedRowsCount}
+                  category={category}
+                  columnVisibility={columnVisibility}
+                  onAddItem={handleCreateItem}
+                  addItemLabel="Add Multi-Scene"
+                  onSave={handleSaveChanges}
+                  hasPendingChanges={pendingChanges.size > 0}
+                  saveLoading={saveLoading}
+                  onSendAll={handleSendAllMultiScenes}
+                  sendAllLabel="Send All Multi-Scenes"
+                />
+              )}
               <DataTable
                 key={category}
                 columns={columns}
                 data={itemsWithCounts}
+                initialPagination={pagination}
                 onTableReady={setTable}
+                onRowSelectionChange={handleRowSelectionChange}
+                onColumnVisibilityChange={handleColumnVisibilityChange}
+                onPaginationChange={handlePaginationChange}
                 onEdit={handleEditItem}
                 onDuplicate={handleDuplicateItem}
                 onDelete={handleDeleteItem}
                 enableRowSelection={true}
               />
             </div>
-            {table && <DataTablePagination table={table} />}
+            {table && <DataTablePagination table={table} pagination={pagination} />}
           </div>
         )}
       </div>

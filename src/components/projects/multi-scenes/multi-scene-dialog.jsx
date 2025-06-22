@@ -21,7 +21,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
-import { X, SlidersHorizontal } from "lucide-react";
+import { SlidersHorizontal, CircleCheck } from "lucide-react";
+import * as CheckboxPrimitive from "@radix-ui/react-checkbox";
 import { useProjectDetail } from "@/contexts/project-detail-context";
 import { CONSTANTS } from "@/constants";
 import { toast } from "sonner";
@@ -148,22 +149,7 @@ export function MultiSceneDialog({
     });
   };
 
-  const removeSelectedScene = (sceneId) => {
-    setSelectedSceneIds((prev) => {
-      const availableScenes = projectItems.scene || [];
-      const clickedScene = availableScenes.find(scene => scene.id === sceneId);
 
-      if (!clickedScene) return prev;
-
-      // Find all scenes with the same address and remove them
-      const scenesWithSameAddress = availableScenes.filter(
-        scene => scene.address === clickedScene.address
-      );
-      const sceneIdsWithSameAddress = scenesWithSameAddress.map(scene => scene.id);
-
-      return prev.filter(id => !sceneIdsWithSameAddress.includes(id));
-    });
-  };
 
   const validateForm = () => {
     const newErrors = {};
@@ -326,116 +312,84 @@ export function MultiSceneDialog({
             />
           </div>
 
-          <div className="grid grid-cols-2 gap-6">
-            {/* Selected Scenes */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-sm flex items-center justify-between">
-                  Selected Scenes ({selectedScenes.length} scenes, {Object.keys(selectedSceneGroups).length}/20 addresses)
-                  {errors.scenes && (
-                    <span className="text-red-500 text-xs">{errors.scenes}</span>
-                  )}
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <ScrollArea className="h-64">
-                  {selectedScenes.length === 0 ? (
-                    <p className="text-sm text-gray-500 text-center py-8">
-                      No scenes selected
+          {/* Scene Selection */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-sm">Select Scenes</CardTitle>
+              <p className="text-sm text-muted-foreground">
+                Select the scenes you want to include in this multi-scene (max 20 addresses).
+                {selectedScenes.length > 0 && (
+                  <span className="ml-2">
+                    <Badge variant="secondary">
+                      {selectedScenes.length} scenes ({Object.keys(selectedSceneGroups).length} addresses)
+                    </Badge>
+                  </span>
+                )}
+              </p>
+              {errors.scenes && (
+                <p className="text-sm text-red-500">{errors.scenes}</p>
+              )}
+            </CardHeader>
+            <CardContent>
+              <ScrollArea className="h-60">
+                {availableScenes.length === 0 ? (
+                  <div className="text-center text-muted-foreground py-8">
+                    <p>No scenes available.</p>
+                    <p className="text-sm">
+                      Create scenes first to add them to multi-scenes.
                     </p>
-                  ) : (
-                    <div className="space-y-2">
-                      {Object.entries(selectedSceneGroups).map(([address, scenes]) => (
-                        <div key={address} className="space-y-1">
-                          <div className="flex items-center justify-between p-2 bg-gray-50 rounded">
-                            <div className="flex items-center space-x-2">
-                              <SlidersHorizontal className="h-4 w-4 text-gray-500" />
-                              <span className="text-sm font-medium">
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 p-2">
+                    {Object.entries(availableSceneGroups).map(([address, scenes]) => {
+                      const isGroupSelected = scenes.every(scene => selectedSceneIds.includes(scene.id));
+                      const isGroupPartiallySelected = scenes.some(scene => selectedSceneIds.includes(scene.id)) && !isGroupSelected;
+
+                      return (
+                        <CheckboxPrimitive.Root
+                          key={address}
+                          checked={isGroupSelected}
+                          ref={(el) => {
+                            if (el) el.indeterminate = isGroupPartiallySelected;
+                          }}
+                          onCheckedChange={() => handleSceneToggle(scenes[0].id)}
+                          className="relative ring-[1px] ring-border rounded-lg px-4 py-3 text-start text-muted-foreground data-[state=checked]:ring-2 data-[state=checked]:ring-primary data-[state=checked]:text-primary flex flex-col gap-2 cursor-pointer"
+                        >
+                          <div className="flex items-center gap-2">
+                            <SlidersHorizontal className="h-5 w-5" />
+                            <div className="space-y-1 flex-1">
+                              <span className="font-medium tracking-tight text-sm">
                                 Address {address}
                               </span>
-                              <Badge variant="outline" className="text-xs">
+                              <p className="text-xs text-muted-foreground">
                                 {scenes.length} scene{scenes.length > 1 ? 's' : ''}
-                              </Badge>
-                            </div>
-                            <Button
-                              type="button"
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => removeSelectedScene(scenes[0].id)}
-                            >
-                              <X className="h-4 w-4" />
-                            </Button>
-                          </div>
-                          {scenes.length > 1 && (
-                            <div className="ml-6 space-y-1">
-                              {scenes.map((scene) => (
-                                <div key={scene.id} className="text-xs text-gray-600 pl-2">
-                                  • {scene.name}
+                              </p>
+                              {scenes.length > 1 && (
+                                <div className="text-xs text-muted-foreground space-y-0.5">
+                                  {scenes.map((scene) => (
+                                    <div key={scene.id}>• {scene.name}</div>
+                                  ))}
                                 </div>
-                              ))}
+                              )}
+                              {scenes.length === 1 && scenes[0].description && (
+                                <p className="text-xs text-muted-foreground line-clamp-2">
+                                  {scenes[0].description}
+                                </p>
+                              )}
                             </div>
-                          )}
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </ScrollArea>
-              </CardContent>
-            </Card>
-
-            {/* Available Scenes */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-sm">Available Scenes</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <ScrollArea className="h-64">
-                  {availableScenes.length === 0 ? (
-                    <p className="text-sm text-gray-500 text-center py-8">
-                      No scenes available
-                    </p>
-                  ) : (
-                    <div className="space-y-2">
-                      {Object.entries(availableSceneGroups).map(([address, scenes]) => {
-                        const isGroupSelected = scenes.every(scene => selectedSceneIds.includes(scene.id));
-                        const isGroupPartiallySelected = scenes.some(scene => selectedSceneIds.includes(scene.id)) && !isGroupSelected;
-
-                        return (
-                          <div key={address} className="space-y-1">
-                            <div className="flex items-center space-x-2 p-2 hover:bg-gray-50 rounded">
-                              <Checkbox
-                                checked={isGroupSelected}
-                                ref={(el) => {
-                                  if (el) el.indeterminate = isGroupPartiallySelected;
-                                }}
-                                onCheckedChange={() => handleSceneToggle(scenes[0].id)}
-                              />
-                              <SlidersHorizontal className="h-4 w-4 text-gray-500" />
-                              <span className="text-sm font-medium">
-                                Address {address}
-                              </span>
-                              <Badge variant="outline" className="text-xs">
-                                {scenes.length} scene{scenes.length > 1 ? 's' : ''}
-                              </Badge>
-                            </div>
-                            {scenes.length > 1 && (
-                              <div className="ml-6 space-y-1">
-                                {scenes.map((scene) => (
-                                  <div key={scene.id} className="text-xs text-gray-600 pl-2">
-                                    • {scene.name}
-                                  </div>
-                                ))}
-                              </div>
-                            )}
                           </div>
-                        );
-                      })}
-                    </div>
-                  )}
-                </ScrollArea>
-              </CardContent>
-            </Card>
-          </div>
+
+                          <CheckboxPrimitive.Indicator className="absolute top-2 right-2">
+                            <CircleCheck className="fill-primary text-primary-foreground h-4 w-4" />
+                          </CheckboxPrimitive.Indicator>
+                        </CheckboxPrimitive.Root>
+                      );
+                    })}
+                  </div>
+                )}
+              </ScrollArea>
+            </CardContent>
+          </Card>
 
           <DialogFooter>
             <Button
