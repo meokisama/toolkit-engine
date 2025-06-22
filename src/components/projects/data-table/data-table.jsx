@@ -42,11 +42,14 @@ export function DataTable({
   onSendSchedule,
   onSendScene,
   initialPagination,
+  initialColumnVisibility,
   enableRowSelection = false,
 }) {
   const [sorting, setSorting] = React.useState([]);
   const [columnFilters, setColumnFilters] = React.useState([]);
-  const [columnVisibility, setColumnVisibility] = React.useState({});
+  const [columnVisibility, setColumnVisibility] = React.useState(
+    initialColumnVisibility || {}
+  );
   const [rowSelection, setRowSelection] = React.useState({});
   const [pagination, setPagination] = React.useState(
     initialPagination || {
@@ -61,6 +64,13 @@ export function DataTable({
       setPagination(initialPagination);
     }
   }, [initialPagination]);
+
+  // Sync column visibility state with parent when initialColumnVisibility changes
+  React.useEffect(() => {
+    if (initialColumnVisibility !== undefined) {
+      setColumnVisibility(initialColumnVisibility);
+    }
+  }, [initialColumnVisibility]);
 
   // Reset row selection when data length changes (e.g., after deleting items)
   React.useEffect(() => {

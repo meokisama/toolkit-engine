@@ -3,7 +3,8 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { DataTableColumnHeader } from "@/components/projects/data-table/data-table-column-header";
 import { EditableCell } from "@/components/projects/data-table/editable-cell";
-import { KNXAddressInput } from "@/components/custom/knx-input";
+import { EditableSelectCell } from "@/components/projects/data-table/editable-select-cell";
+import { EditableComboboxCell } from "@/components/projects/data-table/editable-combobox-cell";
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -104,25 +105,36 @@ export const createKnxItemsColumns = (
       );
     },
     meta: {
-      className: "w-[8%]",
+      className: "w-[5%]",
     },
   },
   {
     accessorKey: "type",
     header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Type" />
+      <DataTableColumnHeader
+        column={column}
+        title="Type"
+        className="flex items-center justify-center"
+      />
     ),
     cell: ({ row }) => {
       const item = row.original;
       const effectiveValue = getEffectiveValue(item.id, "type", item.type);
-      const typeOption = CONSTANTS.KNX.KNX_OUTPUT_TYPES.find(t => t.value === effectiveValue);
 
       return (
-        <div className="text-sm">
-          {typeOption?.label || "Unknown"}
-        </div>
+        <EditableSelectCell
+          value={effectiveValue?.toString() || ""}
+          options={CONSTANTS.KNX.KNX_OUTPUT_TYPES.map((option) => ({
+            ...option,
+            value: option.value.toString(),
+          }))}
+          onSave={(newValue) => onCellEdit(item.id, "type", parseInt(newValue))}
+          placeholder="Select type"
+          className="w-full"
+        />
       );
     },
+    enableSorting: false,
     meta: {
       className: "w-[12%]",
     },
@@ -130,7 +142,11 @@ export const createKnxItemsColumns = (
   {
     accessorKey: "factor",
     header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Factor" />
+      <DataTableColumnHeader
+        column={column}
+        title="Factor"
+        className="text-center"
+      />
     ),
     cell: ({ row }) => {
       const item = row.original;
@@ -151,6 +167,7 @@ export const createKnxItemsColumns = (
         />
       );
     },
+    enableSorting: false,
     meta: {
       className: "w-[8%]",
     },
@@ -158,19 +175,36 @@ export const createKnxItemsColumns = (
   {
     accessorKey: "feedback",
     header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Feedback" />
+      <DataTableColumnHeader
+        column={column}
+        title="Feedback"
+        className="text-center"
+      />
     ),
     cell: ({ row }) => {
       const item = row.original;
-      const effectiveValue = getEffectiveValue(item.id, "feedback", item.feedback);
-      const feedbackOption = CONSTANTS.KNX.KNX_FEEDBACK_TYPES.find(f => f.value === effectiveValue);
+      const effectiveValue = getEffectiveValue(
+        item.id,
+        "feedback",
+        item.feedback
+      );
 
       return (
-        <div className="text-sm">
-          {feedbackOption?.label || "Unknown"}
-        </div>
+        <EditableSelectCell
+          value={effectiveValue?.toString() || ""}
+          options={CONSTANTS.KNX.KNX_FEEDBACK_TYPES.map((option) => ({
+            ...option,
+            value: option.value.toString(),
+          }))}
+          onSave={(newValue) =>
+            onCellEdit(item.id, "feedback", parseInt(newValue))
+          }
+          placeholder="Select feedback"
+          className="w-full"
+        />
       );
     },
+    enableSorting: false,
     meta: {
       className: "w-[10%]",
     },
@@ -178,19 +212,45 @@ export const createKnxItemsColumns = (
   {
     accessorKey: "rcu_group_id",
     header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="RCU Group" />
+      <DataTableColumnHeader
+        column={column}
+        title="RCU Group"
+        className="flex items-center justify-center"
+      />
     ),
     cell: ({ row }) => {
       const item = row.original;
-      const effectiveValue = getEffectiveValue(item.id, "rcu_group_id", item.rcu_group_id);
-      const lightingItem = lightingItems.find(l => l.id === effectiveValue);
+      const effectiveValue = getEffectiveValue(
+        item.id,
+        "rcu_group_id",
+        item.rcu_group_id
+      );
+
+      // Convert lighting items to options format
+      const lightingOptions = lightingItems.map((lighting) => ({
+        value: lighting.id.toString(),
+        label: lighting.name || `Group ${lighting.address}`,
+      }));
 
       return (
-        <div className="text-sm">
-          {lightingItem ? (lightingItem.name || `Group ${lightingItem.address}`) : "None"}
-        </div>
+        <EditableComboboxCell
+          value={effectiveValue?.toString() || ""}
+          options={lightingOptions}
+          onSave={(newValue) =>
+            onCellEdit(
+              item.id,
+              "rcu_group_id",
+              newValue ? parseInt(newValue) : null
+            )
+          }
+          placeholder="Select RCU group"
+          searchPlaceholder="Search lighting groups..."
+          emptyMessage="No lighting groups found."
+          className="w-full"
+        />
       );
     },
+    enableSorting: false,
     meta: {
       className: "w-[12%]",
     },
@@ -209,11 +269,16 @@ export const createKnxItemsColumns = (
       );
 
       return (
-        <div className="text-sm font-mono">
-          {effectiveValue || "-"}
-        </div>
+        <EditableCell
+          value={effectiveValue || ""}
+          onSave={() => {}} // No-op function since editing is disabled
+          placeholder="-"
+          disabled={true}
+          className="text-center font-mono"
+        />
       );
     },
+    enableSorting: false,
     meta: {
       className: "w-[10%]",
     },
@@ -232,11 +297,16 @@ export const createKnxItemsColumns = (
       );
 
       return (
-        <div className="text-sm font-mono">
-          {effectiveValue || "-"}
-        </div>
+        <EditableCell
+          value={effectiveValue || ""}
+          onSave={() => {}} // No-op function since editing is disabled
+          placeholder="-"
+          disabled={true}
+          className="text-center font-mono"
+        />
       );
     },
+    enableSorting: false,
     meta: {
       className: "w-[10%]",
     },
@@ -255,11 +325,16 @@ export const createKnxItemsColumns = (
       );
 
       return (
-        <div className="text-sm font-mono">
-          {effectiveValue || "-"}
-        </div>
+        <EditableCell
+          value={effectiveValue || ""}
+          onSave={() => {}} // No-op function since editing is disabled
+          placeholder="-"
+          disabled={true}
+          className="text-center font-mono"
+        />
       );
     },
+    enableSorting: false,
     meta: {
       className: "w-[10%]",
     },
@@ -285,6 +360,8 @@ export const createKnxItemsColumns = (
         />
       );
     },
+    enableSorting: false,
+    enableHiding: true,
     meta: {
       className: "w-[15%]",
     },

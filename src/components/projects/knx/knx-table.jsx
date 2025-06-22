@@ -15,8 +15,14 @@ import { Network, Send } from "lucide-react";
 
 // Memoized component to prevent unnecessary rerenders
 function KnxTableComponent({ items, loading }) {
-  const { deleteItem, duplicateItem, exportItems, importItems, updateItem, projectItems } =
-    useProjectDetail();
+  const {
+    deleteItem,
+    duplicateItem,
+    exportItems,
+    importItems,
+    updateItem,
+    projectItems,
+  } = useProjectDetail();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingItem, setEditingItem] = useState(null);
   const [dialogMode, setDialogMode] = useState("create");
@@ -29,7 +35,9 @@ function KnxTableComponent({ items, loading }) {
   const [bulkDeleteLoading, setBulkDeleteLoading] = useState(false);
   const [importDialogOpen, setImportDialogOpen] = useState(false);
   const [selectedRowsCount, setSelectedRowsCount] = useState(0);
-  const [columnVisibility, setColumnVisibility] = useState({});
+  const [columnVisibility, setColumnVisibility] = useState({
+    description: false, // Hide description column by default
+  });
   const [pagination, setPagination] = useState({ pageIndex: 0, pageSize: 10 });
   const [pendingChanges, setPendingChanges] = useState(new Map());
   const [saveLoading, setSaveLoading] = useState(false);
@@ -268,6 +276,7 @@ function KnxTableComponent({ items, loading }) {
                 columns={columns}
                 data={items}
                 initialPagination={pagination}
+                initialColumnVisibility={columnVisibility}
                 onTableReady={setTable}
                 onRowSelectionChange={handleRowSelectionChange}
                 onColumnVisibilityChange={handleColumnVisibilityChange}

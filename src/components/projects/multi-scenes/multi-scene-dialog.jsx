@@ -56,8 +56,10 @@ export function MultiSceneDialog({
   // Load existing multi-scene scenes when editing
   const loadMultiSceneScenes = useCallback(async (multiSceneId) => {
     try {
-      const scenes = await window.electronAPI.multiScenes.getScenes(multiSceneId);
-      const sceneIds = scenes.map(scene => scene.scene_id);
+      const scenes = await window.electronAPI.multiScenes.getScenes(
+        multiSceneId
+      );
+      const sceneIds = scenes.map((scene) => scene.scene_id);
       setSelectedSceneIds(sceneIds);
     } catch (error) {
       console.error("Failed to load multi-scene scenes:", error);
@@ -112,22 +114,33 @@ export function MultiSceneDialog({
   const handleSceneToggle = (sceneId, checked) => {
     setSelectedSceneIds((prev) => {
       const availableScenes = projectItems.scene || [];
-      const clickedScene = availableScenes.find(scene => scene.id === sceneId);
+      const clickedScene = availableScenes.find(
+        (scene) => scene.id === sceneId
+      );
 
       if (!clickedScene) return prev;
 
       // Find all scenes with the same address
       const scenesWithSameAddress = availableScenes.filter(
-        scene => scene.address === clickedScene.address
+        (scene) => scene.address === clickedScene.address
       );
-      const sceneIdsWithSameAddress = scenesWithSameAddress.map(scene => scene.id);
+      const sceneIdsWithSameAddress = scenesWithSameAddress.map(
+        (scene) => scene.id
+      );
 
       if (checked) {
         // Check if adding this address would exceed the limit of 20 addresses
-        const currentSelectedScenes = availableScenes.filter(scene => prev.includes(scene.id));
-        const currentAddresses = new Set(currentSelectedScenes.map(scene => scene.address));
+        const currentSelectedScenes = availableScenes.filter((scene) =>
+          prev.includes(scene.id)
+        );
+        const currentAddresses = new Set(
+          currentSelectedScenes.map((scene) => scene.address)
+        );
 
-        if (!currentAddresses.has(clickedScene.address) && currentAddresses.size >= 20) {
+        if (
+          !currentAddresses.has(clickedScene.address) &&
+          currentAddresses.size >= 20
+        ) {
           toast.error("Maximum 20 addresses allowed per multi-scene");
           return prev;
         }
@@ -144,12 +157,10 @@ export function MultiSceneDialog({
         return newSelectedIds;
       } else {
         // If the clicked scene is being deselected, remove all scenes with the same address
-        return prev.filter(id => !sceneIdsWithSameAddress.includes(id));
+        return prev.filter((id) => !sceneIdsWithSameAddress.includes(id));
       }
     });
   };
-
-
 
   const validateForm = () => {
     const newErrors = {};
@@ -186,14 +197,21 @@ export function MultiSceneDialog({
         await updateItem("multi_scenes", multiScene.id, formData);
 
         // Update scenes in multi-scene
-        await window.electronAPI.multiScenes.updateScenes(multiScene.id, selectedSceneIds);
+        await window.electronAPI.multiScenes.updateScenes(
+          multiScene.id,
+          selectedSceneIds
+        );
       } else {
         // Create new multi-scene
         const newMultiScene = await createItem("multi_scenes", formData);
 
         // Add all selected scenes
         for (let i = 0; i < selectedSceneIds.length; i++) {
-          await window.electronAPI.multiScenes.addScene(newMultiScene.id, selectedSceneIds[i], i);
+          await window.electronAPI.multiScenes.addScene(
+            newMultiScene.id,
+            selectedSceneIds[i],
+            i
+          );
         }
 
         // Switch to multi-scenes tab to show the newly created multi-scene
@@ -218,12 +236,14 @@ export function MultiSceneDialog({
   };
 
   const availableScenes = projectItems.scene || [];
-  const selectedScenes = availableScenes.filter(scene => selectedSceneIds.includes(scene.id));
+  const selectedScenes = availableScenes.filter((scene) =>
+    selectedSceneIds.includes(scene.id)
+  );
 
   // Group scenes by address for better display
   const groupScenesByAddress = (scenes) => {
     const groups = {};
-    scenes.forEach(scene => {
+    scenes.forEach((scene) => {
       if (!groups[scene.address]) {
         groups[scene.address] = [];
       }
@@ -237,7 +257,7 @@ export function MultiSceneDialog({
 
   return (
     <Dialog open={open} onOpenChange={() => onOpenChange(false)}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden">
+      <DialogContent className="!max-w-4xl max-h-[90vh] overflow-hidden">
         <DialogHeader>
           <DialogTitle>
             {mode === "edit" ? "Edit Multi-Scene" : "Create Multi-Scene"}
@@ -245,12 +265,12 @@ export function MultiSceneDialog({
           <DialogDescription>
             {mode === "edit"
               ? "Update the multi-scene details and selected scenes."
-              : "Create a new multi-scene with selected scenes (max 20 addresses)."}
+              : "Create a new multi-scene with selected scenes."}
           </DialogDescription>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-6">
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-3 gap-4">
             <div className="space-y-2">
               <Label htmlFor="name">Name *</Label>
               <Input
@@ -279,16 +299,16 @@ export function MultiSceneDialog({
                 <p className="text-sm text-red-500">{errors.address}</p>
               )}
             </div>
-          </div>
 
-          <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="type">Type</Label>
               <Select
                 value={formData.type.toString()}
-                onValueChange={(value) => handleInputChange("type", parseInt(value))}
+                onValueChange={(value) =>
+                  handleInputChange("type", parseInt(value))
+                }
               >
-                <SelectTrigger>
+                <SelectTrigger className="w-full">
                   <SelectValue placeholder="Select type" />
                 </SelectTrigger>
                 <SelectContent>
@@ -302,7 +322,7 @@ export function MultiSceneDialog({
             </div>
           </div>
 
-          <div className="space-y-2">
+          <div className="space-y-2 -mt-2">
             <Label htmlFor="description">Description</Label>
             <Input
               id="description"
@@ -317,11 +337,12 @@ export function MultiSceneDialog({
             <CardHeader>
               <CardTitle className="text-sm">Select Scenes</CardTitle>
               <p className="text-sm text-muted-foreground">
-                Select the scenes you want to include in this multi-scene (max 20 addresses).
+                Select the scenes you want to include in this multi-scene.
                 {selectedScenes.length > 0 && (
                   <span className="ml-2">
                     <Badge variant="secondary">
-                      {selectedScenes.length} scenes ({Object.keys(selectedSceneGroups).length} addresses)
+                      {selectedScenes.length} scenes (
+                      {Object.keys(selectedSceneGroups).length} addresses)
                     </Badge>
                   </span>
                 )}

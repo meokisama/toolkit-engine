@@ -9,8 +9,19 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { MoreHorizontal, Edit, Copy, Trash2, Send } from "lucide-react";
+import {
+  MoreHorizontal,
+  Edit,
+  Copy,
+  Trash2,
+  Send,
+  FileText,
+  Hash,
+} from "lucide-react";
 import { CONSTANTS } from "@/constants";
+import { EditableCell } from "@/components/projects/data-table/editable-cell";
+import { EditableSelectCell } from "@/components/projects/data-table/editable-select-cell";
+import { DataTableColumnHeader } from "@/components/projects/data-table/data-table-column-header";
 
 export function createMultiSceneColumns(
   onEdit,
@@ -49,84 +60,122 @@ export function createMultiSceneColumns(
     },
     {
       accessorKey: "name",
-      header: "Name",
-      cell: ({ row, getValue }) => {
-        const value = getValue();
-        const effectiveValue = getEffectiveValue(row.original, "name", value);
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} title="Name" />
+      ),
+      cell: ({ row }) => {
+        const effectiveValue = getEffectiveValue(row.original, "name");
         return (
-          <div
-            className="cursor-pointer hover:bg-gray-100 px-2 py-1 rounded min-h-[2rem] flex items-center"
-            onClick={() => onCellEdit(row.original, "name", effectiveValue)}
-          >
-            {effectiveValue || ""}
-          </div>
+          <EditableCell
+            value={effectiveValue || ""}
+            onSave={(newValue) => onCellEdit(row.original.id, "name", newValue)}
+            placeholder="Enter multi-scene name"
+            className="font-medium"
+            icon={FileText}
+          />
         );
       },
+      enableSorting: true,
+      enableHiding: true,
       meta: {
         className: "w-[20%]",
       },
     },
     {
       accessorKey: "address",
-      header: "Address",
-      cell: ({ row, getValue }) => {
-        const value = getValue();
-        const effectiveValue = getEffectiveValue(row.original, "address", value);
+      header: ({ column }) => (
+        <DataTableColumnHeader
+          column={column}
+          title="Address"
+          className="flex items-center justify-center"
+        />
+      ),
+      cell: ({ row }) => {
+        const effectiveValue = getEffectiveValue(row.original, "address");
         return (
-          <div
-            className="cursor-pointer hover:bg-gray-100 px-2 py-1 rounded min-h-[2rem] flex items-center"
-            onClick={() => onCellEdit(row.original, "address", effectiveValue)}
-          >
-            {effectiveValue || ""}
+          <div className="w-full flex justify-center">
+            <EditableCell
+              value={effectiveValue?.toString() || ""}
+              onSave={(newValue) => {
+                const numValue = parseInt(newValue);
+                if (!isNaN(numValue) && numValue >= 0 && numValue <= 255) {
+                  onCellEdit(row.original.id, "address", numValue);
+                }
+              }}
+              placeholder="0-255"
+              type="number"
+              className="text-center font-semibold w-full"
+              icon={Hash}
+            />
           </div>
         );
       },
+      enableSorting: true,
+      enableHiding: true,
       meta: {
-        className: "w-[15%]",
+        className: "w-[8%]",
       },
     },
     {
       accessorKey: "type",
-      header: "Type",
-      cell: ({ row, getValue }) => {
-        const value = getValue();
-        const effectiveValue = getEffectiveValue(row.original, "type", value);
-        const typeLabel = CONSTANTS.MULTI_SCENES.TYPES.find(t => t.value === effectiveValue)?.label || "Unknown";
+      header: ({ column }) => (
+        <DataTableColumnHeader
+          column={column}
+          title="Type"
+          className="flex items-center justify-center"
+        />
+      ),
+      cell: ({ row }) => {
+        const effectiveValue = getEffectiveValue(row.original, "type");
         return (
-          <div
-            className="cursor-pointer hover:bg-gray-100 px-2 py-1 rounded min-h-[2rem] flex items-center"
-            onClick={() => onCellEdit(row.original, "type", effectiveValue)}
-          >
-            {typeLabel}
-          </div>
+          <EditableSelectCell
+            value={effectiveValue}
+            options={CONSTANTS.MULTI_SCENES.TYPES}
+            onSave={(newValue) => onCellEdit(row.original.id, "type", newValue)}
+            placeholder="Select type"
+            className="w-full"
+          />
         );
       },
+      enableSorting: true,
+      enableHiding: true,
       meta: {
-        className: "w-[12%]",
+        className: "w-[8%]",
       },
     },
     {
       accessorKey: "description",
-      header: "Description",
-      cell: ({ row, getValue }) => {
-        const value = getValue();
-        const effectiveValue = getEffectiveValue(row.original, "description", value);
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} title="Description" />
+      ),
+      cell: ({ row }) => {
+        const effectiveValue = getEffectiveValue(row.original, "description");
         return (
-          <div
-            className="cursor-pointer hover:bg-gray-100 px-2 py-1 rounded min-h-[2rem] flex items-center"
-            onClick={() => onCellEdit(row.original, "description", effectiveValue)}
-          >
-            {effectiveValue || ""}
-          </div>
+          <EditableCell
+            value={effectiveValue || ""}
+            onSave={(newValue) =>
+              onCellEdit(row.original.id, "description", newValue)
+            }
+            placeholder="Enter description"
+            className=""
+          />
         );
       },
+      enableSorting: false,
+      enableHiding: true,
       meta: {
         className: "w-[30%]",
       },
     },
     {
       accessorKey: "sceneCount",
-      header: "Scenes",
+      header: ({ column }) => (
+        <DataTableColumnHeader
+          column={column}
+          title="Scenes"
+          className="flex items-center justify-center"
+        />
+      ),
       cell: ({ row }) => {
         const sceneCount = row.original.sceneCount || 0;
         return (
@@ -137,13 +186,15 @@ export function createMultiSceneColumns(
           </div>
         );
       },
+      enableSorting: true,
+      enableHiding: true,
       meta: {
-        className: "w-[8%]",
+        className: "w-[15%]",
       },
     },
     {
       id: "actions",
-      header: "Actions",
+      header: "",
       cell: ({ row }) => {
         const multiScene = row.original;
 
@@ -156,8 +207,6 @@ export function createMultiSceneColumns(
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              <DropdownMenuLabel>Actions</DropdownMenuLabel>
-              <DropdownMenuSeparator />
               <DropdownMenuItem onClick={() => onEdit(multiScene)}>
                 <Edit className="mr-2 h-4 w-4" />
                 Edit
@@ -185,7 +234,7 @@ export function createMultiSceneColumns(
       enableSorting: false,
       enableHiding: false,
       meta: {
-        className: "w-[12%]",
+        className: "w-[3%]",
       },
     },
   ];
