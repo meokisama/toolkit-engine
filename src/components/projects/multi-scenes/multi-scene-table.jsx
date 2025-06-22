@@ -114,17 +114,7 @@ const MultiSceneTable = memo(function MultiSceneTable({ items = [], loading = fa
     [items, deleteItem, confirmDialog, loadMultiSceneCounts]
   );
 
-  const handleCellEdit = useCallback(
-    (item, field, currentValue) => {
-      // For now, just open the edit dialog
-      handleEditItem(item);
-    },
-    [handleEditItem]
-  );
 
-  const getEffectiveValue = useCallback((item, field, currentValue) => {
-    return currentValue;
-  }, []);
 
   const handleSendToUnit = useCallback(
     (item) => {

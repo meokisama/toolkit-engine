@@ -21,7 +21,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
-import { SlidersHorizontal, CircleCheck } from "lucide-react";
+import { SlidersHorizontal, CircleCheck, Lightbulb } from "lucide-react";
 import * as CheckboxPrimitive from "@radix-ui/react-checkbox";
 import { useProjectDetail } from "@/contexts/project-detail-context";
 import { CONSTANTS } from "@/constants";
@@ -109,7 +109,7 @@ export function MultiSceneDialog({
     }
   };
 
-  const handleSceneToggle = (sceneId) => {
+  const handleSceneToggle = (sceneId, checked) => {
     setSelectedSceneIds((prev) => {
       const availableScenes = projectItems.scene || [];
       const clickedScene = availableScenes.find(scene => scene.id === sceneId);
@@ -122,10 +122,7 @@ export function MultiSceneDialog({
       );
       const sceneIdsWithSameAddress = scenesWithSameAddress.map(scene => scene.id);
 
-      if (prev.includes(sceneId)) {
-        // If the clicked scene is selected, remove all scenes with the same address
-        return prev.filter(id => !sceneIdsWithSameAddress.includes(id));
-      } else {
+      if (checked) {
         // Check if adding this address would exceed the limit of 20 addresses
         const currentSelectedScenes = availableScenes.filter(scene => prev.includes(scene.id));
         const currentAddresses = new Set(currentSelectedScenes.map(scene => scene.address));
@@ -135,7 +132,7 @@ export function MultiSceneDialog({
           return prev;
         }
 
-        // If the clicked scene is not selected, add all scenes with the same address
+        // If the clicked scene is being selected, add all scenes with the same address
         const newSelectedIds = [...prev];
 
         for (const id of sceneIdsWithSameAddress) {
@@ -145,6 +142,9 @@ export function MultiSceneDialog({
         }
 
         return newSelectedIds;
+      } else {
+        // If the clicked scene is being deselected, remove all scenes with the same address
+        return prev.filter(id => !sceneIdsWithSameAddress.includes(id));
       }
     });
   };
@@ -341,50 +341,37 @@ export function MultiSceneDialog({
                   </div>
                 ) : (
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 p-2">
-                    {Object.entries(availableSceneGroups).map(([address, scenes]) => {
-                      const isGroupSelected = scenes.every(scene => selectedSceneIds.includes(scene.id));
-                      const isGroupPartiallySelected = scenes.some(scene => selectedSceneIds.includes(scene.id)) && !isGroupSelected;
+                    {availableScenes.map((scene) => (
+                      <CheckboxPrimitive.Root
+                        key={scene.id}
+                        checked={selectedSceneIds.includes(scene.id)}
+                        onCheckedChange={(checked) =>
+                          handleSceneToggle(scene.id, checked)
+                        }
+                        className="relative ring-[1px] ring-border rounded-lg px-4 py-3 text-start text-muted-foreground data-[state=checked]:ring-2 data-[state=checked]:ring-primary data-[state=checked]:text-primary flex flex-row items-center gap-3 cursor-pointer"
+                      >
+                        <Lightbulb className="h-6 w-6" />
+                        <div className="space-y-1">
+                          <span className="font-medium tracking-tight text-sm">
+                            {scene.name}
+                          </span>
+                          {scene.address && (
+                            <p className="text-xs text-muted-foreground">
+                              Address: {scene.address}
+                            </p>
+                          )}
+                          {scene.description && (
+                            <p className="text-xs text-muted-foreground line-clamp-2">
+                              {scene.description}
+                            </p>
+                          )}
+                        </div>
 
-                      return (
-                        <CheckboxPrimitive.Root
-                          key={address}
-                          checked={isGroupSelected}
-                          ref={(el) => {
-                            if (el) el.indeterminate = isGroupPartiallySelected;
-                          }}
-                          onCheckedChange={() => handleSceneToggle(scenes[0].id)}
-                          className="relative ring-[1px] ring-border rounded-lg px-4 py-3 text-start text-muted-foreground data-[state=checked]:ring-2 data-[state=checked]:ring-primary data-[state=checked]:text-primary flex flex-col gap-2 cursor-pointer"
-                        >
-                          <div className="flex items-center gap-2">
-                            <SlidersHorizontal className="h-5 w-5" />
-                            <div className="space-y-1 flex-1">
-                              <span className="font-medium tracking-tight text-sm">
-                                Address {address}
-                              </span>
-                              <p className="text-xs text-muted-foreground">
-                                {scenes.length} scene{scenes.length > 1 ? 's' : ''}
-                              </p>
-                              {scenes.length > 1 && (
-                                <div className="text-xs text-muted-foreground space-y-0.5">
-                                  {scenes.map((scene) => (
-                                    <div key={scene.id}>• {scene.name}</div>
-                                  ))}
-                                </div>
-                              )}
-                              {scenes.length === 1 && scenes[0].description && (
-                                <p className="text-xs text-muted-foreground line-clamp-2">
-                                  {scenes[0].description}
-                                </p>
-                              )}
-                            </div>
-                          </div>
-
-                          <CheckboxPrimitive.Indicator className="absolute top-2 right-2">
-                            <CircleCheck className="fill-primary text-primary-foreground h-4 w-4" />
-                          </CheckboxPrimitive.Indicator>
-                        </CheckboxPrimitive.Root>
-                      );
-                    })}
+                        <CheckboxPrimitive.Indicator className="absolute top-2 right-2">
+                          <CircleCheck className="fill-primary text-primary-foreground h-4 w-4" />
+                        </CheckboxPrimitive.Indicator>
+                      </CheckboxPrimitive.Root>
+                    ))}
                   </div>
                 )}
               </ScrollArea>
