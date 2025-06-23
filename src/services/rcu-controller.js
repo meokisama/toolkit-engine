@@ -1,4 +1,4 @@
-import { CONSTANTS } from "../constants";
+import { CONSTANTS, getUnitByBarcode } from "../constants";
 
 const { UDP_PORT } = CONSTANTS.UNIT.UDP_CONFIG;
 
@@ -2311,20 +2311,47 @@ function parseHexLine(line) {
     throw new Error("Invalid HEX line format");
   }
 
-  // Remove the ":" and convert ASCII hex characters to bytes
-  const hexString = line.slice(1);
-  const bytes = [];
+  // Remove the ":"
+  const content = line.slice(1);
 
+  // Check if this is a firmware header line with version and barcode
+  if (content.includes(",")) {
+    const parts = content.split(",");
+    if (parts.length === 2) {
+      const versionHex = parts[0];
+      const barcode = parts[1];
+
+      // Parse version: 4 hex chars = 2 bytes (e.g., "0303" = version 3.3)
+      if (versionHex.length === 4) {
+        const majorVersion = parseInt(versionHex.slice(0, 2), 16);
+        const minorVersion = parseInt(versionHex.slice(2, 4), 16);
+
+        return {
+          isHeader: true,
+          version: { major: majorVersion, minor: minorVersion },
+          barcode: barcode.trim(), // Trim whitespace from barcode
+          rawBytes: [majorVersion, minorVersion], // Send version bytes to device
+          hexString: versionHex,
+          originalLine: line,
+        };
+      }
+    }
+    throw new Error("Invalid firmware header format");
+  }
+
+  // Regular HEX line processing
+  const bytes = [];
   // Convert ASCII hex pairs to actual bytes
-  for (let i = 0; i < hexString.length; i += 2) {
-    const hexPair = hexString.slice(i, i + 2);
+  for (let i = 0; i < content.length; i += 2) {
+    const hexPair = content.slice(i, i + 2);
     const byte = parseInt(hexPair, 16);
     bytes.push(byte);
   }
 
   return {
+    isHeader: false,
     rawBytes: bytes,
-    hexString: hexString,
+    hexString: content,
     originalLine: line,
   };
 }
@@ -2334,21 +2361,6 @@ function validateHexFile(hexContent, expectedBoardType) {
 
   if (lines.length === 0) {
     throw new Error("Empty HEX file");
-  }
-
-  // Check first line for board type validation (if header exists)
-  const firstLineCheck = lines[0].trim();
-  if (firstLineCheck.includes(",")) {
-    const parts = firstLineCheck.split(",");
-    if (
-      parts.length > 1 &&
-      expectedBoardType &&
-      parts[1] !== expectedBoardType
-    ) {
-      throw new Error(
-        `Firmware is not correct for board type: ${expectedBoardType}`
-      );
-    }
   }
 
   // Validate HEX format - all lines must start with ":"
@@ -2367,14 +2379,43 @@ function validateHexFile(hexContent, expectedBoardType) {
     throw new Error("No valid HEX lines found");
   }
 
-  // Parse first line to get firmware version
+  // Parse first line to get firmware version and validate board type
   const firstLine = hexLines[0];
   const firstLineData = parseHexLine(firstLine);
 
-  if (firstLineData.rawBytes.length >= 2) {
-    const majorVersion = firstLineData.rawBytes[0];
-    const minorVersion = firstLineData.rawBytes[1];
-    console.log(`Firmware version detected: ${majorVersion}.${minorVersion}`);
+  if (firstLineData.isHeader) {
+    // Log detected firmware version
+    console.log(`Firmware version detected: ${firstLineData.version.major}.${firstLineData.version.minor}`);
+
+    // Get unit information from barcode
+    const unitInfo = getUnitByBarcode(firstLineData.barcode);
+    if (unitInfo) {
+      console.log(`Firmware for unit: ${unitInfo.name} (${firstLineData.barcode})`);
+    } else {
+      console.warn(`Unknown unit barcode: ${firstLineData.barcode}`);
+    }
+
+    // Validate board type using barcode if expectedBoardType is provided
+    if (expectedBoardType) {
+      // expectedBoardType is now the expected barcode
+      const expectedBarcode = String(expectedBoardType).trim();
+      const firmwareBarcode = String(firstLineData.barcode).trim();
+
+      if (firmwareBarcode !== expectedBarcode) {
+        // Get unit names for better error message
+        const expectedUnitInfo = getUnitByBarcode(expectedBarcode);
+        const actualUnitInfo = getUnitByBarcode(firmwareBarcode);
+
+        const expectedUnitName = expectedUnitInfo ? expectedUnitInfo.name : expectedBarcode;
+        const actualUnitName = actualUnitInfo ? actualUnitInfo.name : firmwareBarcode;
+
+        throw new Error(
+          `Firmware is not correct for board type: expected ${expectedUnitName} (${expectedBarcode}), got ${actualUnitName} (${firmwareBarcode})`
+        );
+      }
+    }
+  } else {
+    console.warn("First line is not a firmware header, version detection skipped");
   }
 
   return hexLines;
@@ -2485,7 +2526,7 @@ async function updateFirmware(
       const firstLine = hexLines[0];
       const hexData = parseHexLine(firstLine);
 
-      // Send the raw bytes (converted from ASCII hex to actual bytes)
+      // Send the version bytes to device (for header format :0303,barcode, sends [3,3])
       await sendFirmwarePacket(unitIp, canId, hexData.rawBytes);
 
       // Calculate CRC for firmware verification
@@ -2495,7 +2536,10 @@ async function updateFirmware(
 
       processedLines++;
       if (onProgress) {
-        onProgress(5, "Sending firmware version...");
+        const versionInfo = hexData.isHeader
+          ? `${hexData.version.major}.${hexData.version.minor}`
+          : "unknown";
+        onProgress(5, `Sending firmware version ${versionInfo}...`);
       }
     }
 

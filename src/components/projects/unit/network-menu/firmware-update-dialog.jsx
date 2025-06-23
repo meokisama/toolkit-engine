@@ -14,6 +14,13 @@ import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Upload, AlertTriangle, CheckCircle, X } from "lucide-react";
 import { toast } from "sonner";
+import { CONSTANTS } from "@/constants";
+
+// Helper function to get barcode from unit type
+const getUnitBarcode = (unitType) => {
+  const unitInfo = CONSTANTS.UNIT.TYPES.find(u => u.name === unitType);
+  return unitInfo ? unitInfo.barcode : null;
+};
 
 export function FirmwareUpdateDialog({
   open,
@@ -85,6 +92,9 @@ export function FirmwareUpdateDialog({
         setProgress(unitProgress);
 
         try {
+          // Get barcode from unit type for firmware validation
+          const unitBarcode = getUnitBarcode(unit.type);
+
           const result = await window.electronAPI.firmware.update(
             unit.ip_address,
             unit.id_can,
@@ -94,7 +104,7 @@ export function FirmwareUpdateDialog({
               setProgress(Math.min(totalProgress, 100));
               setCurrentStatus(`${unit.ip_address}/${unit.id_can}: ${status}`);
             },
-            unit.type // Pass unit type for board validation
+            unitBarcode // Pass unit barcode for board validation
           );
 
           results.push({

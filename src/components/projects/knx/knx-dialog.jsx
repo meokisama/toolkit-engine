@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import {
   Dialog,
   DialogContent,
@@ -10,7 +10,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
+
 import {
   Select,
   SelectContent,
@@ -55,6 +55,46 @@ export function KnxItemDialog({ open, onOpenChange, mode, item }) {
   });
   const [errors, setErrors] = useState({});
 
+  // Load RCU Group data based on KNX type
+  const loadRcuGroupDataForType = useCallback(async (knxType) => {
+    if (!selectedProject) return;
+
+    const typeValue = parseInt(knxType);
+    let tabToLoad = null;
+
+    switch (typeValue) {
+      case 1: // Switch
+      case 2: // Dimmer
+        tabToLoad = "lighting";
+        break;
+      case 3: // Curtain
+        tabToLoad = "curtain";
+        break;
+      case 4: // Scene
+        tabToLoad = "scene";
+        break;
+      case 5: // Multi Scene
+      case 6: // Multi Scene Sequence
+        tabToLoad = "multi_scenes";
+        break;
+      case 7: // AC Power
+      case 8: // AC Mode
+      case 9: // AC Fan Speed
+      case 10: // AC Swing
+      case 11: // AC Set Point
+        tabToLoad = "aircon";
+        break;
+      default:
+        // For type 0 (Disable) or unknown types, no need to load data
+        return;
+    }
+
+    // Load data if not already loaded
+    if (tabToLoad && !loadedTabs.has(tabToLoad)) {
+      await loadTabData(selectedProject.id, tabToLoad);
+    }
+  }, [selectedProject, loadedTabs, loadTabData]);
+
   // Reset form when dialog opens/closes or item changes
   useEffect(() => {
     if (open) {
@@ -71,6 +111,10 @@ export function KnxItemDialog({ open, onOpenChange, mode, item }) {
           knx_value_group: item.knx_value_group || "",
           description: item.description || "",
         });
+        // Load RCU Group data for the current item's type (lazy loading)
+        if (item.type && item.type !== 0) {
+          loadRcuGroupDataForType(item.type);
+        }
       } else {
         setFormData({
           name: "",
@@ -86,32 +130,8 @@ export function KnxItemDialog({ open, onOpenChange, mode, item }) {
         });
       }
       setErrors({});
-
-      // Load required data for RCU Group selection if not already loaded
-      if (selectedProject) {
-        // Load lighting data if not already loaded (for Switch/Dimmer types)
-        if (!loadedTabs.has("lighting")) {
-          loadTabData(selectedProject.id, "lighting");
-        }
-        // Load curtain data if not already loaded (for Curtain type)
-        if (!loadedTabs.has("curtain")) {
-          loadTabData(selectedProject.id, "curtain");
-        }
-        // Load scene data if not already loaded (for Scene type)
-        if (!loadedTabs.has("scene")) {
-          loadTabData(selectedProject.id, "scene");
-        }
-        // Load multi_scenes data if not already loaded (for Multi Scene type)
-        if (!loadedTabs.has("multi_scenes")) {
-          loadTabData(selectedProject.id, "multi_scenes");
-        }
-        // Load aircon data if not already loaded (for AC types)
-        if (!loadedTabs.has("aircon")) {
-          loadTabData(selectedProject.id, "aircon");
-        }
-      }
     }
-  }, [open, mode, item, selectedProject, loadedTabs, loadTabData]);
+  }, [open, mode, item, loadRcuGroupDataForType]);
 
   const validateForm = () => {
     const newErrors = {};
@@ -228,6 +248,9 @@ export function KnxItemDialog({ open, onOpenChange, mode, item }) {
 
           // Reset RCU group when type changes to allow selection from appropriate items
           newData.rcu_group_id = null;
+
+          // Load RCU Group data for the new type (lazy loading)
+          loadRcuGroupDataForType(value);
         }
       }
 
