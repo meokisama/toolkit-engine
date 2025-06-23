@@ -2307,12 +2307,12 @@ async function deleteAllKnxConfigs(unitIp, canId) {
 
 // Firmware Update Functions
 function parseHexLine(line) {
-  if (!line.startsWith(":")) {
+  if (!line.trim().startsWith(":")) {
     throw new Error("Invalid HEX line format");
   }
 
   // Remove the ":"
-  const content = line.slice(1);
+  const content = line.trim().slice(1);
 
   // Check if this is a firmware header line with version and barcode
   if (content.includes(",")) {
@@ -2332,7 +2332,7 @@ function parseHexLine(line) {
           barcode: barcode.trim(), // Trim whitespace from barcode
           rawBytes: [majorVersion, minorVersion], // Send version bytes to device
           hexString: versionHex,
-          originalLine: line,
+          originalLine: line.trim(),
         };
       }
     }
@@ -2352,7 +2352,7 @@ function parseHexLine(line) {
     isHeader: false,
     rawBytes: bytes,
     hexString: content,
-    originalLine: line,
+    originalLine: line.trim(),
   };
 }
 
@@ -2529,10 +2529,7 @@ async function updateFirmware(
       // Send the version bytes to device (for header format :0303,barcode, sends [3,3])
       await sendFirmwarePacket(unitIp, canId, hexData.rawBytes);
 
-      // Calculate CRC for firmware verification
-      hexData.rawBytes.forEach((byte) => {
-        firmwareCRC += byte;
-      });
+      // NOTE: Do NOT calculate CRC for the first line (version/header)
 
       processedLines++;
       if (onProgress) {
@@ -2544,6 +2541,9 @@ async function updateFirmware(
     }
 
     // Step 2: Process remaining HEX lines
+    
+    firmwareCRC = 0;
+
     // Group complete lines into packets, ensuring total packet size <= 1024 bytes
     const maxPacketSize = 1000; // Maximum bytes per packet (reserve space for headers)
     let currentPacketData = [];
