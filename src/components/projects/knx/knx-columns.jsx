@@ -20,7 +20,7 @@ export const createKnxItemsColumns = (
   onDelete,
   onCellEdit,
   getEffectiveValue,
-  lightingItems = []
+  projectItems = {}
 ) => [
   {
     id: "select",
@@ -226,16 +226,69 @@ export const createKnxItemsColumns = (
         item.rcu_group_id
       );
 
-      // Convert lighting items to options format
-      const lightingOptions = lightingItems.map((lighting) => ({
-        value: lighting.id.toString(),
-        label: lighting.name || `Group ${lighting.address}`,
+      // Get appropriate items based on KNX type
+      const getRcuGroupItems = (knxType) => {
+        const typeValue = parseInt(knxType);
+
+        switch (typeValue) {
+          case 1: // Switch
+          case 2: // Dimmer
+            return projectItems?.lighting || [];
+          case 3: // Curtain
+            return projectItems?.curtain || [];
+          case 4: // Scene
+            return projectItems?.scene || [];
+          case 5: // Multi Scene
+            return projectItems?.multi_scene || [];
+          case 7: // AC Power
+          case 8: // AC Mode
+          case 9: // AC Fan Speed
+          case 10: // AC Swing
+          case 11: // AC Set Point
+            return projectItems?.aircon || [];
+          default:
+            return projectItems?.lighting || [];
+        }
+      };
+
+      const rcuGroupItems = getRcuGroupItems(item.type);
+
+      // Convert items to options format
+      const rcuGroupOptions = rcuGroupItems.map((rcuItem) => ({
+        value: rcuItem.id.toString(),
+        label: rcuItem.name || `Group ${rcuItem.address}`,
       }));
+
+      // Get type label for placeholder and search text
+      const getTypeLabel = (knxType) => {
+        const typeValue = parseInt(knxType);
+        switch (typeValue) {
+          case 1:
+          case 2:
+            return "lighting";
+          case 3:
+            return "curtain";
+          case 4:
+            return "scene";
+          case 5:
+            return "multi scene";
+          case 7:
+          case 8:
+          case 9:
+          case 10:
+          case 11:
+            return "aircon";
+          default:
+            return "lighting";
+        }
+      };
+
+      const typeLabel = getTypeLabel(item.type);
 
       return (
         <EditableComboboxCell
           value={effectiveValue?.toString() || ""}
-          options={lightingOptions}
+          options={rcuGroupOptions}
           onSave={(newValue) =>
             onCellEdit(
               item.id,
@@ -244,8 +297,8 @@ export const createKnxItemsColumns = (
             )
           }
           placeholder="Select RCU group"
-          searchPlaceholder="Search lighting groups..."
-          emptyMessage="No lighting groups found."
+          searchPlaceholder={`Search ${typeLabel} groups...`}
+          emptyMessage={`No ${typeLabel} groups found.`}
           className="w-full"
         />
       );

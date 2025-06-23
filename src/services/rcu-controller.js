@@ -2033,7 +2033,7 @@ async function setKnxConfig(unitIp, canId, knxConfig) {
   const valueGroupBytes = convertKnxAddressToHex(knxValueGroup);
 
   // Build data packet according to specification:
-  // KNX Address: 1byte
+  // KNX Address: 2bytes (low byte, high byte)
   // Type: 1byte
   // Factor: 1byte
   // FeedBack: 1byte
@@ -2042,7 +2042,8 @@ async function setKnxConfig(unitIp, canId, knxConfig) {
   // rcu_group_value: 1byte
   // 2 byte KNX switch group, 2 byte KNX dimming group, 2 byte KNX value group
   const data = [
-    address & 0xff, // KNX Address (1 byte)
+    address & 0xff, // KNX Address low byte
+    (address >> 8) & 0xff, // KNX Address high byte
     type & 0xff, // Type (1 byte)
     factor & 0xff, // Factor (1 byte)
     feedback & 0xff, // FeedBack (1 byte)
@@ -2094,11 +2095,11 @@ async function getKnxConfig(unitIp, canId, knxAddress = null) {
   // Convert CAN ID to address format
   const idAddress = convertCanIdToInt(canId);
 
-  // Data is KNX address (1 byte) if specified, empty for all KNX configs
+  // Data is KNX address (2 bytes) if specified, empty for all KNX configs
   let data = [];
   if (knxAddress !== null) {
     validators.knxAddress(knxAddress);
-    data = [knxAddress & 0xff];
+    data = [knxAddress & 0xff, (knxAddress >> 8) & 0xff];
   }
 
   console.log("Getting KNX config:", {
@@ -2120,7 +2121,7 @@ async function getKnxConfig(unitIp, canId, knxAddress = null) {
       true // Skip status check for GET commands
     );
 
-    if (response && response.msg && response.msg.length >= 9) {
+    if (response && response.msg && response.msg.length >= 10) {
       const responseData = response.msg.slice(8); // Skip header
       console.log(
         "Single KNX response data:",
@@ -2161,7 +2162,7 @@ async function getKnxConfig(unitIp, canId, knxAddress = null) {
       for (let i = 0; i < result.responses.length; i++) {
         const response = result.responses[i];
         try {
-          if (response && response.msg && response.msg.length >= 9) {
+          if (response && response.msg && response.msg.length >= 10) {
             const responseData = response.msg.slice(8); // Skip header
             console.log(
               `KNX response ${i + 1} data:`,
@@ -2204,27 +2205,31 @@ async function getKnxConfig(unitIp, canId, knxAddress = null) {
 
 // Helper function to parse KNX configuration response
 function parseKnxConfigResponse(data) {
-  if (!data || data.length < 13) {
+  if (!data || data.length < 14) {
     console.warn("Invalid KNX config response data length:", data?.length);
     return null;
   }
 
   try {
-    const address = data[0];
-    const type = data[1];
-    const factor = data[2];
-    const feedback = data[3];
-    const memValueFlag = data[4]; // Should be 0x00
-    const reserve = data[5]; // Should be 0x00
-    const rcuGroup = data[6];
+    // Parse KNX address from 2 bytes (little endian)
+    const addressLow = data[0];
+    const addressHigh = data[1];
+    const address = (addressHigh << 8) | addressLow;
+
+    const type = data[2];
+    const factor = data[3];
+    const feedback = data[4];
+    const memValueFlag = data[5]; // Should be 0x00
+    const reserve = data[6]; // Should be 0x00
+    const rcuGroup = data[7];
 
     // Parse KNX group addresses (2 bytes each, little endian)
-    const switchGroupLow = data[7];
-    const switchGroupHigh = data[8];
-    const dimmingGroupLow = data[9];
-    const dimmingGroupHigh = data[10];
-    const valueGroupLow = data[11];
-    const valueGroupHigh = data[12];
+    const switchGroupLow = data[8];
+    const switchGroupHigh = data[9];
+    const dimmingGroupLow = data[10];
+    const dimmingGroupHigh = data[11];
+    const valueGroupLow = data[12];
+    const valueGroupHigh = data[13];
 
     // Convert 2-byte hex back to a/b/c format
     const convertHexToKnxAddress = (lowByte, highByte) => {
@@ -2273,7 +2278,7 @@ async function deleteKnxConfig(unitIp, canId, knxAddress = null) {
 
   if (knxAddress !== null && knxAddress !== undefined) {
     validators.knxAddress(knxAddress);
-    data.push(knxAddress & 0xff);
+    data.push(knxAddress & 0xff, (knxAddress >> 8) & 0xff);
   }
 
   console.log("Deleting KNX config:", { unitIp, canId, knxAddress });

@@ -223,7 +223,7 @@ function KnxTableComponent({ items, loading }) {
     handleDeleteItem,
     handleCellEdit,
     getEffectiveValue,
-    projectItems?.lighting || []
+    projectItems || {}
   );
 
   if (loading) {

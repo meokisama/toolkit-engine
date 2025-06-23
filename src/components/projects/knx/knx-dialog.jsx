@@ -37,7 +37,7 @@ import { CONSTANTS } from "@/constants";
 import { KNXAddressInput } from "@/components/custom/knx-input";
 
 export function KnxItemDialog({ open, onOpenChange, mode, item }) {
-  const { createItem, updateItem, selectedProject, projectItems } =
+  const { createItem, updateItem, selectedProject, projectItems, loadedTabs, loadTabData } =
     useProjectDetail();
   const [loading, setLoading] = useState(false);
   const [rcuGroupOpen, setRcuGroupOpen] = useState(false);
@@ -86,8 +86,32 @@ export function KnxItemDialog({ open, onOpenChange, mode, item }) {
         });
       }
       setErrors({});
+
+      // Load required data for RCU Group selection if not already loaded
+      if (selectedProject) {
+        // Load lighting data if not already loaded (for Switch/Dimmer types)
+        if (!loadedTabs.has("lighting")) {
+          loadTabData(selectedProject.id, "lighting");
+        }
+        // Load curtain data if not already loaded (for Curtain type)
+        if (!loadedTabs.has("curtain")) {
+          loadTabData(selectedProject.id, "curtain");
+        }
+        // Load scene data if not already loaded (for Scene type)
+        if (!loadedTabs.has("scene")) {
+          loadTabData(selectedProject.id, "scene");
+        }
+        // Load multi_scenes data if not already loaded (for Multi Scene type)
+        if (!loadedTabs.has("multi_scenes")) {
+          loadTabData(selectedProject.id, "multi_scenes");
+        }
+        // Load aircon data if not already loaded (for AC types)
+        if (!loadedTabs.has("aircon")) {
+          loadTabData(selectedProject.id, "aircon");
+        }
+      }
     }
-  }, [open, mode, item]);
+  }, [open, mode, item, selectedProject, loadedTabs, loadTabData]);
 
   const validateForm = () => {
     const newErrors = {};
@@ -187,19 +211,23 @@ export function KnxItemDialog({ open, onOpenChange, mode, item }) {
     setFormData((prev) => {
       const newData = { ...prev, [field]: value };
 
-      // If type changes, clear KNX group fields that are not allowed
+      // If type changes, clear KNX group fields that are not allowed and reset RCU group
       if (field === "type") {
         const visibility = getKnxGroupVisibility(value);
         if (!visibility.allowInput) {
-          // Disable type - clear all KNX groups
+          // Disable type - clear all KNX groups and RCU group
           newData.knx_switch_group = "";
           newData.knx_dimming_group = "";
           newData.knx_value_group = "";
+          newData.rcu_group_id = null;
         } else {
           // Clear fields that are not visible for this type
           if (!visibility.showSwitch) newData.knx_switch_group = "";
           if (!visibility.showDimming) newData.knx_dimming_group = "";
           if (!visibility.showValue) newData.knx_value_group = "";
+
+          // Reset RCU group when type changes to allow selection from appropriate items
+          newData.rcu_group_id = null;
         }
       }
 
@@ -212,8 +240,33 @@ export function KnxItemDialog({ open, onOpenChange, mode, item }) {
     }
   };
 
-  // Get lighting items for RCU Group selection
-  const lightingItems = projectItems?.lighting || [];
+  // Get appropriate items for RCU Group selection based on KNX type
+  const getRcuGroupItems = (knxType) => {
+    const typeValue = parseInt(knxType);
+
+    switch (typeValue) {
+      case 1: // Switch
+      case 2: // Dimmer
+        return projectItems?.lighting || [];
+      case 3: // Curtain
+        return projectItems?.curtain || [];
+      case 4: // Scene
+        return projectItems?.scene || [];
+      case 5: // Multi Scene
+      case 6: // Multi Scene Sequence
+        return projectItems?.multi_scenes || [];
+      case 7: // AC Power
+      case 8: // AC Mode
+      case 9: // AC Fan Speed
+      case 10: // AC Swing
+      case 11: // AC Set Point
+        return projectItems?.aircon || [];
+      default:
+        return projectItems?.lighting || [];
+    }
+  };
+
+  const rcuGroupItems = getRcuGroupItems(formData.type);
 
   // Determine which KNX group fields to show based on type
   const getKnxGroupVisibility = (type) => {
@@ -386,7 +439,7 @@ export function KnxItemDialog({ open, onOpenChange, mode, item }) {
                     <span className="truncate whitespace-nowrap overflow-hidden text-ellipsis">
                       {formData.rcu_group_id
                         ? (() => {
-                            const selectedItem = lightingItems.find(
+                            const selectedItem = rcuGroupItems.find(
                               (item) => item.id === formData.rcu_group_id
                             );
                             return selectedItem
@@ -421,7 +474,7 @@ export function KnxItemDialog({ open, onOpenChange, mode, item }) {
                         />
                         None
                       </CommandItem>
-                      {lightingItems.map((item) => (
+                      {rcuGroupItems.map((item) => (
                         <CommandItem
                           key={item.id}
                           value={`${item.name || `Group ${item.address}`} ${

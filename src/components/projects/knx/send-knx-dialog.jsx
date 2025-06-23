@@ -43,14 +43,44 @@ export function SendKnxDialog({ open, onOpenChange, items = [] }) {
     let successCount = 0;
     let errorCount = 0;
 
-    // Get RCU group value from the lighting items
-    const lightingItems = await window.electronAPI.lighting.getAll(
-      knxData.project_id
-    );
-    const rcuGroup = lightingItems.find(item => item.id === knxData.rcu_group_id);
-    
+    // Get RCU group value from appropriate items based on KNX type
+    let rcuGroup = null;
+
+    switch (knxData.type) {
+      case 1: // Switch
+      case 2: // Dimmer
+        const lightingItems = await window.electronAPI.lighting.getAll(knxData.project_id);
+        rcuGroup = lightingItems.find(item => item.id === knxData.rcu_group_id);
+        break;
+      case 3: // Curtain
+        const curtainItems = await window.electronAPI.curtain.getAll(knxData.project_id);
+        rcuGroup = curtainItems.find(item => item.id === knxData.rcu_group_id);
+        break;
+      case 4: // Scene
+        const sceneItems = await window.electronAPI.scene.getAll(knxData.project_id);
+        rcuGroup = sceneItems.find(item => item.id === knxData.rcu_group_id);
+        break;
+      case 5: // Multi Scene
+      case 6: // Multi Scene Sequence
+        const multiSceneItems = await window.electronAPI.multiScenes.getAll(knxData.project_id);
+        rcuGroup = multiSceneItems.find(item => item.id === knxData.rcu_group_id);
+        break;
+      case 7: // AC Power
+      case 8: // AC Mode
+      case 9: // AC Fan Speed
+      case 10: // AC Swing
+      case 11: // AC Set Point
+        const airconItems = await window.electronAPI.aircon.getAll(knxData.project_id);
+        rcuGroup = airconItems.find(item => item.id === knxData.rcu_group_id);
+        break;
+      default:
+        const defaultLightingItems = await window.electronAPI.lighting.getAll(knxData.project_id);
+        rcuGroup = defaultLightingItems.find(item => item.id === knxData.rcu_group_id);
+        break;
+    }
+
     if (!rcuGroup) {
-      toast.error("RCU group not found in lighting items");
+      toast.error("RCU group not found");
       return;
     }
 
@@ -121,10 +151,13 @@ export function SendKnxDialog({ open, onOpenChange, items = [] }) {
     let completedOperations = 0;
     const operationResults = [];
 
-    // Get all lighting items for RCU group lookup
-    const lightingItems = await window.electronAPI.lighting.getAll(
-      knxConfigs[0].project_id
-    );
+    // Get all project items for RCU group lookup
+    const projectId = knxConfigs[0].project_id;
+    const lightingItems = await window.electronAPI.lighting.getAll(projectId);
+    const curtainItems = await window.electronAPI.curtain.getAll(projectId);
+    const sceneItems = await window.electronAPI.scene.getAll(projectId);
+    const multiSceneItems = await window.electronAPI.multiScenes.getAll(projectId);
+    const airconItems = await window.electronAPI.aircon.getAll(projectId);
 
     for (let i = 0; i < knxConfigs.length; i++) {
       const currentKnx = knxConfigs[i];
@@ -145,8 +178,36 @@ export function SendKnxDialog({ open, onOpenChange, items = [] }) {
         continue;
       }
 
-      // Get RCU group value
-      const rcuGroup = lightingItems.find(item => item.id === knxData.rcu_group_id);
+      // Get RCU group value based on KNX type
+      let rcuGroup = null;
+
+      switch (knxData.type) {
+        case 1: // Switch
+        case 2: // Dimmer
+          rcuGroup = lightingItems.find(item => item.id === knxData.rcu_group_id);
+          break;
+        case 3: // Curtain
+          rcuGroup = curtainItems.find(item => item.id === knxData.rcu_group_id);
+          break;
+        case 4: // Scene
+          rcuGroup = sceneItems.find(item => item.id === knxData.rcu_group_id);
+          break;
+        case 5: // Multi Scene
+        case 6: // Multi Scene Sequence
+          rcuGroup = multiSceneItems.find(item => item.id === knxData.rcu_group_id);
+          break;
+        case 7: // AC Power
+        case 8: // AC Mode
+        case 9: // AC Fan Speed
+        case 10: // AC Swing
+        case 11: // AC Set Point
+          rcuGroup = airconItems.find(item => item.id === knxData.rcu_group_id);
+          break;
+        default:
+          rcuGroup = lightingItems.find(item => item.id === knxData.rcu_group_id);
+          break;
+      }
+
       if (!rcuGroup) {
         // Skip if RCU group not found
         for (const unit of selectedUnits) {

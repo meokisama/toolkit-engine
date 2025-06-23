@@ -899,16 +899,14 @@ function setupIpcHandlers() {
         sceneAddresses,
       } = params;
 
-      return await setupSchedule(
-        unitIp,
-        canId,
+      return await setupSchedule(unitIp, canId, {
         scheduleIndex,
         enabled,
         weekDays,
         hour,
         minute,
-        sceneAddresses
-      );
+        sceneAddresses,
+      });
     } catch (error) {
       console.error("Error sending schedule:", error);
       throw error;
@@ -1117,14 +1115,12 @@ function setupIpcHandlers() {
       sceneItems
     ) => {
       try {
-        return await setupScene(
-          unitIp,
-          canId,
+        return await setupScene(unitIp, canId, {
           sceneIndex,
           sceneName,
           sceneAddress,
-          sceneItems
-        );
+          sceneItems,
+        });
       } catch (error) {
         console.error("Error setting up scene:", error);
         throw error;
@@ -1160,7 +1156,7 @@ function setupIpcHandlers() {
     "rcu:triggerScene",
     async (event, { unitIp, canId, sceneIndex, sceneAddress }) => {
       try {
-        return await triggerScene(unitIp, canId, sceneIndex, sceneAddress);
+        return await triggerScene(unitIp, canId, sceneAddress);
       } catch (error) {
         console.error("Error triggering scene:", error);
         throw error;
@@ -1504,9 +1500,7 @@ function setupIpcHandlers() {
       }
     ) => {
       try {
-        return await setCurtainConfig(
-          unitIp,
-          canId,
+        return await setCurtainConfig(unitIp, canId, {
           index,
           address,
           curtainType,
@@ -1514,8 +1508,8 @@ function setupIpcHandlers() {
           transitionPeriod,
           openGroup,
           closeGroup,
-          stopGroup
-        );
+          stopGroup,
+        });
       } catch (error) {
         console.error("Error setting curtain configuration:", error);
         throw error;
