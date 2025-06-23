@@ -761,313 +761,183 @@ export const getOutputTypes = (unitName) => {
   return types;
 };
 
-// Input function lists
-export const INPUT_FUNCTIONS = {
-  // Complete list of all available input functions (values match C# enum exactly)
-  ALL: [
-    { name: "IP_UNUSED", label: "Unused", value: 0 },
-    { name: "BELL", label: "Bell", value: 1 },
-    { name: "DO_NOT_DISTURB", label: "Do Not Disturb", value: 2 },
-    { name: "MAKE_UP_ROOM", label: "Make Up Room", value: 3 },
-    { name: "KEY_CARD", label: "Key Card", value: 4 },
-    { name: "IP_ON", label: "On", value: 5 },
-    { name: "IP_OFF", label: "Off", value: 6 },
-    { name: "IP_ON_OFF", label: "On/Off", value: 7 },
-    { name: "IP_SWITCH", label: "Switch", value: 8 },
-    { name: "IP_SWITCH_INVERT", label: "Switch (Inverted)", value: 9 },
-    { name: "IP_DIM_TOGGLE", label: "Dim Toggle", value: 10 },
-    { name: "IP_DIM_MEM", label: "Dim Memory", value: 11 },
-    { name: "IP_ON_UP", label: "On Up", value: 12 },
-    { name: "IP_OFF_DOWN", label: "Off Down", value: 13 },
-    { name: "IP_TIMER_TOGGLE", label: "Timer Toggle", value: 14 },
-    { name: "IP_TIMER_RETRIGGER", label: "Timer Retrigger", value: 15 },
-    { name: "IP_DIM_UP", label: "Dim Up", value: 16 },
-    { name: "IP_DIM_DOWN", label: "Dim Down", value: 17 },
-    { name: "IP_SOFT_UP", label: "Soft Up", value: 18 },
-    { name: "IP_SOFT_DOWN", label: "Soft Down", value: 19 },
-    { name: "SCENE", label: "Scene", value: 20 },
-    { name: "CURTAIN", label: "Curtain", value: 21 },
-    { name: "RETURN", label: "Return", value: 22 },
-    { name: "IP_TOGGLE", label: "Toggle", value: 23 },
-    { name: "SCENE_SEQUENCE", label: "Scene Sequence", value: 24 },
-    { name: "SCENE_OFF", label: "Scene Off", value: 25 },
-    { name: "SCENE_ON", label: "Scene On", value: 26 },
-    { name: "SCENE_WELCOME", label: "Scene Welcome", value: 27 },
-    { name: "SCENE_UNOCCUPIED", label: "Scene Unoccupied", value: 28 },
-    { name: "SCENE_TOGGLE", label: "Scene Toggle", value: 29 },
-    { name: "KEYLESS", label: "Keyless", value: 30 },
-    { name: "DOOR_SWITCH", label: "Door Switch", value: 31 },
-    { name: "MOTION_SENSOR", label: "Motion Sensor", value: 32 },
-    { name: "BLIND", label: "Blind", value: 33 },
-    { name: "FAN_LMH", label: "Fan L/M/H", value: 34 },
-    { name: "FAN_LMHO", label: "Fan L/M/H/O", value: 35 },
-    { name: "IP_CIRCLE_UP", label: "Circle Up", value: 36 },
-    { name: "IP_CIRCLE_DOWN", label: "Circle Down", value: 37 },
-    { name: "IP_CIRCLE_UP_OFF", label: "Circle Up Off", value: 38 },
-    { name: "IP_CIRCLE_DOWN_OFF", label: "Circle Down Off", value: 39 },
-    { name: "IP_VOL_UP", label: "Volume Up", value: 40 },
-    { name: "IP_VOL_DOWN", label: "Volume Down", value: 41 },
-    { name: "SCENE_WELCOME_NIGHT", label: "Scene Welcome Night", value: 42 },
-    { name: "SCENE_GROUP_TRIGGER", label: "Scene Group Trigger", value: 43 },
-    { name: "SCENE_GROUP_TOGGLE", label: "Scene Group Toggle", value: 44 },
-    { name: "SCENE_GROUP_SEQUENCE", label: "Scene Group Sequence", value: 45 },
-    { name: "CURTAIN_OBJ", label: "Curtain Object", value: 49 },
-    { name: "AC_FAN_LMH", label: "AC Fan L/M/H", value: 50 },
-    { name: "AC_FAN_OLMH", label: "AC Fan O/L/M/H", value: 51 },
-    { name: "AC_FAN_LOW", label: "AC Fan Low", value: 52 },
-    { name: "AC_FAN_MED", label: "AC Fan Medium", value: 53 },
-    { name: "AC_FAN_HIGH", label: "AC Fan High", value: 54 },
-    { name: "AC_TEMP_DOWN", label: "AC Temperature Down", value: 55 },
-    { name: "AC_TEMP_UP", label: "AC Temperature Up", value: 56 },
-    { name: "AC_TEMP_TYPE", label: "AC Temperature Type", value: 57 },
-    { name: "AC_POWER", label: "AC Power", value: 58 },
-    { name: "AC_MODE", label: "AC Mode", value: 59 },
-    { name: "AC_FAN_SPEED", label: "AC Fan Speed", value: 60 },
-    { name: "SW_INV_AC_OFF", label: "Switch Invert AC Off", value: 70 },
-    { name: "SW_INV_AC_ECO", label: "Switch Invert AC Eco", value: 71 },
-    { name: "TIME_HOUR", label: "Time Hour", value: 80 },
-    { name: "TIME_MINUTE", label: "Time Minute", value: 81 },
-    { name: "TIME_ALARM", label: "Time Alarm", value: 82 },
-    { name: "TIME_ZONE", label: "Time Zone", value: 83 },
-    { name: "TIME_SETT", label: "Time Setting", value: 84 },
-    { name: "MOTION_SET_SCENE", label: "Motion Set Scene", value: 90 },
-    { name: "SW_SCENE", label: "Switch Scene", value: 91 },
-    { name: "SW_SCENE_OFF", label: "Switch Scene Off", value: 92 },
-    { name: "SW_SCENE_ON", label: "Switch Scene On", value: 93 },
-    { name: "SW_SCENE_SEQUENCE", label: "Switch Scene Sequence", value: 94 },
-    { name: "SW_SCENE_GROUP", label: "Switch Scene Group", value: 95 },
-    { name: "SW_DND", label: "Switch DND", value: 96 },
-    { name: "SW_MUR", label: "Switch MUR", value: 97 },
-    { name: "ENTRANCE", label: "Entrance", value: 254 },
-    { name: "CUSTOM", label: "Custom", value: 255 },
+// Input function types organized by categories for unit configuration
+export const INPUT_TYPES = {
+  ROOM: [
+    { value: 4, name: "KEY_CARD", label: "Key Card" },
+    { value: 31, name: "DOOR_SWITCH", label: "Door Switch" },
+    { value: 32, name: "MOTION_SENSOR", label: "Motion Sensor" },
   ],
-
-  // Specific function lists for special inputs
-  KEY_CARD_INPUT: [
-    { name: "IP_UNUSED", label: "Unused", value: 0 },
-    { name: "KEY_CARD", label: "Key Card", value: 4 },
-    { name: "KEYLESS", label: "Keyless", value: 30 },
+  LIGHTING: [
+    { value: 0, name: "IP_UNUSED", label: "Unused" },
+    { value: 1, name: "BELL", label: "Bell" },
+    { value: 2, name: "DO_NOT_DISTURB", label: "Do Not Disturb" },
+    { value: 3, name: "MAKE_UP_ROOM", label: "Make Up Room" },
+    { value: 5, name: "IP_ON", label: "Input On" },
+    { value: 6, name: "IP_OFF", label: "Input Off" },
+    { value: 7, name: "IP_ON_OFF", label: "Input On/Off" },
+    { value: 8, name: "IP_SWITCH", label: "Switch" },
+    { value: 9, name: "IP_SWITCH_INVERT", label: "Switch Invert" },
+    { value: 10, name: "IP_DIM_TOGGLE", label: "Dim Toggle" },
+    { value: 11, name: "IP_DIM_MEM", label: "Dim Mem" },
+    { value: 12, name: "IP_ON_UP", label: "On Up" },
+    { value: 13, name: "IP_OFF_DOWN", label: "Off Down" },
+    { value: 14, name: "IP_TIMER_TOGGLE", label: "Timer Toggle" },
+    { value: 15, name: "IP_TIMER_RETRIGGER", label: "Timer Retrigger" },
+    { value: 16, name: "IP_DIM_UP", label: "Dim Up" },
+    { value: 17, name: "IP_DIM_DOWN", label: "Dim Down" },
+    { value: 18, name: "IP_SOFT_UP", label: "Soft Up" },
+    { value: 19, name: "IP_SOFT_DOWN", label: "Soft Down" },
+    { value: 20, name: "SCENE", label: "Scene" },
+    { value: 21, name: "CURTAIN", label: "Curtain" },
+    { value: 22, name: "RETURN", label: "Return" },
+    { value: 23, name: "IP_TOGGLE", label: "Toggle" },
+    { value: 24, name: "SCENE_SEQUENCE", label: "Scene Sequence" },
+    { value: 25, name: "SCENE_OFF", label: "Scene Off" },
+    { value: 26, name: "SCENE_ON", label: "Scene On" },
+    { value: 27, name: "SCENE_WELCOME", label: "Scene Welcome" },
+    { value: 28, name: "SCENE_UNOCCUPIED", label: "Scene Unoccupied" },
+    { value: 29, name: "SCENE_TOGGLE", label: "Scene Toggle" },
+    { value: 30, name: "KEYLESS", label: "Keyless" },
+    { value: 33, name: "BLIND", label: "Blind" },
+    { value: 34, name: "FAN_LMH", label: "Fan LMH" },
+    { value: 35, name: "FAN_LMHO", label: "Fan LMHO" },
+    { value: 36, name: "IP_CIRCLE_UP", label: "Circle Up" },
+    { value: 37, name: "IP_CIRCLE_DOWN", label: "Circle Down" },
+    { value: 38, name: "IP_CIRCLE_UP_OFF", label: "Circle Up Off" },
+    { value: 39, name: "IP_CIRCLE_DOWN_OFF", label: "Circle Down Off" },
+    { value: 40, name: "IP_VOL_UP", label: "Vol Up" },
+    { value: 41, name: "IP_VOL_DOWN", label: "Vol Down" },
+    { value: 42, name: "SCENE_WELCOME_NIGHT", label: "Scene Welcome Night" },
+    { value: 80, name: "TIME_HOUR", label: "Time Hour" },
+    { value: 81, name: "TIME_MINUTE", label: "Time Minute" },
+    { value: 82, name: "TIME_ALARM", label: "Time Alarm" },
+    { value: 83, name: "TIME_ZONE", label: "Time Zone" },
+    { value: 84, name: "TIME_SETT", label: "Time Sett" },
+    { value: 90, name: "MOTION_SET_SCENE", label: "Motion Set Scene" },
+    { value: 91, name: "TOGGLE_SCENE", label: "Toggle Scene" },
+    { value: 92, name: "TOGGLE_SCENE_OFF", label: "Toggle Scene Off" },
+    { value: 93, name: "TOGGLE_SCENE_ON", label: "Toggle Scene On" },
+    {
+      value: 94,
+      name: "TOGGLE_SCENE_SEQUENCE",
+      label: "Toggle Scene Sequence",
+    },
+    { value: 95, name: "TOGGLE_SCENE_GROUP", label: "Toggle Scene Group" },
+    { value: 96, name: "TOGGLE_DND", label: "Toggle DND" },
+    { value: 97, name: "TOGGLE_MUR", label: "Toggle MUR" },
+    { value: 255, name: "CUSTOM", label: "Custom" },
   ],
-  BELL_INPUT: [
-    { name: "IP_UNUSED", label: "Unused", value: 0 },
-    { name: "BELL", label: "Bell", value: 1 },
+  AIR_CONDITIONER: [
+    { value: 50, name: "AC_FAN_LMH", label: "AC Fan LMH" },
+    { value: 51, name: "AC_FAN_OLMH", label: "AC Fan OMLH" },
+    { value: 52, name: "AC_FAN_LOW", label: "AC Fan Low" },
+    { value: 53, name: "AC_FAN_MED", label: "AC Fan Med" },
+    { value: 54, name: "AC_FAN_HIGH", label: "AC Fan High" },
+    { value: 55, name: "AC_TEMP_DOWN", label: "AC Temp Down" },
+    { value: 56, name: "AC_TEMP_UP", label: "AC Temp Up" },
+    { value: 57, name: "AC_TEMP_TYPE", label: "AC Temp Type" },
+    { value: 58, name: "AC_POWER", label: "AC Power" },
+    { value: 59, name: "AC_MODE", label: "AC Mode" },
+    { value: 60, name: "AC_FAN_SPEED", label: "AC Fan Speed" },
+    { value: 70, name: "SW_INV_AC_OFF", label: "SW Inv AC Off" },
+    { value: 71, name: "SW_INV_AC_ECO", label: "SW Inv AC Eco" },
   ],
-  DND_INPUT: [
-    { name: "IP_UNUSED", label: "Unused", value: 0 },
-    { name: "DO_NOT_DISTURB", label: "Do Not Disturb", value: 2 },
-    { name: "SW_DND", label: "Switch DND", value: 96 },
-  ],
-  MUR_INPUT: [
-    { name: "IP_UNUSED", label: "Unused", value: 0 },
-    { name: "MAKE_UP_ROOM", label: "Make Up Room", value: 3 },
-    { name: "SW_MUR", label: "Switch MUR", value: 97 },
+  CURTAIN: [{ value: 49, name: "CURTAIN_OBJECT_IP", label: "Curtain Object" }],
+  SCENE: [
+    { value: 43, name: "SCENE_OBJECT_TRIGGER", label: "Scene Object Trigger" },
+    { value: 44, name: "SCENE_OBJECT_TOGGLE", label: "Scene Object Toggle" },
+    {
+      value: 45,
+      name: "SCENE_OBJECT_SEQUENCE",
+      label: "Scene Object Sequence",
+    },
+    { value: 100, name: "SCENE_OBJ_TRIGGER", label: "Scene Obj Trigger" },
+    { value: 101, name: "SCENE_OBJ_ON", label: "Scene Obj On" },
+    { value: 102, name: "SCENE_OBJ_OFF", label: "Scene Obj Off" },
+    { value: 103, name: "MULTI_SCENE_OBJ", label: "Multi-Scene Obj" },
+    { value: 104, name: "MULTI_SCENE_SEQ", label: "Multi-Scene Seq" },
+    {
+      value: 105,
+      name: "TOGGLE_SCENE_OBJ_TRIGGER",
+      label: "Toggle Scene Obj Trigger",
+    },
+    { value: 106, name: "TOGGLE_SCENE_OBJ_ON", label: "Toggle Scene Obj On" },
+    { value: 107, name: "TOGGLE_SCENE_OBJ_OFF", label: "Toggle Scene Obj Off" },
+    { value: 108, name: "TOGGLE_MULTI_SCENE", label: "Toggle-Multi Scene" },
+    {
+      value: 109,
+      name: "TOGGLE_MULTI_SCENE_SEQ",
+      label: "Toggle-Multi Scene Seq",
+    },
   ],
 };
 
-// Helper functions for input functions
+// Input function lists for specific input types
+const INPUT_FUNCTION_LISTS = {
+  KEY_CARD_INPUT: [
+    { value: 0, name: "IP_UNUSED", label: "Unused" },
+    { value: 4, name: "KEY_CARD", label: "Key Card" },
+    { value: 30, name: "KEYLESS", label: "Keyless" },
+  ],
+  BELL_INPUT: [
+    { value: 0, name: "IP_UNUSED", label: "Unused" },
+    { value: 1, name: "BELL", label: "Bell" },
+  ],
+  DND_INPUT: [
+    { value: 0, name: "IP_UNUSED", label: "Unused" },
+    { value: 2, name: "DO_NOT_DISTURB", label: "Do Not Disturb" },
+    { value: 96, name: "TOGGLE_DND", label: "Toggle DND" },
+  ],
+  MUR_INPUT: [
+    { value: 0, name: "IP_UNUSED", label: "Unused" },
+    { value: 3, name: "MAKE_UP_ROOM", label: "Make Up Room" },
+    { value: 97, name: "TOGGLE_MUR", label: "Toggle MUR" },
+  ],
+  ALL: [
+    ...INPUT_TYPES.ROOM,
+    ...INPUT_TYPES.LIGHTING,
+    ...INPUT_TYPES.AIR_CONDITIONER,
+    ...INPUT_TYPES.CURTAIN,
+    ...INPUT_TYPES.SCENE,
+  ],
+};
+
+// Helper functions for input functions (proper mapping)
 export const getInputFunctions = (unitName, inputIndex) => {
   const unit = CONSTANTS.UNIT.TYPES.find((u) => u.name === unitName);
-  if (!unit || !unit.inputFunctions) return [];
+  if (!unit || !unit.inputFunctions) return INPUT_FUNCTION_LISTS.ALL;
 
   // Check if this specific input has a custom function list
   if (unit.inputFunctions[inputIndex]) {
-    return INPUT_FUNCTIONS[unit.inputFunctions[inputIndex]] || [];
+    const functionListKey = unit.inputFunctions[inputIndex];
+    return INPUT_FUNCTION_LISTS[functionListKey] || INPUT_FUNCTION_LISTS.ALL;
   }
 
   // Use default function list
   if (unit.inputFunctions.default) {
-    return INPUT_FUNCTIONS[unit.inputFunctions.default] || [];
+    const functionListKey = unit.inputFunctions.default;
+    return INPUT_FUNCTION_LISTS[functionListKey] || INPUT_FUNCTION_LISTS.ALL;
   }
 
-  return [];
+  return INPUT_FUNCTION_LISTS.ALL;
 };
 
 export const getInputFunctionByValue = (value) => {
   // Search through all function lists to find function by value
-  for (const functionList of Object.values(INPUT_FUNCTIONS)) {
+  for (const functionList of Object.values(INPUT_FUNCTION_LISTS)) {
     const found = functionList.find((func) => func.value === value);
     if (found) return found;
   }
   return null;
 };
 
-export const getInputFunctionByName = (name) => {
-  // Search through all function lists to find function by name
-  for (const functionList of Object.values(INPUT_FUNCTIONS)) {
-    const found = functionList.find((func) => func.name === name);
-    if (found) return found;
-  }
-  return null;
-};
-
-// Multiple Group Functions - functions that require multiple lighting address configuration
-// Based on Multiple_Group_Func enum from WinForms RLC codebase
-export const MULTIPLE_GROUP_FUNCTIONS = [
-  "KEY_CARD",
-  "IP_ON",
-  "IP_OFF",
-  "IP_ON_OFF",
-  "IP_SWITCH",
-  "IP_SWITCH_INVERT",
-  "IP_DIM_TOGGLE",
-  "IP_DIM_MEM",
-  "IP_DIM_UP",
-  "IP_DIM_DOWN",
-  "SCENE",
-  "CURTAIN",
-  "CURTAIN_OBJ",
-  "RETURN",
-  "IP_TOGGLE",
-  "SCENE_SEQUENCE",
-  "SCENE_OFF",
-  "SCENE_ON",
-  "SCENE_WELCOME",
-  "SCENE_UNOCCUPIED",
-  "SCENE_TOGGLE",
-  "SCENE_GROUP_TRIGGER",
-  "SCENE_GROUP_TOGGLE",
-  "SCENE_GROUP_SEQUENCE",
-  "KEYLESS",
-  "DOOR_SWITCH",
-  "MOTION_SENSOR",
-  "BLIND",
-  "FAN_LMH",
-  "FAN_LMHO",
-  "IP_CIRCLE_UP",
-  "IP_CIRCLE_DOWN",
-  "IP_CIRCLE_UP_OFF",
-  "IP_CIRCLE_DOWN_OFF",
-  "IP_VOL_UP",
-  "IP_VOL_DOWN",
-  "AC_FAN_LMH",
-  "AC_FAN_SPEED",
-  "AC_FAN_LOW",
-  "AC_FAN_MED",
-  "AC_FAN_HIGH",
-  "AC_TEMP_DOWN",
-  "AC_TEMP_UP",
-  "AC_TEMP_TYPE",
-  "AC_POWER",
-  "AC_MODE",
-  "SW_INV_AC_OFF",
-  "SW_INV_AC_ECO",
-  "TIME_HOUR",
-  "TIME_MINUTE",
-  "TIME_ALARM",
-  "TIME_ZONE",
-  "TIME_SETT",
-  "SCENE_WELCOME_NIGHT",
-  "CUSTOM",
-];
-
 export const isMultipleGroupFunction = (functionName) => {
-  return MULTIPLE_GROUP_FUNCTIONS.includes(functionName);
+  // Simplified check - most functions support multiple groups
+  return functionName && functionName !== "IP_UNUSED";
 };
 
-// Ramp and Preset Group Functions - functions that enable both Ramp and Preset options
-// Based on Ramp_Preset_Group_Func enum from WinForms RLC codebase
-export const RAMP_PRESET_GROUP_FUNCTIONS = ["BELL", "IP_SOFT_UP"];
-
-// DelayOff Group Functions - functions that enable DelayOff option
-// Based on DelayOff_Group_Func enum from WinForms RLC codebase
-export const DELAY_OFF_GROUP_FUNCTIONS = [
-  "KEY_CARD",
-  "KEYLESS",
-  "IP_TIMER_TOGGLE",
-  "IP_TIMER_RETRIGGER",
-  "CURTAIN",
-  "ENTRANCE",
-  "IP_SWITCH",
-  "IP_SWITCH_INVERT",
-];
-
-// Ramp Group Functions - functions that enable only Ramp option
-// Based on Ramp_Group_Func enum from WinForms RLC codebase
-export const RAMP_GROUP_FUNCTIONS = ["IP_SOFT_DOWN"];
-
-// Key Card Group Functions - functions for keycard features
-// Based on Key_Card_Group_Func enum from WinForms RLC codebase
-export const KEY_CARD_GROUP_FUNCTIONS = [
-  "KEY_CARD",
-  "SCENE_GROUP",
-  "SCENE_GROUP_TOGGLE",
-];
-
-// Helper functions to check if a function belongs to each group
-export const isRampPresetGroupFunction = (functionName) => {
-  return RAMP_PRESET_GROUP_FUNCTIONS.includes(functionName);
-};
-
-export const isDelayOffGroupFunction = (functionName) => {
-  return DELAY_OFF_GROUP_FUNCTIONS.includes(functionName);
-};
-
-export const isRampGroupFunction = (functionName) => {
-  return RAMP_GROUP_FUNCTIONS.includes(functionName);
-};
-
-export const isKeyCardGroupFunction = (functionName) => {
-  return KEY_CARD_GROUP_FUNCTIONS.includes(functionName);
-};
-
-// Function to determine which RLC options should be enabled based on input function
-export const getRlcOptionsConfig = (functionName, unitType = null) => {
-  const config = {
-    rampEnabled: false,
-    presetEnabled: false,
-    ledDisplayEnabled: true, // LED display is generally always available
-    nightlightEnabled: true, // Nightlight is generally always available
-    backlightEnabled: true, // Backlight is generally always available
-    autoModeEnabled: true, // Auto mode is generally always available
-    delayOffEnabled: false,
-    multiGroupEnabled: false,
-  };
-
-  if (!functionName || functionName === "IP_UNUSED") {
-    // All options disabled for unused function
-    return {
-      ...config,
-      ledDisplayEnabled: false,
-      nightlightEnabled: false,
-      backlightEnabled: false,
-      autoModeEnabled: false,
-    };
-  }
-
-  // Check function groups to enable specific options
-  if (isRampPresetGroupFunction(functionName)) {
-    config.rampEnabled = true;
-    config.presetEnabled = true;
-  }
-
-  if (isRampGroupFunction(functionName)) {
-    config.rampEnabled = true;
-  }
-
-  if (isDelayOffGroupFunction(functionName)) {
-    config.delayOffEnabled = true;
-  }
-
-  if (isMultipleGroupFunction(functionName)) {
-    config.multiGroupEnabled = true;
-  }
-
-  return config;
-};
-
-export const hasSpecialInputs = (unitName) => {
-  const unit = CONSTANTS.UNIT.TYPES.find((u) => u.name === unitName);
-  if (!unit || !unit.inputFunctions) return false;
-
-  // Check if any inputs have special function lists (not "ALL")
-  return Object.keys(unit.inputFunctions).some(
-    (key) => key !== "default" && unit.inputFunctions[key] !== "ALL"
-  );
-};
-
-// RLC Options Constants (from WinForms RLC application)
-
-// Ramp time options (in seconds)
+// RLC Options Constants (simplified versions)
 export const RAMP_OPTIONS = [
   { value: 0, label: "Instant" },
   { value: 1, label: "1 secs" },
@@ -1087,7 +957,6 @@ export const RAMP_OPTIONS = [
   { value: 255, label: "255 secs" },
 ];
 
-// LED Display modes
 export const LED_DISPLAY_MODES = [
   { value: 0, label: "OFF", description: "LED always off" },
   { value: 1, label: "ON", description: "LED always on" },
@@ -1095,45 +964,11 @@ export const LED_DISPLAY_MODES = [
   { value: 3, label: "2 Colors", description: "LED shows 2-color status" },
 ];
 
-// LED Status calculation flags
-export const LED_STATUS_FLAGS = {
-  NIGHTLIGHT: 16, // Add 16 if nightlight is enabled
-  BACKLIGHT: 32, // Add 32 if backlight is enabled
-};
-
-// Delay time options for hours (0-18, with special limit at 18)
-export const DELAY_HOUR_OPTIONS = Array.from({ length: 19 }, (_, i) => ({
-  value: i,
-  label: i.toString(),
-}));
-
-// Delay time options for minutes (0-59, but limited to 11 if hour is 18)
-export const DELAY_MINUTE_OPTIONS = Array.from({ length: 60 }, (_, i) => ({
-  value: i,
-  label: i.toString(),
-}));
-
-// Delay time options for seconds (0-59)
-export const DELAY_SECOND_OPTIONS = Array.from({ length: 60 }, (_, i) => ({
-  value: i,
-  label: i.toString(),
-}));
-
-// Helper function to get minute options based on selected hour
-export function getDelayMinuteOptions(selectedHour) {
-  const maxMinutes = selectedHour === 18 ? 12 : 60;
-  return Array.from({ length: maxMinutes }, (_, i) => ({
-    value: i,
-    label: i.toString(),
-  }));
-}
-
-// Helper function to calculate delay in seconds
+// Helper functions for delay and LED calculations
 export function calculateDelaySeconds(hours, minutes, seconds) {
   return hours * 3600 + minutes * 60 + seconds;
 }
 
-// Helper function to parse delay seconds back to hours, minutes, seconds
 export function parseDelaySeconds(totalSeconds) {
   const hours = Math.floor(totalSeconds / 3600);
   const minutes = Math.floor((totalSeconds % 3600) / 60);
@@ -1141,25 +976,52 @@ export function parseDelaySeconds(totalSeconds) {
   return { hours, minutes, seconds };
 }
 
-// Helper function to calculate LED status value
 export function calculateLedStatus(displayMode, nightlight, backlight) {
   let status = displayMode;
-  if (nightlight) status += LED_STATUS_FLAGS.NIGHTLIGHT;
-  if (backlight) status += LED_STATUS_FLAGS.BACKLIGHT;
+  if (nightlight) status += 16; // NIGHTLIGHT flag
+  if (backlight) status += 32; // BACKLIGHT flag
   return status;
 }
 
-// Helper function to parse LED status value
 export function parseLedStatus(ledStatus) {
-  const backlight = ledStatus >= LED_STATUS_FLAGS.BACKLIGHT;
-  let remaining = backlight
-    ? ledStatus - LED_STATUS_FLAGS.BACKLIGHT
-    : ledStatus;
+  const backlight = ledStatus >= 32;
+  let remaining = backlight ? ledStatus - 32 : ledStatus;
 
-  const nightlight = remaining >= LED_STATUS_FLAGS.NIGHTLIGHT;
-  remaining = nightlight ? remaining - LED_STATUS_FLAGS.NIGHTLIGHT : remaining;
+  const nightlight = remaining >= 16;
+  remaining = nightlight ? remaining - 16 : remaining;
 
   const displayMode = remaining;
 
   return { displayMode, nightlight, backlight };
 }
+
+export const getRlcOptionsConfig = (functionName, unitType = null) => {
+  // Simplified RLC options configuration
+  const config = {
+    rampEnabled: true,
+    presetEnabled: true,
+    ledDisplayEnabled: true,
+    nightlightEnabled: true,
+    backlightEnabled: true,
+    autoModeEnabled: true,
+    delayOffEnabled: true,
+    multiGroupEnabled: true,
+  };
+
+  if (!functionName || functionName === "IP_UNUSED") {
+    // All options disabled for unused function
+    return {
+      ...config,
+      rampEnabled: false,
+      presetEnabled: false,
+      ledDisplayEnabled: false,
+      nightlightEnabled: false,
+      backlightEnabled: false,
+      autoModeEnabled: false,
+      delayOffEnabled: false,
+      multiGroupEnabled: false,
+    };
+  }
+
+  return config;
+};

@@ -18,6 +18,7 @@ import { Settings, Zap, Lightbulb, Fan, Thermometer } from "lucide-react";
 import {
   getUnitIOSpec,
   getOutputTypes,
+  INPUT_TYPES,
   getInputFunctions,
   getInputFunctionByValue,
   isMultipleGroupFunction,
