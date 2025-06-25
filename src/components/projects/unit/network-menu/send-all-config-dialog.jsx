@@ -84,19 +84,34 @@ export function SendAllConfigDialog({
       const configs = {};
 
       if (configTypes.scenes) {
-        configs.scenes = await window.electronAPI.scene.getAll(
+        const scenes = await window.electronAPI.scene.getAll(
           selectedProject.id
         );
+        // Add calculated index to scenes (same as manual send)
+        configs.scenes = scenes.map((scene, index) => ({
+          ...scene,
+          calculatedIndex: index,
+        }));
       }
       if (configTypes.schedules) {
-        configs.schedules = await window.electronAPI.schedule.getAll(
+        const schedules = await window.electronAPI.schedule.getAll(
           selectedProject.id
         );
+        // Add calculated index to schedules
+        configs.schedules = schedules.map((schedule, index) => ({
+          ...schedule,
+          calculatedIndex: index,
+        }));
       }
       if (configTypes.multiScenes) {
-        configs.multiScenes = await window.electronAPI.multiScenes.getAll(
+        const multiScenes = await window.electronAPI.multiScenes.getAll(
           selectedProject.id
         );
+        // Add calculated index to multi-scenes
+        configs.multiScenes = multiScenes.map((multiScene, index) => ({
+          ...multiScene,
+          calculatedIndex: index,
+        }));
       }
       if (configTypes.knx) {
         configs.knx = await window.electronAPI.knx.getAll(selectedProject.id);
@@ -119,6 +134,37 @@ export function SendAllConfigDialog({
       switch (configType) {
         case "scenes":
           for (const scene of configData) {
+            // Get scene items with details for each scene
+            let sceneItems = [];
+            try {
+              sceneItems = await window.electronAPI.scene.getItemsWithDetails(
+                scene.id
+              );
+            } catch (error) {
+              console.error(
+                `Failed to load items for scene ${scene.id}:`,
+                error
+              );
+              // Skip scenes without items
+              continue;
+            }
+
+            // Prepare scene items data for sending (same as manual send)
+            const sceneItemsData = sceneItems.map((item) => ({
+              object_value: item.object_value || 0,
+              item_address: item.item_address || "0",
+              item_value: item.item_value || "0",
+            }));
+
+            console.log("Sending scene to unit (Send All Config):", {
+              unitIp: unit.ip_address,
+              canId: unit.id_can,
+              sceneIndex: scene.calculatedIndex ?? 0,
+              sceneName: scene.name,
+              sceneAddress: scene.address,
+              sceneItems: sceneItemsData,
+            });
+
             await window.electronAPI.rcuController.setupScene(
               unit.ip_address,
               unit.id_can,
@@ -126,7 +172,7 @@ export function SendAllConfigDialog({
                 sceneIndex: scene.calculatedIndex ?? 0,
                 sceneName: scene.name,
                 sceneAddress: scene.address,
-                sceneItems: scene.items || [],
+                sceneItems: sceneItemsData,
               }
             );
           }
