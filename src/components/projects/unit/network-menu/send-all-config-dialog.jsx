@@ -117,9 +117,14 @@ export function SendAllConfigDialog({
         configs.knx = await window.electronAPI.knx.getAll(selectedProject.id);
       }
       if (configTypes.curtain) {
-        configs.curtain = await window.electronAPI.curtain.getAll(
+        const curtains = await window.electronAPI.curtain.getAll(
           selectedProject.id
         );
+        // Add calculated index to curtains
+        configs.curtain = curtains.map((curtain, index) => ({
+          ...curtain,
+          calculatedIndex: index,
+        }));
       }
 
       return configs;
@@ -180,32 +185,75 @@ export function SendAllConfigDialog({
 
         case "schedules":
           for (const schedule of configData) {
-            const sceneAddresses = schedule.scenes?.map((s) => s.address) || [];
+            // Get schedule data with scenes for each schedule (same as manual send)
+            let scheduleData = null;
+            try {
+              scheduleData = await window.electronAPI.schedule.getForSending(
+                schedule.id
+              );
+            } catch (error) {
+              console.error(
+                `Failed to load data for schedule ${schedule.id}:`,
+                error
+              );
+              // Skip schedules without data
+              continue;
+            }
+
+            console.log("Sending schedule to unit (Send All Config):", {
+              unitIp: unit.ip_address,
+              canId: unit.id_can,
+              scheduleIndex: schedule.calculatedIndex ?? 0,
+              enabled: scheduleData.enabled,
+              weekDays: scheduleData.parsedDays,
+              hour: scheduleData.hour,
+              minute: scheduleData.minute,
+              sceneAddresses: scheduleData.sceneAddresses,
+            });
+
             await window.electronAPI.schedule.send({
               unitIp: unit.ip_address,
               canId: unit.id_can,
               scheduleIndex: schedule.calculatedIndex ?? 0,
-              enabled: schedule.enabled ?? true,
-              weekDays: schedule.week_days || [
-                false,
-                false,
-                false,
-                false,
-                false,
-                false,
-                false,
-              ],
-              hour: schedule.hour || 0,
-              minute: schedule.minute || 0,
-              sceneAddresses,
+              enabled: scheduleData.enabled,
+              weekDays: scheduleData.parsedDays,
+              hour: scheduleData.hour,
+              minute: scheduleData.minute,
+              sceneAddresses: scheduleData.sceneAddresses,
             });
           }
           break;
 
         case "multiScenes":
           for (const multiScene of configData) {
-            const sceneAddresses =
-              multiScene.scenes?.map((s) => s.address) || [];
+            // Get multi-scene scenes for each multi-scene (same as manual send)
+            let multiSceneScenes = [];
+            try {
+              multiSceneScenes = await window.electronAPI.multiScenes.getScenes(
+                multiScene.id
+              );
+            } catch (error) {
+              console.error(
+                `Failed to load scenes for multi-scene ${multiScene.id}:`,
+                error
+              );
+              // Skip multi-scenes without scenes
+              continue;
+            }
+
+            // Extract scene addresses (same as manual send)
+            const sceneAddresses = multiSceneScenes.map((s) => s.scene_address);
+
+            console.log("Sending multi-scene to unit (Send All Config):", {
+              unitIp: unit.ip_address,
+              canId: unit.id_can,
+              multiSceneIndex: multiScene.calculatedIndex ?? 0,
+              multiSceneName: multiScene.name,
+              multiSceneAddress: multiScene.address,
+              multiSceneType: multiScene.type,
+              sceneAddresses: sceneAddresses,
+            });
+
             await window.electronAPI.rcuController.setupMultiScene(
               unit.ip_address,
               unit.id_can,
@@ -221,16 +269,31 @@ export function SendAllConfigDialog({
           break;
 
         case "knx":
+          // Get lighting items once for all KNX configs (optimization)
+          const lightingItems = await window.electronAPI.lighting.getAll(
+            selectedProject.id
+          );
+
           for (const knx of configData) {
             // Get RCU group from lighting items
-            const lightingItems = await window.electronAPI.lighting.getAll(
-              selectedProject.id
-            );
             const rcuGroup = lightingItems.find(
               (item) => item.id === knx.rcu_group_id
             );
 
             if (rcuGroup) {
+              console.log("Sending KNX config to unit (Send All Config):", {
+                unitIp: unit.ip_address,
+                canId: unit.id_can,
+                address: knx.address,
+                type: knx.type,
+                factor: knx.factor || 1,
+                feedback: knx.feedback || 0,
+                rcuGroup: rcuGroup.address,
+                knxSwitchGroup: knx.knx_switch_group || "",
+                knxDimmingGroup: knx.knx_dimming_group || "",
+                knxValueGroup: knx.knx_value_group || "",
+              });
+
               await window.electronAPI.rcuController.setKnxConfig(
                 unit.ip_address,
                 unit.id_can,
@@ -250,22 +313,37 @@ export function SendAllConfigDialog({
           break;
 
         case "curtain":
+          // Get lighting items once for all curtain configs (optimization)
+          const curtainLightingItems = await window.electronAPI.lighting.getAll(
+            selectedProject.id
+          );
+
           for (const curtain of configData) {
             // Get lighting groups for curtain
-            const lightingItems = await window.electronAPI.lighting.getAll(
-              selectedProject.id
-            );
-            const openGroup = lightingItems.find(
+            const openGroup = curtainLightingItems.find(
               (item) => item.id === curtain.open_group_id
             );
-            const closeGroup = lightingItems.find(
+            const closeGroup = curtainLightingItems.find(
               (item) => item.id === curtain.close_group_id
             );
-            const stopGroup = lightingItems.find(
+            const stopGroup = curtainLightingItems.find(
               (item) => item.id === curtain.stop_group_id
             );
 
             if (openGroup && closeGroup) {
+              console.log("Sending curtain config to unit (Send All Config):", {
+                unitIp: unit.ip_address,
+                canId: unit.id_can,
+                index: curtain.calculatedIndex ?? 0,
+                address: parseInt(curtain.address),
+                curtainType: curtain.curtain_type_value || 1,
+                pausePeriod: curtain.pause_period || 0,
+                transitionPeriod: curtain.transition_period || 0,
+                openGroup: parseInt(openGroup.address),
+                closeGroup: parseInt(closeGroup.address),
+                stopGroup: stopGroup ? parseInt(stopGroup.address) : 0,
+              });
+
               await window.electronAPI.rcuController.setCurtainConfig(
                 unit.ip_address,
                 unit.id_can,
