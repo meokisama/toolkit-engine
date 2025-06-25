@@ -36,12 +36,18 @@ export function EditableComboboxCell({
   }, [value]);
 
   const handleSelect = (selectedValue) => {
-    setEditValue(selectedValue);
+    // Convert string back to number if it's a numeric value
+    const normalizedValue =
+      !isNaN(selectedValue) && selectedValue !== ""
+        ? Number(selectedValue)
+        : selectedValue;
+
+    setEditValue(normalizedValue);
     setOpen(false);
 
     // Use loose equality to handle string/number type mismatches
-    if (selectedValue != value) {
-      onSave(selectedValue);
+    if (normalizedValue != value) {
+      onSave(normalizedValue);
     }
   };
 
@@ -86,7 +92,7 @@ export function EditableComboboxCell({
               {options.map((option) => (
                 <CommandItem
                   key={option.value}
-                  value={option.value}
+                  value={String(option.value)}
                   onSelect={handleSelect}
                 >
                   <Check

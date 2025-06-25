@@ -1,7 +1,6 @@
 import React from "react";
 import { toast } from "sonner";
 import { SendItemsDialog } from "@/components/shared/send-items-dialog";
-import { CURTAIN_TYPES } from "@/constants";
 
 export function SendCurtainConfigDialog({ open, onOpenChange, items = [] }) {
   const handleLoadSingleCurtain = async (curtain) => {
@@ -55,11 +54,8 @@ export function SendCurtainConfigDialog({ open, onOpenChange, items = [] }) {
       return;
     }
 
-    // Get curtain type value from constants
-    const curtainType = CURTAIN_TYPES.find(
-      (type) => type.name === curtain.curtain_type
-    );
-    const curtainTypeValue = curtainType ? curtainType.value : 0;
+    // Use curtain_value directly from database (same as Send All Config)
+    const curtainTypeValue = curtain.curtain_value || 0;
 
     // Send curtain config to all selected units
     for (const unit of selectedUnits) {
@@ -174,11 +170,8 @@ export function SendCurtainConfigDialog({ open, onOpenChange, items = [] }) {
         continue;
       }
 
-      // Get curtain type value from constants
-      const curtainType = CURTAIN_TYPES.find(
-        (type) => type.name === currentCurtain.curtain_type
-      );
-      const curtainTypeValue = curtainType ? curtainType.value : 0;
+      // Use curtain_value directly from database (same as Send All Config)
+      const curtainTypeValue = currentCurtain.curtain_value || 0;
 
       // Send curtain config to all selected units
       for (const unit of selectedUnits) {

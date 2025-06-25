@@ -331,12 +331,15 @@ export function SendAllConfigDialog({
             );
 
             if (openGroup && closeGroup) {
+              // Use curtain_value directly from database (more reliable than lookup)
+              const curtainTypeValue = curtain.curtain_value || 0;
+
               console.log("Sending curtain config to unit (Send All Config):", {
                 unitIp: unit.ip_address,
                 canId: unit.id_can,
                 index: curtain.calculatedIndex ?? 0,
                 address: parseInt(curtain.address),
-                curtainType: curtain.curtain_type_value || 1,
+                curtainType: curtainTypeValue,
                 pausePeriod: curtain.pause_period || 0,
                 transitionPeriod: curtain.transition_period || 0,
                 openGroup: parseInt(openGroup.address),
@@ -350,7 +353,7 @@ export function SendAllConfigDialog({
                 {
                   index: curtain.calculatedIndex ?? 0,
                   address: parseInt(curtain.address),
-                  curtainType: curtain.curtain_type_value || 1,
+                  curtainType: curtainTypeValue,
                   pausePeriod: curtain.pause_period || 0,
                   transitionPeriod: curtain.transition_period || 0,
                   openGroup: parseInt(openGroup.address),
