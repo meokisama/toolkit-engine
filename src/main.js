@@ -1105,22 +1105,9 @@ function setupIpcHandlers() {
   // RCU Controller functions
   ipcMain.handle(
     "rcu:setupScene",
-    async (
-      event,
-      unitIp,
-      canId,
-      sceneIndex,
-      sceneName,
-      sceneAddress,
-      sceneItems
-    ) => {
+    async (event, unitIp, canId, sceneConfig) => {
       try {
-        return await setupScene(unitIp, canId, {
-          sceneIndex,
-          sceneName,
-          sceneAddress,
-          sceneItems,
-        });
+        return await setupScene(unitIp, canId, sceneConfig);
       } catch (error) {
         console.error("Error setting up scene:", error);
         throw error;
@@ -1484,32 +1471,9 @@ function setupIpcHandlers() {
 
   ipcMain.handle(
     "rcu:setCurtainConfig",
-    async (
-      event,
-      {
-        unitIp,
-        canId,
-        index,
-        address,
-        curtainType,
-        pausePeriod,
-        transitionPeriod,
-        openGroup,
-        closeGroup,
-        stopGroup,
-      }
-    ) => {
+    async (event, unitIp, canId, curtainConfig) => {
       try {
-        return await setCurtainConfig(unitIp, canId, {
-          index,
-          address,
-          curtainType,
-          pausePeriod,
-          transitionPeriod,
-          openGroup,
-          closeGroup,
-          stopGroup,
-        });
+        return await setCurtainConfig(unitIp, canId, curtainConfig);
       } catch (error) {
         console.error("Error setting curtain configuration:", error);
         throw error;
@@ -1541,32 +1505,9 @@ function setupIpcHandlers() {
   // KNX Control functions
   ipcMain.handle(
     "rcu:setKnxConfig",
-    async (
-      event,
-      {
-        unitIp,
-        canId,
-        address,
-        type,
-        factor,
-        feedback,
-        rcuGroup,
-        knxSwitchGroup,
-        knxDimmingGroup,
-        knxValueGroup,
-      }
-    ) => {
+    async (event, unitIp, canId, knxConfig) => {
       try {
-        return await setKnxConfig(unitIp, canId, {
-          address,
-          type,
-          factor,
-          feedback,
-          rcuGroup,
-          knxSwitchGroup,
-          knxDimmingGroup,
-          knxValueGroup,
-        });
+        return await setKnxConfig(unitIp, canId, knxConfig);
       } catch (error) {
         console.error("Error setting KNX config:", error);
         throw error;

@@ -1,9 +1,26 @@
 "use client";
 
 import { useState, useCallback, useEffect } from "react";
-import { Network, Search, Layers2, Layers, Upload } from "lucide-react";
+import {
+  Network,
+  Search,
+  Layers2,
+  Layers,
+  Upload,
+  Clock,
+  MoreHorizontal,
+  ChevronDown,
+  Send,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+  DropdownMenuSeparator,
+} from "@/components/ui/dropdown-menu";
 import { DataTable } from "@/components/projects/data-table/data-table";
 import { DataTablePagination } from "@/components/projects/data-table/data-table-pagination";
 import { createNetworkUnitColumns } from "@/components/projects/unit/unit-columns";
@@ -12,10 +29,12 @@ import { RoomControlDialog } from "@/components/projects/unit/network-menu/ac-co
 import { TriggerSceneDialog } from "@/components/projects/unit/network-menu/scene-control-dialog";
 import { TriggerScheduleDialog } from "@/components/projects/unit/network-menu/schedule-control-dialog";
 import { ClockControlDialog } from "@/components/projects/unit/network-menu/clock-control-dialog";
+import { BulkClockSyncDialog } from "@/components/projects/unit/network-menu/bulk-clock-sync-dialog";
 import { TriggerCurtainDialog } from "@/components/projects/unit/network-menu/curtain-control-dialog";
 import { TriggerKnxDialog } from "@/components/projects/unit/network-menu/knx-control-dialog";
 import { TriggerMultiSceneDialog } from "@/components/projects/unit/network-menu/multi-scene-control-dialog";
 import { FirmwareUpdateDialog } from "@/components/projects/unit/network-menu/firmware-update-dialog";
+import { SendAllConfigDialog } from "@/components/projects/unit/network-menu/send-all-config-dialog";
 import { udpScanner } from "@/services/udp";
 import { toast } from "sonner";
 
@@ -30,6 +49,7 @@ export function NetworkUnitTable({ onTransferToDatabase, existingUnits = [] }) {
   const [triggerScheduleDialogOpen, setTriggerScheduleDialogOpen] =
     useState(false);
   const [clockControlDialogOpen, setClockControlDialogOpen] = useState(false);
+  const [bulkClockSyncDialogOpen, setBulkClockSyncDialogOpen] = useState(false);
   const [triggerCurtainDialogOpen, setTriggerCurtainDialogOpen] =
     useState(false);
   const [triggerKnxDialogOpen, setTriggerKnxDialogOpen] = useState(false);
@@ -37,6 +57,7 @@ export function NetworkUnitTable({ onTransferToDatabase, existingUnits = [] }) {
     useState(false);
   const [firmwareUpdateDialogOpen, setFirmwareUpdateDialogOpen] =
     useState(false);
+  const [sendAllConfigDialogOpen, setSendAllConfigDialogOpen] = useState(false);
   const [selectedUnit, setSelectedUnit] = useState(null);
 
   // Auto-load cached network units when component mounts
@@ -214,6 +235,11 @@ export function NetworkUnitTable({ onTransferToDatabase, existingUnits = [] }) {
     setClockControlDialogOpen(true);
   }, []);
 
+  // Handle Bulk Clock Sync
+  const handleBulkClockSync = useCallback(() => {
+    setBulkClockSyncDialogOpen(true);
+  }, []);
+
   // Handle Curtain Control
   const handleTriggerCurtain = useCallback((unit) => {
     setSelectedUnit(unit);
@@ -230,6 +256,11 @@ export function NetworkUnitTable({ onTransferToDatabase, existingUnits = [] }) {
   const handleTriggerMultiScene = useCallback((unit) => {
     setSelectedUnit(unit);
     setTriggerMultiSceneDialogOpen(true);
+  }, []);
+
+  // Handle Send All Config
+  const handleSendAllConfig = useCallback(() => {
+    setSendAllConfigDialogOpen(true);
   }, []);
 
   const handleGroupControlSubmit = async (params) => {
@@ -333,45 +364,66 @@ export function NetworkUnitTable({ onTransferToDatabase, existingUnits = [] }) {
               Network Units ({networkUnits.length})
             </CardTitle>
             <div className="flex items-center gap-2">
+              {/* Actions Dropdown Menu */}
               {networkUnits.length > 0 && (
-                <Button
-                  onClick={handleTransferAllToDatabase}
-                  variant="outline"
-                  className="flex items-center gap-2"
-                  title="Transfer all network units to database"
-                >
-                  <Layers className="h-4 w-4" />
-                  <span className="hidden lg:inline">
-                    Transfer All to Database
-                  </span>
-                </Button>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className="flex items-center gap-2"
+                    >
+                      <MoreHorizontal className="h-4 w-4" />
+                      <span className="hidden lg:inline">Actions</span>
+                      <ChevronDown className="h-3 w-3" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-56">
+                    {/* Transfer Actions */}
+                    <DropdownMenuItem onClick={handleTransferAllToDatabase}>
+                      <Layers className="h-4 w-4 mr-2" />
+                      Transfer All to Database
+                    </DropdownMenuItem>
+
+                    {selectedNetworkUnits.length > 0 && (
+                      <DropdownMenuItem
+                        onClick={handleTransferSelectedToDatabase}
+                      >
+                        <Layers2 className="h-4 w-4 mr-2" />
+                        Transfer Selected ({selectedNetworkUnits.length})
+                      </DropdownMenuItem>
+                    )}
+
+                    <DropdownMenuSeparator />
+
+                    {/* Send All Configurations */}
+                    <DropdownMenuItem onClick={handleSendAllConfig}>
+                      <Send className="h-4 w-4 mr-2" />
+                      Send All Configurations
+                    </DropdownMenuItem>
+
+                    {/* Clock Sync */}
+                    <DropdownMenuItem onClick={handleBulkClockSync}>
+                      <Clock className="h-4 w-4 mr-2" />
+                      Clock Sync
+                    </DropdownMenuItem>
+
+                    {/* Firmware Update */}
+                    {selectedNetworkUnits.length > 0 && (
+                      <>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem
+                          onClick={handleFirmwareUpdateSelected}
+                        >
+                          <Upload className="h-4 w-4 mr-2" />
+                          Update Firmware ({selectedNetworkUnits.length})
+                        </DropdownMenuItem>
+                      </>
+                    )}
+                  </DropdownMenuContent>
+                </DropdownMenu>
               )}
-              {selectedNetworkUnits.length > 0 && (
-                <>
-                  <Button
-                    onClick={handleTransferSelectedToDatabase}
-                    variant="outline"
-                    className="flex items-center gap-2"
-                    title="Transfer selected network units to database"
-                  >
-                    <Layers2 className="h-4 w-4" />
-                    <span className="hidden lg:inline">
-                      Transfer Selected
-                    </span>{" "}
-                    ({selectedNetworkUnits.length})
-                  </Button>
-                  <Button
-                    onClick={handleFirmwareUpdateSelected}
-                    variant="outline"
-                    className="flex items-center gap-2"
-                    title="Update firmware for selected units"
-                  >
-                    <Upload className="h-4 w-4" />
-                    <span className="hidden lg:inline">Update Firmware</span> (
-                    {selectedNetworkUnits.length})
-                  </Button>
-                </>
-              )}
+
+              {/* Scan Network Button - Always visible */}
               <Button
                 onClick={handleScanNetwork}
                 disabled={scanLoading}
@@ -461,6 +513,13 @@ export function NetworkUnitTable({ onTransferToDatabase, existingUnits = [] }) {
           unit={selectedUnit}
         />
 
+        <BulkClockSyncDialog
+          open={bulkClockSyncDialogOpen}
+          onOpenChange={setBulkClockSyncDialogOpen}
+          units={networkUnits}
+          selectedUnits={selectedNetworkUnits}
+        />
+
         <TriggerCurtainDialog
           open={triggerCurtainDialogOpen}
           onOpenChange={setTriggerCurtainDialogOpen}
@@ -484,6 +543,13 @@ export function NetworkUnitTable({ onTransferToDatabase, existingUnits = [] }) {
           onOpenChange={setFirmwareUpdateDialogOpen}
           units={selectedNetworkUnits}
           onFirmwareUpdate={handleFirmwareUpdateComplete}
+        />
+
+        <SendAllConfigDialog
+          open={sendAllConfigDialogOpen}
+          onOpenChange={setSendAllConfigDialogOpen}
+          units={networkUnits}
+          selectedUnits={selectedNetworkUnits}
         />
       </Card>
     </div>

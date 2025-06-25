@@ -49,33 +49,53 @@ export function SendKnxDialog({ open, onOpenChange, items = [] }) {
     switch (knxData.type) {
       case 1: // Switch
       case 2: // Dimmer
-        const lightingItems = await window.electronAPI.lighting.getAll(knxData.project_id);
-        rcuGroup = lightingItems.find(item => item.id === knxData.rcu_group_id);
+        const lightingItems = await window.electronAPI.lighting.getAll(
+          knxData.project_id
+        );
+        rcuGroup = lightingItems.find(
+          (item) => item.id === knxData.rcu_group_id
+        );
         break;
       case 3: // Curtain
-        const curtainItems = await window.electronAPI.curtain.getAll(knxData.project_id);
-        rcuGroup = curtainItems.find(item => item.id === knxData.rcu_group_id);
+        const curtainItems = await window.electronAPI.curtain.getAll(
+          knxData.project_id
+        );
+        rcuGroup = curtainItems.find(
+          (item) => item.id === knxData.rcu_group_id
+        );
         break;
       case 4: // Scene
-        const sceneItems = await window.electronAPI.scene.getAll(knxData.project_id);
-        rcuGroup = sceneItems.find(item => item.id === knxData.rcu_group_id);
+        const sceneItems = await window.electronAPI.scene.getAll(
+          knxData.project_id
+        );
+        rcuGroup = sceneItems.find((item) => item.id === knxData.rcu_group_id);
         break;
       case 5: // Multi Scene
       case 6: // Multi Scene Sequence
-        const multiSceneItems = await window.electronAPI.multiScenes.getAll(knxData.project_id);
-        rcuGroup = multiSceneItems.find(item => item.id === knxData.rcu_group_id);
+        const multiSceneItems = await window.electronAPI.multiScenes.getAll(
+          knxData.project_id
+        );
+        rcuGroup = multiSceneItems.find(
+          (item) => item.id === knxData.rcu_group_id
+        );
         break;
       case 7: // AC Power
       case 8: // AC Mode
       case 9: // AC Fan Speed
       case 10: // AC Swing
       case 11: // AC Set Point
-        const airconItems = await window.electronAPI.aircon.getAll(knxData.project_id);
-        rcuGroup = airconItems.find(item => item.id === knxData.rcu_group_id);
+        const airconItems = await window.electronAPI.aircon.getAll(
+          knxData.project_id
+        );
+        rcuGroup = airconItems.find((item) => item.id === knxData.rcu_group_id);
         break;
       default:
-        const defaultLightingItems = await window.electronAPI.lighting.getAll(knxData.project_id);
-        rcuGroup = defaultLightingItems.find(item => item.id === knxData.rcu_group_id);
+        const defaultLightingItems = await window.electronAPI.lighting.getAll(
+          knxData.project_id
+        );
+        rcuGroup = defaultLightingItems.find(
+          (item) => item.id === knxData.rcu_group_id
+        );
         break;
     }
 
@@ -100,18 +120,20 @@ export function SendKnxDialog({ open, onOpenChange, items = [] }) {
           knxValueGroup: knxData.knx_value_group || "",
         });
 
-        const success = await window.electronAPI.rcuController.setKnxConfig({
-          unitIp: unit.ip_address,
-          canId: unit.id_can,
-          address: knxData.address,
-          type: knxData.type,
-          factor: knxData.factor || 1,
-          feedback: knxData.feedback || 0,
-          rcuGroup: rcuGroup.address,
-          knxSwitchGroup: knxData.knx_switch_group || "",
-          knxDimmingGroup: knxData.knx_dimming_group || "",
-          knxValueGroup: knxData.knx_value_group || "",
-        });
+        const success = await window.electronAPI.rcuController.setKnxConfig(
+          unit.ip_address,
+          unit.id_can,
+          {
+            address: knxData.address,
+            type: knxData.type,
+            factor: knxData.factor || 1,
+            feedback: knxData.feedback || 0,
+            rcuGroup: rcuGroup.address,
+            knxSwitchGroup: knxData.knx_switch_group || "",
+            knxDimmingGroup: knxData.knx_dimming_group || "",
+            knxValueGroup: knxData.knx_value_group || "",
+          }
+        );
 
         if (success) {
           successCount++;
@@ -156,7 +178,9 @@ export function SendKnxDialog({ open, onOpenChange, items = [] }) {
     const lightingItems = await window.electronAPI.lighting.getAll(projectId);
     const curtainItems = await window.electronAPI.curtain.getAll(projectId);
     const sceneItems = await window.electronAPI.scene.getAll(projectId);
-    const multiSceneItems = await window.electronAPI.multiScenes.getAll(projectId);
+    const multiSceneItems = await window.electronAPI.multiScenes.getAll(
+      projectId
+    );
     const airconItems = await window.electronAPI.aircon.getAll(projectId);
 
     for (let i = 0; i < knxConfigs.length; i++) {
@@ -184,27 +208,39 @@ export function SendKnxDialog({ open, onOpenChange, items = [] }) {
       switch (knxData.type) {
         case 1: // Switch
         case 2: // Dimmer
-          rcuGroup = lightingItems.find(item => item.id === knxData.rcu_group_id);
+          rcuGroup = lightingItems.find(
+            (item) => item.id === knxData.rcu_group_id
+          );
           break;
         case 3: // Curtain
-          rcuGroup = curtainItems.find(item => item.id === knxData.rcu_group_id);
+          rcuGroup = curtainItems.find(
+            (item) => item.id === knxData.rcu_group_id
+          );
           break;
         case 4: // Scene
-          rcuGroup = sceneItems.find(item => item.id === knxData.rcu_group_id);
+          rcuGroup = sceneItems.find(
+            (item) => item.id === knxData.rcu_group_id
+          );
           break;
         case 5: // Multi Scene
         case 6: // Multi Scene Sequence
-          rcuGroup = multiSceneItems.find(item => item.id === knxData.rcu_group_id);
+          rcuGroup = multiSceneItems.find(
+            (item) => item.id === knxData.rcu_group_id
+          );
           break;
         case 7: // AC Power
         case 8: // AC Mode
         case 9: // AC Fan Speed
         case 10: // AC Swing
         case 11: // AC Set Point
-          rcuGroup = airconItems.find(item => item.id === knxData.rcu_group_id);
+          rcuGroup = airconItems.find(
+            (item) => item.id === knxData.rcu_group_id
+          );
           break;
         default:
-          rcuGroup = lightingItems.find(item => item.id === knxData.rcu_group_id);
+          rcuGroup = lightingItems.find(
+            (item) => item.id === knxData.rcu_group_id
+          );
           break;
       }
 
@@ -239,18 +275,20 @@ export function SendKnxDialog({ open, onOpenChange, items = [] }) {
             knxValueGroup: knxData.knx_value_group || "",
           });
 
-          const success = await window.electronAPI.rcuController.setKnxConfig({
-            unitIp: unit.ip_address,
-            canId: unit.id_can,
-            address: knxData.address,
-            type: knxData.type,
-            factor: knxData.factor || 1,
-            feedback: knxData.feedback || 0,
-            rcuGroup: rcuGroup.address,
-            knxSwitchGroup: knxData.knx_switch_group || "",
-            knxDimmingGroup: knxData.knx_dimming_group || "",
-            knxValueGroup: knxData.knx_value_group || "",
-          });
+          const success = await window.electronAPI.rcuController.setKnxConfig(
+            unit.ip_address,
+            unit.id_can,
+            {
+              address: knxData.address,
+              type: knxData.type,
+              factor: knxData.factor || 1,
+              feedback: knxData.feedback || 0,
+              rcuGroup: rcuGroup.address,
+              knxSwitchGroup: knxData.knx_switch_group || "",
+              knxDimmingGroup: knxData.knx_dimming_group || "",
+              knxValueGroup: knxData.knx_value_group || "",
+            }
+          );
 
           if (success) {
             operationResults.push({

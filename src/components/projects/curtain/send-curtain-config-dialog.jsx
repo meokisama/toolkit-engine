@@ -40,10 +40,15 @@ export function SendCurtainConfigDialog({ open, onOpenChange, items = [] }) {
     );
 
     // Resolve group IDs to addresses
-    const openGroup = lightingItems.find(item => item.id === curtain.open_group_id);
-    const closeGroup = lightingItems.find(item => item.id === curtain.close_group_id);
-    const stopGroup = curtain.stop_group_id ?
-      lightingItems.find(item => item.id === curtain.stop_group_id) : null;
+    const openGroup = lightingItems.find(
+      (item) => item.id === curtain.open_group_id
+    );
+    const closeGroup = lightingItems.find(
+      (item) => item.id === curtain.close_group_id
+    );
+    const stopGroup = curtain.stop_group_id
+      ? lightingItems.find((item) => item.id === curtain.stop_group_id)
+      : null;
 
     if (!openGroup || !closeGroup) {
       toast.error("Could not resolve lighting groups");
@@ -62,7 +67,7 @@ export function SendCurtainConfigDialog({ open, onOpenChange, items = [] }) {
         console.log("Sending curtain config to unit:", {
           unitIp: unit.ip_address,
           canId: unit.id_can,
-          index: 0, // Default index
+          index: curtain.calculatedIndex ?? 0,
           address: parseInt(curtain.address),
           curtainType: curtainTypeValue,
           pausePeriod: curtain.pause_period || 0,
@@ -73,10 +78,10 @@ export function SendCurtainConfigDialog({ open, onOpenChange, items = [] }) {
         });
 
         const success = await window.electronAPI.rcuController.setCurtainConfig(
+          unit.ip_address,
+          unit.id_can,
           {
-            unitIp: unit.ip_address,
-            canId: unit.id_can,
-            index: 0, // Default index
+            index: curtain.calculatedIndex ?? 0,
             address: parseInt(curtain.address),
             curtainType: curtainTypeValue,
             pausePeriod: curtain.pause_period || 0,
@@ -152,10 +157,15 @@ export function SendCurtainConfigDialog({ open, onOpenChange, items = [] }) {
       }
 
       // Resolve group IDs to addresses
-      const openGroup = lightingItems.find(item => item.id === currentCurtain.open_group_id);
-      const closeGroup = lightingItems.find(item => item.id === currentCurtain.close_group_id);
-      const stopGroup = currentCurtain.stop_group_id ?
-        lightingItems.find(item => item.id === currentCurtain.stop_group_id) : null;
+      const openGroup = lightingItems.find(
+        (item) => item.id === currentCurtain.open_group_id
+      );
+      const closeGroup = lightingItems.find(
+        (item) => item.id === currentCurtain.close_group_id
+      );
+      const stopGroup = currentCurtain.stop_group_id
+        ? lightingItems.find((item) => item.id === currentCurtain.stop_group_id)
+        : null;
 
       if (!openGroup || !closeGroup) {
         // Skip curtains with unresolved groups
@@ -187,18 +197,20 @@ export function SendCurtainConfigDialog({ open, onOpenChange, items = [] }) {
           });
 
           const success =
-            await window.electronAPI.rcuController.setCurtainConfig({
-              unitIp: unit.ip_address,
-              canId: unit.id_can,
-              index: curtainIndex,
-              address: parseInt(currentCurtain.address),
-              curtainType: curtainTypeValue,
-              pausePeriod: currentCurtain.pause_period || 0,
-              transitionPeriod: currentCurtain.transition_period || 0,
-              openGroup: parseInt(openGroup.address),
-              closeGroup: parseInt(closeGroup.address),
-              stopGroup: stopGroup ? parseInt(stopGroup.address) : 0,
-            });
+            await window.electronAPI.rcuController.setCurtainConfig(
+              unit.ip_address,
+              unit.id_can,
+              {
+                index: curtainIndex,
+                address: parseInt(currentCurtain.address),
+                curtainType: curtainTypeValue,
+                pausePeriod: currentCurtain.pause_period || 0,
+                transitionPeriod: currentCurtain.transition_period || 0,
+                openGroup: parseInt(openGroup.address),
+                closeGroup: parseInt(closeGroup.address),
+                stopGroup: stopGroup ? parseInt(stopGroup.address) : 0,
+              }
+            );
 
           if (success) {
             operationResults.push({

@@ -44,10 +44,12 @@ export function SendSceneDialog({ open, onOpenChange, items = [] }) {
         const response = await window.electronAPI.rcuController.setupScene(
           unit.ip_address,
           unit.id_can,
-          scene.calculatedIndex ?? 0,
-          scene.name,
-          scene.address,
-          sceneItemsData
+          {
+            sceneIndex: scene.calculatedIndex ?? 0,
+            sceneName: scene.name,
+            sceneAddress: scene.address,
+            sceneItems: sceneItemsData,
+          }
         );
 
         console.log(`Scene sent successfully to ${unit.ip_address}:`, {
@@ -142,10 +144,12 @@ export function SendSceneDialog({ open, onOpenChange, items = [] }) {
           const response = await window.electronAPI.rcuController.setupScene(
             unit.ip_address,
             unit.id_can,
-            sceneIndex,
-            currentSceneData.name,
-            currentSceneData.address,
-            sceneItemsData
+            {
+              sceneIndex: sceneIndex,
+              sceneName: currentSceneData.name,
+              sceneAddress: currentSceneData.address,
+              sceneItems: sceneItemsData,
+            }
           );
 
           operationResults.push({

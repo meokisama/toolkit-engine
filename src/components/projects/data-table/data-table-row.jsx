@@ -128,7 +128,7 @@ export function DataTableRow({
             <ContextMenuSub>
               <ContextMenuSubTrigger>
                 <SlidersHorizontal className="text-muted-foreground" />
-                <span>Automation</span>
+                <span className="pl-2">Automation</span>
               </ContextMenuSubTrigger>
               <ContextMenuSubContent>
                 {onSceneControl && (
@@ -162,11 +162,32 @@ export function DataTableRow({
             <ContextMenuSeparator />
           </>
         )}
-        {onClockControl && (
-          <ContextMenuItem onClick={() => onClockControl(item)}>
-            <Clock className="text-muted-foreground" />
-            <span>Clock Control</span>
-          </ContextMenuItem>
+        {/* System Submenu */}
+        {(onClockControl || onFirmwareUpdate) && (
+          <>
+            <ContextMenuSeparator />
+            <ContextMenuSub>
+              <ContextMenuSubTrigger>
+                <Settings className="text-muted-foreground" />
+                <span className="pl-2">System</span>
+              </ContextMenuSubTrigger>
+              <ContextMenuSubContent>
+                {onClockControl && (
+                  <ContextMenuItem onClick={() => onClockControl(item)}>
+                    <Clock className="text-muted-foreground" />
+                    <span>Clock Control</span>
+                  </ContextMenuItem>
+                )}
+                {onFirmwareUpdate && (
+                  <ContextMenuItem onClick={() => onFirmwareUpdate(item)}>
+                    <Upload className="text-muted-foreground" />
+                    <span>Update Firmware</span>
+                  </ContextMenuItem>
+                )}
+              </ContextMenuSubContent>
+            </ContextMenuSub>
+            <ContextMenuSeparator />
+          </>
         )}
         {onCurtainControl && (
           <>
@@ -202,15 +223,6 @@ export function DataTableRow({
             <ContextMenuItem onClick={() => onSendScene(item)}>
               <Send className="text-muted-foreground" />
               <span>Send Scene</span>
-            </ContextMenuItem>
-            {(onFirmwareUpdate || onDelete) && <ContextMenuSeparator />}
-          </>
-        )}
-        {onFirmwareUpdate && (
-          <>
-            <ContextMenuItem onClick={() => onFirmwareUpdate(item)}>
-              <Upload className="text-muted-foreground" />
-              <span>Update Firmware</span>
             </ContextMenuItem>
             {onDelete && <ContextMenuSeparator />}
           </>

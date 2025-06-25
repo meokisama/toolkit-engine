@@ -281,23 +281,8 @@ contextBridge.exposeInMainWorld("electronAPI", {
     setEcoMode: (params) => ipcRenderer.invoke("rcu:setEcoMode", params),
     getEcoMode: (params) => ipcRenderer.invoke("rcu:getEcoMode", params),
     // Scene Setup
-    setupScene: (
-      unitIp,
-      canId,
-      sceneIndex,
-      sceneName,
-      sceneAddress,
-      sceneItems
-    ) =>
-      ipcRenderer.invoke(
-        "rcu:setupScene",
-        unitIp,
-        canId,
-        sceneIndex,
-        sceneName,
-        sceneAddress,
-        sceneItems
-      ),
+    setupScene: (unitIp, canId, sceneConfig) =>
+      ipcRenderer.invoke("rcu:setupScene", unitIp, canId, sceneConfig),
     // Scene Information
     getSceneInformation: (params) =>
       ipcRenderer.invoke("rcu:getSceneInformation", params),
@@ -359,15 +344,16 @@ contextBridge.exposeInMainWorld("electronAPI", {
     getCurtainConfig: (params) =>
       ipcRenderer.invoke("rcu:getCurtainConfig", params),
     setCurtain: (params) => ipcRenderer.invoke("rcu:setCurtain", params),
-    setCurtainConfig: (params) =>
-      ipcRenderer.invoke("rcu:setCurtainConfig", params),
+    setCurtainConfig: (unitIp, canId, curtainConfig) =>
+      ipcRenderer.invoke("rcu:setCurtainConfig", unitIp, canId, curtainConfig),
     // Delete Curtain
     deleteCurtain: (params) => ipcRenderer.invoke("rcu:deleteCurtain", params),
     // Delete All Curtains
     deleteAllCurtains: (unitIp, canId) =>
       ipcRenderer.invoke("rcu:deleteAllCurtains", unitIp, canId),
     // KNX Control
-    setKnxConfig: (params) => ipcRenderer.invoke("rcu:setKnxConfig", params),
+    setKnxConfig: (unitIp, canId, knxConfig) =>
+      ipcRenderer.invoke("rcu:setKnxConfig", unitIp, canId, knxConfig),
     getKnxConfig: (params) => ipcRenderer.invoke("rcu:getKnxConfig", params),
     triggerKnx: (params) => ipcRenderer.invoke("rcu:triggerKnx", params),
     deleteKnxConfig: (params) =>
