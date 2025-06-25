@@ -159,13 +159,11 @@ export function DataTableRow({
                 )}
               </ContextMenuSubContent>
             </ContextMenuSub>
-            <ContextMenuSeparator />
           </>
         )}
         {/* System Submenu */}
         {(onClockControl || onFirmwareUpdate) && (
           <>
-            <ContextMenuSeparator />
             <ContextMenuSub>
               <ContextMenuSubTrigger>
                 <Settings className="text-muted-foreground" />
@@ -197,7 +195,6 @@ export function DataTableRow({
               <ChevronsUpDown className="text-muted-foreground" />
               <span>Curtain Control</span>
             </ContextMenuItem>
-            <ContextMenuSeparator />
           </>
         )}
         {onKnxControl && (
@@ -206,7 +203,6 @@ export function DataTableRow({
               <Network className="text-muted-foreground" />
               <span>KNX Control</span>
             </ContextMenuItem>
-            <ContextMenuSeparator />
           </>
         )}
         {onSendSchedule && (

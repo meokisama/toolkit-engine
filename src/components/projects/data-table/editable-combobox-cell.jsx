@@ -36,17 +36,18 @@ export function EditableComboboxCell({
   }, [value]);
 
   const handleSelect = (selectedValue) => {
-    const newValue = selectedValue === editValue ? "" : selectedValue;
-    setEditValue(newValue);
+    setEditValue(selectedValue);
     setOpen(false);
 
-    if (newValue !== value) {
-      onSave(newValue);
+    // Use loose equality to handle string/number type mismatches
+    if (selectedValue != value) {
+      onSave(selectedValue);
     }
   };
 
   // Find the selected option to display its label
-  const selectedOption = options.find((option) => option.value === editValue);
+  // Use loose equality to handle string/number type mismatches
+  const selectedOption = options.find((option) => option.value == editValue);
   const displayText = selectedOption ? selectedOption.label : placeholder;
 
   return (
@@ -91,7 +92,7 @@ export function EditableComboboxCell({
                   <Check
                     className={cn(
                       "mr-2 h-4 w-4",
-                      editValue === option.value ? "opacity-100" : "opacity-0"
+                      editValue == option.value ? "opacity-100" : "opacity-0"
                     )}
                   />
                   {option.label}

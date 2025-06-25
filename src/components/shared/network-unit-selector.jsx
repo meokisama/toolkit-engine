@@ -3,7 +3,15 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import * as CheckboxPrimitive from "@radix-ui/react-checkbox";
-import { Network, Scan, Wifi, CircleCheck, Loader2 } from "lucide-react";
+import {
+  Network,
+  Scan,
+  Wifi,
+  CircleCheck,
+  Loader2,
+  CheckSquare,
+  Square,
+} from "lucide-react";
 import { toast } from "sonner";
 import { udpScanner } from "@/services/udp";
 
@@ -74,6 +82,19 @@ export const NetworkUnitSelector = React.forwardRef(
       [selectedUnitIds, onSelectionChange]
     );
 
+    // Handle select all units
+    const handleSelectAll = useCallback(() => {
+      if (!onSelectionChange) return;
+      const allUnitIds = networkUnits.map((unit) => unit.id);
+      onSelectionChange(allUnitIds);
+    }, [networkUnits, onSelectionChange]);
+
+    // Handle select none
+    const handleSelectNone = useCallback(() => {
+      if (!onSelectionChange) return;
+      onSelectionChange([]);
+    }, [onSelectionChange]);
+
     // Get selected units data
     const getSelectedUnits = useCallback(() => {
       return networkUnits.filter((unit) => selectedUnitIds.includes(unit.id));
@@ -97,19 +118,45 @@ export const NetworkUnitSelector = React.forwardRef(
               <Network className="h-4 w-4" />
               {title} ({selectedUnitIds.length} selected)
             </CardTitle>
-            <Button
-              onClick={handleScanNetwork}
-              disabled={scanLoading || disabled}
-              size="sm"
-              variant="outline"
-            >
-              {scanLoading ? (
-                <Loader2 className="h-4 w-4 animate-spin mr-2" />
-              ) : (
-                <Scan className="h-4 w-4 mr-2" />
+            <div className="flex items-center gap-2">
+              {networkUnits.length > 0 && (
+                <>
+                  <Button
+                    onClick={handleSelectAll}
+                    disabled={
+                      disabled || selectedUnitIds.length === networkUnits.length
+                    }
+                    size="sm"
+                    variant="outline"
+                  >
+                    <CheckSquare className="h-4 w-4 mr-2" />
+                    Select All
+                  </Button>
+                  <Button
+                    onClick={handleSelectNone}
+                    disabled={disabled || selectedUnitIds.length === 0}
+                    size="sm"
+                    variant="outline"
+                  >
+                    <Square className="h-4 w-4 mr-2" />
+                    Select None
+                  </Button>
+                </>
               )}
-              {scanLoading ? "Scanning..." : "Scan Network"}
-            </Button>
+              <Button
+                onClick={handleScanNetwork}
+                disabled={scanLoading || disabled}
+                size="sm"
+                variant="outline"
+              >
+                {scanLoading ? (
+                  <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                ) : (
+                  <Scan className="h-4 w-4 mr-2" />
+                )}
+                {scanLoading ? "Scanning..." : "Scan Network"}
+              </Button>
+            </div>
           </div>
         </CardHeader>
         <CardContent>
@@ -175,9 +222,14 @@ export function useNetworkUnitSelector() {
     setSelectedUnitIds([]);
   }, []);
 
+  const selectAll = useCallback((allUnitIds) => {
+    setSelectedUnitIds(allUnitIds);
+  }, []);
+
   return {
     selectedUnitIds,
     handleSelectionChange,
     clearSelection,
+    selectAll,
   };
 }

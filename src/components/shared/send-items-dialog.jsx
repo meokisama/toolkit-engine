@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   Dialog,
   DialogContent,
@@ -10,20 +10,13 @@ import {
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import * as CheckboxPrimitive from "@radix-ui/react-checkbox";
-import { udpScanner } from "@/services/udp";
 import { toast } from "sonner";
-import {
-  Send,
-  Network,
-  Loader2,
-  Scan,
-  Wifi,
-  CircleCheck,
-  CheckCircle,
-  XCircle,
-} from "lucide-react";
+import { Send, Loader2, CheckCircle, XCircle } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
+import {
+  NetworkUnitSelector,
+  useNetworkUnitSelector,
+} from "@/components/shared/network-unit-selector";
 
 export function SendItemsDialog({
   open,
@@ -35,11 +28,11 @@ export function SendItemsDialog({
   onSendBulk,
   validateSingleItem,
 }) {
+  const { selectedUnitIds, handleSelectionChange, clearSelection } =
+    useNetworkUnitSelector();
+  const networkUnitSelectorRef = useRef(null);
   const [loading, setLoading] = useState(false);
-  const [scanLoading, setScanLoading] = useState(false);
   const [singleItemData, setSingleItemData] = useState(null);
-  const [networkUnits, setNetworkUnits] = useState([]);
-  const [selectedUnitIds, setSelectedUnitIds] = useState([]);
   const [progress, setProgress] = useState(0);
   const [currentItem, setCurrentItem] = useState("");
   const [results, setResults] = useState([]);
@@ -47,28 +40,19 @@ export function SendItemsDialog({
 
   const isBulkMode = items.length > 1;
 
-  // Load single item data and cached network units when dialog opens
+  // Load single item data when dialog opens
   useEffect(() => {
     if (open && items.length > 0) {
       if (!isBulkMode && onLoadSingleItem) {
         loadSingleItemData();
       }
-      setSelectedUnitIds([]);
+      clearSelection();
       setShowResults(false);
       setResults([]);
       setProgress(0);
       setCurrentItem("");
-
-      // Auto-load cached network units if available
-      const cachedUnits = udpScanner.getLastScanResults();
-      if (cachedUnits.length > 0 && udpScanner.isCacheValid()) {
-        setNetworkUnits(cachedUnits);
-        console.log(`Auto-loaded ${cachedUnits.length} cached network units`);
-      } else {
-        setNetworkUnits([]);
-      }
     }
-  }, [open, items, isBulkMode, onLoadSingleItem]);
+  }, [open, items, isBulkMode, onLoadSingleItem, clearSelection]);
 
   const loadSingleItemData = async () => {
     if (isBulkMode || !items[0] || !onLoadSingleItem) return;
@@ -80,34 +64,6 @@ export function SendItemsDialog({
       console.error(`Failed to load ${itemType} data:`, error);
       toast.error(`Failed to load ${itemType} data`);
     }
-  };
-
-  const handleScanNetwork = async () => {
-    setScanLoading(true);
-    try {
-      toast.info("Scanning network units...");
-
-      const discoveredUnits = await udpScanner.getNetworkUnits(true);
-      setNetworkUnits(discoveredUnits);
-      setSelectedUnitIds([]);
-
-      if (discoveredUnits.length > 0) {
-        toast.success(`Found ${discoveredUnits.length} unit(s) on network`);
-      } else {
-        toast.warning("No units found on network");
-      }
-    } catch (error) {
-      console.error("Failed to scan network:", error);
-      toast.error("Failed to scan network: " + error.message);
-    } finally {
-      setScanLoading(false);
-    }
-  };
-
-  const handleUnitToggle = (unitId, checked) => {
-    setSelectedUnitIds((prev) =>
-      checked ? [...prev, unitId] : prev.filter((id) => id !== unitId)
-    );
   };
 
   const handleSendItems = async () => {
@@ -122,13 +78,17 @@ export function SendItemsDialog({
     }
 
     // Validate single item mode
-    if (!isBulkMode && validateSingleItem && !validateSingleItem(singleItemData)) {
+    if (
+      !isBulkMode &&
+      validateSingleItem &&
+      !validateSingleItem(singleItemData)
+    ) {
       return;
     }
 
-    const selectedUnits = networkUnits.filter((unit) =>
-      selectedUnitIds.includes(unit.id)
-    );
+    // Get selected units from NetworkUnitSelector
+    const selectedUnits =
+      networkUnitSelectorRef.current?.getSelectedUnits() || [];
 
     setLoading(true);
     setProgress(0);
@@ -206,7 +166,8 @@ export function SendItemsDialog({
   if (items.length === 0) return null;
 
   const itemTypePlural = itemType + "s";
-  const ItemTypeCapitalized = itemType.charAt(0).toUpperCase() + itemType.slice(1);
+  const ItemTypeCapitalized =
+    itemType.charAt(0).toUpperCase() + itemType.slice(1);
   const ItemTypePluralCapitalized = ItemTypeCapitalized + "s";
 
   return (
@@ -228,74 +189,13 @@ export function SendItemsDialog({
 
         <div className="space-y-3">
           {/* Network Units */}
-          <Card>
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <CardTitle className="text-sm flex items-center gap-2">
-                  <Network className="h-4 w-4" />
-                  Network Units ({selectedUnitIds.length} selected)
-                </CardTitle>
-                <Button
-                  onClick={handleScanNetwork}
-                  disabled={scanLoading || loading}
-                  size="sm"
-                  variant="outline"
-                >
-                  {scanLoading ? (
-                    <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                  ) : (
-                    <Scan className="h-4 w-4 mr-2" />
-                  )}
-                  {scanLoading ? "Scanning..." : "Scan Network"}
-                </Button>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <ScrollArea className="h-60">
-                {networkUnits.length === 0 ? (
-                  <div className="text-center text-muted-foreground py-8">
-                    <Wifi className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                    <p>No network units found.</p>
-                    <p className="text-sm">
-                      Click "Scan Network" to discover units on your network.
-                    </p>
-                  </div>
-                ) : (
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3 p-2">
-                    {networkUnits.map((unit) => (
-                      <CheckboxPrimitive.Root
-                        key={unit.id}
-                        checked={selectedUnitIds.includes(unit.id)}
-                        onCheckedChange={(checked) =>
-                          handleUnitToggle(unit.id, checked)
-                        }
-                        className="relative ring-[1px] ring-border rounded-lg px-4 py-3 text-start text-muted-foreground data-[state=checked]:ring-2 data-[state=checked]:ring-primary data-[state=checked]:text-primary flex flex-row items-center gap-3 cursor-pointer"
-                      >
-                        <Network className="h-6 w-6" />
-                        <div className="space-y-1">
-                          <span className="font-medium tracking-tight text-sm">
-                            {unit.type || unit.unit_type || "Unknown Unit"}
-                          </span>
-                          <p className="text-xs text-muted-foreground">
-                            IP: {unit.ip_address}
-                          </p>
-                          {unit.id_can && (
-                            <p className="text-xs text-muted-foreground">
-                              CAN ID: {unit.id_can}
-                            </p>
-                          )}
-                        </div>
-
-                        <CheckboxPrimitive.Indicator className="absolute top-2 right-2">
-                          <CircleCheck className="fill-primary text-primary-foreground h-4 w-4" />
-                        </CheckboxPrimitive.Indicator>
-                      </CheckboxPrimitive.Root>
-                    ))}
-                  </div>
-                )}
-              </ScrollArea>
-            </CardContent>
-          </Card>
+          <NetworkUnitSelector
+            selectedUnitIds={selectedUnitIds}
+            onSelectionChange={handleSelectionChange}
+            disabled={loading}
+            ref={networkUnitSelectorRef}
+            height="h-60"
+          />
 
           {/* Progress for bulk mode */}
           {isBulkMode && loading && (
@@ -336,7 +236,9 @@ export function SendItemsDialog({
                         key={index}
                         className="flex items-center justify-between p-2 rounded border-l-4"
                         style={{
-                          borderLeftColor: result.success ? "#22c55e" : "#ef4444",
+                          borderLeftColor: result.success
+                            ? "#22c55e"
+                            : "#ef4444",
                         }}
                       >
                         <div className="flex-1">
@@ -368,14 +270,14 @@ export function SendItemsDialog({
           <Button
             variant="outline"
             onClick={() => onOpenChange(false)}
-            disabled={loading || scanLoading}
+            disabled={loading}
           >
             Cancel
           </Button>
           {!showResults ? (
             <Button
               onClick={handleSendItems}
-              disabled={loading || scanLoading || selectedUnitIds.length === 0}
+              disabled={loading || selectedUnitIds.length === 0}
             >
               {loading && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
               {isBulkMode
@@ -384,9 +286,9 @@ export function SendItemsDialog({
                   : `Send All (${items.length} ${itemTypePlural})`
                 : selectedUnitIds.length === 0
                 ? `Send ${ItemTypeCapitalized}`
-                : `Send ${ItemTypeCapitalized} to ${selectedUnitIds.length} Unit${
-                    selectedUnitIds.length !== 1 ? "s" : ""
-                  }`}
+                : `Send ${ItemTypeCapitalized} to ${
+                    selectedUnitIds.length
+                  } Unit${selectedUnitIds.length !== 1 ? "s" : ""}`}
             </Button>
           ) : (
             <Button onClick={() => onOpenChange(false)}>Close</Button>

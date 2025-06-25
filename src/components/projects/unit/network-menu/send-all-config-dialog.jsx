@@ -84,12 +84,12 @@ export function SendAllConfigDialog({
       const configs = {};
 
       if (configTypes.scenes) {
-        configs.scenes = await window.electronAPI.scenes.getAll(
+        configs.scenes = await window.electronAPI.scene.getAll(
           selectedProject.id
         );
       }
       if (configTypes.schedules) {
-        configs.schedules = await window.electronAPI.schedules.getAll(
+        configs.schedules = await window.electronAPI.schedule.getAll(
           selectedProject.id
         );
       }
