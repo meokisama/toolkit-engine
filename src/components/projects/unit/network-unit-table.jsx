@@ -283,28 +283,8 @@ export function NetworkUnitTable({ onTransferToDatabase, existingUnits = [] }) {
   };
 
   // Handle firmware update
-  const handleFirmwareUpdate = (unit) => {
-    if (unit) {
-      setSelectedNetworkUnits([unit]);
-    }
+  const handleFirmwareUpdate = () => {
     setFirmwareUpdateDialogOpen(true);
-  };
-
-  const handleFirmwareUpdateSelected = () => {
-    if (selectedNetworkUnits.length > 0) {
-      setFirmwareUpdateDialogOpen(true);
-    } else {
-      toast.error("Please select units to update firmware");
-    }
-  };
-
-  const handleFirmwareUpdateAll = () => {
-    if (networkUnits.length > 0) {
-      setSelectedNetworkUnits(networkUnits);
-      setFirmwareUpdateDialogOpen(true);
-    } else {
-      toast.error("No units available for firmware update");
-    }
   };
 
   const handleFirmwareUpdateComplete = (results) => {
@@ -408,17 +388,11 @@ export function NetworkUnitTable({ onTransferToDatabase, existingUnits = [] }) {
                     </DropdownMenuItem>
 
                     {/* Firmware Update */}
-                    {selectedNetworkUnits.length > 0 && (
-                      <>
-                        <DropdownMenuSeparator />
-                        <DropdownMenuItem
-                          onClick={handleFirmwareUpdateSelected}
-                        >
-                          <Upload className="h-4 w-4 mr-2" />
-                          Update Firmware ({selectedNetworkUnits.length})
-                        </DropdownMenuItem>
-                      </>
-                    )}
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem onClick={handleFirmwareUpdate}>
+                      <Upload className="h-4 w-4 mr-2" />
+                      Update Firmware
+                    </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
               )}
@@ -516,8 +490,6 @@ export function NetworkUnitTable({ onTransferToDatabase, existingUnits = [] }) {
         <BulkClockSyncDialog
           open={bulkClockSyncDialogOpen}
           onOpenChange={setBulkClockSyncDialogOpen}
-          units={networkUnits}
-          selectedUnits={selectedNetworkUnits}
         />
 
         <TriggerCurtainDialog
@@ -541,7 +513,6 @@ export function NetworkUnitTable({ onTransferToDatabase, existingUnits = [] }) {
         <FirmwareUpdateDialog
           open={firmwareUpdateDialogOpen}
           onOpenChange={setFirmwareUpdateDialogOpen}
-          units={selectedNetworkUnits}
           onFirmwareUpdate={handleFirmwareUpdateComplete}
         />
 

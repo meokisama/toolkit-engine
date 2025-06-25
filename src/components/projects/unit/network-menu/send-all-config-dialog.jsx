@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useEffect } from "react";
+import React, { useState, useCallback, useRef } from "react";
 import {
   Dialog,
   DialogContent,
@@ -27,6 +27,11 @@ import {
   Loader2,
 } from "lucide-react";
 import { toast } from "sonner";
+import { useProjectDetail } from "@/contexts/project-detail-context";
+import {
+  NetworkUnitSelector,
+  useNetworkUnitSelector,
+} from "@/components/shared/network-unit-selector";
 
 export function SendAllConfigDialog({
   open,
@@ -34,7 +39,10 @@ export function SendAllConfigDialog({
   units = [],
   selectedUnits = [],
 }) {
-  const [selectedTargetUnits, setSelectedTargetUnits] = useState([]);
+  const { selectedProject } = useProjectDetail();
+  const { selectedUnitIds, handleSelectionChange, clearSelection } =
+    useNetworkUnitSelector();
+  const networkUnitSelectorRef = useRef(null);
   const [configTypes, setConfigTypes] = useState({
     scenes: true,
     schedules: true,
@@ -48,36 +56,19 @@ export function SendAllConfigDialog({
   const [results, setResults] = useState([]);
   const [showResults, setShowResults] = useState(false);
 
-  // Initialize selected units when dialog opens
-  useEffect(() => {
+  // Reset state when dialog opens
+  React.useEffect(() => {
     if (open) {
-      setSelectedTargetUnits(selectedUnits.length > 0 ? selectedUnits : []);
+      clearSelection();
       setResults([]);
       setShowResults(false);
       setProgress(0);
       setCurrentOperation("");
     }
-  }, [open, selectedUnits]);
+  }, [open, clearSelection]);
 
-  const handleUnitSelection = useCallback((unit, checked) => {
-    setSelectedTargetUnits((prev) => {
-      if (checked) {
-        return [...prev, unit];
-      } else {
-        return prev.filter((u) => u.ip_address !== unit.ip_address);
-      }
-    });
-  }, []);
-
-  const handleSelectAll = useCallback(() => {
-    setSelectedTargetUnits(units);
-  }, [units]);
-
-  const handleSelectNone = useCallback(() => {
-    setSelectedTargetUnits([]);
-  }, []);
-
-  const handleConfigTypeChange = useCallback((type, checked) => {
+  // Handle config type toggle
+  const handleConfigTypeToggle = useCallback((type, checked) => {
     setConfigTypes((prev) => ({
       ...prev,
       [type]: checked,
@@ -86,31 +77,34 @@ export function SendAllConfigDialog({
 
   const getProjectConfigurations = async () => {
     try {
-      const projectId = localStorage.getItem("currentProjectId");
-      if (!projectId) {
+      if (!selectedProject) {
         throw new Error("No project selected");
       }
 
       const configs = {};
 
       if (configTypes.scenes) {
-        configs.scenes = await window.electronAPI.scenes.getAll(projectId);
+        configs.scenes = await window.electronAPI.scenes.getAll(
+          selectedProject.id
+        );
       }
       if (configTypes.schedules) {
         configs.schedules = await window.electronAPI.schedules.getAll(
-          projectId
+          selectedProject.id
         );
       }
       if (configTypes.multiScenes) {
         configs.multiScenes = await window.electronAPI.multiScenes.getAll(
-          projectId
+          selectedProject.id
         );
       }
       if (configTypes.knx) {
-        configs.knx = await window.electronAPI.knx.getAll(projectId);
+        configs.knx = await window.electronAPI.knx.getAll(selectedProject.id);
       }
       if (configTypes.curtain) {
-        configs.curtain = await window.electronAPI.curtain.getAll(projectId);
+        configs.curtain = await window.electronAPI.curtain.getAll(
+          selectedProject.id
+        );
       }
 
       return configs;
@@ -184,7 +178,7 @@ export function SendAllConfigDialog({
           for (const knx of configData) {
             // Get RCU group from lighting items
             const lightingItems = await window.electronAPI.lighting.getAll(
-              localStorage.getItem("currentProjectId")
+              selectedProject.id
             );
             const rcuGroup = lightingItems.find(
               (item) => item.id === knx.rcu_group_id
@@ -213,7 +207,7 @@ export function SendAllConfigDialog({
           for (const curtain of configData) {
             // Get lighting groups for curtain
             const lightingItems = await window.electronAPI.lighting.getAll(
-              localStorage.getItem("currentProjectId")
+              selectedProject.id
             );
             const openGroup = lightingItems.find(
               (item) => item.id === curtain.open_group_id
@@ -259,7 +253,7 @@ export function SendAllConfigDialog({
   };
 
   const handleSendConfigurations = async () => {
-    if (selectedTargetUnits.length === 0) {
+    if (selectedUnitIds.length === 0) {
       toast.error("Please select at least one unit");
       return;
     }
@@ -273,6 +267,15 @@ export function SendAllConfigDialog({
       return;
     }
 
+    // Get selected units from NetworkUnitSelector
+    const selectedUnits =
+      networkUnitSelectorRef.current?.getSelectedUnits() || [];
+
+    if (selectedUnits.length === 0) {
+      toast.error("Please select at least one unit");
+      return;
+    }
+
     setLoading(true);
     setProgress(0);
     setResults([]);
@@ -282,12 +285,11 @@ export function SendAllConfigDialog({
       setCurrentOperation("Loading project configurations...");
       const configs = await getProjectConfigurations();
 
-      const totalOperations =
-        selectedTargetUnits.length * selectedConfigTypes.length;
+      const totalOperations = selectedUnits.length * selectedConfigTypes.length;
       let completedOperations = 0;
       const operationResults = [];
 
-      for (const unit of selectedTargetUnits) {
+      for (const unit of selectedUnits) {
         for (const configType of selectedConfigTypes) {
           const configData = configs[configType] || [];
 
@@ -331,7 +333,7 @@ export function SendAllConfigDialog({
 
       if (successCount === totalCount) {
         toast.success(
-          `All configurations sent successfully to ${selectedTargetUnits.length} unit(s)`
+          `All configurations sent successfully to ${selectedUnits.length} unit(s)`
         );
       } else {
         toast.warning(
@@ -382,7 +384,7 @@ export function SendAllConfigDialog({
                         id={type}
                         checked={configTypes[type]}
                         onCheckedChange={(checked) =>
-                          handleConfigTypeChange(type, checked)
+                          handleConfigTypeToggle(type, checked)
                         }
                       />
                       <label
@@ -398,62 +400,13 @@ export function SendAllConfigDialog({
               </CardContent>
             </Card>
 
-            {/* Target Units Selection */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-sm flex items-center justify-between">
-                  Target Units ({selectedTargetUnits.length}/{units.length})
-                  <div className="flex gap-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={handleSelectAll}
-                      disabled={loading}
-                    >
-                      Select All
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={handleSelectNone}
-                      disabled={loading}
-                    >
-                      Select None
-                    </Button>
-                  </div>
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <ScrollArea className="h-[200px]">
-                  <div className="space-y-2">
-                    {units.map((unit) => (
-                      <div
-                        key={unit.ip_address}
-                        className="flex items-center space-x-2"
-                      >
-                        <Checkbox
-                          id={unit.ip_address}
-                          checked={selectedTargetUnits.some(
-                            (u) => u.ip_address === unit.ip_address
-                          )}
-                          onCheckedChange={(checked) =>
-                            handleUnitSelection(unit, checked)
-                          }
-                          disabled={loading}
-                        />
-                        <label
-                          htmlFor={unit.ip_address}
-                          className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                        >
-                          {unit.type || "Unknown Unit"} ({unit.ip_address}) -
-                          CAN ID: {unit.id_can}
-                        </label>
-                      </div>
-                    ))}
-                  </div>
-                </ScrollArea>
-              </CardContent>
-            </Card>
+            {/* Network Units */}
+            <NetworkUnitSelector
+              selectedUnitIds={selectedUnitIds}
+              onSelectionChange={handleSelectionChange}
+              disabled={loading}
+              ref={networkUnitSelectorRef}
+            />
 
             {/* Progress */}
             {loading && (
@@ -481,7 +434,7 @@ export function SendAllConfigDialog({
               </Button>
               <Button
                 onClick={handleSendConfigurations}
-                disabled={loading || selectedTargetUnits.length === 0}
+                disabled={loading || selectedUnitIds.length === 0}
               >
                 {loading ? (
                   <>

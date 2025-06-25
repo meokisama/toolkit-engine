@@ -15,19 +15,21 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Upload, AlertTriangle, CheckCircle, X } from "lucide-react";
 import { toast } from "sonner";
 import { CONSTANTS } from "@/constants";
+import {
+  NetworkUnitSelector,
+  useNetworkUnitSelector,
+} from "@/components/shared/network-unit-selector";
 
 // Helper function to get barcode from unit type
 const getUnitBarcode = (unitType) => {
-  const unitInfo = CONSTANTS.UNIT.TYPES.find(u => u.name === unitType);
+  const unitInfo = CONSTANTS.UNIT.TYPES.find((u) => u.name === unitType);
   return unitInfo ? unitInfo.barcode : null;
 };
 
-export function FirmwareUpdateDialog({
-  open,
-  onOpenChange,
-  units = [],
-  onFirmwareUpdate,
-}) {
+export function FirmwareUpdateDialog({ open, onOpenChange, onFirmwareUpdate }) {
+  const { selectedUnitIds, handleSelectionChange, clearSelection } =
+    useNetworkUnitSelector();
+  const networkUnitSelectorRef = useRef(null);
   const [selectedFile, setSelectedFile] = useState(null);
   const [isUpdating, setIsUpdating] = useState(false);
   const [progress, setProgress] = useState(0);
@@ -35,6 +37,18 @@ export function FirmwareUpdateDialog({
   const [updateResults, setUpdateResults] = useState([]);
   const [showResults, setShowResults] = useState(false);
   const fileInputRef = useRef(null);
+
+  // Reset state when dialog opens
+  React.useEffect(() => {
+    if (open) {
+      clearSelection();
+      setSelectedFile(null);
+      setShowResults(false);
+      setUpdateResults([]);
+      setProgress(0);
+      setCurrentStatus("");
+    }
+  }, [open, clearSelection]);
 
   const handleFileSelect = (event) => {
     const file = event.target.files[0];
@@ -64,8 +78,17 @@ export function FirmwareUpdateDialog({
   };
 
   const handleUpdateFirmware = async () => {
-    if (!selectedFile || units.length === 0) {
-      toast.error("Please select a HEX file and ensure units are available");
+    // Get selected units from NetworkUnitSelector
+    const selectedUnits =
+      networkUnitSelectorRef.current?.getSelectedUnits() || [];
+
+    if (!selectedFile) {
+      toast.error("Please select a HEX file");
+      return;
+    }
+
+    if (selectedUnits.length === 0) {
+      toast.error("Please select at least one unit");
       return;
     }
 
@@ -78,10 +101,10 @@ export function FirmwareUpdateDialog({
     try {
       const hexContent = await selectedFile.text();
       const results = [];
-      const totalUnits = units.length;
+      const totalUnits = selectedUnits.length;
 
-      for (let i = 0; i < units.length; i++) {
-        const unit = units[i];
+      for (let i = 0; i < selectedUnits.length; i++) {
+        const unit = selectedUnits[i];
         const unitProgress = (i / totalUnits) * 100;
 
         setCurrentStatus(
@@ -178,23 +201,19 @@ export function FirmwareUpdateDialog({
             Update Firmware
           </DialogTitle>
           <DialogDescription>
-            Update firmware for {units.length} selected unit
-            {units.length !== 1 ? "s" : ""}
+            Update firmware for selected network units
           </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-4">
-          {/* Unit List */}
-          <div>
-            <Label className="text-sm font-medium">Selected Units:</Label>
-            <div className="mt-2 p-3 border rounded-md bg-muted/50 max-h-32 overflow-y-auto">
-              {units.map((unit, index) => (
-                <div key={index} className="text-sm">
-                  {unit.ip_address}/{unit.id_can} - {unit.type}
-                </div>
-              ))}
-            </div>
-          </div>
+          {/* Network Units */}
+          <NetworkUnitSelector
+            selectedUnitIds={selectedUnitIds}
+            onSelectionChange={handleSelectionChange}
+            disabled={isUpdating}
+            ref={networkUnitSelectorRef}
+            height="h-40"
+          />
 
           {/* File Selection */}
           <div>
@@ -307,7 +326,9 @@ export function FirmwareUpdateDialog({
           </Button>
           <Button
             onClick={handleUpdateFirmware}
-            disabled={!selectedFile || isUpdating || units.length === 0}
+            disabled={
+              !selectedFile || isUpdating || selectedUnitIds.length === 0
+            }
           >
             {isUpdating ? "Updating..." : "Update Firmware"}
           </Button>

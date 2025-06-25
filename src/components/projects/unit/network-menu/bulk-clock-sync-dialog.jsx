@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useEffect } from "react";
+import React, { useState, useCallback, useRef } from "react";
 import {
   Dialog,
   DialogContent,
@@ -11,10 +11,13 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import { Calendar as CalendarComponent } from "@/components/ui/calendar";
-import { TimePicker } from "@/components/ui/time-picker";
-import { Checkbox } from "@/components/ui/checkbox";
+import { TimePicker } from "@/components/custom/time-picker";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Progress } from "@/components/ui/progress";
 import {
@@ -25,39 +28,36 @@ import {
   Clock,
   CheckCircle,
   XCircle,
-  AlertCircle,
 } from "lucide-react";
 import { format } from "date-fns";
 import { toast } from "sonner";
+import {
+  NetworkUnitSelector,
+  useNetworkUnitSelector,
+} from "@/components/shared/network-unit-selector";
 
-export function BulkClockSyncDialog({
-  open,
-  onOpenChange,
-  units = [],
-  selectedUnits = [],
-}) {
+export function BulkClockSyncDialog({ open, onOpenChange }) {
+  const { selectedUnitIds, handleSelectionChange, clearSelection } =
+    useNetworkUnitSelector();
+  const networkUnitSelectorRef = useRef(null);
   const [syncMode, setSyncMode] = useState("computer");
   const [manualDate, setManualDate] = useState(new Date());
   const [manualTime, setManualTime] = useState(new Date());
-  const [selectedUnitIds, setSelectedUnitIds] = useState(new Set());
   const [loading, setLoading] = useState(false);
   const [progress, setProgress] = useState(0);
   const [syncResults, setSyncResults] = useState([]);
   const [showResults, setShowResults] = useState(false);
 
-  // Initialize selected units when dialog opens
-  useEffect(() => {
+  // Reset state when dialog opens
+  React.useEffect(() => {
     if (open) {
-      // If there are pre-selected units, use them; otherwise select all
-      const unitsToSelect = selectedUnits.length > 0 ? selectedUnits : units;
-      const unitIds = new Set(unitsToSelect.map(unit => `${unit.ip_address}-${unit.id_can}`));
-      setSelectedUnitIds(unitIds);
+      clearSelection();
       syncToComputerTime();
       setShowResults(false);
       setSyncResults([]);
       setProgress(0);
     }
-  }, [open, units, selectedUnits]);
+  }, [open, clearSelection]);
 
   // Get current computer time
   const getCurrentComputerTime = useCallback(() => {
@@ -98,40 +98,15 @@ export function BulkClockSyncDialog({
     }
   }, [syncMode, manualDate, manualTime, getCurrentComputerTime]);
 
-  // Handle unit selection
-  const handleUnitToggle = useCallback((unit) => {
-    const unitId = `${unit.ip_address}-${unit.id_can}`;
-    setSelectedUnitIds(prev => {
-      const newSet = new Set(prev);
-      if (newSet.has(unitId)) {
-        newSet.delete(unitId);
-      } else {
-        newSet.add(unitId);
-      }
-      return newSet;
-    });
-  }, []);
-
-  // Handle select all/none
-  const handleSelectAll = useCallback(() => {
-    setSelectedUnitIds(new Set(units.map(unit => `${unit.ip_address}-${unit.id_can}`)));
-  }, [units]);
-
-  const handleSelectNone = useCallback(() => {
-    setSelectedUnitIds(new Set());
-  }, []);
-
   // Get selected units for sync
   const getSelectedUnitsForSync = useCallback(() => {
-    return units.filter(unit => 
-      selectedUnitIds.has(`${unit.ip_address}-${unit.id_can}`)
-    );
-  }, [units, selectedUnitIds]);
+    return networkUnitSelectorRef.current?.getSelectedUnits() || [];
+  }, []);
 
   // Handle bulk clock sync
   const handleBulkSync = useCallback(async () => {
     const unitsToSync = getSelectedUnitsForSync();
-    
+
     if (unitsToSync.length === 0) {
       toast.error("Please select at least one unit to sync");
       return;
@@ -144,12 +119,12 @@ export function BulkClockSyncDialog({
 
     const clockData = getClockData();
     const results = [];
-    
+
     try {
       for (let i = 0; i < unitsToSync.length; i++) {
         const unit = unitsToSync[i];
         const currentProgress = ((i + 1) / unitsToSync.length) * 100;
-        
+
         try {
           console.log("Syncing clock to unit:", {
             unitIp: unit.ip_address,
@@ -166,39 +141,42 @@ export function BulkClockSyncDialog({
 
           results.push({
             unit,
-            status: 'success',
-            message: 'Clock synced successfully'
+            status: "success",
+            message: "Clock synced successfully",
           });
-
         } catch (error) {
-          console.error(`Failed to sync clock for unit ${unit.ip_address}:`, error);
+          console.error(
+            `Failed to sync clock for unit ${unit.ip_address}:`,
+            error
+          );
           results.push({
             unit,
-            status: 'error',
-            message: error.message || 'Failed to sync clock'
+            status: "error",
+            message: error.message || "Failed to sync clock",
           });
         }
 
         setProgress(currentProgress);
         setSyncResults([...results]);
-        
+
         // Small delay between requests to avoid overwhelming the network
         if (i < unitsToSync.length - 1) {
-          await new Promise(resolve => setTimeout(resolve, 100));
+          await new Promise((resolve) => setTimeout(resolve, 100));
         }
       }
 
-      const successCount = results.filter(r => r.status === 'success').length;
-      const errorCount = results.filter(r => r.status === 'error').length;
+      const successCount = results.filter((r) => r.status === "success").length;
+      const errorCount = results.filter((r) => r.status === "error").length;
 
       if (errorCount === 0) {
         toast.success(`Clock synced successfully to all ${successCount} units`);
       } else if (successCount === 0) {
         toast.error(`Failed to sync clock to all ${errorCount} units`);
       } else {
-        toast.warning(`Clock synced to ${successCount} units, ${errorCount} failed`);
+        toast.warning(
+          `Clock synced to ${successCount} units, ${errorCount} failed`
+        );
       }
-
     } catch (error) {
       console.error("Bulk clock sync failed:", error);
       toast.error(`Bulk clock sync failed: ${error.message}`);
@@ -207,7 +185,7 @@ export function BulkClockSyncDialog({
     }
   }, [getSelectedUnitsForSync, getClockData, syncMode]);
 
-  const selectedCount = selectedUnitIds.size;
+  const selectedCount = selectedUnitIds.length;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -306,61 +284,13 @@ export function BulkClockSyncDialog({
               </Card>
 
               {/* Unit Selection */}
-              <Card>
-                <CardContent className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <Label className="text-sm font-medium">
-                      Select Units ({selectedCount} of {units.length} selected)
-                    </Label>
-                    <div className="flex gap-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={handleSelectAll}
-                        disabled={selectedCount === units.length}
-                      >
-                        Select All
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={handleSelectNone}
-                        disabled={selectedCount === 0}
-                      >
-                        Select None
-                      </Button>
-                    </div>
-                  </div>
-
-                  <ScrollArea className="h-48 border rounded-md p-4">
-                    <div className="space-y-2">
-                      {units.map((unit) => {
-                        const unitId = `${unit.ip_address}-${unit.id_can}`;
-                        const isSelected = selectedUnitIds.has(unitId);
-                        
-                        return (
-                          <div
-                            key={unitId}
-                            className="flex items-center space-x-2 p-2 rounded hover:bg-gray-50"
-                          >
-                            <Checkbox
-                              id={unitId}
-                              checked={isSelected}
-                              onCheckedChange={() => handleUnitToggle(unit)}
-                            />
-                            <Label
-                              htmlFor={unitId}
-                              className="flex-1 cursor-pointer text-sm"
-                            >
-                              {unit.type} - {unit.ip_address} (CAN: {unit.id_can})
-                            </Label>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </ScrollArea>
-                </CardContent>
-              </Card>
+              <NetworkUnitSelector
+                selectedUnitIds={selectedUnitIds}
+                onSelectionChange={handleSelectionChange}
+                disabled={loading}
+                ref={networkUnitSelectorRef}
+                height="h-48"
+              />
 
               {/* Sync Button */}
               <Button
@@ -373,7 +303,8 @@ export function BulkClockSyncDialog({
                 ) : (
                   <RefreshCw className="h-5 w-5" />
                 )}
-                Sync Clock to {selectedCount} Unit{selectedCount !== 1 ? 's' : ''}
+                Sync Clock to {selectedCount} Unit
+                {selectedCount !== 1 ? "s" : ""}
               </Button>
             </>
           ) : (
@@ -408,18 +339,23 @@ export function BulkClockSyncDialog({
                         key={index}
                         className="flex items-center space-x-3 p-2 rounded border"
                       >
-                        {result.status === 'success' ? (
+                        {result.status === "success" ? (
                           <CheckCircle className="h-4 w-4 text-green-500" />
                         ) : (
                           <XCircle className="h-4 w-4 text-red-500" />
                         )}
                         <div className="flex-1">
                           <div className="text-sm font-medium">
-                            {result.unit.type} - {result.unit.ip_address} (CAN: {result.unit.id_can})
+                            {result.unit.type} - {result.unit.ip_address} (CAN:{" "}
+                            {result.unit.id_can})
                           </div>
-                          <div className={`text-xs ${
-                            result.status === 'success' ? 'text-green-600' : 'text-red-600'
-                          }`}>
+                          <div
+                            className={`text-xs ${
+                              result.status === "success"
+                                ? "text-green-600"
+                                : "text-red-600"
+                            }`}
+                          >
                             {result.message}
                           </div>
                         </div>
