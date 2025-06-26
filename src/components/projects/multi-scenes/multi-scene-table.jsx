@@ -1,4 +1,11 @@
-import React, { memo, useState, useCallback, useEffect } from "react";
+import React, {
+  memo,
+  useState,
+  useCallback,
+  useEffect,
+  useRef,
+  useMemo,
+} from "react";
 import { DataTable } from "@/components/projects/data-table/data-table";
 import { DataTableSkeleton } from "@/components/projects/table-skeleton";
 import { DataTablePagination } from "@/components/projects/data-table/data-table-pagination";
@@ -13,7 +20,10 @@ import { SendMultiSceneDialog } from "@/components/projects/multi-scenes/send-mu
 import { Layers } from "lucide-react";
 import { toast } from "sonner";
 
-const MultiSceneTable = memo(function MultiSceneTable({ items = [], loading = false }) {
+const MultiSceneTable = memo(function MultiSceneTable({
+  items = [],
+  loading = false,
+}) {
   const category = "multi_scenes";
   const { deleteItem, duplicateItem, updateItem } = useProjectDetail();
   const [multiSceneCounts, setMultiSceneCounts] = useState({});
@@ -39,8 +49,11 @@ const MultiSceneTable = memo(function MultiSceneTable({ items = [], loading = fa
     pageIndex: 0,
     pageSize: 10,
   });
-  const [pendingChanges, setPendingChanges] = useState(new Map());
   const [saveLoading, setSaveLoading] = useState(false);
+
+  // ✅ Use ref instead of state to avoid re-renders when pendingChanges update
+  const pendingChangesRef = useRef(new Map());
+  const [pendingChangesCount, setPendingChangesCount] = useState(0);
 
   // Load scene counts for each multi-scene
   const loadMultiSceneCounts = useCallback(async () => {
@@ -48,10 +61,15 @@ const MultiSceneTable = memo(function MultiSceneTable({ items = [], loading = fa
       const counts = {};
       for (const multiScene of items) {
         try {
-          const scenes = await window.electronAPI.multiScenes.getScenes(multiScene.id);
+          const scenes = await window.electronAPI.multiScenes.getScenes(
+            multiScene.id
+          );
           counts[multiScene.id] = scenes.length;
         } catch (error) {
-          console.error(`Failed to load scene count for multi-scene ${multiScene.id}:`, error);
+          console.error(
+            `Failed to load scene count for multi-scene ${multiScene.id}:`,
+            error
+          );
           counts[multiScene.id] = 0;
         }
       }
@@ -114,12 +132,12 @@ const MultiSceneTable = memo(function MultiSceneTable({ items = [], loading = fa
     [items, deleteItem, confirmDialog, loadMultiSceneCounts]
   );
 
-
-
   const handleSendToUnit = useCallback(
     (item) => {
       // Calculate index based on array position instead of database ID
-      const multiSceneIndex = items.findIndex((multiScene) => multiScene.id === item.id);
+      const multiSceneIndex = items.findIndex(
+        (multiScene) => multiScene.id === item.id
+      );
       setSendMultiSceneDialog({
         open: true,
         items: [{ ...item, calculatedIndex: multiSceneIndex }], // Single multi-scene as array
@@ -165,7 +183,9 @@ const MultiSceneTable = memo(function MultiSceneTable({ items = [], loading = fa
             for (const item of selectedItems) {
               await deleteItem(category, item.id);
             }
-            toast.success(`Successfully deleted ${selectedItems.length} multi-scene(s)`);
+            toast.success(
+              `Successfully deleted ${selectedItems.length} multi-scene(s)`
+            );
             setConfirmDialog({ ...confirmDialog, open: false });
           } catch (error) {
             console.error("Failed to delete multi-scenes:", error);
@@ -178,14 +198,15 @@ const MultiSceneTable = memo(function MultiSceneTable({ items = [], loading = fa
   );
 
   const handleSaveChanges = useCallback(async () => {
-    if (pendingChanges.size === 0) return;
+    if (pendingChangesRef.current.size === 0) return;
 
     setSaveLoading(true);
     try {
-      for (const [itemId, changes] of pendingChanges) {
+      for (const [itemId, changes] of pendingChangesRef.current) {
         await updateItem(category, itemId, changes);
       }
-      setPendingChanges(new Map());
+      pendingChangesRef.current.clear();
+      setPendingChangesCount(0);
       toast.success("Changes saved successfully");
     } catch (error) {
       console.error("Failed to save changes:", error);
@@ -193,7 +214,7 @@ const MultiSceneTable = memo(function MultiSceneTable({ items = [], loading = fa
     } finally {
       setSaveLoading(false);
     }
-  }, [pendingChanges, updateItem]);
+  }, [updateItem]);
 
   const handleDialogClose = useCallback(
     (success) => {
@@ -207,25 +228,25 @@ const MultiSceneTable = memo(function MultiSceneTable({ items = [], loading = fa
     [loadMultiSceneCounts]
   );
 
-  // Add cell edit handlers
+  // ✅ Stable function that doesn't change reference
   const handleCellEdit = useCallback((itemId, field, value) => {
-    setPendingChanges((prev) => {
-      const newChanges = new Map(prev);
-      const existingChanges = newChanges.get(itemId) || {};
-      newChanges.set(itemId, { ...existingChanges, [field]: value });
-      return newChanges;
+    const existingChanges = pendingChangesRef.current.get(itemId) || {};
+    pendingChangesRef.current.set(itemId, {
+      ...existingChanges,
+      [field]: value,
     });
+
+    // Only trigger re-render for toolbar save button
+    setPendingChangesCount(pendingChangesRef.current.size);
   }, []);
 
-  const getEffectiveValue = useCallback(
-    (item, field) => {
-      const pendingChange = pendingChanges.get(item.id);
-      return pendingChange && pendingChange[field] !== undefined
-        ? pendingChange[field]
-        : item[field];
-    },
-    [pendingChanges]
-  );
+  // ✅ Stable function that doesn't depend on state
+  const getEffectiveValue = useCallback((item, field) => {
+    const pendingChange = pendingChangesRef.current.get(item.id);
+    return pendingChange && pendingChange[field] !== undefined
+      ? pendingChange[field]
+      : item[field];
+  }, []); // No dependencies = stable function!
 
   // Add scene counts to items data
   const itemsWithCounts = items.map((item) => ({
@@ -233,13 +254,25 @@ const MultiSceneTable = memo(function MultiSceneTable({ items = [], loading = fa
     sceneCount: multiSceneCounts[item.id] || 0,
   }));
 
-  const columns = createMultiSceneColumns(
-    handleEditItem,
-    handleDuplicateItem,
-    handleDeleteItem,
-    handleCellEdit,
-    getEffectiveValue,
-    handleSendToUnit
+  // ✅ Now columns will be truly stable because all dependencies are stable!
+  const columns = useMemo(
+    () =>
+      createMultiSceneColumns(
+        handleEditItem,
+        handleDuplicateItem,
+        handleDeleteItem,
+        handleCellEdit,
+        getEffectiveValue,
+        handleSendToUnit
+      ),
+    [
+      handleEditItem,
+      handleDuplicateItem,
+      handleDeleteItem,
+      handleCellEdit,
+      getEffectiveValue, // This is now stable!
+      handleSendToUnit,
+    ]
   );
 
   if (loading) {
@@ -276,7 +309,7 @@ const MultiSceneTable = memo(function MultiSceneTable({ items = [], loading = fa
                   onAddItem={handleCreateItem}
                   addItemLabel="Add Multi-Scene"
                   onSave={handleSaveChanges}
-                  hasPendingChanges={pendingChanges.size > 0}
+                  hasPendingChanges={pendingChangesCount > 0}
                   saveLoading={saveLoading}
                   onSendAll={handleSendAllMultiScenes}
                   sendAllLabel="Send All Multi-Scenes"
@@ -297,7 +330,9 @@ const MultiSceneTable = memo(function MultiSceneTable({ items = [], loading = fa
                 enableRowSelection={true}
               />
             </div>
-            {table && <DataTablePagination table={table} pagination={pagination} />}
+            {table && (
+              <DataTablePagination table={table} pagination={pagination} />
+            )}
           </div>
         )}
       </div>

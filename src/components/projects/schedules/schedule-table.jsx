@@ -1,4 +1,11 @@
-import React, { useState, useCallback, memo, useEffect } from "react";
+import React, {
+  useState,
+  useCallback,
+  memo,
+  useEffect,
+  useRef,
+  useMemo,
+} from "react";
 import { Button } from "@/components/ui/button";
 import { Plus, Calendar } from "lucide-react";
 import { useProjectDetail } from "@/contexts/project-detail-context";
@@ -40,8 +47,11 @@ const ScheduleTable = memo(function ScheduleTable({
   });
 
   // Track pending changes for inline editing
-  const [pendingChanges, setPendingChanges] = useState(new Map());
   const [saveLoading, setSaveLoading] = useState(false);
+
+  // ✅ Use ref instead of state to avoid re-renders when pendingChanges update
+  const pendingChangesRef = useRef(new Map());
+  const [pendingChangesCount, setPendingChangesCount] = useState(0);
 
   // Row selection and bulk delete state
   const [selectedRowsCount, setSelectedRowsCount] = useState(0);
@@ -141,71 +151,68 @@ const ScheduleTable = memo(function ScheduleTable({
     [items]
   );
 
-  // Handle inline cell editing
+  // ✅ Stable function that doesn't change reference
   const handleCellEdit = useCallback((id, field, value) => {
-    setPendingChanges((prev) => {
-      const newChanges = new Map(prev);
-      if (!newChanges.has(id)) {
-        newChanges.set(id, {});
-      }
-      newChanges.get(id)[field] = value;
-      return newChanges;
-    });
+    if (!pendingChangesRef.current.has(id)) {
+      pendingChangesRef.current.set(id, {});
+    }
+    pendingChangesRef.current.get(id)[field] = value;
+
+    // Only trigger re-render for toolbar save button
+    setPendingChangesCount(pendingChangesRef.current.size);
   }, []);
 
-  // Get effective value (pending change or original value)
-  const getEffectiveValue = useCallback(
-    (item, field) => {
-      const pendingChange = pendingChanges.get(item.id);
-      return pendingChange && pendingChange[field] !== undefined
-        ? pendingChange[field]
-        : item[field] || "";
-    },
-    [pendingChanges]
-  );
+  // ✅ Stable function that doesn't depend on state
+  const getEffectiveValue = useCallback((item, field) => {
+    const pendingChange = pendingChangesRef.current.get(item.id);
+    return pendingChange && pendingChange[field] !== undefined
+      ? pendingChange[field]
+      : item[field] || "";
+  }, []); // No dependencies = stable function!
 
   // Save pending changes
   const handleSaveChanges = useCallback(async () => {
-    if (pendingChanges.size === 0) return;
+    if (pendingChangesRef.current.size === 0) return;
 
     setSaveLoading(true);
     try {
-      const updatePromises = Array.from(pendingChanges.entries()).map(
-        ([id, changes]) => {
-          // Find the original item to merge with changes
-          const originalItem = items.find((item) => item.id === id);
-          if (!originalItem) {
-            throw new Error(`Original item with id ${id} not found`);
-          }
-
-          // Parse days field to ensure it's an array
-          let parsedDays = [];
-          try {
-            parsedDays =
-              typeof originalItem.days === "string"
-                ? JSON.parse(originalItem.days)
-                : originalItem.days || [];
-          } catch (e) {
-            parsedDays = [];
-          }
-
-          // Merge changes with original item data to ensure all required fields are present
-          const completeItemData = {
-            name: originalItem.name || "",
-            description: originalItem.description || "",
-            time: originalItem.time || "",
-            days: parsedDays, // Ensure days is always an array
-            enabled:
-              originalItem.enabled !== undefined ? originalItem.enabled : true,
-            ...changes, // Apply the pending changes on top
-          };
-
-          return updateItem(category, id, completeItemData);
+      const updatePromises = Array.from(
+        pendingChangesRef.current.entries()
+      ).map(([id, changes]) => {
+        // Find the original item to merge with changes
+        const originalItem = items.find((item) => item.id === id);
+        if (!originalItem) {
+          throw new Error(`Original item with id ${id} not found`);
         }
-      );
+
+        // Parse days field to ensure it's an array
+        let parsedDays = [];
+        try {
+          parsedDays =
+            typeof originalItem.days === "string"
+              ? JSON.parse(originalItem.days)
+              : originalItem.days || [];
+        } catch (e) {
+          parsedDays = [];
+        }
+
+        // Merge changes with original item data to ensure all required fields are present
+        const completeItemData = {
+          name: originalItem.name || "",
+          description: originalItem.description || "",
+          time: originalItem.time || "",
+          days: parsedDays, // Ensure days is always an array
+          enabled:
+            originalItem.enabled !== undefined ? originalItem.enabled : true,
+          ...changes, // Apply the pending changes on top
+        };
+
+        return updateItem(category, id, completeItemData);
+      });
 
       await Promise.all(updatePromises);
-      setPendingChanges(new Map());
+      pendingChangesRef.current.clear();
+      setPendingChangesCount(0);
       toast.success("Changes saved successfully");
     } catch (error) {
       console.error("Failed to save changes:", error);
@@ -213,7 +220,7 @@ const ScheduleTable = memo(function ScheduleTable({
     } finally {
       setSaveLoading(false);
     }
-  }, [pendingChanges, updateItem, category, items]);
+  }, [updateItem, category, items]);
 
   // Bulk delete handlers
   const handleBulkDelete = useCallback((selectedItems) => {
@@ -270,13 +277,25 @@ const ScheduleTable = memo(function ScheduleTable({
     sceneCount: scheduleSceneCounts[item.id] || 0,
   }));
 
-  const columns = createScheduleColumns(
-    handleEditItem,
-    handleDuplicateItem,
-    handleDeleteItem,
-    handleCellEdit,
-    getEffectiveValue,
-    handleSendSchedule
+  // ✅ Now columns will be truly stable because all dependencies are stable!
+  const columns = useMemo(
+    () =>
+      createScheduleColumns(
+        handleEditItem,
+        handleDuplicateItem,
+        handleDeleteItem,
+        handleCellEdit,
+        getEffectiveValue,
+        handleSendSchedule
+      ),
+    [
+      handleEditItem,
+      handleDuplicateItem,
+      handleDeleteItem,
+      handleCellEdit,
+      getEffectiveValue, // This is now stable!
+      handleSendSchedule,
+    ]
   );
 
   if (loading) {
@@ -313,7 +332,7 @@ const ScheduleTable = memo(function ScheduleTable({
                   onAddItem={handleCreateItem}
                   addItemLabel="Add Schedule"
                   onSave={handleSaveChanges}
-                  hasPendingChanges={pendingChanges.size > 0}
+                  hasPendingChanges={pendingChangesCount > 0}
                   saveLoading={saveLoading}
                   onSendAll={handleSendAllSchedules}
                   sendAllLabel="Send All Schedules"

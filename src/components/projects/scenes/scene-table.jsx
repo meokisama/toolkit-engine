@@ -1,4 +1,11 @@
-import React, { useState, useCallback, memo, useEffect } from "react";
+import React, {
+  useState,
+  useCallback,
+  memo,
+  useEffect,
+  useRef,
+  useMemo,
+} from "react";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 import { useProjectDetail } from "@/contexts/project-detail-context";
@@ -36,8 +43,11 @@ const SceneTable = memo(function SceneTable({ items = [], loading = false }) {
     pageIndex: 0,
     pageSize: 10,
   });
-  const [pendingChanges, setPendingChanges] = useState(new Map());
   const [saveLoading, setSaveLoading] = useState(false);
+
+  // ✅ Use ref instead of state to avoid re-renders when pendingChanges update
+  const pendingChangesRef = useRef(new Map());
+  const [pendingChangesCount, setPendingChangesCount] = useState(0);
 
   // Load scene item counts only when tab is active and has items
   useEffect(() => {
@@ -85,48 +95,45 @@ const SceneTable = memo(function SceneTable({ items = [], loading = false }) {
     }
   }, [items]);
 
-  // Handle inline cell editing
+  // ✅ Stable function that doesn't change reference
   const handleCellEdit = useCallback((itemId, field, newValue) => {
-    setPendingChanges((prev) => {
-      const newChanges = new Map(prev);
-      const itemChanges = newChanges.get(itemId) || {};
-      itemChanges[field] = newValue;
-      newChanges.set(itemId, itemChanges);
-      return newChanges;
-    });
+    const itemChanges = pendingChangesRef.current.get(itemId) || {};
+    itemChanges[field] = newValue;
+    pendingChangesRef.current.set(itemId, itemChanges);
+
+    // Only trigger re-render for toolbar save button
+    setPendingChangesCount(pendingChangesRef.current.size);
   }, []);
 
-  // Get effective value (pending change or original value)
-  const getEffectiveValue = useCallback(
-    (itemId, field, originalValue) => {
-      const itemChanges = pendingChanges.get(itemId);
-      return itemChanges && itemChanges.hasOwnProperty(field)
-        ? itemChanges[field]
-        : originalValue;
-    },
-    [pendingChanges]
-  );
+  // ✅ Stable function that doesn't depend on state
+  const getEffectiveValue = useCallback((itemId, field, originalValue) => {
+    const itemChanges = pendingChangesRef.current.get(itemId);
+    return itemChanges && itemChanges.hasOwnProperty(field)
+      ? itemChanges[field]
+      : originalValue;
+  }, []); // No dependencies = stable function!
 
   // Save all pending changes
   const handleSaveChanges = useCallback(async () => {
-    if (pendingChanges.size === 0) return;
+    if (pendingChangesRef.current.size === 0) return;
 
     setSaveLoading(true);
     try {
-      for (const [itemId, changes] of pendingChanges) {
+      for (const [itemId, changes] of pendingChangesRef.current) {
         const item = items.find((i) => i.id === itemId);
         if (item) {
           const updatedItem = { ...item, ...changes };
           await updateItem(category, updatedItem.id, updatedItem);
         }
       }
-      setPendingChanges(new Map());
+      pendingChangesRef.current.clear();
+      setPendingChangesCount(0);
     } catch (error) {
       console.error("Failed to save changes:", error);
     } finally {
       setSaveLoading(false);
     }
-  }, [pendingChanges, items, updateItem]);
+  }, [items, updateItem]);
 
   const handleCreateItem = useCallback(() => {
     setEditingItem(null);
@@ -228,13 +235,25 @@ const SceneTable = memo(function SceneTable({ items = [], loading = false }) {
     itemCount: sceneItemCounts[item.id] || 0,
   }));
 
-  const columns = createSceneColumns(
-    handleEditItem,
-    handleDuplicateItem,
-    handleDeleteItem,
-    handleCellEdit,
-    getEffectiveValue,
-    handleSendToUnit
+  // ✅ Now columns will be truly stable because all dependencies are stable!
+  const columns = useMemo(
+    () =>
+      createSceneColumns(
+        handleEditItem,
+        handleDuplicateItem,
+        handleDeleteItem,
+        handleCellEdit,
+        getEffectiveValue,
+        handleSendToUnit
+      ),
+    [
+      handleEditItem,
+      handleDuplicateItem,
+      handleDeleteItem,
+      handleCellEdit,
+      getEffectiveValue, // This is now stable!
+      handleSendToUnit,
+    ]
   );
 
   if (loading) {
@@ -267,7 +286,7 @@ const SceneTable = memo(function SceneTable({ items = [], loading = false }) {
                   onAddItem={handleCreateItem}
                   addItemLabel="Add Scene"
                   onSave={handleSaveChanges}
-                  hasPendingChanges={pendingChanges.size > 0}
+                  hasPendingChanges={pendingChangesCount > 0}
                   saveLoading={saveLoading}
                   onSendAll={handleSendAllScenes}
                   sendAllLabel="Send All Scenes"

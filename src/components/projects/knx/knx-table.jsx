@@ -1,4 +1,4 @@
-import React, { useState, useCallback, memo } from "react";
+import React, { useState, useCallback, memo, useMemo, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 import { useProjectDetail } from "@/contexts/project-detail-context";
@@ -39,42 +39,41 @@ function KnxTableComponent({ items, loading }) {
     description: false, // Hide description column by default
   });
   const [pagination, setPagination] = useState({ pageIndex: 0, pageSize: 10 });
-  const [pendingChanges, setPendingChanges] = useState(new Map());
   const [saveLoading, setSaveLoading] = useState(false);
+
+  // ✅ Use ref instead of state to avoid re-renders when pendingChanges update
+  const pendingChangesRef = useRef(new Map());
+  const [pendingChangesCount, setPendingChangesCount] = useState(0);
   const [sendDialogOpen, setSendDialogOpen] = useState(false);
   const [itemsToSend, setItemsToSend] = useState([]);
 
   const category = "knx";
 
-  // Handle inline cell editing
+  // ✅ Stable function that doesn't change reference
   const handleCellEdit = useCallback((itemId, field, newValue) => {
-    setPendingChanges((prev) => {
-      const newChanges = new Map(prev);
-      const itemChanges = newChanges.get(itemId) || {};
-      itemChanges[field] = newValue;
-      newChanges.set(itemId, itemChanges);
-      return newChanges;
-    });
+    const itemChanges = pendingChangesRef.current.get(itemId) || {};
+    itemChanges[field] = newValue;
+    pendingChangesRef.current.set(itemId, itemChanges);
+
+    // Only trigger re-render for toolbar save button
+    setPendingChangesCount(pendingChangesRef.current.size);
   }, []);
 
-  // Get effective value (pending change or original value)
-  const getEffectiveValue = useCallback(
-    (itemId, field, originalValue) => {
-      const itemChanges = pendingChanges.get(itemId);
-      return itemChanges && itemChanges.hasOwnProperty(field)
-        ? itemChanges[field]
-        : originalValue;
-    },
-    [pendingChanges]
-  );
+  // ✅ Stable function that doesn't depend on state
+  const getEffectiveValue = useCallback((itemId, field, originalValue) => {
+    const itemChanges = pendingChangesRef.current.get(itemId);
+    return itemChanges && itemChanges.hasOwnProperty(field)
+      ? itemChanges[field]
+      : originalValue;
+  }, []); // No dependencies = stable function!
 
   // Save pending changes
   const handleSaveChanges = useCallback(async () => {
-    if (pendingChanges.size === 0) return;
+    if (pendingChangesRef.current.size === 0) return;
 
     setSaveLoading(true);
     try {
-      for (const [itemId, changes] of pendingChanges) {
+      for (const [itemId, changes] of pendingChangesRef.current) {
         // Find the original item to merge with changes
         const originalItem = items.find((item) => item.id === itemId);
         if (!originalItem) {
@@ -98,13 +97,14 @@ function KnxTableComponent({ items, loading }) {
 
         await updateItem(category, itemId, completeItemData);
       }
-      setPendingChanges(new Map());
+      pendingChangesRef.current.clear();
+      setPendingChangesCount(0);
     } catch (error) {
       console.error("Failed to save changes:", error);
     } finally {
       setSaveLoading(false);
     }
-  }, [pendingChanges, updateItem, category, items]);
+  }, [updateItem, category, items]);
 
   const handleCreateItem = useCallback(() => {
     setEditingItem(null);
@@ -216,14 +216,25 @@ function KnxTableComponent({ items, loading }) {
     setSendDialogOpen(true);
   }, [items]);
 
-  // Create columns with handlers after they are defined
-  const columns = createKnxItemsColumns(
-    handleEditItem,
-    handleDuplicateItem,
-    handleDeleteItem,
-    handleCellEdit,
-    getEffectiveValue,
-    projectItems || {}
+  // ✅ Now columns will be truly stable because all dependencies are stable!
+  const columns = useMemo(
+    () =>
+      createKnxItemsColumns(
+        handleEditItem,
+        handleDuplicateItem,
+        handleDeleteItem,
+        handleCellEdit,
+        getEffectiveValue,
+        projectItems || {}
+      ),
+    [
+      handleEditItem,
+      handleDuplicateItem,
+      handleDeleteItem,
+      handleCellEdit,
+      getEffectiveValue, // This is now stable!
+      projectItems,
+    ]
   );
 
   if (loading) {
@@ -262,7 +273,7 @@ function KnxTableComponent({ items, loading }) {
                   category={category}
                   columnVisibility={columnVisibility}
                   onSave={handleSaveChanges}
-                  hasPendingChanges={pendingChanges.size > 0}
+                  hasPendingChanges={pendingChangesCount > 0}
                   saveLoading={saveLoading}
                   onSendToUnit={handleSendToUnit}
                   sendToUnitLabel="Send to Unit"

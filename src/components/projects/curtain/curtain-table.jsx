@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useCallback } from "react";
+import React, { useState, useMemo, useCallback, useRef } from "react";
 import { Blinds, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { DataTable } from "@/components/projects/data-table/data-table";
@@ -32,8 +32,11 @@ export function CurtainTable({ items = [], loading = false }) {
   const [selectedRowsCount, setSelectedRowsCount] = useState(0);
   const [columnVisibility, setColumnVisibility] = useState({});
   const [pagination, setPagination] = useState({ pageIndex: 0, pageSize: 10 });
-  const [pendingChanges, setPendingChanges] = useState(new Map());
   const [saveLoading, setSaveLoading] = useState(false);
+
+  // ✅ Use ref instead of state to avoid re-renders when pendingChanges update
+  const pendingChangesRef = useRef(new Map());
+  const [pendingChangesCount, setPendingChangesCount] = useState(0);
 
   // Bulk delete state
   const [bulkDeleteDialogOpen, setBulkDeleteDialogOpen] = useState(false);
@@ -49,48 +52,45 @@ export function CurtainTable({ items = [], loading = false }) {
   // Get lighting items for group selection
   const lightingItems = projectItems.lighting || [];
 
-  // Handle inline cell editing
+  // ✅ Stable function that doesn't change reference
   const handleCellEdit = useCallback((itemId, field, newValue) => {
-    setPendingChanges((prev) => {
-      const newChanges = new Map(prev);
-      const itemChanges = newChanges.get(itemId) || {};
-      itemChanges[field] = newValue;
-      newChanges.set(itemId, itemChanges);
-      return newChanges;
-    });
+    const itemChanges = pendingChangesRef.current.get(itemId) || {};
+    itemChanges[field] = newValue;
+    pendingChangesRef.current.set(itemId, itemChanges);
+
+    // Only trigger re-render for toolbar save button
+    setPendingChangesCount(pendingChangesRef.current.size);
   }, []);
 
-  // Get effective value (pending change or original value)
-  const getEffectiveValue = useCallback(
-    (itemId, field, originalValue) => {
-      const itemChanges = pendingChanges.get(itemId);
-      return itemChanges && itemChanges.hasOwnProperty(field)
-        ? itemChanges[field]
-        : originalValue;
-    },
-    [pendingChanges]
-  );
+  // ✅ Stable function that doesn't depend on state
+  const getEffectiveValue = useCallback((itemId, field, originalValue) => {
+    const itemChanges = pendingChangesRef.current.get(itemId);
+    return itemChanges && itemChanges.hasOwnProperty(field)
+      ? itemChanges[field]
+      : originalValue;
+  }, []); // No dependencies = stable function!
 
   // Save all pending changes
   const handleSaveChanges = useCallback(async () => {
-    if (pendingChanges.size === 0) return;
+    if (pendingChangesRef.current.size === 0) return;
 
     setSaveLoading(true);
     try {
-      for (const [itemId, changes] of pendingChanges) {
+      for (const [itemId, changes] of pendingChangesRef.current) {
         const item = items.find((i) => i.id === itemId);
         if (item) {
           const updatedItem = { ...item, ...changes };
           await updateItem(category, updatedItem.id, updatedItem);
         }
       }
-      setPendingChanges(new Map());
+      pendingChangesRef.current.clear();
+      setPendingChangesCount(0);
     } catch (error) {
       console.error("Failed to save changes:", error);
     } finally {
       setSaveLoading(false);
     }
-  }, [pendingChanges, items, updateItem]);
+  }, [items, updateItem]);
 
   const handleEdit = useCallback((item) => {
     setEditingItem(item);
@@ -274,7 +274,7 @@ export function CurtainTable({ items = [], loading = false }) {
                   category={category}
                   columnVisibility={columnVisibility}
                   onSave={handleSaveChanges}
-                  hasPendingChanges={pendingChanges.size > 0}
+                  hasPendingChanges={pendingChangesCount > 0}
                   saveLoading={saveLoading}
                   onSendAll={handleSendConfig}
                   sendAllLabel="Send Config"

@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { DataTableColumnHeader } from "@/components/projects/data-table/data-table-column-header";
 import { EditableCell } from "@/components/projects/data-table/editable-cell";
+import { useMemo, useCallback } from "react";
 
 export const createProjectItemsColumns = (
   onEdit,
@@ -45,11 +46,20 @@ export const createProjectItemsColumns = (
     cell: ({ row }) => {
       const name = row.getValue("name");
       const effectiveValue = getEffectiveValue(row.original.id, "name", name);
+
+      // ✅ Memoize onSave function với dependencies cụ thể
+      const handleNameSave = useCallback(
+        (newValue) => {
+          onCellEdit(row.original.id, "name", newValue);
+        },
+        [row.original.id, onCellEdit]
+      );
+
       return (
         <EditableCell
           value={effectiveValue || `Group ${row.original.address}`}
           type="text"
-          onSave={(newValue) => onCellEdit(row.original.id, "name", newValue)}
+          onSave={handleNameSave}
           className="font-medium"
           placeholder="No name"
           icon={Sun}
@@ -74,14 +84,21 @@ export const createProjectItemsColumns = (
         "address",
         address
       );
+
+      // ✅ Memoize onSave function
+      const handleAddressSave = useCallback(
+        (newValue) => {
+          onCellEdit(row.original.id, "address", newValue);
+        },
+        [row.original.id, onCellEdit]
+      );
+
       return (
         <EditableCell
           value={effectiveValue}
           type="number"
           className="text-center font-semibold"
-          onSave={(newValue) =>
-            onCellEdit(row.original.id, "address", newValue)
-          }
+          onSave={handleAddressSave}
           displayValue={effectiveValue ? effectiveValue : "-"}
           icon={Layers}
         />
@@ -109,13 +126,20 @@ export const createProjectItemsColumns = (
         "description",
         description
       );
+
+      // ✅ Memoize onSave function
+      const handleDescriptionSave = useCallback(
+        (newValue) => {
+          onCellEdit(row.original.id, "description", newValue);
+        },
+        [row.original.id, onCellEdit]
+      );
+
       return (
         <EditableCell
           value={effectiveValue}
           type="text"
-          onSave={(newValue) =>
-            onCellEdit(row.original.id, "description", newValue)
-          }
+          onSave={handleDescriptionSave}
           placeholder="No description."
           icon={FilePen}
         />
@@ -134,12 +158,20 @@ export const createProjectItemsColumns = (
     cell: ({ row }) => {
       const item = row.original;
 
+      // ✅ Memoize action handlers
+      const handleEdit = useCallback(() => onEdit(item), [item, onEdit]);
+      const handleDuplicate = useCallback(
+        () => onDuplicate(item),
+        [item, onDuplicate]
+      );
+      const handleDelete = useCallback(() => onDelete(item), [item, onDelete]);
+
       return (
         <div className="flex items-center justify-end gap-1">
           <Button
             variant="outline"
             size="icon"
-            onClick={() => onEdit(item)}
+            onClick={handleEdit}
             className="cursor-pointer"
             title="Edit"
           >
@@ -149,7 +181,7 @@ export const createProjectItemsColumns = (
           <Button
             variant="outline"
             size="icon"
-            onClick={() => onDuplicate(item)}
+            onClick={handleDuplicate}
             className="cursor-pointer"
             title="Duplicate"
           >
@@ -159,7 +191,7 @@ export const createProjectItemsColumns = (
           <Button
             variant="outline"
             size="icon"
-            onClick={() => onDelete(item)}
+            onClick={handleDelete}
             className="cursor-pointer hover:bg-destructive/10 text-destructive hover:text-destructive hover:border-destructive/30"
             title="Delete"
           >

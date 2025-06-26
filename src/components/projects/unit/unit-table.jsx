@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from "react";
+import React, { useState, useCallback, useRef, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Plus, Database } from "lucide-react";
@@ -39,57 +39,56 @@ export function UnitTable() {
   const [columnVisibility, setColumnVisibility] = useState({});
   const [pagination, setPagination] = useState({ pageIndex: 0, pageSize: 10 });
   const [importDialogOpen, setImportDialogOpen] = useState(false);
-  const [pendingChanges, setPendingChanges] = useState(new Map());
   const [saveLoading, setSaveLoading] = useState(false);
+
+  // ✅ Use ref instead of state to avoid re-renders when pendingChanges update
+  const pendingChangesRef = useRef(new Map());
+  const [pendingChangesCount, setPendingChangesCount] = useState(0);
   const [ioConfigDialogOpen, setIOConfigDialogOpen] = useState(false);
   const [ioConfigItem, setIOConfigItem] = useState(null);
 
   const units = projectItems.unit || [];
 
-  // Handle inline cell editing
+  // ✅ Stable function that doesn't change reference
   const handleCellEdit = useCallback((itemId, field, newValue) => {
-    setPendingChanges((prev) => {
-      const newChanges = new Map(prev);
-      const itemChanges = newChanges.get(itemId) || {};
-      itemChanges[field] = newValue;
+    const itemChanges = pendingChangesRef.current.get(itemId) || {};
+    itemChanges[field] = newValue;
 
-      // If unit type is being changed, reset RS485 config and I/O config to defaults
-      if (field === "type" && newValue) {
-        // Reset RS485 config to default (2 configurations for RS485-1 and RS485-2)
-        itemChanges.rs485_config = Array.from({ length: 2 }, () =>
-          createDefaultRS485Config()
-        );
+    // If unit type is being changed, reset RS485 config and I/O config to defaults
+    if (field === "type" && newValue) {
+      // Reset RS485 config to default (2 configurations for RS485-1 and RS485-2)
+      itemChanges.rs485_config = Array.from({ length: 2 }, () =>
+        createDefaultRS485Config()
+      );
 
-        // Reset I/O config to default based on new unit type
-        itemChanges.io_config = createDefaultIOConfig(newValue);
+      // Reset I/O config to default based on new unit type
+      itemChanges.io_config = createDefaultIOConfig(newValue);
 
-        // Mark that we need to clear I/O configs from database tables
-        itemChanges._clearIOConfigs = true;
-      }
+      // Mark that we need to clear I/O configs from database tables
+      itemChanges._clearIOConfigs = true;
+    }
 
-      newChanges.set(itemId, itemChanges);
-      return newChanges;
-    });
+    pendingChangesRef.current.set(itemId, itemChanges);
+
+    // Only trigger re-render for toolbar save button
+    setPendingChangesCount(pendingChangesRef.current.size);
   }, []);
 
-  // Get effective value (pending change or original value)
-  const getEffectiveValue = useCallback(
-    (itemId, field, originalValue) => {
-      const itemChanges = pendingChanges.get(itemId);
-      return itemChanges && itemChanges.hasOwnProperty(field)
-        ? itemChanges[field]
-        : originalValue;
-    },
-    [pendingChanges]
-  );
+  // ✅ Stable function that doesn't depend on state
+  const getEffectiveValue = useCallback((itemId, field, originalValue) => {
+    const itemChanges = pendingChangesRef.current.get(itemId);
+    return itemChanges && itemChanges.hasOwnProperty(field)
+      ? itemChanges[field]
+      : originalValue;
+  }, []); // No dependencies = stable function!
 
   // Save all pending changes
   const handleSaveChanges = useCallback(async () => {
-    if (pendingChanges.size === 0) return;
+    if (pendingChangesRef.current.size === 0) return;
 
     setSaveLoading(true);
     try {
-      for (const [itemId, changes] of pendingChanges) {
+      for (const [itemId, changes] of pendingChangesRef.current) {
         const item = units.find((i) => i.id === itemId);
         if (item) {
           // Check if we need to clear I/O configurations from database tables
@@ -105,13 +104,14 @@ export function UnitTable() {
           }
         }
       }
-      setPendingChanges(new Map());
+      pendingChangesRef.current.clear();
+      setPendingChangesCount(0);
     } catch (error) {
       console.error("Failed to save changes:", error);
     } finally {
       setSaveLoading(false);
     }
-  }, [pendingChanges, units, updateItem]);
+  }, [units, updateItem]);
 
   const handleCreateItem = () => {
     setEditingItem(null);
@@ -223,14 +223,25 @@ export function UnitTable() {
     setPagination(paginationState);
   }, []);
 
-  // Create columns with handlers for database units (editable)
-  const databaseColumns = createUnitColumns(
-    handleEditItem,
-    handleDuplicateItem,
-    handleDeleteItem,
-    handleCellEdit,
-    getEffectiveValue,
-    handleIOConfig
+  // ✅ Now columns will be truly stable because all dependencies are stable!
+  const databaseColumns = useMemo(
+    () =>
+      createUnitColumns(
+        handleEditItem,
+        handleDuplicateItem,
+        handleDeleteItem,
+        handleCellEdit,
+        getEffectiveValue,
+        handleIOConfig
+      ),
+    [
+      handleEditItem,
+      handleDuplicateItem,
+      handleDeleteItem,
+      handleCellEdit,
+      getEffectiveValue, // This is now stable!
+      handleIOConfig,
+    ]
   );
 
   if (loading) {
@@ -285,7 +296,7 @@ export function UnitTable() {
                         category={category}
                         columnVisibility={columnVisibility}
                         onSave={handleSaveChanges}
-                        hasPendingChanges={pendingChanges.size > 0}
+                        hasPendingChanges={pendingChangesCount > 0}
                         saveLoading={saveLoading}
                       />
                     )}

@@ -1,4 +1,4 @@
-import React, { useState, useCallback, memo } from "react";
+import React, { useState, useCallback, memo, useMemo, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 import { useProjectDetail } from "@/contexts/project-detail-context";
@@ -30,51 +30,51 @@ function ProjectItemsTableComponent({ category, items, loading }) {
   const [selectedRowsCount, setSelectedRowsCount] = useState(0);
   const [columnVisibility, setColumnVisibility] = useState({});
   const [pagination, setPagination] = useState({ pageIndex: 0, pageSize: 10 });
-  const [pendingChanges, setPendingChanges] = useState(new Map());
   const [saveLoading, setSaveLoading] = useState(false);
 
-  // Handle inline cell editing
+  // ✅ Use ref instead of state to avoid re-renders when pendingChanges update
+  const pendingChangesRef = useRef(new Map());
+  const [pendingChangesCount, setPendingChangesCount] = useState(0);
+
+  // ✅ Stable function that doesn't change reference
   const handleCellEdit = useCallback((itemId, field, newValue) => {
-    setPendingChanges((prev) => {
-      const newChanges = new Map(prev);
-      const itemChanges = newChanges.get(itemId) || {};
-      itemChanges[field] = newValue;
-      newChanges.set(itemId, itemChanges);
-      return newChanges;
-    });
+    const itemChanges = pendingChangesRef.current.get(itemId) || {};
+    itemChanges[field] = newValue;
+    pendingChangesRef.current.set(itemId, itemChanges);
+
+    // Only trigger re-render for toolbar save button
+    setPendingChangesCount(pendingChangesRef.current.size);
   }, []);
 
-  // Get effective value (pending change or original value)
-  const getEffectiveValue = useCallback(
-    (itemId, field, originalValue) => {
-      const itemChanges = pendingChanges.get(itemId);
-      return itemChanges && itemChanges.hasOwnProperty(field)
-        ? itemChanges[field]
-        : originalValue;
-    },
-    [pendingChanges]
-  );
+  // ✅ Stable function that doesn't depend on state
+  const getEffectiveValue = useCallback((itemId, field, originalValue) => {
+    const itemChanges = pendingChangesRef.current.get(itemId);
+    return itemChanges && itemChanges.hasOwnProperty(field)
+      ? itemChanges[field]
+      : originalValue;
+  }, []); // No dependencies = stable function!
 
   // Save all pending changes
   const handleSaveChanges = useCallback(async () => {
-    if (pendingChanges.size === 0) return;
+    if (pendingChangesRef.current.size === 0) return;
 
     setSaveLoading(true);
     try {
-      for (const [itemId, changes] of pendingChanges) {
+      for (const [itemId, changes] of pendingChangesRef.current) {
         const item = items.find((i) => i.id === itemId);
         if (item) {
           const updatedItem = { ...item, ...changes };
           await updateItem(category, updatedItem.id, updatedItem);
         }
       }
-      setPendingChanges(new Map());
+      pendingChangesRef.current.clear();
+      setPendingChangesCount(0);
     } catch (error) {
       console.error("Failed to save changes:", error);
     } finally {
       setSaveLoading(false);
     }
-  }, [pendingChanges, items, updateItem, category]);
+  }, [items, updateItem, category]);
 
   // Memoize handlers to prevent unnecessary rerenders
   const handleCreateItem = useCallback(() => {
@@ -130,16 +130,13 @@ function ProjectItemsTableComponent({ category, items, loading }) {
 
     setBulkDeleteLoading(true);
     try {
-      // Delete all selected items
       await Promise.all(
         itemsToDelete.map((item) => deleteItem(category, item.id))
       );
 
-      // Close dialog and clear state first
       setBulkDeleteDialogOpen(false);
       setItemsToDelete([]);
 
-      // Clear selection after a small delay to ensure data has been updated
       setTimeout(() => {
         table?.resetRowSelection();
       }, 100);
@@ -189,13 +186,23 @@ function ProjectItemsTableComponent({ category, items, loading }) {
     [importItems, category]
   );
 
-  // Create columns with handlers after they are defined
-  const columns = createProjectItemsColumns(
-    handleEditItem,
-    handleDuplicateItem,
-    handleDeleteItem,
-    handleCellEdit,
-    getEffectiveValue
+  // ✅ Now columns will be truly stable because all dependencies are stable!
+  const columns = useMemo(
+    () =>
+      createProjectItemsColumns(
+        handleEditItem,
+        handleDuplicateItem,
+        handleDeleteItem,
+        handleCellEdit,
+        getEffectiveValue
+      ),
+    [
+      handleEditItem,
+      handleDuplicateItem,
+      handleDeleteItem,
+      handleCellEdit,
+      getEffectiveValue, // This is now stable!
+    ]
   );
 
   if (loading) {
@@ -234,7 +241,7 @@ function ProjectItemsTableComponent({ category, items, loading }) {
                   category={category}
                   columnVisibility={columnVisibility}
                   onSave={handleSaveChanges}
-                  hasPendingChanges={pendingChanges.size > 0}
+                  hasPendingChanges={pendingChangesCount > 0}
                   saveLoading={saveLoading}
                 />
               )}
@@ -312,7 +319,6 @@ function ProjectItemsTableComponent({ category, items, loading }) {
 export const ProjectItemsTable = memo(
   ProjectItemsTableComponent,
   (prevProps, nextProps) => {
-    // Only rerender if category, items array reference, or loading state changes
     return (
       prevProps.category === nextProps.category &&
       prevProps.items === nextProps.items &&
