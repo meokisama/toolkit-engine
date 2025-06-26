@@ -22,7 +22,7 @@ export const NetworkUnitSelector = React.forwardRef(
       onSelectionChange,
       disabled = false,
       className = "",
-      title = "Network Units",
+      title = "Units",
       height = "h-60",
     },
     ref

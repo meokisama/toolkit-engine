@@ -1,7 +1,7 @@
 import React from "react";
-import { BaseDeleteDialog } from "./base-delete-dialog";
+import { BaseDeleteDialog } from "../base/base-delete-dialog";
 
-export function DeleteMultiSceneDialog({
+export function DeleteCurtainDialog({
   open,
   onOpenChange,
   unit,
@@ -9,23 +9,23 @@ export function DeleteMultiSceneDialog({
   trigger = null,
 }) {
   const config = {
-    entityName: "Multi-Scenes",
-    entityNameSingular: "Multi-Scene",
-    indexRange: [0, 39],
+    entityName: "Curtains",
+    entityNameSingular: "Curtain",
+    indexRange: [0, 31],
     modes: [
-      { id: "specific", label: "Delete Specific Multi-Scenes" },
-      { id: "all", label: "Delete All Multi-Scenes (0-39)" },
+      { id: "specific", label: "Delete Specific Curtains" },
+      { id: "all", label: "Delete All Curtains (0-31)" },
     ],
     apiMethods: {
       deleteOne: async ({ unitIp, canId, index }) => {
-        return await window.electronAPI.rcuController.deleteMultiScene(
+        return await window.electronAPI.rcuController.deleteCurtain({
           unitIp,
           canId,
-          index
-        );
+          curtainIndex: index,
+        });
       },
       deleteAll: async (unitIp, canId) => {
-        return await window.electronAPI.rcuController.deleteAllMultiScenes(
+        return await window.electronAPI.rcuController.deleteAllCurtains(
           unitIp,
           canId
         );

@@ -1,7 +1,7 @@
 import React from "react";
-import { BaseDeleteDialog } from "./base-delete-dialog";
+import { BaseDeleteDialog } from "../base/base-delete-dialog";
 
-export function DeleteKnxDialog({
+export function DeleteMultiSceneDialog({
   open,
   onOpenChange,
   unit,
@@ -9,24 +9,23 @@ export function DeleteKnxDialog({
   trigger = null,
 }) {
   const config = {
-    entityName: "KNX Configurations",
-    entityNameSingular: "KNX Configuration",
-    indexRange: [0, 511],
-    indexLabel: "KNX Address",
+    entityName: "Multi-Scenes",
+    entityNameSingular: "Multi-Scene",
+    indexRange: [0, 39],
     modes: [
-      { id: "specific", label: "Delete Specific KNX Configurations" },
-      { id: "all", label: "Delete All KNX Configurations (0-511)" },
+      { id: "specific", label: "Delete Specific Multi-Scenes" },
+      { id: "all", label: "Delete All Multi-Scenes (0-39)" },
     ],
     apiMethods: {
       deleteOne: async ({ unitIp, canId, index }) => {
-        return await window.electronAPI.rcuController.deleteKnxConfig({
+        return await window.electronAPI.rcuController.deleteMultiScene(
           unitIp,
           canId,
-          knxAddress: index,
-        });
+          index
+        );
       },
       deleteAll: async (unitIp, canId) => {
-        return await window.electronAPI.rcuController.deleteAllKnxConfigs(
+        return await window.electronAPI.rcuController.deleteAllMultiScenes(
           unitIp,
           canId
         );

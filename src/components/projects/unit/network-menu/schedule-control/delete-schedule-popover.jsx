@@ -1,7 +1,7 @@
 import React from "react";
-import { BaseDeleteDialog } from "./base-delete-dialog";
+import { BaseDeleteDialog } from "../base/base-delete-dialog";
 
-export function DeleteSceneDialog({
+export function DeleteScheduleDialog({
   open,
   onOpenChange,
   unit,
@@ -9,23 +9,23 @@ export function DeleteSceneDialog({
   trigger = null,
 }) {
   const config = {
-    entityName: "Scenes",
-    entityNameSingular: "Scene",
-    indexRange: [0, 99],
+    entityName: "Schedules",
+    entityNameSingular: "Schedule",
+    indexRange: [0, 31],
     modes: [
-      { id: "specific", label: "Delete Specific Scenes" },
-      { id: "all", label: "Delete All Scenes (0-99)" },
+      { id: "specific", label: "Delete Specific Schedules" },
+      { id: "all", label: "Delete All Schedules (0-31)" },
     ],
     apiMethods: {
       deleteOne: async ({ unitIp, canId, index }) => {
-        return await window.electronAPI.rcuController.deleteScene(
+        return await window.electronAPI.rcuController.deleteSchedule({
           unitIp,
           canId,
-          index
-        );
+          scheduleIndex: index,
+        });
       },
       deleteAll: async (unitIp, canId) => {
-        return await window.electronAPI.rcuController.deleteAllScenes(
+        return await window.electronAPI.rcuController.deleteAllSchedules(
           unitIp,
           canId
         );

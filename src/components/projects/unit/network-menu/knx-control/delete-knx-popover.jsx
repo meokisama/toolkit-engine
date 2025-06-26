@@ -1,7 +1,7 @@
 import React from "react";
-import { BaseDeleteDialog } from "./base-delete-dialog";
+import { BaseDeleteDialog } from "../base/base-delete-dialog";
 
-export function DeleteCurtainDialog({
+export function DeleteKnxDialog({
   open,
   onOpenChange,
   unit,
@@ -9,23 +9,24 @@ export function DeleteCurtainDialog({
   trigger = null,
 }) {
   const config = {
-    entityName: "Curtains",
-    entityNameSingular: "Curtain",
-    indexRange: [0, 31],
+    entityName: "KNX Configurations",
+    entityNameSingular: "KNX Configuration",
+    indexRange: [0, 511],
+    indexLabel: "KNX Address",
     modes: [
-      { id: "specific", label: "Delete Specific Curtains" },
-      { id: "all", label: "Delete All Curtains (0-31)" },
+      { id: "specific", label: "Delete Specific KNX Configurations" },
+      { id: "all", label: "Delete All KNX Configurations (0-511)" },
     ],
     apiMethods: {
       deleteOne: async ({ unitIp, canId, index }) => {
-        return await window.electronAPI.rcuController.deleteCurtain({
+        return await window.electronAPI.rcuController.deleteKnxConfig({
           unitIp,
           canId,
-          curtainIndex: index,
+          knxAddress: index,
         });
       },
       deleteAll: async (unitIp, canId) => {
-        return await window.electronAPI.rcuController.deleteAllCurtains(
+        return await window.electronAPI.rcuController.deleteAllKnxConfigs(
           unitIp,
           canId
         );

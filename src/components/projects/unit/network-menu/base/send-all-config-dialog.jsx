@@ -503,7 +503,7 @@ export function SendAllConfigDialog({
               <CardHeader>
                 <CardTitle className="text-sm">Configuration Types</CardTitle>
               </CardHeader>
-              <CardContent className="space-y-3">
+              <CardContent className="grid grid-cols-5">
                 {Object.entries(configTypeLabels).map(
                   ([type, { label, icon: Icon }]) => (
                     <div key={type} className="flex items-center space-x-2">
@@ -518,7 +518,7 @@ export function SendAllConfigDialog({
                         htmlFor={type}
                         className="flex items-center gap-2 text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
                       >
-                        <Icon className="h-4 w-4" />
+                        {/* <Icon className="h-4 w-4" /> */}
                         {label}
                       </label>
                     </div>
