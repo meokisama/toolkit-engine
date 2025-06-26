@@ -205,9 +205,9 @@ export function KnxControlDialog({ open, onOpenChange, unit }) {
       });
 
       if (result && result.knxConfigs && result.knxConfigs.length > 0) {
-        // Filter out invalid KNX configs (type = 0 or address = 0)
+        // Filter out invalid KNX configs (only type = 0)
         const validKnxConfigs = result.knxConfigs.filter(
-          (config) => config.type !== 0 && config.address !== 0
+          (config) => config.type !== 0
         );
 
         const knxConfigCards = validKnxConfigs.map((config) => ({

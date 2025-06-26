@@ -12,7 +12,7 @@ import { Progress } from "@/components/ui/progress";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Upload, AlertTriangle, CheckCircle, X } from "lucide-react";
+import { Upload, AlertTriangle, CheckCircle, X, Monitor } from "lucide-react";
 import { toast } from "sonner";
 import { CONSTANTS } from "@/constants";
 import {
@@ -26,7 +26,12 @@ const getUnitBarcode = (unitType) => {
   return unitInfo ? unitInfo.barcode : null;
 };
 
-export function FirmwareUpdateDialog({ open, onOpenChange, onFirmwareUpdate }) {
+export function FirmwareUpdateDialog({
+  open,
+  onOpenChange,
+  onFirmwareUpdate,
+  targetUnit = null,
+}) {
   const { selectedUnitIds, handleSelectionChange, clearSelection } =
     useNetworkUnitSelector();
   const networkUnitSelectorRef = useRef(null);
@@ -41,14 +46,16 @@ export function FirmwareUpdateDialog({ open, onOpenChange, onFirmwareUpdate }) {
   // Reset state when dialog opens
   React.useEffect(() => {
     if (open) {
-      clearSelection();
+      if (!targetUnit) {
+        clearSelection();
+      }
       setSelectedFile(null);
       setShowResults(false);
       setUpdateResults([]);
       setProgress(0);
       setCurrentStatus("");
     }
-  }, [open, clearSelection]);
+  }, [open, clearSelection, targetUnit]);
 
   const handleFileSelect = (event) => {
     const file = event.target.files[0];
@@ -78,17 +85,22 @@ export function FirmwareUpdateDialog({ open, onOpenChange, onFirmwareUpdate }) {
   };
 
   const handleUpdateFirmware = async () => {
-    // Get selected units from NetworkUnitSelector
-    const selectedUnits =
-      networkUnitSelectorRef.current?.getSelectedUnits() || [];
+    // Get units to update - either target unit or selected units from NetworkUnitSelector
+    const unitsToUpdate = targetUnit
+      ? [targetUnit]
+      : networkUnitSelectorRef.current?.getSelectedUnits() || [];
 
     if (!selectedFile) {
       toast.error("Please select a HEX file");
       return;
     }
 
-    if (selectedUnits.length === 0) {
-      toast.error("Please select at least one unit");
+    if (unitsToUpdate.length === 0) {
+      toast.error(
+        targetUnit
+          ? "Target unit not available"
+          : "Please select at least one unit"
+      );
       return;
     }
 
@@ -101,10 +113,10 @@ export function FirmwareUpdateDialog({ open, onOpenChange, onFirmwareUpdate }) {
     try {
       const hexContent = await selectedFile.text();
       const results = [];
-      const totalUnits = selectedUnits.length;
+      const totalUnits = unitsToUpdate.length;
 
-      for (let i = 0; i < selectedUnits.length; i++) {
-        const unit = selectedUnits[i];
+      for (let i = 0; i < unitsToUpdate.length; i++) {
+        const unit = unitsToUpdate[i];
         const unitProgress = (i / totalUnits) * 100;
 
         setCurrentStatus(
@@ -201,19 +213,41 @@ export function FirmwareUpdateDialog({ open, onOpenChange, onFirmwareUpdate }) {
             Update Firmware
           </DialogTitle>
           <DialogDescription>
-            Update firmware for selected network units
+            {targetUnit
+              ? `Update firmware for unit ${targetUnit.ip_address}/${targetUnit.id_can}`
+              : "Update firmware for selected network units"}
           </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-4">
-          {/* Network Units */}
-          <NetworkUnitSelector
-            selectedUnitIds={selectedUnitIds}
-            onSelectionChange={handleSelectionChange}
-            disabled={isUpdating}
-            ref={networkUnitSelectorRef}
-            height="h-40"
-          />
+          {/* Network Units - only show when no target unit */}
+          {!targetUnit && (
+            <NetworkUnitSelector
+              selectedUnitIds={selectedUnitIds}
+              onSelectionChange={handleSelectionChange}
+              disabled={isUpdating}
+              ref={networkUnitSelectorRef}
+              height="h-40"
+            />
+          )}
+
+          {/* Target Unit Info - show when target unit is specified */}
+          {targetUnit && (
+            <div className="p-4 border rounded-lg bg-muted/50">
+              <div className="flex items-center gap-2 mb-2">
+                <Monitor className="h-4 w-4 text-muted-foreground" />
+                <span className="text-sm font-medium">Target Unit</span>
+              </div>
+              <div className="text-sm text-muted-foreground">
+                <div>IP Address: {targetUnit.ip_address}</div>
+                <div>CAN ID: {targetUnit.id_can}</div>
+                <div>Type: {targetUnit.type}</div>
+                {targetUnit.firmware_version && (
+                  <div>Current Firmware: v{targetUnit.firmware_version}</div>
+                )}
+              </div>
+            </div>
+          )}
 
           {/* File Selection */}
           <div>

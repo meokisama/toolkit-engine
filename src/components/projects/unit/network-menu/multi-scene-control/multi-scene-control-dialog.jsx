@@ -22,6 +22,13 @@ import {
 } from "@/components/ui/popover";
 import { toast } from "sonner";
 import { DeleteMultiSceneDialog } from "./delete-multi-scene-popover";
+import { CONSTANTS } from "@/constants";
+
+// Helper function to get multi-scene type label
+const getMultiSceneTypeLabel = (type) => {
+  const typeObj = CONSTANTS.MULTI_SCENES.TYPES.find((t) => t.value === type);
+  return typeObj ? typeObj.label : `Type ${type}`;
+};
 
 // Initial state for better state management
 const initialState = {
@@ -58,7 +65,8 @@ const MultiSceneCard = memo(({ multiScene, onTrigger, onDelete, loading }) => (
             <span className="font-bold">Address:</span>{" "}
             {multiScene.multiSceneAddress}
             <span className="mx-1"> | </span>
-            <span className="font-bold">Type:</span> {multiScene.multiSceneType}
+            <span className="font-bold">Type:</span>{" "}
+            {getMultiSceneTypeLabel(multiScene.multiSceneType)}
           </div>
         </CardTitle>
 

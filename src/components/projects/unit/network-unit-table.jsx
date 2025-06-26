@@ -282,8 +282,15 @@ export function NetworkUnitTable({ onTransferToDatabase, existingUnits = [] }) {
     }
   };
 
-  // Handle firmware update
+  // Handle firmware update from toolbar (bulk)
   const handleFirmwareUpdate = () => {
+    setSelectedUnit(null); // No specific unit selected
+    setFirmwareUpdateDialogOpen(true);
+  };
+
+  // Handle firmware update from context menu (specific unit)
+  const handleFirmwareUpdateForUnit = (unit) => {
+    setSelectedUnit(unit);
     setFirmwareUpdateDialogOpen(true);
   };
 
@@ -444,7 +451,7 @@ export function NetworkUnitTable({ onTransferToDatabase, existingUnits = [] }) {
                 onMultiSceneControl={{
                   onTriggerMultiScene: handleTriggerMultiScene,
                 }}
-                onFirmwareUpdate={handleFirmwareUpdate}
+                onFirmwareUpdate={handleFirmwareUpdateForUnit}
                 enableRowSelection={true}
               />
               {networkTable && <DataTablePagination table={networkTable} />}
@@ -514,6 +521,7 @@ export function NetworkUnitTable({ onTransferToDatabase, existingUnits = [] }) {
           open={firmwareUpdateDialogOpen}
           onOpenChange={setFirmwareUpdateDialogOpen}
           onFirmwareUpdate={handleFirmwareUpdateComplete}
+          targetUnit={selectedUnit}
         />
 
         <SendAllConfigDialog

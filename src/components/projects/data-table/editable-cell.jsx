@@ -1,10 +1,10 @@
 "use client";
 
-import React, { useState, useRef, useEffect, useCallback } from "react";
+import React, { useState, useRef, useEffect, useCallback, memo } from "react";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 
-export function EditableCell({
+export const EditableCell = memo(function EditableCell({
   value,
   type = "text",
   onSave,
@@ -90,4 +90,4 @@ export function EditableCell({
   }
 
   return inputElement;
-}
+});
