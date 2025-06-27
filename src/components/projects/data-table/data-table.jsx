@@ -133,6 +133,9 @@ export function DataTable({
       // Disable auto reset to preserve pagination state when data changes
       autoResetPageIndex: false,
       autoResetRowSelection: false,
+      meta: {
+        onIOConfig,
+      },
       state: {
         sorting,
         columnFilters,
@@ -150,6 +153,7 @@ export function DataTable({
       rowSelection,
       pagination,
       enableRowSelection,
+      onIOConfig,
     ]
   );
 

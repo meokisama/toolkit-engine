@@ -4,6 +4,9 @@
 
 import { getUnitIOSpec, getOutputTypes } from '@/constants';
 
+// Re-export functions from constants for convenience
+export { getUnitIOSpec, getOutputTypes };
+
 /**
  * Get output label for display
  * @param {string} type - Output type ('relay', 'dimmer', 'ao', 'ac')

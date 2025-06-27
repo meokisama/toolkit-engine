@@ -361,7 +361,9 @@ export function FirmwareUpdateDialog({
           <Button
             onClick={handleUpdateFirmware}
             disabled={
-              !selectedFile || isUpdating || selectedUnitIds.length === 0
+              !selectedFile ||
+              isUpdating ||
+              (!targetUnit && selectedUnitIds.length === 0)
             }
           >
             {isUpdating ? "Updating..." : "Update Firmware"}

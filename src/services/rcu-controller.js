@@ -37,7 +37,28 @@ const PROTOCOL = {
   LIGHTING: {
     CMD1: 10,
     CMD2: {
+      SETUP_INPUT: 0,
+      SETUP_INPUT_TYPE: 1,
+      SETUP_RAMPT_TIME: 2,
+      SETUP_PRESET_INTENSITY: 3,
+      SETUP_MODE_INPUT: 4,
+      SETUP_TIME_INPUT: 5,
+      DELAY_OFF_INPUT: 6,
+      DELAY_ON_INPUT: 7,
+      ASSIGN_INPUT_TO_GROUP: 8,
+      GET_INPUT_INFOR: 9,
+      ASSIGN_OUTPUT_TO_GROUP: 20,
+      GET_OUTPUT_INFOR: 31,
+      DELAY_OFF_OUTPUT: 32,
+      DELAY_ON_OUTPUT: 33,
+      GET_OUTPUT_INFOR2: 34,
+      SET_OUTPUT_INFOR2: 35,
+      SETUP_LED_INDICATOR: 40,
+      ENABLE_BACK_LIGHT: 41,
+      SET_INPUT_STATE: 60,
+      SET_OUTPUT_STATE: 61,
       SET_GROUP_STATE: 62,
+      GET_INPUT_STATE: 63,
       GET_OUTPUT_STATE: 64,
       GET_GROUP_STATE: 65,
     },
@@ -88,6 +109,7 @@ const validators = {
   },
   group: (group) => validators.range(group, 1, 255, "Group number"),
   value: (value) => validators.range(value, 0, 255, "Value"),
+  outputIndex: (index) => validators.range(index, 0, 255, "Output index"),
   sceneIndex: (index) => validators.range(index, 0, 99, "Scene index"),
   scheduleIndex: (index) => validators.range(index, 0, 31, "Schedule index"),
   multiSceneIndex: (index) =>
@@ -407,6 +429,17 @@ async function setGroupState(unitIp, canId, group, value) {
   );
 }
 
+async function setOutputState(unitIp, canId, outputIndex, value) {
+  validators.outputIndex(outputIndex);
+  validators.value(value);
+  return sendLightingCommand(
+    unitIp,
+    canId,
+    PROTOCOL.LIGHTING.CMD2.SET_OUTPUT_STATE,
+    [outputIndex, value]
+  );
+}
+
 async function setMultipleGroupStates(unitIp, canId, groupSettings) {
   if (!Array.isArray(groupSettings) || groupSettings.length === 0) {
     throw new Error("Invalid input. Provide an array of [group, value] pairs");
@@ -444,12 +477,100 @@ async function getAllGroupStates(unitIp, canId) {
 }
 
 async function getAllOutputStates(unitIp, canId) {
-  return sendLightingCommand(
+  const idAddress = convertCanIdToInt(canId);
+
+  const response = await sendCommand(
     unitIp,
-    canId,
+    UDP_PORT,
+    idAddress,
+    PROTOCOL.LIGHTING.CMD1,
     PROTOCOL.LIGHTING.CMD2.GET_OUTPUT_STATE,
-    []
+    [], // No data for GET_OUTPUT_STATE
+    true // Skip status check for GET commands
   );
+
+  if (response && response.msg && response.msg.length >= 8) {
+    const data = response.msg.slice(8); // Skip header
+    const length = response.msg[4] | (response.msg[5] << 8);
+    const dataLength = length - 4; // Exclude cmd1, cmd2, and CRC
+
+    console.log("Output states response:", {
+      totalLength: response.msg.length,
+      dataLength: dataLength,
+      outputCount: dataLength,
+      data: Array.from(data.slice(0, dataLength))
+        .map((b) => b.toString())
+        .join(", ")
+    });
+
+    // Each byte represents the brightness value of one output channel
+    // Starting from output 0, each output has 1 byte brightness value
+    const outputStates = [];
+    for (let i = 0; i < dataLength; i++) {
+      outputStates.push({
+        outputIndex: i,
+        brightness: data[i], // 0-255 brightness value
+        isActive: data[i] > 0 // Consider output active if brightness > 0
+      });
+    }
+
+    return {
+      success: true,
+      outputCount: dataLength,
+      outputStates: outputStates
+    };
+  }
+
+  throw new Error("Invalid response from get output states command");
+}
+
+// Get Input States function - returns brightness values for all inputs
+async function getAllInputStates(unitIp, canId) {
+  const idAddress = convertCanIdToInt(canId);
+
+  const response = await sendCommand(
+    unitIp,
+    UDP_PORT,
+    idAddress,
+    PROTOCOL.LIGHTING.CMD1,
+    PROTOCOL.LIGHTING.CMD2.GET_INPUT_STATE,
+    [], // No data for GET_INPUT_STATE
+    true // Skip status check for GET commands
+  );
+
+  if (response && response.msg && response.msg.length >= 8) {
+    const data = response.msg.slice(8); // Skip header
+    const length = response.msg[4] | (response.msg[5] << 8);
+    const dataLength = length - 4; // Exclude cmd1, cmd2, and CRC
+
+    console.log("Input states response:", {
+      totalLength: response.msg.length,
+      dataLength: dataLength,
+      inputCount: dataLength,
+      data: Array.from(data.slice(0, dataLength))
+        .map((b) => b.toString())
+        .join(", ")
+    });
+
+    // Each byte represents the brightness value of one input channel
+    // Starting from input 0, each input has 1 byte brightness value
+    const inputStates = [];
+    for (let i = 0; i < dataLength; i++) {
+      inputStates.push({
+        inputIndex: i,
+        brightness: data[i], // 0-255 brightness value
+        isActive: data[i] > 0 // Consider input active if brightness > 0
+      });
+    }
+
+    return {
+      success: true,
+      inputCount: dataLength,
+      inputStates: inputStates
+    };
+  }
+
+  throw new Error("Invalid response from get input states command");
 }
 
 // Air Conditioner Functions
@@ -2541,7 +2662,7 @@ async function updateFirmware(
     }
 
     // Step 2: Process remaining HEX lines
-    
+
     firmwareCRC = 0;
 
     // Group complete lines into packets, ensuring total packet size <= 1024 bytes
@@ -2649,9 +2770,11 @@ async function updateFirmware(
 
 export {
   setGroupState,
+  setOutputState,
   setMultipleGroupStates,
   getAllGroupStates,
   getAllOutputStates,
+  getAllInputStates,
   // Air Conditioner functions
   getACStatus,
   getRoomTemp,

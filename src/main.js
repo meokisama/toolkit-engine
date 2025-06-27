@@ -4,9 +4,11 @@ import started from "electron-squirrel-startup";
 import DatabaseService from "./services/database.js";
 import {
   setGroupState,
+  setOutputState,
   setMultipleGroupStates,
   getAllGroupStates,
   getAllOutputStates,
+  getAllInputStates,
   getACStatus,
   getRoomTemp,
   setSettingRoomTemp,
@@ -1260,6 +1262,18 @@ function setupIpcHandlers() {
   );
 
   ipcMain.handle(
+    "rcu:setOutputState",
+    async (event, { canId, outputIndex, value, unitIp }) => {
+      try {
+        return await setOutputState(unitIp, canId, outputIndex, value);
+      } catch (error) {
+        console.error("Error setting output state:", error);
+        throw error;
+      }
+    }
+  );
+
+  ipcMain.handle(
     "rcu:setMultipleGroupStates",
     async (event, { canId, groupSettings, unitIp }) => {
       try {
@@ -1285,6 +1299,15 @@ function setupIpcHandlers() {
       return await getAllOutputStates(unitIp, canId);
     } catch (error) {
       console.error("Error getting output states:", error);
+      throw error;
+    }
+  });
+
+  ipcMain.handle("rcu:getAllInputStates", async (event, { canId, unitIp }) => {
+    try {
+      return await getAllInputStates(unitIp, canId);
+    } catch (error) {
+      console.error("Error getting input states:", error);
       throw error;
     }
   });

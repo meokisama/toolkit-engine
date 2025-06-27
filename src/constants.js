@@ -226,7 +226,7 @@ export const CONSTANTS = {
         outputs: {
           relay: 16,
           dimmer: 0,
-          ao: 0,
+          ao: 4,
           ac: 10,
         },
         inputFunctions: {
@@ -716,14 +716,14 @@ export const getUnitIOSpec = (unitName) => {
   const unit = CONSTANTS.UNIT.TYPES.find((u) => u.name === unitName);
   return unit
     ? {
-        inputs: unit.inputs,
-        outputs: unit.outputs,
-        totalOutputs:
-          unit.outputs.relay +
-          unit.outputs.dimmer +
-          unit.outputs.ao +
-          unit.outputs.ac,
-      }
+      inputs: unit.inputs,
+      outputs: unit.outputs,
+      totalOutputs:
+        unit.outputs.relay +
+        unit.outputs.dimmer +
+        unit.outputs.ao +
+        unit.outputs.ac,
+    }
     : null;
 };
 
@@ -879,8 +879,6 @@ export const INPUT_TYPES = {
     { value: 100, name: "SCENE_TRIGGER", label: "Scene Trigger" },
     { value: 101, name: "SCENE_ON", label: "Scene On" },
     { value: 102, name: "SCENE_OFF", label: "Scene Off" },
-    { value: 103, name: "MULTI_SCENE", label: "Multi-Scene" },
-    { value: 104, name: "MULTI_SCENE_SEQ", label: "Multi-Scene Seq" },
     {
       value: 105,
       name: "TOGGLE_SCENE_TRIGGER",
@@ -888,6 +886,11 @@ export const INPUT_TYPES = {
     },
     { value: 106, name: "TOGGLE_SCENE_ON", label: "Toggle Scene On" },
     { value: 107, name: "TOGGLE_SCENE_OFF", label: "Toggle Scene Off" },
+
+  ],
+  MULTI_SCENES: [
+    { value: 103, name: "MULTI_SCENE", label: "Multi-Scene" },
+    { value: 104, name: "MULTI_SCENE_SEQ", label: "Multi-Scene Seq" },
     { value: 108, name: "TOGGLE_MULTI_SCENE", label: "Toggle-Multi Scene" },
     {
       value: 109,
@@ -924,6 +927,7 @@ const INPUT_FUNCTION_LISTS = {
     ...INPUT_TYPES.AIR_CONDITIONER,
     ...INPUT_TYPES.CURTAIN,
     ...INPUT_TYPES.SCENE,
+    ...INPUT_TYPES.MULTI_SCENES,
   ],
 };
 

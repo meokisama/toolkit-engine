@@ -236,6 +236,8 @@ export function MultiGroupConfigDialog({
             return "aircon";
           case "SCENE":
             return "scene";
+          case "MULTI_SCENES":
+            return "multi-scene";
           case "CURTAIN":
             return "curtain";
           case "ROOM":
@@ -259,6 +261,8 @@ export function MultiGroupConfigDialog({
         return projectItems?.aircon || [];
       case "scene":
         return projectItems?.scene || [];
+      case "multi-scene":
+        return projectItems?.multi_scenes || [];
       case "curtain":
         return projectItems?.curtain || [];
       case "lighting":
@@ -276,6 +280,8 @@ export function MultiGroupConfigDialog({
         return "Air Conditioner";
       case "scene":
         return "Scene";
+      case "multi-scene":
+        return "Multi-Scene";
       case "curtain":
         return "Curtain";
       case "lighting":
@@ -298,6 +304,9 @@ export function MultiGroupConfigDialog({
           break;
         case "scene":
           tabToLoad = "scene";
+          break;
+        case "multi-scene":
+          tabToLoad = "multi_scenes";
           break;
         case "curtain":
           tabToLoad = "curtain";

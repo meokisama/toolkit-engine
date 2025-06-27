@@ -35,6 +35,7 @@ import { TriggerKnxDialog } from "@/components/projects/unit/network-menu/knx-co
 import { TriggerMultiSceneDialog } from "@/components/projects/unit/network-menu/multi-scene-control/multi-scene-control-dialog";
 import { FirmwareUpdateDialog } from "@/components/projects/unit/network-menu/base/firmware-update-dialog";
 import { SendAllConfigDialog } from "@/components/projects/unit/network-menu/base/send-all-config-dialog";
+import NetworkIOConfigDialog from "@/components/projects/unit/common/network-io-config-dialog";
 import { udpScanner } from "@/services/udp";
 import { toast } from "sonner";
 
@@ -58,6 +59,8 @@ export function NetworkUnitTable({ onTransferToDatabase, existingUnits = [] }) {
   const [firmwareUpdateDialogOpen, setFirmwareUpdateDialogOpen] =
     useState(false);
   const [sendAllConfigDialogOpen, setSendAllConfigDialogOpen] = useState(false);
+  const [ioConfigDialogOpen, setIOConfigDialogOpen] = useState(false);
+  const [selectedUnitForIOConfig, setSelectedUnitForIOConfig] = useState(null);
   const [selectedUnit, setSelectedUnit] = useState(null);
 
   // Auto-load cached network units when component mounts
@@ -337,6 +340,12 @@ export function NetworkUnitTable({ onTransferToDatabase, existingUnits = [] }) {
     [networkTable]
   );
 
+  // Handle I/O Config
+  const handleIOConfig = (unit) => {
+    setSelectedUnitForIOConfig(unit);
+    setIOConfigDialogOpen(true);
+  };
+
   // Create columns for network units (read-only)
   const networkColumns = createNetworkUnitColumns();
 
@@ -452,6 +461,7 @@ export function NetworkUnitTable({ onTransferToDatabase, existingUnits = [] }) {
                   onTriggerMultiScene: handleTriggerMultiScene,
                 }}
                 onFirmwareUpdate={handleFirmwareUpdateForUnit}
+                onIOConfig={handleIOConfig}
                 enableRowSelection={true}
               />
               {networkTable && <DataTablePagination table={networkTable} />}
@@ -529,6 +539,12 @@ export function NetworkUnitTable({ onTransferToDatabase, existingUnits = [] }) {
           onOpenChange={setSendAllConfigDialogOpen}
           units={networkUnits}
           selectedUnits={selectedNetworkUnits}
+        />
+
+        <NetworkIOConfigDialog
+          open={ioConfigDialogOpen}
+          onOpenChange={setIOConfigDialogOpen}
+          item={selectedUnitForIOConfig}
         />
       </Card>
     </div>
