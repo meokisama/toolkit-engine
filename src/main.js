@@ -9,6 +9,7 @@ import {
   getAllGroupStates,
   getAllOutputStates,
   getAllInputStates,
+  getAllInputConfigs,
   getACStatus,
   getRoomTemp,
   setSettingRoomTemp,
@@ -1308,6 +1309,15 @@ function setupIpcHandlers() {
       return await getAllInputStates(unitIp, canId);
     } catch (error) {
       console.error("Error getting input states:", error);
+      throw error;
+    }
+  });
+
+  ipcMain.handle("rcu:getAllInputConfigs", async (event, { canId, unitIp }) => {
+    try {
+      return await getAllInputConfigs(unitIp, canId);
+    } catch (error) {
+      console.error("Error getting input configs:", error);
       throw error;
     }
   });

@@ -38,29 +38,15 @@ const PROTOCOL = {
     CMD1: 10,
     CMD2: {
       SETUP_INPUT: 0,
-      SETUP_INPUT_TYPE: 1,
-      SETUP_RAMPT_TIME: 2,
-      SETUP_PRESET_INTENSITY: 3,
-      SETUP_MODE_INPUT: 4,
-      SETUP_TIME_INPUT: 5,
-      DELAY_OFF_INPUT: 6,
-      DELAY_ON_INPUT: 7,
-      ASSIGN_INPUT_TO_GROUP: 8,
-      GET_INPUT_INFOR: 9,
-      ASSIGN_OUTPUT_TO_GROUP: 20,
+      GET_INPUT_CONFIG: 9,
       GET_OUTPUT_INFOR: 31,
-      DELAY_OFF_OUTPUT: 32,
-      DELAY_ON_OUTPUT: 33,
       GET_OUTPUT_INFOR2: 34,
       SET_OUTPUT_INFOR2: 35,
-      SETUP_LED_INDICATOR: 40,
-      ENABLE_BACK_LIGHT: 41,
-      SET_INPUT_STATE: 60,
       SET_OUTPUT_STATE: 61,
-      SET_GROUP_STATE: 62,
-      GET_INPUT_STATE: 63,
       GET_OUTPUT_STATE: 64,
+      SET_GROUP_STATE: 62,
       GET_GROUP_STATE: 65,
+      GET_INPUT_STATE: 63,
     },
   },
   AC: {
@@ -573,6 +559,225 @@ async function getAllInputStates(unitIp, canId) {
   throw new Error("Invalid response from get input states command");
 }
 
+// Get Input Configuration function - returns configuration for all inputs
+async function getAllInputConfigs(unitIp, canId) {
+  const idAddress = convertCanIdToInt(canId);
+
+  return new Promise((resolve, reject) => {
+    const dgram = require("dgram");
+    const client = dgram.createSocket("udp4");
+
+    let responses = [];
+    let responseCount = 0;
+    let successPacketReceived = false;
+
+    const timeout = setTimeout(() => {
+      client.close();
+      reject(
+        new Error(
+          `GET_INPUT_CONFIG timeout after 10s for ${unitIp}:${UDP_PORT}`
+        )
+      );
+    }, 10000); // 10 second timeout for input config
+
+    client.on("message", (msg, rinfo) => {
+      console.log(`Input config response ${responseCount + 1} from ${rinfo.address}`);
+      console.log(
+        "Raw packet:",
+        Array.from(msg)
+          .map((b) => b.toString(16).padStart(2, "0"))
+          .join(" ")
+          .toUpperCase()
+      );
+
+      try {
+        const result = processResponse(msg, PROTOCOL.LIGHTING.CMD1, PROTOCOL.LIGHTING.CMD2.GET_INPUT_CONFIG, true);
+
+        // Check if this is a success packet
+        const packetLength = msg[4] | (msg[5] << 8);
+        const dataSection = Array.from(msg.slice(8, 8 + packetLength - 4));
+        const isSuccessPacket =
+          packetLength === 5 &&
+          dataSection.length === 1 &&
+          dataSection[0] === 0x00;
+
+        if (isSuccessPacket) {
+          console.log("✅ Input config success packet received - all data transmitted successfully");
+          successPacketReceived = true;
+          clearTimeout(timeout);
+          client.close();
+
+          // Parse all input configurations
+          const parsedConfigs = responses.map((response, index) => {
+            return parseInputConfigResponse(response.msg, index);
+          });
+
+          resolve({ configs: parsedConfigs, successPacketReceived });
+        } else {
+          // This is a data packet, add to responses
+          responses.push({ msg, rinfo, result });
+          responseCount++;
+          console.log(`📦 Input config data packet ${responseCount} collected`);
+        }
+      } catch (error) {
+        console.error(`Error processing input config response ${responseCount + 1}:`, error);
+        console.error(
+          "Packet data:",
+          Array.from(msg)
+            .map((b) => b.toString(16).padStart(2, "0"))
+            .join(" ")
+        );
+        // Continue collecting other responses even if one fails
+      }
+    });
+
+    client.on("error", (err) => {
+      clearTimeout(timeout);
+      client.close();
+      reject(err);
+    });
+
+    try {
+      // Create command buffer similar to sendCommand
+      const idBuffer = Buffer.alloc(4);
+      idBuffer.writeUInt32LE(idAddress, 0);
+
+      const data = []; // No data needed for GET_INPUT_CONFIG
+      const len = 2 + 2 + data.length;
+      const packetArray = [];
+
+      packetArray.push(len & 0xff);
+      packetArray.push((len >> 8) & 0xff);
+      packetArray.push(PROTOCOL.LIGHTING.CMD1);
+      packetArray.push(PROTOCOL.LIGHTING.CMD2.GET_INPUT_CONFIG);
+
+      for (let i = 0; i < data.length; i++) {
+        packetArray.push(data[i]);
+      }
+
+      const crc = calculateCRC(packetArray);
+      packetArray.push(crc & 0xff);
+      packetArray.push((crc >> 8) & 0xff);
+
+      const packetBuffer = Buffer.from(packetArray);
+      const buffer = Buffer.concat([idBuffer, packetBuffer]);
+
+      console.log(`Sending GET_INPUT_CONFIG command to ${unitIp}:${UDP_PORT}`);
+      console.log(
+        "Command packet:",
+        Array.from(buffer)
+          .map((b) => b.toString(16).padStart(2, "0"))
+          .join(" ")
+          .toUpperCase()
+      );
+
+      client.send(buffer, 0, buffer.length, UDP_PORT, unitIp, (err) => {
+        if (err) {
+          console.error("Send error:", err);
+          clearTimeout(timeout);
+          client.close();
+          reject(err);
+        }
+      });
+    } catch (error) {
+      console.error("Command preparation error:", error);
+      clearTimeout(timeout);
+      client.close();
+      reject(error);
+    }
+  });
+}
+
+// Parse input configuration response packet
+function parseInputConfigResponse(msg, inputIndex) {
+  if (msg.length < 8) {
+    throw new Error("Input config response too short");
+  }
+
+  const data = Array.from(msg.slice(8)); // Convert to regular array to avoid Buffer deprecation
+  const length = msg[4] | (msg[5] << 8);
+  const dataLength = length - 4; // Exclude cmd1, cmd2, and CRC
+
+  if (dataLength < 39) {
+    throw new Error(`Input config data too short: ${dataLength} bytes, expected at least 39`);
+  }
+
+  // Parse according to the specified structure
+  const inputNumber = data[0];
+  const inputType = data[1];
+  const ramp = data[2];
+  const preset = data[3];
+  const ledStatus = data[4];
+  const autoMode = data[5];
+  // Bytes 6-33: Auto Time (28 bytes) - not supported yet
+  const delayOff = data[34] | (data[35] << 8); // 2 bytes
+  const delayOn = data[36] | (data[37] << 8); // 2 bytes
+  const groupCount = data[38];
+
+  // Parse LED status bits
+  const displayMode = ledStatus & 0x03; // Bits 0-1
+  const nightlight = (ledStatus & 0x10) !== 0; // Bit 4
+  const backlight = (ledStatus & 0x20) !== 0; // Bit 5
+
+  // Parse group data (starting from byte 39)
+  const groups = [];
+  let groupDataOffset = 39;
+
+  // For Key Card input (type 4), always expect 20 groups
+  const expectedGroups = inputType === 4 ? 20 : groupCount;
+
+  for (let i = 0; i < expectedGroups && groupDataOffset + 1 < dataLength; i++) {
+    const groupId = data[groupDataOffset];
+    const presetBrightness = data[groupDataOffset + 1];
+
+    // Only add groups with valid IDs (> 0)
+    if (groupId > 0) {
+      groups.push({
+        groupId: groupId,
+        presetBrightness: presetBrightness
+      });
+    }
+
+    groupDataOffset += 2;
+  }
+
+  const config = {
+    inputNumber: inputNumber,
+    inputType: inputType,
+    ramp: ramp,
+    preset: preset,
+    ledStatus: {
+      displayMode: displayMode,
+      nightlight: nightlight,
+      backlight: backlight,
+      raw: ledStatus
+    },
+    autoMode: autoMode,
+    delayOff: delayOff,
+    delayOn: delayOn,
+    groupCount: groupCount,
+    groups: groups,
+    isKeyCard: inputType === 4
+  };
+
+  console.log(`Input ${inputNumber} config:`, {
+    type: inputType,
+    ramp: ramp,
+    preset: preset,
+    ledDisplay: displayMode,
+    nightlight: nightlight,
+    backlight: backlight,
+    autoMode: autoMode,
+    delayOff: delayOff,
+    delayOn: delayOn,
+    groupCount: groupCount,
+    actualGroups: groups.length,
+    groups: groups
+  });
+
+  return config;
+}
+
 // Air Conditioner Functions
 async function getACStatus(unitIp, canId, group = 1) {
   const idAddress = convertCanIdToInt(canId);
@@ -1004,7 +1209,7 @@ async function sendCommandMultipleResponses(
         // Success packet format: <ID><length><cmd1><cmd2><0x00><crc>
         // Length should be 5 (cmd1 + cmd2 + data + crc = 1+1+1+2 = 5)
         const packetLength = msg[4] | (msg[5] << 8);
-        const dataSection = msg.slice(8, 8 + packetLength - 4); // Exclude cmd1, cmd2, and CRC
+        const dataSection = Array.from(msg.slice(8, 8 + packetLength - 4)); // Exclude cmd1, cmd2, and CRC
         const isSuccessPacket =
           packetLength === 5 &&
           dataSection.length === 1 &&
@@ -1388,6 +1593,103 @@ async function getMultiSceneInformation(unitIp, canId, multiSceneIndex = null) {
   throw new Error(
     "No response received from get multi-scene information command"
   );
+}
+
+// Setup Input Configuration function
+async function setupInputConfig(unitIp, canId, inputConfig) {
+  const idAddress = convertCanIdToInt(canId);
+
+  // Build data array according to SETUP_INPUT command structure
+  const data = [];
+
+  // Byte 0 - Input number (0-based)
+  data.push(inputConfig.inputNumber);
+
+  // Byte 1 - Input type
+  data.push(inputConfig.inputType || 0);
+
+  // Byte 2 - Ramp
+  data.push(inputConfig.ramp || 0);
+
+  // Byte 3 - Preset
+  data.push(inputConfig.preset || 255);
+
+  // Byte 4 - LED Status (calculated from display mode and flags)
+  data.push(inputConfig.ledStatus || 0);
+
+  // Byte 5 - Auto Mode
+  data.push(inputConfig.autoMode ? 1 : 0);
+
+  // Bytes 6-33 - Auto Time (28 bytes, not supported, default 0)
+  for (let i = 0; i < 28; i++) {
+    data.push(0);
+  }
+
+  // Bytes 34-35 - Delay Off (2 bytes, little endian)
+  const delayOff = inputConfig.delayOff || 0;
+  data.push(delayOff & 0xFF);
+  data.push((delayOff >> 8) & 0xFF);
+
+  // Bytes 36-37 - Delay On (2 bytes, not supported, default 0)
+  data.push(0);
+  data.push(0);
+
+  // Byte 38 - Number of groups
+  const groups = inputConfig.groups || [];
+  const isKeyCard = inputConfig.inputType === 4;
+  const groupCount = isKeyCard ? 20 : groups.length;
+  data.push(groupCount);
+
+  // Group data (2 bytes per group: Group ID + Preset brightness)
+  if (isKeyCard) {
+    // Key Card always has 20 groups
+    for (let i = 0; i < 20; i++) {
+      if (i < groups.length && groups[i]) {
+        data.push(groups[i].groupId || 0);
+        data.push(groups[i].presetBrightness || 0);
+      } else {
+        data.push(0); // Group ID 0 = unused
+        data.push(0); // Preset brightness
+      }
+    }
+  } else {
+    // Regular input with actual group count
+    for (let i = 0; i < groups.length; i++) {
+      data.push(groups[i].groupId || 0);
+      data.push(groups[i].presetBrightness || 0);
+    }
+  }
+
+  console.log(`Setting up input ${inputConfig.inputNumber} config:`, {
+    inputType: inputConfig.inputType,
+    ramp: inputConfig.ramp,
+    preset: inputConfig.preset,
+    ledStatus: inputConfig.ledStatus,
+    autoMode: inputConfig.autoMode,
+    delayOff: inputConfig.delayOff,
+    groupCount: groupCount,
+    actualGroups: groups.length,
+    isKeyCard: isKeyCard,
+    dataLength: data.length
+  });
+
+  try {
+    const response = await sendCommand(
+      unitIp,
+      UDP_PORT,
+      idAddress,
+      PROTOCOL.LIGHTING.CMD1,
+      PROTOCOL.LIGHTING.CMD2.SETUP_INPUT,
+      data,
+      false
+    );
+
+    console.log(`Input ${inputConfig.inputNumber} configuration sent successfully`);
+    return response;
+  } catch (error) {
+    console.error(`Failed to setup input ${inputConfig.inputNumber} config:`, error);
+    throw error;
+  }
 }
 
 // Get All Multi-Scenes Information function
@@ -2153,15 +2455,6 @@ async function setKnxConfig(unitIp, canId, knxConfig) {
   const dimmingGroupBytes = convertKnxAddressToHex(knxDimmingGroup);
   const valueGroupBytes = convertKnxAddressToHex(knxValueGroup);
 
-  // Build data packet according to specification:
-  // KNX Address: 2bytes (low byte, high byte)
-  // Type: 1byte
-  // Factor: 1byte
-  // FeedBack: 1byte
-  // 1byte memValueFlag = 0x00
-  // Reserve: 1byte 0x00
-  // rcu_group_value: 1byte
-  // 2 byte KNX switch group, 2 byte KNX dimming group, 2 byte KNX value group
   const data = [
     address & 0xff, // KNX Address low byte
     (address >> 8) & 0xff, // KNX Address high byte
@@ -2775,6 +3068,8 @@ export {
   getAllGroupStates,
   getAllOutputStates,
   getAllInputStates,
+  getAllInputConfigs,
+  setupInputConfig,
   // Air Conditioner functions
   getACStatus,
   getRoomTemp,

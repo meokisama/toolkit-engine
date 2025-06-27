@@ -112,25 +112,66 @@ export const useInputConfig = (item) => {
   );
 
   const handleSaveMultiGroupConfig = useCallback(
-    async (data, inputConfigs) => {
+    async (data, inputConfigs, setInputConfigs) => {
       if (!currentMultiGroupInput) return;
 
       try {
         const groups = data.groups || data;
         const rlcOptions = data.rlcOptions || {};
+        const inputType = data.inputType;
 
         const inputConfig = inputConfigs.find(
           (config) => config.index === currentMultiGroupInput.index
         );
 
-        await window.electronAPI.unit.saveInputConfig(
-          item.id,
-          currentMultiGroupInput.index,
-          inputConfig?.functionValue || 0,
-          inputConfig?.lightingId || null,
-          groups,
-          rlcOptions
-        );
+        // Check if this is a network unit (has ip/ip_address and canId/id_can)
+        const isNetworkUnit = (item.ip && item.canId) || (item.ip_address && item.id_can);
+
+        if (isNetworkUnit) {
+          // For network units, send SETUP_INPUT command via UDP
+          const { setupInputConfig } = await import("@/services/rcu-controller.js");
+
+          // Get IP and CAN ID (support both formats)
+          const unitIp = item.ip || item.ip_address;
+          const unitCanId = item.canId || item.id_can;
+
+          // Prepare input configuration data for SETUP_INPUT command
+          const inputConfigData = {
+            inputNumber: currentMultiGroupInput.index,
+            inputType: inputType !== undefined ? inputType : (inputConfig?.functionValue || 0),
+            ramp: rlcOptions.ramp || 0,
+            preset: rlcOptions.preset || 255,
+            ledStatus: rlcOptions.ledStatus || 0,
+            autoMode: rlcOptions.autoMode || false,
+            delayOff: rlcOptions.delayOff || 0,
+            groups: groups.map(group => ({
+              groupId: group.lightingId || 0,
+              presetBrightness: group.value || 0
+            }))
+          };
+
+          await setupInputConfig(unitIp, unitCanId, inputConfigData);
+          console.log(`Input ${currentMultiGroupInput.index} configuration sent to network unit ${unitIp}`);
+        } else {
+          // For database units, save to database
+          await window.electronAPI.unit.saveInputConfig(
+            item.id,
+            currentMultiGroupInput.index,
+            inputType !== undefined ? inputType : (inputConfig?.functionValue || 0),
+            inputConfig?.lightingId || null,
+            groups,
+            rlcOptions
+          );
+        }
+
+        // Update input configs if input type changed
+        if (inputType !== undefined && setInputConfigs) {
+          setInputConfigs(prev => prev.map(config =>
+            config.index === currentMultiGroupInput.index
+              ? { ...config, functionValue: inputType }
+              : config
+          ));
+        }
 
         setMultiGroupConfigs((prev) => ({
           ...prev,
@@ -145,7 +186,7 @@ export const useInputConfig = (item) => {
         console.error("Failed to save input config:", error);
       }
     },
-    [currentMultiGroupInput, item?.id]
+    [currentMultiGroupInput, item?.id, item?.ip, item?.canId, item?.ip_address, item?.id_can]
   );
 
   return {

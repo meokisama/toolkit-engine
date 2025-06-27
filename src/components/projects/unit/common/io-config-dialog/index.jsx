@@ -164,9 +164,9 @@ const IOConfigDialogComponent = ({ open, onOpenChange, item = null }) => {
 
   const handleSaveMultiGroupConfigWithState = useCallback(
     async (data) => {
-      await handleSaveMultiGroupConfig(data, inputConfigs);
+      await handleSaveMultiGroupConfig(data, inputConfigs, setInputConfigs);
     },
-    [handleSaveMultiGroupConfig, inputConfigs]
+    [handleSaveMultiGroupConfig, inputConfigs, setInputConfigs]
   );
 
   // Performance monitoring: Log warning for large lists
@@ -237,8 +237,12 @@ const IOConfigDialogComponent = ({ open, onOpenChange, item = null }) => {
                               key={config.index}
                               config={config}
                               unitType={item?.type}
-                              onInputFunctionChange={handleInputFunctionChangeWithState}
-                              onOpenMultiGroupConfig={handleOpenMultiGroupConfig}
+                              onInputFunctionChange={
+                                handleInputFunctionChangeWithState
+                              }
+                              onOpenMultiGroupConfig={
+                                handleOpenMultiGroupConfig
+                              }
                             />
                           ))}
                         </div>
@@ -273,8 +277,12 @@ const IOConfigDialogComponent = ({ open, onOpenChange, item = null }) => {
                               deviceOptions={
                                 outputDeviceOptionsMap.get(config.index) || []
                               }
-                              onOutputDeviceChange={handleOutputDeviceChangeWithState}
-                              onOpenOutputConfig={handleOpenOutputConfigWithState}
+                              onOutputDeviceChange={
+                                handleOutputDeviceChangeWithState
+                              }
+                              onOpenOutputConfig={
+                                handleOpenOutputConfigWithState
+                              }
                               isLoadingConfig={false}
                             />
                           ))}

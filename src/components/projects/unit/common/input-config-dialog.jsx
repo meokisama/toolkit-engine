@@ -180,6 +180,7 @@ export function MultiGroupConfigDialog({
     useProjectDetail();
   const [selectedGroups, setSelectedGroups] = useState([]);
   const [usePercentage, setUsePercentage] = useState(false);
+  const [currentInputType, setCurrentInputType] = useState(functionValue);
 
   // RLC Options state
   const [rlcOptions, setRlcOptions] = useState({
@@ -252,9 +253,45 @@ export function MultiGroupConfigDialog({
     return "lighting";
   }, []);
 
+  // Get available input types for combobox
+  const availableInputTypes = useMemo(() => {
+    const allTypes = [];
+
+    // Add unused option
+    allTypes.push({ value: 0, label: "Unused", name: "IP_UNUSED" });
+
+    // Add all input types from constants
+    Object.values(INPUT_TYPES).forEach((categoryTypes) => {
+      categoryTypes.forEach((type) => {
+        allTypes.push({
+          value: type.value,
+          label: type.label,
+          name: type.name,
+        });
+      });
+    });
+
+    // Remove duplicates and sort by value
+    const uniqueTypes = allTypes.filter(
+      (type, index, self) =>
+        index === self.findIndex((t) => t.value === type.value)
+    );
+
+    return uniqueTypes.sort((a, b) => a.value - b.value);
+  }, []);
+
+  // Handle input type change
+  const handleInputTypeChange = useCallback((newValue) => {
+    const numValue = parseInt(newValue);
+    setCurrentInputType(numValue);
+
+    // Clear selected groups when input type changes
+    setSelectedGroups([]);
+  }, []);
+
   // Load appropriate items from projectItems based on function type
   const availableItems = useMemo(() => {
-    const groupType = getGroupTypeFromFunction(functionValue);
+    const groupType = getGroupTypeFromFunction(currentInputType);
 
     switch (groupType) {
       case "aircon":
@@ -269,11 +306,11 @@ export function MultiGroupConfigDialog({
       default:
         return projectItems?.lighting || [];
     }
-  }, [projectItems, functionValue, getGroupTypeFromFunction]);
+  }, [projectItems, currentInputType, getGroupTypeFromFunction]);
 
   // Get group type label for UI display
   const groupTypeLabel = useMemo(() => {
-    const groupType = getGroupTypeFromFunction(functionValue);
+    const groupType = getGroupTypeFromFunction(currentInputType);
 
     switch (groupType) {
       case "aircon":
@@ -288,7 +325,7 @@ export function MultiGroupConfigDialog({
       default:
         return "Lighting";
     }
-  }, [functionValue, getGroupTypeFromFunction]);
+  }, [currentInputType, getGroupTypeFromFunction]);
 
   // Load required data based on input function type
   const loadRequiredDataForFunction = useCallback(
@@ -332,26 +369,26 @@ export function MultiGroupConfigDialog({
 
   // Determine which RLC options should be enabled based on function
   const rlcOptionsConfig = useMemo(() => {
-    if (functionValue !== null) {
-      const inputFunction = getInputFunctionByValue(functionValue);
+    if (currentInputType !== null) {
+      const inputFunction = getInputFunctionByValue(currentInputType);
       if (inputFunction) {
         return getRlcOptionsConfig(inputFunction.name, unitType);
       }
     }
     // Default configuration if no function is specified
     return getRlcOptionsConfig(null, unitType);
-  }, [functionValue, unitType]);
+  }, [currentInputType, unitType]);
 
   // Check if current function is a multiple group function
   const isMultipleGroupFunction = useMemo(() => {
-    if (functionValue !== null) {
-      const inputFunction = getInputFunctionByValue(functionValue);
+    if (currentInputType !== null) {
+      const inputFunction = getInputFunctionByValue(currentInputType);
       if (inputFunction) {
         return rlcOptionsConfig.multiGroupEnabled;
       }
     }
     return false;
-  }, [functionValue, rlcOptionsConfig.multiGroupEnabled]);
+  }, [currentInputType, rlcOptionsConfig.multiGroupEnabled]);
 
   // Prepare combobox options for the appropriate group type
   const groupOptions = useMemo(() => {
@@ -386,6 +423,9 @@ export function MultiGroupConfigDialog({
       initialRlcOptions !== null &&
       initialRlcOptions !== undefined
     ) {
+      // Initialize current input type
+      setCurrentInputType(functionValue);
+
       // Initialize with enhanced data structure including preset values
       const enhancedGroups = (initialGroups || []).map((group) => ({
         lightingId: group.lightingId,
@@ -445,6 +485,7 @@ export function MultiGroupConfigDialog({
     const saveData = {
       // Only include groups if this is a multiple group function
       groups: isMultipleGroupFunction ? selectedGroups : [],
+      inputType: currentInputType,
       rlcOptions: {
         ramp: rlcOptions.ramp,
         preset: rlcOptions.preset,
@@ -458,6 +499,7 @@ export function MultiGroupConfigDialog({
     handleClose();
   }, [
     selectedGroups,
+    currentInputType,
     rlcOptions,
     isMultipleGroupFunction,
     onSave,
@@ -633,8 +675,8 @@ export function MultiGroupConfigDialog({
           </DialogTitle>
           <DialogDescription id="multi-group-description">
             {isMultipleGroupFunction
-              ? `Configure multiple ${groupTypeLabel.toLowerCase()} groups and RLC options for ${inputName} - ${functionName}`
-              : `Configure RLC options for ${inputName} - ${functionName}`}
+              ? `Configure multiple ${groupTypeLabel.toLowerCase()} groups and RLC options for ${inputName}`
+              : `Configure RLC options for ${inputName}`}
           </DialogDescription>
         </DialogHeader>
 
@@ -719,6 +761,23 @@ export function MultiGroupConfigDialog({
           </>
         ) : (
           <>
+            {/* Input Type Selection */}
+            <div className="mb-4">
+              <Label className="text-sm font-medium mb-2 block">
+                Input Type
+              </Label>
+              <Combobox
+                value={currentInputType?.toString() || "0"}
+                onValueChange={handleInputTypeChange}
+                options={availableInputTypes.map((type) => ({
+                  value: type.value.toString(),
+                  label: type.label,
+                }))}
+                placeholder="Select input type..."
+                className="w-full"
+              />
+            </div>
+
             {/* Percentage Toggle - Only show for multiple group functions */}
             {isMultipleGroupFunction && (
               <div className="flex items-center space-x-2 mb-4">

@@ -266,6 +266,8 @@ contextBridge.exposeInMainWorld("electronAPI", {
       ipcRenderer.invoke("rcu:getAllOutputStates", params),
     getAllInputStates: (params) =>
       ipcRenderer.invoke("rcu:getAllInputStates", params),
+    getAllInputConfigs: (params) =>
+      ipcRenderer.invoke("rcu:getAllInputConfigs", params),
     // Air Conditioner Control
     getACStatus: (params) => ipcRenderer.invoke("rcu:getACStatus", params),
     getRoomTemp: (params) => ipcRenderer.invoke("rcu:getRoomTemp", params),
