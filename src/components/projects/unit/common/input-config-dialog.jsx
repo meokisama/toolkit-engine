@@ -44,6 +44,7 @@ import {
   parseLedStatus,
   getRlcOptionsConfig,
   getInputFunctionByValue,
+  INPUT_TYPES,
 } from "@/constants";
 
 // Memoized group item component for better performance
@@ -53,6 +54,8 @@ const GroupItem = memo(
     index,
     lightingItem,
     lightingOptions,
+    groupOptions,
+    groupTypeLabel,
     usePercentage,
     onGroupChange,
     onValueChange,
@@ -88,11 +91,15 @@ const GroupItem = memo(
               : `Group ${index + 1}`}
           </Label>
           <Combobox
-            options={lightingOptions}
+            options={groupOptions || lightingOptions}
             value={group.lightingId?.toString() || ""}
             onValueChange={handleGroupChange}
-            placeholder="Select lighting group..."
-            emptyText="No lighting found"
+            placeholder={`Select ${
+              groupTypeLabel?.toLowerCase() || "lighting"
+            } group...`}
+            emptyText={`No ${
+              groupTypeLabel?.toLowerCase() || "lighting"
+            } found`}
           />
         </div>
         <div className="w-24 space-y-2">
@@ -169,7 +176,8 @@ export function MultiGroupConfigDialog({
   isLoading = false,
   onSave = () => {},
 }) {
-  const { projectItems } = useProjectDetail();
+  const { projectItems, selectedProject, loadedTabs, loadTabData } =
+    useProjectDetail();
   const [selectedGroups, setSelectedGroups] = useState([]);
   const [usePercentage, setUsePercentage] = useState(false);
 
@@ -212,7 +220,103 @@ export function MultiGroupConfigDialog({
     };
   };
 
-  // Load lighting items from projectItems
+  // Helper function to determine group type based on input function using INPUT_TYPES
+  const getGroupTypeFromFunction = useCallback((functionValue) => {
+    if (!functionValue) return "lighting";
+
+    // Search through INPUT_TYPES to find which category the function belongs to
+    for (const [categoryKey, functions] of Object.entries(INPUT_TYPES)) {
+      const hasFunction = functions.some(
+        (func) => func.value === functionValue
+      );
+      if (hasFunction) {
+        // Map category keys to project item types
+        switch (categoryKey) {
+          case "AIR_CONDITIONER":
+            return "aircon";
+          case "SCENE":
+            return "scene";
+          case "CURTAIN":
+            return "curtain";
+          case "ROOM":
+          case "LIGHTING":
+          default:
+            return "lighting";
+        }
+      }
+    }
+
+    // Default to lighting if not found in any category
+    return "lighting";
+  }, []);
+
+  // Load appropriate items from projectItems based on function type
+  const availableItems = useMemo(() => {
+    const groupType = getGroupTypeFromFunction(functionValue);
+
+    switch (groupType) {
+      case "aircon":
+        return projectItems?.aircon || [];
+      case "scene":
+        return projectItems?.scene || [];
+      case "curtain":
+        return projectItems?.curtain || [];
+      case "lighting":
+      default:
+        return projectItems?.lighting || [];
+    }
+  }, [projectItems, functionValue, getGroupTypeFromFunction]);
+
+  // Get group type label for UI display
+  const groupTypeLabel = useMemo(() => {
+    const groupType = getGroupTypeFromFunction(functionValue);
+
+    switch (groupType) {
+      case "aircon":
+        return "Air Conditioner";
+      case "scene":
+        return "Scene";
+      case "curtain":
+        return "Curtain";
+      case "lighting":
+      default:
+        return "Lighting";
+    }
+  }, [functionValue, getGroupTypeFromFunction]);
+
+  // Load required data based on input function type
+  const loadRequiredDataForFunction = useCallback(
+    async (functionValue) => {
+      if (!selectedProject || !functionValue) return;
+
+      const groupType = getGroupTypeFromFunction(functionValue);
+      let tabToLoad = null;
+
+      switch (groupType) {
+        case "aircon":
+          tabToLoad = "aircon";
+          break;
+        case "scene":
+          tabToLoad = "scene";
+          break;
+        case "curtain":
+          tabToLoad = "curtain";
+          break;
+        case "lighting":
+        default:
+          tabToLoad = "lighting";
+          break;
+      }
+
+      // Load data if not already loaded
+      if (tabToLoad && !loadedTabs.has(tabToLoad)) {
+        await loadTabData(selectedProject.id, tabToLoad);
+      }
+    },
+    [selectedProject, loadedTabs, loadTabData, getGroupTypeFromFunction]
+  );
+
+  // Legacy support - keep lightingItems for backward compatibility
   const lightingItems = useMemo(() => {
     return projectItems?.lighting || [];
   }, [projectItems]);
@@ -240,13 +344,28 @@ export function MultiGroupConfigDialog({
     return false;
   }, [functionValue, rlcOptionsConfig.multiGroupEnabled]);
 
-  // Prepare combobox options
+  // Prepare combobox options for the appropriate group type
+  const groupOptions = useMemo(() => {
+    return availableItems.map((item) => ({
+      value: item.id.toString(),
+      label: `${item.name || "Unnamed"} (${item.address})`,
+    }));
+  }, [availableItems]);
+
+  // Legacy support - keep lightingOptions for backward compatibility
   const lightingOptions = useMemo(() => {
     return lightingItems.map((item) => ({
       value: item.id.toString(),
       label: `${item.name || "Unnamed"} (${item.address})`,
     }));
   }, [lightingItems]);
+
+  // Load required data when dialog opens
+  useEffect(() => {
+    if (open && functionValue) {
+      loadRequiredDataForFunction(functionValue);
+    }
+  }, [open, functionValue, loadRequiredDataForFunction]);
 
   // Initialize selected groups and RLC options
   useEffect(() => {
@@ -381,19 +500,19 @@ export function MultiGroupConfigDialog({
     [usePercentage]
   );
 
-  // Get available lighting groups (not yet selected)
-  const availableLightingGroups = useMemo(() => {
+  // Get available groups (not yet selected) - updated to use appropriate group type
+  const availableGroups = useMemo(() => {
     const selectedIds = new Set(
       selectedGroups.map((group) => group.lightingId).filter(Boolean)
     );
-    return lightingItems.filter((item) => !selectedIds.has(item.id));
-  }, [lightingItems, selectedGroups]);
+    return availableItems.filter((item) => !selectedIds.has(item.id));
+  }, [availableItems, selectedGroups]);
 
   // Add group from available list
   const handleAddFromAvailable = useCallback(
-    (lightingItem) => {
+    (groupItem) => {
       const newGroup = {
-        lightingId: lightingItem.id,
+        lightingId: groupItem.id, // Keep the same field name for backward compatibility
         value: usePercentage ? "100%" : "255",
         preset: 255, // Default to max brightness
         presetPercent: 100,
@@ -405,14 +524,14 @@ export function MultiGroupConfigDialog({
 
   // Add all available groups
   const handleAddAllGroups = useCallback(() => {
-    const newGroups = availableLightingGroups.map((item) => ({
+    const newGroups = availableGroups.map((item) => ({
       lightingId: item.id,
       value: usePercentage ? "100%" : "255",
       preset: 255,
       presetPercent: 100,
     }));
     setSelectedGroups((prev) => [...prev, ...newGroups]);
-  }, [availableLightingGroups, usePercentage]);
+  }, [availableGroups, usePercentage]);
 
   // Clear all groups
   const handleClearAllGroups = useCallback(() => {
@@ -505,7 +624,7 @@ export function MultiGroupConfigDialog({
           </DialogTitle>
           <DialogDescription id="multi-group-description">
             {isMultipleGroupFunction
-              ? `Configure multiple lighting groups and RLC options for ${inputName} - ${functionName}`
+              ? `Configure multiple ${groupTypeLabel.toLowerCase()} groups and RLC options for ${inputName} - ${functionName}`
               : `Configure RLC options for ${inputName} - ${functionName}`}
           </DialogDescription>
         </DialogHeader>
@@ -860,7 +979,7 @@ export function MultiGroupConfigDialog({
                         variant="outline"
                         size="sm"
                         onClick={handleAddAllGroups}
-                        disabled={availableLightingGroups.length === 0}
+                        disabled={availableGroups.length === 0}
                         className="flex items-center gap-1"
                       >
                         <Copy className="h-3 w-3" />
@@ -883,9 +1002,13 @@ export function MultiGroupConfigDialog({
                       <ScrollArea className="h-[400px]">
                         <div className="space-y-3 pr-4">
                           {selectedGroups.map((group, index) => {
-                            const lightingItem = lightingItems.find(
-                              (item) => item.id === group.lightingId
-                            );
+                            const lightingItem =
+                              availableItems.find(
+                                (item) => item.id === group.lightingId
+                              ) ||
+                              lightingItems.find(
+                                (item) => item.id === group.lightingId
+                              );
                             return (
                               <GroupItem
                                 key={index}
@@ -893,6 +1016,8 @@ export function MultiGroupConfigDialog({
                                 index={index}
                                 lightingItem={lightingItem}
                                 lightingOptions={lightingOptions}
+                                groupOptions={groupOptions}
+                                groupTypeLabel={groupTypeLabel}
                                 usePercentage={usePercentage}
                                 onGroupChange={handleGroupChange}
                                 onValueChange={handleValueChange}
@@ -909,8 +1034,8 @@ export function MultiGroupConfigDialog({
                           No Groups Selected
                         </p>
                         <p className="text-sm mb-4">
-                          Select lighting groups from the available list on the
-                          right.
+                          Select {groupTypeLabel.toLowerCase()} groups from the
+                          available list on the right.
                         </p>
                       </div>
                     )}
@@ -921,17 +1046,17 @@ export function MultiGroupConfigDialog({
                 <Card>
                   <CardHeader>
                     <CardTitle className="text-base">
-                      Available Groups
+                      Available {groupTypeLabel} Groups
                       <Badge variant="outline" className="ml-2">
-                        {availableLightingGroups.length} Available
+                        {availableGroups.length} Available
                       </Badge>
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
                     <ScrollArea className="h-[400px]">
                       <div className="space-y-2 pr-4">
-                        {availableLightingGroups.length > 0 ? (
-                          availableLightingGroups.map((item) => (
+                        {availableGroups.length > 0 ? (
+                          availableGroups.map((item) => (
                             <AvailableGroupItem
                               key={item.id}
                               item={item}
@@ -942,7 +1067,8 @@ export function MultiGroupConfigDialog({
                           <div className="text-center text-muted-foreground py-8">
                             <p className="text-sm">No available groups</p>
                             <p className="text-xs">
-                              All lighting groups have been selected
+                              All {groupTypeLabel.toLowerCase()} groups have
+                              been selected
                             </p>
                           </div>
                         )}
