@@ -25,8 +25,6 @@ export const useNetworkIOConfig = (item, open, childDialogOpen = false) => {
     return item?.type ? getOutputTypes(item.type) : [];
   }, [item?.type]);
 
-
-
   // Function to read input states from the unit (silent background operation)
   const readInputStatesBackground = useCallback(async () => {
     if (!item?.ip_address || !item?.id_can) {
@@ -34,10 +32,12 @@ export const useNetworkIOConfig = (item, open, childDialogOpen = false) => {
     }
 
     try {
-      const response = await window.electronAPI.rcuController.getAllInputStates({
-        unitIp: item.ip_address,
-        canId: item.id_can,
-      });
+      const response = await window.electronAPI.rcuController.getAllInputStates(
+        {
+          unitIp: item.ip_address,
+          canId: item.id_can,
+        }
+      );
 
       if (response.success && response.inputStates) {
         // Update ref first to avoid re-renders
@@ -45,10 +45,10 @@ export const useNetworkIOConfig = (item, open, childDialogOpen = false) => {
           const stateData = response.inputStates[index];
           return stateData
             ? {
-              ...input,
-              brightness: stateData.brightness,
-              isActive: stateData.isActive,
-            }
+                ...input,
+                brightness: stateData.brightness,
+                isActive: stateData.isActive,
+              }
             : input;
         });
 
@@ -82,10 +82,11 @@ export const useNetworkIOConfig = (item, open, childDialogOpen = false) => {
     }
 
     try {
-      const response = await window.electronAPI.rcuController.getAllOutputStates({
-        unitIp: item.ip_address,
-        canId: item.id_can,
-      });
+      const response =
+        await window.electronAPI.rcuController.getAllOutputStates({
+          unitIp: item.ip_address,
+          canId: item.id_can,
+        });
 
       if (response.success && response.outputStates) {
         // Update ref first to avoid re-renders
@@ -93,10 +94,10 @@ export const useNetworkIOConfig = (item, open, childDialogOpen = false) => {
           const stateData = response.outputStates[index];
           return stateData
             ? {
-              ...output,
-              brightness: stateData.brightness,
-              state: stateData.isActive,
-            }
+                ...output,
+                brightness: stateData.brightness,
+                state: stateData.isActive,
+              }
             : output;
         });
 
@@ -130,25 +131,34 @@ export const useNetworkIOConfig = (item, open, childDialogOpen = false) => {
     }
 
     try {
-      console.log(`Reading input configurations from unit ${item.ip_address} (CAN ID: ${item.id_can})`);
+      console.log(
+        `Reading input configurations from unit ${item.ip_address} (CAN ID: ${item.id_can})`
+      );
 
-      const response = await window.electronAPI.rcuController.getAllInputConfigs({
-        unitIp: item.ip_address,
-        canId: item.id_can,
-      });
+      const response =
+        await window.electronAPI.rcuController.getAllInputConfigs({
+          unitIp: item.ip_address,
+          canId: item.id_can,
+        });
 
       if (response?.configs) {
-        console.log(`Received ${response.configs.length} input configurations from unit`);
+        console.log(
+          `Received ${response.configs.length} input configurations from unit`
+        );
 
         // Update input configs with actual function values from unit
         const updatedInputs = inputStatesRef.current.map((input, index) => {
-          const unitConfig = response.configs.find(config => config.inputNumber === index);
-          return unitConfig ? {
-            ...input,
-            functionValue: unitConfig.inputType || 0,
-            // Store additional config data for later use
-            unitConfig: unitConfig
-          } : input;
+          const unitConfig = response.configs.find(
+            (config) => config.inputNumber === index
+          );
+          return unitConfig
+            ? {
+                ...input,
+                functionValue: unitConfig.inputType || 0,
+                // Store additional config data for later use
+                unitConfig: unitConfig,
+              }
+            : input;
         });
 
         inputStatesRef.current = updatedInputs;
@@ -228,8 +238,6 @@ export const useNetworkIOConfig = (item, open, childDialogOpen = false) => {
       inputStatesRef.current = inputs;
       outputStatesRef.current = outputs;
 
-      // Step 1: Read input configurations from unit first
-      console.log("Step 1: Reading input configurations from unit...");
       const configsSuccess = await readInputConfigsFromUnit();
 
       if (configsSuccess) {
@@ -240,9 +248,6 @@ export const useNetworkIOConfig = (item, open, childDialogOpen = false) => {
 
       setConfigsLoaded(true);
       setIsInitialLoading(false);
-
-      // Step 2: Start auto-refresh for states after configs are loaded
-      console.log("Step 2: Starting auto-refresh for input/output states...");
 
       // Initial state read
       await readStatesSequentiallyRef.current();
@@ -295,9 +300,9 @@ export const useNetworkIOConfig = (item, open, childDialogOpen = false) => {
       isDialogOpenRef.current = true; // Re-enable the flag
       refreshIntervalRef.current = setInterval(() => {
         readStatesSequentiallyRef.current();
-      }, 2000); // Reduced frequency to improve performance
+      }, 2000);
     } else if (!open) {
-      console.log("🔄 Auto refresh NOT resumed - dialog is closed");
+      console.log("Auto refresh NOT resumed - dialog is closed");
     }
   }, [open, configsLoaded]);
 
@@ -311,6 +316,30 @@ export const useNetworkIOConfig = (item, open, childDialogOpen = false) => {
       resumeAutoRefresh();
     }
   }, [childDialogOpen, open, pauseAutoRefresh, resumeAutoRefresh]);
+
+  // Listen for global auto refresh control events
+  useEffect(() => {
+    const handlePauseAutoRefresh = (event) => {
+      pauseAutoRefresh();
+    };
+
+    const handleResumeAutoRefresh = (event) => {
+      if (open && !childDialogOpen) {
+        resumeAutoRefresh();
+      }
+    };
+
+    window.addEventListener("pauseAllAutoRefresh", handlePauseAutoRefresh);
+    window.addEventListener("resumeAllAutoRefresh", handleResumeAutoRefresh);
+
+    return () => {
+      window.removeEventListener("pauseAllAutoRefresh", handlePauseAutoRefresh);
+      window.removeEventListener(
+        "resumeAllAutoRefresh",
+        handleResumeAutoRefresh
+      );
+    };
+  }, [open, childDialogOpen, pauseAutoRefresh, resumeAutoRefresh]);
 
   // Cleanup effect when component unmounts
   useEffect(() => {

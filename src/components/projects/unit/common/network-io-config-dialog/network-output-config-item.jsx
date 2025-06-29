@@ -58,9 +58,6 @@ const NetworkOutputConfigItem = memo(
           <Label className="text-sm font-medium">
             {getDisplayName(config.type, config.index)}
           </Label>
-          <Badge variant="outline" className="text-xs">
-            {config.type.toUpperCase()}
-          </Badge>
         </div>
         <div className="flex items-center gap-2">
           <Combobox

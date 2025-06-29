@@ -166,42 +166,74 @@ export const useIOConfig = (item, open) => {
     setTimeout(initializeAsync, 50);
   }, [open, item, initialInputConfigs, initialOutputConfigs]);
 
-  const saveConfig = useCallback(async (updateItem) => {
-    if (!item) return false;
+  // Function to reload all input configs from database
+  const reloadAllInputConfigs = useCallback(async () => {
+    if (!item?.id || !ioSpec) return;
 
-    setLoading(true);
     try {
-      const ioConfig = {
-        inputs: inputConfigs.map((config) => ({
-          index: config.index,
-          function: config.functionValue,
-          lightingId: config.lightingId,
-        })),
-        outputs: outputConfigs.map((config) => ({
-          index: config.index,
-          name: config.name,
-          deviceId: config.deviceId,
-          deviceType: config.type === "ac" ? "aircon" : "lighting",
-        })),
-      };
+      const actualInputConfigs =
+        await window.electronAPI.unit.getAllInputConfigs(item.id);
 
-      if (!hasIOConfigChanges(originalIOConfig, ioConfig)) {
-        return true; // No changes
-      }
+      const updatedInputConfigs = inputConfigs.map((config) => {
+        const actualConfig = actualInputConfigs.find(
+          (actual) => actual.input_index === config.index
+        );
 
-      await updateItem("unit", item.id, {
-        ...item,
-        io_config: ioConfig,
+        if (actualConfig) {
+          return {
+            ...config,
+            lightingId: actualConfig.lighting_id,
+            functionValue: actualConfig.function_value || 0,
+          };
+        }
+        return config;
       });
 
-      return true;
+      setInputConfigs(updatedInputConfigs);
     } catch (error) {
-      console.error("Failed to save I/O configuration:", error);
-      return false;
-    } finally {
-      setLoading(false);
+      console.error("Failed to reload input configs:", error);
     }
-  }, [item, inputConfigs, outputConfigs, originalIOConfig]);
+  }, [item?.id, ioSpec, inputConfigs]);
+
+  const saveConfig = useCallback(
+    async (updateItem) => {
+      if (!item) return false;
+
+      setLoading(true);
+      try {
+        const ioConfig = {
+          inputs: inputConfigs.map((config) => ({
+            index: config.index,
+            function: config.functionValue,
+            lightingId: config.lightingId,
+          })),
+          outputs: outputConfigs.map((config) => ({
+            index: config.index,
+            name: config.name,
+            deviceId: config.deviceId,
+            deviceType: config.type === "ac" ? "aircon" : "lighting",
+          })),
+        };
+
+        if (!hasIOConfigChanges(originalIOConfig, ioConfig)) {
+          return true; // No changes
+        }
+
+        await updateItem("unit", item.id, {
+          ...item,
+          io_config: ioConfig,
+        });
+
+        return true;
+      } catch (error) {
+        console.error("Failed to save I/O configuration:", error);
+        return false;
+      } finally {
+        setLoading(false);
+      }
+    },
+    [item, inputConfigs, outputConfigs, originalIOConfig]
+  );
 
   return {
     inputConfigs,
@@ -214,5 +246,6 @@ export const useIOConfig = (item, open) => {
     isInitialLoading,
     saveConfig,
     getOutputLabel,
+    reloadAllInputConfigs,
   };
 };

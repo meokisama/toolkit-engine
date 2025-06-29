@@ -1,209 +1,443 @@
 import { useState, useCallback } from "react";
 import { toast } from "sonner";
+import { getInputFunctionByValue, INPUT_TYPES } from "@/constants";
 
-export const useNetworkInputConfig = (item) => {
+export const useNetworkInputConfig = (item, projectItems) => {
   const [multiGroupConfigs, setMultiGroupConfigs] = useState({});
   const [multiGroupDialogOpen, setMultiGroupDialogOpen] = useState(false);
   const [currentMultiGroupInput, setCurrentMultiGroupInput] = useState(null);
   const [inputConfigsFromUnit, setInputConfigsFromUnit] = useState({});
   const [loadingInputConfigs, setLoadingInputConfigs] = useState(false);
 
-  // Read input configuration from unit using GET_INPUT_CONFIG command
-  const readInputConfigFromUnit = useCallback(async (inputIndex = null) => {
-    if (!item?.ip_address || !item?.id_can) {
-      toast.error("Unit IP address or CAN ID not available");
-      return null;
-    }
+  // Helper function to determine group type based on input function using INPUT_TYPES
+  const getGroupTypeFromFunction = useCallback((functionValue) => {
+    if (!functionValue) return "lighting";
 
-    setLoadingInputConfigs(true);
-    try {
-      console.log(`Reading input config from unit ${item.ip_address} (CAN ID: ${item.id_can})`);
-
-      const response = await window.electronAPI.rcuController.getAllInputConfigs({
-        unitIp: item.ip_address,
-        canId: item.id_can,
-      });
-
-      if (response?.configs) {
-        console.log(`Received ${response.configs.length} input configurations from unit`);
-
-        // Convert array to object indexed by input number for easier access
-        const configsMap = {};
-        response.configs.forEach(config => {
-          configsMap[config.inputNumber] = config;
-        });
-
-        setInputConfigsFromUnit(configsMap);
-
-        // If specific input requested, return that config
-        if (inputIndex !== null && configsMap[inputIndex]) {
-          return configsMap[inputIndex];
+    // Search through INPUT_TYPES to find which category the function belongs to
+    for (const [categoryKey, functions] of Object.entries(INPUT_TYPES)) {
+      const hasFunction = functions.some(
+        (func) => func.value === functionValue
+      );
+      if (hasFunction) {
+        // Map category keys to project item types
+        switch (categoryKey) {
+          case "AIR_CONDITIONER":
+            return "aircon";
+          case "SCENE":
+            return "scene";
+          case "MULTI_SCENES":
+            return "multi-scene";
+          case "CURTAIN":
+            return "curtain";
+          case "ROOM":
+          case "LIGHTING":
+          default:
+            return "lighting";
         }
-
-        return configsMap;
-      } else {
-        throw new Error("No input configurations received from unit");
       }
-    } catch (error) {
-      console.error("Failed to read input config from unit:", error);
-      toast.error(`Failed to read input configuration: ${error.message}`);
-      return null;
-    } finally {
-      setLoadingInputConfigs(false);
     }
-  }, [item?.ip_address, item?.id_can]);
 
-  // Handle input function change
-  const handleInputFunctionChange = useCallback((inputIndex, functionValue) => {
-    // For network units, we don't save to database immediately
-    // This will be handled by the parent component's state management
-    console.log(`Input ${inputIndex} function changed to ${functionValue}`);
-
-    // TODO: Send command to network unit to update input function
-    // This will be implemented when data handling is added
-    toast.info(`Input ${inputIndex + 1} function updated (network mode)`);
+    // Default to lighting if function not found in any category
+    return "lighting";
   }, []);
 
-  // Handle opening multi-group configuration
-  const handleOpenMultiGroupConfig = useCallback(async (inputIndex, functionValue) => {
-    // Get function name from constants
-    const functionName = ""; // TODO: Get from constants based on functionValue
-
-    // Set initial state with loading
-    setCurrentMultiGroupInput({
-      index: inputIndex,
-      name: `Input ${inputIndex + 1}`,
-      functionName: functionName,
-      functionValue: functionValue,
-      isLoading: true,
-      config: multiGroupConfigs[inputIndex] || {
-        ramp: 0,
-        preset: 100,
-        led_status: 0,
-        auto_mode: 0,
-        auto_time: 0,
-        delay_off: 0,
-        delay_on: 0,
-        multiGroupConfig: []
-      }
-    });
-    setMultiGroupDialogOpen(true);
-
-    try {
-      // Check if we have cached config first
-      let unitConfig = inputConfigsFromUnit[inputIndex];
-
-      if (!unitConfig) {
-        // If not cached, try to read from unit
-        console.log(`No cached config for input ${inputIndex}, attempting to read from unit...`);
-        unitConfig = await readInputConfigFromUnit(inputIndex);
+  // Read input configuration from unit using GET_INPUT_CONFIG command
+  const readInputConfigFromUnit = useCallback(
+    async (inputIndex = null) => {
+      if (!item?.ip_address || !item?.id_can) {
+        toast.error("Unit IP address or CAN ID not available");
+        return null;
       }
 
-      if (unitConfig) {
-        // Convert unit config to multi-group config format
-        const convertedConfig = {
-          ramp: unitConfig.ramp || 0,
-          preset: unitConfig.preset || 100,
-          led_status: unitConfig.ledStatus?.raw || 0,
-          auto_mode: unitConfig.autoMode || 0,
-          auto_time: 0, // Auto time not supported yet
-          delay_off: unitConfig.delayOff || 0,
-          delay_on: unitConfig.delayOn || 0,
-          multiGroupConfig: unitConfig.groups?.map(group => ({
-            groupId: group.groupId,
-            presetBrightness: group.presetBrightness
-          })) || []
+      setLoadingInputConfigs(true);
+      try {
+        console.log(
+          `Reading input config from unit ${item.ip_address} (CAN ID: ${item.id_can})`
+        );
+
+        const response =
+          await window.electronAPI.rcuController.getAllInputConfigs({
+            unitIp: item.ip_address,
+            canId: item.id_can,
+          });
+
+        if (response?.configs) {
+          console.log(
+            `Received ${response.configs.length} input configurations from unit`
+          );
+
+          // Convert array to object indexed by input number for easier access
+          const configsMap = {};
+          response.configs.forEach((config) => {
+            configsMap[config.inputNumber] = config;
+          });
+
+          setInputConfigsFromUnit(configsMap);
+
+          // If specific input requested, return that config
+          if (inputIndex !== null && configsMap[inputIndex]) {
+            return configsMap[inputIndex];
+          }
+
+          return configsMap;
+        } else {
+          throw new Error("No input configurations received from unit");
+        }
+      } catch (error) {
+        console.error("Failed to read input config from unit:", error);
+        toast.error(`Failed to read input configuration: ${error.message}`);
+        return null;
+      } finally {
+        setLoadingInputConfigs(false);
+      }
+    },
+    [item?.ip_address, item?.id_can]
+  );
+
+  // Handle input function change
+  const handleInputFunctionChange = useCallback(
+    async (inputIndex, functionValue) => {
+      // For network units, we don't save to database immediately
+      // This will be handled by the parent component's state management
+      console.log(`Input ${inputIndex} function changed to ${functionValue}`);
+
+      // Send command to network unit to update input function
+      if (!item?.ip_address || !item?.id_can) {
+        toast.error("Unit IP address or CAN ID not available");
+        return;
+      }
+
+      try {
+        // Prepare basic input configuration with the new function value
+        const inputConfigData = {
+          inputNumber: inputIndex,
+          inputType: parseInt(functionValue) || 0,
+          ramp: 0,
+          preset: 255,
+          ledStatus: 0,
+          autoMode: false,
+          delayOff: 0,
+          groups: [], // Empty groups for function-only update
         };
 
-        // Update current input with actual config from unit
-        setCurrentMultiGroupInput(prev => ({
+        toast.info(`Updating input ${inputIndex + 1} function...`);
+
+        await window.electronAPI.rcuController.setupInputConfig({
+          unitIp: item.ip_address,
+          canId: item.id_can,
+          inputConfig: inputConfigData,
+        });
+
+        toast.success(`Input ${inputIndex + 1} function updated successfully`);
+      } catch (error) {
+        console.error(`Failed to update input ${inputIndex} function:`, error);
+        toast.error(`Failed to update input function: ${error.message}`);
+      }
+    },
+    [item?.ip_address, item?.id_can]
+  );
+
+  // Handle opening multi-group configuration
+  const handleOpenMultiGroupConfig = useCallback(
+    async (inputIndex, functionValue) => {
+      // Get function name from constants
+      const functionInfo = getInputFunctionByValue(parseInt(functionValue));
+      const functionName = functionInfo?.name || "UNKNOWN";
+
+      // Set initial state with loading
+      setCurrentMultiGroupInput({
+        index: inputIndex,
+        name: `Input ${inputIndex + 1}`,
+        functionName: functionName,
+        functionValue: functionValue,
+        isLoading: true,
+        config: multiGroupConfigs[inputIndex] || {
+          ramp: 0,
+          preset: 100,
+          led_status: 0,
+          auto_mode: 0,
+          auto_time: 0,
+          delay_off: 0,
+          delay_on: 0,
+          multiGroupConfig: [],
+        },
+      });
+      setMultiGroupDialogOpen(true);
+
+      try {
+        // Check if we have cached config first
+        let unitConfig = inputConfigsFromUnit[inputIndex];
+
+        if (!unitConfig) {
+          // If not cached, try to read from unit
+          console.log(
+            `No cached config for input ${inputIndex}, attempting to read from unit...`
+          );
+          unitConfig = await readInputConfigFromUnit(inputIndex);
+        }
+
+        if (unitConfig) {
+          // Convert unit config to multi-group config format
+          const convertedConfig = {
+            ramp: unitConfig.ramp || 0,
+            preset: unitConfig.preset || 100,
+            led_status: unitConfig.ledStatus?.raw || 0,
+            auto_mode: unitConfig.autoMode || 0,
+            auto_time: 0, // Auto time not supported yet
+            delay_off: unitConfig.delayOff || 0,
+            delay_on: unitConfig.delayOn || 0,
+            multiGroupConfig:
+              unitConfig.groups?.map((group) => ({
+                groupId: group.groupId,
+                presetBrightness: group.presetBrightness,
+              })) || [],
+          };
+
+          // Update current input with actual config from unit
+          setCurrentMultiGroupInput((prev) => ({
+            ...prev,
+            isLoading: false,
+            config: convertedConfig,
+          }));
+
+          // Cache the converted config
+          setMultiGroupConfigs((prev) => ({
+            ...prev,
+            [inputIndex]: convertedConfig,
+          }));
+
+          console.log(`Loaded input ${inputIndex} config:`, convertedConfig);
+        } else {
+          // Fallback to default config if reading from unit fails
+          console.log(`Using default config for input ${inputIndex}`);
+          setCurrentMultiGroupInput((prev) => ({
+            ...prev,
+            isLoading: false,
+          }));
+        }
+      } catch (error) {
+        console.error(`Failed to load input ${inputIndex} config:`, error);
+        setCurrentMultiGroupInput((prev) => ({
           ...prev,
           isLoading: false,
-          config: convertedConfig
-        }));
-
-        // Cache the converted config
-        setMultiGroupConfigs(prev => ({
-          ...prev,
-          [inputIndex]: convertedConfig
-        }));
-
-        console.log(`Loaded input ${inputIndex} config:`, convertedConfig);
-      } else {
-        // Fallback to default config if reading from unit fails
-        console.log(`Using default config for input ${inputIndex}`);
-        setCurrentMultiGroupInput(prev => ({
-          ...prev,
-          isLoading: false
         }));
       }
-    } catch (error) {
-      console.error(`Failed to load input ${inputIndex} config:`, error);
-      setCurrentMultiGroupInput(prev => ({
-        ...prev,
-        isLoading: false
-      }));
-    }
-  }, [multiGroupConfigs, inputConfigsFromUnit, readInputConfigFromUnit]);
+    },
+    [multiGroupConfigs, inputConfigsFromUnit, readInputConfigFromUnit]
+  );
 
   // Handle saving multi-group configuration
-  const handleSaveMultiGroupConfig = useCallback(async (data) => {
-    if (!currentMultiGroupInput) return false;
+  const handleSaveMultiGroupConfig = useCallback(
+    async (data) => {
+      console.log("🎯 Network handleSaveMultiGroupConfig called with:", {
+        data,
+        currentMultiGroupInput,
+        hasItem: !!item,
+      });
 
-    try {
-      const groups = data.groups || data;
-      const rlcOptions = data.rlcOptions || {};
+      if (!currentMultiGroupInput) {
+        console.error("❌ No current multi-group input selected");
+        return false;
+      }
 
-      // Update local state
-      setMultiGroupConfigs(prev => ({
-        ...prev,
-        [currentMultiGroupInput.index]: data
-      }));
+      try {
+        console.log("🔧 Starting network multi-group config save:", {
+          currentMultiGroupInput,
+          data,
+          item: {
+            ip_address: item?.ip_address,
+            id_can: item?.id_can,
+          },
+        });
 
-      // Send SETUP_INPUT configuration to network unit
-      if (item?.ip_address && item?.id_can) {
-        const { setupInputConfig } = await import("@/services/rcu-controller.js");
+        const groups = data.groups || data;
+        const rlcOptions = data.rlcOptions || {};
+        const inputType = data.inputType;
+
+        // Update local state
+        setMultiGroupConfigs((prev) => ({
+          ...prev,
+          [currentMultiGroupInput.index]: data,
+        }));
+
+        // Send SETUP_INPUT configuration to network unit
+        if (!item?.ip_address || !item?.id_can) {
+          throw new Error("Unit IP address or CAN ID not available");
+        }
+
+        console.log("📡 Sending to network unit...");
+
+        // Calculate delayOff in seconds
+        let delayOffSeconds = 0;
+        if (rlcOptions.delayOff && typeof rlcOptions.delayOff === "object") {
+          delayOffSeconds =
+            (rlcOptions.delayOff.hours || 0) * 3600 +
+            (rlcOptions.delayOff.minutes || 0) * 60 +
+            (rlcOptions.delayOff.seconds || 0);
+        } else if (typeof rlcOptions.delayOff === "number") {
+          delayOffSeconds = rlcOptions.delayOff;
+        }
+
+        // Calculate LED status byte from individual flags
+        let ledStatus = 0;
+        if (rlcOptions.ledStatus !== undefined) {
+          ledStatus = rlcOptions.ledStatus;
+        } else {
+          // Calculate from individual components
+          const displayMode = rlcOptions.ledDisplay || 0;
+          const nightlight = rlcOptions.nightlight ? 1 : 0;
+          const backlight = rlcOptions.backlight ? 1 : 0;
+
+          // LED Status byte format: [7:4] Display Mode, [3] Reserved, [2] Nightlight, [1] Backlight, [0] Reserved
+          ledStatus = (displayMode << 4) | (nightlight << 2) | (backlight << 1);
+        }
+
+        // Get available items based on input type
+        const currentInputType =
+          inputType !== undefined
+            ? inputType
+            : currentMultiGroupInput.functionValue || 0;
+        const groupType = getGroupTypeFromFunction(currentInputType);
+
+        let availableItems = [];
+        switch (groupType) {
+          case "aircon":
+            availableItems = projectItems?.aircon || [];
+            break;
+          case "scene":
+            availableItems = projectItems?.scene || [];
+            break;
+          case "multi-scene":
+            availableItems = projectItems?.multi_scenes || [];
+            break;
+          case "curtain":
+            availableItems = projectItems?.curtain || [];
+            break;
+          case "lighting":
+          default:
+            availableItems = projectItems?.lighting || [];
+            break;
+        }
 
         // Prepare input configuration data for SETUP_INPUT command
         const inputConfigData = {
           inputNumber: currentMultiGroupInput.index,
-          inputType: currentMultiGroupInput.functionValue || 0,
+          inputType: currentInputType,
           ramp: rlcOptions.ramp || 0,
           preset: rlcOptions.preset || 255,
-          ledStatus: rlcOptions.ledStatus || 0,
+          ledStatus: ledStatus,
           autoMode: rlcOptions.autoMode || false,
-          delayOff: rlcOptions.delayOff || 0,
-          groups: groups.map(group => ({
-            groupId: group.lightingId || 0,
-            presetBrightness: group.value || 0
-          }))
+          delayOff: delayOffSeconds,
+          groups: groups.map((group) => {
+            // Data from MultiGroupConfigDialog is already in the correct format:
+            // { groupId: address, presetBrightness: value }
+            return {
+              groupId: parseInt(group.groupId) || 0,
+              presetBrightness: parseInt(group.presetBrightness) || 255,
+            };
+          }),
         };
 
-        await setupInputConfig(item.ip_address, item.id_can, inputConfigData);
-        console.log(`Input ${currentMultiGroupInput.index} configuration sent to network unit ${item.ip_address}`);
-        toast.success(`Input ${currentMultiGroupInput.index + 1} configuration sent to unit`);
-      } else {
-        console.log(`Multi-group config saved locally for input ${currentMultiGroupInput.index}:`, data);
-        toast.success(`Input ${currentMultiGroupInput.index + 1} configuration saved (network mode)`);
-      }
+        console.log("📤 Sending input config to network unit:", {
+          unitIp: item.ip_address,
+          canId: item.id_can,
+          inputConfigData,
+          groupType,
+          availableItemsCount: availableItems.length,
+          availableItemsSample: availableItems.slice(0, 3).map((item) => ({
+            id: item.id,
+            name: item.name,
+            address: item.address,
+          })),
+          groupsMapping: groups.map((group, index) => ({
+            index,
+            originalGroup: group,
+            groupId: group.groupId,
+            presetBrightness: group.presetBrightness,
+            parsedGroupId: parseInt(group.groupId) || 0,
+            parsedPresetBrightness: parseInt(group.presetBrightness) || 255,
+          })),
+        });
 
-      return true;
-    } catch (error) {
-      console.error("Failed to save multi-group configuration:", error);
-      toast.error("Failed to save configuration");
-      return false;
-    }
-  }, [currentMultiGroupInput, item?.ip_address, item?.id_can]);
+        toast.info("Sending input configuration to network unit...");
+
+        const result = await window.electronAPI.rcuController.setupInputConfig({
+          unitIp: item.ip_address,
+          canId: item.id_can,
+          inputConfig: inputConfigData,
+        });
+
+        console.log("📡 setupInputConfig result:", result);
+        console.log(
+          `✅ Input ${currentMultiGroupInput.index} configuration sent to network unit ${item.ip_address}`
+        );
+        toast.success(
+          `Input ${
+            currentMultiGroupInput.index + 1
+          } configuration sent successfully`
+        );
+
+        return true;
+      } catch (error) {
+        console.error("❌ Failed to save multi-group configuration:", error);
+        toast.error(`Failed to save configuration: ${error.message}`);
+        return false;
+      }
+    },
+    [currentMultiGroupInput, item?.ip_address, item?.id_can, projectItems]
+  );
 
   // Handle input lighting change (for lighting selection in multi-group)
-  const handleInputLightingChange = useCallback((inputIndex, lightingId) => {
-    // For network units, this might not be directly applicable
-    // but we keep the interface consistent
-    console.log(`Input ${inputIndex} lighting changed to ${lightingId}`);
+  const handleInputLightingChange = useCallback(
+    async (inputIndex, lightingId) => {
+      // For network units, we handle lighting association by updating the input configuration
+      // with the selected lighting group
+      console.log(`Input ${inputIndex} lighting changed to ${lightingId}`);
 
-    // TODO: Handle lighting association for network units
-    toast.info(`Input ${inputIndex + 1} lighting association updated (network mode)`);
-  }, []);
+      if (!item?.ip_address || !item?.id_can) {
+        toast.error("Unit IP address or CAN ID not available");
+        return;
+      }
+
+      try {
+        // Get current input configuration to preserve existing settings
+        const currentConfig = inputConfigsFromUnit[inputIndex] || {};
+
+        // Prepare input configuration with lighting association
+        const inputConfigData = {
+          inputNumber: inputIndex,
+          inputType: currentConfig.inputType || 0,
+          ramp: currentConfig.ramp || 0,
+          preset: currentConfig.preset || 255,
+          ledStatus: currentConfig.ledStatus || 0,
+          autoMode: currentConfig.autoMode || false,
+          delayOff: currentConfig.delayOff || 0,
+          groups: lightingId
+            ? [{ groupId: lightingId, presetBrightness: 255 }]
+            : [],
+        };
+
+        toast.info(`Updating input ${inputIndex + 1} lighting association...`);
+
+        await window.electronAPI.rcuController.setupInputConfig({
+          unitIp: item.ip_address,
+          canId: item.id_can,
+          inputConfig: inputConfigData,
+        });
+
+        toast.success(
+          `Input ${inputIndex + 1} lighting association updated successfully`
+        );
+      } catch (error) {
+        console.error(
+          `Failed to update input ${inputIndex} lighting association:`,
+          error
+        );
+        toast.error(`Failed to update lighting association: ${error.message}`);
+      }
+    },
+    [item?.ip_address, item?.id_can, inputConfigsFromUnit]
+  );
 
   return {
     multiGroupConfigs,

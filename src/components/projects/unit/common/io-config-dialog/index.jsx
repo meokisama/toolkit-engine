@@ -1,4 +1,4 @@
-import React, { useMemo, useCallback, memo, useEffect } from "react";
+import React, { useMemo, useCallback, memo, useEffect, useRef } from "react";
 import {
   Dialog,
   DialogContent,
@@ -41,18 +41,21 @@ const IOConfigDialogComponent = ({ open, onOpenChange, item = null }) => {
     loading,
     isInitialLoading,
     saveConfig,
+    reloadAllInputConfigs,
   } = useIOConfig(item, open);
 
   const {
     multiGroupConfigs,
+    rlcConfigs,
     multiGroupDialogOpen,
     setMultiGroupDialogOpen,
     currentMultiGroupInput,
+    loadingInputConfig,
     handleInputLightingChange,
     handleInputFunctionChange,
     handleOpenMultiGroupConfig,
     handleSaveMultiGroupConfig,
-  } = useInputConfig(item);
+  } = useInputConfig(item, setInputConfigs);
 
   const {
     lightingOutputDialogOpen,
@@ -73,6 +76,20 @@ const IOConfigDialogComponent = ({ open, onOpenChange, item = null }) => {
   const airconItems = useMemo(() => {
     return projectItems?.aircon || [];
   }, [projectItems?.aircon]);
+
+  // Track previous multiGroupDialogOpen state to detect when it closes
+  const prevMultiGroupDialogOpen = useRef(multiGroupDialogOpen);
+
+  // Effect to reload input configs when multi-group dialog closes
+  useEffect(() => {
+    if (prevMultiGroupDialogOpen.current && !multiGroupDialogOpen && item?.id) {
+      // Dialog was open and now closed - reload input configs for database units
+      if (reloadAllInputConfigs) {
+        reloadAllInputConfigs();
+      }
+    }
+    prevMultiGroupDialogOpen.current = multiGroupDialogOpen;
+  }, [multiGroupDialogOpen, item?.id, reloadAllInputConfigs]);
 
   // Memoized handlers to prevent unnecessary re-renders
   const handleClose = useCallback(() => {
@@ -164,7 +181,16 @@ const IOConfigDialogComponent = ({ open, onOpenChange, item = null }) => {
 
   const handleSaveMultiGroupConfigWithState = useCallback(
     async (data) => {
-      await handleSaveMultiGroupConfig(data, inputConfigs, setInputConfigs);
+      try {
+        await handleSaveMultiGroupConfig(data, inputConfigs, setInputConfigs);
+      } catch (error) {
+        console.error(
+          "❌ IOConfigDialog - Failed to save multi-group configuration:",
+          error
+        );
+        console.error("❌ IOConfigDialog - Error stack:", error.stack);
+        toast.error("Failed to save configuration: " + error.message);
+      }
     },
     [handleSaveMultiGroupConfig, inputConfigs, setInputConfigs]
   );
@@ -332,6 +358,7 @@ const IOConfigDialogComponent = ({ open, onOpenChange, item = null }) => {
         functionName={currentMultiGroupInput?.functionName || ""}
         functionValue={currentMultiGroupInput?.functionValue || null}
         unitType={item?.name || null}
+        inputIndex={currentMultiGroupInput?.index || 0}
         initialGroups={
           currentMultiGroupInput
             ? multiGroupConfigs[currentMultiGroupInput.index]
@@ -339,10 +366,12 @@ const IOConfigDialogComponent = ({ open, onOpenChange, item = null }) => {
         }
         initialRlcOptions={
           currentMultiGroupInput
-            ? multiGroupConfigs[currentMultiGroupInput.index] // This should be rlcConfigs but keeping for compatibility
-            : null
+            ? rlcConfigs[currentMultiGroupInput.index] || {}
+            : {}
         }
-        isLoading={currentMultiGroupInput?.isLoading || false}
+        isLoading={
+          loadingInputConfig || currentMultiGroupInput?.isLoading || false
+        }
         onSave={handleSaveMultiGroupConfigWithState}
       />
 

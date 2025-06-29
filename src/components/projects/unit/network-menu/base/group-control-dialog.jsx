@@ -342,6 +342,35 @@ export function GroupControlDialog({ open, onOpenChange, unit }) {
     };
   }, [open, groupStates.length, autoRefreshStates]);
 
+  // Listen for global auto refresh control events
+  useEffect(() => {
+    const handlePauseAutoRefresh = (event) => {
+      if (autoRefreshInterval.current) {
+        clearInterval(autoRefreshInterval.current);
+        autoRefreshInterval.current = null;
+      }
+    };
+
+    const handleResumeAutoRefresh = (event) => {
+      if (open && groupStates.length > 0 && !autoRefreshInterval.current) {
+        autoRefreshInterval.current = setInterval(() => {
+          autoRefreshStates();
+        }, 1000);
+      }
+    };
+
+    window.addEventListener("pauseAllAutoRefresh", handlePauseAutoRefresh);
+    window.addEventListener("resumeAllAutoRefresh", handleResumeAutoRefresh);
+
+    return () => {
+      window.removeEventListener("pauseAllAutoRefresh", handlePauseAutoRefresh);
+      window.removeEventListener(
+        "resumeAllAutoRefresh",
+        handleResumeAutoRefresh
+      );
+    };
+  }, [open, groupStates.length, autoRefreshStates]);
+
   // Cleanup debounce timers and auto refresh on unmount
   useEffect(() => {
     return () => {

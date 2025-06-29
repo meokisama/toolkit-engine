@@ -355,6 +355,40 @@ export const RoomControlDialog = memo(function RoomControlDialog({
     };
   }, [open, room?.unit?.ip_address, room?.unit?.id_can, autoRefreshStatus]);
 
+  // Listen for global auto refresh control events
+  useEffect(() => {
+    const handlePauseAutoRefresh = (event) => {
+      if (autoRefreshIntervalRef.current) {
+        clearInterval(autoRefreshIntervalRef.current);
+        autoRefreshIntervalRef.current = null;
+      }
+    };
+
+    const handleResumeAutoRefresh = (event) => {
+      if (
+        open &&
+        room?.unit?.ip_address &&
+        room?.unit?.id_can &&
+        !autoRefreshIntervalRef.current
+      ) {
+        autoRefreshIntervalRef.current = setInterval(() => {
+          autoRefreshStatus();
+        }, 1000);
+      }
+    };
+
+    window.addEventListener("pauseAllAutoRefresh", handlePauseAutoRefresh);
+    window.addEventListener("resumeAllAutoRefresh", handleResumeAutoRefresh);
+
+    return () => {
+      window.removeEventListener("pauseAllAutoRefresh", handlePauseAutoRefresh);
+      window.removeEventListener(
+        "resumeAllAutoRefresh",
+        handleResumeAutoRefresh
+      );
+    };
+  }, [open, room?.unit?.ip_address, room?.unit?.id_can, autoRefreshStatus]);
+
   // Cleanup timeout on unmount
   useEffect(() => {
     return () => {

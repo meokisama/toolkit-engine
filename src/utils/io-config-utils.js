@@ -2,7 +2,7 @@
  * Utility functions for I/O configuration management
  */
 
-import { getUnitIOSpec, getOutputTypes } from '@/constants';
+import { getUnitIOSpec, getOutputTypes } from "@/constants";
 
 // Re-export functions from constants for convenience
 export { getUnitIOSpec, getOutputTypes };
@@ -45,13 +45,13 @@ export const createDefaultIOConfig = (unitType) => {
       function: 0, // Default to first function
       lightingId: null,
       ramp: 0,
-      preset: 100,
+      preset: 255,
       led_status: 0,
       auto_mode: 0,
       auto_time: 0,
       delay_off: 0,
       delay_on: 0,
-      multiGroupConfig: []
+      multiGroupConfig: [],
     });
   }
 
@@ -67,14 +67,14 @@ export const createDefaultIOConfig = (unitType) => {
         type: type, // Raw output type for dialog logic
         deviceId: null,
         deviceType: type === "ac" ? "aircon" : "lighting", // Mapped type for database
-        config: null // Configuration will be added when needed
+        config: null, // Configuration will be added when needed
       });
     }
   });
 
   return {
     inputs,
-    outputs
+    outputs,
   };
 };
 
@@ -97,25 +97,25 @@ export const validateIOConfig = (ioConfig) => {
   const errors = [];
 
   if (!ioConfig) {
-    errors.push('I/O configuration is required');
+    errors.push("I/O configuration is required");
     return { isValid: false, errors };
   }
 
   if (!Array.isArray(ioConfig.inputs)) {
-    errors.push('Inputs must be an array');
+    errors.push("Inputs must be an array");
   }
 
   if (!Array.isArray(ioConfig.outputs)) {
-    errors.push('Outputs must be an array');
+    errors.push("Outputs must be an array");
   }
 
   // Validate inputs
   if (ioConfig.inputs) {
     ioConfig.inputs.forEach((input, index) => {
-      if (typeof input.index !== 'number') {
+      if (typeof input.index !== "number") {
         errors.push(`Input ${index}: index must be a number`);
       }
-      if (typeof input.function !== 'number') {
+      if (typeof input.function !== "number") {
         errors.push(`Input ${index}: function must be a number`);
       }
       if (!Array.isArray(input.multiGroupConfig)) {
@@ -127,14 +127,14 @@ export const validateIOConfig = (ioConfig) => {
   // Validate outputs
   if (ioConfig.outputs) {
     ioConfig.outputs.forEach((output, index) => {
-      if (typeof output.index !== 'number') {
+      if (typeof output.index !== "number") {
         errors.push(`Output ${index}: index must be a number`);
       }
-      if (!output.name || typeof output.name !== 'string') {
+      if (!output.name || typeof output.name !== "string") {
         errors.push(`Output ${index}: name is required and must be a string`);
       }
       // Validate nested config if present
-      if (output.config && typeof output.config !== 'object') {
+      if (output.config && typeof output.config !== "object") {
         errors.push(`Output ${index}: config must be an object if provided`);
       }
     });
@@ -142,7 +142,7 @@ export const validateIOConfig = (ioConfig) => {
 
   return {
     isValid: errors.length === 0,
-    errors
+    errors,
   };
 };
 
@@ -155,14 +155,16 @@ export const cloneIOConfig = (ioConfig) => {
   if (!ioConfig) return null;
 
   return {
-    inputs: ioConfig.inputs?.map(input => ({
-      ...input,
-      multiGroupConfig: [...(input.multiGroupConfig || [])]
-    })) || [],
-    outputs: ioConfig.outputs?.map(output => ({
-      ...output,
-      config: output.config ? { ...output.config } : null
-    })) || []
+    inputs:
+      ioConfig.inputs?.map((input) => ({
+        ...input,
+        multiGroupConfig: [...(input.multiGroupConfig || [])],
+      })) || [],
+    outputs:
+      ioConfig.outputs?.map((output) => ({
+        ...output,
+        config: output.config ? { ...output.config } : null,
+      })) || [],
   };
 };
 
@@ -187,7 +189,7 @@ export const hasIOConfigChanges = (original, current) => {
  */
 export const getInputConfig = (ioConfig, inputIndex) => {
   if (!ioConfig?.inputs) return null;
-  return ioConfig.inputs.find(input => input.index === inputIndex) || null;
+  return ioConfig.inputs.find((input) => input.index === inputIndex) || null;
 };
 
 /**
@@ -200,9 +202,14 @@ export const getInputConfig = (ioConfig, inputIndex) => {
 export const updateInputConfig = (ioConfig, inputIndex, inputData) => {
   const newConfig = cloneIOConfig(ioConfig);
 
-  const inputConfigIndex = newConfig.inputs.findIndex(input => input.index === inputIndex);
+  const inputConfigIndex = newConfig.inputs.findIndex(
+    (input) => input.index === inputIndex
+  );
   if (inputConfigIndex >= 0) {
-    newConfig.inputs[inputConfigIndex] = { ...newConfig.inputs[inputConfigIndex], ...inputData };
+    newConfig.inputs[inputConfigIndex] = {
+      ...newConfig.inputs[inputConfigIndex],
+      ...inputData,
+    };
   } else {
     newConfig.inputs.push({ index: inputIndex, ...inputData });
   }
@@ -218,7 +225,9 @@ export const updateInputConfig = (ioConfig, inputIndex, inputData) => {
  */
 export const getOutputConfig = (ioConfig, outputIndex) => {
   if (!ioConfig?.outputs) return null;
-  return ioConfig.outputs.find(output => output.index === outputIndex) || null;
+  return (
+    ioConfig.outputs.find((output) => output.index === outputIndex) || null
+  );
 };
 
 /**
@@ -242,9 +251,14 @@ export const getOutputDetailedConfig = (ioConfig, outputIndex) => {
 export const updateOutputConfig = (ioConfig, outputIndex, outputData) => {
   const newConfig = cloneIOConfig(ioConfig);
 
-  const outputConfigIndex = newConfig.outputs.findIndex(output => output.index === outputIndex);
+  const outputConfigIndex = newConfig.outputs.findIndex(
+    (output) => output.index === outputIndex
+  );
   if (outputConfigIndex >= 0) {
-    newConfig.outputs[outputConfigIndex] = { ...newConfig.outputs[outputConfigIndex], ...outputData };
+    newConfig.outputs[outputConfigIndex] = {
+      ...newConfig.outputs[outputConfigIndex],
+      ...outputData,
+    };
   } else {
     newConfig.outputs.push({ index: outputIndex, ...outputData });
   }

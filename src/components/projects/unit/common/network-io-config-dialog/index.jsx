@@ -39,7 +39,7 @@ const NetworkIOConfigDialog = ({ open, onOpenChange, item = null }) => {
     handleInputFunctionChange,
     handleOpenMultiGroupConfig,
     handleSaveMultiGroupConfig,
-  } = useNetworkInputConfig(item);
+  } = useNetworkInputConfig(item, projectItems);
 
   const {
     lightingOutputDialogOpen,
@@ -64,7 +64,6 @@ const NetworkIOConfigDialog = ({ open, onOpenChange, item = null }) => {
     ioSpec,
     loading,
     isInitialLoading,
-    configsLoaded,
     readStatesSequentially,
     readInputConfigsFromUnit,
   } = useNetworkIOConfig(item, open, anyChildDialogOpen);
@@ -136,38 +135,38 @@ const NetworkIOConfigDialog = ({ open, onOpenChange, item = null }) => {
         </DialogHeader>
 
         <div className="flex-1 overflow-hidden">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 h-full">
-            {/* Input Configuration - Left Side */}
-            <Card className="h-[600px] flex flex-col">
-              <CardHeader className="flex-shrink-0">
-                <div className="flex items-center justify-between">
-                  <CardTitle className="flex items-center gap-2">
-                    <Settings className="h-5 w-5" />
-                    Input Configuration
-                    <Badge variant="secondary" className="ml-2">
-                      {ioSpec.inputs} Inputs
-                    </Badge>
-                  </CardTitle>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={handleReadInputConfigs}
-                    disabled={loadingInputConfigs}
-                    className="flex items-center gap-2"
-                  >
-                    {loadingInputConfigs ? (
-                      <div className="h-4 w-4 animate-spin rounded-full border-2 border-gray-300 border-t-gray-600" />
-                    ) : (
-                      <Download className="h-4 w-4" />
-                    )}
-                    Read Configs
-                  </Button>
-                </div>
-              </CardHeader>
-              <CardContent className="flex-1 overflow-hidden">
-                {isInitialLoading ? (
-                  <LoadingSkeleton />
-                ) : (
+          {isInitialLoading ? (
+            <LoadingSkeleton />
+          ) : (
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 h-full">
+              {/* Input Configuration - Left Side */}
+              <Card className="h-[600px] flex flex-col">
+                <CardHeader className="flex-shrink-0">
+                  <div className="flex items-center justify-between">
+                    <CardTitle className="flex items-center gap-2">
+                      <Settings className="h-5 w-5" />
+                      Input Configuration
+                      <Badge variant="secondary" className="ml-2">
+                        {ioSpec.inputs} Inputs
+                      </Badge>
+                    </CardTitle>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={handleReadInputConfigs}
+                      disabled={loadingInputConfigs}
+                      className="flex items-center gap-2"
+                    >
+                      {loadingInputConfigs ? (
+                        <div className="h-4 w-4 animate-spin rounded-full border-2 border-gray-300 border-t-gray-600" />
+                      ) : (
+                        <Download className="h-4 w-4" />
+                      )}
+                      Read Configs
+                    </Button>
+                  </div>
+                </CardHeader>
+                <CardContent className="flex-1 overflow-hidden">
                   <ScrollArea className="h-full">
                     {inputConfigs.length > 0 ? (
                       <div className="space-y-3 pr-4">
@@ -187,25 +186,21 @@ const NetworkIOConfigDialog = ({ open, onOpenChange, item = null }) => {
                       </div>
                     )}
                   </ScrollArea>
-                )}
-              </CardContent>
-            </Card>
+                </CardContent>
+              </Card>
 
-            {/* Output Configuration - Right Side */}
-            <Card className="h-[600px] flex flex-col">
-              <CardHeader className="flex-shrink-0">
-                <CardTitle className="flex items-center gap-2">
-                  <Settings className="h-5 w-5" />
-                  Output Configuration
-                  <Badge variant="secondary" className="ml-auto">
-                    {outputConfigs.length} Outputs
-                  </Badge>
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="flex-1 overflow-hidden">
-                {isInitialLoading ? (
-                  <LoadingSkeleton />
-                ) : (
+              {/* Output Configuration - Right Side */}
+              <Card className="h-[600px] flex flex-col">
+                <CardHeader className="flex-shrink-0">
+                  <CardTitle className="flex items-center gap-2">
+                    <Settings className="h-5 w-5" />
+                    Output Configuration
+                    <Badge variant="secondary" className="ml-auto">
+                      {outputConfigs.length} Outputs
+                    </Badge>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="flex-1 overflow-hidden">
                   <ScrollArea className="h-full">
                     {outputConfigs.length > 0 ? (
                       <div className="space-y-3 pr-4">
@@ -229,10 +224,10 @@ const NetworkIOConfigDialog = ({ open, onOpenChange, item = null }) => {
                       </div>
                     )}
                   </ScrollArea>
-                )}
-              </CardContent>
-            </Card>
-          </div>
+                </CardContent>
+              </Card>
+            </div>
+          )}
         </div>
 
         <Separator />
@@ -252,8 +247,16 @@ const NetworkIOConfigDialog = ({ open, onOpenChange, item = null }) => {
         functionName={currentMultiGroupInput?.functionName || ""}
         functionValue={currentMultiGroupInput?.functionValue || null}
         unitType={item?.type || null}
+        inputIndex={currentMultiGroupInput?.index || 0}
         initialGroups={currentMultiGroupInput?.config?.multiGroupConfig || []}
-        initialRlcOptions={currentMultiGroupInput?.config || {}}
+        initialRlcOptions={{
+          ramp: currentMultiGroupInput?.config?.ramp || 0,
+          preset: currentMultiGroupInput?.config?.preset || 255,
+          led_status: currentMultiGroupInput?.config?.led_status || 0,
+          auto_mode: currentMultiGroupInput?.config?.auto_mode || 0,
+          delay_off: currentMultiGroupInput?.config?.delay_off || 0,
+          delay_on: currentMultiGroupInput?.config?.delay_on || 0,
+        }}
         isLoading={currentMultiGroupInput?.isLoading || false}
         onSave={handleSaveMultiGroupConfig}
       />

@@ -257,7 +257,8 @@ contextBridge.exposeInMainWorld("electronAPI", {
   // RCU Group Control
   rcuController: {
     setGroupState: (params) => ipcRenderer.invoke("rcu:setGroupState", params),
-    setOutputState: (params) => ipcRenderer.invoke("rcu:setOutputState", params),
+    setOutputState: (params) =>
+      ipcRenderer.invoke("rcu:setOutputState", params),
     setMultipleGroupStates: (params) =>
       ipcRenderer.invoke("rcu:setMultipleGroupStates", params),
     getAllGroupStates: (params) =>
@@ -268,6 +269,8 @@ contextBridge.exposeInMainWorld("electronAPI", {
       ipcRenderer.invoke("rcu:getAllInputStates", params),
     getAllInputConfigs: (params) =>
       ipcRenderer.invoke("rcu:getAllInputConfigs", params),
+    setupInputConfig: (params) =>
+      ipcRenderer.invoke("rcu:setupInputConfig", params),
     // Air Conditioner Control
     getACStatus: (params) => ipcRenderer.invoke("rcu:getACStatus", params),
     getRoomTemp: (params) => ipcRenderer.invoke("rcu:getRoomTemp", params),

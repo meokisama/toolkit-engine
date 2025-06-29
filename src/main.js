@@ -10,6 +10,7 @@ import {
   getAllOutputStates,
   getAllInputStates,
   getAllInputConfigs,
+  setupInputConfig,
   getACStatus,
   getRoomTemp,
   setSettingRoomTemp,
@@ -1321,6 +1322,18 @@ function setupIpcHandlers() {
       throw error;
     }
   });
+
+  ipcMain.handle(
+    "rcu:setupInputConfig",
+    async (event, { unitIp, canId, inputConfig }) => {
+      try {
+        return await setupInputConfig(unitIp, canId, inputConfig);
+      } catch (error) {
+        console.error("Error setting up input config:", error);
+        throw error;
+      }
+    }
+  );
 
   // Air Conditioner Control
   ipcMain.handle("rcu:getACStatus", async (event, { canId, unitIp, group }) => {
