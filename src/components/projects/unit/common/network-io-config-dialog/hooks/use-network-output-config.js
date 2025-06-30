@@ -19,9 +19,45 @@ export const useNetworkOutputConfig = (item, outputConfigs = []) => {
   }, []);
 
   // Handle opening output configuration
-  const handleOpenOutputConfig = useCallback((outputIndex, outputType) => {
+  const handleOpenOutputConfig = useCallback(async (outputIndex, outputType) => {
     // Find the output config from the array
     const outputConfig = outputConfigs.find(config => config.index === outputIndex);
+
+    // Set initial state with loading
+    setCurrentOutputConfig({
+      index: outputIndex,
+      name: `${outputType === "ac" ? "AC" : "Lighting"} Output ${outputIndex + 1}`,
+      type: outputType,
+      config: null,
+      isLoading: true
+    });
+
+    // Open dialog first to show loading state
+    if (outputType === "ac") {
+      setACOutputDialogOpen(true);
+    } else {
+      setLightingOutputDialogOpen(true);
+    }
+
+    // Load output config on-demand
+    let unitConfig = null;
+    if (item?.ip_address && item?.id_can && outputConfig) {
+      try {
+        console.log(`Loading output config for output ${outputIndex} from unit ${item.ip_address}`);
+
+        const configResponse = await window.electronAPI.rcuController.getOutputConfig(
+          item.ip_address,
+          item.id_can,
+          outputIndex
+        );
+
+        unitConfig = configResponse?.outputConfig || null;
+        console.log(`Output config loaded for output ${outputIndex}:`, unitConfig);
+      } catch (error) {
+        console.warn(`Failed to load config for output ${outputIndex}:`, error.message);
+        toast.error(`Failed to load configuration for output ${outputIndex + 1}`);
+      }
+    }
 
     // Format config for lighting-output-config-dialog
     let formattedConfig = {};
@@ -32,7 +68,7 @@ export const useNetworkOutputConfig = (item, outputConfigs = []) => {
       const delayOnTotalSeconds = outputConfig.delayOn || 0;
 
       formattedConfig = {
-        // Delay settings from getOutputAssign
+        // Delay settings from getOutputAssign (already loaded)
         delayOffHours: Math.floor(delayOffTotalSeconds / 3600),
         delayOffMinutes: Math.floor((delayOffTotalSeconds % 3600) / 60),
         delayOffSeconds: delayOffTotalSeconds % 60,
@@ -40,17 +76,18 @@ export const useNetworkOutputConfig = (item, outputConfigs = []) => {
         delayOnMinutes: Math.floor((delayOnTotalSeconds % 3600) / 60),
         delayOnSeconds: delayOnTotalSeconds % 60,
 
-        // Config settings from getOutputConfig
-        minDim: outputConfig.unitConfig?.minDimmingLevel || 1,
-        maxDim: outputConfig.unitConfig?.maxDimmingLevel || 100,
-        autoTrigger: outputConfig.unitConfig?.isAutoTriggerEnabled || false,
-        scheduleOnHour: outputConfig.unitConfig?.scheduleOnHour || 0,
-        scheduleOnMinute: outputConfig.unitConfig?.scheduleOnMinute || 0,
-        scheduleOffHour: outputConfig.unitConfig?.scheduleOffHour || 0,
-        scheduleOffMinute: outputConfig.unitConfig?.scheduleOffMinute || 0,
+        // Config settings from getOutputConfig (loaded on-demand)
+        minDim: unitConfig?.minDimmingLevel || 1,
+        maxDim: unitConfig?.maxDimmingLevel || 100,
+        autoTrigger: unitConfig?.isAutoTriggerEnabled || false,
+        scheduleOnHour: unitConfig?.scheduleOnHour || 0,
+        scheduleOnMinute: unitConfig?.scheduleOnMinute || 0,
+        scheduleOffHour: unitConfig?.scheduleOffHour || 0,
+        scheduleOffMinute: unitConfig?.scheduleOffMinute || 0,
       };
     }
 
+    // Update with loaded config
     setCurrentOutputConfig({
       index: outputIndex,
       name: `${outputType === "ac" ? "AC" : "Lighting"} Output ${outputIndex + 1}`,
@@ -58,13 +95,7 @@ export const useNetworkOutputConfig = (item, outputConfigs = []) => {
       config: formattedConfig,
       isLoading: false
     });
-
-    if (outputType === "ac") {
-      setACOutputDialogOpen(true);
-    } else {
-      setLightingOutputDialogOpen(true);
-    }
-  }, [outputConfigs]);
+  }, [outputConfigs, item?.ip_address, item?.id_can]);
 
   // Handle saving output configuration
   const handleSaveOutputConfig = useCallback(async (config) => {

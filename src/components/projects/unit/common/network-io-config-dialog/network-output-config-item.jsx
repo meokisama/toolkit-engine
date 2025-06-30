@@ -97,17 +97,6 @@ const NetworkOutputConfigItem = memo(
             <Label className="text-sm font-medium">
               {getDisplayName(config.type, config.index)}
             </Label>
-            {/* Show lighting address info for non-aircon outputs */}
-            {!isAircon && config.lightingAddress && config.lightingAddress > 0 && (
-              <div className="text-xs text-muted-foreground">
-                Address: {config.lightingAddress}
-                {hasUnmappedAddress && (
-                  <Badge variant="outline" className="ml-2 text-xs">
-                    Not in database
-                  </Badge>
-                )}
-              </div>
-            )}
           </div>
         </div>
         <div className="flex items-center gap-2">

@@ -173,7 +173,7 @@ export const useNetworkIOConfig = (item, open, childDialogOpen = false) => {
     return false;
   }, [item?.ip_address, item?.id_can]);
 
-  // Function to read output configurations from unit
+  // Function to read output assignments from unit (lighting address mapping and delays only)
   const readOutputConfigsFromUnit = useCallback(async () => {
     if (!item?.ip_address || !item?.id_can) {
       return false;
@@ -181,7 +181,7 @@ export const useNetworkIOConfig = (item, open, childDialogOpen = false) => {
 
     try {
       console.log(
-        `Reading output configurations from unit ${item.ip_address} (CAN ID: ${item.id_can})`
+        `Reading output assignments from unit ${item.ip_address} (CAN ID: ${item.id_can})`
       );
 
       // Debug: Check parameter values
@@ -192,7 +192,8 @@ export const useNetworkIOConfig = (item, open, childDialogOpen = false) => {
         canIdType: typeof item.id_can
       });
 
-      // First get output assignments (lighting address mapping, delay off/on)
+      // Only get output assignments (lighting address mapping, delay off/on)
+      // Output config will be loaded on-demand when opening lighting output config dialog
       const assignResponse = await window.electronAPI.rcuController.getOutputAssign({
         unitIp: item.ip_address,
         canId: item.id_can,
@@ -207,32 +208,9 @@ export const useNetworkIOConfig = (item, open, childDialogOpen = false) => {
         `Received ${assignResponse.outputAssignments.length} output assignments from unit`
       );
 
-      // Get output configurations (dimming levels, auto trigger, schedule)
-      const configPromises = assignResponse.outputAssignments.map(async (assignment) => {
-        try {
-          const configResponse = await window.electronAPI.rcuController.getOutputConfig(
-            item.ip_address,
-            item.id_can,
-            assignment.outputIndex
-          );
-          return {
-            ...assignment,
-            config: configResponse?.outputConfig || null,
-          };
-        } catch (error) {
-          console.warn(`Failed to get config for output ${assignment.outputIndex}:`, error.message);
-          return {
-            ...assignment,
-            config: null,
-          };
-        }
-      });
-
-      const outputsWithConfigs = await Promise.all(configPromises);
-
-      // Update output configs with data from unit
+      // Update output configs with assignment data only
       const updatedOutputs = outputStatesRef.current.map((output, index) => {
-        const unitAssignment = outputsWithConfigs.find(
+        const unitAssignment = assignResponse.outputAssignments.find(
           (assignment) => assignment.outputIndex === index
         );
 
@@ -244,10 +222,10 @@ export const useNetworkIOConfig = (item, open, childDialogOpen = false) => {
             // Store delay values for lighting-output-config-dialog
             delayOff: unitAssignment.delayOff,
             delayOn: unitAssignment.delayOn,
-            // Store additional config data
-            unitConfig: unitAssignment.config,
             // Mark as assigned if lighting address > 0
             isAssigned: unitAssignment.isAssigned,
+            // unitConfig will be loaded on-demand when opening config dialog
+            unitConfig: null,
           };
         }
 
@@ -257,9 +235,10 @@ export const useNetworkIOConfig = (item, open, childDialogOpen = false) => {
       outputStatesRef.current = updatedOutputs;
       setOutputConfigs([...updatedOutputs]);
 
+      console.log("Output assignments loaded successfully");
       return true;
     } catch (error) {
-      console.warn("Failed to read output configs from unit:", error.message);
+      console.warn("Failed to read output assignments from unit:", error.message);
     }
 
     return false;
