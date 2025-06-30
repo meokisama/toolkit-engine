@@ -100,6 +100,18 @@ const NetworkOutputConfigItem = memo(
           </div>
         </div>
         <div className="flex items-center gap-2">
+          {/* Plus button for adding missing lighting address to database */}
+          {hasUnmappedAddress && onAddMissingAddress && (
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={handleAddMissingAddress}
+              title={`Add lighting address ${config.lightingAddress} to database`}
+            >
+              <Plus className="h-4 w-4" />
+            </Button>
+          )}
+          
           {/* Show combobox only if address is mapped or is aircon */}
           {(!hasUnmappedAddress || isAircon) ? (
             <Combobox
@@ -117,17 +129,6 @@ const NetworkOutputConfigItem = memo(
             </div>
           )}
 
-          {/* Plus button for adding missing lighting address to database */}
-          {hasUnmappedAddress && onAddMissingAddress && (
-            <Button
-              variant="outline"
-              size="icon"
-              onClick={handleAddMissingAddress}
-              title={`Add lighting address ${config.lightingAddress} to database`}
-            >
-              <Plus className="h-4 w-4" />
-            </Button>
-          )}
           <Button
             variant="outline"
             size="icon"

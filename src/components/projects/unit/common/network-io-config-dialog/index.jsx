@@ -145,7 +145,7 @@ const NetworkIOConfigDialog = ({ open, onOpenChange, item = null }) => {
       // Add to database via electronAPI with projectId
       const result = await window.electronAPI.lighting.create(selectedProject.id, newLightingItem);
 
-      if (result?.success) {
+      if (result) {
         console.log(`Successfully added lighting address ${lightingAddress} to database`);
 
         // Refresh lighting items to update the options
@@ -157,7 +157,7 @@ const NetworkIOConfigDialog = ({ open, onOpenChange, item = null }) => {
         // Show success message
         toast.success(`Lighting address ${lightingAddress} added to database`);
       } else {
-        console.error("Failed to add lighting address to database:", result?.error);
+        console.error("Failed to add lighting address to database:", result);
         toast.error("Failed to add lighting address to database");
       }
     } catch (error) {
