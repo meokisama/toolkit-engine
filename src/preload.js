@@ -274,8 +274,8 @@ contextBridge.exposeInMainWorld("electronAPI", {
     // Output configuration methods
     getOutputAssign: (params) =>
       ipcRenderer.invoke("rcu:getOutputAssign", params),
-    getOutputConfig: (unitIp, canId, outputIndex) =>
-      ipcRenderer.invoke("rcu:getOutputConfig", unitIp, canId, outputIndex),
+    getOutputConfig: (unitIp, canId) =>
+      ipcRenderer.invoke("rcu:getOutputConfig", unitIp, canId),
     setOutputAssign: (unitIp, canId, outputIndex, lightingAddress, delayOff, delayOn) =>
       ipcRenderer.invoke("rcu:setOutputAssign", unitIp, canId, outputIndex, lightingAddress, delayOff, delayOn),
     setOutputConfig: (unitIp, canId, outputIndex, config) =>

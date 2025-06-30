@@ -67,7 +67,7 @@ const NetworkIOConfigDialog = ({ open, onOpenChange, item = null }) => {
     handleOpenOutputConfig,
     handleSaveOutputConfig,
     handleToggleOutputState,
-  } = useNetworkOutputConfig(item, outputConfigs, setOutputConfigs);
+  } = useNetworkOutputConfig(item, outputConfigs, setOutputConfigs, lightingItems);
 
   // Check if any child dialog is open
   const anyChildDialogOpen =

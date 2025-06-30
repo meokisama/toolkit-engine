@@ -1,11 +1,11 @@
 import { useState, useCallback } from "react";
 import { toast } from "sonner";
 
-export const useNetworkOutputConfig = (item, outputConfigs = [], setOutputConfigs = null) => {
+export const useNetworkOutputConfig = (item, outputConfigs = [], setOutputConfigs = null, lightingItems = []) => {
   const [lightingOutputDialogOpen, setLightingOutputDialogOpen] = useState(false);
   const [acOutputDialogOpen, setACOutputDialogOpen] = useState(false);
   const [currentOutputConfig, setCurrentOutputConfig] = useState(null);
-  const [localOutputConfigs, setLocalOutputConfigs] = useState({});
+  const [allOutputConfigs, setAllOutputConfigs] = useState(null); // Cache for all output configs
 
   // Handle output device change
   const handleOutputDeviceChange = useCallback(async (outputIndex, deviceId) => {
@@ -18,7 +18,18 @@ export const useNetworkOutputConfig = (item, outputConfigs = [], setOutputConfig
       console.log(`Output ${outputIndex} device changed to ${deviceId}`);
 
       // Get lighting address from deviceId (lighting item)
-      const lightingAddress = deviceId || 0; // Use 0 for unassigned
+      let lightingAddress = 0; // Default for unassigned
+
+      if (deviceId) {
+        // Find the lighting item by ID to get its address
+        const lightingItem = lightingItems?.find(item => item.id === parseInt(deviceId));
+        if (lightingItem) {
+          lightingAddress = parseInt(lightingItem.address) || 0;
+          console.log(`Found lighting item ID ${deviceId} with address ${lightingAddress}`);
+        } else {
+          console.warn(`Lighting item with ID ${deviceId} not found`);
+        }
+      }
 
       // Get current delay values from existing output config or use defaults
       const currentOutput = outputConfigs.find(oc => oc.index === outputIndex);
@@ -51,7 +62,34 @@ export const useNetworkOutputConfig = (item, outputConfigs = [], setOutputConfig
       console.error("Failed to update output device association:", error);
       toast.error(`Failed to update output ${outputIndex + 1} device association: ${error.message}`);
     }
-  }, [item?.ip_address, item?.id_can, outputConfigs, setOutputConfigs]);
+  }, [item?.ip_address, item?.id_can, outputConfigs, setOutputConfigs, lightingItems]);
+
+  // Load all output configs from unit (always fresh data)
+  const loadAllOutputConfigs = useCallback(async () => {
+    if (!item?.ip_address || !item?.id_can) {
+      return null;
+    }
+
+    try {
+      console.log(`Loading fresh output configs from unit ${item.ip_address}`);
+
+      const configResponse = await window.electronAPI.rcuController.getOutputConfig(
+        item.ip_address,
+        item.id_can
+      );
+
+      if (configResponse?.success && configResponse.outputConfigs) {
+        setAllOutputConfigs(configResponse.outputConfigs);
+        console.log(`Loaded ${configResponse.configCount} fresh output configs from unit`);
+        return configResponse.outputConfigs;
+      }
+    } catch (error) {
+      console.warn(`Failed to load output configs from unit:`, error.message);
+      toast.error(`Failed to load output configurations from unit`);
+    }
+
+    return null;
+  }, [item?.ip_address, item?.id_can, setAllOutputConfigs]);
 
   // Handle opening output configuration
   const handleOpenOutputConfig = useCallback(async (outputIndex, outputType) => {
@@ -74,33 +112,60 @@ export const useNetworkOutputConfig = (item, outputConfigs = [], setOutputConfig
       setLightingOutputDialogOpen(true);
     }
 
-    // Load output config on-demand
+    // Load fresh data from network unit every time dialog opens
+    console.log(`Loading fresh configuration data for output ${outputIndex}`);
+
+    // Load fresh output configs from unit
+    const allConfigs = await loadAllOutputConfigs();
+
+    // Find the specific config for this output
     let unitConfig = null;
-    if (item?.ip_address && item?.id_can && outputConfig) {
+    if (allConfigs) {
+      unitConfig = allConfigs.find(config => config.outputIndex === outputIndex);
+      console.log(`Output config found for output ${outputIndex}:`, unitConfig);
+    }
+
+    // Also load fresh output assign data to get latest delay values
+    let freshOutputConfig = null;
+    if (item?.ip_address && item?.id_can) {
       try {
-        console.log(`Loading output config for output ${outputIndex} from unit ${item.ip_address}`);
+        console.log(`Loading fresh output assign data for output ${outputIndex}`);
 
-        const configResponse = await window.electronAPI.rcuController.getOutputConfig(
-          item.ip_address,
-          item.id_can,
-          outputIndex
-        );
+        const assignResponse = await window.electronAPI.rcuController.getOutputAssign({
+          unitIp: item.ip_address,
+          canId: item.id_can,
+        });
 
-        unitConfig = configResponse?.outputConfig || null;
-        console.log(`Output config loaded for output ${outputIndex}:`, unitConfig);
+        if (assignResponse?.success && assignResponse.outputAssignments) {
+          const assignment = assignResponse.outputAssignments.find(
+            (assign) => assign.outputIndex === outputIndex
+          );
+          if (assignment) {
+            freshOutputConfig = {
+              ...outputConfig,
+              lightingAddress: assignment.lightingAddress,
+              delayOff: assignment.delayOff,
+              delayOn: assignment.delayOn,
+              isAssigned: assignment.isAssigned,
+            };
+            console.log(`Fresh output assign data loaded for output ${outputIndex}:`, assignment);
+          }
+        }
       } catch (error) {
-        console.warn(`Failed to load config for output ${outputIndex}:`, error.message);
-        toast.error(`Failed to load configuration for output ${outputIndex + 1}`);
+        console.warn(`Failed to load fresh output assign data for output ${outputIndex}:`, error.message);
       }
     }
+
+    // Use fresh data if available, otherwise fall back to existing data
+    const configToUse = freshOutputConfig || outputConfig;
 
     // Format config for lighting-output-config-dialog
     let formattedConfig = {};
 
-    if (outputConfig) {
+    if (configToUse) {
       // Convert delay values from network unit format (seconds) to dialog format
-      const delayOffTotalSeconds = outputConfig.delayOff || 0;
-      const delayOnTotalSeconds = outputConfig.delayOn || 0;
+      const delayOffTotalSeconds = configToUse.delayOff || 0;
+      const delayOnTotalSeconds = configToUse.delayOn || 0;
 
       formattedConfig = {
         // Delay settings from getOutputAssign (already loaded)
@@ -130,18 +195,15 @@ export const useNetworkOutputConfig = (item, outputConfigs = [], setOutputConfig
       config: formattedConfig,
       isLoading: false
     });
-  }, [outputConfigs, item?.ip_address, item?.id_can]);
+  }, [outputConfigs, item?.ip_address, item?.id_can, loadAllOutputConfigs]);
 
   // Handle saving output configuration
   const handleSaveOutputConfig = useCallback(async (config) => {
     if (!currentOutputConfig || !item?.ip_address || !item?.id_can) return false;
 
     try {
-      // Update local state
-      setLocalOutputConfigs(prev => ({
-        ...prev,
-        [currentOutputConfig.index]: config
-      }));
+      // Clear cached configs to force reload next time
+      setAllOutputConfigs(null);
 
       // Convert dialog config format to network unit format (in seconds, not milliseconds)
       const delayOffSeconds = config.delayOffHours * 3600 + config.delayOffMinutes * 60 + config.delayOffSeconds;

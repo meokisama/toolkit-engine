@@ -1352,9 +1352,9 @@ function setupIpcHandlers() {
 
   ipcMain.handle(
     "rcu:getOutputConfig",
-    async (event, unitIp, canId, outputIndex) => {
+    async (event, unitIp, canId) => {
       try {
-        return await getOutputConfig(unitIp, canId, outputIndex);
+        return await getOutputConfig(unitIp, canId);
       } catch (error) {
         console.error("Error getting output config:", error);
         throw error;

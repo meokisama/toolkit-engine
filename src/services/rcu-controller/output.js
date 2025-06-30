@@ -100,13 +100,8 @@ async function setOutputAssign(unitIp, canId, outputIndex, lightingAddress, dela
     data
   );
 }
-async function getOutputConfig(unitIp, canId, outputIndex) {
+async function getOutputConfig(unitIp, canId) {
   const idAddress = convertCanIdToInt(canId);
-
-  // Validate output index
-  if (outputIndex < 0 || outputIndex > 255) {
-    throw new Error("Output index must be between 0 and 255");
-  }
 
   const response = await sendCommand(
     unitIp,
@@ -114,7 +109,7 @@ async function getOutputConfig(unitIp, canId, outputIndex) {
     idAddress,
     PROTOCOL.LIGHTING.CMD1,
     PROTOCOL.LIGHTING.CMD2.GET_OUTPUT_CONFIG,
-    [outputIndex], // Send output index as data
+    [], // No data needed - get all outputs
     true // Skip status check for GET commands
   );
 
@@ -122,9 +117,9 @@ async function getOutputConfig(unitIp, canId, outputIndex) {
     const data = response.result.data;
     const dataLength = data.length;
 
-    console.log(`Received output config data: ${dataLength} bytes for output ${outputIndex}`);
+    console.log(`Received output config data: ${dataLength} bytes`);
 
-    // Expected data structure (8 bytes):
+    // Each output config is 8 bytes:
     // Byte 0: Index của output
     // Byte 1: Min dimming level (raw value)
     // Byte 2: Max dimming level (raw value)
@@ -133,29 +128,46 @@ async function getOutputConfig(unitIp, canId, outputIndex) {
     // Byte 5: Schedule ON minute
     // Byte 6: Schedule OFF hour
     // Byte 7: Schedule OFF minute
+    const outputConfigs = [];
 
-    if (dataLength < 8) {
-      throw new Error(`Invalid data length: expected 8 bytes, got ${dataLength} bytes`);
+    if (dataLength % 8 !== 0) {
+      console.warn(`Warning: Data length ${dataLength} is not divisible by 8. Some data may be incomplete.`);
     }
 
-    const outputConfig = {
-      outputIndex: data[0],
-      minDimmingLevel: data[1],
-      maxDimmingLevel: data[2],
-      autoTriggerFlag: data[3],
-      scheduleOnHour: data[4],
-      scheduleOnMinute: data[5],
-      scheduleOffHour: data[6],
-      scheduleOffMinute: data[7],
-      // Additional computed properties
-      isAutoTriggerEnabled: data[3] > 0,
-      scheduleOnTime: `${data[4].toString().padStart(2, '0')}:${data[5].toString().padStart(2, '0')}`,
-      scheduleOffTime: `${data[6].toString().padStart(2, '0')}:${data[7].toString().padStart(2, '0')}`,
-    };
+    const configCount = Math.floor(dataLength / 8);
+
+    for (let i = 0; i < configCount; i++) {
+      const offset = i * 8;
+
+      const outputIndex = data[offset];
+      const minDimmingLevel = data[offset + 1];
+      const maxDimmingLevel = data[offset + 2];
+      const autoTriggerFlag = data[offset + 3];
+      const scheduleOnHour = data[offset + 4];
+      const scheduleOnMinute = data[offset + 5];
+      const scheduleOffHour = data[offset + 6];
+      const scheduleOffMinute = data[offset + 7];
+
+      outputConfigs.push({
+        outputIndex: outputIndex,
+        minDimmingLevel: minDimmingLevel,
+        maxDimmingLevel: maxDimmingLevel,
+        autoTriggerFlag: autoTriggerFlag,
+        scheduleOnHour: scheduleOnHour,
+        scheduleOnMinute: scheduleOnMinute,
+        scheduleOffHour: scheduleOffHour,
+        scheduleOffMinute: scheduleOffMinute,
+        // Additional computed properties
+        isAutoTriggerEnabled: autoTriggerFlag > 0,
+        scheduleOnTime: `${scheduleOnHour.toString().padStart(2, '0')}:${scheduleOnMinute.toString().padStart(2, '0')}`,
+        scheduleOffTime: `${scheduleOffHour.toString().padStart(2, '0')}:${scheduleOffMinute.toString().padStart(2, '0')}`,
+      });
+    }
 
     return {
       success: true,
-      outputConfig: outputConfig,
+      configCount: configCount,
+      outputConfigs: outputConfigs,
     };
   }
 
