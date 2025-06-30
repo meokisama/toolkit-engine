@@ -8,7 +8,6 @@ export const useNetworkIOConfig = (item, open, childDialogOpen = false) => {
   const [loading, setLoading] = useState(false);
   const [isInitialLoading, setIsInitialLoading] = useState(false);
   const [configsLoaded, setConfigsLoaded] = useState(false);
-  const [autoRefreshEnabled, setAutoRefreshEnabled] = useState(true);
 
   // Use refs to store current state without triggering re-renders
   const inputStatesRef = useRef([]);
@@ -356,15 +355,9 @@ export const useNetworkIOConfig = (item, open, childDialogOpen = false) => {
       await readStatesSequentiallyRef.current();
 
       // Set up auto-refresh every 2 seconds (reduced frequency to improve performance)
-      // Only start auto refresh if it's enabled
-      if (autoRefreshEnabled) {
-        refreshIntervalRef.current = setInterval(() => {
-          readStatesSequentiallyRef.current();
-        }, 2000);
-        console.log("Auto refresh started on dialog open");
-      } else {
-        console.log("Auto refresh not started - disabled by user");
-      }
+      refreshIntervalRef.current = setInterval(() => {
+        readStatesSequentiallyRef.current();
+      }, 2000);
     };
 
     initializeDialog();
@@ -375,28 +368,7 @@ export const useNetworkIOConfig = (item, open, childDialogOpen = false) => {
         refreshIntervalRef.current = null;
       }
     };
-  }, [open, item, ioSpec, readInputConfigsFromUnit, autoRefreshEnabled]);
-
-  // Effect to handle auto refresh toggle
-  useEffect(() => {
-    if (!autoRefreshEnabled) {
-      // Stop auto refresh immediately when disabled
-      if (refreshIntervalRef.current) {
-        clearInterval(refreshIntervalRef.current);
-        refreshIntervalRef.current = null;
-        console.log("Auto refresh stopped - disabled by user");
-      }
-    } else if (open && configsLoaded && !childDialogOpen) {
-      // Start auto refresh when enabled (if conditions are met)
-      if (!refreshIntervalRef.current) {
-        isDialogOpenRef.current = true;
-        refreshIntervalRef.current = setInterval(() => {
-          readStatesSequentiallyRef.current();
-        }, 2000);
-        console.log("Auto refresh started - enabled by user");
-      }
-    }
-  }, [autoRefreshEnabled, open, configsLoaded, childDialogOpen]);
+  }, [open, item, ioSpec, readInputConfigsFromUnit]);
 
   // Effect to immediately stop auto refresh when dialog closes
   useEffect(() => {
@@ -426,28 +398,26 @@ export const useNetworkIOConfig = (item, open, childDialogOpen = false) => {
 
   // Function to resume auto refresh (when child dialogs are closed)
   const resumeAutoRefresh = useCallback(() => {
-    if (!refreshIntervalRef.current && open && configsLoaded && autoRefreshEnabled) {
+    if (!refreshIntervalRef.current && open && configsLoaded) {
       isDialogOpenRef.current = true; // Re-enable the flag
       refreshIntervalRef.current = setInterval(() => {
         readStatesSequentiallyRef.current();
       }, 2000);
     } else if (!open) {
       console.log("Auto refresh NOT resumed - dialog is closed");
-    } else if (!autoRefreshEnabled) {
-      console.log("Auto refresh NOT resumed - auto refresh is disabled");
     }
-  }, [open, configsLoaded, autoRefreshEnabled]);
+  }, [open, configsLoaded]);
 
   // Effect to handle child dialog state changes
   useEffect(() => {
     childDialogOpenRef.current = childDialogOpen;
     if (childDialogOpen) {
       pauseAutoRefresh();
-    } else if (open && autoRefreshEnabled) {
-      // Only resume if the main dialog is still open and auto refresh is enabled
+    } else if (open) {
+      // Only resume if the main dialog is still open
       resumeAutoRefresh();
     }
-  }, [childDialogOpen, open, autoRefreshEnabled, pauseAutoRefresh, resumeAutoRefresh]);
+  }, [childDialogOpen, open, pauseAutoRefresh, resumeAutoRefresh]);
 
   // Listen for global auto refresh control events
   useEffect(() => {
@@ -456,7 +426,7 @@ export const useNetworkIOConfig = (item, open, childDialogOpen = false) => {
     };
 
     const handleResumeAutoRefresh = (event) => {
-      if (open && !childDialogOpen && autoRefreshEnabled) {
+      if (open && !childDialogOpen) {
         resumeAutoRefresh();
       }
     };
@@ -471,13 +441,7 @@ export const useNetworkIOConfig = (item, open, childDialogOpen = false) => {
         handleResumeAutoRefresh
       );
     };
-  }, [open, childDialogOpen, autoRefreshEnabled, pauseAutoRefresh, resumeAutoRefresh]);
-
-  // Function to toggle auto refresh
-  const toggleAutoRefresh = useCallback((enabled) => {
-    console.log("Toggle auto refresh:", enabled);
-    setAutoRefreshEnabled(enabled);
-  }, []);
+  }, [open, childDialogOpen, pauseAutoRefresh, resumeAutoRefresh]);
 
   // Cleanup effect when component unmounts
   useEffect(() => {
@@ -500,12 +464,10 @@ export const useNetworkIOConfig = (item, open, childDialogOpen = false) => {
     loading,
     isInitialLoading,
     configsLoaded,
-    autoRefreshEnabled,
     readStatesSequentially: readStatesSequentiallyRef.current,
     readInputConfigsFromUnit,
     readOutputConfigsFromUnit,
     pauseAutoRefresh,
     resumeAutoRefresh,
-    toggleAutoRefresh,
   };
 };

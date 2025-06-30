@@ -165,16 +165,11 @@ export const useNetworkInputConfig = (item, projectItems) => {
       setMultiGroupDialogOpen(true);
 
       try {
-        // Check if we have cached config first
-        let unitConfig = inputConfigsFromUnit[inputIndex];
-
-        if (!unitConfig) {
-          // If not cached, try to read from unit
-          console.log(
-            `No cached config for input ${inputIndex}, attempting to read from unit...`
-          );
-          unitConfig = await readInputConfigFromUnit(inputIndex);
-        }
+        // Always read fresh config from unit to get latest state
+        console.log(
+          `Reading fresh config for input ${inputIndex} from unit...`
+        );
+        let unitConfig = await readInputConfigFromUnit(inputIndex);
 
         if (unitConfig) {
           // Convert unit config to multi-group config format
