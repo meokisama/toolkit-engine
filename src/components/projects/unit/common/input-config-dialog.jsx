@@ -146,23 +146,12 @@ export function MultiGroupConfigDialog({
     return false;
   }, [currentInputType, rlcOptionsConfig.multiGroupEnabled]);
 
-  // Clear selected groups when input type changes
-  const previousInputTypeRef = React.useRef(currentInputType);
   React.useEffect(() => {
-    // Only clear if input type actually changed (not just during initialization)
-    if (
-      open &&
-      currentInputType !== null &&
-      previousInputTypeRef.current !== null &&
-      currentInputType !== previousInputTypeRef.current
-    ) {
-      console.log(
-        `🧹 Clearing selected groups due to input type change: ${previousInputTypeRef.current} → ${currentInputType}`
-      );
+    if (isInputTypeChanging) {
+      console.log("🧹 Clearing selected groups due to input type change");
       handleClearAllGroups();
     }
-    previousInputTypeRef.current = currentInputType;
-  }, [open, currentInputType, handleClearAllGroups]);
+  }, [isInputTypeChanging, handleClearAllGroups]);
 
   // Initialize groups when dialog opens or input type changes
   React.useEffect(() => {
