@@ -1,4 +1,4 @@
-import React, { useMemo, useCallback } from "react";
+import React, { useMemo, useCallback, useEffect } from "react";
 import {
   Dialog,
   DialogContent,
@@ -41,6 +41,20 @@ const NetworkIOConfigDialog = ({ open, onOpenChange, item = null }) => {
     handleSaveMultiGroupConfig,
   } = useNetworkInputConfig(item, projectItems);
 
+  // Use custom hooks for better organization
+  const {
+    inputConfigs,
+    outputConfigs,
+    ioSpec,
+    loading,
+    isInitialLoading,
+    readStatesSequentially,
+    readInputConfigsFromUnit,
+    readOutputConfigsFromUnit,
+    pauseAutoRefresh,
+    resumeAutoRefresh,
+  } = useNetworkIOConfig(item, open, multiGroupDialogOpen);
+
   const {
     lightingOutputDialogOpen,
     setLightingOutputDialogOpen,
@@ -57,17 +71,14 @@ const NetworkIOConfigDialog = ({ open, onOpenChange, item = null }) => {
   const anyChildDialogOpen =
     multiGroupDialogOpen || lightingOutputDialogOpen || acOutputDialogOpen;
 
-  // Use custom hooks for better organization
-  const {
-    inputConfigs,
-    outputConfigs,
-    ioSpec,
-    loading,
-    isInitialLoading,
-    readStatesSequentially,
-    readInputConfigsFromUnit,
-    readOutputConfigsFromUnit,
-  } = useNetworkIOConfig(item, open, anyChildDialogOpen);
+  // Handle auto refresh pause/resume when output dialogs open/close
+  useEffect(() => {
+    if (lightingOutputDialogOpen || acOutputDialogOpen) {
+      pauseAutoRefresh();
+    } else if (open && !multiGroupDialogOpen) {
+      resumeAutoRefresh();
+    }
+  }, [lightingOutputDialogOpen, acOutputDialogOpen, open, multiGroupDialogOpen, pauseAutoRefresh, resumeAutoRefresh]);
 
   // Memoize lighting and aircon items to prevent unnecessary re-renders
   const lightingItems = useMemo(() => {
