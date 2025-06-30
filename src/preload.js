@@ -271,6 +271,15 @@ contextBridge.exposeInMainWorld("electronAPI", {
       ipcRenderer.invoke("rcu:getAllInputConfigs", params),
     setupInputConfig: (params) =>
       ipcRenderer.invoke("rcu:setupInputConfig", params),
+    // Output configuration methods
+    getOutputAssign: (params) =>
+      ipcRenderer.invoke("rcu:getOutputAssign", params),
+    getOutputConfig: (unitIp, canId, outputIndex) =>
+      ipcRenderer.invoke("rcu:getOutputConfig", unitIp, canId, outputIndex),
+    setOutputAssign: (unitIp, canId, outputIndex, lightingAddress, delayOff, delayOn) =>
+      ipcRenderer.invoke("rcu:setOutputAssign", unitIp, canId, outputIndex, lightingAddress, delayOff, delayOn),
+    setOutputConfig: (unitIp, canId, outputIndex, config) =>
+      ipcRenderer.invoke("rcu:setOutputConfig", unitIp, canId, outputIndex, config),
     // Air Conditioner Control
     getACStatus: (params) => ipcRenderer.invoke("rcu:getACStatus", params),
     getRoomTemp: (params) => ipcRenderer.invoke("rcu:getRoomTemp", params),

@@ -11,6 +11,10 @@ import {
   getAllInputStates,
   getAllInputConfigs,
   setupInputConfig,
+  getOutputAssign,
+  setOutputAssign,
+  getOutputConfig,
+  setOutputConfig,
   getACStatus,
   getRoomTemp,
   setSettingRoomTemp,
@@ -1330,6 +1334,52 @@ function setupIpcHandlers() {
         return await setupInputConfig(unitIp, canId, inputConfig);
       } catch (error) {
         console.error("Error setting up input config:", error);
+        throw error;
+      }
+    }
+  );
+
+  // Output Configuration Control
+  ipcMain.handle("rcu:getOutputAssign", async (event, { unitIp, canId }) => {
+    try {
+      return await getOutputAssign(unitIp, canId);
+    } catch (error) {
+      console.error("Error getting output assignments:", error);
+      throw error;
+    }
+  });
+
+  ipcMain.handle(
+    "rcu:getOutputConfig",
+    async (event, unitIp, canId, outputIndex) => {
+      try {
+        return await getOutputConfig(unitIp, canId, outputIndex);
+      } catch (error) {
+        console.error("Error getting output config:", error);
+        throw error;
+      }
+    }
+  );
+
+  ipcMain.handle(
+    "rcu:setOutputAssign",
+    async (event, unitIp, canId, outputIndex, lightingAddress, delayOff, delayOn) => {
+      try {
+        return await setOutputAssign(unitIp, canId, outputIndex, lightingAddress, delayOff, delayOn);
+      } catch (error) {
+        console.error("Error setting output assignment:", error);
+        throw error;
+      }
+    }
+  );
+
+  ipcMain.handle(
+    "rcu:setOutputConfig",
+    async (event, unitIp, canId, outputIndex, config) => {
+      try {
+        return await setOutputConfig(unitIp, canId, outputIndex, config);
+      } catch (error) {
+        console.error("Error setting output config:", error);
         throw error;
       }
     }
