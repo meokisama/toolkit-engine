@@ -153,7 +153,7 @@ function processResponse(
     length,
     cmd1,
     cmd2,
-    data: msg.slice(dataStart, dataStart + dataLength - 2), // Exclude CRC
+    data: msg.slice(dataStart, dataStart + dataLength), // dataLength already excludes CRC
     success: true,
   };
 }
