@@ -51,7 +51,7 @@ const NetworkIOConfigDialog = ({ open, onOpenChange, item = null }) => {
     handleOpenOutputConfig,
     handleSaveOutputConfig,
     handleToggleOutputState,
-  } = useNetworkOutputConfig(item);
+  } = useNetworkOutputConfig(item, outputConfigs);
 
   // Check if any child dialog is open
   const anyChildDialogOpen =
@@ -66,6 +66,7 @@ const NetworkIOConfigDialog = ({ open, onOpenChange, item = null }) => {
     isInitialLoading,
     readStatesSequentially,
     readInputConfigsFromUnit,
+    readOutputConfigsFromUnit,
   } = useNetworkIOConfig(item, open, anyChildDialogOpen);
 
   // Memoize lighting and aircon items to prevent unnecessary re-renders
@@ -116,6 +117,36 @@ const NetworkIOConfigDialog = ({ open, onOpenChange, item = null }) => {
       console.error("Failed to read input configurations:", error);
     }
   }, [readInputConfigsFromUnit]);
+
+  // Handle adding missing lighting address to database
+  const handleAddMissingAddress = useCallback(async (lightingAddress, outputIndex) => {
+    try {
+      // Create new lighting item with the missing address
+      const newLightingItem = {
+        name: `Lighting ${lightingAddress}`,
+        address: lightingAddress,
+        description: `Auto-added from network unit output ${outputIndex + 1}`,
+        // Add other required fields based on your lighting schema
+      };
+
+      // Add to database via electronAPI
+      const result = await window.electronAPI.lighting.create(newLightingItem);
+
+      if (result?.success) {
+        console.log(`Successfully added lighting address ${lightingAddress} to database`);
+
+        // Refresh output configurations to update the mapping
+        await readOutputConfigsFromUnit();
+
+        // Show success message
+        // Note: You might want to add toast notification here
+      } else {
+        console.error("Failed to add lighting address to database:", result?.error);
+      }
+    } catch (error) {
+      console.error("Error adding missing lighting address:", error);
+    }
+  }, [readOutputConfigsFromUnit]);
 
   if (!item || !ioSpec) {
     return null;
@@ -214,6 +245,7 @@ const NetworkIOConfigDialog = ({ open, onOpenChange, item = null }) => {
                             onOutputDeviceChange={handleOutputDeviceChange}
                             onOpenOutputConfig={handleOpenOutputConfig}
                             onToggleState={handleToggleOutput}
+                            onAddMissingAddress={handleAddMissingAddress}
                             isLoadingConfig={loading}
                           />
                         ))}

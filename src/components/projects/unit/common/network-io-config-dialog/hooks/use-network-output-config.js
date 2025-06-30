@@ -1,11 +1,11 @@
 import { useState, useCallback } from "react";
 import { toast } from "sonner";
 
-export const useNetworkOutputConfig = (item) => {
+export const useNetworkOutputConfig = (item, outputConfigs = []) => {
   const [lightingOutputDialogOpen, setLightingOutputDialogOpen] = useState(false);
   const [acOutputDialogOpen, setACOutputDialogOpen] = useState(false);
   const [currentOutputConfig, setCurrentOutputConfig] = useState(null);
-  const [outputConfigs, setOutputConfigs] = useState({});
+  const [localOutputConfigs, setLocalOutputConfigs] = useState({});
 
   // Handle output device change
   const handleOutputDeviceChange = useCallback((outputIndex, deviceId) => {
@@ -20,13 +20,42 @@ export const useNetworkOutputConfig = (item) => {
 
   // Handle opening output configuration
   const handleOpenOutputConfig = useCallback((outputIndex, outputType) => {
-    const existingConfig = outputConfigs[outputIndex] || {};
+    // Find the output config from the array
+    const outputConfig = outputConfigs.find(config => config.index === outputIndex);
+
+    // Format config for lighting-output-config-dialog
+    let formattedConfig = {};
+
+    if (outputConfig) {
+      // Convert delay values from network unit format to dialog format
+      const delayOffSeconds = Math.floor((outputConfig.delayOff || 0) / 1000);
+      const delayOnSeconds = Math.floor((outputConfig.delayOn || 0) / 1000);
+
+      formattedConfig = {
+        // Delay settings from getOutputAssign
+        delayOffHours: Math.floor(delayOffSeconds / 3600),
+        delayOffMinutes: Math.floor((delayOffSeconds % 3600) / 60),
+        delayOffSeconds: delayOffSeconds % 60,
+        delayOnHours: Math.floor(delayOnSeconds / 3600),
+        delayOnMinutes: Math.floor((delayOnSeconds % 3600) / 60),
+        delayOnSeconds: delayOnSeconds % 60,
+
+        // Config settings from getOutputConfig
+        minDim: outputConfig.unitConfig?.minDimmingLevel || 1,
+        maxDim: outputConfig.unitConfig?.maxDimmingLevel || 100,
+        autoTrigger: outputConfig.unitConfig?.isAutoTriggerEnabled || false,
+        scheduleOnHour: outputConfig.unitConfig?.scheduleOnHour || 0,
+        scheduleOnMinute: outputConfig.unitConfig?.scheduleOnMinute || 0,
+        scheduleOffHour: outputConfig.unitConfig?.scheduleOffHour || 0,
+        scheduleOffMinute: outputConfig.unitConfig?.scheduleOffMinute || 0,
+      };
+    }
 
     setCurrentOutputConfig({
       index: outputIndex,
       name: `${outputType === "ac" ? "AC" : "Lighting"} Output ${outputIndex + 1}`,
       type: outputType,
-      config: existingConfig,
+      config: formattedConfig,
       isLoading: false
     });
 
@@ -39,28 +68,57 @@ export const useNetworkOutputConfig = (item) => {
 
   // Handle saving output configuration
   const handleSaveOutputConfig = useCallback(async (config) => {
-    if (!currentOutputConfig) return false;
+    if (!currentOutputConfig || !item?.ip_address || !item?.id_can) return false;
 
     try {
       // Update local state
-      setOutputConfigs(prev => ({
+      setLocalOutputConfigs(prev => ({
         ...prev,
         [currentOutputConfig.index]: config
       }));
 
-      // TODO: Send configuration to network unit
-      // This will be implemented when data handling is added
-      console.log(`Output config saved for output ${currentOutputConfig.index}:`, config);
+      // Convert dialog config format to network unit format
+      const delayOffMs = (config.delayOffHours * 3600 + config.delayOffMinutes * 60 + config.delayOffSeconds) * 1000;
+      const delayOnMs = (config.delayOnHours * 3600 + config.delayOnMinutes * 60 + config.delayOnSeconds) * 1000;
+
+      // Send setOutputConfig for dimming levels, auto trigger, and schedule
+      await window.electronAPI.rcuController.setOutputConfig(
+        item.ip_address,
+        item.id_can,
+        currentOutputConfig.index,
+        {
+          minDimmingLevel: config.minDim || 1,
+          maxDimmingLevel: config.maxDim || 100,
+          autoTriggerFlag: config.autoTrigger ? 1 : 0,
+          scheduleOnHour: config.scheduleOnHour || 0,
+          scheduleOnMinute: config.scheduleOnMinute || 0,
+          scheduleOffHour: config.scheduleOffHour || 0,
+          scheduleOffMinute: config.scheduleOffMinute || 0,
+        }
+      );
+
+      // Send setOutputAssign for delay settings (if lighting address is available)
+      const outputConfig = outputConfigs.find(oc => oc.index === currentOutputConfig.index);
+      if (outputConfig?.lightingAddress) {
+        await window.electronAPI.rcuController.setOutputAssign(
+          item.ip_address,
+          item.id_can,
+          currentOutputConfig.index,
+          outputConfig.lightingAddress,
+          delayOffMs,
+          delayOnMs
+        );
+      }
 
       const outputType = currentOutputConfig.type === "ac" ? "AC" : "Lighting";
-      toast.success(`${outputType} output ${currentOutputConfig.index + 1} configuration saved (network mode)`);
+      toast.success(`${outputType} output ${currentOutputConfig.index + 1} configuration saved`);
       return true;
     } catch (error) {
       console.error("Failed to save output configuration:", error);
       toast.error("Failed to save output configuration");
       return false;
     }
-  }, [currentOutputConfig]);
+  }, [currentOutputConfig, item?.ip_address, item?.id_can, outputConfigs]);
 
   // Handle output state toggle
   const handleToggleOutputState = useCallback(async (outputIndex, currentState) => {
@@ -100,7 +158,6 @@ export const useNetworkOutputConfig = (item) => {
     acOutputDialogOpen,
     setACOutputDialogOpen,
     currentOutputConfig,
-    outputConfigs,
     handleOutputDeviceChange,
     handleOpenOutputConfig,
     handleSaveOutputConfig,
