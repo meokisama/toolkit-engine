@@ -1,22 +1,57 @@
 import { useState, useCallback } from "react";
 import { toast } from "sonner";
 
-export const useNetworkOutputConfig = (item, outputConfigs = []) => {
+export const useNetworkOutputConfig = (item, outputConfigs = [], setOutputConfigs = null) => {
   const [lightingOutputDialogOpen, setLightingOutputDialogOpen] = useState(false);
   const [acOutputDialogOpen, setACOutputDialogOpen] = useState(false);
   const [currentOutputConfig, setCurrentOutputConfig] = useState(null);
   const [localOutputConfigs, setLocalOutputConfigs] = useState({});
 
   // Handle output device change
-  const handleOutputDeviceChange = useCallback((outputIndex, deviceId) => {
-    // For network units, we don't save to database immediately
-    // This will be handled by the parent component's state management
-    console.log(`Output ${outputIndex} device changed to ${deviceId}`);
+  const handleOutputDeviceChange = useCallback(async (outputIndex, deviceId) => {
+    if (!item?.ip_address || !item?.id_can) {
+      toast.error("Network unit information not available");
+      return;
+    }
 
-    // TODO: Send command to network unit to update output device association
-    // This will be implemented when data handling is added
-    toast.info(`Output ${outputIndex + 1} device association updated (network mode)`);
-  }, []);
+    try {
+      console.log(`Output ${outputIndex} device changed to ${deviceId}`);
+
+      // Get lighting address from deviceId (lighting item)
+      const lightingAddress = deviceId || 0; // Use 0 for unassigned
+
+      // Get current delay values from existing output config or use defaults
+      const currentOutput = outputConfigs.find(oc => oc.index === outputIndex);
+      const delayOff = currentOutput?.delayOff || 0;
+      const delayOn = currentOutput?.delayOn || 0;
+
+      // Send setOutputAssign command to network unit
+      await window.electronAPI.rcuController.setOutputAssign(
+        item.ip_address,
+        item.id_can,
+        outputIndex,
+        lightingAddress,
+        delayOff,
+        delayOn
+      );
+
+      // Update local state to reflect the change if setOutputConfigs is provided
+      if (setOutputConfigs) {
+        setOutputConfigs(prev =>
+          prev.map(config =>
+            config.index === outputIndex
+              ? { ...config, lightingAddress, isAssigned: lightingAddress > 0 }
+              : config
+          )
+        );
+      }
+
+      toast.success(`Output ${outputIndex + 1} device association updated`);
+    } catch (error) {
+      console.error("Failed to update output device association:", error);
+      toast.error(`Failed to update output ${outputIndex + 1} device association: ${error.message}`);
+    }
+  }, [item?.ip_address, item?.id_can, outputConfigs, setOutputConfigs]);
 
   // Handle opening output configuration
   const handleOpenOutputConfig = useCallback(async (outputIndex, outputType) => {
