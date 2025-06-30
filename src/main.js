@@ -1342,6 +1342,7 @@ function setupIpcHandlers() {
   // Output Configuration Control
   ipcMain.handle("rcu:getOutputAssign", async (event, { unitIp, canId }) => {
     try {
+      console.log("IPC getOutputAssign called with:", { unitIp, canId });
       return await getOutputAssign(unitIp, canId);
     } catch (error) {
       console.error("Error getting output assignments:", error);
