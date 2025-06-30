@@ -2,7 +2,7 @@ import { useState, useCallback } from "react";
 import { toast } from "sonner";
 import { getInputFunctionByValue, INPUT_TYPES } from "@/constants";
 
-export const useNetworkInputConfig = (item, projectItems) => {
+export const useNetworkInputConfig = (item, projectItems, refreshInputConfigs = null) => {
   const [multiGroupConfigs, setMultiGroupConfigs] = useState({});
   const [multiGroupDialogOpen, setMultiGroupDialogOpen] = useState(false);
   const [currentMultiGroupInput, setCurrentMultiGroupInput] = useState(null);
@@ -129,12 +129,23 @@ export const useNetworkInputConfig = (item, projectItems) => {
         });
 
         toast.success(`Input ${inputIndex + 1} function updated successfully`);
+
+        // Refresh input configurations in the main dialog
+        if (refreshInputConfigs) {
+          console.log("🔄 Refreshing input configurations after function change...");
+          try {
+            await refreshInputConfigs();
+            console.log("✅ Input configurations refreshed successfully");
+          } catch (refreshError) {
+            console.warn("⚠️ Failed to refresh input configurations:", refreshError);
+          }
+        }
       } catch (error) {
         console.error(`Failed to update input ${inputIndex} function:`, error);
         toast.error(`Failed to update input function: ${error.message}`);
       }
     },
-    [item?.ip_address, item?.id_can]
+    [item?.ip_address, item?.id_can, refreshInputConfigs]
   );
 
   // Handle opening multi-group configuration
@@ -372,6 +383,17 @@ export const useNetworkInputConfig = (item, projectItems) => {
           } configuration sent successfully`
         );
 
+        // Refresh input configurations in the main dialog
+        if (refreshInputConfigs) {
+          console.log("🔄 Refreshing input configurations after save...");
+          try {
+            await refreshInputConfigs();
+            console.log("✅ Input configurations refreshed successfully");
+          } catch (refreshError) {
+            console.warn("⚠️ Failed to refresh input configurations:", refreshError);
+          }
+        }
+
         return true;
       } catch (error) {
         console.error("❌ Failed to save multi-group configuration:", error);
@@ -379,7 +401,7 @@ export const useNetworkInputConfig = (item, projectItems) => {
         return false;
       }
     },
-    [currentMultiGroupInput, item?.ip_address, item?.id_can, projectItems]
+    [currentMultiGroupInput, item?.ip_address, item?.id_can, projectItems, refreshInputConfigs]
   );
 
   // Handle input lighting change (for lighting selection in multi-group)
@@ -423,6 +445,17 @@ export const useNetworkInputConfig = (item, projectItems) => {
         toast.success(
           `Input ${inputIndex + 1} lighting association updated successfully`
         );
+
+        // Refresh input configurations in the main dialog
+        if (refreshInputConfigs) {
+          console.log("🔄 Refreshing input configurations after lighting association change...");
+          try {
+            await refreshInputConfigs();
+            console.log("✅ Input configurations refreshed successfully");
+          } catch (refreshError) {
+            console.warn("⚠️ Failed to refresh input configurations:", refreshError);
+          }
+        }
       } catch (error) {
         console.error(
           `Failed to update input ${inputIndex} lighting association:`,
@@ -431,7 +464,7 @@ export const useNetworkInputConfig = (item, projectItems) => {
         toast.error(`Failed to update lighting association: ${error.message}`);
       }
     },
-    [item?.ip_address, item?.id_can, inputConfigsFromUnit]
+    [item?.ip_address, item?.id_can, inputConfigsFromUnit, refreshInputConfigs]
   );
 
   return {

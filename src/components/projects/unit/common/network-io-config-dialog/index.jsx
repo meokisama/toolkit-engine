@@ -31,16 +31,6 @@ import { useProjectDetail } from "@/contexts/project-detail-context";
 const NetworkIOConfigDialog = ({ open, onOpenChange, item = null }) => {
   const { projectItems } = useProjectDetail();
 
-  const {
-    multiGroupDialogOpen,
-    setMultiGroupDialogOpen,
-    currentMultiGroupInput,
-    loadingInputConfigs,
-    handleInputFunctionChange,
-    handleOpenMultiGroupConfig,
-    handleSaveMultiGroupConfig,
-  } = useNetworkInputConfig(item, projectItems);
-
   // Use custom hooks for better organization
   const {
     inputConfigs,
@@ -53,7 +43,17 @@ const NetworkIOConfigDialog = ({ open, onOpenChange, item = null }) => {
     readOutputConfigsFromUnit,
     pauseAutoRefresh,
     resumeAutoRefresh,
-  } = useNetworkIOConfig(item, open, multiGroupDialogOpen);
+  } = useNetworkIOConfig(item, open, false); // We'll update this after getting multiGroupDialogOpen
+
+  const {
+    multiGroupDialogOpen,
+    setMultiGroupDialogOpen,
+    currentMultiGroupInput,
+    loadingInputConfigs,
+    handleInputFunctionChange,
+    handleOpenMultiGroupConfig,
+    handleSaveMultiGroupConfig,
+  } = useNetworkInputConfig(item, projectItems, readInputConfigsFromUnit);
 
   const {
     lightingOutputDialogOpen,
