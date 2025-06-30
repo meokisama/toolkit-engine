@@ -27,18 +27,18 @@ export const useNetworkOutputConfig = (item, outputConfigs = []) => {
     let formattedConfig = {};
 
     if (outputConfig) {
-      // Convert delay values from network unit format to dialog format
-      const delayOffSeconds = Math.floor((outputConfig.delayOff || 0) / 1000);
-      const delayOnSeconds = Math.floor((outputConfig.delayOn || 0) / 1000);
+      // Convert delay values from network unit format (seconds) to dialog format
+      const delayOffTotalSeconds = outputConfig.delayOff || 0;
+      const delayOnTotalSeconds = outputConfig.delayOn || 0;
 
       formattedConfig = {
         // Delay settings from getOutputAssign
-        delayOffHours: Math.floor(delayOffSeconds / 3600),
-        delayOffMinutes: Math.floor((delayOffSeconds % 3600) / 60),
-        delayOffSeconds: delayOffSeconds % 60,
-        delayOnHours: Math.floor(delayOnSeconds / 3600),
-        delayOnMinutes: Math.floor((delayOnSeconds % 3600) / 60),
-        delayOnSeconds: delayOnSeconds % 60,
+        delayOffHours: Math.floor(delayOffTotalSeconds / 3600),
+        delayOffMinutes: Math.floor((delayOffTotalSeconds % 3600) / 60),
+        delayOffSeconds: delayOffTotalSeconds % 60,
+        delayOnHours: Math.floor(delayOnTotalSeconds / 3600),
+        delayOnMinutes: Math.floor((delayOnTotalSeconds % 3600) / 60),
+        delayOnSeconds: delayOnTotalSeconds % 60,
 
         // Config settings from getOutputConfig
         minDim: outputConfig.unitConfig?.minDimmingLevel || 1,
@@ -77,9 +77,9 @@ export const useNetworkOutputConfig = (item, outputConfigs = []) => {
         [currentOutputConfig.index]: config
       }));
 
-      // Convert dialog config format to network unit format
-      const delayOffMs = (config.delayOffHours * 3600 + config.delayOffMinutes * 60 + config.delayOffSeconds) * 1000;
-      const delayOnMs = (config.delayOnHours * 3600 + config.delayOnMinutes * 60 + config.delayOnSeconds) * 1000;
+      // Convert dialog config format to network unit format (in seconds, not milliseconds)
+      const delayOffSeconds = config.delayOffHours * 3600 + config.delayOffMinutes * 60 + config.delayOffSeconds;
+      const delayOnSeconds = config.delayOnHours * 3600 + config.delayOnMinutes * 60 + config.delayOnSeconds;
 
       // Send setOutputConfig for dimming levels, auto trigger, and schedule
       await window.electronAPI.rcuController.setOutputConfig(
@@ -105,8 +105,8 @@ export const useNetworkOutputConfig = (item, outputConfigs = []) => {
           item.id_can,
           currentOutputConfig.index,
           outputConfig.lightingAddress,
-          delayOffMs,
-          delayOnMs
+          delayOffSeconds,
+          delayOnSeconds
         );
       }
 

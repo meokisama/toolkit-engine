@@ -45,8 +45,8 @@ async function getOutputAssign(unitIp, canId) {
       outputAssignments.push({
         outputIndex: outputIndex,
         lightingAddress: lightingAddress,
-        delayOff: delayOff, // in milliseconds or appropriate unit
-        delayOn: delayOn, // in milliseconds or appropriate unit
+        delayOff: delayOff, // in seconds
+        delayOn: delayOn, // in seconds
         isAssigned: lightingAddress > 0, // Consider assigned if lighting address > 0
       });
     }

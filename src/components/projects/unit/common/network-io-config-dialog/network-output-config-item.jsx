@@ -111,14 +111,23 @@ const NetworkOutputConfigItem = memo(
           </div>
         </div>
         <div className="flex items-center gap-2">
-          <Combobox
-            className="w-56"
-            options={deviceOptions}
-            value={autoMappedDeviceId?.toString() || ""}
-            onValueChange={handleDeviceChange}
-            placeholder={`Select ${isAircon ? "aircon" : "lighting"}...`}
-            emptyText={`No ${isAircon ? "aircon" : "lighting"} found`}
-          />
+          {/* Show combobox only if address is mapped or is aircon */}
+          {(!hasUnmappedAddress || isAircon) ? (
+            <Combobox
+              className="w-56"
+              options={deviceOptions}
+              value={autoMappedDeviceId?.toString() || ""}
+              onValueChange={handleDeviceChange}
+              placeholder={`Select ${isAircon ? "aircon" : "lighting"}...`}
+              emptyText={`No ${isAircon ? "aircon" : "lighting"} found`}
+            />
+          ) : (
+            /* Show address info when not in database */
+            <div className="w-56 px-3 py-2 border rounded-md bg-muted text-muted-foreground text-sm">
+              Address {config.lightingAddress} (Not in database)
+            </div>
+          )}
+
           {/* Plus button for adding missing lighting address to database */}
           {hasUnmappedAddress && onAddMissingAddress && (
             <Button
