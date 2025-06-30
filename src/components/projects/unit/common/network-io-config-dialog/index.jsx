@@ -10,7 +10,9 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Settings, Download } from "lucide-react";
+import { Settings, Download, RefreshCw } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
 
 // Import network-specific components
 import { NetworkInputConfigItem } from "./network-input-config-item";
@@ -48,11 +50,13 @@ const NetworkIOConfigDialog = ({ open, onOpenChange, item = null }) => {
     ioSpec,
     loading,
     isInitialLoading,
+    autoRefreshEnabled,
     readStatesSequentially,
     readInputConfigsFromUnit,
     readOutputConfigsFromUnit,
     pauseAutoRefresh,
     resumeAutoRefresh,
+    toggleAutoRefresh,
   } = useNetworkIOConfig(item, open, multiGroupDialogOpen);
 
   const {
@@ -167,13 +171,28 @@ const NetworkIOConfigDialog = ({ open, onOpenChange, item = null }) => {
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="!max-w-6xl max-h-[90vh] flex flex-col overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <Settings className="h-5 w-5" />
-            Network I/O Configuration - {item.type}
-            <Badge variant="outline" className="ml-2">
-              {item.ip_address}
-            </Badge>
-          </DialogTitle>
+          <div className="flex items-center justify-between">
+            <DialogTitle className="flex items-center gap-2">
+              <Settings className="h-5 w-5" />
+              Network I/O Configuration - {item.type}
+              <Badge variant="outline" className="ml-2">
+                {item.ip_address}
+              </Badge>
+            </DialogTitle>
+
+            {/* Auto Refresh Toggle */}
+            <div className="flex items-center gap-2">
+              <Label htmlFor="auto-refresh-toggle" className="text-sm font-medium">
+                Auto Refresh
+              </Label>
+              <Switch
+                id="auto-refresh-toggle"
+                checked={autoRefreshEnabled}
+                onCheckedChange={toggleAutoRefresh}
+                className="data-[state=checked]:bg-green-600"
+              />
+            </div>
+          </div>
         </DialogHeader>
 
         <div className="flex-1 overflow-hidden">

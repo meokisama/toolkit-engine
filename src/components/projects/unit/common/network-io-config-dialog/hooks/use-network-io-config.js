@@ -8,6 +8,7 @@ export const useNetworkIOConfig = (item, open, childDialogOpen = false) => {
   const [loading, setLoading] = useState(false);
   const [isInitialLoading, setIsInitialLoading] = useState(false);
   const [configsLoaded, setConfigsLoaded] = useState(false);
+  const [autoRefreshEnabled, setAutoRefreshEnabled] = useState(true);
 
   // Use refs to store current state without triggering re-renders
   const inputStatesRef = useRef([]);
@@ -184,6 +185,14 @@ export const useNetworkIOConfig = (item, open, childDialogOpen = false) => {
         `Reading output configurations from unit ${item.ip_address} (CAN ID: ${item.id_can})`
       );
 
+      // Debug: Check parameter values
+      console.log("Debug - Parameters:", {
+        unitIp: item.ip_address,
+        canId: item.id_can,
+        unitIpType: typeof item.ip_address,
+        canIdType: typeof item.id_can
+      });
+
       // First get output assignments (lighting address mapping, delay off/on)
       const assignResponse = await window.electronAPI.rcuController.getOutputAssign({
         unitIp: item.ip_address,
@@ -347,9 +356,12 @@ export const useNetworkIOConfig = (item, open, childDialogOpen = false) => {
       await readStatesSequentiallyRef.current();
 
       // Set up auto-refresh every 2 seconds (reduced frequency to improve performance)
-      refreshIntervalRef.current = setInterval(() => {
-        readStatesSequentiallyRef.current();
-      }, 2000);
+      // Only start auto refresh if it's enabled
+      if (autoRefreshEnabled) {
+        refreshIntervalRef.current = setInterval(() => {
+          readStatesSequentiallyRef.current();
+        }, 2000);
+      }
     };
 
     initializeDialog();
@@ -360,7 +372,7 @@ export const useNetworkIOConfig = (item, open, childDialogOpen = false) => {
         refreshIntervalRef.current = null;
       }
     };
-  }, [open, item, ioSpec, readInputConfigsFromUnit]);
+  }, [open, item, ioSpec, readInputConfigsFromUnit, autoRefreshEnabled]);
 
   // Effect to immediately stop auto refresh when dialog closes
   useEffect(() => {
@@ -390,15 +402,17 @@ export const useNetworkIOConfig = (item, open, childDialogOpen = false) => {
 
   // Function to resume auto refresh (when child dialogs are closed)
   const resumeAutoRefresh = useCallback(() => {
-    if (!refreshIntervalRef.current && open && configsLoaded) {
+    if (!refreshIntervalRef.current && open && configsLoaded && autoRefreshEnabled) {
       isDialogOpenRef.current = true; // Re-enable the flag
       refreshIntervalRef.current = setInterval(() => {
         readStatesSequentiallyRef.current();
       }, 2000);
     } else if (!open) {
       console.log("Auto refresh NOT resumed - dialog is closed");
+    } else if (!autoRefreshEnabled) {
+      console.log("Auto refresh NOT resumed - auto refresh is disabled");
     }
-  }, [open, configsLoaded]);
+  }, [open, configsLoaded, autoRefreshEnabled]);
 
   // Effect to handle child dialog state changes
   useEffect(() => {
@@ -435,6 +449,27 @@ export const useNetworkIOConfig = (item, open, childDialogOpen = false) => {
     };
   }, [open, childDialogOpen, pauseAutoRefresh, resumeAutoRefresh]);
 
+  // Function to toggle auto refresh
+  const toggleAutoRefresh = useCallback((enabled) => {
+    setAutoRefreshEnabled(enabled);
+
+    if (!enabled) {
+      // Stop auto refresh immediately when disabled
+      if (refreshIntervalRef.current) {
+        clearInterval(refreshIntervalRef.current);
+        refreshIntervalRef.current = null;
+      }
+    } else if (open && configsLoaded && !childDialogOpen) {
+      // Start auto refresh immediately when enabled (if conditions are met)
+      if (!refreshIntervalRef.current) {
+        isDialogOpenRef.current = true;
+        refreshIntervalRef.current = setInterval(() => {
+          readStatesSequentiallyRef.current();
+        }, 2000);
+      }
+    }
+  }, [open, configsLoaded, childDialogOpen]);
+
   // Cleanup effect when component unmounts
   useEffect(() => {
     return () => {
@@ -456,10 +491,12 @@ export const useNetworkIOConfig = (item, open, childDialogOpen = false) => {
     loading,
     isInitialLoading,
     configsLoaded,
+    autoRefreshEnabled,
     readStatesSequentially: readStatesSequentiallyRef.current,
     readInputConfigsFromUnit,
     readOutputConfigsFromUnit,
     pauseAutoRefresh,
     resumeAutoRefresh,
+    toggleAutoRefresh,
   };
 };
