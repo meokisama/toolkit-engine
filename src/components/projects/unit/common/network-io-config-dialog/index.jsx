@@ -57,6 +57,15 @@ const NetworkIOConfigDialog = ({ open, onOpenChange, item = null }) => {
     handleSaveMultiGroupConfig,
   } = useNetworkInputConfig(item, projectItems, readInputConfigsFromUnit);
 
+  // Memoize lighting and aircon items to prevent unnecessary re-renders
+  const lightingItems = useMemo(() => {
+    return projectItems?.lighting || [];
+  }, [projectItems?.lighting]);
+
+  const airconItems = useMemo(() => {
+    return projectItems?.aircon || [];
+  }, [projectItems?.aircon]);
+
   const {
     lightingOutputDialogOpen,
     setLightingOutputDialogOpen,
@@ -81,15 +90,6 @@ const NetworkIOConfigDialog = ({ open, onOpenChange, item = null }) => {
       resumeAutoRefresh();
     }
   }, [lightingOutputDialogOpen, acOutputDialogOpen, open, multiGroupDialogOpen, pauseAutoRefresh, resumeAutoRefresh]);
-
-  // Memoize lighting and aircon items to prevent unnecessary re-renders
-  const lightingItems = useMemo(() => {
-    return projectItems?.lighting || [];
-  }, [projectItems?.lighting]);
-
-  const airconItems = useMemo(() => {
-    return projectItems?.aircon || [];
-  }, [projectItems?.aircon]);
 
   // Create device options for outputs
   const outputDeviceOptionsMap = useMemo(() => {
