@@ -146,13 +146,6 @@ export function MultiGroupConfigDialog({
     return false;
   }, [currentInputType, rlcOptionsConfig.multiGroupEnabled]);
 
-  React.useEffect(() => {
-    if (isInputTypeChanging) {
-      console.log("🧹 Clearing selected groups due to input type change");
-      handleClearAllGroups();
-    }
-  }, [isInputTypeChanging, handleClearAllGroups]);
-
   // Initialize groups when dialog opens or input type changes
   React.useEffect(() => {
     if (
