@@ -39,6 +39,7 @@ export function DataTable({
   onCurtainControl,
   onKnxControl,
   onMultiSceneControl,
+  onSequenceControl,
   onSendSchedule,
   onSendScene,
   onFirmwareUpdate,
@@ -214,6 +215,7 @@ export function DataTable({
                   onCurtainControl={onCurtainControl}
                   onKnxControl={onKnxControl}
                   onMultiSceneControl={onMultiSceneControl}
+                  onSequenceControl={onSequenceControl}
                   onSendSchedule={onSendSchedule}
                   onSendScene={onSendScene}
                   onFirmwareUpdate={onFirmwareUpdate}

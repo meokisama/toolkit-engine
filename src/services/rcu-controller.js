@@ -61,6 +61,14 @@ export {
   triggerMultiScene,
 } from "./rcu-controller/multi-scene.js";
 
+// Export sequence functions
+export {
+  setupSequence,
+  getSequenceInformation,
+  getAllSequencesInformation,
+  triggerSequence,
+} from "./rcu-controller/sequence.js";
+
 // Export clock functions
 export { syncClock, getClock } from "./rcu-controller/clock.js";
 
@@ -88,6 +96,8 @@ export {
   deleteAllSchedules,
   deleteMultiScene,
   deleteAllMultiScenes,
+  deleteSequence,
+  deleteAllSequences,
   deleteCurtain,
   deleteAllCurtains,
 } from "./rcu-controller/delete-operations.js";

@@ -257,6 +257,31 @@ class DatabaseService {
       )
     `;
 
+    const createSequencesTable = `
+      CREATE TABLE IF NOT EXISTS sequences (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        project_id INTEGER NOT NULL,
+        name TEXT NOT NULL CHECK(length(name) <= 15),
+        address TEXT NOT NULL,
+        description TEXT,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (project_id) REFERENCES projects (id) ON DELETE CASCADE
+      )
+    `;
+
+    const createSequenceMultiScenesTable = `
+      CREATE TABLE IF NOT EXISTS sequence_multi_scenes (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        sequence_id INTEGER NOT NULL,
+        multi_scene_id INTEGER NOT NULL,
+        multi_scene_order INTEGER NOT NULL DEFAULT 0,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (sequence_id) REFERENCES sequences (id) ON DELETE CASCADE,
+        FOREIGN KEY (multi_scene_id) REFERENCES multi_scenes (id) ON DELETE CASCADE
+      )
+    `;
+
     const createUnitOutputConfigsTable = `
       CREATE TABLE IF NOT EXISTS unit_output_configs (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -301,6 +326,8 @@ class DatabaseService {
       this.db.exec(createScheduleScenesTable);
       this.db.exec(createMultiScenesTable);
       this.db.exec(createMultiSceneScenesTable);
+      this.db.exec(createSequencesTable);
+      this.db.exec(createSequenceMultiScenesTable);
       this.db.exec(createUnitOutputConfigsTable);
       this.db.exec(createUnitInputConfigsTable);
     } catch (error) {
@@ -481,6 +508,7 @@ class DatabaseService {
       "knx",
       "scene",
       "multi_scenes",
+      "sequences",
     ];
 
     categories.forEach((category) => {
@@ -529,7 +557,16 @@ class DatabaseService {
           // Special handling for multi_scenes items
           const itemData = {
             name: item.name,
+            address: item.address,
             type: item.type,
+            description: item.description,
+          };
+          this.createProjectItem(newProjectId, itemData, category);
+        } else if (category === "sequences") {
+          // Special handling for sequences items
+          const itemData = {
+            name: item.name,
+            address: item.address,
             description: item.description,
           };
           this.createProjectItem(newProjectId, itemData, category);
@@ -588,6 +625,11 @@ class DatabaseService {
           "SELECT * FROM multi_scenes WHERE project_id = ? ORDER BY name ASC"
         )
         .all(projectId);
+      const sequences = this.db
+        .prepare(
+          "SELECT * FROM sequences WHERE project_id = ? ORDER BY name ASC"
+        )
+        .all(projectId);
 
       return {
         lighting,
@@ -598,6 +640,7 @@ class DatabaseService {
         scene,
         schedule,
         multi_scenes,
+        sequences,
       };
     } catch (error) {
       console.error("Failed to get all project items:", error);
@@ -774,6 +817,31 @@ class DatabaseService {
         }
       }
 
+      // Special validation for sequences
+      if (tableName === "sequences") {
+        if (!name || !name.trim()) {
+          throw new Error("Name is required for sequence.");
+        }
+
+        if (name.length > 15) {
+          throw new Error("Sequence name must be 15 characters or less.");
+        }
+
+        if (!address || !address.trim()) {
+          throw new Error("Address is required for sequence.");
+        }
+
+        // Check maximum sequence limit (20 sequences)
+        const sequenceCount = this.db
+          .prepare(
+            "SELECT COUNT(*) as count FROM sequences WHERE project_id = ?"
+          )
+          .get(projectId);
+        if (sequenceCount.count >= 20) {
+          throw new Error("Maximum 20 sequences allowed per project.");
+        }
+      }
+
       // For aircon table, include label column
       if (tableName === "aircon") {
         const stmt = this.db.prepare(`
@@ -850,6 +918,20 @@ class DatabaseService {
           name,
           address,
           type || 0,
+          description
+        );
+        return this.getProjectItemById(result.lastInsertRowid, tableName);
+      } else if (tableName === "sequences") {
+        // For sequences table, use address field
+        const { address } = itemData;
+        const stmt = this.db.prepare(`
+          INSERT INTO ${tableName} (project_id, name, address, description)
+          VALUES (?, ?, ?, ?)
+        `);
+        const result = stmt.run(
+          projectId,
+          name,
+          address,
           description
         );
         return this.getProjectItemById(result.lastInsertRowid, tableName);
@@ -1110,6 +1192,31 @@ class DatabaseService {
           WHERE id = ?
         `);
         const result = stmt.run(name, address, type || 0, description, id);
+
+        if (result.changes === 0) {
+          throw new Error(`${tableName} item not found`);
+        }
+      } else if (tableName === "sequences") {
+        // For sequences table, use address field
+        const { address } = itemData;
+
+        // Validation for sequences
+        if (!name || !name.trim()) {
+          throw new Error("Name is required for sequence.");
+        }
+        if (name.length > 15) {
+          throw new Error("Sequence name must be 15 characters or less.");
+        }
+        if (!address || !address.trim()) {
+          throw new Error("Address is required for sequence.");
+        }
+
+        const stmt = this.db.prepare(`
+          UPDATE ${tableName}
+          SET name = ?, address = ?, description = ?, updated_at = CURRENT_TIMESTAMP
+          WHERE id = ?
+        `);
+        const result = stmt.run(name, address, description, id);
 
         if (result.changes === 0) {
           throw new Error(`${tableName} item not found`);
@@ -2744,6 +2851,104 @@ class DatabaseService {
       return { success: true };
     } catch (error) {
       console.error("Failed to update multi-scene scenes:", error);
+      throw error;
+    }
+  }
+
+  // Sequence management methods
+  getSequenceMultiScenes(sequenceId) {
+    try {
+      const stmt = this.db.prepare(`
+        SELECT sms.*, ms.name as multi_scene_name, ms.address as multi_scene_address
+        FROM sequence_multi_scenes sms
+        JOIN multi_scenes ms ON sms.multi_scene_id = ms.id
+        WHERE sms.sequence_id = ?
+        ORDER BY sms.multi_scene_order ASC
+      `);
+      return stmt.all(sequenceId);
+    } catch (error) {
+      console.error("Failed to get sequence multi-scenes:", error);
+      throw error;
+    }
+  }
+
+  addMultiSceneToSequence(sequenceId, multiSceneId, multiSceneOrder = 0) {
+    try {
+      // Check if sequence already has 20 multi-scenes
+      const multiSceneCount = this.db
+        .prepare(
+          "SELECT COUNT(*) as count FROM sequence_multi_scenes WHERE sequence_id = ?"
+        )
+        .get(sequenceId);
+      if (multiSceneCount.count >= 20) {
+        throw new Error("Maximum 20 multi-scenes allowed per sequence.");
+      }
+
+      // Check if multi-scene is already in this sequence
+      const existingMultiScene = this.db
+        .prepare(
+          "SELECT COUNT(*) as count FROM sequence_multi_scenes WHERE sequence_id = ? AND multi_scene_id = ?"
+        )
+        .get(sequenceId, multiSceneId);
+      if (existingMultiScene.count > 0) {
+        throw new Error("Multi-scene is already in this sequence.");
+      }
+
+      const stmt = this.db.prepare(`
+        INSERT INTO sequence_multi_scenes (sequence_id, multi_scene_id, multi_scene_order)
+        VALUES (?, ?, ?)
+      `);
+      const result = stmt.run(sequenceId, multiSceneId, multiSceneOrder);
+      return {
+        id: result.lastInsertRowid,
+        sequence_id: sequenceId,
+        multi_scene_id: multiSceneId,
+        multi_scene_order: multiSceneOrder,
+      };
+    } catch (error) {
+      console.error("Failed to add multi-scene to sequence:", error);
+      throw error;
+    }
+  }
+
+  removeMultiSceneFromSequence(sequenceId, multiSceneId) {
+    try {
+      const stmt = this.db.prepare(`
+        DELETE FROM sequence_multi_scenes
+        WHERE sequence_id = ? AND multi_scene_id = ?
+      `);
+      const result = stmt.run(sequenceId, multiSceneId);
+
+      if (result.changes === 0) {
+        throw new Error("Multi-scene not found in sequence");
+      }
+
+      return { success: true };
+    } catch (error) {
+      console.error("Failed to remove multi-scene from sequence:", error);
+      throw error;
+    }
+  }
+
+  updateSequenceMultiScenes(sequenceId, multiSceneIds) {
+    try {
+      // Start transaction for atomic operation
+      const transaction = this.db.transaction(() => {
+        // Remove all existing multi-scenes from sequence
+        this.db
+          .prepare("DELETE FROM sequence_multi_scenes WHERE sequence_id = ?")
+          .run(sequenceId);
+
+        // Add new multi-scenes with order
+        multiSceneIds.forEach((multiSceneId, index) => {
+          this.addMultiSceneToSequence(sequenceId, multiSceneId, index);
+        });
+      });
+
+      transaction();
+      return { success: true };
+    } catch (error) {
+      console.error("Failed to update sequence multi-scenes:", error);
       throw error;
     }
   }
