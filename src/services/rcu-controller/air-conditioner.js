@@ -338,7 +338,6 @@ async function getLocalACConfig(unitIp, canId) {
 
       acConfigs.push(acConfig);
     }
-    }
 
     console.log(`Retrieved ${acConfigs.length} AC configurations`);
     return acConfigs;
