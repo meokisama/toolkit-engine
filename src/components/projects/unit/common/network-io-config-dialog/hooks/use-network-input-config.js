@@ -53,10 +53,6 @@ export const useNetworkInputConfig = (item, projectItems, refreshInputConfigs = 
 
       setLoadingInputConfigs(true);
       try {
-        console.log(
-          `Reading input config from unit ${item.ip_address} (CAN ID: ${item.id_can})`
-        );
-
         const response =
           await window.electronAPI.rcuController.getAllInputConfigs({
             unitIp: item.ip_address,
@@ -64,10 +60,6 @@ export const useNetworkInputConfig = (item, projectItems, refreshInputConfigs = 
           });
 
         if (response?.configs) {
-          console.log(
-            `Received ${response.configs.length} input configurations from unit`
-          );
-
           // Convert array to object indexed by input number for easier access
           const configsMap = {};
           response.configs.forEach((config) => {
@@ -99,11 +91,6 @@ export const useNetworkInputConfig = (item, projectItems, refreshInputConfigs = 
   // Handle input function change
   const handleInputFunctionChange = useCallback(
     async (inputIndex, functionValue) => {
-      // For network units, we don't save to database immediately
-      // This will be handled by the parent component's state management
-      console.log(`Input ${inputIndex} function changed to ${functionValue}`);
-
-      // Send command to network unit to update input function
       if (!item?.ip_address || !item?.id_can) {
         toast.error("Unit IP address or CAN ID not available");
         return;
@@ -134,10 +121,8 @@ export const useNetworkInputConfig = (item, projectItems, refreshInputConfigs = 
 
         // Refresh input configurations in the main dialog
         if (refreshInputConfigs) {
-          console.log("🔄 Refreshing input configurations after function change...");
           try {
             await refreshInputConfigs();
-            console.log("✅ Input configurations refreshed successfully");
           } catch (refreshError) {
             console.warn("⚠️ Failed to refresh input configurations:", refreshError);
           }
@@ -179,9 +164,6 @@ export const useNetworkInputConfig = (item, projectItems, refreshInputConfigs = 
 
       try {
         // Always read fresh config from unit to get latest state
-        console.log(
-          `Reading fresh config for input ${inputIndex} from unit...`
-        );
         let unitConfig = await readInputConfigFromUnit(inputIndex);
 
         if (unitConfig) {
@@ -214,10 +196,8 @@ export const useNetworkInputConfig = (item, projectItems, refreshInputConfigs = 
             [inputIndex]: convertedConfig,
           }));
 
-          console.log(`Loaded input ${inputIndex} config:`, convertedConfig);
         } else {
           // Fallback to default config if reading from unit fails
-          console.log(`Using default config for input ${inputIndex}`);
           setCurrentMultiGroupInput((prev) => ({
             ...prev,
             isLoading: false,
@@ -237,27 +217,11 @@ export const useNetworkInputConfig = (item, projectItems, refreshInputConfigs = 
   // Handle saving multi-group configuration
   const handleSaveMultiGroupConfig = useCallback(
     async (data) => {
-      console.log("🎯 Network handleSaveMultiGroupConfig called with:", {
-        data,
-        currentMultiGroupInput,
-        hasItem: !!item,
-      });
-
       if (!currentMultiGroupInput) {
-        console.error("❌ No current multi-group input selected");
         return false;
       }
 
       try {
-        console.log("🔧 Starting network multi-group config save:", {
-          currentMultiGroupInput,
-          data,
-          item: {
-            ip_address: item?.ip_address,
-            id_can: item?.id_can,
-          },
-        });
-
         const groups = data.groups || data;
         const rlcOptions = data.rlcOptions || {};
         const inputType = data.inputType;
@@ -272,8 +236,6 @@ export const useNetworkInputConfig = (item, projectItems, refreshInputConfigs = 
         if (!item?.ip_address || !item?.id_can) {
           throw new Error("Unit IP address or CAN ID not available");
         }
-
-        console.log("📡 Sending to network unit...");
 
         // Calculate delayOff in seconds
         let delayOffSeconds = 0;
@@ -349,39 +311,14 @@ export const useNetworkInputConfig = (item, projectItems, refreshInputConfigs = 
           }),
         };
 
-        console.log("📤 Sending input config to network unit:", {
-          unitIp: item.ip_address,
-          canId: item.id_can,
-          inputConfigData,
-          groupType,
-          availableItemsCount: availableItems.length,
-          availableItemsSample: availableItems.slice(0, 3).map((item) => ({
-            id: item.id,
-            name: item.name,
-            address: item.address,
-          })),
-          groupsMapping: groups.map((group, index) => ({
-            index,
-            originalGroup: group,
-            groupId: group.groupId,
-            presetBrightness: group.presetBrightness,
-            parsedGroupId: parseInt(group.groupId) || 0,
-            parsedPresetBrightness: parseInt(group.presetBrightness) || 255,
-          })),
-        });
-
         toast.info("Sending input configuration to network unit...");
 
-        const result = await window.electronAPI.rcuController.setupInputConfig({
+        await window.electronAPI.rcuController.setupInputConfig({
           unitIp: item.ip_address,
           canId: item.id_can,
           inputConfig: inputConfigData,
         });
 
-        console.log("📡 setupInputConfig result:", result);
-        console.log(
-          `✅ Input ${currentMultiGroupInput.index} configuration sent to network unit ${item.ip_address}`
-        );
         toast.success(
           `Input ${
             currentMultiGroupInput.index + 1
@@ -390,10 +327,8 @@ export const useNetworkInputConfig = (item, projectItems, refreshInputConfigs = 
 
         // Refresh input configurations in the main dialog
         if (refreshInputConfigs) {
-          console.log("🔄 Refreshing input configurations after save...");
           try {
             await refreshInputConfigs();
-            console.log("✅ Input configurations refreshed successfully");
           } catch (refreshError) {
             console.warn("⚠️ Failed to refresh input configurations:", refreshError);
           }
@@ -412,10 +347,6 @@ export const useNetworkInputConfig = (item, projectItems, refreshInputConfigs = 
   // Handle input lighting change (for lighting selection in multi-group)
   const handleInputLightingChange = useCallback(
     async (inputIndex, lightingId) => {
-      // For network units, we handle lighting association by updating the input configuration
-      // with the selected lighting group
-      console.log(`Input ${inputIndex} lighting changed to ${lightingId}`);
-
       if (!item?.ip_address || !item?.id_can) {
         toast.error("Unit IP address or CAN ID not available");
         return;
@@ -453,10 +384,8 @@ export const useNetworkInputConfig = (item, projectItems, refreshInputConfigs = 
 
         // Refresh input configurations in the main dialog
         if (refreshInputConfigs) {
-          console.log("🔄 Refreshing input configurations after lighting association change...");
           try {
             await refreshInputConfigs();
-            console.log("✅ Input configurations refreshed successfully");
           } catch (refreshError) {
             console.warn("⚠️ Failed to refresh input configurations:", refreshError);
           }

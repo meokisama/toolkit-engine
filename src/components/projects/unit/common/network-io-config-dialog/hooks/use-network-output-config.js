@@ -15,13 +15,6 @@ export const useNetworkOutputConfig = (item, outputConfigs = [], setOutputConfig
     }
 
     try {
-      console.log(`Output ${outputIndex} device changed to ${deviceId}`);
-
-      // Special attention to output index 0
-      if (outputIndex === 0) {
-        console.log(`🚨 CRITICAL: Changing output index 0 (first output) device to ${deviceId}`);
-      }
-
       // Get lighting address from deviceId (lighting item)
       let lightingAddress = 0; // Default for unassigned
 
@@ -30,12 +23,6 @@ export const useNetworkOutputConfig = (item, outputConfigs = [], setOutputConfig
         const lightingItem = lightingItems?.find(item => item.id === parseInt(deviceId));
         if (lightingItem) {
           lightingAddress = parseInt(lightingItem.address) || 0;
-          console.log(`Found lighting item ID ${deviceId} with address ${lightingAddress}`);
-
-          // Special attention to output index 0
-          if (outputIndex === 0) {
-            console.log(`🚨 CRITICAL: Output index 0 will be set to address ${lightingAddress}`);
-          }
         } else {
           console.warn(`Lighting item with ID ${deviceId} not found`);
         }
@@ -46,70 +33,42 @@ export const useNetworkOutputConfig = (item, outputConfigs = [], setOutputConfig
       const delayOff = currentOutput?.delayOff || 0;
       const delayOn = currentOutput?.delayOn || 0;
 
-      // Send setOutputAssign command to network unit with retry for output index 0
-      console.log(`📤 Sending setOutputAssign: Output ${outputIndex} -> Address ${lightingAddress}, DelayOff: ${delayOff}s, DelayOn: ${delayOn}s`);
+      // Send setOutputAssign command to network unit
+      await window.electronAPI.rcuController.setOutputAssign(
+        item.ip_address,
+        item.id_can,
+        outputIndex,
+        lightingAddress,
+        delayOff,
+        delayOn
+      );
 
-      let retryCount = 0;
-      const maxRetries = outputIndex === 0 ? 3 : 1; // Retry 3 times for output 0, once for others
-      let success = false;
+      // Add delay to allow unit to process the command before auto refresh
+      await new Promise(resolve => setTimeout(resolve, 500));
 
-      while (retryCount < maxRetries && !success) {
-        if (retryCount > 0) {
-          console.log(`🔄 Retry attempt ${retryCount} for output ${outputIndex}`);
-        }
+      // Special verification for output index 0
+      if (outputIndex === 0) {
+        // Immediate verification for output index 0
+        try {
+          const verifyResponse = await window.electronAPI.rcuController.getOutputAssign({
+            unitIp: item.ip_address,
+            canId: item.id_can,
+          });
 
-        await window.electronAPI.rcuController.setOutputAssign(
-          item.ip_address,
-          item.id_can,
-          outputIndex,
-          lightingAddress,
-          delayOff,
-          delayOn
-        );
-
-        console.log(`✅ setOutputAssign completed for output ${outputIndex} (attempt ${retryCount + 1})`);
-
-        // Add delay to allow unit to process the command
-        await new Promise(resolve => setTimeout(resolve, 800)); // Longer delay for stability
-
-        // Verify the assignment was actually set (especially for output 0)
-        if (outputIndex === 0 || retryCount > 0) {
-          try {
-            const verifyResponse = await window.electronAPI.rcuController.getOutputAssign({
-              unitIp: item.ip_address,
-              canId: item.id_can,
-            });
-
-            if (verifyResponse?.success && verifyResponse.outputAssignments) {
-              const assignment = verifyResponse.outputAssignments.find(assign => assign.outputIndex === outputIndex);
-              if (assignment && assignment.lightingAddress === lightingAddress) {
-                console.log(`✅ VERIFICATION PASSED: Output ${outputIndex} correctly set to address ${lightingAddress}`);
-                success = true;
-              } else {
-                console.warn(`❌ VERIFICATION FAILED: Output ${outputIndex} address = ${assignment?.lightingAddress || 'not found'} (expected: ${lightingAddress})`);
+          if (verifyResponse?.success && verifyResponse.outputAssignments) {
+            const output0Assignment = verifyResponse.outputAssignments.find(assign => assign.outputIndex === 0);
+            if (output0Assignment) {
+              if (output0Assignment.lightingAddress !== lightingAddress) {
+                console.error(`❌ CRITICAL ERROR: Output 0 address mismatch! Expected: ${lightingAddress}, Actual: ${output0Assignment.lightingAddress}`);
               }
+            } else {
+              console.error(`❌ CRITICAL ERROR: Output 0 assignment not found in verification response!`);
             }
-          } catch (verifyError) {
-            console.error(`❌ VERIFICATION ERROR:`, verifyError.message);
           }
-        } else {
-          success = true; // Skip verification for other outputs on first attempt
-        }
-
-        retryCount++;
-
-        if (!success && retryCount < maxRetries) {
-          console.log(`⏳ Waiting before retry for output ${outputIndex}...`);
-          await new Promise(resolve => setTimeout(resolve, 1000));
+        } catch (verifyError) {
+          console.error(`❌ VERIFICATION FAILED:`, verifyError.message);
         }
       }
-
-      if (!success && outputIndex === 0) {
-        console.error(`❌ CRITICAL: Failed to set output 0 after ${maxRetries} attempts!`);
-        toast.error(`Failed to set output ${outputIndex + 1} assignment after multiple attempts`);
-      }
-
-
 
       // Update local state to reflect the change if setOutputConfigs is provided
       if (setOutputConfigs) {
@@ -136,8 +95,6 @@ export const useNetworkOutputConfig = (item, outputConfigs = [], setOutputConfig
     }
 
     try {
-      console.log(`Loading fresh output configs from unit ${item.ip_address}`);
-
       const configResponse = await window.electronAPI.rcuController.getOutputConfig(
         item.ip_address,
         item.id_can
@@ -148,7 +105,6 @@ export const useNetworkOutputConfig = (item, outputConfigs = [], setOutputConfig
 
       if (configResponse?.success && configResponse.outputConfigs) {
         setAllOutputConfigs(configResponse.outputConfigs);
-        console.log(`Loaded ${configResponse.configCount} fresh output configs from unit`);
         return configResponse.outputConfigs;
       }
     } catch (error) {
@@ -180,9 +136,6 @@ export const useNetworkOutputConfig = (item, outputConfigs = [], setOutputConfig
       setLightingOutputDialogOpen(true);
     }
 
-    // Load fresh data from network unit every time dialog opens
-    console.log(`Loading fresh configuration data for output ${outputIndex}`);
-
     // Load fresh output configs from unit
     const allConfigs = await loadAllOutputConfigs();
 
@@ -190,15 +143,12 @@ export const useNetworkOutputConfig = (item, outputConfigs = [], setOutputConfig
     let unitConfig = null;
     if (allConfigs) {
       unitConfig = allConfigs.find(config => config.outputIndex === outputIndex);
-      console.log(`Output config found for output ${outputIndex}:`, unitConfig);
     }
 
     // Also load fresh output assign data to get latest delay values
     let freshOutputConfig = null;
     if (item?.ip_address && item?.id_can) {
       try {
-        console.log(`Loading fresh output assign data for output ${outputIndex}`);
-
         const assignResponse = await window.electronAPI.rcuController.getOutputAssign({
           unitIp: item.ip_address,
           canId: item.id_can,
@@ -219,7 +169,6 @@ export const useNetworkOutputConfig = (item, outputConfigs = [], setOutputConfig
               delayOn: assignment.delayOn,
               isAssigned: assignment.isAssigned,
             };
-            console.log(`Fresh output assign data loaded for output ${outputIndex}:`, assignment);
           }
         }
       } catch (error) {

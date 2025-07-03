@@ -175,32 +175,12 @@ export const useInputConfig = (item, setInputConfigs = null) => {
   const handleSaveMultiGroupConfig = useCallback(
     async (data, inputConfigs, setInputConfigs) => {
       setLoadingInputConfig(true);
-      console.log("🎯 handleSaveMultiGroupConfig called with:", {
-        data,
-        currentMultiGroupInput,
-        hasItem: !!item,
-        inputConfigsLength: inputConfigs?.length || 0,
-      });
-
       if (!currentMultiGroupInput) {
-        console.error("❌ No current multi-group input selected");
         setLoadingInputConfig(false);
         return;
       }
 
       try {
-        console.log("🔧 Starting multi-group config save:", {
-          currentMultiGroupInput,
-          data,
-          item: {
-            id: item?.id,
-            ip: item?.ip,
-            ip_address: item?.ip_address,
-            canId: item?.canId,
-            id_can: item?.id_can,
-          },
-        });
-
         const groups = data.groups || data;
         const rlcOptions = data.rlcOptions || {};
         const inputType = data.inputType;
@@ -211,38 +191,13 @@ export const useInputConfig = (item, setInputConfigs = null) => {
 
         // Check if this is a network unit or database unit
         const isNetworkUnitFlag = isNetworkUnit(item);
-        console.log("🌐 Unit type check:", {
-          isNetworkUnit: isNetworkUnitFlag,
-          item,
-          itemKeys: Object.keys(item || {}),
-        });
 
         if (isNetworkUnitFlag) {
-          // For network units, this should not happen in database unit hook
-          // Network units should use the network-specific hook
-          console.warn(
-            "⚠️ Network unit detected in database unit hook - redirecting..."
-          );
           toast.info(
             "Network unit - use network-specific configuration dialog"
           );
           return false;
         } else {
-          // For database units, save raw data to database (no calculations needed)
-          console.log("💾 Database unit - saving raw data to database...");
-          console.log("📋 Database save parameters:", {
-            itemId: item.id,
-            inputIndex: currentMultiGroupInput.index,
-            functionValue:
-              inputType !== undefined
-                ? inputType
-                : inputConfig?.functionValue || 0,
-            lightingId: inputConfig?.lightingId || null,
-            multiGroupConfig: groups,
-            rlcConfig: rlcOptions, // Save raw RLC options as-is
-          });
-
-          // Save raw data to database - no calculations needed
           await window.electronAPI.unit.saveInputConfig(
             item.id,
             currentMultiGroupInput.index,
@@ -257,9 +212,6 @@ export const useInputConfig = (item, setInputConfigs = null) => {
           // Reload input config to update UI
           await reloadInputConfig(currentMultiGroupInput.index);
 
-          console.log(
-            `✅ Input ${currentMultiGroupInput.index} configuration saved to database`
-          );
           toast.success(
             `Input ${
               currentMultiGroupInput.index + 1
