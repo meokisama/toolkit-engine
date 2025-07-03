@@ -175,52 +175,6 @@ export const useNetworkIOConfig = (item, open, childDialogOpen = false) => {
     return false;
   }, [item?.ip_address, item?.id_can]);
 
-  // Function to read AC configurations from unit and auto-map with database
-  const readACConfigsFromUnit = useCallback(async () => {
-    if (!item?.ip_address || !item?.id_can) {
-      return false;
-    }
-
-    try {
-      const acConfigs = await window.electronAPI.rcuController.getLocalACConfig(
-        item.ip_address,
-        item.id_can
-      );
-
-      // Add delay after GET command to prevent conflicts
-      await new Promise(resolve => setTimeout(resolve, 300));
-
-      if (!acConfigs || !Array.isArray(acConfigs)) {
-        return false;
-      }
-
-      // Update AC output configs with address mapping
-      const updatedOutputs = outputStatesRef.current.map((output, index) => {
-        if (output.type === "ac" && acConfigs[index]) {
-          const acConfig = acConfigs[index];
-          return {
-            ...output,
-            // Store aircon address for mapping
-            airconAddress: acConfig.address,
-            // Mark as assigned if aircon address > 0
-            isAssigned: acConfig.address > 0,
-            // Store full AC config for later use
-            acConfig: acConfig,
-          };
-        }
-        return output;
-      });
-
-      outputStatesRef.current = updatedOutputs;
-      setOutputConfigs([...updatedOutputs]);
-
-      return true;
-    } catch (error) {
-      console.warn("Failed to read AC configurations from unit:", error.message);
-      return false;
-    }
-  }, [item?.ip_address, item?.id_can]);
-
   // Function to read output assignments from unit (lighting address mapping and delays only)
   const readOutputConfigsFromUnit = useCallback(async () => {
     if (!item?.ip_address || !item?.id_can) {
@@ -354,11 +308,8 @@ export const useNetworkIOConfig = (item, open, childDialogOpen = false) => {
       // Load inputs first
       const inputConfigsSuccess = await readInputConfigsFromUnit();
 
-      // Load outputs after inputs (lighting/relay/dimmer assignments)
+      // Load outputs after inputs
       const outputConfigsSuccess = await readOutputConfigsFromUnit();
-
-      // Load AC configurations for AC outputs
-      const acConfigsSuccess = await readACConfigsFromUnit();
 
       setConfigsLoaded(true);
       setIsInitialLoading(false);
@@ -495,7 +446,6 @@ export const useNetworkIOConfig = (item, open, childDialogOpen = false) => {
     readStatesSequentially: readStatesSequentiallyRef.current,
     readInputConfigsFromUnit,
     readOutputConfigsFromUnit,
-    readACConfigsFromUnit,
     pauseAutoRefresh,
     resumeAutoRefresh,
   };

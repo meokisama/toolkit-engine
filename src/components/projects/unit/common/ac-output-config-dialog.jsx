@@ -104,7 +104,6 @@ const ACOutputConfigDialogComponent = ({
     valveType: "0",
     deadband: 0,
     windowBypass: "0",
-    setPointOffset: 0,
 
     // Group assignments
     lowFCU_Group: 0,
@@ -160,7 +159,6 @@ const ACOutputConfigDialogComponent = ({
         valveType: initialConfig.valveType?.toString() || "0",
         deadband: initialConfig.deadband || 0,
         windowBypass: initialConfig.windowBypass?.toString() || "0",
-        setPointOffset: initialConfig.setPointOffset || 0,
 
         // Group assignments
         lowFCU_Group: initialConfig.lowFCU_Group || 0,
@@ -217,7 +215,6 @@ const ACOutputConfigDialogComponent = ({
         valveType: parseInt(config.valveType) || 0,
         deadband: parseInt(config.deadband) || 0,
         windowBypass: parseInt(config.windowBypass) || 0,
-        setPointOffset: parseInt(config.setPointOffset) || 0,
 
         // Group assignments
         lowFCU_Group: parseInt(config.lowFCU_Group) || 0,
@@ -566,9 +563,9 @@ const ACOutputConfigDialogComponent = ({
                       <Label className="text-sm font-medium">Low fan</Label>
                       <Combobox
                         options={lightingOptions}
-                        value={config.lowFan?.toString() || ""}
+                        value={config.lowFCU_Group?.toString() || ""}
                         onValueChange={(value) =>
-                          updateConfig("lowFan", value ? parseInt(value) : null)
+                          updateConfig("lowFCU_Group", value ? parseInt(value) : 0)
                         }
                         placeholder="Select lighting group..."
                         emptyText="No lighting groups found"
@@ -579,9 +576,9 @@ const ACOutputConfigDialogComponent = ({
                       <Label className="text-sm font-medium">Med fan</Label>
                       <Combobox
                         options={lightingOptions}
-                        value={config.medFan?.toString() || ""}
+                        value={config.medFCU_Group?.toString() || ""}
                         onValueChange={(value) =>
-                          updateConfig("medFan", value ? parseInt(value) : null)
+                          updateConfig("medFCU_Group", value ? parseInt(value) : 0)
                         }
                         placeholder="Select lighting group..."
                         emptyText="No lighting groups found"
@@ -592,11 +589,11 @@ const ACOutputConfigDialogComponent = ({
                       <Label className="text-sm font-medium">High fan</Label>
                       <Combobox
                         options={lightingOptions}
-                        value={config.highFan?.toString() || ""}
+                        value={config.highFCU_Group?.toString() || ""}
                         onValueChange={(value) =>
                           updateConfig(
-                            "highFan",
-                            value ? parseInt(value) : null
+                            "highFCU_Group",
+                            value ? parseInt(value) : 0
                           )
                         }
                         placeholder="Select lighting group..."

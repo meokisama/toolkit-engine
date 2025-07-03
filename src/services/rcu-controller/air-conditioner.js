@@ -272,71 +272,61 @@ async function getLocalACConfig(unitIp, canId) {
   if (response?.msg?.length >= 11) {
     const responseData = parseResponse.data(response);
 
-    console.log(`AC Config Response - Total length: ${response.msg.length}, Data length: ${responseData.length}`);
-    console.log(`Expected data length: ${10 * 64} bytes (10 AC configs * 64 bytes each)`);
-
     // Parse 10 AC configurations (64 bytes each)
     const acConfigs = [];
     const AC_CONFIG_SIZE = 64; // 64 bytes per AC config
 
     for (let i = 0; i < 10; i++) {
       const offset = i * AC_CONFIG_SIZE;
-      let configData;
-
       if (offset + AC_CONFIG_SIZE <= responseData.length) {
-        configData = responseData.slice(offset, offset + AC_CONFIG_SIZE);
-        console.log(`AC ${i}: address=${configData[0]}, enable=${configData[1]}, windowMode=${configData[2]}`);
-      } else {
-        console.warn(`AC ${i}: Not enough data - offset ${offset} + size ${AC_CONFIG_SIZE} > data length ${responseData.length}`);
-        // Create default config for missing data
-        configData = new Array(AC_CONFIG_SIZE).fill(0);
+        const configData = responseData.slice(offset, offset + AC_CONFIG_SIZE);
+
+        // Parse the 64-byte AC configuration structure
+        // Match exactly with C# ac_out_cfg_t struct
+        const acConfig = {
+          index: i,
+          address: configData[0], // group field in C#
+          enable: configData[1] === 1,
+          windowMode: configData[2], // windows_mode: 0: Off, 1: Save energy
+          fanType: configData[3], // fan_type: 0: on/off, 1: analog
+          tempType: configData[4], // temp_type: 0: thermostat, 1: RCU
+          tempUnit: configData[5], // temp_unit: 0: C, 1: F
+          valveContact: configData[6], // valve_contact: 0: NO, 1: NC
+          valveType: configData[7], // valve_type: 0: On/Off, 1: analog, 2: on and off
+          deadband: configData[8], // dead_band
+          lowFCU_Group: configData[9], // group_low_fan
+          medFCU_Group: configData[10], // group_med_fan
+          highFCU_Group: configData[11], // group_high_fan
+          fanAnalogGroup: configData[12], // group_analog_fan
+          analogCoolGroup: configData[13], // group_analog_cool
+          analogHeatGroup: configData[14], // group_analog_heat
+          valveCoolOpenGroup: configData[15], // group_cool_open
+          valveCoolCloseGroup: configData[16], // group_cool_close
+          valveHeatOpenGroup: configData[17], // group_heat_open
+          valveHeatCloseGroup: configData[18], // group_heat_close
+          windowBypass: configData[19], // windows field in C#
+          // Bytes 20-30: reserved0-10 in C# struct (skip)
+          unoccupyPower: configData[31],
+          occupyPower: configData[32],
+          standbyPower: configData[33],
+          unoccupyMode: configData[34],
+          occupyMode: configData[35],
+          standbyMode: configData[36],
+          unoccupyFanSpeed: configData[37],
+          occupyFanSpeed: configData[38],
+          standbyFanSpeed: configData[39],
+          // 2-byte values (little endian) - Int16 in C#
+          unoccupyCoolSetPoint: configData[40] | (configData[41] << 8),
+          occupyCoolSetPoint: configData[42] | (configData[43] << 8),
+          standbyCoolSetPoint: configData[44] | (configData[45] << 8),
+          unoccupyHeatSetPoint: configData[46] | (configData[47] << 8),
+          occupyHeatSetPoint: configData[48] | (configData[49] << 8),
+          standbyHeatSetPoint: configData[50] | (configData[51] << 8),
+          // Bytes 52-63: reserved11-16 (UInt16) in C# struct (skip)
+        };
+
+        acConfigs.push(acConfig);
       }
-
-      // Parse the 64-byte AC configuration structure
-      const acConfig = {
-        index: i,
-        address: configData[0],
-        enable: configData[1] === 1,
-        windowMode: configData[2], // 0: Off, 1: Save energy
-        fanType: configData[3], // 0: on/off, 1: analog
-        tempType: configData[4], // 0: thermostat, 1: RCU
-        tempUnit: configData[5], // 0: C, 1: F
-        valveContact: configData[6], // 0: NO, 1: NC
-        valveType: configData[7], // 0: On/Off, 1: analog, 2: on and off
-        deadband: configData[8],
-        lowFCU_Group: configData[9],
-        medFCU_Group: configData[10],
-        highFCU_Group: configData[11],
-        fanAnalogGroup: configData[12],
-        analogCoolGroup: configData[13],
-        analogHeatGroup: configData[14],
-        valveCoolOpenGroup: configData[15],
-        valveCoolCloseGroup: configData[16],
-        valveHeatOpenGroup: configData[17],
-        valveHeatCloseGroup: configData[18],
-        windowBypass: configData[19],
-        setPointOffset: configData[20],
-        // Bytes 21-30: reserved (skip)
-        unoccupyPower: configData[31],
-        occupyPower: configData[32],
-        standbyPower: configData[33],
-        unoccupyMode: configData[34],
-        occupyMode: configData[35],
-        standbyMode: configData[36],
-        unoccupyFanSpeed: configData[37],
-        occupyFanSpeed: configData[38],
-        standbyFanSpeed: configData[39],
-        // 2-byte values (little endian)
-        unoccupyCoolSetPoint: configData[40] | (configData[41] << 8),
-        occupyCoolSetPoint: configData[42] | (configData[43] << 8),
-        standbyCoolSetPoint: configData[44] | (configData[45] << 8),
-        unoccupyHeatSetPoint: configData[46] | (configData[47] << 8),
-        occupyHeatSetPoint: configData[48] | (configData[49] << 8),
-        standbyHeatSetPoint: configData[50] | (configData[51] << 8),
-        // Bytes 52-63: reserved (skip)
-      };
-
-      acConfigs.push(acConfig);
     }
 
     console.log(`Retrieved ${acConfigs.length} AC configurations`);
@@ -364,52 +354,50 @@ async function setLocalACConfig(unitIp, canId, acConfigs) {
     const config = acConfigs[i] || {};
 
     // Build 64-byte configuration for this AC
+    // Match exactly with C# ac_out_cfg_t struct
     const configBytes = new Array(AC_CONFIG_SIZE).fill(0);
 
-    // Byte 0: address
+    // Byte 0: address (group field in C#)
     configBytes[0] = config.address || 0;
 
     // Byte 1: enable/disable
     configBytes[1] = config.enable ? 1 : 0;
 
-    // Byte 2: windowMode (0: Off, 1: Save energy)
+    // Byte 2: windowMode (windows_mode: 0: Off, 1: Save energy)
     configBytes[2] = config.windowMode || 0;
 
-    // Byte 3: fanType (0: on/off, 1: analog)
+    // Byte 3: fanType (fan_type: 0: on/off, 1: analog)
     configBytes[3] = config.fanType || 0;
 
-    // Byte 4: tempType (0: thermostat, 1: RCU)
+    // Byte 4: tempType (temp_type: 0: thermostat, 1: RCU)
     configBytes[4] = config.tempType || 0;
 
-    // Byte 5: tempUnit (0: C, 1: F)
+    // Byte 5: tempUnit (temp_unit: 0: C, 1: F)
     configBytes[5] = config.tempUnit || 0;
 
-    // Byte 6: valveContact (0: NO, 1: NC)
+    // Byte 6: valveContact (valve_contact: 0: NO, 1: NC)
     configBytes[6] = config.valveContact || 0;
 
-    // Byte 7: valveType (0: On/Off, 1: analog, 2: on and off)
+    // Byte 7: valveType (valve_type: 0: On/Off, 1: analog, 2: on and off)
     configBytes[7] = config.valveType || 0;
 
-    // Byte 8: deadband
+    // Byte 8: deadband (dead_band)
     configBytes[8] = config.deadband || 0;
 
     // Byte 9-19: Group assignments
-    configBytes[9] = config.lowFCU_Group || 0;
-    configBytes[10] = config.medFCU_Group || 0;
-    configBytes[11] = config.highFCU_Group || 0;
-    configBytes[12] = config.fanAnalogGroup || 0;
-    configBytes[13] = config.analogCoolGroup || 0;
-    configBytes[14] = config.analogHeatGroup || 0;
-    configBytes[15] = config.valveCoolOpenGroup || 0;
-    configBytes[16] = config.valveCoolCloseGroup || 0;
-    configBytes[17] = config.valveHeatOpenGroup || 0;
-    configBytes[18] = config.valveHeatCloseGroup || 0;
-    configBytes[19] = config.windowBypass || 0;
+    configBytes[9] = config.lowFCU_Group || 0; // group_low_fan
+    configBytes[10] = config.medFCU_Group || 0; // group_med_fan
+    configBytes[11] = config.highFCU_Group || 0; // group_high_fan
+    configBytes[12] = config.fanAnalogGroup || 0; // group_analog_fan
+    configBytes[13] = config.analogCoolGroup || 0; // group_analog_cool
+    configBytes[14] = config.analogHeatGroup || 0; // group_analog_heat
+    configBytes[15] = config.valveCoolOpenGroup || 0; // group_cool_open
+    configBytes[16] = config.valveCoolCloseGroup || 0; // group_cool_close
+    configBytes[17] = config.valveHeatOpenGroup || 0; // group_heat_open
+    configBytes[18] = config.valveHeatCloseGroup || 0; // group_heat_close
+    configBytes[19] = config.windowBypass || 0; // windows field in C#
 
-    // Byte 20: setPointOffset
-    configBytes[20] = config.setPointOffset || 0;
-
-    // Bytes 21-30: reserved (already filled with 0)
+    // Bytes 20-30: reserved0-10 in C# struct (keep as 0)
 
     // Byte 31-39: Power and mode settings
     configBytes[31] = config.unoccupyPower || 0;
