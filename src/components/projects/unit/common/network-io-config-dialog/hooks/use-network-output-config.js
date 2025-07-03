@@ -46,52 +46,70 @@ export const useNetworkOutputConfig = (item, outputConfigs = [], setOutputConfig
       const delayOff = currentOutput?.delayOff || 0;
       const delayOn = currentOutput?.delayOn || 0;
 
-      // Send setOutputAssign command to network unit
+      // Send setOutputAssign command to network unit with retry for output index 0
       console.log(`📤 Sending setOutputAssign: Output ${outputIndex} -> Address ${lightingAddress}, DelayOff: ${delayOff}s, DelayOn: ${delayOn}s`);
 
-      await window.electronAPI.rcuController.setOutputAssign(
-        item.ip_address,
-        item.id_can,
-        outputIndex,
-        lightingAddress,
-        delayOff,
-        delayOn
-      );
+      let retryCount = 0;
+      const maxRetries = outputIndex === 0 ? 3 : 1; // Retry 3 times for output 0, once for others
+      let success = false;
 
-      console.log(`✅ setOutputAssign completed for output ${outputIndex}`);
+      while (retryCount < maxRetries && !success) {
+        if (retryCount > 0) {
+          console.log(`🔄 Retry attempt ${retryCount} for output ${outputIndex}`);
+        }
 
-      // Add delay to allow unit to process the command before auto refresh
-      await new Promise(resolve => setTimeout(resolve, 500));
+        await window.electronAPI.rcuController.setOutputAssign(
+          item.ip_address,
+          item.id_can,
+          outputIndex,
+          lightingAddress,
+          delayOff,
+          delayOn
+        );
 
-      // Special verification for output index 0
-      if (outputIndex === 0) {
-        console.log(`🚨 CRITICAL: Output index 0 assignment should now be set to address ${lightingAddress}`);
+        console.log(`✅ setOutputAssign completed for output ${outputIndex} (attempt ${retryCount + 1})`);
 
-        // Immediate verification for output index 0
-        try {
-          console.log(`🔍 Verifying output index 0 assignment immediately...`);
-          const verifyResponse = await window.electronAPI.rcuController.getOutputAssign({
-            unitIp: item.ip_address,
-            canId: item.id_can,
-          });
+        // Add delay to allow unit to process the command
+        await new Promise(resolve => setTimeout(resolve, 800)); // Longer delay for stability
 
-          if (verifyResponse?.success && verifyResponse.outputAssignments) {
-            const output0Assignment = verifyResponse.outputAssignments.find(assign => assign.outputIndex === 0);
-            if (output0Assignment) {
-              console.log(`🔍 VERIFICATION: Output 0 actual address = ${output0Assignment.lightingAddress} (expected: ${lightingAddress})`);
-              if (output0Assignment.lightingAddress !== lightingAddress) {
-                console.error(`❌ CRITICAL ERROR: Output 0 address mismatch! Expected: ${lightingAddress}, Actual: ${output0Assignment.lightingAddress}`);
+        // Verify the assignment was actually set (especially for output 0)
+        if (outputIndex === 0 || retryCount > 0) {
+          try {
+            const verifyResponse = await window.electronAPI.rcuController.getOutputAssign({
+              unitIp: item.ip_address,
+              canId: item.id_can,
+            });
+
+            if (verifyResponse?.success && verifyResponse.outputAssignments) {
+              const assignment = verifyResponse.outputAssignments.find(assign => assign.outputIndex === outputIndex);
+              if (assignment && assignment.lightingAddress === lightingAddress) {
+                console.log(`✅ VERIFICATION PASSED: Output ${outputIndex} correctly set to address ${lightingAddress}`);
+                success = true;
               } else {
-                console.log(`✅ VERIFICATION PASSED: Output 0 address correctly set to ${lightingAddress}`);
+                console.warn(`❌ VERIFICATION FAILED: Output ${outputIndex} address = ${assignment?.lightingAddress || 'not found'} (expected: ${lightingAddress})`);
               }
-            } else {
-              console.error(`❌ CRITICAL ERROR: Output 0 assignment not found in verification response!`);
             }
+          } catch (verifyError) {
+            console.error(`❌ VERIFICATION ERROR:`, verifyError.message);
           }
-        } catch (verifyError) {
-          console.error(`❌ VERIFICATION FAILED:`, verifyError.message);
+        } else {
+          success = true; // Skip verification for other outputs on first attempt
+        }
+
+        retryCount++;
+
+        if (!success && retryCount < maxRetries) {
+          console.log(`⏳ Waiting before retry for output ${outputIndex}...`);
+          await new Promise(resolve => setTimeout(resolve, 1000));
         }
       }
+
+      if (!success && outputIndex === 0) {
+        console.error(`❌ CRITICAL: Failed to set output 0 after ${maxRetries} attempts!`);
+        toast.error(`Failed to set output ${outputIndex + 1} assignment after multiple attempts`);
+      }
+
+
 
       // Update local state to reflect the change if setOutputConfigs is provided
       if (setOutputConfigs) {

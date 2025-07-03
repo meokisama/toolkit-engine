@@ -125,6 +125,24 @@ async function setOutputAssign(unitIp, canId, outputIndex, lightingAddress, dela
   // Add delay after SET command to allow unit to process - CRITICAL for output assignment
   await new Promise(resolve => setTimeout(resolve, 500));
 
+  // WORKAROUND: Send command twice for output index 0 due to firmware bug
+  if (outputIndex === 0) {
+    console.log(`🔄 WORKAROUND: Sending output 0 assignment command again due to firmware bug`);
+    await new Promise(resolve => setTimeout(resolve, 200)); // Small delay between commands
+
+    const result2 = await sendCommand(
+      unitIp,
+      UDP_PORT,
+      idAddress,
+      PROTOCOL.LIGHTING.CMD1,
+      PROTOCOL.LIGHTING.CMD2.SET_OUTPUT_ASSIGN,
+      data
+    );
+
+    await new Promise(resolve => setTimeout(resolve, 500)); // Extra delay for output 0
+    console.log(`🔄 WORKAROUND: Second command sent for output 0`);
+  }
+
   console.log(`Output assignment command completed for output ${outputIndex}`);
   return result;
 }
