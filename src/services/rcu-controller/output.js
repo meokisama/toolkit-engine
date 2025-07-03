@@ -55,11 +55,6 @@ async function getOutputAssign(unitIp, canId) {
         isAssigned: lightingAddress > 0, // Consider assigned if lighting address > 0
       };
 
-      // Special attention to output index 0
-      if (outputIndex === 0) {
-        console.log(`🚨 CRITICAL: Output index 0 (first output) - Address: ${lightingAddress}, DelayOff: ${delayOff}s, DelayOn: ${delayOn}s`);
-      }
-
       outputAssignments.push(assignment);
     }
 
@@ -106,13 +101,6 @@ async function setOutputAssign(unitIp, canId, outputIndex, lightingAddress, dela
     (delayOn >> 8) & 0xFF   // High byte of delay on
   ];
 
-  console.log(`📤 SET_OUTPUT_ASSIGN data bytes: [${data.map(b => `0x${b.toString(16).padStart(2, '0')}`).join(', ')}]`);
-
-  // Special attention to output index 0
-  if (outputIndex === 0) {
-    console.log(`🚨 CRITICAL: Setting output index 0 (first output) - Address: ${lightingAddress}`);
-  }
-
   const result = await sendCommand(
     unitIp,
     UDP_PORT,
@@ -121,11 +109,9 @@ async function setOutputAssign(unitIp, canId, outputIndex, lightingAddress, dela
     PROTOCOL.LIGHTING.CMD2.SET_OUTPUT_ASSIGN,
     data
   );
-
-  // Add delay after SET command to allow unit to process - CRITICAL for output assignment
+  
   await new Promise(resolve => setTimeout(resolve, 500));
 
-  console.log(`Output assignment command completed for output ${outputIndex}`);
   return result;
 }
 async function getOutputConfig(unitIp, canId) {

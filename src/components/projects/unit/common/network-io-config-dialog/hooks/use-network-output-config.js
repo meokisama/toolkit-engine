@@ -46,30 +46,6 @@ export const useNetworkOutputConfig = (item, outputConfigs = [], setOutputConfig
       // Add delay to allow unit to process the command before auto refresh
       await new Promise(resolve => setTimeout(resolve, 500));
 
-      // Special verification for output index 0
-      if (outputIndex === 0) {
-        // Immediate verification for output index 0
-        try {
-          const verifyResponse = await window.electronAPI.rcuController.getOutputAssign({
-            unitIp: item.ip_address,
-            canId: item.id_can,
-          });
-
-          if (verifyResponse?.success && verifyResponse.outputAssignments) {
-            const output0Assignment = verifyResponse.outputAssignments.find(assign => assign.outputIndex === 0);
-            if (output0Assignment) {
-              if (output0Assignment.lightingAddress !== lightingAddress) {
-                console.error(`❌ CRITICAL ERROR: Output 0 address mismatch! Expected: ${lightingAddress}, Actual: ${output0Assignment.lightingAddress}`);
-              }
-            } else {
-              console.error(`❌ CRITICAL ERROR: Output 0 assignment not found in verification response!`);
-            }
-          }
-        } catch (verifyError) {
-          console.error(`❌ VERIFICATION FAILED:`, verifyError.message);
-        }
-      }
-
       // Update local state to reflect the change if setOutputConfigs is provided
       if (setOutputConfigs) {
         setOutputConfigs(prev =>
