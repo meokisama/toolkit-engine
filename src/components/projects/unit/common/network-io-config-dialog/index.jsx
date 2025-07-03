@@ -83,7 +83,8 @@ const NetworkIOConfigDialog = ({ open, onOpenChange, item = null }) => {
     item,
     outputConfigs,
     setOutputConfigs,
-    lightingItems
+    lightingItems,
+    airconItems
   );
 
   // Check if any child dialog is open
@@ -368,6 +369,12 @@ const NetworkIOConfigDialog = ({ open, onOpenChange, item = null }) => {
         lightingOptions={lightingItems.map((item) => ({
           value: item.id.toString(),
           label: `${item.name} (${item.address || "No Address"})`,
+        }))}
+        airconOptions={airconItems.map((item) => ({
+          value: item.id.toString(),
+          label: `${item.name} (${item.address || "No Address"})`,
+          address: item.address,
+          name: item.name,
         }))}
         isLoading={currentOutputConfig?.isLoading || false}
         onSave={handleSaveOutputConfig}

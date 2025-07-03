@@ -64,6 +64,8 @@ import {
   triggerKnx,
   deleteKnxConfig,
   deleteAllKnxConfigs,
+  getLocalACConfig,
+  setLocalACConfig,
   updateFirmware,
 } from "./services/rcu-controller.js";
 import dgram from "dgram";
@@ -1730,6 +1732,25 @@ function setupIpcHandlers() {
       return await getEcoMode(unitIp, canId, group);
     } catch (error) {
       console.error("Error getting eco mode:", error);
+      throw error;
+    }
+  });
+
+  // AC Output Configuration
+  ipcMain.handle("rcu:getLocalACConfig", async (event, unitIp, canId) => {
+    try {
+      return await getLocalACConfig(unitIp, canId);
+    } catch (error) {
+      console.error("Error getting local AC config:", error);
+      throw error;
+    }
+  });
+
+  ipcMain.handle("rcu:setLocalACConfig", async (event, unitIp, canId, acConfigs) => {
+    try {
+      return await setLocalACConfig(unitIp, canId, acConfigs);
+    } catch (error) {
+      console.error("Error setting local AC config:", error);
       throw error;
     }
   });

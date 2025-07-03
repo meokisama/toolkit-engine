@@ -55,6 +55,8 @@ const PROTOCOL = {
   AC: {
     CMD1: 30,
     CMD2: {
+      GET_LOCAL_AC_CONFIG: 0,
+      SET_LOCAL_AC_CONFIG: 1,
       GET_AC_GROUP: 14,
       GET_ROOM_TEMP: 21,
       SET_SETTING_ROOM_TEMP: 22,

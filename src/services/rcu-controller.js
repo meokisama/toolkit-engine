@@ -38,6 +38,8 @@ export {
   getOperateMode,
   setEcoMode,
   getEcoMode,
+  getLocalACConfig,
+  setLocalACConfig,
 } from "./rcu-controller/air-conditioner.js";
 
 // Export scene functions
