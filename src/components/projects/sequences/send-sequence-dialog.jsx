@@ -92,46 +92,96 @@ export function SendSequenceDialog({ open, onOpenChange, items = [] }) {
     selectedUnits,
     onProgress
   ) => {
-    let totalSuccessCount = 0;
-    let totalErrorCount = 0;
+    const totalOperations = sequences.length * selectedUnits.length;
+    let completedOperations = 0;
+    const operationResults = [];
 
-    for (let i = 0; i < sequences.length; i++) {
-      const sequence = sequences[i];
-      onProgress?.(
-        ((i + 1) / sequences.length) * 100,
-        `Sending sequence ${i + 1}/${sequences.length}: ${sequence.name}`
+    for (let sequenceIndex = 0; sequenceIndex < sequences.length; sequenceIndex++) {
+      const currentSequence = sequences[sequenceIndex];
+      onProgress(
+        (completedOperations / totalOperations) * 100,
+        `${currentSequence.name} (${sequenceIndex + 1}/${sequences.length})`
       );
 
+      // Get sequence data for this sequence
+      let sequenceData = [];
       try {
-        // Load sequence data
-        const sequenceData = await handleLoadSingleSequence(sequence);
+        sequenceData = await handleLoadSingleSequence(currentSequence);
+      } catch (error) {
+        console.error(
+          `Failed to load data for sequence ${currentSequence.id}:`,
+          error
+        );
+        // Skip sequences without data
+        completedOperations += selectedUnits.length;
+        onProgress((completedOperations / totalOperations) * 100, "");
+        continue;
+      }
 
-        // Validate sequence data
-        if (!handleValidateSingleSequence(sequenceData)) {
-          totalErrorCount++;
-          continue;
+      if (!sequenceData || sequenceData.length === 0) {
+        // Skip sequences without multi-scenes
+        completedOperations += selectedUnits.length;
+        onProgress((completedOperations / totalOperations) * 100, "");
+        continue;
+      }
+
+      // Get multi-scene addresses from the sequence data, preserving order
+      const multiSceneAddresses = sequenceData
+        .sort((a, b) => a.multi_scene_order - b.multi_scene_order)
+        .map((ms) => ms.multi_scene_address);
+
+      // Send sequence to each selected unit
+      for (const unit of selectedUnits) {
+        try {
+          console.log("Sending sequence to unit:", {
+            unitIp: unit.ip_address,
+            canId: unit.id_can,
+            sequenceIndex: currentSequence.calculatedIndex ?? 0,
+            sequenceName: currentSequence.name,
+            sequenceAddress: currentSequence.address,
+            multiSceneAddresses: multiSceneAddresses,
+          });
+
+          const response = await window.electronAPI.rcuController.setupSequence(
+            unit.ip_address,
+            unit.id_can,
+            {
+              sequenceIndex: currentSequence.calculatedIndex ?? 0,
+              sequenceAddress: currentSequence.address,
+              multiSceneAddresses: multiSceneAddresses,
+            }
+          );
+
+          console.log(`Sequence sent successfully to ${unit.ip_address}:`, {
+            responseLength: response?.msg?.length,
+            success: response?.result?.success,
+          });
+
+          operationResults.push({
+            sequence: currentSequence.name,
+            unit: `${unit.type || "Unknown Unit"} (${unit.ip_address})`,
+            success: true,
+            message: "Sent successfully",
+          });
+        } catch (error) {
+          console.error(
+            `Failed to send sequence to unit ${unit.ip_address}:`,
+            error
+          );
+          operationResults.push({
+            sequence: currentSequence.name,
+            unit: `${unit.type || "Unknown Unit"} (${unit.ip_address})`,
+            success: false,
+            message: error.message || "Failed to send",
+          });
         }
 
-        // Send to all selected units
-        await handleSendSingleSequence(sequence, sequenceData, selectedUnits);
-        totalSuccessCount++;
-      } catch (error) {
-        totalErrorCount++;
-        console.error(`Failed to send sequence ${sequence.name}:`, error);
-        toast.error(`Failed to send sequence ${sequence.name}: ${error.message}`);
+        completedOperations++;
+        onProgress((completedOperations / totalOperations) * 100, "");
       }
     }
 
-    // Final summary
-    if (totalSuccessCount > 0) {
-      toast.success(
-        `Successfully sent ${totalSuccessCount} sequence(s) to ${selectedUnits.length} unit(s)`
-      );
-    }
-
-    if (totalErrorCount > 0) {
-      toast.error(`Failed to send ${totalErrorCount} sequence(s)`);
-    }
+    return operationResults;
   };
 
   return (
@@ -140,19 +190,10 @@ export function SendSequenceDialog({ open, onOpenChange, items = [] }) {
       onOpenChange={onOpenChange}
       items={items}
       itemType="sequence"
-      itemTypePlural="sequences"
-      title="Send Sequence to Units"
-      description="Select units to send the sequence configuration to."
-      loadItemData={handleLoadSingleSequence}
-      validateItemData={handleValidateSingleSequence}
-      sendSingleItem={handleSendSingleSequence}
-      sendBulkItems={handleSendBulkSequences}
-      getItemDisplayInfo={(sequence) => ({
-        name: sequence.name,
-        address: sequence.address,
-        description: sequence.description,
-        additionalInfo: `Index: ${sequence.calculatedIndex ?? 0}`,
-      })}
+      onLoadSingleItem={handleLoadSingleSequence}
+      onSendSingle={handleSendSingleSequence}
+      onSendBulk={handleSendBulkSequences}
+      validateSingleItem={handleValidateSingleSequence}
     />
   );
 }
