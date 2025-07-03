@@ -13,10 +13,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
-import {
-  CircleCheck,
-  Layers,
-} from "lucide-react";
+import { CircleCheck, Layers } from "lucide-react";
 import * as CheckboxPrimitive from "@radix-ui/react-checkbox";
 import { useProjectDetail } from "@/contexts/project-detail-context";
 import { toast } from "sonner";
@@ -46,20 +43,17 @@ export function SequenceDialog({
   const [errors, setErrors] = useState({});
 
   // Load existing sequence multi-scenes when editing
-  const loadSequenceMultiScenes = useCallback(
-    async (sequenceId) => {
-      try {
-        const multiScenes = await window.electronAPI.sequences.getMultiScenes(
-          sequenceId
-        );
-        const multiSceneIds = multiScenes.map((ms) => ms.multi_scene_id);
-        setSelectedMultiSceneIds(multiSceneIds);
-      } catch (error) {
-        console.error("Failed to load sequence multi-scenes:", error);
-      }
-    },
-    []
-  );
+  const loadSequenceMultiScenes = useCallback(async (sequenceId) => {
+    try {
+      const multiScenes = await window.electronAPI.sequences.getMultiScenes(
+        sequenceId
+      );
+      const multiSceneIds = multiScenes.map((ms) => ms.multi_scene_id);
+      setSelectedMultiSceneIds(multiSceneIds);
+    } catch (error) {
+      console.error("Failed to load sequence multi-scenes:", error);
+    }
+  }, []);
 
   // Initialize form data when dialog opens
   useEffect(() => {
@@ -198,14 +192,16 @@ export function SequenceDialog({
           </DialogDescription>
         </DialogHeader>
 
-        <form onSubmit={(e) => { e.preventDefault(); handleSave(); }} className="space-y-6">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Basic Information */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-sm">Basic Information</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            handleSave();
+          }}
+          className="space-y-6"
+        >
+          <div className="grid gap-4">
+            {/* Basic Information */}
+            <div className="grid grid-cols-3 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="name">
                   Name <span className="text-red-500">*</span>
@@ -214,7 +210,7 @@ export function SequenceDialog({
                   id="name"
                   value={formData.name}
                   onChange={(e) => handleInputChange("name", e.target.value)}
-                  placeholder="Enter sequence name (max 15 chars)"
+                  placeholder="Sequence name"
                   maxLength={15}
                   className={errors.name ? "border-red-500" : ""}
                 />
@@ -253,75 +249,70 @@ export function SequenceDialog({
                   placeholder="Enter description (optional)"
                 />
               </div>
-            </CardContent>
-          </Card>
+            </div>
 
-          {/* Multi-Scene Selection */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-sm">Select Multi-Scenes</CardTitle>
-              <p className="text-sm text-muted-foreground">
-                Select the multi-scenes you want to include in this sequence.
-                {selectedMultiSceneIds.length > 0 && (
-                  <span className="ml-2">
-                    <Badge variant="secondary">
-                      {selectedMultiSceneIds.length} multi-scenes
-                    </Badge>
-                  </span>
+            {/* Multi-Scene Selection */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-sm">
+                  Select Multi-Scenes ({selectedMultiSceneIds.length})
+                </CardTitle>
+                <p className="text-sm text-muted-foreground">
+                  Select the multi-scenes you want to include in this sequence.
+                </p>
+                {errors.multiScenes && (
+                  <p className="text-sm text-red-500">{errors.multiScenes}</p>
                 )}
-              </p>
-              {errors.multiScenes && (
-                <p className="text-sm text-red-500">{errors.multiScenes}</p>
-              )}
-            </CardHeader>
-            <CardContent>
-              <ScrollArea className="h-60">
-                {availableMultiScenes.length === 0 ? (
-                  <div className="text-center text-muted-foreground py-8">
-                    <p>No multi-scenes available.</p>
-                    <p className="text-sm">
-                      Create multi-scenes first to add them to sequences.
-                    </p>
-                  </div>
-                ) : (
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 p-2">
-                    {availableMultiScenes.map((multiScene) => (
-                      <CheckboxPrimitive.Root
-                        key={multiScene.id}
-                        checked={selectedMultiSceneIds.includes(multiScene.id)}
-                        onCheckedChange={(checked) =>
-                          handleMultiSceneToggle(multiScene.id, checked)
-                        }
-                        className="relative ring-[1px] ring-border rounded-lg px-4 py-3 text-start text-muted-foreground data-[state=checked]:ring-2 data-[state=checked]:ring-primary data-[state=checked]:text-primary flex flex-row items-center gap-3 cursor-pointer"
-                      >
-                        <Layers className="h-6 w-6" />
-                        <div className="space-y-1">
-                          <span className="font-medium tracking-tight text-sm">
-                            {multiScene.name}
-                          </span>
-                          {multiScene.address && (
-                            <p className="text-xs text-muted-foreground">
-                              Address: {multiScene.address}
-                            </p>
+              </CardHeader>
+              <CardContent>
+                <ScrollArea className="h-60">
+                  {availableMultiScenes.length === 0 ? (
+                    <div className="text-center text-muted-foreground py-8">
+                      <p>No multi-scenes available.</p>
+                      <p className="text-sm">
+                        Create multi-scenes first to add them to sequences.
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 p-2">
+                      {availableMultiScenes.map((multiScene) => (
+                        <CheckboxPrimitive.Root
+                          key={multiScene.id}
+                          checked={selectedMultiSceneIds.includes(
+                            multiScene.id
                           )}
-                          {multiScene.description && (
-                            <p className="text-xs text-muted-foreground line-clamp-2">
-                              {multiScene.description}
-                            </p>
-                          )}
-                        </div>
+                          onCheckedChange={(checked) =>
+                            handleMultiSceneToggle(multiScene.id, checked)
+                          }
+                          className="relative ring-[1px] ring-border rounded-lg px-4 py-3 text-start text-muted-foreground data-[state=checked]:ring-2 data-[state=checked]:ring-primary data-[state=checked]:text-primary flex flex-row items-center gap-3 cursor-pointer"
+                        >
+                          <Layers className="h-6 w-6" />
+                          <div className="space-y-1">
+                            <span className="font-medium tracking-tight text-sm">
+                              {multiScene.name}
+                            </span>
+                            {multiScene.address && (
+                              <p className="text-xs text-muted-foreground">
+                                Address: {multiScene.address}
+                              </p>
+                            )}
+                            {multiScene.description && (
+                              <p className="text-xs text-muted-foreground line-clamp-2">
+                                {multiScene.description}
+                              </p>
+                            )}
+                          </div>
 
-                        <CheckboxPrimitive.Indicator className="absolute top-2 right-2">
-                          <CircleCheck className="fill-primary text-primary-foreground h-4 w-4" />
-                        </CheckboxPrimitive.Indicator>
-                      </CheckboxPrimitive.Root>
-                    ))}
-                  </div>
-                )}
-              </ScrollArea>
-            </CardContent>
-          </Card>
-
+                          <CheckboxPrimitive.Indicator className="absolute top-2 right-2">
+                            <CircleCheck className="fill-primary text-primary-foreground h-4 w-4" />
+                          </CheckboxPrimitive.Indicator>
+                        </CheckboxPrimitive.Root>
+                      ))}
+                    </div>
+                  )}
+                </ScrollArea>
+              </CardContent>
+            </Card>
           </div>
 
           <DialogFooter>
