@@ -272,61 +272,72 @@ async function getLocalACConfig(unitIp, canId) {
   if (response?.msg?.length >= 11) {
     const responseData = parseResponse.data(response);
 
+    console.log(`AC Config Response - Total length: ${response.msg.length}, Data length: ${responseData.length}`);
+    console.log(`Expected data length: ${10 * 64} bytes (10 AC configs * 64 bytes each)`);
+
     // Parse 10 AC configurations (64 bytes each)
     const acConfigs = [];
     const AC_CONFIG_SIZE = 64; // 64 bytes per AC config
 
     for (let i = 0; i < 10; i++) {
       const offset = i * AC_CONFIG_SIZE;
+      let configData;
+
       if (offset + AC_CONFIG_SIZE <= responseData.length) {
-        const configData = responseData.slice(offset, offset + AC_CONFIG_SIZE);
-
-        // Parse the 64-byte AC configuration structure
-        const acConfig = {
-          index: i,
-          address: configData[0],
-          enable: configData[1] === 1,
-          windowMode: configData[2], // 0: Off, 1: Save energy
-          fanType: configData[3], // 0: on/off, 1: analog
-          tempType: configData[4], // 0: thermostat, 1: RCU
-          tempUnit: configData[5], // 0: C, 1: F
-          valveContact: configData[6], // 0: NO, 1: NC
-          valveType: configData[7], // 0: On/Off, 1: analog, 2: on and off
-          deadband: configData[8],
-          lowFCU_Group: configData[9],
-          medFCU_Group: configData[10],
-          highFCU_Group: configData[11],
-          fanAnalogGroup: configData[12],
-          analogCoolGroup: configData[13],
-          analogHeatGroup: configData[14],
-          valveCoolOpenGroup: configData[15],
-          valveCoolCloseGroup: configData[16],
-          valveHeatOpenGroup: configData[17],
-          valveHeatCloseGroup: configData[18],
-          windowBypass: configData[19],
-          setPointOffset: configData[20],
-          // Bytes 21-30: reserved (skip)
-          unoccupyPower: configData[31],
-          occupyPower: configData[32],
-          standbyPower: configData[33],
-          unoccupyMode: configData[34],
-          occupyMode: configData[35],
-          standbyMode: configData[36],
-          unoccupyFanSpeed: configData[37],
-          occupyFanSpeed: configData[38],
-          standbyFanSpeed: configData[39],
-          // 2-byte values (little endian)
-          unoccupyCoolSetPoint: configData[40] | (configData[41] << 8),
-          occupyCoolSetPoint: configData[42] | (configData[43] << 8),
-          standbyCoolSetPoint: configData[44] | (configData[45] << 8),
-          unoccupyHeatSetPoint: configData[46] | (configData[47] << 8),
-          occupyHeatSetPoint: configData[48] | (configData[49] << 8),
-          standbyHeatSetPoint: configData[50] | (configData[51] << 8),
-          // Bytes 52-63: reserved (skip)
-        };
-
-        acConfigs.push(acConfig);
+        configData = responseData.slice(offset, offset + AC_CONFIG_SIZE);
+        console.log(`AC ${i}: address=${configData[0]}, enable=${configData[1]}, windowMode=${configData[2]}`);
+      } else {
+        console.warn(`AC ${i}: Not enough data - offset ${offset} + size ${AC_CONFIG_SIZE} > data length ${responseData.length}`);
+        // Create default config for missing data
+        configData = new Array(AC_CONFIG_SIZE).fill(0);
       }
+
+      // Parse the 64-byte AC configuration structure
+      const acConfig = {
+        index: i,
+        address: configData[0],
+        enable: configData[1] === 1,
+        windowMode: configData[2], // 0: Off, 1: Save energy
+        fanType: configData[3], // 0: on/off, 1: analog
+        tempType: configData[4], // 0: thermostat, 1: RCU
+        tempUnit: configData[5], // 0: C, 1: F
+        valveContact: configData[6], // 0: NO, 1: NC
+        valveType: configData[7], // 0: On/Off, 1: analog, 2: on and off
+        deadband: configData[8],
+        lowFCU_Group: configData[9],
+        medFCU_Group: configData[10],
+        highFCU_Group: configData[11],
+        fanAnalogGroup: configData[12],
+        analogCoolGroup: configData[13],
+        analogHeatGroup: configData[14],
+        valveCoolOpenGroup: configData[15],
+        valveCoolCloseGroup: configData[16],
+        valveHeatOpenGroup: configData[17],
+        valveHeatCloseGroup: configData[18],
+        windowBypass: configData[19],
+        setPointOffset: configData[20],
+        // Bytes 21-30: reserved (skip)
+        unoccupyPower: configData[31],
+        occupyPower: configData[32],
+        standbyPower: configData[33],
+        unoccupyMode: configData[34],
+        occupyMode: configData[35],
+        standbyMode: configData[36],
+        unoccupyFanSpeed: configData[37],
+        occupyFanSpeed: configData[38],
+        standbyFanSpeed: configData[39],
+        // 2-byte values (little endian)
+        unoccupyCoolSetPoint: configData[40] | (configData[41] << 8),
+        occupyCoolSetPoint: configData[42] | (configData[43] << 8),
+        standbyCoolSetPoint: configData[44] | (configData[45] << 8),
+        unoccupyHeatSetPoint: configData[46] | (configData[47] << 8),
+        occupyHeatSetPoint: configData[48] | (configData[49] << 8),
+        standbyHeatSetPoint: configData[50] | (configData[51] << 8),
+        // Bytes 52-63: reserved (skip)
+      };
+
+      acConfigs.push(acConfig);
+    }
     }
 
     console.log(`Retrieved ${acConfigs.length} AC configurations`);

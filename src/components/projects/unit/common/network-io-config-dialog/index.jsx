@@ -46,6 +46,7 @@ const NetworkIOConfigDialog = ({ open, onOpenChange, item = null }) => {
     readStatesSequentially,
     readInputConfigsFromUnit,
     readOutputConfigsFromUnit,
+    readACConfigsFromUnit,
     pauseAutoRefresh,
     resumeAutoRefresh,
   } = useNetworkIOConfig(item, open, false); // We'll update this after getting multiGroupDialogOpen
@@ -151,50 +152,86 @@ const NetworkIOConfigDialog = ({ open, onOpenChange, item = null }) => {
     }
   }, [readInputConfigsFromUnit]);
 
-  // Handle adding missing lighting address to database
+  // Handle adding missing address to database
   const handleAddMissingAddress = useCallback(
-    async (lightingAddress, outputIndex) => {
+    async (address, outputIndex, type = "lighting") => {
       try {
-        // Create new lighting item with the missing address (following input config pattern)
-        const newLightingItem = {
-          name: `Group ${lightingAddress}`,
-          address: lightingAddress.toString(),
-          description: `Auto-added from network unit output ${outputIndex + 1}`,
-          object_type: "OBJ_LIGHTING",
-          object_value: 1,
-        };
+        if (type === "aircon") {
+          // Create new aircon item with the missing address
+          const newAirconItem = {
+            name: `Group ${address}`,
+            address: address.toString(),
+            description: `Auto-added from network unit AC output ${outputIndex + 1}`,
+            label: "Aircon",
+          };
 
-        // Add to database via electronAPI with projectId
-        const result = await window.electronAPI.lighting.create(
-          selectedProject.id,
-          newLightingItem
-        );
-
-        if (result) {
-          console.log(
-            `Successfully added lighting address ${lightingAddress} to database`
+          // Add to database via electronAPI with projectId
+          const result = await window.electronAPI.aircon.create(
+            selectedProject.id,
+            newAirconItem
           );
 
-          // Refresh lighting items to update the options
-          await loadTabData(selectedProject.id, "lighting");
+          if (result) {
+            console.log(
+              `Successfully added aircon address ${address} to database`
+            );
 
-          // Refresh output configurations to update the mapping
-          await readOutputConfigsFromUnit();
+            // Refresh aircon items to update the options
+            await loadTabData(selectedProject.id, "aircon");
 
-          // Show success message
-          toast.success(
-            `Lighting address ${lightingAddress} added to database`
-          );
+            // Refresh AC configurations to update the mapping
+            await readACConfigsFromUnit();
+
+            // Show success message
+            toast.success(
+              `Aircon address ${address} added to database`
+            );
+          } else {
+            console.error("Failed to add aircon address to database:", result);
+            toast.error("Failed to add aircon address to database");
+          }
         } else {
-          console.error("Failed to add lighting address to database:", result);
-          toast.error("Failed to add lighting address to database");
+          // Create new lighting item with the missing address (following input config pattern)
+          const newLightingItem = {
+            name: `Group ${address}`,
+            address: address.toString(),
+            description: `Auto-added from network unit output ${outputIndex + 1}`,
+            object_type: "OBJ_LIGHTING",
+            object_value: 1,
+          };
+
+          // Add to database via electronAPI with projectId
+          const result = await window.electronAPI.lighting.create(
+            selectedProject.id,
+            newLightingItem
+          );
+
+          if (result) {
+            console.log(
+              `Successfully added lighting address ${address} to database`
+            );
+
+            // Refresh lighting items to update the options
+            await loadTabData(selectedProject.id, "lighting");
+
+            // Refresh output configurations to update the mapping
+            await readOutputConfigsFromUnit();
+
+            // Show success message
+            toast.success(
+              `Lighting address ${address} added to database`
+            );
+          } else {
+            console.error("Failed to add lighting address to database:", result);
+            toast.error("Failed to add lighting address to database");
+          }
         }
       } catch (error) {
-        console.error("Error adding missing lighting address:", error);
-        toast.error(`Error adding lighting address: ${error.message}`);
+        console.error(`Error adding missing ${type} address:`, error);
+        toast.error(`Error adding ${type} address: ${error.message}`);
       }
     },
-    [selectedProject?.id, loadTabData, readOutputConfigsFromUnit]
+    [selectedProject?.id, loadTabData, readOutputConfigsFromUnit, readACConfigsFromUnit]
   );
 
   if (!item || !ioSpec) {

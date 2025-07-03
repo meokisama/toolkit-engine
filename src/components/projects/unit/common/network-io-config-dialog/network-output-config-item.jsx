@@ -19,36 +19,69 @@ const NetworkOutputConfigItem = memo(
   }) => {
     const isAircon = config.type === "ac";
 
-    // Check if output has lighting address but no matching database entry
+    // Check if output has address but no matching database entry
     const hasUnmappedAddress = useMemo(() => {
-      if (isAircon || !config.lightingAddress || config.lightingAddress === 0) {
-        return false;
+      if (isAircon) {
+        // Check for unmapped aircon address
+        if (!config.airconAddress || config.airconAddress === 0) {
+          return false;
+        }
+
+        // Check if aircon address exists in deviceOptions
+        const addressExists = deviceOptions.some(option => {
+          // Extract address from label format "Name (Address)"
+          const match = option.label.match(/\((\d+)\)$/);
+          return match && parseInt(match[1]) === config.airconAddress;
+        });
+
+        return !addressExists;
+      } else {
+        // Check for unmapped lighting address
+        if (!config.lightingAddress || config.lightingAddress === 0) {
+          return false;
+        }
+
+        // Check if lighting address exists in deviceOptions
+        const addressExists = deviceOptions.some(option => {
+          // Extract address from label format "Name (Address)"
+          const match = option.label.match(/\((\d+)\)$/);
+          return match && parseInt(match[1]) === config.lightingAddress;
+        });
+
+        return !addressExists;
       }
+    }, [isAircon, config.lightingAddress, config.airconAddress, deviceOptions]);
 
-      // Check if lighting address exists in deviceOptions
-      const addressExists = deviceOptions.some(option => {
-        // Extract address from label format "Name (Address)"
-        const match = option.label.match(/\((\d+)\)$/);
-        return match && parseInt(match[1]) === config.lightingAddress;
-      });
-
-      return !addressExists;
-    }, [isAircon, config.lightingAddress, deviceOptions]);
-
-    // Auto-map device ID based on lighting address
+    // Auto-map device ID based on address
     const autoMappedDeviceId = useMemo(() => {
-      if (isAircon || !config.lightingAddress || config.lightingAddress === 0) {
-        return config.deviceId;
+      if (isAircon) {
+        // Auto-map aircon device ID based on aircon address
+        if (!config.airconAddress || config.airconAddress === 0) {
+          return config.deviceId;
+        }
+
+        // Find matching aircon option by address
+        const matchingOption = deviceOptions.find(option => {
+          const match = option.label.match(/\((\d+)\)$/);
+          return match && parseInt(match[1]) === config.airconAddress;
+        });
+
+        return matchingOption ? parseInt(matchingOption.value) : config.deviceId;
+      } else {
+        // Auto-map lighting device ID based on lighting address
+        if (!config.lightingAddress || config.lightingAddress === 0) {
+          return config.deviceId;
+        }
+
+        // Find matching lighting option by address
+        const matchingOption = deviceOptions.find(option => {
+          const match = option.label.match(/\((\d+)\)$/);
+          return match && parseInt(match[1]) === config.lightingAddress;
+        });
+
+        return matchingOption ? parseInt(matchingOption.value) : config.deviceId;
       }
-
-      // Find matching device option by address
-      const matchingOption = deviceOptions.find(option => {
-        const match = option.label.match(/\((\d+)\)$/);
-        return match && parseInt(match[1]) === config.lightingAddress;
-      });
-
-      return matchingOption ? parseInt(matchingOption.value) : config.deviceId;
-    }, [isAircon, config.lightingAddress, config.deviceId, deviceOptions]);
+    }, [isAircon, config.lightingAddress, config.airconAddress, config.deviceId, deviceOptions]);
 
     // Generate display name based on type and index
     const getDisplayName = useCallback((type, index) => {
@@ -79,10 +112,14 @@ const NetworkOutputConfigItem = memo(
     }, [config.index, config.state, onToggleState]);
 
     const handleAddMissingAddress = useCallback(() => {
-      if (onAddMissingAddress && config.lightingAddress) {
-        onAddMissingAddress(config.lightingAddress, config.index);
+      if (onAddMissingAddress) {
+        if (isAircon && config.airconAddress) {
+          onAddMissingAddress(config.airconAddress, config.index, "aircon");
+        } else if (!isAircon && config.lightingAddress) {
+          onAddMissingAddress(config.lightingAddress, config.index, "lighting");
+        }
       }
-    }, [onAddMissingAddress, config.lightingAddress, config.index]);
+    }, [onAddMissingAddress, isAircon, config.airconAddress, config.lightingAddress, config.index]);
 
     return (
       <div className="p-4 border rounded-lg flex gap-4 justify-between items-center w-full shadow">
@@ -100,20 +137,20 @@ const NetworkOutputConfigItem = memo(
           </div>
         </div>
         <div className="flex items-center gap-2">
-          {/* Plus button for adding missing lighting address to database */}
+          {/* Plus button for adding missing address to database */}
           {hasUnmappedAddress && onAddMissingAddress && (
             <Button
               variant="outline"
               size="icon"
               onClick={handleAddMissingAddress}
-              title={`Add lighting address ${config.lightingAddress} to database`}
+              title={`Add ${isAircon ? "aircon" : "lighting"} address ${isAircon ? config.airconAddress : config.lightingAddress} to database`}
             >
               <Plus className="h-4 w-4" />
             </Button>
           )}
-          
-          {/* Show combobox only if address is mapped or is aircon */}
-          {(!hasUnmappedAddress || isAircon) ? (
+
+          {/* Show combobox only if address is mapped */}
+          {!hasUnmappedAddress ? (
             <Combobox
               className="w-56"
               options={deviceOptions}
@@ -125,7 +162,7 @@ const NetworkOutputConfigItem = memo(
           ) : (
             /* Show address info when not in database */
             <div className="w-56 px-3 py-2 border rounded-md bg-muted text-muted-foreground text-sm">
-              Address {config.lightingAddress} (Not in database)
+              Address {isAircon ? config.airconAddress : config.lightingAddress} (Not in database)
             </div>
           )}
 
