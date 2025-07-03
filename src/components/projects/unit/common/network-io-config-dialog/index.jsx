@@ -79,7 +79,12 @@ const NetworkIOConfigDialog = ({ open, onOpenChange, item = null }) => {
     handleOpenOutputConfig,
     handleSaveOutputConfig,
     handleToggleOutputState,
-  } = useNetworkOutputConfig(item, outputConfigs, setOutputConfigs, lightingItems);
+  } = useNetworkOutputConfig(
+    item,
+    outputConfigs,
+    setOutputConfigs,
+    lightingItems
+  );
 
   // Check if any child dialog is open
   const anyChildDialogOpen =
@@ -95,7 +100,15 @@ const NetworkIOConfigDialog = ({ open, onOpenChange, item = null }) => {
         resumeAutoRefresh();
       }, 1000);
     }
-  }, [lightingOutputDialogOpen, acOutputDialogOpen, open, multiGroupDialogOpen, autoRefreshEnabled, pauseAutoRefresh, resumeAutoRefresh]);
+  }, [
+    lightingOutputDialogOpen,
+    acOutputDialogOpen,
+    open,
+    multiGroupDialogOpen,
+    autoRefreshEnabled,
+    pauseAutoRefresh,
+    resumeAutoRefresh,
+  ]);
 
   // Create device options for outputs
   const outputDeviceOptionsMap = useMemo(() => {
@@ -138,40 +151,50 @@ const NetworkIOConfigDialog = ({ open, onOpenChange, item = null }) => {
   }, [readInputConfigsFromUnit]);
 
   // Handle adding missing lighting address to database
-  const handleAddMissingAddress = useCallback(async (lightingAddress, outputIndex) => {
-    try {
-      // Create new lighting item with the missing address (following input config pattern)
-      const newLightingItem = {
-        name: `Group ${lightingAddress}`,
-        address: lightingAddress.toString(),
-        description: `Auto-added from network unit output ${outputIndex + 1}`,
-        object_type: "OBJ_LIGHTING",
-        object_value: 1,
-      };
+  const handleAddMissingAddress = useCallback(
+    async (lightingAddress, outputIndex) => {
+      try {
+        // Create new lighting item with the missing address (following input config pattern)
+        const newLightingItem = {
+          name: `Group ${lightingAddress}`,
+          address: lightingAddress.toString(),
+          description: `Auto-added from network unit output ${outputIndex + 1}`,
+          object_type: "OBJ_LIGHTING",
+          object_value: 1,
+        };
 
-      // Add to database via electronAPI with projectId
-      const result = await window.electronAPI.lighting.create(selectedProject.id, newLightingItem);
+        // Add to database via electronAPI with projectId
+        const result = await window.electronAPI.lighting.create(
+          selectedProject.id,
+          newLightingItem
+        );
 
-      if (result) {
-        console.log(`Successfully added lighting address ${lightingAddress} to database`);
+        if (result) {
+          console.log(
+            `Successfully added lighting address ${lightingAddress} to database`
+          );
 
-        // Refresh lighting items to update the options
-        await loadTabData(selectedProject.id, "lighting");
+          // Refresh lighting items to update the options
+          await loadTabData(selectedProject.id, "lighting");
 
-        // Refresh output configurations to update the mapping
-        await readOutputConfigsFromUnit();
+          // Refresh output configurations to update the mapping
+          await readOutputConfigsFromUnit();
 
-        // Show success message
-        toast.success(`Lighting address ${lightingAddress} added to database`);
-      } else {
-        console.error("Failed to add lighting address to database:", result);
-        toast.error("Failed to add lighting address to database");
+          // Show success message
+          toast.success(
+            `Lighting address ${lightingAddress} added to database`
+          );
+        } else {
+          console.error("Failed to add lighting address to database:", result);
+          toast.error("Failed to add lighting address to database");
+        }
+      } catch (error) {
+        console.error("Error adding missing lighting address:", error);
+        toast.error(`Error adding lighting address: ${error.message}`);
       }
-    } catch (error) {
-      console.error("Error adding missing lighting address:", error);
-      toast.error(`Error adding lighting address: ${error.message}`);
-    }
-  }, [selectedProject?.id, loadTabData, readOutputConfigsFromUnit]);
+    },
+    [selectedProject?.id, loadTabData, readOutputConfigsFromUnit]
+  );
 
   if (!item || !ioSpec) {
     return null;
@@ -181,22 +204,13 @@ const NetworkIOConfigDialog = ({ open, onOpenChange, item = null }) => {
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="!max-w-6xl max-h-[90vh] flex flex-col overflow-y-auto">
         <DialogHeader>
-          <div className="flex items-center justify-between">
-            <DialogTitle className="flex items-center gap-2">
-              <Settings className="h-5 w-5" />
-              Network I/O Configuration - {item.type}
-              <Badge variant="outline" className="ml-2">
-                {item.ip_address}
-              </Badge>
-            </DialogTitle>
-            <div className="flex items-center gap-2">
-              <span className="text-sm text-muted-foreground">Auto Refresh</span>
-              <Switch
-                checked={autoRefreshEnabled}
-                onCheckedChange={setAutoRefreshEnabled}
-              />
-            </div>
-          </div>
+          <DialogTitle className="flex items-center gap-2">
+            <Settings className="h-5 w-5" />
+            Network I/O Configuration - {item.type}
+            <Badge variant="outline" className="ml-2">
+              {item.ip_address}
+            </Badge>
+          </DialogTitle>
         </DialogHeader>
 
         <div className="flex-1 overflow-hidden">
@@ -298,7 +312,14 @@ const NetworkIOConfigDialog = ({ open, onOpenChange, item = null }) => {
 
         <Separator />
 
-        <div className="flex justify-end gap-2 flex-shrink-0">
+        <div className="flex justify-between gap-2 flex-shrink-0">
+          <div className="flex items-center gap-2">
+            <span className="text-sm text-muted-foreground">Auto Refresh</span>
+            <Switch
+              checked={autoRefreshEnabled}
+              onCheckedChange={setAutoRefreshEnabled}
+            />
+          </div>
           <Button variant="outline" onClick={() => onOpenChange(false)}>
             Close
           </Button>
