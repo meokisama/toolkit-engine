@@ -77,7 +77,8 @@ const SequenceCard = memo(({ sequence, onTrigger, onDelete, loading }) => (
                   </h4>
                   <div className="text-xs text-muted-foreground">
                     <strong>Address:</strong> {sequence.sequenceAddress} |{" "}
-                    <strong>Total Multi-Scenes:</strong> {sequence.multiSceneCount}
+                    <strong>Total Multi-Scenes:</strong>{" "}
+                    {sequence.multiSceneCount}
                   </div>
                 </div>
 
@@ -115,22 +116,23 @@ const SequenceCard = memo(({ sequence, onTrigger, onDelete, loading }) => (
           <Button
             onClick={() => onTrigger(sequence.sequenceIndex)}
             disabled={loading}
-            size="sm"
+            variant="outline"
+            size="icon"
             className="flex items-center gap-2"
           >
             <Play className="h-4 w-4" />
-            Trigger
           </Button>
 
           <Button
-            onClick={() => onDelete(sequence.sequenceIndex, sequence.sequenceName)}
+            onClick={() =>
+              onDelete(sequence.sequenceIndex, sequence.sequenceName)
+            }
             disabled={loading}
             variant="outline"
-            size="sm"
+            size="icon"
             className="flex items-center gap-2 text-red-600 hover:text-red-700"
           >
             <Trash2 className="h-4 w-4" />
-            Delete
           </Button>
         </div>
       </div>
@@ -218,13 +220,12 @@ export function TriggerSequenceDialog({ open, onOpenChange, unit }) {
         sequenceIndex: protocolIndex,
       });
 
-      const result = await window.electronAPI.rcuController.getSequenceInformation(
-        {
+      const result =
+        await window.electronAPI.rcuController.getSequenceInformation({
           unitIp: unit.ip_address,
           canId: unit.id_can,
           sequenceIndex: protocolIndex,
-        }
-      );
+        });
 
       // Convert single sequence result to card format
       if (result && result.sequences && result.sequences.length > 0) {
@@ -242,7 +243,9 @@ export function TriggerSequenceDialog({ open, onOpenChange, unit }) {
           sequences: [sequenceCard],
           showSequences: true,
         }));
-        toast.success(`Sequence ${state.sequenceIndex} information loaded successfully`);
+        toast.success(
+          `Sequence ${state.sequenceIndex} information loaded successfully`
+        );
       } else {
         setState((prev) => ({
           ...prev,
@@ -331,16 +334,19 @@ export function TriggerSequenceDialog({ open, onOpenChange, unit }) {
   }, [unit]);
 
   // Handle delete sequence from card
-  const handleDeleteSequenceFromCard = useCallback((sequenceIndex, sequenceName) => {
-    setState((prev) => ({
-      ...prev,
-      deleteConfirmDialog: {
-        open: true,
-        sequenceIndex,
-        sequenceName,
-      },
-    }));
-  }, []);
+  const handleDeleteSequenceFromCard = useCallback(
+    (sequenceIndex, sequenceName) => {
+      setState((prev) => ({
+        ...prev,
+        deleteConfirmDialog: {
+          open: true,
+          sequenceIndex,
+          sequenceName,
+        },
+      }));
+    },
+    []
+  );
 
   // Handle trigger sequence from card
   const handleTriggerSequenceFromCard = useCallback(
@@ -353,25 +359,23 @@ export function TriggerSequenceDialog({ open, onOpenChange, unit }) {
   return (
     <>
       <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden flex flex-col">
+        <DialogContent className="!max-w-4xl max-h-[90vh] overflow-hidden flex flex-col">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <ListOrdered className="h-5 w-5" />
-              Sequence Control - {unit?.type || "Network Unit"} ({unit?.ip_address})
+              Sequence Control - {unit?.type || "Network Unit"} (
+              {unit?.ip_address})
             </DialogTitle>
             <DialogDescription>
-              Control sequences on the selected network unit. Enter a sequence index (0-19) to load or trigger a specific sequence, or use "Load All Sequences" to see all configured sequences.
+              Control sequences on the selected network unit.
             </DialogDescription>
           </DialogHeader>
 
           <div className="flex-1 overflow-hidden space-y-4">
             {/* Controls */}
-            <div className="space-y-4">
-              <div className="flex items-center gap-4">
+            <div className="flex justify-between items-center mt-4">
+              <div className="flex items-center gap-2">
                 <div className="flex items-center gap-2">
-                  <label htmlFor="sequenceIndex" className="text-sm font-medium">
-                    Sequence Index (0-19):
-                  </label>
                   <Input
                     id="sequenceIndex"
                     type="number"
@@ -379,18 +383,10 @@ export function TriggerSequenceDialog({ open, onOpenChange, unit }) {
                     max="19"
                     value={state.sequenceIndex}
                     onChange={(e) => handleSequenceIndexChange(e.target.value)}
-                    placeholder="0-19"
-                    className="w-20"
+                    placeholder="Sequence (0-19)"
+                    className="w-40"
                   />
                 </div>
-                <Button
-                  onClick={handleTriggerSequence}
-                  disabled={loadingState.loading || loadingState.loadingInfo}
-                  className="flex items-center gap-2"
-                >
-                  <Play className="h-4 w-4" />
-                  {loadingState.loading ? "Triggering..." : "Trigger Sequence"}
-                </Button>
                 <Button
                   onClick={handleLoadSequenceInfo}
                   disabled={loadingState.loading || loadingState.loadingInfo}
@@ -412,7 +408,6 @@ export function TriggerSequenceDialog({ open, onOpenChange, unit }) {
                   trigger={
                     <Button
                       variant="outline"
-                      size="lg"
                       className="flex items-center gap-2"
                     >
                       <Trash2 className="h-4 w-4" />
@@ -422,7 +417,6 @@ export function TriggerSequenceDialog({ open, onOpenChange, unit }) {
                 />
                 <Button
                   onClick={handleLoadAllSequences}
-                  size="lg"
                   disabled={
                     loadingState.loadingAllSequences || loadingState.loadingInfo
                   }
@@ -457,7 +451,8 @@ export function TriggerSequenceDialog({ open, onOpenChange, unit }) {
                       <ListOrdered className="h-12 w-12 mx-auto mb-4 opacity-50" />
                       <p className="text-lg font-medium">No sequences loaded</p>
                       <p className="text-sm">
-                        Enter a sequence index and click "Load Sequence" or use "Load All Sequences" to see configured sequences.
+                        Enter a sequence index and click "Load Sequence" or use
+                        "Load All Sequences" to see configured sequences.
                       </p>
                     </div>
                   </div>
