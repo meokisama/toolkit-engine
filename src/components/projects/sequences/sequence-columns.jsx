@@ -2,21 +2,12 @@ import React from "react";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import {
-  MoreHorizontal,
-  Edit,
   Copy,
   Trash2,
   Send,
   FileText,
   Hash,
+  Settings,
 } from "lucide-react";
 import { CONSTANTS } from "@/constants";
 import { EditableCell } from "@/components/projects/data-table/editable-cell";
@@ -172,46 +163,50 @@ export function createSequenceColumns(
         const sequence = row.original;
 
         return (
-          <div className="flex items-center justify-center">
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="h-8 w-8 p-0">
-                  <span className="sr-only">Open menu</span>
-                  <MoreHorizontal className="h-4 w-4" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                <DropdownMenuItem onClick={() => onEdit(sequence)}>
-                  <Edit className="mr-2 h-4 w-4" />
-                  Edit
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => onDuplicate(sequence.id)}>
-                  <Copy className="mr-2 h-4 w-4" />
-                  Duplicate
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={() => onSendToUnit(sequence)}>
-                  <Send className="mr-2 h-4 w-4" />
-                  Send to Unit
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem
-                  onClick={() => onDelete(sequence.id)}
-                  className="text-red-600"
-                >
-                  <Trash2 className="mr-2 h-4 w-4" />
-                  Delete
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+          <div className="flex justify-end gap-1">
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={() => onEdit(sequence)}
+              className="cursor-pointer"
+              title="Manage sequence multi-scenes"
+            >
+              <Settings className="h-4 w-4" />
+            </Button>
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={() => onSendToUnit(sequence)}
+              className="cursor-pointer"
+              title="Send sequence to network unit"
+            >
+              <Send className="h-4 w-4" />
+            </Button>
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={() => onDuplicate(sequence.id)}
+              className="cursor-pointer"
+              title="Duplicate sequence"
+            >
+              <Copy className="h-4 w-4" />
+            </Button>
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={() => onDelete(sequence.id)}
+              className="text-destructive hover:text-destructive cursor-pointer"
+              title="Delete sequence"
+            >
+              <Trash2 className="h-4 w-4" />
+            </Button>
           </div>
         );
       },
       enableSorting: false,
       enableHiding: false,
       meta: {
-        className: "w-[5%]",
+        className: "w-[15%]",
       },
     },
   ];
