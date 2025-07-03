@@ -27,7 +27,6 @@ import { getGroupTypeLabel } from "./input-config-dialog/utils/group-helpers";
 import { useProjectDetail } from "@/contexts/project-detail-context";
 import { getRlcOptionsConfig, getInputFunctionByValue } from "@/constants";
 import { Separator } from "@/components/ui/separator";
-import { toast } from "sonner";
 
 export function MultiGroupConfigDialog({
   open,
@@ -62,7 +61,15 @@ export function MultiGroupConfigDialog({
     loadTabData
   );
 
-  // Initialize multiple groups hook with current input type
+  const {
+    rlcOptions,
+    delayOffTime,
+    handleRlcOptionChange,
+    handleDelayOffTimeChange,
+    resetRlcOptions,
+    getFinalRlcOptions,
+  } = useRlcOptions(initialRlcOptions);
+
   const {
     selectedGroups,
     availableGroups,
@@ -81,7 +88,6 @@ export function MultiGroupConfigDialog({
     handleAddFromAvailable,
     handleAddAllGroups,
     handleClearAllGroups,
-    forceClearGroups,
     handleTogglePercentage,
     resetMultipleGroups,
     initializeGroups,
@@ -92,51 +98,6 @@ export function MultiGroupConfigDialog({
     selectedProject,
     createItem
   );
-
-  // Handle input type change with auto-clear groups functionality
-  const handleInputTypeChangeWithClear = React.useCallback(
-    async (newValue) => {
-      const numValue = parseInt(newValue);
-      const previousInputType = currentInputType;
-
-      // Clear groups if input type actually changed and there are groups selected
-      if (previousInputType !== null && previousInputType !== numValue && selectedGroups.length > 0) {
-        const groupCount = selectedGroups.length;
-        const previousFunction = availableInputFunctions.find(f => f.value === previousInputType);
-        const newFunction = availableInputFunctions.find(f => f.value === numValue);
-
-        forceClearGroups();
-
-        // Provide detailed feedback about the clearing action
-        toast.info(
-          `${groupCount} selected group${groupCount > 1 ? 's' : ''} cleared when changing from "${previousFunction?.label || 'Unknown'}" to "${newFunction?.label || 'Unknown'}"`,
-          {
-            duration: 4000,
-            description: "Groups may not be compatible with the new input type"
-          }
-        );
-      }
-
-      // Call the original input type change handler
-      await handleInputTypeChange(newValue);
-    },
-    [currentInputType, selectedGroups.length, forceClearGroups, handleInputTypeChange]
-  );
-
-  const {
-    rlcOptions,
-    delayOffTime,
-    handleRlcOptionChange,
-    handleDelayOffTimeChange,
-    resetRlcOptions,
-    getFinalRlcOptions,
-  } = useRlcOptions(initialRlcOptions);
-
-  // Update multiple groups hook to use current input type
-  React.useEffect(() => {
-    // This effect will trigger re-evaluation of available items when currentInputType changes
-    // The useMultipleGroups hook will automatically update availableItems based on currentInputType
-  }, [currentInputType]);
 
   // Effect to pause all auto refresh when this dialog is open
   React.useEffect(() => {
@@ -185,7 +146,7 @@ export function MultiGroupConfigDialog({
     return false;
   }, [currentInputType, rlcOptionsConfig.multiGroupEnabled]);
 
-  // Initialize groups when dialog opens
+  // Initialize groups when dialog opens or input type changes
   React.useEffect(() => {
     if (
       open &&
@@ -194,8 +155,7 @@ export function MultiGroupConfigDialog({
       initialGroups !== null &&
       initialGroups !== undefined
     ) {
-      // Force reinit when dialog opens to ensure fresh state
-      initializeGroups(initialGroups, true);
+      initializeGroups(initialGroups);
     }
   }, [open, initialGroups, isLoading, isInputTypeChanging, initializeGroups]);
 
@@ -310,7 +270,7 @@ export function MultiGroupConfigDialog({
                 currentInputFunction={currentInputFunction}
                 inputIndex={inputIndex}
                 unitType={unitType}
-                onInputTypeChange={handleInputTypeChangeWithClear}
+                onInputTypeChange={handleInputTypeChange}
               />
 
               {/* RLC Options Section */}

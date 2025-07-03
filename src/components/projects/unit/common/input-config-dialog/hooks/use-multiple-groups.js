@@ -1,7 +1,6 @@
-import { useState, useCallback, useMemo, useEffect, useRef } from "react";
+import { useState, useCallback, useMemo } from "react";
 import { updateGroupValue } from "../utils/validation-helpers";
 import { createGroupByType, getAvailableItemsForFunction } from "../utils/group-helpers";
-import { toast } from "sonner";
 
 export const useMultipleGroups = (
   initialGroups = [],
@@ -15,9 +14,6 @@ export const useMultipleGroups = (
   const [searchTerm, setSearchTerm] = useState("");
   const [searchInput, setSearchInput] = useState("");
 
-  // Track previous input type to detect changes
-  const previousInputTypeRef = useRef(currentInputType);
-
   // Get available items based on current input type
   const availableItems = useMemo(() => {
     return getAvailableItemsForFunction(currentInputType, projectItems);
@@ -27,44 +23,6 @@ export const useMultipleGroups = (
   const lightingItems = useMemo(() => {
     return projectItems?.lighting || [];
   }, [projectItems]);
-
-  // Effect to handle input type changes and clear groups when needed
-  useEffect(() => {
-    const previousInputType = previousInputTypeRef.current;
-
-    // If input type changed and we have selected groups, they might be invalid for the new type
-    if (previousInputType !== null && previousInputType !== currentInputType && selectedGroups.length > 0) {
-      // Check if any selected groups are still valid for the new input type
-      const validGroups = selectedGroups.filter(group => {
-        if (group.lightingId) {
-          return availableItems.some(item => item.id === group.lightingId);
-        }
-        return false; // Groups without lightingId (missing from database) are considered invalid
-      });
-
-      // If no groups are valid for the new input type, clear all
-      if (validGroups.length === 0) {
-        setSelectedGroups([]);
-        // Note: Don't show toast here as it will be handled by the main dialog
-      } else if (validGroups.length !== selectedGroups.length) {
-        // Some groups are invalid, keep only valid ones
-        const removedCount = selectedGroups.length - validGroups.length;
-        setSelectedGroups(validGroups);
-
-        // Show feedback for partially removed groups
-        toast.warning(
-          `${removedCount} group${removedCount > 1 ? 's' : ''} removed as they are not compatible with the new input type`,
-          {
-            duration: 3000,
-            description: `${validGroups.length} compatible group${validGroups.length > 1 ? 's' : ''} retained`
-          }
-        );
-      }
-    }
-
-    // Update the ref for next comparison
-    previousInputTypeRef.current = currentInputType;
-  }, [currentInputType, selectedGroups, availableItems]);
 
   // Prepare combobox options for the appropriate group type
   const groupOptions = useMemo(() => {
@@ -148,23 +106,9 @@ export const useMultipleGroups = (
             console.log(
               `Auto-created group ${groupToRemove.groupAddress} when removed from selected groups`
             );
-            toast.success(
-              `Group ${groupToRemove.groupAddress} added to database`,
-              {
-                duration: 3000,
-                description: "Group is now available for future use"
-              }
-            );
           }
         } catch (error) {
           console.error(`Failed to auto-create group when removing:`, error);
-          toast.error(
-            `Failed to add group ${groupToRemove.groupAddress} to database`,
-            {
-              duration: 4000,
-              description: error.message
-            }
-          );
         }
       }
 
@@ -225,13 +169,6 @@ export const useMultipleGroups = (
     setSelectedGroups([]);
   }, []);
 
-  // Force clear groups and reset input type tracking (used when input type changes)
-  const forceClearGroups = useCallback(() => {
-    setSelectedGroups([]);
-    // Update the ref to current input type to prevent the effect from triggering again
-    previousInputTypeRef.current = currentInputType;
-  }, [currentInputType]);
-
   // Toggle percentage display
   const handleTogglePercentage = useCallback((checked) => {
     setUsePercentage(checked);
@@ -250,20 +187,12 @@ export const useMultipleGroups = (
     setUsePercentage(false);
     setSearchTerm("");
     setSearchInput("");
-    // Reset the previous input type ref when resetting
-    previousInputTypeRef.current = null;
   }, []);
 
   // Initialize groups from initial data
-  const initializeGroups = useCallback(async (initialGroups, forceReinit = false) => {
+  const initializeGroups = useCallback(async (initialGroups) => {
     if (!initialGroups || !Array.isArray(initialGroups)) {
       setSelectedGroups([]);
-      return;
-    }
-
-    // Don't reinitialize if we already have groups and it's not forced
-    // This prevents clearing groups when input type changes
-    if (!forceReinit && selectedGroups.length > 0) {
       return;
     }
 
@@ -318,7 +247,7 @@ export const useMultipleGroups = (
 
       setSelectedGroups(enhancedGroups);
     }
-  }, [availableItems, selectedGroups.length]);
+  }, [availableItems]);
 
   return {
     selectedGroups,
@@ -338,7 +267,6 @@ export const useMultipleGroups = (
     handleAddFromAvailable,
     handleAddAllGroups,
     handleClearAllGroups,
-    forceClearGroups,
     handleTogglePercentage,
     resetMultipleGroups,
     initializeGroups,
