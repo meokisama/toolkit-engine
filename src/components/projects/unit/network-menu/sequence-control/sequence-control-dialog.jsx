@@ -114,7 +114,7 @@ const SequenceCard = memo(({ sequence, onTrigger, onDelete, loading }) => (
 
           {/* Action Buttons */}
           <Button
-            onClick={() => onTrigger(sequence.sequenceIndex)}
+            onClick={() => onTrigger(sequence.sequenceAddress)}
             disabled={loading}
             variant="outline"
             size="icon"
@@ -151,22 +151,32 @@ export function TriggerSequenceDialog({ open, onOpenChange, unit }) {
 
   // Handle trigger sequence
   const handleTriggerSequence = useCallback(
-    async (sequenceIndex = null) => {
+    async (sequenceAddress = null) => {
       if (!unit) {
         toast.error("No unit selected");
         return;
       }
 
-      const indexToTrigger = sequenceIndex || state.sequenceIndex;
-      if (!indexToTrigger) {
-        toast.error("Please enter a sequence index");
-        return;
-      }
+      // If sequenceAddress is provided (from card), use it directly
+      // Otherwise, use the input value as index to find the address
+      let addressToTrigger = sequenceAddress;
 
-      const protocolIndex = parseInt(indexToTrigger);
-      if (isNaN(protocolIndex) || protocolIndex < 0 || protocolIndex > 19) {
-        toast.error("Sequence index must be between 0 and 19");
-        return;
+      if (addressToTrigger === null) {
+        // Manual input - treat as index, need to find the address
+        if (!state.sequenceIndex) {
+          toast.error("Please enter a sequence index");
+          return;
+        }
+
+        const protocolIndex = parseInt(state.sequenceIndex);
+        if (isNaN(protocolIndex) || protocolIndex < 0 || protocolIndex > 19) {
+          toast.error("Sequence index must be between 0 and 19");
+          return;
+        }
+
+        // For manual input, we'll use the index as address (legacy behavior)
+        // In a real scenario, you might want to load the sequence first to get the actual address
+        addressToTrigger = protocolIndex;
       }
 
       setLoadingState((prev) => ({ ...prev, loading: true }));
@@ -174,16 +184,16 @@ export function TriggerSequenceDialog({ open, onOpenChange, unit }) {
         console.log("Triggering sequence:", {
           unitIp: unit.ip_address,
           canId: unit.id_can,
-          sequenceAddress: protocolIndex,
+          sequenceAddress: addressToTrigger,
         });
 
         await window.electronAPI.rcuController.triggerSequence({
           unitIp: unit.ip_address,
           canId: unit.id_can,
-          sequenceAddress: protocolIndex,
+          sequenceAddress: addressToTrigger,
         });
 
-        toast.success(`Sequence ${indexToTrigger} triggered successfully`);
+        toast.success(`Sequence (address: ${addressToTrigger}) triggered successfully`);
       } catch (error) {
         console.error("Failed to trigger sequence:", error);
         toast.error(`Failed to trigger sequence: ${error.message}`);
@@ -350,8 +360,8 @@ export function TriggerSequenceDialog({ open, onOpenChange, unit }) {
 
   // Handle trigger sequence from card
   const handleTriggerSequenceFromCard = useCallback(
-    (sequenceIndex) => {
-      handleTriggerSequence(sequenceIndex);
+    (sequenceAddress) => {
+      handleTriggerSequence(sequenceAddress);
     },
     [handleTriggerSequence]
   );
