@@ -11,11 +11,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Checkbox } from "@/components/ui/checkbox";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
 import {
-  ListOrdered,
   CircleCheck,
   Layers,
 } from "lucide-react";
@@ -30,7 +28,6 @@ export function SequenceDialog({
   mode = "create",
 }) {
   const {
-    selectedProject,
     projectItems,
     createItem,
     updateItem,
@@ -186,173 +183,160 @@ export function SequenceDialog({
   };
 
   const availableMultiScenes = projectItems.multi_scenes || [];
-  const selectedMultiScenes = availableMultiScenes.filter((multiScene) =>
-    selectedMultiSceneIds.includes(multiScene.id)
-  );
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden flex flex-col">
+    <Dialog open={open} onOpenChange={() => onOpenChange(false)}>
+      <DialogContent className="!max-w-4xl max-h-[90vh] overflow-hidden">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <ListOrdered className="h-5 w-5" />
-            {mode === "create" ? "Create New Sequence" : "Edit Sequence"}
+          <DialogTitle>
+            {mode === "edit" ? "Edit Sequence" : "Create Sequence"}
           </DialogTitle>
           <DialogDescription>
-            {mode === "create"
-              ? "Create a new sequence by selecting multi-scenes to execute in order."
-              : "Edit the sequence details and multi-scene selection."}
+            {mode === "edit"
+              ? "Update the sequence details and selected multi-scenes."
+              : "Create a new sequence with selected multi-scenes."}
           </DialogDescription>
         </DialogHeader>
 
-        <div className="flex-1 overflow-hidden">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 h-full">
-            {/* Basic Information - Left Side */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-sm">Basic Information</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="name">
-                    Name <span className="text-red-500">*</span>
-                  </Label>
-                  <Input
-                    id="name"
-                    value={formData.name}
-                    onChange={(e) => handleInputChange("name", e.target.value)}
-                    placeholder="Enter sequence name (max 15 chars)"
-                    maxLength={15}
-                    className={errors.name ? "border-red-500" : ""}
-                  />
-                  {errors.name && (
-                    <p className="text-sm text-red-500">{errors.name}</p>
-                  )}
-                </div>
+        <form onSubmit={(e) => { e.preventDefault(); handleSave(); }} className="space-y-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Basic Information */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-sm">Basic Information</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="name">
+                  Name <span className="text-red-500">*</span>
+                </Label>
+                <Input
+                  id="name"
+                  value={formData.name}
+                  onChange={(e) => handleInputChange("name", e.target.value)}
+                  placeholder="Enter sequence name (max 15 chars)"
+                  maxLength={15}
+                  className={errors.name ? "border-red-500" : ""}
+                />
+                {errors.name && (
+                  <p className="text-sm text-red-500">{errors.name}</p>
+                )}
+              </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="address">
-                    Address <span className="text-red-500">*</span>
-                  </Label>
-                  <Input
-                    id="address"
-                    type="number"
-                    min="1"
-                    max="255"
-                    value={formData.address}
-                    onChange={(e) => handleInputChange("address", e.target.value)}
-                    placeholder="1-255"
-                    className={errors.address ? "border-red-500" : ""}
-                  />
-                  {errors.address && (
-                    <p className="text-sm text-red-500">{errors.address}</p>
-                  )}
-                </div>
+              <div className="space-y-2">
+                <Label htmlFor="address">
+                  Address <span className="text-red-500">*</span>
+                </Label>
+                <Input
+                  id="address"
+                  type="number"
+                  min="1"
+                  max="255"
+                  value={formData.address}
+                  onChange={(e) => handleInputChange("address", e.target.value)}
+                  placeholder="1-255"
+                  className={errors.address ? "border-red-500" : ""}
+                />
+                {errors.address && (
+                  <p className="text-sm text-red-500">{errors.address}</p>
+                )}
+              </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="description">Description</Label>
-                  <Input
-                    id="description"
-                    value={formData.description}
-                    onChange={(e) =>
-                      handleInputChange("description", e.target.value)
-                    }
-                    placeholder="Enter description (optional)"
-                  />
-                </div>
+              <div className="space-y-2">
+                <Label htmlFor="description">Description</Label>
+                <Input
+                  id="description"
+                  value={formData.description}
+                  onChange={(e) =>
+                    handleInputChange("description", e.target.value)
+                  }
+                  placeholder="Enter description (optional)"
+                />
+              </div>
+            </CardContent>
+          </Card>
 
-                {/* Selected Multi-Scenes Summary */}
-                {selectedMultiScenes.length > 0 && (
-                  <div className="space-y-2">
-                    <Label>Selected Multi-Scenes ({selectedMultiScenes.length})</Label>
-                    <ScrollArea className="h-32 border rounded-md p-2">
-                      <div className="space-y-1">
-                        {selectedMultiScenes.map((multiScene, index) => (
-                          <div
-                            key={multiScene.id}
-                            className="flex items-center gap-2 text-sm"
-                          >
-                            <Badge variant="outline" className="text-xs">
-                              {index + 1}
-                            </Badge>
-                            <span>{multiScene.name}</span>
-                            <span className="text-muted-foreground">
-                              (Address: {multiScene.address})
-                            </span>
-                          </div>
-                        ))}
-                      </div>
-                    </ScrollArea>
+          {/* Multi-Scene Selection */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-sm">Select Multi-Scenes</CardTitle>
+              <p className="text-sm text-muted-foreground">
+                Select the multi-scenes you want to include in this sequence.
+                {selectedMultiSceneIds.length > 0 && (
+                  <span className="ml-2">
+                    <Badge variant="secondary">
+                      {selectedMultiSceneIds.length} multi-scenes
+                    </Badge>
+                  </span>
+                )}
+              </p>
+              {errors.multiScenes && (
+                <p className="text-sm text-red-500">{errors.multiScenes}</p>
+              )}
+            </CardHeader>
+            <CardContent>
+              <ScrollArea className="h-60">
+                {availableMultiScenes.length === 0 ? (
+                  <div className="text-center text-muted-foreground py-8">
+                    <p>No multi-scenes available.</p>
+                    <p className="text-sm">
+                      Create multi-scenes first to add them to sequences.
+                    </p>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 p-2">
+                    {availableMultiScenes.map((multiScene) => (
+                      <CheckboxPrimitive.Root
+                        key={multiScene.id}
+                        checked={selectedMultiSceneIds.includes(multiScene.id)}
+                        onCheckedChange={(checked) =>
+                          handleMultiSceneToggle(multiScene.id, checked)
+                        }
+                        className="relative ring-[1px] ring-border rounded-lg px-4 py-3 text-start text-muted-foreground data-[state=checked]:ring-2 data-[state=checked]:ring-primary data-[state=checked]:text-primary flex flex-row items-center gap-3 cursor-pointer"
+                      >
+                        <Layers className="h-6 w-6" />
+                        <div className="space-y-1">
+                          <span className="font-medium tracking-tight text-sm">
+                            {multiScene.name}
+                          </span>
+                          {multiScene.address && (
+                            <p className="text-xs text-muted-foreground">
+                              Address: {multiScene.address}
+                            </p>
+                          )}
+                          {multiScene.description && (
+                            <p className="text-xs text-muted-foreground line-clamp-2">
+                              {multiScene.description}
+                            </p>
+                          )}
+                        </div>
+
+                        <CheckboxPrimitive.Indicator className="absolute top-2 right-2">
+                          <CircleCheck className="fill-primary text-primary-foreground h-4 w-4" />
+                        </CheckboxPrimitive.Indicator>
+                      </CheckboxPrimitive.Root>
+                    ))}
                   </div>
                 )}
-              </CardContent>
-            </Card>
+              </ScrollArea>
+            </CardContent>
+          </Card>
 
-            {/* Multi-Scene Selection - Right Side */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-sm">Multi-Scene Selection</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <ScrollArea className="h-80">
-                  {availableMultiScenes.length === 0 ? (
-                    <div className="text-center text-muted-foreground py-8">
-                      <p>No multi-scenes available.</p>
-                      <p className="text-sm">
-                        Create multi-scenes first to add them to sequences.
-                      </p>
-                    </div>
-                  ) : (
-                    <div className="grid grid-cols-1 gap-3 p-2">
-                      {availableMultiScenes.map((multiScene) => (
-                        <CheckboxPrimitive.Root
-                          key={multiScene.id}
-                          checked={selectedMultiSceneIds.includes(multiScene.id)}
-                          onCheckedChange={(checked) =>
-                            handleMultiSceneToggle(multiScene.id, checked)
-                          }
-                          className="flex items-center space-x-3 p-3 border rounded-lg hover:bg-muted/50 cursor-pointer data-[state=checked]:bg-primary/5 data-[state=checked]:border-primary"
-                        >
-                          <CheckboxPrimitive.Indicator className="flex items-center justify-center">
-                            <CircleCheck className="h-4 w-4 text-primary" />
-                          </CheckboxPrimitive.Indicator>
-                          <div className="flex-1">
-                            <div className="flex items-center gap-2">
-                              <Layers className="h-4 w-4 text-muted-foreground" />
-                              <span className="font-medium text-sm">
-                                {multiScene.name}
-                              </span>
-                              <Badge variant="secondary" className="text-xs">
-                                Addr: {multiScene.address}
-                              </Badge>
-                            </div>
-                            {multiScene.description && (
-                              <p className="text-xs text-muted-foreground mt-1">
-                                {multiScene.description}
-                              </p>
-                            )}
-                          </div>
-                        </CheckboxPrimitive.Root>
-                      ))}
-                    </div>
-                  )}
-                </ScrollArea>
-                {errors.multiScenes && (
-                  <p className="text-sm text-red-500 mt-2">{errors.multiScenes}</p>
-                )}
-              </CardContent>
-            </Card>
           </div>
-        </div>
 
-        <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>
-            Cancel
-          </Button>
-          <Button onClick={handleSave} disabled={loading}>
-            {loading ? "Saving..." : mode === "create" ? "Create" : "Update"}
-          </Button>
-        </DialogFooter>
+          <DialogFooter>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => onOpenChange(false)}
+            >
+              Cancel
+            </Button>
+            <Button type="submit" disabled={loading}>
+              {loading ? "Saving..." : mode === "edit" ? "Update" : "Create"}
+            </Button>
+          </DialogFooter>
+        </form>
       </DialogContent>
     </Dialog>
   );
