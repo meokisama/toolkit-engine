@@ -301,8 +301,12 @@ contextBridge.exposeInMainWorld("electronAPI", {
       ipcRenderer.invoke("rcu:getOutputAssign", params),
     getOutputConfig: (unitIp, canId) =>
       ipcRenderer.invoke("rcu:getOutputConfig", unitIp, canId),
-    setOutputAssign: (unitIp, canId, outputIndex, lightingAddress, delayOff, delayOn) =>
-      ipcRenderer.invoke("rcu:setOutputAssign", unitIp, canId, outputIndex, lightingAddress, delayOff, delayOn),
+    setOutputAssign: (unitIp, canId, outputIndex, lightingAddress) =>
+      ipcRenderer.invoke("rcu:setOutputAssign", unitIp, canId, outputIndex, lightingAddress),
+    setOutputDelayOff: (unitIp, canId, outputIndex, delayOff) =>
+      ipcRenderer.invoke("rcu:setOutputDelayOff", unitIp, canId, outputIndex, delayOff),
+    setOutputDelayOn: (unitIp, canId, outputIndex, delayOn) =>
+      ipcRenderer.invoke("rcu:setOutputDelayOn", unitIp, canId, outputIndex, delayOn),
     setOutputConfig: (unitIp, canId, outputIndex, config) =>
       ipcRenderer.invoke("rcu:setOutputConfig", unitIp, canId, outputIndex, config),
     // Air Conditioner Control

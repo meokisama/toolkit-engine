@@ -13,6 +13,8 @@ import {
   setupInputConfig,
   getOutputAssign,
   setOutputAssign,
+  setOutputDelayOff,
+  setOutputDelayOn,
   getOutputConfig,
   setOutputConfig,
   getACStatus,
@@ -1553,11 +1555,35 @@ function setupIpcHandlers() {
 
   ipcMain.handle(
     "rcu:setOutputAssign",
-    async (event, unitIp, canId, outputIndex, lightingAddress, delayOff, delayOn) => {
+    async (event, unitIp, canId, outputIndex, lightingAddress) => {
       try {
-        return await setOutputAssign(unitIp, canId, outputIndex, lightingAddress, delayOff, delayOn);
+        return await setOutputAssign(unitIp, canId, outputIndex, lightingAddress);
       } catch (error) {
         console.error("Error setting output assignment:", error);
+        throw error;
+      }
+    }
+  );
+
+  ipcMain.handle(
+    "rcu:setOutputDelayOff",
+    async (event, unitIp, canId, outputIndex, delayOff) => {
+      try {
+        return await setOutputDelayOff(unitIp, canId, outputIndex, delayOff);
+      } catch (error) {
+        console.error("Error setting output delay off:", error);
+        throw error;
+      }
+    }
+  );
+
+  ipcMain.handle(
+    "rcu:setOutputDelayOn",
+    async (event, unitIp, canId, outputIndex, delayOn) => {
+      try {
+        return await setOutputDelayOn(unitIp, canId, outputIndex, delayOn);
+      } catch (error) {
+        console.error("Error setting output delay on:", error);
         throw error;
       }
     }

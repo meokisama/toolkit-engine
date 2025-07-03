@@ -69,10 +69,10 @@ async function getOutputAssign(unitIp, canId) {
   throw new Error("Invalid response from get output assignment command");
 }
 
-async function setOutputAssign(unitIp, canId, outputIndex, lightingAddress, delayOff = 0, delayOn = 0) {
+async function setOutputAssign(unitIp, canId, outputIndex, lightingAddress) {
   const idAddress = convertCanIdToInt(canId);
 
-  console.log(`Setting output assignment: Output ${outputIndex} -> Address ${lightingAddress}, DelayOff: ${delayOff}s, DelayOn: ${delayOn}s`);
+  console.log(`Setting output assignment: Output ${outputIndex} -> Address ${lightingAddress}`);
 
   // Validate parameters
   if (outputIndex < 0 || outputIndex > 255) {
@@ -83,22 +83,10 @@ async function setOutputAssign(unitIp, canId, outputIndex, lightingAddress, dela
     throw new Error("Lighting address must be between 0 and 255");
   }
 
-  if (delayOff < 0 || delayOff > 65535) {
-    throw new Error("Delay off must be between 0 and 65535");
-  }
-
-  if (delayOn < 0 || delayOn > 65535) {
-    throw new Error("Delay on must be between 0 and 65535");
-  }
-
-  // Prepare data: 6 bytes per assignment
+  // Prepare data: 2 bytes per assignment (only index and address)
   const data = [
     outputIndex,
-    lightingAddress,
-    delayOff & 0xFF,        // Low byte of delay off
-    (delayOff >> 8) & 0xFF, // High byte of delay off
-    delayOn & 0xFF,         // Low byte of delay on
-    (delayOn >> 8) & 0xFF   // High byte of delay on
+    lightingAddress
   ];
 
   const result = await sendCommand(
@@ -109,7 +97,77 @@ async function setOutputAssign(unitIp, canId, outputIndex, lightingAddress, dela
     PROTOCOL.LIGHTING.CMD2.SET_OUTPUT_ASSIGN,
     data
   );
-  
+
+  await new Promise(resolve => setTimeout(resolve, 500));
+
+  return result;
+}
+
+async function setOutputDelayOff(unitIp, canId, outputIndex, delayOff) {
+  const idAddress = convertCanIdToInt(canId);
+
+  console.log(`Setting output delay off: Output ${outputIndex} -> DelayOff: ${delayOff}s`);
+
+  // Validate parameters
+  if (outputIndex < 0 || outputIndex > 255) {
+    throw new Error("Output index must be between 0 and 255");
+  }
+
+  if (delayOff < 0 || delayOff > 65535) {
+    throw new Error("Delay off must be between 0 and 65535");
+  }
+
+  // Prepare data: 3 bytes (index + 2 bytes delay time)
+  const data = [
+    outputIndex,
+    delayOff & 0xFF,        // Low byte of delay off
+    (delayOff >> 8) & 0xFF  // High byte of delay off
+  ];
+
+  const result = await sendCommand(
+    unitIp,
+    UDP_PORT,
+    idAddress,
+    PROTOCOL.LIGHTING.CMD1,
+    PROTOCOL.LIGHTING.CMD2.SET_OUTPUT_DELAY_OFF,
+    data
+  );
+
+  await new Promise(resolve => setTimeout(resolve, 500));
+
+  return result;
+}
+
+async function setOutputDelayOn(unitIp, canId, outputIndex, delayOn) {
+  const idAddress = convertCanIdToInt(canId);
+
+  console.log(`Setting output delay on: Output ${outputIndex} -> DelayOn: ${delayOn}s`);
+
+  // Validate parameters
+  if (outputIndex < 0 || outputIndex > 255) {
+    throw new Error("Output index must be between 0 and 255");
+  }
+
+  if (delayOn < 0 || delayOn > 65535) {
+    throw new Error("Delay on must be between 0 and 65535");
+  }
+
+  // Prepare data: 3 bytes (index + 2 bytes delay time)
+  const data = [
+    outputIndex,
+    delayOn & 0xFF,         // Low byte of delay on
+    (delayOn >> 8) & 0xFF   // High byte of delay on
+  ];
+
+  const result = await sendCommand(
+    unitIp,
+    UDP_PORT,
+    idAddress,
+    PROTOCOL.LIGHTING.CMD1,
+    PROTOCOL.LIGHTING.CMD2.SET_OUTPUT_DELAY_ON,
+    data
+  );
+
   await new Promise(resolve => setTimeout(resolve, 500));
 
   return result;
@@ -275,6 +333,8 @@ async function setOutputConfig(unitIp, canId, outputIndex, config) {
 export {
   getOutputAssign,
   setOutputAssign,
+  setOutputDelayOff,
+  setOutputDelayOn,
   getOutputConfig,
   setOutputConfig,
 };

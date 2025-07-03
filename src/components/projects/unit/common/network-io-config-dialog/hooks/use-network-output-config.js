@@ -28,19 +28,12 @@ export const useNetworkOutputConfig = (item, outputConfigs = [], setOutputConfig
         }
       }
 
-      // Get current delay values from existing output config or use defaults
-      const currentOutput = outputConfigs.find(oc => oc.index === outputIndex);
-      const delayOff = currentOutput?.delayOff || 0;
-      const delayOn = currentOutput?.delayOn || 0;
-
-      // Send setOutputAssign command to network unit
+      // Send setOutputAssign command to network unit (only index and address)
       await window.electronAPI.rcuController.setOutputAssign(
         item.ip_address,
         item.id_can,
         outputIndex,
-        lightingAddress,
-        delayOff,
-        delayOn
+        lightingAddress
       );
 
       // Add delay to allow unit to process the command before auto refresh
@@ -221,21 +214,26 @@ export const useNetworkOutputConfig = (item, outputConfigs = [], setOutputConfig
         }
       );
 
-      // Send setOutputAssign for delay settings (if lighting address is available)
-      const outputConfig = outputConfigs.find(oc => oc.index === currentOutputConfig.index);
-      if (outputConfig?.lightingAddress) {
-        await window.electronAPI.rcuController.setOutputAssign(
-          item.ip_address,
-          item.id_can,
-          currentOutputConfig.index,
-          outputConfig.lightingAddress,
-          delayOffSeconds,
-          delayOnSeconds
-        );
+      // Send delay settings using separate commands
+      await window.electronAPI.rcuController.setOutputDelayOff(
+        item.ip_address,
+        item.id_can,
+        currentOutputConfig.index,
+        delayOffSeconds
+      );
 
-        // Add delay to allow unit to process the assignment command
-        await new Promise(resolve => setTimeout(resolve, 500));
-      }
+      // Add delay between commands
+      await new Promise(resolve => setTimeout(resolve, 300));
+
+      await window.electronAPI.rcuController.setOutputDelayOn(
+        item.ip_address,
+        item.id_can,
+        currentOutputConfig.index,
+        delayOnSeconds
+      );
+
+      // Add delay to allow unit to process the delay commands
+      await new Promise(resolve => setTimeout(resolve, 500));
 
       const outputType = currentOutputConfig.type === "ac" ? "AC" : "Lighting";
       toast.success(`${outputType} output ${currentOutputConfig.index + 1} configuration saved`);
