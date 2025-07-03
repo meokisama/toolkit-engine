@@ -238,6 +238,14 @@ export const useNetworkIOConfig = (item, open, childDialogOpen = false) => {
         `Received ${assignResponse.outputAssignments.length} output assignments from unit`
       );
 
+      // Debug: Log all assignments, especially output index 0
+      assignResponse.outputAssignments.forEach(assignment => {
+        if (assignment.outputIndex === 0) {
+          console.log(`🚨 CRITICAL: Unit returned output index 0 with address ${assignment.lightingAddress}`);
+        }
+        console.log(`📋 Assignment: Output ${assignment.outputIndex} -> Address ${assignment.lightingAddress} (DelayOff: ${assignment.delayOff}s, DelayOn: ${assignment.delayOn}s)`);
+      });
+
       // Update output configs with assignment data only
       const updatedOutputs = outputStatesRef.current.map((output, index) => {
         const unitAssignment = assignResponse.outputAssignments.find(
@@ -245,6 +253,11 @@ export const useNetworkIOConfig = (item, open, childDialogOpen = false) => {
         );
 
         if (unitAssignment) {
+          // Special attention to output index 0
+          if (index === 0) {
+            console.log(`🚨 CRITICAL: Loading output index 0 assignment - Address: ${unitAssignment.lightingAddress}`);
+          }
+
           return {
             ...output,
             // Store lighting address for mapping
@@ -257,6 +270,11 @@ export const useNetworkIOConfig = (item, open, childDialogOpen = false) => {
             // unitConfig will be loaded on-demand when opening config dialog
             unitConfig: null,
           };
+        }
+
+        // Special attention to output index 0 when no assignment found
+        if (index === 0) {
+          console.log(`🚨 CRITICAL: No assignment found for output index 0 in unit response`);
         }
 
         return output;
