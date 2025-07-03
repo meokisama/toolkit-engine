@@ -32,6 +32,9 @@ export const useNetworkIOConfig = (item, open, childDialogOpen = false) => {
     }
 
     try {
+      console.log(`📥 Getting input states from ${item.ip_address}...`);
+      const startTime = Date.now();
+
       const response = await window.electronAPI.rcuController.getAllInputStates(
         {
           unitIp: item.ip_address,
@@ -41,6 +44,9 @@ export const useNetworkIOConfig = (item, open, childDialogOpen = false) => {
 
       // Add small delay after GET command to prevent conflicts
       await new Promise(resolve => setTimeout(resolve, 200));
+
+      const duration = Date.now() - startTime;
+      console.log(`📥 Input states response received in ${duration}ms`);
 
       if (response.success && response.inputStates) {
         // Update ref first to avoid re-renders
@@ -71,10 +77,13 @@ export const useNetworkIOConfig = (item, open, childDialogOpen = false) => {
           requestAnimationFrame(() => {
             setInputConfigs(() => [...updatedInputs]);
           });
+          console.log(`📥 Input states updated (${updatedInputs.length} inputs)`);
+        } else {
+          console.log(`📥 No input state changes detected`);
         }
       }
     } catch (error) {
-      console.warn("Background input state read failed:", error.message);
+      console.warn("❌ Background input state read failed:", error.message);
     }
   }, [item?.ip_address, item?.id_can]);
 
@@ -85,6 +94,9 @@ export const useNetworkIOConfig = (item, open, childDialogOpen = false) => {
     }
 
     try {
+      console.log(`📤 Getting output states from ${item.ip_address}...`);
+      const startTime = Date.now();
+
       const response =
         await window.electronAPI.rcuController.getAllOutputStates({
           unitIp: item.ip_address,
@@ -93,6 +105,9 @@ export const useNetworkIOConfig = (item, open, childDialogOpen = false) => {
 
       // Add small delay after GET command to prevent conflicts
       await new Promise(resolve => setTimeout(resolve, 200));
+
+      const duration = Date.now() - startTime;
+      console.log(`📤 Output states response received in ${duration}ms`);
 
       if (response.success && response.outputStates) {
         // Update ref first to avoid re-renders
@@ -123,10 +138,13 @@ export const useNetworkIOConfig = (item, open, childDialogOpen = false) => {
           requestAnimationFrame(() => {
             setOutputConfigs(() => [...updatedOutputs]);
           });
+          console.log(`📤 Output states updated (${updatedOutputs.length} outputs)`);
+        } else {
+          console.log(`📤 No output state changes detected`);
         }
       }
     } catch (error) {
-      console.warn("Background output state read failed:", error.message);
+      console.warn("❌ Background output state read failed:", error.message);
     }
   }, [item?.ip_address, item?.id_can]);
 
@@ -256,7 +274,7 @@ export const useNetworkIOConfig = (item, open, childDialogOpen = false) => {
     return false;
   }, [item?.ip_address, item?.id_can]);
 
-  // Sequential read function to ensure input completes before output
+  // Sequential read function to ensure input completes before output with proper delays
   const readStatesSequentiallyRef = useRef();
   readStatesSequentiallyRef.current = async () => {
     // Check if dialog is still open before proceeding
@@ -270,10 +288,29 @@ export const useNetworkIOConfig = (item, open, childDialogOpen = false) => {
     }
 
     try {
+      console.log("🔄 Starting sequential state read...");
+
+      // Step 1: Read input states first
+      console.log("📥 Reading input states...");
       await readInputStatesBackground();
+
+      // Step 2: Wait for input processing to complete
+      console.log("⏳ Waiting for input processing to complete...");
+      await new Promise(resolve => setTimeout(resolve, 400));
+
+      // Step 3: Check if dialog is still open before proceeding to outputs
+      if (!isDialogOpenRef.current || childDialogOpenRef.current) {
+        console.log("❌ Dialog closed or child dialog opened, stopping sequential read");
+        return;
+      }
+
+      // Step 4: Read output states
+      console.log("📤 Reading output states...");
       await readOutputStatesBackground();
+
+      console.log("✅ Sequential state read completed");
     } catch (error) {
-      console.warn("Sequential state read failed:", error.message);
+      console.warn("❌ Sequential state read failed:", error.message);
     }
   };
 
@@ -345,10 +382,11 @@ export const useNetworkIOConfig = (item, open, childDialogOpen = false) => {
       // Initial state read
       await readStatesSequentiallyRef.current();
 
-      // Set up auto-refresh every 2 seconds (reduced frequency to improve performance)
+      // Set up auto-refresh every 3 seconds (increased to allow for sequential processing with delays)
+      console.log("🔄 Starting auto-refresh with 3-second interval");
       refreshIntervalRef.current = setInterval(() => {
         readStatesSequentiallyRef.current();
-      }, 2000);
+      }, 3000);
     };
 
     initializeDialog();
@@ -380,6 +418,7 @@ export const useNetworkIOConfig = (item, open, childDialogOpen = false) => {
   // Function to pause auto refresh (when child dialogs are open)
   const pauseAutoRefresh = useCallback(() => {
     if (refreshIntervalRef.current) {
+      console.log("⏸️ Pausing auto-refresh");
       clearInterval(refreshIntervalRef.current);
       refreshIntervalRef.current = null;
     }
@@ -390,12 +429,13 @@ export const useNetworkIOConfig = (item, open, childDialogOpen = false) => {
   // Function to resume auto refresh (when child dialogs are closed)
   const resumeAutoRefresh = useCallback(() => {
     if (!refreshIntervalRef.current && open && configsLoaded) {
+      console.log("🔄 Resuming auto-refresh with 3-second interval");
       isDialogOpenRef.current = true; // Re-enable the flag
       refreshIntervalRef.current = setInterval(() => {
         readStatesSequentiallyRef.current();
-      }, 2000);
+      }, 3000);
     } else if (!open) {
-      console.log("Auto refresh NOT resumed - dialog is closed");
+      console.log("❌ Auto refresh NOT resumed - dialog is closed");
     }
   }, [open, configsLoaded]);
 
