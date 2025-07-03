@@ -1,9 +1,9 @@
-import React, { useCallback, memo } from "react";
+import React, { useCallback, memo, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Combobox } from "@/components/custom/combobox";
-import { Settings } from "lucide-react";
+import { Settings, Plus } from "lucide-react";
 import lightOn from "@/assets/light-on.png";
 import lightOff from "@/assets/light-off.png";
 
@@ -14,9 +14,41 @@ const NetworkOutputConfigItem = memo(
     onOutputDeviceChange,
     onOpenOutputConfig,
     onToggleState,
+    onAddMissingAddress,
     isLoadingConfig,
   }) => {
     const isAircon = config.type === "ac";
+
+    // Check if output has lighting address but no matching database entry
+    const hasUnmappedAddress = useMemo(() => {
+      if (isAircon || !config.lightingAddress || config.lightingAddress === 0) {
+        return false;
+      }
+
+      // Check if lighting address exists in deviceOptions
+      const addressExists = deviceOptions.some(option => {
+        // Extract address from label format "Name (Address)"
+        const match = option.label.match(/\((\d+)\)$/);
+        return match && parseInt(match[1]) === config.lightingAddress;
+      });
+
+      return !addressExists;
+    }, [isAircon, config.lightingAddress, deviceOptions]);
+
+    // Auto-map device ID based on lighting address
+    const autoMappedDeviceId = useMemo(() => {
+      if (isAircon || !config.lightingAddress || config.lightingAddress === 0) {
+        return config.deviceId;
+      }
+
+      // Find matching device option by address
+      const matchingOption = deviceOptions.find(option => {
+        const match = option.label.match(/\((\d+)\)$/);
+        return match && parseInt(match[1]) === config.lightingAddress;
+      });
+
+      return matchingOption ? parseInt(matchingOption.value) : config.deviceId;
+    }, [isAircon, config.lightingAddress, config.deviceId, deviceOptions]);
 
     // Generate display name based on type and index
     const getDisplayName = useCallback((type, index) => {
@@ -46,6 +78,12 @@ const NetworkOutputConfigItem = memo(
       onToggleState(config.index, config.state);
     }, [config.index, config.state, onToggleState]);
 
+    const handleAddMissingAddress = useCallback(() => {
+      if (onAddMissingAddress && config.lightingAddress) {
+        onAddMissingAddress(config.lightingAddress, config.index);
+      }
+    }, [onAddMissingAddress, config.lightingAddress, config.index]);
+
     return (
       <div className="p-4 border rounded-lg flex gap-4 justify-between items-center w-full shadow">
         <div className="flex items-center gap-3">
@@ -55,19 +93,42 @@ const NetworkOutputConfigItem = memo(
             className="w-[30px] h-auto rounded-lg cursor-pointer hover:opacity-80 transition-opacity"
             onClick={handleToggleClick}
           />
-          <Label className="text-sm font-medium">
-            {getDisplayName(config.type, config.index)}
-          </Label>
+          <div className="flex flex-col">
+            <Label className="text-sm font-medium">
+              {getDisplayName(config.type, config.index)}
+            </Label>
+          </div>
         </div>
         <div className="flex items-center gap-2">
-          <Combobox
-            className="w-56"
-            options={deviceOptions}
-            value={config.deviceId?.toString() || ""}
-            onValueChange={handleDeviceChange}
-            placeholder={`Select ${isAircon ? "aircon" : "lighting"}...`}
-            emptyText={`No ${isAircon ? "aircon" : "lighting"} found`}
-          />
+          {/* Plus button for adding missing lighting address to database */}
+          {hasUnmappedAddress && onAddMissingAddress && (
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={handleAddMissingAddress}
+              title={`Add lighting address ${config.lightingAddress} to database`}
+            >
+              <Plus className="h-4 w-4" />
+            </Button>
+          )}
+          
+          {/* Show combobox only if address is mapped or is aircon */}
+          {(!hasUnmappedAddress || isAircon) ? (
+            <Combobox
+              className="w-56"
+              options={deviceOptions}
+              value={autoMappedDeviceId?.toString() || ""}
+              onValueChange={handleDeviceChange}
+              placeholder={`Select ${isAircon ? "aircon" : "lighting"}...`}
+              emptyText={`No ${isAircon ? "aircon" : "lighting"} found`}
+            />
+          ) : (
+            /* Show address info when not in database */
+            <div className="w-56 px-3 py-2 border rounded-md bg-muted text-muted-foreground text-sm">
+              Address {config.lightingAddress} (Not in database)
+            </div>
+          )}
+
           <Button
             variant="outline"
             size="icon"

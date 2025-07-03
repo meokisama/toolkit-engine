@@ -12,6 +12,10 @@ const validators = {
   scheduleIndex: (index) => validators.range(index, 0, 31, "Schedule index"),
   multiSceneIndex: (index) =>
     validators.range(index, 0, 39, "Multi-scene index"),
+  sequenceIndex: (index) =>
+    validators.range(index, 0, 19, "Sequence index"),
+  sequenceAddress: (address) =>
+    validators.range(address, 1, 255, "Sequence address"),
   curtainIndex: (index) => validators.range(index, 0, 31, "Curtain index"),
   knxAddress: (address) => validators.range(address, 0, 511, "KNX address"),
   hour: (hour) => validators.range(hour, 0, 23, "Hour"),

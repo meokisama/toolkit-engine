@@ -5,10 +5,11 @@ import { useProjectDetail } from "@/contexts/project-detail-context";
 import { SceneTable } from "./scenes/scene-table";
 import { ScheduleTable } from "./schedules/schedule-table";
 import { MultiSceneTable } from "./multi-scenes/multi-scene-table";
+import { SequenceTable } from "./sequences/sequence-table";
 import { TabLoadingSkeleton } from "@/components/projects/tab-loading-skeleton";
-import { SlidersHorizontal, Calendar, Layers } from "lucide-react";
+import { SlidersHorizontal, Calendar, Layers, ListOrdered } from "lucide-react";
 
-// Tab config for Scenes & Schedules (3 tabs: scenes, multi-scenes, schedules)
+// Tab config for Scenes & Schedules (4 tabs: scenes, multi-scenes, sequences, schedules)
 const scenesSchedulesTabConfig = {
   scene: {
     label: "Scenes",
@@ -19,6 +20,11 @@ const scenesSchedulesTabConfig = {
     label: "Multi-Scenes",
     icon: Layers,
     description: "Manage multi-scene sequences",
+  },
+  sequences: {
+    label: "Sequences",
+    icon: ListOrdered,
+    description: "Manage sequence automation",
   },
   schedule: {
     label: "Schedules",
@@ -71,7 +77,7 @@ export function ScenesSchedules() {
   return (
     <div className="flex flex-1 flex-col gap-4 p-4 pt-0">
       <Tabs value={activeTab} onValueChange={setActiveTab} className="h-full">
-        <TabsList className="grid w-full grid-cols-3">
+        <TabsList className="grid w-full grid-cols-4">
           {tabEntries.map(([key, config]) => {
             const Icon = config.icon;
             const itemCount = itemCounts[key];
@@ -109,6 +115,9 @@ export function ScenesSchedules() {
                     )}
                     {key === "multi_scenes" && (
                       <MultiSceneTable items={projectItems.multi_scenes} />
+                    )}
+                    {key === "sequences" && (
+                      <SequenceTable items={projectItems.sequences} />
                     )}
                     {key === "schedule" && (
                       <ScheduleTable items={projectItems.schedule} />

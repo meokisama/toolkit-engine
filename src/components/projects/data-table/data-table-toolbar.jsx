@@ -158,6 +158,7 @@ export function DataTableToolbar({
         {onSendAll &&
           (category === "scene" ||
             category === "multi_scenes" ||
+            category === "sequences" ||
             category === "schedule" ||
             category === "curtain" ||
             category === "knx") && (

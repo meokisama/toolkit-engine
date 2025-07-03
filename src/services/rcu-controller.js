@@ -14,6 +14,14 @@ export { getAllInputConfigs } from "./rcu-controller/input-config.js";
 // Export input setup functions
 export { setupInputConfig } from "./rcu-controller/input-setup.js";
 
+// Export output configuration functions
+export {
+  getOutputAssign,
+  setOutputAssign,
+  getOutputConfig,
+  setOutputConfig,
+} from "./rcu-controller/output.js";
+
 // Export air conditioner functions
 export {
   getACStatus,
@@ -53,6 +61,14 @@ export {
   triggerMultiScene,
 } from "./rcu-controller/multi-scene.js";
 
+// Export sequence functions
+export {
+  setupSequence,
+  getSequenceInformation,
+  getAllSequencesInformation,
+  triggerSequence,
+} from "./rcu-controller/sequence.js";
+
 // Export clock functions
 export { syncClock, getClock } from "./rcu-controller/clock.js";
 
@@ -80,6 +96,8 @@ export {
   deleteAllSchedules,
   deleteMultiScene,
   deleteAllMultiScenes,
+  deleteSequence,
+  deleteAllSequences,
   deleteCurtain,
   deleteAllCurtains,
 } from "./rcu-controller/delete-operations.js";

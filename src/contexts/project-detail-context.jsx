@@ -37,6 +37,7 @@ export function ProjectDetailProvider({ children }) {
     scene: [],
     schedule: [],
     multi_scenes: [],
+    sequences: [],
   });
   const [airconCards, setAirconCards] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -75,7 +76,8 @@ export function ProjectDetailProvider({ children }) {
       } else {
         // Load specific category items using individual API calls
         // Map tab name to API name
-        const apiName = tabName === "multi_scenes" ? "multiScenes" : tabName;
+        const apiName = tabName === "multi_scenes" ? "multiScenes" :
+                       tabName === "sequences" ? "sequences" : tabName;
         const items = await window.electronAPI[apiName].getAll(projectId);
         setProjectItems((prev) => ({
           ...prev,
@@ -129,6 +131,7 @@ export function ProjectDetailProvider({ children }) {
           "scene",
           "schedule",
           "multi_scenes",
+          "sequences",
         ])
       );
     } catch (err) {
@@ -166,6 +169,7 @@ export function ProjectDetailProvider({ children }) {
           scene: [],
           schedule: [],
           multi_scenes: [],
+          sequences: [],
         });
         setAirconCards([]);
 
@@ -182,6 +186,7 @@ export function ProjectDetailProvider({ children }) {
           scene: [],
           schedule: [],
           multi_scenes: [],
+          sequences: [],
         });
         setAirconCards([]);
         setLoadedTabs(new Set());

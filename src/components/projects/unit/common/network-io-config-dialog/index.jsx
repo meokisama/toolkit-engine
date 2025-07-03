@@ -1,4 +1,4 @@
-import React, { useMemo, useCallback } from "react";
+import React, { useMemo, useCallback, useEffect } from "react";
 import {
   Dialog,
   DialogContent,
@@ -11,6 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Settings, Download } from "lucide-react";
+import { toast } from "sonner";
 
 // Import network-specific components
 import { NetworkInputConfigItem } from "./network-input-config-item";
@@ -29,7 +30,22 @@ import { useNetworkOutputConfig } from "./hooks/use-network-output-config";
 import { useProjectDetail } from "@/contexts/project-detail-context";
 
 const NetworkIOConfigDialog = ({ open, onOpenChange, item = null }) => {
-  const { projectItems } = useProjectDetail();
+  const { projectItems, selectedProject, loadTabData } = useProjectDetail();
+
+  // Use custom hooks for better organization
+  const {
+    inputConfigs,
+    outputConfigs,
+    setOutputConfigs,
+    ioSpec,
+    loading,
+    isInitialLoading,
+    readStatesSequentially,
+    readInputConfigsFromUnit,
+    readOutputConfigsFromUnit,
+    pauseAutoRefresh,
+    resumeAutoRefresh,
+  } = useNetworkIOConfig(item, open, false); // We'll update this after getting multiGroupDialogOpen
 
   const {
     multiGroupDialogOpen,
@@ -39,7 +55,16 @@ const NetworkIOConfigDialog = ({ open, onOpenChange, item = null }) => {
     handleInputFunctionChange,
     handleOpenMultiGroupConfig,
     handleSaveMultiGroupConfig,
-  } = useNetworkInputConfig(item, projectItems);
+  } = useNetworkInputConfig(item, projectItems, readInputConfigsFromUnit);
+
+  // Memoize lighting and aircon items to prevent unnecessary re-renders
+  const lightingItems = useMemo(() => {
+    return projectItems?.lighting || [];
+  }, [projectItems?.lighting]);
+
+  const airconItems = useMemo(() => {
+    return projectItems?.aircon || [];
+  }, [projectItems?.aircon]);
 
   const {
     lightingOutputDialogOpen,
@@ -51,31 +76,20 @@ const NetworkIOConfigDialog = ({ open, onOpenChange, item = null }) => {
     handleOpenOutputConfig,
     handleSaveOutputConfig,
     handleToggleOutputState,
-  } = useNetworkOutputConfig(item);
+  } = useNetworkOutputConfig(item, outputConfigs, setOutputConfigs, lightingItems);
 
   // Check if any child dialog is open
   const anyChildDialogOpen =
     multiGroupDialogOpen || lightingOutputDialogOpen || acOutputDialogOpen;
 
-  // Use custom hooks for better organization
-  const {
-    inputConfigs,
-    outputConfigs,
-    ioSpec,
-    loading,
-    isInitialLoading,
-    readStatesSequentially,
-    readInputConfigsFromUnit,
-  } = useNetworkIOConfig(item, open, anyChildDialogOpen);
-
-  // Memoize lighting and aircon items to prevent unnecessary re-renders
-  const lightingItems = useMemo(() => {
-    return projectItems?.lighting || [];
-  }, [projectItems?.lighting]);
-
-  const airconItems = useMemo(() => {
-    return projectItems?.aircon || [];
-  }, [projectItems?.aircon]);
+  // Handle auto refresh pause/resume when output dialogs open/close
+  useEffect(() => {
+    if (lightingOutputDialogOpen || acOutputDialogOpen) {
+      pauseAutoRefresh();
+    } else if (open && !multiGroupDialogOpen) {
+      resumeAutoRefresh();
+    }
+  }, [lightingOutputDialogOpen, acOutputDialogOpen, open, multiGroupDialogOpen, pauseAutoRefresh, resumeAutoRefresh]);
 
   // Create device options for outputs
   const outputDeviceOptionsMap = useMemo(() => {
@@ -116,6 +130,42 @@ const NetworkIOConfigDialog = ({ open, onOpenChange, item = null }) => {
       console.error("Failed to read input configurations:", error);
     }
   }, [readInputConfigsFromUnit]);
+
+  // Handle adding missing lighting address to database
+  const handleAddMissingAddress = useCallback(async (lightingAddress, outputIndex) => {
+    try {
+      // Create new lighting item with the missing address (following input config pattern)
+      const newLightingItem = {
+        name: `Group ${lightingAddress}`,
+        address: lightingAddress.toString(),
+        description: `Auto-added from network unit output ${outputIndex + 1}`,
+        object_type: "OBJ_LIGHTING",
+        object_value: 1,
+      };
+
+      // Add to database via electronAPI with projectId
+      const result = await window.electronAPI.lighting.create(selectedProject.id, newLightingItem);
+
+      if (result) {
+        console.log(`Successfully added lighting address ${lightingAddress} to database`);
+
+        // Refresh lighting items to update the options
+        await loadTabData(selectedProject.id, "lighting");
+
+        // Refresh output configurations to update the mapping
+        await readOutputConfigsFromUnit();
+
+        // Show success message
+        toast.success(`Lighting address ${lightingAddress} added to database`);
+      } else {
+        console.error("Failed to add lighting address to database:", result);
+        toast.error("Failed to add lighting address to database");
+      }
+    } catch (error) {
+      console.error("Error adding missing lighting address:", error);
+      toast.error(`Error adding lighting address: ${error.message}`);
+    }
+  }, [selectedProject?.id, loadTabData, readOutputConfigsFromUnit]);
 
   if (!item || !ioSpec) {
     return null;
@@ -214,6 +264,7 @@ const NetworkIOConfigDialog = ({ open, onOpenChange, item = null }) => {
                             onOutputDeviceChange={handleOutputDeviceChange}
                             onOpenOutputConfig={handleOpenOutputConfig}
                             onToggleState={handleToggleOutput}
+                            onAddMissingAddress={handleAddMissingAddress}
                             isLoadingConfig={loading}
                           />
                         ))}

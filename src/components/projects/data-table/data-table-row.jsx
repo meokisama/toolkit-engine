@@ -15,6 +15,7 @@ import {
   Clock,
   ChevronsUpDown,
   GitCompare,
+  ListOrdered,
   Network,
   Upload,
 } from "lucide-react";
@@ -45,6 +46,7 @@ export function DataTableRow({
   onCurtainControl,
   onKnxControl,
   onMultiSceneControl,
+  onSequenceControl,
   onSendSchedule,
   onSendScene,
   onFirmwareUpdate,
@@ -122,7 +124,7 @@ export function DataTableRow({
           </ContextMenuItem>
         )}
         {/* Automation Submenu */}
-        {(onSceneControl || onScheduleControl || onMultiSceneControl) && (
+        {(onSceneControl || onScheduleControl || onMultiSceneControl || onSequenceControl) && (
           <>
             <ContextMenuSeparator />
             <ContextMenuSub>
@@ -155,6 +157,16 @@ export function DataTableRow({
                   >
                     <GitCompare className="text-muted-foreground" />
                     <span>Multi-Scene Control</span>
+                  </ContextMenuItem>
+                )}
+                {onSequenceControl && (
+                  <ContextMenuItem
+                    onClick={() =>
+                      onSequenceControl.onTriggerSequence(item)
+                    }
+                  >
+                    <ListOrdered className="text-muted-foreground" />
+                    <span>Sequence Control</span>
                   </ContextMenuItem>
                 )}
               </ContextMenuSubContent>

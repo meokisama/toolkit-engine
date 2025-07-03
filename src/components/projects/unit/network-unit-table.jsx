@@ -33,6 +33,7 @@ import { BulkClockSyncDialog } from "@/components/projects/unit/network-menu/clo
 import { TriggerCurtainDialog } from "@/components/projects/unit/network-menu/curtain-control/curtain-control-dialog";
 import { TriggerKnxDialog } from "@/components/projects/unit/network-menu/knx-control/knx-control-dialog";
 import { TriggerMultiSceneDialog } from "@/components/projects/unit/network-menu/multi-scene-control/multi-scene-control-dialog";
+import { TriggerSequenceDialog } from "@/components/projects/unit/network-menu/sequence-control/sequence-control-dialog";
 import { FirmwareUpdateDialog } from "@/components/projects/unit/network-menu/base/firmware-update-dialog";
 import { SendAllConfigDialog } from "@/components/projects/unit/network-menu/base/send-all-config-dialog";
 import NetworkIOConfigDialog from "@/components/projects/unit/common/network-io-config-dialog";
@@ -55,6 +56,8 @@ export function NetworkUnitTable({ onTransferToDatabase, existingUnits = [] }) {
     useState(false);
   const [triggerKnxDialogOpen, setTriggerKnxDialogOpen] = useState(false);
   const [triggerMultiSceneDialogOpen, setTriggerMultiSceneDialogOpen] =
+    useState(false);
+  const [triggerSequenceDialogOpen, setTriggerSequenceDialogOpen] =
     useState(false);
   const [firmwareUpdateDialogOpen, setFirmwareUpdateDialogOpen] =
     useState(false);
@@ -261,6 +264,12 @@ export function NetworkUnitTable({ onTransferToDatabase, existingUnits = [] }) {
     setTriggerMultiSceneDialogOpen(true);
   }, []);
 
+  // Handle Sequence Control
+  const handleTriggerSequence = useCallback((unit) => {
+    setSelectedUnit(unit);
+    setTriggerSequenceDialogOpen(true);
+  }, []);
+
   // Handle Send All Config
   const handleSendAllConfig = useCallback(() => {
     setSendAllConfigDialogOpen(true);
@@ -460,6 +469,9 @@ export function NetworkUnitTable({ onTransferToDatabase, existingUnits = [] }) {
                 onMultiSceneControl={{
                   onTriggerMultiScene: handleTriggerMultiScene,
                 }}
+                onSequenceControl={{
+                  onTriggerSequence: handleTriggerSequence,
+                }}
                 onFirmwareUpdate={handleFirmwareUpdateForUnit}
                 onIOConfig={handleIOConfig}
                 enableRowSelection={true}
@@ -524,6 +536,12 @@ export function NetworkUnitTable({ onTransferToDatabase, existingUnits = [] }) {
         <TriggerMultiSceneDialog
           open={triggerMultiSceneDialogOpen}
           onOpenChange={setTriggerMultiSceneDialogOpen}
+          unit={selectedUnit}
+        />
+
+        <TriggerSequenceDialog
+          open={triggerSequenceDialogOpen}
+          onOpenChange={setTriggerSequenceDialogOpen}
           unit={selectedUnit}
         />
 

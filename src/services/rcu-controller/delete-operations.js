@@ -45,6 +45,12 @@ const deleteConfigs = {
     validator: validators.multiSceneIndex,
     needsSuccessCheck: false,
   },
+  sequence: {
+    cmd1: PROTOCOL.GENERAL.CMD1,
+    cmd2: PROTOCOL.GENERAL.CMD2.CLEAR_SEQUENCE,
+    validator: validators.sequenceIndex,
+    needsSuccessCheck: false,
+  },
   curtain: {
     cmd1: PROTOCOL.CURTAIN.CMD1,
     cmd2: PROTOCOL.CURTAIN.CMD2.CLEAR_CURTAIN,
@@ -83,6 +89,16 @@ async function deleteAllMultiScenes(unitIp, canId) {
   return deleteMultiScene(unitIp, canId);
 }
 
+// Delete Sequence function
+async function deleteSequence(unitIp, canId, sequenceIndex = null) {
+  return deleteItem(unitIp, canId, deleteConfigs.sequence, sequenceIndex);
+}
+
+// Delete All Sequences function
+async function deleteAllSequences(unitIp, canId) {
+  return deleteSequence(unitIp, canId);
+}
+
 // Delete Curtain function
 async function deleteCurtain(unitIp, canId, curtainIndex) {
   console.log("Deleting curtain:", { unitIp, canId, curtainIndex });
@@ -111,6 +127,8 @@ export {
   deleteAllSchedules,
   deleteMultiScene,
   deleteAllMultiScenes,
+  deleteSequence,
+  deleteAllSequences,
   deleteCurtain,
   deleteAllCurtains,
 };
