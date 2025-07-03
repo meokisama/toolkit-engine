@@ -64,19 +64,21 @@ async function getOutputAssign(unitIp, canId) {
 async function setOutputAssign(unitIp, canId, outputIndex, lightingAddress, delayOff = 0, delayOn = 0) {
   const idAddress = convertCanIdToInt(canId);
 
+  console.log(`Setting output assignment: Output ${outputIndex} -> Address ${lightingAddress}, DelayOff: ${delayOff}s, DelayOn: ${delayOn}s`);
+
   // Validate parameters
   if (outputIndex < 0 || outputIndex > 255) {
     throw new Error("Output index must be between 0 and 255");
   }
-  
+
   if (lightingAddress < 0 || lightingAddress > 255) {
     throw new Error("Lighting address must be between 0 and 255");
   }
-  
+
   if (delayOff < 0 || delayOff > 65535) {
     throw new Error("Delay off must be between 0 and 65535");
   }
-  
+
   if (delayOn < 0 || delayOn > 65535) {
     throw new Error("Delay on must be between 0 and 65535");
   }
@@ -91,7 +93,7 @@ async function setOutputAssign(unitIp, canId, outputIndex, lightingAddress, dela
     (delayOn >> 8) & 0xFF   // High byte of delay on
   ];
 
-  return sendCommand(
+  const result = await sendCommand(
     unitIp,
     UDP_PORT,
     idAddress,
@@ -99,6 +101,9 @@ async function setOutputAssign(unitIp, canId, outputIndex, lightingAddress, dela
     PROTOCOL.LIGHTING.CMD2.SET_OUTPUT_ASSIGN,
     data
   );
+
+  console.log(`Output assignment command completed for output ${outputIndex}`);
+  return result;
 }
 async function getOutputConfig(unitIp, canId) {
   const idAddress = convertCanIdToInt(canId);

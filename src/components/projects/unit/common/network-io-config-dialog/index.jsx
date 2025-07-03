@@ -87,7 +87,10 @@ const NetworkIOConfigDialog = ({ open, onOpenChange, item = null }) => {
     if (lightingOutputDialogOpen || acOutputDialogOpen) {
       pauseAutoRefresh();
     } else if (open && !multiGroupDialogOpen) {
-      resumeAutoRefresh();
+      // Add delay before resuming auto refresh to allow unit to process any pending commands
+      setTimeout(() => {
+        resumeAutoRefresh();
+      }, 1000);
     }
   }, [lightingOutputDialogOpen, acOutputDialogOpen, open, multiGroupDialogOpen, pauseAutoRefresh, resumeAutoRefresh]);
 

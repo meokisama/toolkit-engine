@@ -46,6 +46,9 @@ export const useNetworkOutputConfig = (item, outputConfigs = [], setOutputConfig
         delayOn
       );
 
+      // Add delay to allow unit to process the command before auto refresh
+      await new Promise(resolve => setTimeout(resolve, 500));
+
       // Update local state to reflect the change if setOutputConfigs is provided
       if (setOutputConfigs) {
         setOutputConfigs(prev =>
@@ -236,6 +239,9 @@ export const useNetworkOutputConfig = (item, outputConfigs = [], setOutputConfig
           delayOffSeconds,
           delayOnSeconds
         );
+
+        // Add delay to allow unit to process the assignment command
+        await new Promise(resolve => setTimeout(resolve, 500));
       }
 
       const outputType = currentOutputConfig.type === "ac" ? "AC" : "Lighting";
