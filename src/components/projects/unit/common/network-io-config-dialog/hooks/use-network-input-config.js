@@ -27,6 +27,8 @@ export const useNetworkInputConfig = (item, projectItems, refreshInputConfigs = 
             return "scene";
           case "MULTI_SCENES":
             return "multi-scene";
+          case "SEQUENCE":
+            return "sequence";
           case "CURTAIN":
             return "curtain";
           case "ROOM":
@@ -315,6 +317,9 @@ export const useNetworkInputConfig = (item, projectItems, refreshInputConfigs = 
             break;
           case "multi-scene":
             availableItems = projectItems?.multi_scenes || [];
+            break;
+          case "sequence":
+            availableItems = projectItems?.sequences || [];
             break;
           case "curtain":
             availableItems = projectItems?.curtain || [];

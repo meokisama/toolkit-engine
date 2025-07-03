@@ -74,8 +74,10 @@ export function KnxItemDialog({ open, onOpenChange, mode, item }) {
         tabToLoad = "scene";
         break;
       case 5: // Multi Scene
-      case 6: // Multi Scene Sequence
         tabToLoad = "multi_scenes";
+        break;
+      case 6: // Multi Scene Sequence
+        tabToLoad = "sequences";
         break;
       case 7: // AC Power
       case 8: // AC Mode
