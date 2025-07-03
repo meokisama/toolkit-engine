@@ -20,6 +20,8 @@ export {
   setOutputAssign,
   getOutputConfig,
   setOutputConfig,
+  setOutputDelayOff,
+  setOutputDelayOn,
 } from "./rcu-controller/output.js";
 
 // Export air conditioner functions
