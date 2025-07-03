@@ -39,6 +39,9 @@ export const useNetworkIOConfig = (item, open, childDialogOpen = false) => {
         }
       );
 
+      // Add small delay after GET command to prevent conflicts
+      await new Promise(resolve => setTimeout(resolve, 200));
+
       if (response.success && response.inputStates) {
         // Update ref first to avoid re-renders
         const updatedInputs = inputStatesRef.current.map((input, index) => {
@@ -87,6 +90,9 @@ export const useNetworkIOConfig = (item, open, childDialogOpen = false) => {
           unitIp: item.ip_address,
           canId: item.id_can,
         });
+
+      // Add small delay after GET command to prevent conflicts
+      await new Promise(resolve => setTimeout(resolve, 200));
 
       if (response.success && response.outputStates) {
         // Update ref first to avoid re-renders
@@ -140,6 +146,9 @@ export const useNetworkIOConfig = (item, open, childDialogOpen = false) => {
           unitIp: item.ip_address,
           canId: item.id_can,
         });
+
+      // Add delay after GET command to prevent conflicts
+      await new Promise(resolve => setTimeout(resolve, 300));
 
       if (response?.configs) {
         console.log(
@@ -198,6 +207,9 @@ export const useNetworkIOConfig = (item, open, childDialogOpen = false) => {
         unitIp: item.ip_address,
         canId: item.id_can,
       });
+
+      // Add delay after GET command to prevent conflicts
+      await new Promise(resolve => setTimeout(resolve, 300));
 
       if (!assignResponse?.outputAssignments) {
         console.warn("No output assignments received from unit");

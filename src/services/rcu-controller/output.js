@@ -5,6 +5,8 @@ import { sendCommand } from "./command-sender.js";
 async function getOutputAssign(unitIp, canId) {
   const idAddress = convertCanIdToInt(canId);
 
+  console.log(`Getting output assignments from unit ${unitIp} (CAN ID: ${canId})`);
+
   const response = await sendCommand(
     unitIp,
     UDP_PORT,
@@ -14,6 +16,9 @@ async function getOutputAssign(unitIp, canId) {
     [], // No data for GET_OUTPUT_ASSIGN
     true // Skip status check for GET commands
   );
+
+  // Add delay after GET command to prevent auto refresh conflicts
+  await new Promise(resolve => setTimeout(resolve, 300));
 
   if (response?.result?.success && response.result.data) {
     const data = response.result.data;
@@ -27,16 +32,16 @@ async function getOutputAssign(unitIp, canId) {
     // 2 bytes: delay off (little endian)
     // 2 bytes: delay on (little endian)
     const outputAssignments = [];
-    
+
     if (dataLength % 6 !== 0) {
       console.warn(`Warning: Data length ${dataLength} is not divisible by 6. Some data may be incomplete.`);
     }
 
     const assignmentCount = Math.floor(dataLength / 6);
-    
+
     for (let i = 0; i < assignmentCount; i++) {
       const offset = i * 6;
-      
+
       const outputIndex = data[offset];
       const lightingAddress = data[offset + 1];
       const delayOff = data[offset + 2] | (data[offset + 3] << 8); // Little endian
@@ -51,6 +56,7 @@ async function getOutputAssign(unitIp, canId) {
       });
     }
 
+    console.log(`Successfully parsed ${assignmentCount} output assignments`);
     return {
       success: true,
       assignmentCount: assignmentCount,
@@ -108,6 +114,8 @@ async function setOutputAssign(unitIp, canId, outputIndex, lightingAddress, dela
 async function getOutputConfig(unitIp, canId) {
   const idAddress = convertCanIdToInt(canId);
 
+  console.log(`Getting output config from unit ${unitIp} (CAN ID: ${canId})`);
+
   const response = await sendCommand(
     unitIp,
     UDP_PORT,
@@ -117,6 +125,9 @@ async function getOutputConfig(unitIp, canId) {
     [], // No data needed - get all outputs
     true // Skip status check for GET commands
   );
+
+  // Add delay after GET command to prevent auto refresh conflicts
+  await new Promise(resolve => setTimeout(resolve, 300));
 
   if (response?.result?.success && response.result.data) {
     const data = response.result.data;
@@ -169,6 +180,7 @@ async function getOutputConfig(unitIp, canId) {
       });
     }
 
+    console.log(`Successfully parsed ${configCount} output configs`);
     return {
       success: true,
       configCount: configCount,
@@ -181,6 +193,8 @@ async function getOutputConfig(unitIp, canId) {
 
 async function setOutputConfig(unitIp, canId, outputIndex, config) {
   const idAddress = convertCanIdToInt(canId);
+
+  console.log(`Setting output config: Output ${outputIndex}`, config);
 
   // Validate parameters
   if (outputIndex < 0 || outputIndex > 255) {
@@ -239,7 +253,7 @@ async function setOutputConfig(unitIp, canId, outputIndex, config) {
     scheduleOffMinute
   ];
 
-  return sendCommand(
+  const result = await sendCommand(
     unitIp,
     UDP_PORT,
     idAddress,
@@ -247,6 +261,12 @@ async function setOutputConfig(unitIp, canId, outputIndex, config) {
     PROTOCOL.LIGHTING.CMD2.SET_OUTPUT_CONFIG,
     data
   );
+
+  // Add delay after SET command to allow unit to process
+  await new Promise(resolve => setTimeout(resolve, 500));
+
+  console.log(`Output config command completed for output ${outputIndex}`);
+  return result;
 }
 
 export {

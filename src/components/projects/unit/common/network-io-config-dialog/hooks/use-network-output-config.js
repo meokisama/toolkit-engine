@@ -81,6 +81,9 @@ export const useNetworkOutputConfig = (item, outputConfigs = [], setOutputConfig
         item.id_can
       );
 
+      // Add delay after GET command to prevent conflicts
+      await new Promise(resolve => setTimeout(resolve, 300));
+
       if (configResponse?.success && configResponse.outputConfigs) {
         setAllOutputConfigs(configResponse.outputConfigs);
         console.log(`Loaded ${configResponse.configCount} fresh output configs from unit`);
@@ -138,6 +141,9 @@ export const useNetworkOutputConfig = (item, outputConfigs = [], setOutputConfig
           unitIp: item.ip_address,
           canId: item.id_can,
         });
+
+        // Add delay after GET command to prevent conflicts
+        await new Promise(resolve => setTimeout(resolve, 300));
 
         if (assignResponse?.success && assignResponse.outputAssignments) {
           const assignment = assignResponse.outputAssignments.find(
