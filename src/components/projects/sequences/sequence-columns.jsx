@@ -94,24 +94,22 @@ export function createSequenceColumns(
       cell: ({ row }) => {
         const effectiveValue = getEffectiveValue(row.original, "address");
         return (
-          <div className="w-full flex justify-center">
-            <EditableCell
-              value={effectiveValue?.toString() || ""}
-              onSave={(newValue) => {
-                const numValue = parseInt(newValue);
-                if (isNaN(numValue) || numValue < 1 || numValue > 255) {
-                  throw new Error("Address must be between 1 and 255");
-                }
-                onCellEdit(row.original.id, "address", numValue);
-              }}
-              placeholder="1-255"
-              className="text-center w-16"
-              icon={Hash}
-              type="number"
-              min="1"
-              max="255"
-            />
-          </div>
+          <EditableCell
+            value={effectiveValue?.toString() || ""}
+            onSave={(newValue) => {
+              const numValue = parseInt(newValue);
+              if (isNaN(numValue) || numValue < 1 || numValue > 255) {
+                throw new Error("Address must be between 1 and 255");
+              }
+              onCellEdit(row.original.id, "address", numValue);
+            }}
+            placeholder="1-255"
+            className="text-center w-full"
+            icon={Hash}
+            type="number"
+            min="1"
+            max="255"
+          />
         );
       },
       enableSorting: true,
@@ -133,13 +131,11 @@ export function createSequenceColumns(
         const count = row.original.multiSceneCount || 0;
         return (
           <div className="w-full flex justify-center">
-            <Badge variant="secondary" className="text-xs">
-              {count}
-            </Badge>
+            <Badge className="text-xs">{count}</Badge>
           </div>
         );
       },
-      enableSorting: true,
+      enableSorting: false,
       enableHiding: true,
       meta: {
         className: "w-[12%]",
@@ -170,31 +166,8 @@ export function createSequenceColumns(
       },
     },
     {
-      accessorKey: "created_at",
-      header: ({ column }) => (
-        <DataTableColumnHeader
-          column={column}
-          title="Created"
-          className="flex items-center justify-center"
-        />
-      ),
-      cell: ({ row }) => {
-        const date = new Date(row.getValue("created_at"));
-        return (
-          <div className="text-center text-sm text-muted-foreground">
-            {date.toLocaleDateString()}
-          </div>
-        );
-      },
-      enableSorting: true,
-      enableHiding: true,
-      meta: {
-        className: "w-[10%]",
-      },
-    },
-    {
       id: "actions",
-      header: "Actions",
+      header: "",
       cell: ({ row }) => {
         const sequence = row.original;
 
@@ -238,7 +211,7 @@ export function createSequenceColumns(
       enableSorting: false,
       enableHiding: false,
       meta: {
-        className: "w-[15%]",
+        className: "w-[5%]",
       },
     },
   ];
