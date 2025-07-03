@@ -30,7 +30,7 @@ export function SequenceDialog({
     updateItem,
     setActiveTab,
     loadTabData,
-    loadedTabs,
+    selectedProject,
   } = useProjectDetail();
 
   const [formData, setFormData] = useState({
@@ -40,6 +40,7 @@ export function SequenceDialog({
   });
   const [selectedMultiSceneIds, setSelectedMultiSceneIds] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [loadingMultiScenes, setLoadingMultiScenes] = useState(false);
   const [errors, setErrors] = useState({});
 
   // Load existing sequence multi-scenes when editing
@@ -77,12 +78,23 @@ export function SequenceDialog({
     }
   }, [open, mode, sequence, loadSequenceMultiScenes]);
 
-  // Load multi-scenes tab data if not already loaded
+  // Load multi-scenes tab data when dialog opens
   useEffect(() => {
-    if (open && !loadedTabs.has("multi_scenes")) {
-      loadTabData("multi_scenes");
+    if (open && selectedProject) {
+      const loadData = async () => {
+        setLoadingMultiScenes(true);
+        try {
+          // Always load multi-scenes data when dialog opens to ensure fresh data
+          // This ensures the selection list is populated even if the tab hasn't been visited
+          await loadTabData(selectedProject.id, "multi_scenes");
+        } finally {
+          setLoadingMultiScenes(false);
+        }
+      };
+
+      loadData();
     }
-  }, [open, loadedTabs, loadTabData]);
+  }, [open, selectedProject, loadTabData]);
 
   const handleInputChange = (field, value) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
@@ -266,7 +278,11 @@ export function SequenceDialog({
               </CardHeader>
               <CardContent>
                 <ScrollArea className="h-60">
-                  {availableMultiScenes.length === 0 ? (
+                  {loadingMultiScenes ? (
+                    <div className="text-center text-muted-foreground py-8">
+                      <p>Loading multi-scenes...</p>
+                    </div>
+                  ) : availableMultiScenes.length === 0 ? (
                     <div className="text-center text-muted-foreground py-8">
                       <p>No multi-scenes available.</p>
                       <p className="text-sm">
