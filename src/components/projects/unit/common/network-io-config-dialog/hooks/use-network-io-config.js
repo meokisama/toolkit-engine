@@ -109,6 +109,11 @@ export const useNetworkIOConfig = (item, open, childDialogOpen = false) => {
 
               if (acConfigIndex >= 0 && acConfigIndex < acConfigs.length) {
                 const acConfig = acConfigs[acConfigIndex];
+                console.log(`Mapping AC config for output ${config.index} (${config.name}):`, {
+                  acConfigIndex,
+                  acConfig,
+                  address: acConfig.address
+                });
                 return {
                   ...config,
                   airconAddress: acConfig.address || 0,

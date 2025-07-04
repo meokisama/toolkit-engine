@@ -68,7 +68,9 @@ const NetworkIOConfigDialog = ({ open, onOpenChange, item = null }) => {
   }, [projectItems?.lighting]);
 
   const airconItems = useMemo(() => {
-    return projectItems?.aircon || [];
+    const items = projectItems?.aircon || [];
+    console.log("Aircon items in network IO config:", items);
+    return items;
   }, [projectItems?.aircon]);
 
   const {

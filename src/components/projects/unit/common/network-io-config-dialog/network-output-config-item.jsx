@@ -36,20 +36,44 @@ const NetworkOutputConfigItem = memo(
       return !addressExists;
     }, [isAircon, config.lightingAddress, deviceOptions]);
 
-    // Auto-map device ID based on lighting address
+    // Auto-map device ID based on address (lighting or aircon)
     const autoMappedDeviceId = useMemo(() => {
-      if (isAircon || !config.lightingAddress || config.lightingAddress === 0) {
-        return config.deviceId;
+      if (isAircon) {
+        // For aircon outputs, map based on airconAddress
+        console.log(`Aircon mapping for ${config.name}:`, {
+          airconAddress: config.airconAddress,
+          deviceOptions: deviceOptions.length,
+          config
+        });
+
+        if (!config.airconAddress || config.airconAddress === 0) {
+          console.log(`No aircon address for ${config.name}, returning deviceId:`, config.deviceId);
+          return config.deviceId;
+        }
+
+        // Find matching aircon option by address
+        const matchingOption = deviceOptions.find(option => {
+          const match = option.label.match(/\((\d+)\)$/);
+          return match && parseInt(match[1]) === config.airconAddress;
+        });
+
+        console.log(`Matching option for address ${config.airconAddress}:`, matchingOption);
+        return matchingOption ? parseInt(matchingOption.value) : config.deviceId;
+      } else {
+        // For lighting outputs, map based on lightingAddress
+        if (!config.lightingAddress || config.lightingAddress === 0) {
+          return config.deviceId;
+        }
+
+        // Find matching lighting option by address
+        const matchingOption = deviceOptions.find(option => {
+          const match = option.label.match(/\((\d+)\)$/);
+          return match && parseInt(match[1]) === config.lightingAddress;
+        });
+
+        return matchingOption ? parseInt(matchingOption.value) : config.deviceId;
       }
-
-      // Find matching device option by address
-      const matchingOption = deviceOptions.find(option => {
-        const match = option.label.match(/\((\d+)\)$/);
-        return match && parseInt(match[1]) === config.lightingAddress;
-      });
-
-      return matchingOption ? parseInt(matchingOption.value) : config.deviceId;
-    }, [isAircon, config.lightingAddress, config.deviceId, deviceOptions]);
+    }, [isAircon, config.lightingAddress, config.airconAddress, config.deviceId, deviceOptions]);
 
     // Generate display name based on type and index within that type
     const getDisplayName = useCallback((type, globalIndex, allConfigs) => {
