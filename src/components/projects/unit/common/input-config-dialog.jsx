@@ -183,8 +183,8 @@ export function MultiGroupConfigDialog({
     onOpenChange(false);
   }, [resetMultipleGroups, resetRlcOptions, resetInputType, onOpenChange]);
 
-  // Memoize save data transformation to reduce dependencies
-  const transformedSaveData = React.useMemo(() => {
+  // Transform save data using callback to avoid stale closure issues
+  const getTransformedSaveData = React.useCallback(() => {
     const finalRlcOptions = getFinalRlcOptions();
     
     const groups = isMultipleGroupFunction
@@ -226,10 +226,11 @@ export function MultiGroupConfigDialog({
     };
   }, [selectedGroups, currentInputType, isMultipleGroupFunction, availableItems, lightingItems, getFinalRlcOptions]);
 
-  // Handle save with reduced dependencies
+  // Handle save with proper callback
   const handleSave = React.useCallback(async () => {
     try {
-      await onSave(transformedSaveData);
+      const saveData = getTransformedSaveData();
+      await onSave(saveData);
       handleClose();
     } catch (onSaveError) {
       console.error(
@@ -237,7 +238,7 @@ export function MultiGroupConfigDialog({
         onSaveError
       );
     }
-  }, [transformedSaveData, onSave, handleClose]);
+  }, [getTransformedSaveData, onSave, handleClose]);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange} modal={true}>

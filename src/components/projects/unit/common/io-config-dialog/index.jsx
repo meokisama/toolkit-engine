@@ -118,7 +118,7 @@ const IOConfigDialogComponent = ({ open, onOpenChange, item = null }) => {
     }));
   }, [airconItems]);
 
-  // Optimized device options mapping with reduced dependencies
+  // Device options mapping - restored full dependencies to catch content changes
   const outputDeviceOptionsMap = useMemo(() => {
     if (!outputConfigs.length) return new Map();
     
@@ -128,7 +128,7 @@ const IOConfigDialogComponent = ({ open, onOpenChange, item = null }) => {
       map.set(config.index, deviceOptions);
     });
     return map;
-  }, [outputConfigs.length, airconOptions.length, lightingOptions.length]); // Reduced dependencies
+  }, [outputConfigs, airconOptions, lightingOptions]); // Full arrays as dependencies
 
   // Enhanced handlers that update local state
   const handleInputLightingChangeWithState = useCallback(

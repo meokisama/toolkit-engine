@@ -267,29 +267,29 @@ const LightingOutputConfigDialogComponent = ({
     }, [dateToTimeComponents]
   );
 
-  // Time picker handlers using factory
-  const handleDelayOffTimeChange = useMemo(() => 
+  // Time picker handlers using factory - use useCallback for functions
+  const handleDelayOffTimeChange = useCallback(
     createTimeHandler(
       setDelayOffTime, 
       ['delayOffHours', 'delayOffMinutes', 'delayOffSeconds']
     ), [createTimeHandler]
   );
 
-  const handleDelayOnTimeChange = useMemo(() => 
+  const handleDelayOnTimeChange = useCallback(
     createTimeHandler(
       setDelayOnTime,
       ['delayOnHours', 'delayOnMinutes', 'delayOnSeconds']
     ), [createTimeHandler]
   );
 
-  const handleScheduleOnTimeChange = useMemo(() => 
+  const handleScheduleOnTimeChange = useCallback(
     createTimeHandler(
       setScheduleOnTime,
       ['scheduleOnHour', 'scheduleOnMinute']
     ), [createTimeHandler]
   );
 
-  const handleScheduleOffTimeChange = useMemo(() => 
+  const handleScheduleOffTimeChange = useCallback(
     createTimeHandler(
       setScheduleOffTime,
       ['scheduleOffHour', 'scheduleOffMinute']
