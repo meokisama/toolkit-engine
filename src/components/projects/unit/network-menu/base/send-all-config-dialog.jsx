@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useCallback, useRef } from "react";
+import React, { useState, useCallback, useRef, memo } from "react";
 import {
   Dialog,
   DialogContent,
@@ -34,7 +34,7 @@ import {
   useNetworkUnitSelector,
 } from "@/components/shared/network-unit-selector";
 
-export function SendAllConfigDialog({
+function SendAllConfigDialogComponent({
   open,
   onOpenChange,
   units = [],
@@ -688,3 +688,16 @@ export function SendAllConfigDialog({
     </Dialog>
   );
 }
+
+// Memoized export for optimal performance
+export const SendAllConfigDialog = memo(
+  SendAllConfigDialogComponent,
+  (prevProps, nextProps) => {
+    return (
+      prevProps.open === nextProps.open &&
+      prevProps.onOpenChange === nextProps.onOpenChange &&
+      prevProps.units.length === nextProps.units.length &&
+      prevProps.selectedUnits.length === nextProps.selectedUnits.length
+    );
+  }
+);

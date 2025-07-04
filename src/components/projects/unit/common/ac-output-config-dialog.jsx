@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, memo } from "react";
+import React, { useState, useEffect, useCallback, memo, useMemo } from "react";
 import {
   Dialog,
   DialogContent,
@@ -140,120 +140,93 @@ const ACOutputConfigDialogComponent = ({
 
   const [loading, setLoading] = useState(false);
 
-  // Initialize config from props
+  // Memoize config processing to avoid expensive recreation
+  const processedConfig = useMemo(() => {
+    if (!initialConfig) return null;
+    
+    return {
+      // Basic configuration
+      address: initialConfig.address || 0,
+      enable: initialConfig.enable || false,
+      windowMode: initialConfig.windowMode?.toString() || "0",
+      fanType: initialConfig.fanType?.toString() || "0",
+      tempType: initialConfig.tempType?.toString() || "0",
+      tempUnit: initialConfig.tempUnit?.toString() || "0",
+      valveContact: initialConfig.valveContact?.toString() || "0",
+      valveType: initialConfig.valveType?.toString() || "0",
+      deadband: initialConfig.deadband || 0,
+      windowBypass: initialConfig.windowBypass?.toString() || "0",
+      setPointOffset: initialConfig.setPointOffset || 0,
+
+      // Group assignments
+      lowFCU_Group: initialConfig.lowFCU_Group || 0,
+      medFCU_Group: initialConfig.medFCU_Group || 0,
+      highFCU_Group: initialConfig.highFCU_Group || 0,
+      fanAnalogGroup: initialConfig.fanAnalogGroup || 0,
+      analogCoolGroup: initialConfig.analogCoolGroup || 0,
+      analogHeatGroup: initialConfig.analogHeatGroup || 0,
+      valveCoolOpenGroup: initialConfig.valveCoolOpenGroup || 0,
+      valveCoolCloseGroup: initialConfig.valveCoolCloseGroup || 0,
+      valveHeatOpenGroup: initialConfig.valveHeatOpenGroup || 0,
+      valveHeatCloseGroup: initialConfig.valveHeatCloseGroup || 0,
+
+      // Power and mode settings
+      unoccupyPower: initialConfig.unoccupyPower || 0,
+      occupyPower: initialConfig.occupyPower || 0,
+      standbyPower: initialConfig.standbyPower || 0,
+      unoccupyMode: initialConfig.unoccupyMode || 0,
+      occupyMode: initialConfig.occupyMode || 0,
+      standbyMode: initialConfig.standbyMode || 0,
+      unoccupyFanSpeed: initialConfig.unoccupyFanSpeed || 0,
+      occupyFanSpeed: initialConfig.occupyFanSpeed || 0,
+      standbyFanSpeed: initialConfig.standbyFanSpeed || 0,
+
+      // Set point values
+      unoccupyCoolSetPoint: initialConfig.unoccupyCoolSetPoint || 0,
+      occupyCoolSetPoint: initialConfig.occupyCoolSetPoint || 0,
+      standbyCoolSetPoint: initialConfig.standbyCoolSetPoint || 0,
+      unoccupyHeatSetPoint: initialConfig.unoccupyHeatSetPoint || 0,
+      occupyHeatSetPoint: initialConfig.occupyHeatSetPoint || 0,
+      standbyHeatSetPoint: initialConfig.standbyHeatSetPoint || 0,
+    };
+  }, [initialConfig]);
+
+  // Initialize config from memoized processed config
   useEffect(() => {
-    if (
-      open &&
-      !isLoading &&
-      initialConfig !== null &&
-      initialConfig !== undefined
-    ) {
-
-      const newConfig = {
-        // Basic configuration
-        address: initialConfig.address || 0,
-        enable: initialConfig.enable || false,
-        windowMode: initialConfig.windowMode?.toString() || "0",
-        fanType: initialConfig.fanType?.toString() || "0",
-        tempType: initialConfig.tempType?.toString() || "0",
-        tempUnit: initialConfig.tempUnit?.toString() || "0",
-        valveContact: initialConfig.valveContact?.toString() || "0",
-        valveType: initialConfig.valveType?.toString() || "0",
-        deadband: initialConfig.deadband || 0,
-        windowBypass: initialConfig.windowBypass?.toString() || "0",
-        setPointOffset: initialConfig.setPointOffset || 0,
-
-        // Group assignments
-        lowFCU_Group: initialConfig.lowFCU_Group || 0,
-        medFCU_Group: initialConfig.medFCU_Group || 0,
-        highFCU_Group: initialConfig.highFCU_Group || 0,
-        fanAnalogGroup: initialConfig.fanAnalogGroup || 0,
-        analogCoolGroup: initialConfig.analogCoolGroup || 0,
-        analogHeatGroup: initialConfig.analogHeatGroup || 0,
-        valveCoolOpenGroup: initialConfig.valveCoolOpenGroup || 0,
-        valveCoolCloseGroup: initialConfig.valveCoolCloseGroup || 0,
-        valveHeatOpenGroup: initialConfig.valveHeatOpenGroup || 0,
-        valveHeatCloseGroup: initialConfig.valveHeatCloseGroup || 0,
-
-        // Power and mode settings
-        unoccupyPower: initialConfig.unoccupyPower || 0,
-        occupyPower: initialConfig.occupyPower || 0,
-        standbyPower: initialConfig.standbyPower || 0,
-        unoccupyMode: initialConfig.unoccupyMode || 0,
-        occupyMode: initialConfig.occupyMode || 0,
-        standbyMode: initialConfig.standbyMode || 0,
-        unoccupyFanSpeed: initialConfig.unoccupyFanSpeed || 0,
-        occupyFanSpeed: initialConfig.occupyFanSpeed || 0,
-        standbyFanSpeed: initialConfig.standbyFanSpeed || 0,
-
-        // Set point values
-        unoccupyCoolSetPoint: initialConfig.unoccupyCoolSetPoint || 0,
-        occupyCoolSetPoint: initialConfig.occupyCoolSetPoint || 0,
-        standbyCoolSetPoint: initialConfig.standbyCoolSetPoint || 0,
-        unoccupyHeatSetPoint: initialConfig.unoccupyHeatSetPoint || 0,
-        occupyHeatSetPoint: initialConfig.occupyHeatSetPoint || 0,
-        standbyHeatSetPoint: initialConfig.standbyHeatSetPoint || 0,
-      };
-
-      setConfig(newConfig);
+    if (open && !isLoading && processedConfig) {
+      setConfig(processedConfig);
     }
-  }, [open, initialConfig, isLoading]);
+  }, [open, processedConfig, isLoading]);
 
   // Handlers
   const handleClose = useCallback(() => {
     onOpenChange(false);
   }, [onOpenChange]);
 
+  // Memoize config transformation for better performance
+  const configToSave = useMemo(() => {
+    const stringFields = [
+      'windowMode', 'fanType', 'tempType', 'tempUnit', 'valveContact',
+      'valveType', 'windowBypass'
+    ];
+    
+    const result = { ...config };
+    
+    // Convert string values to integers
+    Object.keys(result).forEach(key => {
+      if (stringFields.includes(key)) {
+        result[key] = parseInt(result[key]) || 0;
+      } else if (typeof result[key] === 'string' && !isNaN(result[key])) {
+        result[key] = parseInt(result[key]) || 0;
+      }
+    });
+    
+    return result;
+  }, [config]);
+
   const handleSave = useCallback(async () => {
     setLoading(true);
     try {
-      // Convert string values back to appropriate types
-      const configToSave = {
-        // Basic configuration
-        address: parseInt(config.address) || 0,
-        enable: config.enable || false,
-        windowMode: parseInt(config.windowMode) || 0,
-        fanType: parseInt(config.fanType) || 0,
-        tempType: parseInt(config.tempType) || 0,
-        tempUnit: parseInt(config.tempUnit) || 0,
-        valveContact: parseInt(config.valveContact) || 0,
-        valveType: parseInt(config.valveType) || 0,
-        deadband: parseInt(config.deadband) || 0,
-        windowBypass: parseInt(config.windowBypass) || 0,
-        setPointOffset: parseInt(config.setPointOffset) || 0,
-
-        // Group assignments
-        lowFCU_Group: parseInt(config.lowFCU_Group) || 0,
-        medFCU_Group: parseInt(config.medFCU_Group) || 0,
-        highFCU_Group: parseInt(config.highFCU_Group) || 0,
-        fanAnalogGroup: parseInt(config.fanAnalogGroup) || 0,
-        analogCoolGroup: parseInt(config.analogCoolGroup) || 0,
-        analogHeatGroup: parseInt(config.analogHeatGroup) || 0,
-        valveCoolOpenGroup: parseInt(config.valveCoolOpenGroup) || 0,
-        valveCoolCloseGroup: parseInt(config.valveCoolCloseGroup) || 0,
-        valveHeatOpenGroup: parseInt(config.valveHeatOpenGroup) || 0,
-        valveHeatCloseGroup: parseInt(config.valveHeatCloseGroup) || 0,
-
-        // Power and mode settings
-        unoccupyPower: parseInt(config.unoccupyPower) || 0,
-        occupyPower: parseInt(config.occupyPower) || 0,
-        standbyPower: parseInt(config.standbyPower) || 0,
-        unoccupyMode: parseInt(config.unoccupyMode) || 0,
-        occupyMode: parseInt(config.occupyMode) || 0,
-        standbyMode: parseInt(config.standbyMode) || 0,
-        unoccupyFanSpeed: parseInt(config.unoccupyFanSpeed) || 0,
-        occupyFanSpeed: parseInt(config.occupyFanSpeed) || 0,
-        standbyFanSpeed: parseInt(config.standbyFanSpeed) || 0,
-
-        // Set point values
-        unoccupyCoolSetPoint: parseInt(config.unoccupyCoolSetPoint) || 0,
-        occupyCoolSetPoint: parseInt(config.occupyCoolSetPoint) || 0,
-        standbyCoolSetPoint: parseInt(config.standbyCoolSetPoint) || 0,
-        unoccupyHeatSetPoint: parseInt(config.unoccupyHeatSetPoint) || 0,
-        occupyHeatSetPoint: parseInt(config.occupyHeatSetPoint) || 0,
-        standbyHeatSetPoint: parseInt(config.standbyHeatSetPoint) || 0,
-      };
-
       await onSave(configToSave);
       handleClose();
     } catch (error) {
@@ -261,7 +234,7 @@ const ACOutputConfigDialogComponent = ({
     } finally {
       setLoading(false);
     }
-  }, [config, onSave, handleClose]);
+  }, [configToSave, onSave, handleClose]);
 
   const updateConfig = useCallback((field, value) => {
     setConfig((prev) => ({
@@ -789,19 +762,30 @@ const ACOutputConfigDialogComponent = ({
   );
 };
 
+// Shallow comparison for objects - much faster than JSON.stringify
+const shallowEqual = (obj1, obj2) => {
+  if (obj1 === obj2) return true;
+  if (!obj1 || !obj2) return false;
+  
+  const keys1 = Object.keys(obj1);
+  const keys2 = Object.keys(obj2);
+  
+  if (keys1.length !== keys2.length) return false;
+  
+  return keys1.every(key => obj1[key] === obj2[key]);
+};
+
 // Export memoized component for optimal performance
 export const ACOutputConfigDialog = memo(
   ACOutputConfigDialogComponent,
   (prevProps, nextProps) => {
-    // Custom comparison function for better memoization
+    // Optimized comparison function without expensive JSON.stringify
     return (
       prevProps.open === nextProps.open &&
       prevProps.onOpenChange === nextProps.onOpenChange &&
       prevProps.outputName === nextProps.outputName &&
-      JSON.stringify(prevProps.initialConfig) ===
-        JSON.stringify(nextProps.initialConfig) &&
-      JSON.stringify(prevProps.lightingOptions) ===
-        JSON.stringify(nextProps.lightingOptions)
+      shallowEqual(prevProps.initialConfig, nextProps.initialConfig) &&
+      prevProps.lightingOptions.length === nextProps.lightingOptions.length
     );
   }
 );

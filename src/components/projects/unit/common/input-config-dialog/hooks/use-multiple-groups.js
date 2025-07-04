@@ -40,34 +40,28 @@ export const useMultipleGroups = (
     }));
   }, [lightingItems]);
 
-  // Get available groups (not yet selected)
+  // Optimized available groups with early returns
   const availableGroups = useMemo(() => {
+    if (!availableItems.length) return [];
+    
     const selectedIds = new Set(
       selectedGroups.map((group) => group.lightingId).filter(Boolean)
     );
 
-    let filteredItems = availableItems.filter(
-      (item) => !selectedIds.has(item.id)
-    );
-
-    // Apply search filter if search term exists
-    if (searchTerm) {
-      const lowerSearchTerm = searchTerm.toLowerCase();
-      filteredItems = filteredItems.filter((item) => {
+    return availableItems
+      .filter((item) => !selectedIds.has(item.id))
+      .filter((item) => {
+        if (!searchTerm) return true;
+        const lowerSearchTerm = searchTerm.toLowerCase();
         const name = (item.name || "").toLowerCase();
         const address = (item.address || "").toString().toLowerCase();
-        return (
-          name.includes(lowerSearchTerm) || address.includes(lowerSearchTerm)
-        );
+        return name.includes(lowerSearchTerm) || address.includes(lowerSearchTerm);
+      })
+      .sort((a, b) => {
+        const addressA = parseInt(a.address) || 0;
+        const addressB = parseInt(b.address) || 0;
+        return addressA - addressB;
       });
-    }
-
-    // Sort by address (ascending)
-    return filteredItems.sort((a, b) => {
-      const addressA = parseInt(a.address) || 0;
-      const addressB = parseInt(b.address) || 0;
-      return addressA - addressB;
-    });
   }, [availableItems, selectedGroups, searchTerm]);
 
   // Auto-create missing groups in database based on input type

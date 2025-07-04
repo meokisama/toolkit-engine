@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, memo } from "react";
 import {
   Network,
   Search,
@@ -40,7 +40,7 @@ import NetworkIOConfigDialog from "@/components/projects/unit/common/network-io-
 import { udpScanner } from "@/services/udp";
 import { toast } from "sonner";
 
-export function NetworkUnitTable({ onTransferToDatabase, existingUnits = [] }) {
+function NetworkUnitTableComponent({ onTransferToDatabase, existingUnits = [] }) {
   const [networkUnits, setNetworkUnits] = useState([]);
   const [selectedNetworkUnits, setSelectedNetworkUnits] = useState([]);
   const [scanLoading, setScanLoading] = useState(false);
@@ -568,3 +568,14 @@ export function NetworkUnitTable({ onTransferToDatabase, existingUnits = [] }) {
     </div>
   );
 }
+
+// Memoized export for optimal performance
+export const NetworkUnitTable = memo(
+  NetworkUnitTableComponent,
+  (prevProps, nextProps) => {
+    return (
+      prevProps.existingUnits.length === nextProps.existingUnits.length &&
+      prevProps.onTransferToDatabase === nextProps.onTransferToDatabase
+    );
+  }
+);
