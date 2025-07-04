@@ -254,8 +254,6 @@ async function getEcoMode(unitIp, canId, group = 1) {
 async function getLocalACConfig(unitIp, canId) {
   const idAddress = convertCanIdToInt(canId);
 
-  console.log(`Getting local AC config from unit ${unitIp} (CAN ID: ${canId})`);
-
   const response = await sendCommand(
     unitIp,
     UDP_PORT,
@@ -280,9 +278,6 @@ async function getLocalACConfig(unitIp, canId) {
       const offset = i * AC_CONFIG_SIZE;
       if (offset + AC_CONFIG_SIZE <= responseData.length) {
         const configData = responseData.slice(offset, offset + AC_CONFIG_SIZE);
-
-        // Parse the 64-byte AC configuration structure
-        console.log(`AC Config ${i} - Raw bytes 0-10:`, Array.from(configData.slice(0, 11)));
 
         const acConfig = {
           index: i,
@@ -326,14 +321,9 @@ async function getLocalACConfig(unitIp, canId) {
           standbyHeatSetPoint: configData[50] | (configData[51] << 8),
           // Bytes 52-63: reserved (skip)
         };
-
-        console.log(`AC Config ${i} - Final object:`, acConfig);
         acConfigs.push(acConfig);
       }
     }
-
-    console.log(`Retrieved ${acConfigs.length} AC configurations`);
-    console.log(`All AC Configs:`, acConfigs);
     return acConfigs;
   }
 
@@ -459,7 +449,6 @@ async function setLocalACConfig(unitIp, canId, acConfigs) {
   // Add delay after SET command to allow unit to process
   await new Promise(resolve => setTimeout(resolve, 500));
 
-  console.log(`Local AC config command completed for all 10 AC outputs`);
   return result;
 }
 

@@ -1,7 +1,7 @@
 import { useState, useCallback } from "react";
 import { toast } from "sonner";
 
-export const useNetworkOutputConfig = (item, outputConfigs = [], setOutputConfigs = null, lightingItems = [], airconItems = []) => {
+export const useNetworkOutputConfig = (item, outputConfigs = [], setOutputConfigs = null, lightingItems = [], airconItems = [], readAirconConfigsFromUnit = null) => {
   const [lightingOutputDialogOpen, setLightingOutputDialogOpen] = useState(false);
   const [acOutputDialogOpen, setACOutputDialogOpen] = useState(false);
   const [currentOutputConfig, setCurrentOutputConfig] = useState(null);
@@ -39,6 +39,23 @@ export const useNetworkOutputConfig = (item, outputConfigs = [], setOutputConfig
       return null;
     }
   }, [item?.ip_address, item?.id_can, allACConfigs]);
+
+  // Load and map aircon configs to output configs
+  const loadAndMapAirconConfigs = useCallback(async () => {
+    if (!readAirconConfigsFromUnit) {
+      console.warn("readAirconConfigsFromUnit function not provided");
+      return;
+    }
+
+    try {
+      console.log("Loading and mapping aircon configs to output configs...");
+      await readAirconConfigsFromUnit();
+      console.log("Aircon configs loaded and mapped successfully");
+    } catch (error) {
+      console.error("Failed to load and map aircon configs:", error);
+      toast.error("Failed to load aircon configurations");
+    }
+  }, [readAirconConfigsFromUnit]);
 
   // Handle output device change
   const handleOutputDeviceChange = useCallback(async (outputIndex, deviceId) => {
@@ -142,7 +159,15 @@ export const useNetworkOutputConfig = (item, outputConfigs = [], setOutputConfig
           );
         }
 
-        toast.success(`Output ${outputIndex + 1} assignment updated`);
+        // Calculate the correct index within the type for toast message
+        const outputConfig = outputConfigs.find(config => config.index === outputIndex);
+        const typeIndex = getTypeIndex(outputIndex, outputConfig?.type, outputConfigs);
+        const typeLabel = outputConfig?.type === "ac" ? "AC" :
+                         outputConfig?.type === "relay" ? "Relay" :
+                         outputConfig?.type === "dimmer" ? "Dimmer" :
+                         outputConfig?.type === "ao" ? "AO" : "Output";
+
+        toast.success(`${typeLabel} ${typeIndex} assignment updated`);
       }
 
       // Add delay to allow unit to process the command before auto refresh
@@ -151,7 +176,7 @@ export const useNetworkOutputConfig = (item, outputConfigs = [], setOutputConfig
       console.error("Failed to update output assignment:", error);
       toast.error(`Failed to update output assignment: ${error.message}`);
     }
-  }, [item?.ip_address, item?.id_can, lightingItems, airconItems, outputConfigs, setOutputConfigs, loadAllACConfigs]);
+  }, [item?.ip_address, item?.id_can, lightingItems, airconItems, outputConfigs, setOutputConfigs, loadAllACConfigs, getTypeIndex]);
 
   // Load all output configs from unit (always fresh data)
   const loadAllOutputConfigs = useCallback(async () => {
@@ -180,15 +205,25 @@ export const useNetworkOutputConfig = (item, outputConfigs = [], setOutputConfig
     return null;
   }, [item?.ip_address, item?.id_can, setAllOutputConfigs]);
 
+  // Helper function to calculate index within the same type
+  const getTypeIndex = useCallback((globalIndex, outputType, allConfigs) => {
+    const sameTypeConfigs = allConfigs.filter(config => config.type === outputType);
+    const typeIndex = sameTypeConfigs.findIndex(config => config.index === globalIndex);
+    return typeIndex + 1;
+  }, []);
+
   // Handle opening output configuration
   const handleOpenOutputConfig = useCallback(async (outputIndex, outputType) => {
     // Find the output config from the array
     const outputConfig = outputConfigs.find(config => config.index === outputIndex);
 
+    // Calculate the correct index within the type
+    const typeIndex = getTypeIndex(outputIndex, outputType, outputConfigs);
+
     // Set initial state with loading
     setCurrentOutputConfig({
       index: outputIndex,
-      name: `${outputType === "ac" ? "AC" : "Lighting"} Output ${outputIndex + 1}`,
+      name: `${outputType === "ac" ? "AC" : "Lighting"} Output ${typeIndex}`,
       type: outputType,
       config: null,
       isLoading: true
@@ -339,19 +374,18 @@ export const useNetworkOutputConfig = (item, outputConfigs = [], setOutputConfig
       }
     }
 
-    // Get the correct display name from outputConfigs
-    const foundOutputConfig = outputConfigs.find(output => output.index === outputIndex);
-    const displayName = foundOutputConfig ? foundOutputConfig.name : `${outputType === "ac" ? "AC" : "Lighting"} Output ${outputIndex + 1}`;
+    // Calculate the correct index within the type
+    const finalTypeIndex = getTypeIndex(outputIndex, outputType, outputConfigs);
 
     // Update with loaded config
     setCurrentOutputConfig({
       index: outputIndex,
-      name: displayName,
+      name: `${outputType === "ac" ? "AC" : "Lighting"} Output ${finalTypeIndex}`,
       type: outputType,
       config: formattedConfig,
       isLoading: false
     });
-  }, [outputConfigs, item?.ip_address, item?.id_can, loadAllOutputConfigs]);
+  }, [outputConfigs, item?.ip_address, item?.id_can, loadAllOutputConfigs, getTypeIndex]);
 
   // Handle saving output configuration
   const handleSaveOutputConfig = useCallback(async (config) => {
@@ -502,19 +536,36 @@ export const useNetworkOutputConfig = (item, outputConfigs = [], setOutputConfig
       });
 
       if (response) {
+        // Calculate the correct index within the type for toast message
+        const outputConfig = outputConfigs.find(config => config.index === outputIndex);
+        const typeIndex = getTypeIndex(outputIndex, outputConfig?.type, outputConfigs);
+        const typeLabel = outputConfig?.type === "ac" ? "AC" :
+                         outputConfig?.type === "relay" ? "Relay" :
+                         outputConfig?.type === "dimmer" ? "Dimmer" :
+                         outputConfig?.type === "ao" ? "AO" : "Output";
+
         toast.success(
-          `Output ${outputIndex + 1} ${currentState ? "turned off" : "turned on"}`
+          `${typeLabel} ${typeIndex} ${currentState ? "turned off" : "turned on"}`
         );
         return true;
       }
     } catch (error) {
       console.error("Failed to toggle output state:", error);
+
+      // Calculate the correct index within the type for error toast message
+      const outputConfig = outputConfigs.find(config => config.index === outputIndex);
+      const typeIndex = getTypeIndex(outputIndex, outputConfig?.type, outputConfigs);
+      const typeLabel = outputConfig?.type === "ac" ? "AC" :
+                       outputConfig?.type === "relay" ? "Relay" :
+                       outputConfig?.type === "dimmer" ? "Dimmer" :
+                       outputConfig?.type === "ao" ? "AO" : "Output";
+
       toast.error(
-        `Failed to toggle output ${outputIndex + 1}: ${error.message}`
+        `Failed to toggle ${typeLabel} ${typeIndex}: ${error.message}`
       );
       return false;
     }
-  }, [item?.ip_address, item?.id_can]);
+  }, [item?.ip_address, item?.id_can, outputConfigs, getTypeIndex]);
 
   return {
     lightingOutputDialogOpen,
@@ -526,5 +577,6 @@ export const useNetworkOutputConfig = (item, outputConfigs = [], setOutputConfig
     handleOpenOutputConfig,
     handleSaveOutputConfig,
     handleToggleOutputState,
+    loadAndMapAirconConfigs,
   };
 };

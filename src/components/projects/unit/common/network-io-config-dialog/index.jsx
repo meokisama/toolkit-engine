@@ -31,7 +31,7 @@ import { useNetworkOutputConfig } from "./hooks/use-network-output-config";
 import { useProjectDetail } from "@/contexts/project-detail-context";
 
 const NetworkIOConfigDialog = ({ open, onOpenChange, item = null }) => {
-  const { projectItems, selectedProject, loadTabData } = useProjectDetail();
+  const { projectItems, selectedProject, loadTabData, loadedTabs } = useProjectDetail();
 
   // Use custom hooks for better organization
   const {
@@ -41,11 +41,13 @@ const NetworkIOConfigDialog = ({ open, onOpenChange, item = null }) => {
     ioSpec,
     loading,
     isInitialLoading,
+    configsLoaded,
     autoRefreshEnabled,
     setAutoRefreshEnabled,
     readStatesSequentially,
     readInputConfigsFromUnit,
     readOutputConfigsFromUnit,
+    readAirconConfigsFromUnit,
     pauseAutoRefresh,
     resumeAutoRefresh,
   } = useNetworkIOConfig(item, open, false); // We'll update this after getting multiGroupDialogOpen
@@ -79,12 +81,14 @@ const NetworkIOConfigDialog = ({ open, onOpenChange, item = null }) => {
     handleOpenOutputConfig,
     handleSaveOutputConfig,
     handleToggleOutputState,
+    loadAndMapAirconConfigs,
   } = useNetworkOutputConfig(
     item,
     outputConfigs,
     setOutputConfigs,
     lightingItems,
-    airconItems
+    airconItems,
+    readAirconConfigsFromUnit
   );
 
   // Check if any child dialog is open
@@ -110,6 +114,32 @@ const NetworkIOConfigDialog = ({ open, onOpenChange, item = null }) => {
     pauseAutoRefresh,
     resumeAutoRefresh,
   ]);
+
+  // Load required data when dialog opens
+  useEffect(() => {
+    if (open && selectedProject) {
+      // Load aircon data if not already loaded
+      if (!loadedTabs.has("aircon")) {
+        loadTabData(selectedProject.id, "aircon");
+      }
+      // Load lighting data if not already loaded
+      if (!loadedTabs.has("lighting")) {
+        loadTabData(selectedProject.id, "lighting");
+      }
+    }
+  }, [open, selectedProject, loadedTabs, loadTabData]);
+
+  // Load and map aircon configs after initial loading is complete
+  useEffect(() => {
+    if (!isInitialLoading && configsLoaded && loadAndMapAirconConfigs) {
+      // Add a small delay to ensure all initial configs are loaded
+      const timer = setTimeout(() => {
+        loadAndMapAirconConfigs();
+      }, 500);
+
+      return () => clearTimeout(timer);
+    }
+  }, [isInitialLoading, configsLoaded, loadAndMapAirconConfigs]);
 
   // Create device options for outputs
   const outputDeviceOptionsMap = useMemo(() => {
@@ -296,6 +326,7 @@ const NetworkIOConfigDialog = ({ open, onOpenChange, item = null }) => {
                             onToggleState={handleToggleOutput}
                             onAddMissingAddress={handleAddMissingAddress}
                             isLoadingConfig={loading}
+                            allOutputConfigs={outputConfigs}
                           />
                         ))}
                       </div>

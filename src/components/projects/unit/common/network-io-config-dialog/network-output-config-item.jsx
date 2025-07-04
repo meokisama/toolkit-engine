@@ -16,6 +16,7 @@ const NetworkOutputConfigItem = memo(
     onToggleState,
     onAddMissingAddress,
     isLoadingConfig,
+    allOutputConfigs,
   }) => {
     const isAircon = config.type === "ac";
 
@@ -50,8 +51,8 @@ const NetworkOutputConfigItem = memo(
       return matchingOption ? parseInt(matchingOption.value) : config.deviceId;
     }, [isAircon, config.lightingAddress, config.deviceId, deviceOptions]);
 
-    // Generate display name based on type and index
-    const getDisplayName = useCallback((type, index) => {
+    // Generate display name based on type and index within that type
+    const getDisplayName = useCallback((type, globalIndex, allConfigs) => {
       const typeLabels = {
         relay: "Relay",
         dimmer: "Dimmer",
@@ -59,8 +60,12 @@ const NetworkOutputConfigItem = memo(
         ac: "Aircon",
       };
 
+      // Calculate index within the same type (restart at 1 for each type)
+      const sameTypeConfigs = allConfigs.filter(config => config.type === type);
+      const typeIndex = sameTypeConfigs.findIndex(config => config.index === globalIndex);
+
       const label = typeLabels[type] || type;
-      return `${label} ${index + 1}`;
+      return `${label} ${typeIndex + 1}`;
     }, []);
 
     const handleDeviceChange = useCallback(
@@ -95,7 +100,7 @@ const NetworkOutputConfigItem = memo(
           />
           <div className="flex flex-col">
             <Label className="text-sm font-medium">
-              {getDisplayName(config.type, config.index)}
+              {getDisplayName(config.type, config.index, allOutputConfigs)}
             </Label>
           </div>
         </div>

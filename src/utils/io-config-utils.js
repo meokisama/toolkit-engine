@@ -63,7 +63,7 @@ export const createDefaultIOConfig = (unitType) => {
     for (let i = 0; i < count; i++) {
       outputs.push({
         index: outputIndex++,
-        name: `${getOutputLabel(type)} ${i + 1}`, // Each type starts from 1
+        name: `${getOutputLabel(type)} ${i + 1}`,
         type: type, // Raw output type for dialog logic
         deviceId: null,
         deviceType: type === "ac" ? "aircon" : "lighting", // Mapped type for database

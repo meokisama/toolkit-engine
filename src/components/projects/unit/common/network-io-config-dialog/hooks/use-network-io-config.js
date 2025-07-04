@@ -79,6 +79,58 @@ export const useNetworkIOConfig = (item, open, childDialogOpen = false) => {
     }
   }, [item?.ip_address, item?.id_can]);
 
+  // Function to read aircon configs from unit and map to output configs
+  const readAirconConfigsFromUnit = useCallback(async () => {
+    if (!item?.ip_address || !item?.id_can) {
+      return false;
+    }
+
+    try {
+      console.log("Loading aircon configurations from network unit...");
+
+      const acConfigs = await window.electronAPI.rcuController.getLocalACConfig(
+        item.ip_address,
+        item.id_can
+      );
+
+      // Add delay after GET command to prevent conflicts
+      await new Promise(resolve => setTimeout(resolve, 300));
+
+      if (acConfigs && Array.isArray(acConfigs) && acConfigs.length === 10) {
+        console.log("Successfully loaded aircon configs:", acConfigs);
+
+        // Update output configs with aircon address mapping
+        setOutputConfigs(prevConfigs => {
+          return prevConfigs.map(config => {
+            if (config.type === "ac") {
+              // Find the AC config index for this output
+              const acOutputs = prevConfigs.filter(output => output.type === "ac");
+              const acConfigIndex = acOutputs.findIndex(output => output.index === config.index);
+
+              if (acConfigIndex >= 0 && acConfigIndex < acConfigs.length) {
+                const acConfig = acConfigs[acConfigIndex];
+                return {
+                  ...config,
+                  airconAddress: acConfig.address || 0,
+                  isAssigned: (acConfig.address || 0) > 0,
+                };
+              }
+            }
+            return config;
+          });
+        });
+
+        return true;
+      } else {
+        console.warn("Invalid aircon configs received:", acConfigs);
+        return false;
+      }
+    } catch (error) {
+      console.error("Failed to read aircon configs from unit:", error.message);
+      return false;
+    }
+  }, [item?.ip_address, item?.id_can]);
+
   // Function to read output states from the unit (silent background operation)
   const readOutputStatesBackground = useCallback(async () => {
     if (!item?.ip_address || !item?.id_can) {
@@ -292,9 +344,9 @@ export const useNetworkIOConfig = (item, open, childDialogOpen = false) => {
       }));
 
       // Initialize outputs with state tracking
-      const outputs = defaultConfig.outputs.map((output) => ({
+      const outputs = defaultConfig.outputs.map((output, index) => ({
         ...output,
-        // Name is already set correctly in createDefaultIOConfig with proper numbering per type
+        name: `${output.type === "ac" ? "AC" : "Lighting"} ${index + 1}`,
         state: false,
         brightness: 0,
         deviceId: null,
@@ -310,6 +362,9 @@ export const useNetworkIOConfig = (item, open, childDialogOpen = false) => {
 
       // Load outputs after inputs
       const outputConfigsSuccess = await readOutputConfigsFromUnit();
+
+      // Load aircon configs after outputs
+      const airconConfigsSuccess = await readAirconConfigsFromUnit();
 
       setConfigsLoaded(true);
       setIsInitialLoading(false);
@@ -446,6 +501,7 @@ export const useNetworkIOConfig = (item, open, childDialogOpen = false) => {
     readStatesSequentially: readStatesSequentiallyRef.current,
     readInputConfigsFromUnit,
     readOutputConfigsFromUnit,
+    readAirconConfigsFromUnit,
     pauseAutoRefresh,
     resumeAutoRefresh,
   };
