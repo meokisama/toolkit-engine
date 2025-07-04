@@ -31,7 +31,8 @@ import { useNetworkOutputConfig } from "./hooks/use-network-output-config";
 import { useProjectDetail } from "@/contexts/project-detail-context";
 
 const NetworkIOConfigDialog = ({ open, onOpenChange, item = null }) => {
-  const { projectItems, selectedProject, loadTabData, loadedTabs } = useProjectDetail();
+  const { projectItems, selectedProject, loadTabData, loadedTabs } =
+    useProjectDetail();
 
   // Use custom hooks for better organization
   const {
@@ -183,16 +184,16 @@ const NetworkIOConfigDialog = ({ open, onOpenChange, item = null }) => {
 
   // Handle adding missing address to database (aircon or lighting)
   const handleAddMissingAddress = useCallback(
-    async (address, outputIndex, type = 'lighting') => {
+    async (address, outputIndex, type = "lighting") => {
       try {
-        if (type === 'aircon') {
+        if (type === "aircon") {
           // Create new aircon item with the missing address
           const newAirconItem = {
             name: `Group ${address}`,
             address: address.toString(),
-            description: `Auto-added from network unit output ${outputIndex + 1}`,
-            object_type: "OBJ_AIRCON",
-            object_value: 1,
+            description: `Auto-added from network unit output ${
+              outputIndex + 1
+            }`,
           };
 
           // Add to database via electronAPI with projectId
@@ -209,9 +210,7 @@ const NetworkIOConfigDialog = ({ open, onOpenChange, item = null }) => {
             await readAirconConfigsFromUnit();
 
             // Show success message
-            toast.success(
-              `Aircon address ${address} added to database`
-            );
+            toast.success(`Aircon address ${address} added to database`);
           } else {
             throw new Error("Failed to create aircon item");
           }
@@ -220,7 +219,9 @@ const NetworkIOConfigDialog = ({ open, onOpenChange, item = null }) => {
           const newLightingItem = {
             name: `Group ${address}`,
             address: address.toString(),
-            description: `Auto-added from network unit output ${outputIndex + 1}`,
+            description: `Auto-added from network unit output ${
+              outputIndex + 1
+            }`,
             object_type: "OBJ_LIGHTING",
             object_value: 1,
           };
@@ -239,9 +240,7 @@ const NetworkIOConfigDialog = ({ open, onOpenChange, item = null }) => {
             await readOutputConfigsFromUnit();
 
             // Show success message
-            toast.success(
-              `Lighting address ${address} added to database`
-            );
+            toast.success(`Lighting address ${address} added to database`);
           } else {
             throw new Error("Failed to create lighting item");
           }
@@ -251,7 +250,12 @@ const NetworkIOConfigDialog = ({ open, onOpenChange, item = null }) => {
         toast.error(`Error adding ${type} address: ${error.message}`);
       }
     },
-    [selectedProject?.id, loadTabData, readOutputConfigsFromUnit, readAirconConfigsFromUnit]
+    [
+      selectedProject?.id,
+      loadTabData,
+      readOutputConfigsFromUnit,
+      readAirconConfigsFromUnit,
+    ]
   );
 
   if (!item || !ioSpec) {
