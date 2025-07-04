@@ -86,8 +86,6 @@ export const useNetworkIOConfig = (item, open, childDialogOpen = false) => {
     }
 
     try {
-      console.log("Loading aircon configurations from network unit...");
-
       const acConfigs = await window.electronAPI.rcuController.getLocalACConfig(
         item.ip_address,
         item.id_can
@@ -97,8 +95,6 @@ export const useNetworkIOConfig = (item, open, childDialogOpen = false) => {
       await new Promise(resolve => setTimeout(resolve, 300));
 
       if (acConfigs && Array.isArray(acConfigs) && acConfigs.length === 10) {
-        console.log("Successfully loaded aircon configs:", acConfigs);
-
         // Update output configs with aircon address mapping
         setOutputConfigs(prevConfigs => {
           return prevConfigs.map(config => {
@@ -122,7 +118,6 @@ export const useNetworkIOConfig = (item, open, childDialogOpen = false) => {
 
         return true;
       } else {
-        console.warn("Invalid aircon configs received:", acConfigs);
         return false;
       }
     } catch (error) {
@@ -274,7 +269,7 @@ export const useNetworkIOConfig = (item, open, childDialogOpen = false) => {
 
       return true;
     } catch (error) {
-      console.warn("Failed to read output assignments from unit:", error.message);
+      console.error("Failed to read output assignments from unit:", error.message);
     }
 
     return false;
