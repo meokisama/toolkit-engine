@@ -57,6 +57,13 @@ export const useNetworkOutputConfig = (item, outputConfigs = [], setOutputConfig
     }
   }, [readAirconConfigsFromUnit]);
 
+  // Helper function to calculate index within the same type
+  const getTypeIndex = useCallback((globalIndex, outputType, allConfigs) => {
+    const sameTypeConfigs = allConfigs.filter(config => config.type === outputType);
+    const typeIndex = sameTypeConfigs.findIndex(config => config.index === globalIndex);
+    return typeIndex + 1;
+  }, []);
+
   // Handle output device change
   const handleOutputDeviceChange = useCallback(async (outputIndex, deviceId) => {
     if (!item?.ip_address || !item?.id_can) {
@@ -204,13 +211,6 @@ export const useNetworkOutputConfig = (item, outputConfigs = [], setOutputConfig
 
     return null;
   }, [item?.ip_address, item?.id_can, setAllOutputConfigs]);
-
-  // Helper function to calculate index within the same type
-  const getTypeIndex = useCallback((globalIndex, outputType, allConfigs) => {
-    const sameTypeConfigs = allConfigs.filter(config => config.type === outputType);
-    const typeIndex = sameTypeConfigs.findIndex(config => config.index === globalIndex);
-    return typeIndex + 1;
-  }, []);
 
   // Handle opening output configuration
   const handleOpenOutputConfig = useCallback(async (outputIndex, outputType) => {
