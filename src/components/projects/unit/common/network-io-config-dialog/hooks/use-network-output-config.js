@@ -197,10 +197,13 @@ export const useNetworkOutputConfig = (item, outputConfigs = [], setOutputConfig
       const allACConfigs = await loadAllACConfigs();
 
       if (allACConfigs && allACConfigs[outputIndex]) {
+        console.log(`All AC Configs:`, allACConfigs);
+        console.log(`Looking for output index:`, outputIndex);
+
         const acConfig = allACConfigs[outputIndex];
+        console.log(`AC Config for output ${outputIndex} - raw acConfig:`, acConfig);
 
         // Format AC config for AC output config dialog
-        console.log(`AC Config for output ${outputIndex} - raw acConfig:`, acConfig);
 
         formattedConfig = {
           address: acConfig.address || 0,

@@ -327,11 +327,13 @@ async function getLocalACConfig(unitIp, canId) {
           // Bytes 52-63: reserved (skip)
         };
 
+        console.log(`AC Config ${i} - Final object:`, acConfig);
         acConfigs.push(acConfig);
       }
     }
 
     console.log(`Retrieved ${acConfigs.length} AC configurations`);
+    console.log(`All AC Configs:`, acConfigs);
     return acConfigs;
   }
 
