@@ -8,6 +8,7 @@ export const useNetworkIOConfig = (item, open, childDialogOpen = false) => {
   const [loading, setLoading] = useState(false);
   const [isInitialLoading, setIsInitialLoading] = useState(false);
   const [configsLoaded, setConfigsLoaded] = useState(false);
+  const [autoRefreshEnabled, setAutoRefreshEnabled] = useState(false); // Default to disabled
 
   // Use refs to store current state without triggering re-renders
   const inputStatesRef = useRef([]);
@@ -39,16 +40,19 @@ export const useNetworkIOConfig = (item, open, childDialogOpen = false) => {
         }
       );
 
+      // Add small delay after GET command to prevent conflicts
+      await new Promise(resolve => setTimeout(resolve, 200));
+
       if (response.success && response.inputStates) {
         // Update ref first to avoid re-renders
         const updatedInputs = inputStatesRef.current.map((input, index) => {
           const stateData = response.inputStates[index];
           return stateData
             ? {
-                ...input,
-                brightness: stateData.brightness,
-                isActive: stateData.isActive,
-              }
+              ...input,
+              brightness: stateData.brightness,
+              isActive: stateData.isActive,
+            }
             : input;
         });
 
@@ -71,7 +75,54 @@ export const useNetworkIOConfig = (item, open, childDialogOpen = false) => {
         }
       }
     } catch (error) {
-      console.warn("Background input state read failed:", error.message);
+      console.error("❌ Background input state read failed:", error.message);
+    }
+  }, [item?.ip_address, item?.id_can]);
+
+  // Function to read aircon configs from unit and map to output configs
+  const readAirconConfigsFromUnit = useCallback(async () => {
+    if (!item?.ip_address || !item?.id_can) {
+      return false;
+    }
+
+    try {
+      const acConfigs = await window.electronAPI.rcuController.getLocalACConfig(
+        item.ip_address,
+        item.id_can
+      );
+
+      // Add delay after GET command to prevent conflicts
+      await new Promise(resolve => setTimeout(resolve, 300));
+
+      if (acConfigs && Array.isArray(acConfigs) && acConfigs.length === 10) {
+        // Update output configs with aircon address mapping
+        setOutputConfigs(prevConfigs => {
+          return prevConfigs.map(config => {
+            if (config.type === "ac") {
+              // Find the AC config index for this output
+              const acOutputs = prevConfigs.filter(output => output.type === "ac");
+              const acConfigIndex = acOutputs.findIndex(output => output.index === config.index);
+
+              if (acConfigIndex >= 0 && acConfigIndex < acConfigs.length) {
+                const acConfig = acConfigs[acConfigIndex];
+                return {
+                  ...config,
+                  airconAddress: acConfig.address || 0,
+                  isAssigned: (acConfig.address || 0) > 0,
+                };
+              }
+            }
+            return config;
+          });
+        });
+
+        return true;
+      } else {
+        return false;
+      }
+    } catch (error) {
+      console.error("Failed to read aircon configs from unit:", error.message);
+      return false;
     }
   }, [item?.ip_address, item?.id_can]);
 
@@ -88,16 +139,19 @@ export const useNetworkIOConfig = (item, open, childDialogOpen = false) => {
           canId: item.id_can,
         });
 
+      // Add small delay after GET command to prevent conflicts
+      await new Promise(resolve => setTimeout(resolve, 200));
+
       if (response.success && response.outputStates) {
         // Update ref first to avoid re-renders
         const updatedOutputs = outputStatesRef.current.map((output, index) => {
           const stateData = response.outputStates[index];
           return stateData
             ? {
-                ...output,
-                brightness: stateData.brightness,
-                state: stateData.isActive,
-              }
+              ...output,
+              brightness: stateData.brightness,
+              state: stateData.isActive,
+            }
             : output;
         });
 
@@ -120,7 +174,7 @@ export const useNetworkIOConfig = (item, open, childDialogOpen = false) => {
         }
       }
     } catch (error) {
-      console.warn("Background output state read failed:", error.message);
+      console.error("❌ Background output state read failed:", error.message);
     }
   }, [item?.ip_address, item?.id_can]);
 
@@ -131,21 +185,16 @@ export const useNetworkIOConfig = (item, open, childDialogOpen = false) => {
     }
 
     try {
-      console.log(
-        `Reading input configurations from unit ${item.ip_address} (CAN ID: ${item.id_can})`
-      );
-
       const response =
         await window.electronAPI.rcuController.getAllInputConfigs({
           unitIp: item.ip_address,
           canId: item.id_can,
         });
 
-      if (response?.configs) {
-        console.log(
-          `Received ${response.configs.length} input configurations from unit`
-        );
+      // Add delay after GET command to prevent conflicts
+      await new Promise(resolve => setTimeout(resolve, 300));
 
+      if (response?.configs) {
         // Update input configs with actual function values from unit
         const updatedInputs = inputStatesRef.current.map((input, index) => {
           const unitConfig = response.configs.find(
@@ -153,11 +202,11 @@ export const useNetworkIOConfig = (item, open, childDialogOpen = false) => {
           );
           return unitConfig
             ? {
-                ...input,
-                functionValue: unitConfig.inputType || 0,
-                // Store additional config data for later use
-                unitConfig: unitConfig,
-              }
+              ...input,
+              functionValue: unitConfig.inputType || 0,
+              // Store additional config data for later use
+              unitConfig: unitConfig,
+            }
             : input;
         });
 
@@ -167,7 +216,60 @@ export const useNetworkIOConfig = (item, open, childDialogOpen = false) => {
         return true;
       }
     } catch (error) {
-      console.warn("Failed to read input configs from unit:", error.message);
+      console.error("Failed to read input configs from unit:", error.message);
+    }
+
+    return false;
+  }, [item?.ip_address, item?.id_can]);
+
+  // Function to read output assignments from unit (lighting address mapping and delays only)
+  const readOutputConfigsFromUnit = useCallback(async () => {
+    if (!item?.ip_address || !item?.id_can) {
+      return false;
+    }
+
+    try {
+      const assignResponse = await window.electronAPI.rcuController.getOutputAssign({
+        unitIp: item.ip_address,
+        canId: item.id_can,
+      });
+
+      // Add delay after GET command to prevent conflicts
+      await new Promise(resolve => setTimeout(resolve, 300));
+
+      if (!assignResponse?.outputAssignments) {
+        return false;
+      }
+      // Update output configs with assignment data only
+      const updatedOutputs = outputStatesRef.current.map((output, index) => {
+        const unitAssignment = assignResponse.outputAssignments.find(
+          (assignment) => assignment.outputIndex === index
+        );
+
+        if (unitAssignment) {
+          return {
+            ...output,
+            // Store lighting address for mapping
+            lightingAddress: unitAssignment.lightingAddress,
+            // Store delay values for lighting-output-config-dialog
+            delayOff: unitAssignment.delayOff,
+            delayOn: unitAssignment.delayOn,
+            // Mark as assigned if lighting address > 0
+            isAssigned: unitAssignment.isAssigned,
+            // unitConfig will be loaded on-demand when opening config dialog
+            unitConfig: null,
+          };
+        }
+
+        return output;
+      });
+
+      outputStatesRef.current = updatedOutputs;
+      setOutputConfigs([...updatedOutputs]);
+
+      return true;
+    } catch (error) {
+      console.error("Failed to read output assignments from unit:", error.message);
     }
 
     return false;
@@ -244,7 +346,7 @@ export const useNetworkIOConfig = (item, open, childDialogOpen = false) => {
     return false;
   }, [item?.ip_address, item?.id_can]);
 
-  // Sequential read function to ensure input completes before output
+  // Sequential read function to ensure input completes before output with proper delays
   const readStatesSequentiallyRef = useRef();
   readStatesSequentiallyRef.current = async () => {
     // Check if dialog is still open before proceeding
@@ -258,10 +360,22 @@ export const useNetworkIOConfig = (item, open, childDialogOpen = false) => {
     }
 
     try {
+      // Step 1: Read input states first
       await readInputStatesBackground();
+
+      // Step 2: Wait for input processing to complete
+      await new Promise(resolve => setTimeout(resolve, 400));
+
+      // Step 3: Check if dialog is still open before proceeding to outputs
+      if (!isDialogOpenRef.current || childDialogOpenRef.current) {
+        return;
+      }
+
+      // Step 4: Read output states
       await readOutputStatesBackground();
+
     } catch (error) {
-      console.warn("Sequential state read failed:", error.message);
+      console.warn("❌ Sequential state read failed:", error.message);
     }
   };
 
@@ -312,19 +426,10 @@ export const useNetworkIOConfig = (item, open, childDialogOpen = false) => {
       // Load inputs first
       const inputConfigsSuccess = await readInputConfigsFromUnit();
 
-      if (inputConfigsSuccess) {
+      if (configsSuccess) {
         console.log("✅ Input configurations loaded successfully");
       } else {
         console.log("⚠️ Failed to load input configurations, using defaults");
-      }
-
-      // Load outputs after inputs
-      const outputConfigsSuccess = await readOutputConfigsFromUnit();
-
-      if (outputConfigsSuccess) {
-        console.log("✅ Output configurations loaded successfully");
-      } else {
-        console.log("⚠️ Failed to load output configurations, using defaults");
       }
 
       setConfigsLoaded(true);
@@ -333,10 +438,12 @@ export const useNetworkIOConfig = (item, open, childDialogOpen = false) => {
       // Initial state read
       await readStatesSequentiallyRef.current();
 
-      // Set up auto-refresh every 2 seconds (reduced frequency to improve performance)
-      refreshIntervalRef.current = setInterval(() => {
-        readStatesSequentiallyRef.current();
-      }, 2000);
+      // Set up auto-refresh only if enabled
+      if (autoRefreshEnabled) {
+        refreshIntervalRef.current = setInterval(() => {
+          readStatesSequentiallyRef.current();
+        }, 3000);
+      }
     };
 
     initializeDialog();
@@ -347,7 +454,7 @@ export const useNetworkIOConfig = (item, open, childDialogOpen = false) => {
         refreshIntervalRef.current = null;
       }
     };
-  }, [open, item, ioSpec, readInputConfigsFromUnit]);
+  }, [open, item, ioSpec, readInputConfigsFromUnit, autoRefreshEnabled]);
 
   // Effect to immediately stop auto refresh when dialog closes
   useEffect(() => {
@@ -365,6 +472,20 @@ export const useNetworkIOConfig = (item, open, childDialogOpen = false) => {
     }
   }, [open]);
 
+  // Effect to handle auto refresh enable/disable
+  useEffect(() => {
+    if (autoRefreshEnabled && open && configsLoaded && !refreshIntervalRef.current) {
+      // Start auto refresh
+      refreshIntervalRef.current = setInterval(() => {
+        readStatesSequentiallyRef.current();
+      }, 3000);
+    } else if (!autoRefreshEnabled && refreshIntervalRef.current) {
+      // Stop auto refresh
+      clearInterval(refreshIntervalRef.current);
+      refreshIntervalRef.current = null;
+    }
+  }, [autoRefreshEnabled, open, configsLoaded]);
+
   // Function to pause auto refresh (when child dialogs are open)
   const pauseAutoRefresh = useCallback(() => {
     if (refreshIntervalRef.current) {
@@ -377,15 +498,13 @@ export const useNetworkIOConfig = (item, open, childDialogOpen = false) => {
 
   // Function to resume auto refresh (when child dialogs are closed)
   const resumeAutoRefresh = useCallback(() => {
-    if (!refreshIntervalRef.current && open && configsLoaded) {
+    if (!refreshIntervalRef.current && open && configsLoaded && autoRefreshEnabled) {
       isDialogOpenRef.current = true; // Re-enable the flag
       refreshIntervalRef.current = setInterval(() => {
         readStatesSequentiallyRef.current();
-      }, 2000);
-    } else if (!open) {
-      console.log("Auto refresh NOT resumed - dialog is closed");
+      }, 3000);
     }
-  }, [open, configsLoaded]);
+  }, [open, configsLoaded, autoRefreshEnabled]);
 
   // Effect to handle child dialog state changes
   useEffect(() => {
@@ -443,9 +562,10 @@ export const useNetworkIOConfig = (item, open, childDialogOpen = false) => {
     loading,
     isInitialLoading,
     configsLoaded,
+    autoRefreshEnabled,
+    setAutoRefreshEnabled,
     readStatesSequentially: readStatesSequentiallyRef.current,
     readInputConfigsFromUnit,
-    readOutputConfigsFromUnit,
     pauseAutoRefresh,
     resumeAutoRefresh,
   };

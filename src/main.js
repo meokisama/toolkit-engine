@@ -11,10 +11,6 @@ import {
   getAllInputStates,
   getAllInputConfigs,
   setupInputConfig,
-  getOutputAssign,
-  setOutputAssign,
-  getOutputConfig,
-  setOutputConfig,
   getACStatus,
   getRoomTemp,
   setSettingRoomTemp,
@@ -62,6 +58,8 @@ import {
   triggerKnx,
   deleteKnxConfig,
   deleteAllKnxConfigs,
+  getLocalACConfig,
+  setLocalACConfig,
   updateFirmware,
 } from "./services/rcu-controller.js";
 import dgram from "dgram";
@@ -1528,53 +1526,6 @@ function setupIpcHandlers() {
     }
   );
 
-  // Output Configuration Control
-  ipcMain.handle("rcu:getOutputAssign", async (event, { unitIp, canId }) => {
-    try {
-      console.log("IPC getOutputAssign called with:", { unitIp, canId });
-      return await getOutputAssign(unitIp, canId);
-    } catch (error) {
-      console.error("Error getting output assignments:", error);
-      throw error;
-    }
-  });
-
-  ipcMain.handle(
-    "rcu:getOutputConfig",
-    async (event, unitIp, canId) => {
-      try {
-        return await getOutputConfig(unitIp, canId);
-      } catch (error) {
-        console.error("Error getting output config:", error);
-        throw error;
-      }
-    }
-  );
-
-  ipcMain.handle(
-    "rcu:setOutputAssign",
-    async (event, unitIp, canId, outputIndex, lightingAddress, delayOff, delayOn) => {
-      try {
-        return await setOutputAssign(unitIp, canId, outputIndex, lightingAddress, delayOff, delayOn);
-      } catch (error) {
-        console.error("Error setting output assignment:", error);
-        throw error;
-      }
-    }
-  );
-
-  ipcMain.handle(
-    "rcu:setOutputConfig",
-    async (event, unitIp, canId, outputIndex, config) => {
-      try {
-        return await setOutputConfig(unitIp, canId, outputIndex, config);
-      } catch (error) {
-        console.error("Error setting output config:", error);
-        throw error;
-      }
-    }
-  );
-
   // Air Conditioner Control
   ipcMain.handle("rcu:getACStatus", async (event, { canId, unitIp, group }) => {
     try {
@@ -1704,6 +1655,25 @@ function setupIpcHandlers() {
       return await getEcoMode(unitIp, canId, group);
     } catch (error) {
       console.error("Error getting eco mode:", error);
+      throw error;
+    }
+  });
+
+  // AC Output Configuration
+  ipcMain.handle("rcu:getLocalACConfig", async (event, unitIp, canId) => {
+    try {
+      return await getLocalACConfig(unitIp, canId);
+    } catch (error) {
+      console.error("Error getting local AC config:", error);
+      throw error;
+    }
+  });
+
+  ipcMain.handle("rcu:setLocalACConfig", async (event, unitIp, canId, acConfigs) => {
+    try {
+      return await setLocalACConfig(unitIp, canId, acConfigs);
+    } catch (error) {
+      console.error("Error setting local AC config:", error);
       throw error;
     }
   });

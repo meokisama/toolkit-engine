@@ -20,6 +20,8 @@ export const getGroupTypeFromFunction = (functionValue) => {
           return "scene";
         case "MULTI_SCENES":
           return "multi-scene";
+        case "SEQUENCE":
+          return "sequence";
         case "CURTAIN":
           return "curtain";
         case "ROOM":
@@ -47,6 +49,8 @@ export const getGroupTypeLabel = (functionValue) => {
       return "Scene";
     case "multi-scene":
       return "Multi-Scene";
+    case "sequence":
+      return "Sequence";
     case "curtain":
       return "Curtain";
     case "lighting":
@@ -101,6 +105,10 @@ export const createGroupByType = async (address, functionValue, selectedProject,
         // Multi-scene auto-creation not supported due to complex structure
         console.warn(`Auto-creation not supported for multi-scene groups`);
         return null;
+      case "sequence":
+        // Sequence auto-creation not supported due to complex structure
+        console.warn(`Auto-creation not supported for sequence groups`);
+        return null;
       case "lighting":
       default:
         category = "lighting";
@@ -128,7 +136,7 @@ export const createGroupByType = async (address, functionValue, selectedProject,
  */
 export const getTabToLoadForFunction = (functionValue) => {
   const groupType = getGroupTypeFromFunction(functionValue);
-  
+
   switch (groupType) {
     case "aircon":
       return "aircon";
@@ -136,6 +144,8 @@ export const getTabToLoadForFunction = (functionValue) => {
       return "scene";
     case "multi-scene":
       return "multi_scenes";
+    case "sequence":
+      return "sequences";
     case "curtain":
       return "curtain";
     case "lighting":
@@ -157,6 +167,8 @@ export const getAvailableItemsForFunction = (functionValue, projectItems) => {
       return projectItems?.scene || [];
     case "multi-scene":
       return projectItems?.multi_scenes || [];
+    case "sequence":
+      return projectItems?.sequences || [];
     case "curtain":
       return projectItems?.curtain || [];
     case "lighting":

@@ -87,8 +87,6 @@ export const RoomControlDialog = memo(function RoomControlDialog({
         group: acGroup,
       });
 
-      console.log("AC Status received:", acStatus);
-
       setStatus({
         roomTemp: acStatus.roomTemperature, // Updated field name
         thermostatStatus: acStatus.status, // Updated field name
@@ -126,8 +124,6 @@ export const RoomControlDialog = memo(function RoomControlDialog({
         canId: room.unit.id_can,
         group: acGroup,
       });
-
-      console.log("Auto refresh - AC Status received:", acStatus);
 
       setStatus({
         roomTemp: acStatus.roomTemperature,
@@ -167,7 +163,6 @@ export const RoomControlDialog = memo(function RoomControlDialog({
           group: acGroup,
           power,
         });
-        console.log("Power mode set:", power);
         toast.success(`Đã ${power ? "bật" : "tắt"} điều hòa`);
       } catch (error) {
         console.error("Failed to set power mode:", error);
@@ -196,7 +191,6 @@ export const RoomControlDialog = memo(function RoomControlDialog({
           group: acGroup,
           mode: acMode,
         });
-        console.log("AC mode set:", acMode);
         const modeNames = ["Cool", "Heat", "Ventilation", "Dry"];
         toast.success(`Đã chuyển sang chế độ ${modeNames[acMode] || acMode}`);
       } catch (error) {
@@ -227,7 +221,6 @@ export const RoomControlDialog = memo(function RoomControlDialog({
           group: acGroup,
           fanSpeed: fanMode,
         });
-        console.log("Fan mode set:", fanMode);
         const fanNames = ["Low", "Med", "High", "Auto", "Off"];
         toast.success(
           `Đã chuyển tốc độ quạt sang ${fanNames[fanMode] || fanMode}`
@@ -257,7 +250,6 @@ export const RoomControlDialog = memo(function RoomControlDialog({
           group: acGroup,
           temperature,
         });
-        console.log("Temperature set:", temperature);
         toast.success(`Đã đặt nhiệt độ ${temperature}°C`);
       } catch (error) {
         console.error("Failed to set temperature:", error);
@@ -342,7 +334,6 @@ export const RoomControlDialog = memo(function RoomControlDialog({
         autoRefreshStatus();
       }, 1000); // Refresh every 1 second
 
-      console.log("Auto refresh started for AC control");
     }
 
     // Cleanup when dialog closes or dependencies change
@@ -350,7 +341,6 @@ export const RoomControlDialog = memo(function RoomControlDialog({
       if (autoRefreshIntervalRef.current) {
         clearInterval(autoRefreshIntervalRef.current);
         autoRefreshIntervalRef.current = null;
-        console.log("Auto refresh stopped for AC control");
       }
     };
   }, [open, room?.unit?.ip_address, room?.unit?.id_can, autoRefreshStatus]);

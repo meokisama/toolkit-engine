@@ -145,12 +145,6 @@ export function KnxControlDialog({ open, onOpenChange, unit }) {
 
     setLoadingState((prev) => ({ ...prev, loadingInfo: true }));
     try {
-      console.log("Loading KNX configuration:", {
-        unitIp: unit.ip_address,
-        canId: unit.id_can,
-        knxAddress: address,
-      });
-
       const result = await window.electronAPI.rcuController.getKnxConfig({
         unitIp: unit.ip_address,
         canId: unit.id_can,
@@ -193,11 +187,6 @@ export function KnxControlDialog({ open, onOpenChange, unit }) {
 
     setLoadingState((prev) => ({ ...prev, loadingAllConfigs: true }));
     try {
-      console.log("Loading all KNX configurations:", {
-        unitIp: unit.ip_address,
-        canId: unit.id_can,
-      });
-
       const result = await window.electronAPI.rcuController.getKnxConfig({
         unitIp: unit.ip_address,
         canId: unit.id_can,
@@ -261,12 +250,6 @@ export function KnxControlDialog({ open, onOpenChange, unit }) {
 
       setLoadingState((prev) => ({ ...prev, loading: true }));
       try {
-        console.log("Deleting KNX configuration from card:", {
-          unitIp: unit.ip_address,
-          canId: unit.id_can,
-          knxAddress,
-        });
-
         const success = await window.electronAPI.rcuController.deleteKnxConfig({
           unitIp: unit.ip_address,
           canId: unit.id_can,
@@ -304,12 +287,6 @@ export function KnxControlDialog({ open, onOpenChange, unit }) {
 
       setLoadingState((prev) => ({ ...prev, loading: true }));
       try {
-        console.log("Triggering KNX from card:", {
-          unitIp: unit.ip_address,
-          canId: unit.id_can,
-          knxAddress,
-        });
-
         await window.electronAPI.rcuController.triggerKnx({
           unitIp: unit.ip_address,
           canId: unit.id_can,

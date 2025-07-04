@@ -17,6 +17,7 @@ import {
   ChevronsUpDown,
   Play,
   PlayCircle,
+  ListOrdered,
   Check,
 } from "lucide-react";
 import { INPUT_TYPES, getInputFunctionByValue } from "@/constants";
@@ -52,13 +53,19 @@ const CATEGORY_CONFIG = {
     label: "Scene Controls",
     icon: Play,
     color: "",
-    description: "Scene triggers, toggles, sequences",
+    description: "Scene triggers, toggles",
   },
   MULTI_SCENES: {
     label: "Multi-Scene Controls",
     icon: PlayCircle,
     color: "",
-    description: "Multi-scene triggers and sequences",
+    description: "Multi-scene triggers",
+  },
+  SEQUENCE: {
+    label: "Sequence Controls",
+    icon: ListOrdered,
+    color: "",
+    description: "Multi-scene sequences",
   },
 };
 
@@ -160,6 +167,7 @@ export const InputFunctionSubmenu = memo(function InputFunctionSubmenu({
       "CURTAIN",
       "SCENE",
       "MULTI_SCENES",
+      "SEQUENCE",
     ];
     return categoryOrder
       .filter((categoryKey) => categories[categoryKey]?.length > 0)

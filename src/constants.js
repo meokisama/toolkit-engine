@@ -890,8 +890,10 @@ export const INPUT_TYPES = {
   ],
   MULTI_SCENES: [
     { value: 103, name: "MULTI_SCENE", label: "Multi-Scene" },
-    { value: 104, name: "MULTI_SCENE_SEQ", label: "Multi-Scene Seq" },
     { value: 108, name: "TOGGLE_MULTI_SCENE", label: "Toggle-Multi Scene" },
+  ],
+  SEQUENCE: [
+    { value: 104, name: "MULTI_SCENE_SEQ", label: "Multi-Scene Seq" },
     {
       value: 109,
       name: "TOGGLE_MULTI_SCENE_SEQ",
@@ -928,6 +930,7 @@ const INPUT_FUNCTION_LISTS = {
     ...INPUT_TYPES.CURTAIN,
     ...INPUT_TYPES.SCENE,
     ...INPUT_TYPES.MULTI_SCENES,
+    ...INPUT_TYPES.SEQUENCE,
   ],
 };
 

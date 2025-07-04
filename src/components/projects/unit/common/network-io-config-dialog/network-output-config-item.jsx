@@ -16,6 +16,7 @@ const NetworkOutputConfigItem = memo(
     onToggleState,
     onAddMissingAddress,
     isLoadingConfig,
+    allOutputConfigs,
   }) => {
     const isAircon = config.type === "ac";
 
@@ -26,7 +27,7 @@ const NetworkOutputConfigItem = memo(
       }
 
       // Check if lighting address exists in deviceOptions
-      const addressExists = deviceOptions.some(option => {
+      const addressExists = deviceOptions.some((option) => {
         // Extract address from label format "Name (Address)"
         const match = option.label.match(/\((\d+)\)$/);
         return match && parseInt(match[1]) === config.lightingAddress;
@@ -42,7 +43,7 @@ const NetworkOutputConfigItem = memo(
       }
 
       // Find matching device option by address
-      const matchingOption = deviceOptions.find(option => {
+      const matchingOption = deviceOptions.find((option) => {
         const match = option.label.match(/\((\d+)\)$/);
         return match && parseInt(match[1]) === config.lightingAddress;
       });
@@ -50,8 +51,80 @@ const NetworkOutputConfigItem = memo(
       return matchingOption ? parseInt(matchingOption.value) : config.deviceId;
     }, [isAircon, config.lightingAddress, config.deviceId, deviceOptions]);
 
-    // Generate display name based on type and index
-    const getDisplayName = useCallback((type, index) => {
+    // Check if output has address but no matching database entry
+    const hasUnmappedAddress = useMemo(() => {
+      if (isAircon) {
+        // For aircon outputs, check airconAddress
+        if (!config.airconAddress || config.airconAddress === 0) {
+          return false;
+        }
+
+        // Check if aircon address exists in deviceOptions
+        const addressExists = deviceOptions.some((option) => {
+          const match = option.label.match(/\((\d+)\)$/);
+          return match && parseInt(match[1]) === config.airconAddress;
+        });
+
+        return !addressExists;
+      } else {
+        // For lighting outputs, check lightingAddress
+        if (!config.lightingAddress || config.lightingAddress === 0) {
+          return false;
+        }
+
+        // Check if lighting address exists in deviceOptions
+        const addressExists = deviceOptions.some((option) => {
+          const match = option.label.match(/\((\d+)\)$/);
+          return match && parseInt(match[1]) === config.lightingAddress;
+        });
+
+        return !addressExists;
+      }
+    }, [isAircon, config.lightingAddress, config.airconAddress, deviceOptions]);
+
+    // Auto-map device ID based on address (lighting or aircon)
+    const autoMappedDeviceId = useMemo(() => {
+      if (isAircon) {
+        // For aircon outputs, map based on airconAddress
+        if (!config.airconAddress || config.airconAddress === 0) {
+          return config.deviceId;
+        }
+
+        // Find matching aircon option by address
+        const matchingOption = deviceOptions.find((option) => {
+          const match = option.label.match(/\((\d+)\)$/);
+          return match && parseInt(match[1]) === config.airconAddress;
+        });
+
+        return matchingOption
+          ? parseInt(matchingOption.value)
+          : config.deviceId;
+      } else {
+        // For lighting outputs, map based on lightingAddress
+        if (!config.lightingAddress || config.lightingAddress === 0) {
+          return config.deviceId;
+        }
+
+        // Find matching lighting option by address
+        const matchingOption = deviceOptions.find((option) => {
+          const match = option.label.match(/\((\d+)\)$/);
+          return match && parseInt(match[1]) === config.lightingAddress;
+        });
+
+        return matchingOption
+          ? parseInt(matchingOption.value)
+          : config.deviceId;
+      }
+    }, [
+      isAircon,
+      config.lightingAddress,
+      config.airconAddress,
+      config.deviceId,
+      deviceOptions,
+    ]);
+
+    // Generate display name based on type and index within that type
+    const getDisplayName = useCallback((type, globalIndex, allConfigs) => {
       const typeLabels = {
         relay: "Relay",
         dimmer: "Dimmer",
@@ -59,8 +132,16 @@ const NetworkOutputConfigItem = memo(
         ac: "Aircon",
       };
 
+      // Calculate index within the same type (restart at 1 for each type)
+      const sameTypeConfigs = allConfigs.filter(
+        (config) => config.type === type
+      );
+      const typeIndex = sameTypeConfigs.findIndex(
+        (config) => config.index === globalIndex
+      );
+
       const label = typeLabels[type] || type;
-      return `${label} ${index + 1}`;
+      return `${label} ${typeIndex + 1}`;
     }, []);
 
     const handleDeviceChange = useCallback(
@@ -78,12 +159,6 @@ const NetworkOutputConfigItem = memo(
       onToggleState(config.index, config.state);
     }, [config.index, config.state, onToggleState]);
 
-    const handleAddMissingAddress = useCallback(() => {
-      if (onAddMissingAddress && config.lightingAddress) {
-        onAddMissingAddress(config.lightingAddress, config.index);
-      }
-    }, [onAddMissingAddress, config.lightingAddress, config.index]);
-
     return (
       <div className="p-4 border rounded-lg flex gap-4 justify-between items-center w-full shadow">
         <div className="flex items-center gap-3">
@@ -93,42 +168,19 @@ const NetworkOutputConfigItem = memo(
             className="w-[30px] h-auto rounded-lg cursor-pointer hover:opacity-80 transition-opacity"
             onClick={handleToggleClick}
           />
-          <div className="flex flex-col">
-            <Label className="text-sm font-medium">
-              {getDisplayName(config.type, config.index)}
-            </Label>
-          </div>
+          <Label className="text-sm font-medium">
+            {getDisplayName(config.type, config.index)}
+          </Label>
         </div>
         <div className="flex items-center gap-2">
-          {/* Plus button for adding missing lighting address to database */}
-          {hasUnmappedAddress && onAddMissingAddress && (
-            <Button
-              variant="outline"
-              size="icon"
-              onClick={handleAddMissingAddress}
-              title={`Add lighting address ${config.lightingAddress} to database`}
-            >
-              <Plus className="h-4 w-4" />
-            </Button>
-          )}
-          
-          {/* Show combobox only if address is mapped or is aircon */}
-          {(!hasUnmappedAddress || isAircon) ? (
-            <Combobox
-              className="w-56"
-              options={deviceOptions}
-              value={autoMappedDeviceId?.toString() || ""}
-              onValueChange={handleDeviceChange}
-              placeholder={`Select ${isAircon ? "aircon" : "lighting"}...`}
-              emptyText={`No ${isAircon ? "aircon" : "lighting"} found`}
-            />
-          ) : (
-            /* Show address info when not in database */
-            <div className="w-56 px-3 py-2 border rounded-md bg-muted text-muted-foreground text-sm">
-              Address {config.lightingAddress} (Not in database)
-            </div>
-          )}
-
+          <Combobox
+            className="w-56"
+            options={deviceOptions}
+            value={config.deviceId?.toString() || ""}
+            onValueChange={handleDeviceChange}
+            placeholder={`Select ${isAircon ? "aircon" : "lighting"}...`}
+            emptyText={`No ${isAircon ? "aircon" : "lighting"} found`}
+          />
           <Button
             variant="outline"
             size="icon"

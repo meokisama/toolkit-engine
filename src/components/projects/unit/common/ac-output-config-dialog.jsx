@@ -55,25 +55,25 @@ const VALVE_TYPE_OPTIONS = [
 ];
 
 const DEAD_BAND_OPTIONS = [
-  { value: "1.0", label: "1.0" },
-  { value: "1.5", label: "1.5" },
-  { value: "2.0", label: "2.0" },
-  { value: "2.5", label: "2.5" },
-  { value: "3.0", label: "3.0" },
-  { value: "3.5", label: "3.5" },
-  { value: "4.0", label: "4.0" },
-  { value: "4.5", label: "4.5" },
-  { value: "5.0", label: "5.0" },
-  { value: "5.5", label: "5.5" },
-  { value: "6.0", label: "6.0" },
-  { value: "6.5", label: "6.5" },
-  { value: "7.0", label: "7.0" },
-  { value: "7.5", label: "7.5" },
-  { value: "8.0", label: "8.0" },
-  { value: "8.5", label: "8.5" },
-  { value: "9.0", label: "9.0" },
-  { value: "9.5", label: "9.5" },
-  { value: "10", label: "10" },
+  { value: "10", label: "1.0" },
+  { value: "15", label: "1.5" },
+  { value: "20", label: "2.0" },
+  { value: "25", label: "2.5" },
+  { value: "30", label: "3.0" },
+  { value: "35", label: "3.5" },
+  { value: "40", label: "4.0" },
+  { value: "45", label: "4.5" },
+  { value: "50", label: "5.0" },
+  { value: "55", label: "5.5" },
+  { value: "60", label: "6.0" },
+  { value: "65", label: "6.5" },
+  { value: "70", label: "7.0" },
+  { value: "75", label: "7.5" },
+  { value: "80", label: "8.0" },
+  { value: "85", label: "8.5" },
+  { value: "90", label: "9.0" },
+  { value: "95", label: "9.5" },
+  { value: "100", label: "10" },
 ];
 
 const WINDOWS_OPTIONS = [
@@ -87,30 +87,55 @@ const ACOutputConfigDialogComponent = ({
   outputName = "",
   initialConfig = {},
   lightingOptions = [],
+  airconOptions = [],
   isLoading = false,
   onSave,
 }) => {
-  // State for all AC configuration options
+  // State for all AC configuration options (64-byte structure)
   const [config, setConfig] = useState({
+    // Basic configuration
+    address: 0,
     enable: false,
-    windowsMode: "0",
+    windowMode: "0",
     fanType: "0",
     tempType: "0",
     tempUnit: "0",
     valveContact: "0",
     valveType: "0",
-    deadBand: "1.0",
-    windows: "0",
-    lowFan: null,
-    medFan: null,
-    highFan: null,
-    analogFan: null,
-    analogCool: null,
-    analogHeat: null,
-    coolOpen: null,
-    coolClose: null,
-    heatOpen: null,
-    heatClose: null,
+    deadband: 0,
+    windowBypass: "0",
+    setPointOffset: 0,
+
+    // Group assignments
+    lowFCU_Group: 0,
+    medFCU_Group: 0,
+    highFCU_Group: 0,
+    fanAnalogGroup: 0,
+    analogCoolGroup: 0,
+    analogHeatGroup: 0,
+    valveCoolOpenGroup: 0,
+    valveCoolCloseGroup: 0,
+    valveHeatOpenGroup: 0,
+    valveHeatCloseGroup: 0,
+
+    // Power and mode settings
+    unoccupyPower: 0,
+    occupyPower: 0,
+    standbyPower: 0,
+    unoccupyMode: 0,
+    occupyMode: 0,
+    standbyMode: 0,
+    unoccupyFanSpeed: 0,
+    occupyFanSpeed: 0,
+    standbyFanSpeed: 0,
+
+    // Set point values
+    unoccupyCoolSetPoint: 0,
+    occupyCoolSetPoint: 0,
+    standbyCoolSetPoint: 0,
+    unoccupyHeatSetPoint: 0,
+    occupyHeatSetPoint: 0,
+    standbyHeatSetPoint: 0,
   });
 
   const [loading, setLoading] = useState(false);
@@ -123,27 +148,54 @@ const ACOutputConfigDialogComponent = ({
       initialConfig !== null &&
       initialConfig !== undefined
     ) {
-      setConfig({
+
+      const newConfig = {
+        // Basic configuration
+        address: initialConfig.address || 0,
         enable: initialConfig.enable || false,
-        windowsMode: initialConfig.windowsMode?.toString() || "0",
+        windowMode: initialConfig.windowMode?.toString() || "0",
         fanType: initialConfig.fanType?.toString() || "0",
         tempType: initialConfig.tempType?.toString() || "0",
         tempUnit: initialConfig.tempUnit?.toString() || "0",
         valveContact: initialConfig.valveContact?.toString() || "0",
         valveType: initialConfig.valveType?.toString() || "0",
-        deadBand: initialConfig.deadBand?.toString() || "1.0",
-        windows: initialConfig.windows?.toString() || "0",
-        lowFan: initialConfig.lowFan || null,
-        medFan: initialConfig.medFan || null,
-        highFan: initialConfig.highFan || null,
-        analogFan: initialConfig.analogFan || null,
-        analogCool: initialConfig.analogCool || null,
-        analogHeat: initialConfig.analogHeat || null,
-        coolOpen: initialConfig.coolOpen || null,
-        coolClose: initialConfig.coolClose || null,
-        heatOpen: initialConfig.heatOpen || null,
-        heatClose: initialConfig.heatClose || null,
-      });
+        deadband: initialConfig.deadband || 0,
+        windowBypass: initialConfig.windowBypass?.toString() || "0",
+        setPointOffset: initialConfig.setPointOffset || 0,
+
+        // Group assignments
+        lowFCU_Group: initialConfig.lowFCU_Group || 0,
+        medFCU_Group: initialConfig.medFCU_Group || 0,
+        highFCU_Group: initialConfig.highFCU_Group || 0,
+        fanAnalogGroup: initialConfig.fanAnalogGroup || 0,
+        analogCoolGroup: initialConfig.analogCoolGroup || 0,
+        analogHeatGroup: initialConfig.analogHeatGroup || 0,
+        valveCoolOpenGroup: initialConfig.valveCoolOpenGroup || 0,
+        valveCoolCloseGroup: initialConfig.valveCoolCloseGroup || 0,
+        valveHeatOpenGroup: initialConfig.valveHeatOpenGroup || 0,
+        valveHeatCloseGroup: initialConfig.valveHeatCloseGroup || 0,
+
+        // Power and mode settings
+        unoccupyPower: initialConfig.unoccupyPower || 0,
+        occupyPower: initialConfig.occupyPower || 0,
+        standbyPower: initialConfig.standbyPower || 0,
+        unoccupyMode: initialConfig.unoccupyMode || 0,
+        occupyMode: initialConfig.occupyMode || 0,
+        standbyMode: initialConfig.standbyMode || 0,
+        unoccupyFanSpeed: initialConfig.unoccupyFanSpeed || 0,
+        occupyFanSpeed: initialConfig.occupyFanSpeed || 0,
+        standbyFanSpeed: initialConfig.standbyFanSpeed || 0,
+
+        // Set point values
+        unoccupyCoolSetPoint: initialConfig.unoccupyCoolSetPoint || 0,
+        occupyCoolSetPoint: initialConfig.occupyCoolSetPoint || 0,
+        standbyCoolSetPoint: initialConfig.standbyCoolSetPoint || 0,
+        unoccupyHeatSetPoint: initialConfig.unoccupyHeatSetPoint || 0,
+        occupyHeatSetPoint: initialConfig.occupyHeatSetPoint || 0,
+        standbyHeatSetPoint: initialConfig.standbyHeatSetPoint || 0,
+      };
+
+      setConfig(newConfig);
     }
   }, [open, initialConfig, isLoading]);
 
@@ -157,15 +209,49 @@ const ACOutputConfigDialogComponent = ({
     try {
       // Convert string values back to appropriate types
       const configToSave = {
-        ...config,
-        windowsMode: parseInt(config.windowsMode),
-        fanType: parseInt(config.fanType),
-        tempType: parseInt(config.tempType),
-        tempUnit: parseInt(config.tempUnit),
-        valveContact: parseInt(config.valveContact),
-        valveType: parseInt(config.valveType),
-        deadBand: parseFloat(config.deadBand),
-        windows: parseInt(config.windows),
+        // Basic configuration
+        address: parseInt(config.address) || 0,
+        enable: config.enable || false,
+        windowMode: parseInt(config.windowMode) || 0,
+        fanType: parseInt(config.fanType) || 0,
+        tempType: parseInt(config.tempType) || 0,
+        tempUnit: parseInt(config.tempUnit) || 0,
+        valveContact: parseInt(config.valveContact) || 0,
+        valveType: parseInt(config.valveType) || 0,
+        deadband: parseInt(config.deadband) || 0,
+        windowBypass: parseInt(config.windowBypass) || 0,
+        setPointOffset: parseInt(config.setPointOffset) || 0,
+
+        // Group assignments
+        lowFCU_Group: parseInt(config.lowFCU_Group) || 0,
+        medFCU_Group: parseInt(config.medFCU_Group) || 0,
+        highFCU_Group: parseInt(config.highFCU_Group) || 0,
+        fanAnalogGroup: parseInt(config.fanAnalogGroup) || 0,
+        analogCoolGroup: parseInt(config.analogCoolGroup) || 0,
+        analogHeatGroup: parseInt(config.analogHeatGroup) || 0,
+        valveCoolOpenGroup: parseInt(config.valveCoolOpenGroup) || 0,
+        valveCoolCloseGroup: parseInt(config.valveCoolCloseGroup) || 0,
+        valveHeatOpenGroup: parseInt(config.valveHeatOpenGroup) || 0,
+        valveHeatCloseGroup: parseInt(config.valveHeatCloseGroup) || 0,
+
+        // Power and mode settings
+        unoccupyPower: parseInt(config.unoccupyPower) || 0,
+        occupyPower: parseInt(config.occupyPower) || 0,
+        standbyPower: parseInt(config.standbyPower) || 0,
+        unoccupyMode: parseInt(config.unoccupyMode) || 0,
+        occupyMode: parseInt(config.occupyMode) || 0,
+        standbyMode: parseInt(config.standbyMode) || 0,
+        unoccupyFanSpeed: parseInt(config.unoccupyFanSpeed) || 0,
+        occupyFanSpeed: parseInt(config.occupyFanSpeed) || 0,
+        standbyFanSpeed: parseInt(config.standbyFanSpeed) || 0,
+
+        // Set point values
+        unoccupyCoolSetPoint: parseInt(config.unoccupyCoolSetPoint) || 0,
+        occupyCoolSetPoint: parseInt(config.occupyCoolSetPoint) || 0,
+        standbyCoolSetPoint: parseInt(config.standbyCoolSetPoint) || 0,
+        unoccupyHeatSetPoint: parseInt(config.unoccupyHeatSetPoint) || 0,
+        occupyHeatSetPoint: parseInt(config.occupyHeatSetPoint) || 0,
+        standbyHeatSetPoint: parseInt(config.standbyHeatSetPoint) || 0,
       };
 
       await onSave(configToSave);
@@ -268,6 +354,22 @@ const ACOutputConfigDialogComponent = ({
                 </Label>
               </div>
 
+              {/* Address Selection */}
+              <div className="space-y-2">
+                <Label className="text-sm font-medium">Aircon Address</Label>
+                <Combobox
+                  value={config.address?.toString() || ""}
+                  onValueChange={(value) => updateConfig("address", parseInt(value) || 0)}
+                  options={airconOptions.map(item => ({
+                    value: item.address.toString(),
+                    label: `${item.name} (${item.address})`
+                  }))}
+                  placeholder="Select aircon address..."
+                  searchPlaceholder="Search aircon..."
+                  emptyText="No aircon found"
+                />
+              </div>
+
               {/* Basic Configuration */}
               <Card>
                 <CardHeader>
@@ -283,9 +385,9 @@ const ACOutputConfigDialogComponent = ({
                         Windows mode
                       </Label>
                       <Select
-                        value={config.windowsMode}
+                        value={config.windowMode}
                         onValueChange={(value) =>
-                          updateConfig("windowsMode", value)
+                          updateConfig("windowMode", value)
                         }
                       >
                         <SelectTrigger className="w-full">
@@ -411,9 +513,9 @@ const ACOutputConfigDialogComponent = ({
                     <div className="space-y-2">
                       <Label className="text-sm font-medium">Dead band</Label>
                       <Select
-                        value={config.deadBand}
+                        value={config.deadband?.toString() || "0"}
                         onValueChange={(value) =>
-                          updateConfig("deadBand", value)
+                          updateConfig("deadband", parseInt(value) || 0)
                         }
                       >
                         <SelectTrigger className="w-full">
@@ -430,11 +532,11 @@ const ACOutputConfigDialogComponent = ({
                     </div>
 
                     <div className="space-y-2">
-                      <Label className="text-sm font-medium">Windows</Label>
+                      <Label className="text-sm font-medium">Window Bypass</Label>
                       <Select
-                        value={config.windows}
+                        value={config.windowBypass}
                         onValueChange={(value) =>
-                          updateConfig("windows", value)
+                          updateConfig("windowBypass", value)
                         }
                       >
                         <SelectTrigger className="w-full">
@@ -467,9 +569,9 @@ const ACOutputConfigDialogComponent = ({
                       <Label className="text-sm font-medium">Low fan</Label>
                       <Combobox
                         options={lightingOptions}
-                        value={config.lowFan?.toString() || ""}
+                        value={config.lowFCU_Group?.toString() || ""}
                         onValueChange={(value) =>
-                          updateConfig("lowFan", value ? parseInt(value) : null)
+                          updateConfig("lowFCU_Group", value ? parseInt(value) : 0)
                         }
                         placeholder="Select lighting group..."
                         emptyText="No lighting groups found"
@@ -480,9 +582,9 @@ const ACOutputConfigDialogComponent = ({
                       <Label className="text-sm font-medium">Med fan</Label>
                       <Combobox
                         options={lightingOptions}
-                        value={config.medFan?.toString() || ""}
+                        value={config.medFCU_Group?.toString() || ""}
                         onValueChange={(value) =>
-                          updateConfig("medFan", value ? parseInt(value) : null)
+                          updateConfig("medFCU_Group", value ? parseInt(value) : 0)
                         }
                         placeholder="Select lighting group..."
                         emptyText="No lighting groups found"
@@ -493,11 +595,11 @@ const ACOutputConfigDialogComponent = ({
                       <Label className="text-sm font-medium">High fan</Label>
                       <Combobox
                         options={lightingOptions}
-                        value={config.highFan?.toString() || ""}
+                        value={config.highFCU_Group?.toString() || ""}
                         onValueChange={(value) =>
                           updateConfig(
-                            "highFan",
-                            value ? parseInt(value) : null
+                            "highFCU_Group",
+                            value ? parseInt(value) : 0
                           )
                         }
                         placeholder="Select lighting group..."
@@ -509,11 +611,11 @@ const ACOutputConfigDialogComponent = ({
                       <Label className="text-sm font-medium">Analog fan</Label>
                       <Combobox
                         options={lightingOptions}
-                        value={config.analogFan?.toString() || ""}
+                        value={config.fanAnalogGroup?.toString() || ""}
                         onValueChange={(value) =>
                           updateConfig(
-                            "analogFan",
-                            value ? parseInt(value) : null
+                            "fanAnalogGroup",
+                            value ? parseInt(value) : 0
                           )
                         }
                         placeholder="Select lighting group..."
@@ -525,11 +627,11 @@ const ACOutputConfigDialogComponent = ({
                       <Label className="text-sm font-medium">Analog cool</Label>
                       <Combobox
                         options={lightingOptions}
-                        value={config.analogCool?.toString() || ""}
+                        value={config.analogCoolGroup?.toString() || ""}
                         onValueChange={(value) =>
                           updateConfig(
-                            "analogCool",
-                            value ? parseInt(value) : null
+                            "analogCoolGroup",
+                            value ? parseInt(value) : 0
                           )
                         }
                         placeholder="Select lighting group..."
@@ -541,11 +643,11 @@ const ACOutputConfigDialogComponent = ({
                       <Label className="text-sm font-medium">Analog heat</Label>
                       <Combobox
                         options={lightingOptions}
-                        value={config.analogHeat?.toString() || ""}
+                        value={config.analogHeatGroup?.toString() || ""}
                         onValueChange={(value) =>
                           updateConfig(
-                            "analogHeat",
-                            value ? parseInt(value) : null
+                            "analogHeatGroup",
+                            value ? parseInt(value) : 0
                           )
                         }
                         placeholder="Select lighting group..."
@@ -570,11 +672,11 @@ const ACOutputConfigDialogComponent = ({
                       <Label className="text-sm font-medium">Cool open</Label>
                       <Combobox
                         options={lightingOptions}
-                        value={config.coolOpen?.toString() || ""}
+                        value={config.valveCoolOpenGroup?.toString() || ""}
                         onValueChange={(value) =>
                           updateConfig(
-                            "coolOpen",
-                            value ? parseInt(value) : null
+                            "valveCoolOpenGroup",
+                            value ? parseInt(value) : 0
                           )
                         }
                         placeholder="Select lighting group..."
@@ -586,11 +688,11 @@ const ACOutputConfigDialogComponent = ({
                       <Label className="text-sm font-medium">Cool close</Label>
                       <Combobox
                         options={lightingOptions}
-                        value={config.coolClose?.toString() || ""}
+                        value={config.valveCoolCloseGroup?.toString() || ""}
                         onValueChange={(value) =>
                           updateConfig(
-                            "coolClose",
-                            value ? parseInt(value) : null
+                            "valveCoolCloseGroup",
+                            value ? parseInt(value) : 0
                           )
                         }
                         placeholder="Select lighting group..."
@@ -602,11 +704,11 @@ const ACOutputConfigDialogComponent = ({
                       <Label className="text-sm font-medium">Heat open</Label>
                       <Combobox
                         options={lightingOptions}
-                        value={config.heatOpen?.toString() || ""}
+                        value={config.valveHeatOpenGroup?.toString() || ""}
                         onValueChange={(value) =>
                           updateConfig(
-                            "heatOpen",
-                            value ? parseInt(value) : null
+                            "valveHeatOpenGroup",
+                            value ? parseInt(value) : 0
                           )
                         }
                         placeholder="Select lighting group..."
@@ -618,16 +720,50 @@ const ACOutputConfigDialogComponent = ({
                       <Label className="text-sm font-medium">Heat close</Label>
                       <Combobox
                         options={lightingOptions}
-                        value={config.heatClose?.toString() || ""}
+                        value={config.valveHeatCloseGroup?.toString() || ""}
                         onValueChange={(value) =>
                           updateConfig(
-                            "heatClose",
-                            value ? parseInt(value) : null
+                            "valveHeatCloseGroup",
+                            value ? parseInt(value) : 0
                           )
                         }
                         placeholder="Select lighting group..."
                         emptyText="No lighting groups found"
                       />
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Additional Configuration */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2 text-base">
+                    <Settings className="h-4 w-4" />
+                    Additional Settings
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label className="text-sm font-medium">Set Point Offset</Label>
+                      <Select
+                        value={config.setPointOffset?.toString() || "0"}
+                        onValueChange={(value) =>
+                          updateConfig("setPointOffset", parseInt(value) || 0)
+                        }
+                      >
+                        <SelectTrigger className="w-full">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {Array.from({ length: 21 }, (_, i) => i - 10).map((offset) => (
+                            <SelectItem key={offset} value={offset.toString()}>
+                              {offset > 0 ? `+${offset}` : offset.toString()}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
                     </div>
                   </div>
                 </CardContent>
