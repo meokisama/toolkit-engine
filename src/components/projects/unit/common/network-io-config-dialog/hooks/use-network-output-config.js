@@ -516,6 +516,14 @@ export const useNetworkOutputConfig = (item, outputConfigs = [], setOutputConfig
       });
 
       if (response) {
+        // Calculate the correct index within the type for toast message
+        const outputConfig = outputConfigs.find(config => config.index === outputIndex);
+        const typeIndex = getTypeIndex(outputIndex, outputConfig?.type, outputConfigs);
+        const typeLabel = outputConfig?.type === "ac" ? "AC" :
+          outputConfig?.type === "relay" ? "Relay" :
+            outputConfig?.type === "dimmer" ? "Dimmer" :
+              outputConfig?.type === "ao" ? "AO" : "Output";
+
         toast.success(
           `${typeLabel} ${typeIndex} ${currentState ? "turned off" : "turned on"}`
         );
@@ -523,6 +531,15 @@ export const useNetworkOutputConfig = (item, outputConfigs = [], setOutputConfig
       }
     } catch (error) {
       console.error("Failed to toggle output state:", error);
+
+      // Calculate the correct index within the type for error toast message
+      const outputConfig = outputConfigs.find(config => config.index === outputIndex);
+      const typeIndex = getTypeIndex(outputIndex, outputConfig?.type, outputConfigs);
+      const typeLabel = outputConfig?.type === "ac" ? "AC" :
+        outputConfig?.type === "relay" ? "Relay" :
+          outputConfig?.type === "dimmer" ? "Dimmer" :
+            outputConfig?.type === "ao" ? "AO" : "Output";
+
       toast.error(
         `Failed to toggle ${typeLabel} ${typeIndex}: ${error.message}`
       );

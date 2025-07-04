@@ -20,14 +20,94 @@ const NetworkOutputConfigItem = memo(
   }) => {
     const isAircon = config.type === "ac";
 
-    // Generate display name based on type and index
-    const getDisplayName = useCallback((type, index) => {
+    // Check if output has address but no matching database entry
+    const hasUnmappedAddress = useMemo(() => {
+      if (isAircon) {
+        // For aircon outputs, check airconAddress
+        if (!config.airconAddress || config.airconAddress === 0) {
+          return false;
+        }
+
+        // Check if aircon address exists in deviceOptions
+        const addressExists = deviceOptions.some((option) => {
+          const match = option.label.match(/\((\d+)\)$/);
+          return match && parseInt(match[1]) === config.airconAddress;
+        });
+
+        return !addressExists;
+      } else {
+        // For lighting outputs, check lightingAddress
+        if (!config.lightingAddress || config.lightingAddress === 0) {
+          return false;
+        }
+
+        // Check if lighting address exists in deviceOptions
+        const addressExists = deviceOptions.some((option) => {
+          const match = option.label.match(/\((\d+)\)$/);
+          return match && parseInt(match[1]) === config.lightingAddress;
+        });
+
+        return !addressExists;
+      }
+    }, [isAircon, config.lightingAddress, config.airconAddress, deviceOptions]);
+
+    // Auto-map device ID based on address (lighting or aircon)
+    const autoMappedDeviceId = useMemo(() => {
+      if (isAircon) {
+        // For aircon outputs, map based on airconAddress
+        if (!config.airconAddress || config.airconAddress === 0) {
+          return config.deviceId;
+        }
+
+        // Find matching aircon option by address
+        const matchingOption = deviceOptions.find((option) => {
+          const match = option.label.match(/\((\d+)\)$/);
+          return match && parseInt(match[1]) === config.airconAddress;
+        });
+
+        return matchingOption
+          ? parseInt(matchingOption.value)
+          : config.deviceId;
+      } else {
+        // For lighting outputs, map based on lightingAddress
+        if (!config.lightingAddress || config.lightingAddress === 0) {
+          return config.deviceId;
+        }
+
+        // Find matching lighting option by address
+        const matchingOption = deviceOptions.find((option) => {
+          const match = option.label.match(/\((\d+)\)$/);
+          return match && parseInt(match[1]) === config.lightingAddress;
+        });
+
+        return matchingOption
+          ? parseInt(matchingOption.value)
+          : config.deviceId;
+      }
+    }, [
+      isAircon,
+      config.lightingAddress,
+      config.airconAddress,
+      config.deviceId,
+      deviceOptions,
+    ]);
+
+    // Generate display name based on type and index within that type
+    const getDisplayName = useCallback((type, globalIndex, allConfigs) => {
       const typeLabels = {
         relay: "Relay",
         dimmer: "Dimmer",
         ao: "AO",
         ac: "Aircon",
       };
+
+      // Calculate index within the same type (restart at 1 for each type)
+      const sameTypeConfigs = allConfigs.filter(
+        (config) => config.type === type
+      );
+      const typeIndex = sameTypeConfigs.findIndex(
+        (config) => config.index === globalIndex
+      );
 
       const label = typeLabels[type] || type;
       return `${label} ${typeIndex + 1}`;
