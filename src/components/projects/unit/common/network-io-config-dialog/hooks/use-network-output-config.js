@@ -356,6 +356,7 @@ export const useNetworkOutputConfig = (item, outputConfigs = [], setOutputConfig
             valveHeatOpenGroup: config.valveHeatOpenGroup || 0,
             valveHeatCloseGroup: config.valveHeatCloseGroup || 0,
             windowBypass: config.windowBypass || 0,
+            setPointOffset: config.setPointOffset || 0,
             unoccupyPower: config.unoccupyPower || 0,
             occupyPower: config.occupyPower || 0,
             standbyPower: config.standbyPower || 0,
