@@ -8,7 +8,8 @@ export const useInputType = (
   inputIndex,
   selectedProject,
   loadedTabs,
-  loadTabData
+  loadTabData,
+  open = true // Add open parameter to track dialog state
 ) => {
   const [currentInputType, setCurrentInputType] = useState(functionValue);
   const [isInputTypeChanging, setIsInputTypeChanging] = useState(false);
@@ -60,6 +61,14 @@ export const useInputType = (
       setCurrentInputType(functionValue);
     }
   }, [functionValue]);
+
+  // Reset currentInputType when dialog opens to ensure fresh state
+  useEffect(() => {
+    if (open && functionValue !== null && functionValue !== undefined) {
+      setCurrentInputType(functionValue);
+      setIsInputTypeChanging(false);
+    }
+  }, [open, functionValue]);
 
   // Ensure current input type is valid for this unit type (only on initial load)
   useEffect(() => {

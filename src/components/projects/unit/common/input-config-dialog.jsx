@@ -58,7 +58,8 @@ export function MultiGroupConfigDialog({
     inputIndex,
     selectedProject,
     loadedTabs,
-    loadTabData
+    loadTabData,
+    open
   );
 
   const {
@@ -145,6 +146,20 @@ export function MultiGroupConfigDialog({
     }
     return false;
   }, [currentInputType, rlcOptionsConfig.multiGroupEnabled]);
+
+  // Reset input type when dialog opens to ensure fresh state
+  React.useEffect(() => {
+    if (open) {
+      resetInputType();
+    }
+  }, [open, resetInputType]);
+
+  // Clear all groups when input type changes (user preference)
+  React.useEffect(() => {
+    if (isInputTypeChanging) {
+      handleClearAllGroups();
+    }
+  }, [isInputTypeChanging, handleClearAllGroups]);
 
   // Initialize groups when dialog opens or input type changes
   React.useEffect(() => {

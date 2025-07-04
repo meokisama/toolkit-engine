@@ -25,6 +25,7 @@ import {
   CheckCircle,
   XCircle,
   Loader2,
+  List,
 } from "lucide-react";
 import { toast } from "sonner";
 import { useProjectDetail } from "@/contexts/project-detail-context";
@@ -47,6 +48,7 @@ export function SendAllConfigDialog({
     scenes: true,
     schedules: true,
     multiScenes: true,
+    sequences: true,
     knx: true,
     curtain: true,
   });
@@ -110,6 +112,16 @@ export function SendAllConfigDialog({
         // Add calculated index to multi-scenes
         configs.multiScenes = multiScenes.map((multiScene, index) => ({
           ...multiScene,
+          calculatedIndex: index,
+        }));
+      }
+      if (configTypes.sequences) {
+        const sequences = await window.electronAPI.sequences.getAll(
+          selectedProject.id
+        );
+        // Add calculated index to sequences
+        configs.sequences = sequences.map((sequence, index) => ({
+          ...sequence,
           calculatedIndex: index,
         }));
       }
@@ -263,6 +275,47 @@ export function SendAllConfigDialog({
                 multiSceneAddress: multiScene.address,
                 multiSceneType: multiScene.type,
                 sceneAddresses,
+              }
+            );
+          }
+          break;
+
+        case "sequences":
+          for (const sequence of configData) {
+            // Get sequence multi-scenes for each sequence (same as manual send)
+            let sequenceMultiScenes = [];
+            try {
+              sequenceMultiScenes = await window.electronAPI.sequences.getMultiScenes(
+                sequence.id
+              );
+            } catch (error) {
+              console.error(
+                `Failed to load multi-scenes for sequence ${sequence.id}:`,
+                error
+              );
+              // Skip sequences without multi-scenes
+              continue;
+            }
+
+            // Extract multi-scene addresses (same as manual send)
+            const multiSceneAddresses = sequenceMultiScenes.map((s) => s.multi_scene_address);
+
+            console.log("Sending sequence to unit (Send All Config):", {
+              unitIp: unit.ip_address,
+              canId: unit.id_can,
+              sequenceIndex: sequence.calculatedIndex ?? 0,
+              sequenceName: sequence.name,
+              sequenceAddress: sequence.address,
+              multiSceneAddresses: multiSceneAddresses,
+            });
+
+            await window.electronAPI.rcuController.setupSequence(
+              unit.ip_address,
+              unit.id_can,
+              {
+                sequenceIndex: sequence.calculatedIndex ?? 0,
+                sequenceAddress: sequence.address,
+                multiSceneAddresses,
               }
             );
           }
@@ -479,6 +532,7 @@ export function SendAllConfigDialog({
     scenes: { label: "Scenes", icon: Play },
     schedules: { label: "Schedules", icon: Calendar },
     multiScenes: { label: "Multi-Scenes", icon: GitCompare },
+    sequences: { label: "Sequences", icon: List },
     knx: { label: "KNX", icon: Network },
     curtain: { label: "Curtain", icon: ChevronsUpDown },
   };
@@ -503,7 +557,7 @@ export function SendAllConfigDialog({
               <CardHeader>
                 <CardTitle className="text-sm">Configuration Types</CardTitle>
               </CardHeader>
-              <CardContent className="grid grid-cols-5">
+              <CardContent className="grid grid-cols-6">
                 {Object.entries(configTypeLabels).map(
                   ([type, { label, icon: Icon }]) => (
                     <div key={type} className="flex items-center space-x-2">

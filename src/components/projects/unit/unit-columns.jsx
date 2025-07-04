@@ -726,32 +726,5 @@ export const createNetworkUnitColumns = () => [
     meta: {
       className: "w-[8%]",
     },
-  },
-  {
-    id: "actions",
-    header: "",
-    cell: ({ row, table }) => {
-      const item = row.original;
-      const { onIOConfig } = table.options.meta || {};
-
-      return (
-        <div className="flex items-center justify-center gap-1">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => onIOConfig?.(item)}
-            title="I/O Configuration"
-            className="h-8 w-8 p-0"
-          >
-            <Settings className="h-4 w-4" />
-          </Button>
-        </div>
-      );
-    },
-    enableSorting: false,
-    enableHiding: false,
-    meta: {
-      className: "w-[5%]",
-    },
-  },
+  }
 ];
