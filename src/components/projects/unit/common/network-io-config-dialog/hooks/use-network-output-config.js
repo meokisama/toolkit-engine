@@ -194,7 +194,9 @@ export const useNetworkOutputConfig = (item, outputConfigs = [], setOutputConfig
 
     if (outputType === "ac") {
       // Load AC configuration for this specific output
+      console.log(`Loading AC configs for output type: ${outputType}, index: ${outputIndex}`);
       const allACConfigs = await loadAllACConfigs();
+      console.log(`loadAllACConfigs returned:`, allACConfigs);
 
       if (allACConfigs && allACConfigs[outputIndex]) {
         console.log(`All AC Configs:`, allACConfigs);
@@ -243,6 +245,10 @@ export const useNetworkOutputConfig = (item, outputConfigs = [], setOutputConfig
           occupyHeatSetPoint: acConfig.occupyHeatSetPoint || 0,
           standbyHeatSetPoint: acConfig.standbyHeatSetPoint || 0,
         };
+
+        console.log(`Formatted AC config:`, formattedConfig);
+      } else {
+        console.log(`AC Config condition failed - allACConfigs:`, allACConfigs, `outputIndex:`, outputIndex, `allACConfigs[outputIndex]:`, allACConfigs?.[outputIndex]);
       }
     } else {
       // Load lighting/relay/dimmer output configs from unit
