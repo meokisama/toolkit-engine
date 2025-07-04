@@ -31,7 +31,27 @@ import { useNetworkOutputConfig } from "./hooks/use-network-output-config";
 import { useProjectDetail } from "@/contexts/project-detail-context";
 
 const NetworkIOConfigDialog = ({ open, onOpenChange, item = null }) => {
-  const { projectItems } = useProjectDetail();
+  const { projectItems, selectedProject, loadTabData, loadedTabs } =
+    useProjectDetail();
+
+  // Use custom hooks for better organization
+  const {
+    inputConfigs,
+    outputConfigs,
+    setOutputConfigs,
+    ioSpec,
+    loading,
+    isInitialLoading,
+    configsLoaded,
+    autoRefreshEnabled,
+    setAutoRefreshEnabled,
+    readStatesSequentially,
+    readInputConfigsFromUnit,
+    readOutputConfigsFromUnit,
+    readAirconConfigsFromUnit,
+    pauseAutoRefresh,
+    resumeAutoRefresh,
+  } = useNetworkIOConfig(item, open, false); // We'll update this after getting multiGroupDialogOpen
 
   const {
     multiGroupDialogOpen,
@@ -62,31 +82,65 @@ const NetworkIOConfigDialog = ({ open, onOpenChange, item = null }) => {
     handleOpenOutputConfig,
     handleSaveOutputConfig,
     handleToggleOutputState,
-  } = useNetworkOutputConfig(item);
+    loadAndMapAirconConfigs,
+  } = useNetworkOutputConfig(
+    item,
+    outputConfigs,
+    setOutputConfigs,
+    lightingItems,
+    airconItems,
+    readAirconConfigsFromUnit
+  );
 
   // Check if any child dialog is open
   const anyChildDialogOpen =
     multiGroupDialogOpen || lightingOutputDialogOpen || acOutputDialogOpen;
 
-  // Use custom hooks for better organization
-  const {
-    inputConfigs,
-    outputConfigs,
-    ioSpec,
-    loading,
-    isInitialLoading,
-    readStatesSequentially,
-    readInputConfigsFromUnit,
-  } = useNetworkIOConfig(item, open, anyChildDialogOpen);
+  // Handle auto refresh pause/resume when output dialogs open/close
+  useEffect(() => {
+    if (lightingOutputDialogOpen || acOutputDialogOpen) {
+      pauseAutoRefresh();
+    } else if (open && !multiGroupDialogOpen && autoRefreshEnabled) {
+      // Add delay before resuming auto refresh to allow unit to process any pending commands
+      setTimeout(() => {
+        resumeAutoRefresh();
+      }, 1000);
+    }
+  }, [
+    lightingOutputDialogOpen,
+    acOutputDialogOpen,
+    open,
+    multiGroupDialogOpen,
+    autoRefreshEnabled,
+    pauseAutoRefresh,
+    resumeAutoRefresh,
+  ]);
 
-  // Memoize lighting and aircon items to prevent unnecessary re-renders
-  const lightingItems = useMemo(() => {
-    return projectItems?.lighting || [];
-  }, [projectItems?.lighting]);
+  // Load required data when dialog opens
+  useEffect(() => {
+    if (open && selectedProject) {
+      // Load aircon data if not already loaded
+      if (!loadedTabs.has("aircon")) {
+        loadTabData(selectedProject.id, "aircon");
+      }
+      // Load lighting data if not already loaded
+      if (!loadedTabs.has("lighting")) {
+        loadTabData(selectedProject.id, "lighting");
+      }
+    }
+  }, [open, selectedProject, loadedTabs, loadTabData]);
 
-  const airconItems = useMemo(() => {
-    return projectItems?.aircon || [];
-  }, [projectItems?.aircon]);
+  // Load and map aircon configs after initial loading is complete
+  useEffect(() => {
+    if (!isInitialLoading && configsLoaded && loadAndMapAirconConfigs) {
+      // Add a small delay to ensure all initial configs are loaded
+      const timer = setTimeout(() => {
+        loadAndMapAirconConfigs();
+      }, 500);
+
+      return () => clearTimeout(timer);
+    }
+  }, [isInitialLoading, configsLoaded, loadAndMapAirconConfigs]);
 
   // Create device options for outputs
   const outputDeviceOptionsMap = useMemo(() => {
@@ -127,6 +181,82 @@ const NetworkIOConfigDialog = ({ open, onOpenChange, item = null }) => {
       console.error("Failed to read input configurations:", error);
     }
   }, [readInputConfigsFromUnit]);
+
+  // Handle adding missing address to database (aircon or lighting)
+  const handleAddMissingAddress = useCallback(
+    async (address, outputIndex, type = "lighting") => {
+      try {
+        if (type === "aircon") {
+          // Create new aircon item with the missing address
+          const newAirconItem = {
+            name: `Group ${address}`,
+            address: address.toString(),
+            description: `Auto-added from network unit output ${
+              outputIndex + 1
+            }`,
+          };
+
+          // Add to database via electronAPI with projectId
+          const result = await window.electronAPI.aircon.create(
+            selectedProject.id,
+            newAirconItem
+          );
+
+          if (result) {
+            // Refresh aircon items to update the options
+            await loadTabData(selectedProject.id, "aircon");
+
+            // Refresh aircon configurations to update the mapping
+            await readAirconConfigsFromUnit();
+
+            // Show success message
+            toast.success(`Aircon address ${address} added to database`);
+          } else {
+            throw new Error("Failed to create aircon item");
+          }
+        } else {
+          // Create new lighting item with the missing address
+          const newLightingItem = {
+            name: `Group ${address}`,
+            address: address.toString(),
+            description: `Auto-added from network unit output ${
+              outputIndex + 1
+            }`,
+            object_type: "OBJ_LIGHTING",
+            object_value: 1,
+          };
+
+          // Add to database via electronAPI with projectId
+          const result = await window.electronAPI.lighting.create(
+            selectedProject.id,
+            newLightingItem
+          );
+
+          if (result) {
+            // Refresh lighting items to update the options
+            await loadTabData(selectedProject.id, "lighting");
+
+            // Refresh output configurations to update the mapping
+            await readOutputConfigsFromUnit();
+
+            // Show success message
+            toast.success(`Lighting address ${address} added to database`);
+          } else {
+            throw new Error("Failed to create lighting item");
+          }
+        }
+      } catch (error) {
+        console.error(`Error adding missing ${type} address:`, error);
+        toast.error(`Error adding ${type} address: ${error.message}`);
+      }
+    },
+    [
+      selectedProject?.id,
+      loadTabData,
+      readOutputConfigsFromUnit,
+      readAirconConfigsFromUnit,
+    ]
+  );
 
   if (!item || !ioSpec) {
     return null;

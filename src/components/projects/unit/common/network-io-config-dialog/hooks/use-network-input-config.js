@@ -118,6 +118,15 @@ export const useNetworkInputConfig = (item, projectItems, refreshInputConfigs = 
         });
 
         toast.success(`Input ${inputIndex + 1} function updated successfully`);
+
+        // Refresh input configurations in the main dialog
+        if (refreshInputConfigs) {
+          try {
+            await refreshInputConfigs();
+          } catch (refreshError) {
+            console.warn("⚠️ Failed to refresh input configurations:", refreshError);
+          }
+        }
       } catch (error) {
         console.error(`Failed to update input ${inputIndex} function:`, error);
         toast.error(`Failed to update input function: ${error.message}`);
@@ -154,16 +163,8 @@ export const useNetworkInputConfig = (item, projectItems, refreshInputConfigs = 
       setMultiGroupDialogOpen(true);
 
       try {
-        // Check if we have cached config first
-        let unitConfig = inputConfigsFromUnit[inputIndex];
-
-        if (!unitConfig) {
-          // If not cached, try to read from unit
-          console.log(
-            `No cached config for input ${inputIndex}, attempting to read from unit...`
-          );
-          unitConfig = await readInputConfigFromUnit(inputIndex);
-        }
+        // Always read fresh config from unit to get latest state
+        let unitConfig = await readInputConfigFromUnit(inputIndex);
 
         if (unitConfig) {
           // Convert unit config to multi-group config format
@@ -323,6 +324,15 @@ export const useNetworkInputConfig = (item, projectItems, refreshInputConfigs = 
           } configuration sent successfully`
         );
 
+        // Refresh input configurations in the main dialog
+        if (refreshInputConfigs) {
+          try {
+            await refreshInputConfigs();
+          } catch (refreshError) {
+            console.warn("⚠️ Failed to refresh input configurations:", refreshError);
+          }
+        }
+
         return true;
       } catch (error) {
         console.error("❌ Failed to save multi-group configuration:", error);
@@ -370,6 +380,15 @@ export const useNetworkInputConfig = (item, projectItems, refreshInputConfigs = 
         toast.success(
           `Input ${inputIndex + 1} lighting association updated successfully`
         );
+
+        // Refresh input configurations in the main dialog
+        if (refreshInputConfigs) {
+          try {
+            await refreshInputConfigs();
+          } catch (refreshError) {
+            console.warn("⚠️ Failed to refresh input configurations:", refreshError);
+          }
+        }
       } catch (error) {
         console.error(
           `Failed to update input ${inputIndex} lighting association:`,
