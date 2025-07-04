@@ -16,11 +16,8 @@ export const useNetworkOutputConfig = (item, outputConfigs = [], setOutputConfig
 
     // Return cached data if available
     if (allACConfigs) {
-      console.log(`Returning cached AC configs:`, allACConfigs);
       return allACConfigs;
     }
-
-    console.log(`Loading fresh AC configs from network unit...`);
 
     try {
       const acConfigs = await window.electronAPI.rcuController.getLocalACConfig(
@@ -43,14 +40,11 @@ export const useNetworkOutputConfig = (item, outputConfigs = [], setOutputConfig
   // Load and map aircon configs to output configs
   const loadAndMapAirconConfigs = useCallback(async () => {
     if (!readAirconConfigsFromUnit) {
-      console.warn("readAirconConfigsFromUnit function not provided");
       return;
     }
 
     try {
-      console.log("Loading and mapping aircon configs to output configs...");
       await readAirconConfigsFromUnit();
-      console.log("Aircon configs loaded and mapped successfully");
     } catch (error) {
       console.error("Failed to load and map aircon configs:", error);
       toast.error("Failed to load aircon configurations");
@@ -86,7 +80,7 @@ export const useNetworkOutputConfig = (item, outputConfigs = [], setOutputConfig
           if (airconItem) {
             airconAddress = parseInt(airconItem.address) || 0;
           } else {
-            console.warn(`Aircon item with ID ${deviceId} not found`);
+            console.error(`Aircon item with ID ${deviceId} not found`);
           }
         }
 
@@ -143,7 +137,7 @@ export const useNetworkOutputConfig = (item, outputConfigs = [], setOutputConfig
           if (lightingItem) {
             lightingAddress = parseInt(lightingItem.address) || 0;
           } else {
-            console.warn(`Lighting item with ID ${deviceId} not found`);
+            console.error(`Lighting item with ID ${deviceId} not found`);
           }
         }
 
@@ -205,7 +199,7 @@ export const useNetworkOutputConfig = (item, outputConfigs = [], setOutputConfig
         return configResponse.outputConfigs;
       }
     } catch (error) {
-      console.warn(`Failed to load output configs from unit:`, error.message);
+      console.error(`Failed to load output configs from unit:`, error);
       toast.error(`Failed to load output configurations from unit`);
     }
 
@@ -240,27 +234,17 @@ export const useNetworkOutputConfig = (item, outputConfigs = [], setOutputConfig
 
     if (outputType === "ac") {
       // Load AC configuration for this specific output
-      console.log(`Loading AC configs for output type: ${outputType}, index: ${outputIndex}`);
       const allACConfigs = await loadAllACConfigs();
-      console.log(`loadAllACConfigs returned:`, allACConfigs);
 
       // Calculate AC config index: need to find which AC output this is
       // AC outputs start after all lighting outputs (relay + dimmer + ao)
       const acOutputs = outputConfigs.filter(output => output.type === "ac");
       const acConfigIndex = acOutputs.findIndex(output => output.index === outputIndex);
 
-      console.log(`AC outputs:`, acOutputs);
-      console.log(`AC config index for output ${outputIndex}:`, acConfigIndex);
-
       if (allACConfigs && acConfigIndex >= 0 && allACConfigs[acConfigIndex]) {
-        console.log(`All AC Configs:`, allACConfigs);
-        console.log(`Looking for AC config index:`, acConfigIndex);
-
         const acConfig = allACConfigs[acConfigIndex];
-        console.log(`AC Config for output ${outputIndex} (AC index ${acConfigIndex}) - raw acConfig:`, acConfig);
 
         // Format AC config for AC output config dialog
-
         formattedConfig = {
           address: acConfig.address || 0,
           enable: acConfig.enable || false,
@@ -299,11 +283,7 @@ export const useNetworkOutputConfig = (item, outputConfigs = [], setOutputConfig
           occupyHeatSetPoint: acConfig.occupyHeatSetPoint || 0,
           standbyHeatSetPoint: acConfig.standbyHeatSetPoint || 0,
         };
-
-        console.log(`Formatted AC config:`, formattedConfig);
-      } else {
-        console.log(`AC Config condition failed - allACConfigs:`, allACConfigs, `outputIndex:`, outputIndex, `allACConfigs[outputIndex]:`, allACConfigs?.[outputIndex]);
-      }
+      } 
     } else {
       // Load lighting/relay/dimmer output configs from unit
       const allConfigs = await loadAllOutputConfigs();
@@ -341,7 +321,7 @@ export const useNetworkOutputConfig = (item, outputConfigs = [], setOutputConfig
             }
           }
         } catch (error) {
-          console.warn(`Failed to load fresh output assign data for output ${outputIndex}:`, error.message);
+          console.error(`Failed to load fresh output assign data for output ${outputIndex}:`, error);
         }
       }
 
