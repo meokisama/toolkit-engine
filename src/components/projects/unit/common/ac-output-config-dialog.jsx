@@ -148,7 +148,9 @@ const ACOutputConfigDialogComponent = ({
       initialConfig !== null &&
       initialConfig !== undefined
     ) {
-      setConfig({
+      console.log("AC Config Dialog - initialConfig:", initialConfig);
+
+      const newConfig = {
         // Basic configuration
         address: initialConfig.address || 0,
         enable: initialConfig.enable || false,
@@ -192,7 +194,10 @@ const ACOutputConfigDialogComponent = ({
         unoccupyHeatSetPoint: initialConfig.unoccupyHeatSetPoint || 0,
         occupyHeatSetPoint: initialConfig.occupyHeatSetPoint || 0,
         standbyHeatSetPoint: initialConfig.standbyHeatSetPoint || 0,
-      });
+      };
+
+      console.log("AC Config Dialog - newConfig:", newConfig);
+      setConfig(newConfig);
     }
   }, [open, initialConfig, isLoading]);
 

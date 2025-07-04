@@ -282,6 +282,8 @@ async function getLocalACConfig(unitIp, canId) {
         const configData = responseData.slice(offset, offset + AC_CONFIG_SIZE);
 
         // Parse the 64-byte AC configuration structure
+        console.log(`AC Config ${i} - Raw bytes 0-10:`, Array.from(configData.slice(0, 11)));
+
         const acConfig = {
           index: i,
           address: configData[0],

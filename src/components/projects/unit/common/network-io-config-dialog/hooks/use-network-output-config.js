@@ -200,6 +200,8 @@ export const useNetworkOutputConfig = (item, outputConfigs = [], setOutputConfig
         const acConfig = allACConfigs[outputIndex];
 
         // Format AC config for AC output config dialog
+        console.log(`AC Config for output ${outputIndex} - raw acConfig:`, acConfig);
+
         formattedConfig = {
           address: acConfig.address || 0,
           enable: acConfig.enable || false,
