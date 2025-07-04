@@ -69,10 +69,18 @@ export const useNetworkOutputConfig = (item, outputConfigs = [], setOutputConfig
         // Load current AC configs, update the specific one, and save all back
         const currentACConfigs = await loadAllACConfigs();
         if (currentACConfigs && currentACConfigs.length === 10) {
+          // Calculate AC config index for this output
+          const acOutputs = outputConfigs.filter(output => output.type === "ac");
+          const acConfigIndex = acOutputs.findIndex(output => output.index === outputIndex);
+
+          if (acConfigIndex < 0) {
+            throw new Error(`AC output ${outputIndex} not found in AC outputs list`);
+          }
+
           // Update the specific AC config
           const updatedACConfigs = [...currentACConfigs];
-          updatedACConfigs[outputIndex] = {
-            ...updatedACConfigs[outputIndex],
+          updatedACConfigs[acConfigIndex] = {
+            ...updatedACConfigs[acConfigIndex],
             address: airconAddress,
           };
 
@@ -201,12 +209,20 @@ export const useNetworkOutputConfig = (item, outputConfigs = [], setOutputConfig
       const allACConfigs = await loadAllACConfigs();
       console.log(`loadAllACConfigs returned:`, allACConfigs);
 
-      if (allACConfigs && allACConfigs[outputIndex]) {
-        console.log(`All AC Configs:`, allACConfigs);
-        console.log(`Looking for output index:`, outputIndex);
+      // Calculate AC config index: need to find which AC output this is
+      // AC outputs start after all lighting outputs (relay + dimmer + ao)
+      const acOutputs = outputConfigs.filter(output => output.type === "ac");
+      const acConfigIndex = acOutputs.findIndex(output => output.index === outputIndex);
 
-        const acConfig = allACConfigs[outputIndex];
-        console.log(`AC Config for output ${outputIndex} - raw acConfig:`, acConfig);
+      console.log(`AC outputs:`, acOutputs);
+      console.log(`AC config index for output ${outputIndex}:`, acConfigIndex);
+
+      if (allACConfigs && acConfigIndex >= 0 && allACConfigs[acConfigIndex]) {
+        console.log(`All AC Configs:`, allACConfigs);
+        console.log(`Looking for AC config index:`, acConfigIndex);
+
+        const acConfig = allACConfigs[acConfigIndex];
+        console.log(`AC Config for output ${outputIndex} (AC index ${acConfigIndex}) - raw acConfig:`, acConfig);
 
         // Format AC config for AC output config dialog
 
@@ -323,10 +339,14 @@ export const useNetworkOutputConfig = (item, outputConfigs = [], setOutputConfig
       }
     }
 
+    // Get the correct display name from outputConfigs
+    const foundOutputConfig = outputConfigs.find(output => output.index === outputIndex);
+    const displayName = foundOutputConfig ? foundOutputConfig.name : `${outputType === "ac" ? "AC" : "Lighting"} Output ${outputIndex + 1}`;
+
     // Update with loaded config
     setCurrentOutputConfig({
       index: outputIndex,
-      name: `${outputType === "ac" ? "AC" : "Lighting"} Output ${outputIndex + 1}`,
+      name: displayName,
       type: outputType,
       config: formattedConfig,
       isLoading: false
@@ -346,10 +366,18 @@ export const useNetworkOutputConfig = (item, outputConfigs = [], setOutputConfig
         // Load current AC configs, update the specific one, and save all back
         const currentACConfigs = await loadAllACConfigs();
         if (currentACConfigs && currentACConfigs.length === 10) {
+          // Calculate AC config index for this output
+          const acOutputs = outputConfigs.filter(output => output.type === "ac");
+          const acConfigIndex = acOutputs.findIndex(output => output.index === currentOutputConfig.index);
+
+          if (acConfigIndex < 0) {
+            throw new Error(`AC output ${currentOutputConfig.index} not found in AC outputs list`);
+          }
+
           // Update the specific AC config
           const updatedACConfigs = [...currentACConfigs];
-          updatedACConfigs[currentOutputConfig.index] = {
-            ...updatedACConfigs[currentOutputConfig.index],
+          updatedACConfigs[acConfigIndex] = {
+            ...updatedACConfigs[acConfigIndex],
             address: config.address || 0,
             enable: config.enable || false,
             windowMode: config.windowMode || 0,

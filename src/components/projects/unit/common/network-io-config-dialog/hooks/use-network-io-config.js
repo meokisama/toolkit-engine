@@ -292,9 +292,9 @@ export const useNetworkIOConfig = (item, open, childDialogOpen = false) => {
       }));
 
       // Initialize outputs with state tracking
-      const outputs = defaultConfig.outputs.map((output, index) => ({
+      const outputs = defaultConfig.outputs.map((output) => ({
         ...output,
-        name: `${output.type === "ac" ? "AC" : "Lighting"} ${index + 1}`,
+        // Name is already set correctly in createDefaultIOConfig with proper numbering per type
         state: false,
         brightness: 0,
         deviceId: null,
