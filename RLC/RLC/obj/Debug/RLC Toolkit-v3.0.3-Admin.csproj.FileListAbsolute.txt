@@ -1,7 +1,0 @@
-D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_3.0.3 (released 13-Dec-2024)\RLC\bin\Debug\RLC Toolkit-V3.0.2.exe.config
-D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_3.0.3 (released 13-Dec-2024)\RLC\obj\Debug\RLC Toolkit-V3.0.2.exe
-D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_3.0.3 (released 13-Dec-2024)\RLC\obj\Debug\RLC Toolkit-V3.0.2.pdb
-D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_3.0.4 (released 10-Jan-2025)\RLC\bin\Debug\RLC Toolkit-V3.0.2.exe.config
-D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_3.0.4 (released 10-Jan-2025)\RLC\obj\Debug\RLC Toolkit-V3.0.2.exe
-D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_3.0.4 (released 10-Jan-2025)\RLC\obj\Debug\RLC Toolkit-V3.0.2.pdb
-D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_3.0.4 (released 10-Jan-2025)\RLC\bin\Debug\RLC Toolkit-V3.0.4.exe.config

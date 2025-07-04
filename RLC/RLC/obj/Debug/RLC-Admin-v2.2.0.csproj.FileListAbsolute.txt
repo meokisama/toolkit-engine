@@ -1,3 +1,0 @@
-D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta6\RLC - Admin\bin\Debug\RLC.exe.config
-D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta6\RLC - Admin\obj\Debug\RLC.exe
-D:\Mechatronics\Projects\Smart Home\PC Software\RLC Toolkit\RLC_Project_2.1.1 (04-July-2020) - Beta6\RLC - Admin\obj\Debug\RLC.pdb
