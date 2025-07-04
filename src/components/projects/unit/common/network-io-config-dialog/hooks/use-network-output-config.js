@@ -16,8 +16,11 @@ export const useNetworkOutputConfig = (item, outputConfigs = [], setOutputConfig
 
     // Return cached data if available
     if (allACConfigs) {
+      console.log(`Returning cached AC configs:`, allACConfigs);
       return allACConfigs;
     }
+
+    console.log(`Loading fresh AC configs from network unit...`);
 
     try {
       const acConfigs = await window.electronAPI.rcuController.getLocalACConfig(
