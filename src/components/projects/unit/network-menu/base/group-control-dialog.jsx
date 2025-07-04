@@ -239,7 +239,7 @@ export function GroupControlDialog({ open, onOpenChange, unit }) {
       // Silently fail for auto refresh to avoid spam
       console.error("Auto refresh failed:", error);
     }
-  }, [unit]); // Remove groupStates dependency to prevent frequent recreations
+  }, [unit,groupStates]); // Remove groupStates dependency to prevent frequent recreations
 
   const handleSwitchToggle = useCallback(
     async (groupNum, isOn) => {
