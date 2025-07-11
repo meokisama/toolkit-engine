@@ -51,7 +51,6 @@ const NetworkIOConfigDialog = ({ open, onOpenChange, item = null }) => {
     readAirconConfigsFromUnit,
     pauseAutoRefresh,
     resumeAutoRefresh,
-    forceStopAutoRefresh,
   } = useNetworkIOConfig(item, open, false); // We'll update this after getting multiGroupDialogOpen
 
   const {
@@ -97,12 +96,7 @@ const NetworkIOConfigDialog = ({ open, onOpenChange, item = null }) => {
   const anyChildDialogOpen =
     multiGroupDialogOpen || lightingOutputDialogOpen || acOutputDialogOpen;
 
-  // Force stop auto refresh when switch is turned off
-  useEffect(() => {
-    if (!autoRefreshEnabled) {
-      forceStopAutoRefresh();
-    }
-  }, [autoRefreshEnabled, forceStopAutoRefresh]);
+
 
   // Handle auto refresh pause/resume when output dialogs open/close
   useEffect(() => {

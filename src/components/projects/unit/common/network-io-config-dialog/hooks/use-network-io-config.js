@@ -401,6 +401,14 @@ export const useNetworkIOConfig = (item, open, childDialogOpen = false) => {
     }
   }, [open]);
 
+  // Function to force stop all auto refresh activities
+  const forceStopAutoRefresh = useCallback(() => {
+    if (refreshIntervalRef.current) {
+      clearInterval(refreshIntervalRef.current);
+      refreshIntervalRef.current = null;
+    }
+  }, []);
+
   // Effect to handle auto refresh enable/disable
   useEffect(() => {
     if (autoRefreshEnabled && open && configsLoaded && !refreshIntervalRef.current) {
@@ -409,11 +417,12 @@ export const useNetworkIOConfig = (item, open, childDialogOpen = false) => {
       refreshIntervalRef.current = setInterval(() => {
         readStatesSequentiallyRef.current();
       }, 3000);
-    } else if (!autoRefreshEnabled) {
+    } else if (!autoRefreshEnabled && refreshIntervalRef.current) {
       // Stop auto refresh immediately when disabled
-      forceStopAutoRefresh();
+      clearInterval(refreshIntervalRef.current);
+      refreshIntervalRef.current = null;
     }
-  }, [autoRefreshEnabled, open, configsLoaded, forceStopAutoRefresh]);
+  }, [autoRefreshEnabled, open, configsLoaded]);
 
   // Function to pause auto refresh (when child dialogs are open)
   const pauseAutoRefresh = useCallback(() => {
@@ -435,14 +444,6 @@ export const useNetworkIOConfig = (item, open, childDialogOpen = false) => {
       }, 3000);
     }
   }, [open, configsLoaded, autoRefreshEnabled]);
-
-  // Function to force stop all auto refresh activities
-  const forceStopAutoRefresh = useCallback(() => {
-    if (refreshIntervalRef.current) {
-      clearInterval(refreshIntervalRef.current);
-      refreshIntervalRef.current = null;
-    }
-  }, []);
 
   // Effect to handle child dialog state changes
   useEffect(() => {
