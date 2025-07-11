@@ -179,19 +179,14 @@ const NetworkIOConfigDialog = ({ open, onOpenChange, item = null }) => {
       const originalConfig = outputConfigs.find(config => config.index === outputIndex);
       if (!originalConfig) return;
 
-      // Step 1: Optimistically update UI immediately with visual feedback
+      // Step 1: Optimistically update UI immediately
       const newState = !currentState;
       const newBrightness = newState ? (originalConfig.brightness || 255) : 0;
 
       setOutputConfigs(prevConfigs =>
         prevConfigs.map(config =>
           config.index === outputIndex
-            ? {
-                ...config,
-                state: newState,
-                brightness: newBrightness,
-                isToggling: true // Add temporary loading state
-              }
+            ? { ...config, state: newState, brightness: newBrightness }
             : config
         )
       );
@@ -199,15 +194,6 @@ const NetworkIOConfigDialog = ({ open, onOpenChange, item = null }) => {
       try {
         // Step 2: Send command to network unit
         const success = await handleToggleOutputState(outputIndex, currentState);
-
-        // Remove loading state
-        setOutputConfigs(prevConfigs =>
-          prevConfigs.map(config =>
-            config.index === outputIndex
-              ? { ...config, isToggling: false }
-              : config
-          )
-        );
 
         if (success) {
           // Command succeeded - UI is already updated optimistically
@@ -223,8 +209,7 @@ const NetworkIOConfigDialog = ({ open, onOpenChange, item = null }) => {
                 ? {
                     ...config,
                     state: originalConfig.state,
-                    brightness: originalConfig.brightness,
-                    isToggling: false
+                    brightness: originalConfig.brightness
                   }
                 : config
             )
@@ -239,8 +224,7 @@ const NetworkIOConfigDialog = ({ open, onOpenChange, item = null }) => {
               ? {
                   ...config,
                   state: originalConfig.state,
-                  brightness: originalConfig.brightness,
-                  isToggling: false
+                  brightness: originalConfig.brightness
                 }
               : config
           )
