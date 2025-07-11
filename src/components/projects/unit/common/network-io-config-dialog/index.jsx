@@ -45,12 +45,12 @@ const NetworkIOConfigDialog = ({ open, onOpenChange, item = null }) => {
     configsLoaded,
     autoRefreshEnabled,
     setAutoRefreshEnabled,
-    readStatesSequentially,
     readInputConfigsFromUnit,
     readOutputConfigsFromUnit,
     readAirconConfigsFromUnit,
     pauseAutoRefresh,
     resumeAutoRefresh,
+    readStatesInitial,
   } = useNetworkIOConfig(item, open, false); // We'll update this after getting multiGroupDialogOpen
 
   const {
@@ -177,11 +177,11 @@ const NetworkIOConfigDialog = ({ open, onOpenChange, item = null }) => {
     async (outputIndex, currentState) => {
       const success = await handleToggleOutputState(outputIndex, currentState);
       if (success) {
-        // Immediately read states to update UI
-        await readStatesSequentially();
+        // Immediately read states to update UI (regardless of auto refresh setting)
+        await readStatesInitial();
       }
     },
-    [handleToggleOutputState, readStatesSequentially]
+    [handleToggleOutputState, readStatesInitial]
   );
 
   // Handle reading all input configurations from unit
