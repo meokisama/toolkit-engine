@@ -38,7 +38,7 @@ export function ClockControlDialog({ open, onOpenChange, unit }) {
       year: now.getFullYear() - 2000, // Convert to 0-99 range (2025 -> 25)
       month: now.getMonth() + 1,
       day: now.getDate(),
-      dayOfWeek: now.getDay() === 0 ? 6 : now.getDay() - 1, // Convert Sunday=0 to Sunday=6, Monday=1 to Monday=0
+      dayOfWeek: now.getDay() === 0 ? 1 : now.getDay() + 1, // Convert Sunday=0 to Sunday=1, Monday=1 to Monday=2, etc.
       hour: now.getHours(),
       minute: now.getMinutes(),
       second: now.getSeconds(),
@@ -111,7 +111,7 @@ export function ClockControlDialog({ open, onOpenChange, unit }) {
           month: combinedDateTime.getMonth() + 1,
           day: combinedDateTime.getDate(),
           dayOfWeek:
-            combinedDateTime.getDay() === 0 ? 6 : combinedDateTime.getDay() - 1, // Convert Sunday=0 to Sunday=6
+            combinedDateTime.getDay() === 0 ? 1 : combinedDateTime.getDay() + 1, // Convert Sunday=0 to Sunday=1
           hour: combinedDateTime.getHours(),
           minute: combinedDateTime.getMinutes(),
           second: combinedDateTime.getSeconds(),

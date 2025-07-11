@@ -66,7 +66,7 @@ export function BulkClockSyncDialog({ open, onOpenChange }) {
       year: now.getFullYear() - 2000, // Convert to 0-99 range (2025 -> 25)
       month: now.getMonth() + 1,
       day: now.getDate(),
-      dayOfWeek: now.getDay() === 0 ? 6 : now.getDay() - 1, // Convert Sunday=0 to Sunday=6, Monday=1 to Monday=0
+      dayOfWeek: now.getDay() === 0 ? 1 : now.getDay() + 1, // Convert Sunday=0 to Sunday=1, Monday=1 to Monday=2, etc.
       hour: now.getHours(),
       minute: now.getMinutes(),
       second: now.getSeconds(),
@@ -89,7 +89,7 @@ export function BulkClockSyncDialog({ open, onOpenChange }) {
       const year = manualDate.getFullYear() - 2000;
       const month = manualDate.getMonth() + 1;
       const day = manualDate.getDate();
-      const dayOfWeek = manualDate.getDay() === 0 ? 6 : manualDate.getDay() - 1;
+      const dayOfWeek = manualDate.getDay() === 0 ? 1 : manualDate.getDay() + 1;
       const hour = manualTime.getHours();
       const minute = manualTime.getMinutes();
       const second = manualTime.getSeconds();
