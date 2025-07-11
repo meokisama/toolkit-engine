@@ -152,12 +152,21 @@ const NetworkOutputConfigItem = memo(
     return (
       <div className="p-4 border rounded-lg flex gap-4 justify-between items-center w-full shadow">
         <div className="flex items-center gap-3">
-          <img
-            src={config.state ? lightOn : lightOff}
-            alt="Output State"
-            className="w-[30px] h-auto rounded-lg cursor-pointer hover:opacity-80 transition-opacity"
-            onClick={handleToggleClick}
-          />
+          <div className="relative">
+            <img
+              src={config.state ? lightOn : lightOff}
+              alt="Output State"
+              className={`w-[30px] h-auto rounded-lg cursor-pointer hover:opacity-80 transition-opacity ${
+                config.isToggling ? 'opacity-50' : ''
+              }`}
+              onClick={handleToggleClick}
+            />
+            {config.isToggling && (
+              <div className="absolute inset-0 flex items-center justify-center">
+                <div className="w-4 h-4 animate-spin rounded-full border-2 border-gray-300 border-t-blue-600"></div>
+              </div>
+            )}
+          </div>
           <div className="flex flex-col">
             <Label className="text-sm font-medium">
               {getDisplayName(config.type, config.index, allOutputConfigs)}

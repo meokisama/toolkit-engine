@@ -172,16 +172,82 @@ const NetworkIOConfigDialog = ({ open, onOpenChange, item = null }) => {
     return map;
   }, [outputConfigs, lightingItems, airconItems]);
 
-  // Enhanced toggle handler that updates state immediately
+  // Optimistic toggle handler that updates UI first for better UX
   const handleToggleOutput = useCallback(
     async (outputIndex, currentState) => {
-      const success = await handleToggleOutputState(outputIndex, currentState);
-      if (success) {
-        // Immediately read states to update UI (regardless of auto refresh setting)
-        await readStatesInitial();
+      // Store original config for potential revert
+      const originalConfig = outputConfigs.find(config => config.index === outputIndex);
+      if (!originalConfig) return;
+
+      // Step 1: Optimistically update UI immediately with visual feedback
+      const newState = !currentState;
+      const newBrightness = newState ? (originalConfig.brightness || 255) : 0;
+
+      setOutputConfigs(prevConfigs =>
+        prevConfigs.map(config =>
+          config.index === outputIndex
+            ? {
+                ...config,
+                state: newState,
+                brightness: newBrightness,
+                isToggling: true // Add temporary loading state
+              }
+            : config
+        )
+      );
+
+      try {
+        // Step 2: Send command to network unit
+        const success = await handleToggleOutputState(outputIndex, currentState);
+
+        // Remove loading state
+        setOutputConfigs(prevConfigs =>
+          prevConfigs.map(config =>
+            config.index === outputIndex
+              ? { ...config, isToggling: false }
+              : config
+          )
+        );
+
+        if (success) {
+          // Command succeeded - UI is already updated optimistically
+          // Read actual state after a short delay to ensure consistency
+          setTimeout(async () => {
+            await readStatesInitial();
+          }, 500);
+        } else {
+          // Command failed - revert UI to original state
+          setOutputConfigs(prevConfigs =>
+            prevConfigs.map(config =>
+              config.index === outputIndex
+                ? {
+                    ...config,
+                    state: originalConfig.state,
+                    brightness: originalConfig.brightness,
+                    isToggling: false
+                  }
+                : config
+            )
+          );
+        }
+      } catch (error) {
+        // Command failed with error - revert UI to original state
+        console.error('Toggle output failed:', error);
+        setOutputConfigs(prevConfigs =>
+          prevConfigs.map(config =>
+            config.index === outputIndex
+              ? {
+                  ...config,
+                  state: originalConfig.state,
+                  brightness: originalConfig.brightness,
+                  isToggling: false
+                }
+              : config
+          )
+        );
       }
     },
-    [handleToggleOutputState, readStatesInitial]
+    [handleToggleOutputState, readStatesInitial, setOutputConfigs, outputConfigs]
   );
 
   // Handle reading all input configurations from unit
