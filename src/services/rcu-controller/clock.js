@@ -62,7 +62,7 @@ async function getClock(unitIp, canId) {
         year: clockData[0], // 0-99 (2000-2099)
         month: clockData[1], // 1-12
         day: clockData[2], // 1-31
-        dayOfWeek: clockData[3], // 0-6 (Monday-Sunday)
+        dayOfWeek: clockData[3], // 1-7 (Sunday-Saturday)
         hour: clockData[4], // 0-23
         minute: clockData[5], // 0-59
         second: clockData[6], // 0-59
@@ -71,13 +71,14 @@ async function getClock(unitIp, canId) {
         // Convert day of week to string
         dayOfWeekString:
           [
+            "Unknown", // Index 0 (not used)
+            "Sunday",
             "Monday",
             "Tuesday",
             "Wednesday",
             "Thursday",
             "Friday",
             "Saturday",
-            "Sunday",
           ][clockData[3]] || "Unknown",
       };
     }

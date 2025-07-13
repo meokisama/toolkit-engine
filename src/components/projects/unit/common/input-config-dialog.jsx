@@ -100,29 +100,30 @@ export function MultiGroupConfigDialog({
     createItem
   );
 
+  // Memoized custom events for better performance
+  const pauseEvent = React.useMemo(() => 
+    new CustomEvent("pauseAllAutoRefresh", {
+      detail: { source: "MultiGroupConfigDialog" },
+    }), []
+  );
+
+  const resumeEvent = React.useMemo(() => 
+    new CustomEvent("resumeAllAutoRefresh", {
+      detail: { source: "MultiGroupConfigDialog" },
+    }), []
+  );
+
   // Effect to pause all auto refresh when this dialog is open
   React.useEffect(() => {
     if (open) {
-      // Dispatch custom event to pause all auto refresh
-      window.dispatchEvent(
-        new CustomEvent("pauseAllAutoRefresh", {
-          detail: { source: "MultiGroupConfigDialog" },
-        })
-      );
+      window.dispatchEvent(pauseEvent);
     } else {
-      // Dispatch custom event to resume all auto refresh
-      window.dispatchEvent(
-        new CustomEvent("resumeAllAutoRefresh", {
-          detail: { source: "MultiGroupConfigDialog" },
-        })
-      );
+      window.dispatchEvent(resumeEvent);
     }
-  }, [open]);
+  }, [open, pauseEvent, resumeEvent]);
 
-  // Get group type label for UI display
-  const groupTypeLabel = React.useMemo(() => {
-    return getGroupTypeLabel(currentInputType);
-  }, [currentInputType]);
+  // Get group type label for UI display (simple function call doesn't need memoization)
+  const groupTypeLabel = getGroupTypeLabel(currentInputType);
 
   // Determine which RLC options should be enabled based on function
   const rlcOptionsConfig = React.useMemo(() => {
@@ -182,51 +183,53 @@ export function MultiGroupConfigDialog({
     onOpenChange(false);
   }, [resetMultipleGroups, resetRlcOptions, resetInputType, onOpenChange]);
 
-  // Handle save
-  const handleSave = React.useCallback(async () => {
-    // Get final RLC options
+  // Transform save data using callback to avoid stale closure issues
+  const getTransformedSaveData = React.useCallback(() => {
     const finalRlcOptions = getFinalRlcOptions();
+    
+    const groups = isMultipleGroupFunction
+      ? selectedGroups
+          .map((group) => {
+            // For network units, convert back to groupId/presetBrightness format
+            if (group.groupAddress) {
+              return {
+                groupId: group.groupAddress,
+                presetBrightness: group.preset || 255,
+              };
+            } else if (group.lightingId) {
+              // Group in database - find address from lightingId
+              let groupItem = availableItems.find(
+                (item) => item.id === group.lightingId
+              );
 
-    // Prepare data to save
-    const saveData = {
-      // Only include groups if this is a multiple group function
-      groups: isMultipleGroupFunction
-        ? selectedGroups
-            .map((group) => {
-              // For network units, convert back to groupId/presetBrightness format
-              if (group.groupAddress) {
-                // Group not in database - use groupAddress
-                return {
-                  groupId: group.groupAddress,
-                  presetBrightness: group.preset || 255,
-                };
-              } else if (group.lightingId) {
-                // Group in database - find address from lightingId
-                let groupItem = availableItems.find(
+              // Fallback to lighting items if not found in current type
+              if (!groupItem) {
+                groupItem = lightingItems.find(
                   (item) => item.id === group.lightingId
                 );
-
-                // Fallback to lighting items if not found in current type (for backward compatibility)
-                if (!groupItem) {
-                  groupItem = lightingItems.find(
-                    (item) => item.id === group.lightingId
-                  );
-                }
-
-                return {
-                  groupId: groupItem ? parseInt(groupItem.address) : null,
-                  presetBrightness: group.preset || 255,
-                };
               }
-              return null;
-            })
-            .filter(Boolean)
-        : [],
+
+              return {
+                groupId: groupItem ? parseInt(groupItem.address) : null,
+                presetBrightness: group.preset || 255,
+              };
+            }
+            return null;
+          })
+          .filter(Boolean)
+      : [];
+
+    return {
+      groups,
       inputType: currentInputType,
       rlcOptions: finalRlcOptions,
     };
+  }, [selectedGroups, currentInputType, isMultipleGroupFunction, availableItems, lightingItems, getFinalRlcOptions]);
 
+  // Handle save with proper callback
+  const handleSave = React.useCallback(async () => {
     try {
+      const saveData = getTransformedSaveData();
       await onSave(saveData);
       handleClose();
     } catch (onSaveError) {
@@ -234,24 +237,8 @@ export function MultiGroupConfigDialog({
         "❌ MultiGroupConfigDialog - Error in onSave:",
         onSaveError
       );
-      // Don't close dialog if there's an error
-      return;
     }
-  }, [
-    inputName,
-    functionName,
-    functionValue,
-    unitType,
-    selectedGroups,
-    currentInputType,
-    rlcOptions,
-    isMultipleGroupFunction,
-    onSave,
-    handleClose,
-    availableItems,
-    lightingItems,
-    getFinalRlcOptions,
-  ]);
+  }, [getTransformedSaveData, onSave, handleClose]);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange} modal={true}>

@@ -11,8 +11,11 @@ const PROTOCOL = {
     CMD2: {
       REQUEST_UNIT: 1,
       UPDATE_FIRMWARE: 6,
+      CHANGE_IP: 7,
+      CHANGE_ID: 8,
       SYNC_CLOCK: 9,
       GET_CLOCK: 10,
+      HARDWARE_CONFIG: 12,
       GET_RS485_CH1_CONFIG: 13,
       GET_RS485_CH2_CONFIG: 14,
       SET_RS485_CH1_CONFIG: 15,

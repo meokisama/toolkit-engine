@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, memo } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -26,7 +26,7 @@ const getUnitBarcode = (unitType) => {
   return unitInfo ? unitInfo.barcode : null;
 };
 
-export function FirmwareUpdateDialog({
+function FirmwareUpdateDialogComponent({
   open,
   onOpenChange,
   onFirmwareUpdate,
@@ -373,3 +373,16 @@ export function FirmwareUpdateDialog({
     </Dialog>
   );
 }
+
+// Memoized export for optimal performance
+export const FirmwareUpdateDialog = memo(
+  FirmwareUpdateDialogComponent,
+  (prevProps, nextProps) => {
+    return (
+      prevProps.open === nextProps.open &&
+      prevProps.onOpenChange === nextProps.onOpenChange &&
+      prevProps.onFirmwareUpdate === nextProps.onFirmwareUpdate &&
+      prevProps.targetUnit?.id === nextProps.targetUnit?.id
+    );
+  }
+);

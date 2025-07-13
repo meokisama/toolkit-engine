@@ -118,16 +118,17 @@ const IOConfigDialogComponent = ({ open, onOpenChange, item = null }) => {
     }));
   }, [airconItems]);
 
-  // Memoize device options mapping for outputs to prevent recalculation
+  // Device options mapping - restored full dependencies to catch content changes
   const outputDeviceOptionsMap = useMemo(() => {
+    if (!outputConfigs.length) return new Map();
+    
     const map = new Map();
     outputConfigs.forEach((config) => {
-      const isAircon = config.type === "ac";
-      const deviceOptions = isAircon ? airconOptions : lightingOptions;
+      const deviceOptions = config.type === "ac" ? airconOptions : lightingOptions;
       map.set(config.index, deviceOptions);
     });
     return map;
-  }, [outputConfigs, airconOptions, lightingOptions]);
+  }, [outputConfigs, airconOptions, lightingOptions]); // Full arrays as dependencies
 
   // Enhanced handlers that update local state
   const handleInputLightingChangeWithState = useCallback(

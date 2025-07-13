@@ -43,6 +43,7 @@ export function UnitDialog({
     serial_no: "",
     ip_address: "",
     id_can: "",
+    id_can_last_part: "",
     mode: "",
     firmware_version: "",
     hardware_version: "",
@@ -79,15 +80,15 @@ export function UnitDialog({
     return null;
   };
 
-  // Validate ID CAN (should be positive integer)
-  const validateIdCan = (value) => {
+  // Validate ID CAN last part (should be positive integer 1-255)
+  const validateIdCanLastPart = (value) => {
     if (!value.trim()) {
       return null; // ID CAN is optional
     }
 
     const num = parseInt(value, 10);
-    if (isNaN(num) || num <= 0 || !Number.isInteger(parseFloat(value))) {
-      return "ID CAN must be a positive integer";
+    if (isNaN(num) || num < 1 || num > 255 || !Number.isInteger(parseFloat(value))) {
+      return "ID CAN last part must be a number between 1-255";
     }
 
     return null;
@@ -97,11 +98,16 @@ export function UnitDialog({
   useEffect(() => {
     if (open) {
       if (mode === "edit" && item) {
+        // Extract last part from existing CAN ID or default to empty
+        const canIdParts = (item.id_can || "").split('.');
+        const lastPart = canIdParts.length === 4 ? canIdParts[3] : "";
+
         const newFormData = {
           type: item.type || "",
           serial_no: item.serial_no || "",
           ip_address: item.ip_address || "",
           id_can: item.id_can || "",
+          id_can_last_part: lastPart,
           mode: item.mode || "",
           firmware_version: item.firmware_version || "",
           hardware_version: item.hardware_version || "",
@@ -129,6 +135,7 @@ export function UnitDialog({
           serial_no: "",
           ip_address: "",
           id_can: "",
+          id_can_last_part: "",
           mode: "",
           firmware_version: "",
           hardware_version: "",
@@ -148,6 +155,19 @@ export function UnitDialog({
   const handleInputChange = (field, value) => {
     setFormData((prev) => {
       const newData = { ...prev, [field]: value };
+
+      // Handle CAN ID last part change
+      if (field === "id_can_last_part") {
+        if (value.trim()) {
+          // Get the first 3 parts from existing CAN ID or default to 0.0.0
+          const existingCanId = prev.id_can || "0.0.0.1";
+          const canIdParts = existingCanId.split('.');
+          const prefix = canIdParts.length >= 3 ? `${canIdParts[0]}.${canIdParts[1]}.${canIdParts[2]}` : "0.0.0";
+          newData.id_can = `${prefix}.${value}`;
+        } else {
+          newData.id_can = "";
+        }
+      }
 
       // Handle unit type change
       if (field === "type" && value) {
@@ -226,12 +246,12 @@ export function UnitDialog({
 
     // Validate IP address and ID CAN before submitting
     const ipError = validateIpAddress(formData.ip_address);
-    const idCanError = validateIdCan(formData.id_can);
+    const idCanError = validateIdCanLastPart(formData.id_can_last_part);
 
     if (ipError || idCanError) {
       setErrors({
         ip_address: ipError,
-        id_can: idCanError,
+        id_can_last_part: idCanError,
       });
       return;
     }
@@ -332,21 +352,35 @@ export function UnitDialog({
 
               {/* ID CAN */}
               <div className="flex flex-col gap-2">
-                <Label htmlFor="id_can" className="text-right">
+                <Label htmlFor="id_can_last_part" className="text-right">
                   ID CAN
                 </Label>
                 <div>
-                  <Input
-                    id="id_can"
-                    value={formData.id_can}
-                    onChange={(e) =>
-                      handleInputChange("id_can", e.target.value)
-                    }
-                    placeholder="Enter CAN ID"
-                    className={errors.id_can ? "border-red-500" : ""}
-                  />
-                  {errors.id_can && (
-                    <p className="text-sm text-red-500 mt-1">{errors.id_can}</p>
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm text-muted-foreground">
+                      {(() => {
+                        if (formData.id_can) {
+                          const parts = formData.id_can.split('.');
+                          return parts.length >= 3 ? `${parts[0]}.${parts[1]}.${parts[2]}.` : "0.0.0.";
+                        }
+                        return "0.0.0.";
+                      })()}
+                    </span>
+                    <Input
+                      id="id_can_last_part"
+                      type="number"
+                      min="1"
+                      max="255"
+                      value={formData.id_can_last_part}
+                      onChange={(e) =>
+                        handleInputChange("id_can_last_part", e.target.value)
+                      }
+                      placeholder="1"
+                      className={`w-20 ${errors.id_can_last_part ? "border-red-500" : ""}`}
+                    />
+                  </div>
+                  {errors.id_can_last_part && (
+                    <p className="text-sm text-red-500 mt-1">{errors.id_can_last_part}</p>
                   )}
                 </div>
               </div>
@@ -509,7 +543,7 @@ export function UnitDialog({
                 !formData.type.trim() ||
                 errors.type ||
                 errors.ip_address ||
-                errors.id_can
+                errors.id_can_last_part
               }
             >
               {loading ? "Saving..." : mode === "edit" ? "Update" : "Create"}

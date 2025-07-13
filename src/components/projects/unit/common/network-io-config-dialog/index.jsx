@@ -45,12 +45,12 @@ const NetworkIOConfigDialog = ({ open, onOpenChange, item = null }) => {
     configsLoaded,
     autoRefreshEnabled,
     setAutoRefreshEnabled,
-    readStatesSequentially,
     readInputConfigsFromUnit,
     readOutputConfigsFromUnit,
     readAirconConfigsFromUnit,
     pauseAutoRefresh,
     resumeAutoRefresh,
+    readStatesInitial,
   } = useNetworkIOConfig(item, open, false); // We'll update this after getting multiGroupDialogOpen
 
   const {
@@ -96,15 +96,26 @@ const NetworkIOConfigDialog = ({ open, onOpenChange, item = null }) => {
   const anyChildDialogOpen =
     multiGroupDialogOpen || lightingOutputDialogOpen || acOutputDialogOpen;
 
+
+
   // Handle auto refresh pause/resume when output dialogs open/close
   useEffect(() => {
     if (lightingOutputDialogOpen || acOutputDialogOpen) {
       pauseAutoRefresh();
     } else if (open && !multiGroupDialogOpen && autoRefreshEnabled) {
+      // Only resume if auto refresh is actually enabled
       // Add delay before resuming auto refresh to allow unit to process any pending commands
-      setTimeout(() => {
-        resumeAutoRefresh();
+      const timeoutId = setTimeout(() => {
+        // Double check that auto refresh is still enabled before resuming
+        if (autoRefreshEnabled) {
+          resumeAutoRefresh();
+        }
       }, 1000);
+
+      // Cleanup timeout if effect runs again
+      return () => {
+        clearTimeout(timeoutId);
+      };
     }
   }, [
     lightingOutputDialogOpen,
@@ -161,16 +172,66 @@ const NetworkIOConfigDialog = ({ open, onOpenChange, item = null }) => {
     return map;
   }, [outputConfigs, lightingItems, airconItems]);
 
-  // Enhanced toggle handler that updates state immediately
+  // Optimistic toggle handler that updates UI first for better UX
   const handleToggleOutput = useCallback(
     async (outputIndex, currentState) => {
-      const success = await handleToggleOutputState(outputIndex, currentState);
-      if (success) {
-        // Immediately read states to update UI
-        await readStatesSequentially();
+      // Store original config for potential revert
+      const originalConfig = outputConfigs.find(config => config.index === outputIndex);
+      if (!originalConfig) return;
+
+      // Step 1: Optimistically update UI immediately
+      const newState = !currentState;
+      const newBrightness = newState ? (originalConfig.brightness || 255) : 0;
+
+      setOutputConfigs(prevConfigs =>
+        prevConfigs.map(config =>
+          config.index === outputIndex
+            ? { ...config, state: newState, brightness: newBrightness }
+            : config
+        )
+      );
+
+      try {
+        // Step 2: Send command to network unit
+        const success = await handleToggleOutputState(outputIndex, currentState);
+
+        if (success) {
+          // Command succeeded - UI is already updated optimistically
+          // Read actual state after a short delay to ensure consistency
+          setTimeout(async () => {
+            await readStatesInitial();
+          }, 500);
+        } else {
+          // Command failed - revert UI to original state
+          setOutputConfigs(prevConfigs =>
+            prevConfigs.map(config =>
+              config.index === outputIndex
+                ? {
+                    ...config,
+                    state: originalConfig.state,
+                    brightness: originalConfig.brightness
+                  }
+                : config
+            )
+          );
+        }
+      } catch (error) {
+        // Command failed with error - revert UI to original state
+        console.error('Toggle output failed:', error);
+        setOutputConfigs(prevConfigs =>
+          prevConfigs.map(config =>
+            config.index === outputIndex
+              ? {
+                  ...config,
+                  state: originalConfig.state,
+                  brightness: originalConfig.brightness
+                }
+              : config
+          )
+        );
       }
     },
-    [handleToggleOutputState, readStatesSequentially]
+    [handleToggleOutputState, readStatesInitial, setOutputConfigs, outputConfigs]
   );
 
   // Handle reading all input configurations from unit

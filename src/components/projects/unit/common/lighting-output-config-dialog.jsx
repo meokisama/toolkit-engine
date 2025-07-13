@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, memo } from "react";
+import React, { useState, useEffect, useCallback, memo, useMemo, useRef } from "react";
 import {
   Dialog,
   DialogContent,
@@ -26,7 +26,7 @@ const VALIDATION_RANGES = {
   MAX_DIM: { min: 70, max: 100 },
 };
 
-// Memoized Input component with validation
+// Optimized Input component with debounced validation
 const ValidatedInput = memo(
   ({
     value,
@@ -37,42 +37,51 @@ const ValidatedInput = memo(
   }) => {
     const [localValue, setLocalValue] = useState(value.toString());
     const [isValid, setIsValid] = useState(true);
+    const timeoutRef = useRef(null);
 
     // Update local value when prop changes
     useEffect(() => {
       setLocalValue(value.toString());
     }, [value]);
 
-    const handleChange = useCallback(
-      (e) => {
-        const inputValue = e.target.value;
-        setLocalValue(inputValue);
+    // Debounced validation and onChange
+    const debouncedOnChange = useCallback(
+      (inputValue) => {
+        clearTimeout(timeoutRef.current);
+        timeoutRef.current = setTimeout(() => {
+          if (inputValue === "") {
+            setIsValid(true);
+            return;
+          }
 
-        // Skip validation for empty string (allow user to clear field)
-        if (inputValue === "") {
-          setIsValid(true);
-          return;
-        }
+          const numValue = parseInt(inputValue);
+          const isValidNumber =
+            !isNaN(numValue) &&
+            numValue >= validationRange.min &&
+            numValue <= validationRange.max;
 
-        // Validate input
-        const numValue = parseInt(inputValue);
-        const isValidNumber =
-          !isNaN(numValue) &&
-          numValue >= validationRange.min &&
-          numValue <= validationRange.max;
+          setIsValid(isValidNumber);
 
-        setIsValid(isValidNumber);
-
-        // Only call onChange if valid
-        if (isValidNumber) {
-          onChange(numValue);
-        }
+          if (isValidNumber) {
+            onChange(numValue);
+          }
+        }, 300);
       },
       [onChange, validationRange]
     );
 
+    const handleChange = useCallback(
+      (e) => {
+        const inputValue = e.target.value;
+        setLocalValue(inputValue);
+        debouncedOnChange(inputValue);
+      },
+      [debouncedOnChange]
+    );
+
     const handleBlur = useCallback(() => {
-      // Reset to valid value on blur if invalid
+      clearTimeout(timeoutRef.current);
+      
       if (!isValid) {
         const clampedValue = Math.max(
           validationRange.min,
@@ -86,6 +95,11 @@ const ValidatedInput = memo(
         onChange(clampedValue);
       }
     }, [isValid, localValue, onChange, validationRange]);
+
+    // Cleanup timeout on unmount
+    useEffect(() => {
+      return () => clearTimeout(timeoutRef.current);
+    }, []);
 
     return (
       <Input
@@ -144,21 +158,25 @@ const LightingOutputConfigDialogComponent = ({
 
   const [loading, setLoading] = useState(false);
 
-  // Helper functions for time conversion
-  const timeToDate = (hours, minutes, seconds = 0) => {
-    const date = new Date();
-    date.setHours(hours || 0, minutes || 0, seconds || 0, 0);
-    return date;
-  };
+  // Memoized helper functions for time conversion
+  const timeToDate = useMemo(() => 
+    (hours, minutes, seconds = 0) => {
+      const date = new Date();
+      date.setHours(hours || 0, minutes || 0, seconds || 0, 0);
+      return date;
+    }, []
+  );
 
-  const dateToTimeComponents = (date) => {
-    if (!date) return { hours: 0, minutes: 0, seconds: 0 };
-    return {
-      hours: date.getHours(),
-      minutes: date.getMinutes(),
-      seconds: date.getSeconds(),
-    };
-  };
+  const dateToTimeComponents = useMemo(() => 
+    (date) => {
+      if (!date) return { hours: 0, minutes: 0, seconds: 0 };
+      return {
+        hours: date.getHours(),
+        minutes: date.getMinutes(),
+        seconds: date.getSeconds(),
+      };
+    }, []
+  );
 
   // Check if this is a dimmer output (shows min/max dim options)
   const isDimmerOutput = outputType === "dimmer";
@@ -234,48 +252,49 @@ const LightingOutputConfigDialogComponent = ({
     setConfig((prev) => ({ ...prev, [field]: value }));
   }, []);
 
-  // Time picker handlers
-  const handleDelayOffTimeChange = useCallback((newDate) => {
-    setDelayOffTime(newDate);
-    const { hours, minutes, seconds } = dateToTimeComponents(newDate);
-    setConfig((prev) => ({
-      ...prev,
-      delayOffHours: hours,
-      delayOffMinutes: minutes,
-      delayOffSeconds: seconds,
-    }));
-  }, []);
+  // Generic time handler factory for DRY code
+  const createTimeHandler = useCallback((setter, configFields) => 
+    (newDate) => {
+      setter(newDate);
+      const { hours, minutes, seconds } = dateToTimeComponents(newDate);
+      setConfig((prev) => ({
+        ...prev,
+        ...configFields.reduce((acc, field, index) => {
+          acc[field] = [hours, minutes, seconds][index];
+          return acc;
+        }, {})
+      }));
+    }, [dateToTimeComponents]
+  );
 
-  const handleDelayOnTimeChange = useCallback((newDate) => {
-    setDelayOnTime(newDate);
-    const { hours, minutes, seconds } = dateToTimeComponents(newDate);
-    setConfig((prev) => ({
-      ...prev,
-      delayOnHours: hours,
-      delayOnMinutes: minutes,
-      delayOnSeconds: seconds,
-    }));
-  }, []);
+  // Time picker handlers using factory - use useCallback for functions
+  const handleDelayOffTimeChange = useCallback(
+    createTimeHandler(
+      setDelayOffTime, 
+      ['delayOffHours', 'delayOffMinutes', 'delayOffSeconds']
+    ), [createTimeHandler]
+  );
 
-  const handleScheduleOnTimeChange = useCallback((newDate) => {
-    setScheduleOnTime(newDate);
-    const { hours, minutes } = dateToTimeComponents(newDate);
-    setConfig((prev) => ({
-      ...prev,
-      scheduleOnHour: hours,
-      scheduleOnMinute: minutes,
-    }));
-  }, []);
+  const handleDelayOnTimeChange = useCallback(
+    createTimeHandler(
+      setDelayOnTime,
+      ['delayOnHours', 'delayOnMinutes', 'delayOnSeconds']
+    ), [createTimeHandler]
+  );
 
-  const handleScheduleOffTimeChange = useCallback((newDate) => {
-    setScheduleOffTime(newDate);
-    const { hours, minutes } = dateToTimeComponents(newDate);
-    setConfig((prev) => ({
-      ...prev,
-      scheduleOffHour: hours,
-      scheduleOffMinute: minutes,
-    }));
-  }, []);
+  const handleScheduleOnTimeChange = useCallback(
+    createTimeHandler(
+      setScheduleOnTime,
+      ['scheduleOnHour', 'scheduleOnMinute']
+    ), [createTimeHandler]
+  );
+
+  const handleScheduleOffTimeChange = useCallback(
+    createTimeHandler(
+      setScheduleOffTime,
+      ['scheduleOffHour', 'scheduleOffMinute']
+    ), [createTimeHandler]
+  );
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>

@@ -592,6 +592,7 @@ export const CONSTANTS = {
     SLAVE_MAX_INDOORS: 16,
 
     TYPES: [
+      { value: 0, label: "None" },
       { value: 1, label: "RS485_MASTER_TC300" },
       { value: 2, label: "RS485_MASTER_TC303" },
       { value: 3, label: "RS485_MASTER_TC903" },
@@ -716,14 +717,14 @@ export const getUnitIOSpec = (unitName) => {
   const unit = CONSTANTS.UNIT.TYPES.find((u) => u.name === unitName);
   return unit
     ? {
-      inputs: unit.inputs,
-      outputs: unit.outputs,
-      totalOutputs:
-        unit.outputs.relay +
-        unit.outputs.dimmer +
-        unit.outputs.ao +
-        unit.outputs.ac,
-    }
+        inputs: unit.inputs,
+        outputs: unit.outputs,
+        totalOutputs:
+          unit.outputs.relay +
+          unit.outputs.dimmer +
+          unit.outputs.ao +
+          unit.outputs.ac,
+      }
     : null;
 };
 
@@ -886,7 +887,6 @@ export const INPUT_TYPES = {
     },
     { value: 106, name: "TOGGLE_SCENE_ON", label: "Toggle Scene On" },
     { value: 107, name: "TOGGLE_SCENE_OFF", label: "Toggle Scene Off" },
-
   ],
   MULTI_SCENES: [
     { value: 103, name: "MULTI_SCENE", label: "Multi-Scene" },

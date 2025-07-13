@@ -1,5 +1,6 @@
 "use client";
 
+import { useMemo } from "react";
 import {
   Copy,
   SquarePen,
@@ -25,7 +26,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { UNIT_TYPES, UNIT_MODES } from "@/constants";
 
-// Convert unit objects to option objects for select components
+// Memoized options to prevent recreation on every import
 const UNIT_TYPE_OPTIONS = UNIT_TYPES.map((unit) => ({
   value: unit.name,
   label: unit.name,

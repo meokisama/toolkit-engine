@@ -433,5 +433,23 @@ contextBridge.exposeInMainWorld("electronAPI", {
       ipcRenderer.invoke("rcu:deleteKnxConfig", params),
     deleteAllKnxConfigs: (unitIp, canId) =>
       ipcRenderer.invoke("rcu:deleteAllKnxConfigs", unitIp, canId),
+
+    // Network Unit Edit functions
+    changeIpAddress: (params) =>
+      ipcRenderer.invoke("rcu:changeIpAddress", params),
+    changeCanId: (params) =>
+      ipcRenderer.invoke("rcu:changeCanId", params),
+    setHardwareConfig: (params) =>
+      ipcRenderer.invoke("rcu:setHardwareConfig", params),
+
+    // RS485 Configuration functions
+    getRS485CH1Config: (params) =>
+      ipcRenderer.invoke("rcu:getRS485CH1Config", params),
+    getRS485CH2Config: (params) =>
+      ipcRenderer.invoke("rcu:getRS485CH2Config", params),
+    setRS485CH1Config: (params) =>
+      ipcRenderer.invoke("rcu:setRS485CH1Config", params),
+    setRS485CH2Config: (params) =>
+      ipcRenderer.invoke("rcu:setRS485CH2Config", params),
   },
 });

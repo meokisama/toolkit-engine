@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, memo } from "react";
 import {
   Network,
   Search,
@@ -36,11 +36,13 @@ import { TriggerMultiSceneDialog } from "@/components/projects/unit/network-menu
 import { TriggerSequenceDialog } from "@/components/projects/unit/network-menu/sequence-control/sequence-control-dialog";
 import { FirmwareUpdateDialog } from "@/components/projects/unit/network-menu/base/firmware-update-dialog";
 import { SendAllConfigDialog } from "@/components/projects/unit/network-menu/base/send-all-config-dialog";
+import { NetworkUnitEditDialog } from "@/components/projects/unit/network-menu/base/network-unit-edit-dialog";
 import NetworkIOConfigDialog from "@/components/projects/unit/common/network-io-config-dialog";
+import { NetworkRS485ConfigDialog } from "@/components/projects/unit/network-menu/rs485-control/network-rs485-config-dialog";
 import { udpScanner } from "@/services/udp";
 import { toast } from "sonner";
 
-export function NetworkUnitTable({ onTransferToDatabase, existingUnits = [] }) {
+function NetworkUnitTableComponent({ onTransferToDatabase, existingUnits = [] }) {
   const [networkUnits, setNetworkUnits] = useState([]);
   const [selectedNetworkUnits, setSelectedNetworkUnits] = useState([]);
   const [scanLoading, setScanLoading] = useState(false);
@@ -64,6 +66,10 @@ export function NetworkUnitTable({ onTransferToDatabase, existingUnits = [] }) {
   const [sendAllConfigDialogOpen, setSendAllConfigDialogOpen] = useState(false);
   const [ioConfigDialogOpen, setIOConfigDialogOpen] = useState(false);
   const [selectedUnitForIOConfig, setSelectedUnitForIOConfig] = useState(null);
+  const [rs485ConfigDialogOpen, setRS485ConfigDialogOpen] = useState(false);
+  const [selectedUnitForRS485Config, setSelectedUnitForRS485Config] = useState(null);
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [selectedUnitForEdit, setSelectedUnitForEdit] = useState(null);
   const [selectedUnit, setSelectedUnit] = useState(null);
 
   // Auto-load cached network units when component mounts
@@ -355,6 +361,18 @@ export function NetworkUnitTable({ onTransferToDatabase, existingUnits = [] }) {
     setIOConfigDialogOpen(true);
   };
 
+  // Handle RS485 Config
+  const handleRS485Config = useCallback((unit) => {
+    setSelectedUnitForRS485Config(unit);
+    setRS485ConfigDialogOpen(true);
+  }, []);
+
+  // Handle Edit Unit
+  const handleEditUnit = useCallback((unit) => {
+    setSelectedUnitForEdit(unit);
+    setEditDialogOpen(true);
+  }, []);
+
   // Create columns for network units (read-only)
   const networkColumns = createNetworkUnitColumns();
 
@@ -474,6 +492,8 @@ export function NetworkUnitTable({ onTransferToDatabase, existingUnits = [] }) {
                 }}
                 onFirmwareUpdate={handleFirmwareUpdateForUnit}
                 onIOConfig={handleIOConfig}
+                onRS485Config={handleRS485Config}
+                onEdit={handleEditUnit}
                 enableRowSelection={true}
               />
               {networkTable && <DataTablePagination table={networkTable} />}
@@ -564,7 +584,38 @@ export function NetworkUnitTable({ onTransferToDatabase, existingUnits = [] }) {
           onOpenChange={setIOConfigDialogOpen}
           item={selectedUnitForIOConfig}
         />
+
+        <NetworkRS485ConfigDialog
+          open={rs485ConfigDialogOpen}
+          onOpenChange={setRS485ConfigDialogOpen}
+          unit={selectedUnitForRS485Config}
+        />
+
+        <NetworkUnitEditDialog
+          open={editDialogOpen}
+          onOpenChange={setEditDialogOpen}
+          unit={selectedUnitForEdit}
+          onUnitUpdated={(updatedUnit) => {
+            // Update the unit in the network units list
+            setNetworkUnits(prev =>
+              prev.map(unit =>
+                unit.id === updatedUnit.id ? { ...unit, ...updatedUnit } : unit
+              )
+            );
+          }}
+        />
       </Card>
     </div>
   );
 }
+
+// Memoized export for optimal performance
+export const NetworkUnitTable = memo(
+  NetworkUnitTableComponent,
+  (prevProps, nextProps) => {
+    return (
+      prevProps.existingUnits.length === nextProps.existingUnits.length &&
+      prevProps.onTransferToDatabase === nextProps.onTransferToDatabase
+    );
+  }
+);

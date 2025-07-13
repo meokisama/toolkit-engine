@@ -43,6 +43,7 @@ export function DataTable({
   onSendSchedule,
   onSendScene,
   onFirmwareUpdate,
+  onRS485Config,
   initialPagination,
   initialColumnVisibility,
   enableRowSelection = false,
@@ -219,6 +220,7 @@ export function DataTable({
                   onSendSchedule={onSendSchedule}
                   onSendScene={onSendScene}
                   onFirmwareUpdate={onFirmwareUpdate}
+                  onRS485Config={onRS485Config}
                 />
               ))
           ) : (

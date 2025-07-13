@@ -108,3 +108,19 @@ export {
 
 // Export firmware functions
 export { updateFirmware } from "./rcu-controller/firmware.js";
+
+// Export general functions
+export {
+  changeIpAddress,
+  changeCanId,
+  setHardwareConfig,
+} from "./rcu-controller/general.js";
+
+// Export RS485 functions
+export {
+  getRS485CH1Config,
+  getRS485CH2Config,
+  setRS485CH1Config,
+  setRS485CH2Config,
+  createDefaultNetworkRS485Config,
+} from "./rcu-controller/rs485.js";

@@ -18,6 +18,7 @@ import {
   ListOrdered,
   Network,
   Upload,
+  Cable,
 } from "lucide-react";
 
 import { TableCell, TableRow } from "@/components/ui/table";
@@ -50,6 +51,7 @@ export function DataTableRow({
   onSendSchedule,
   onSendScene,
   onFirmwareUpdate,
+  onRS485Config,
 }) {
   const item = row.original;
 
@@ -174,7 +176,7 @@ export function DataTableRow({
           </>
         )}
         {/* System Submenu */}
-        {(onClockControl || onFirmwareUpdate) && (
+        {(onClockControl || onFirmwareUpdate || onRS485Config) && (
           <>
             <ContextMenuSub>
               <ContextMenuSubTrigger>
@@ -186,6 +188,12 @@ export function DataTableRow({
                   <ContextMenuItem onClick={() => onClockControl(item)}>
                     <Clock className="text-muted-foreground" />
                     <span>Clock Control</span>
+                  </ContextMenuItem>
+                )}
+                {onRS485Config && (
+                  <ContextMenuItem onClick={() => onRS485Config(item)}>
+                    <Cable className="text-muted-foreground" />
+                    <span>RS485 Configuration</span>
                   </ContextMenuItem>
                 )}
                 {onFirmwareUpdate && (

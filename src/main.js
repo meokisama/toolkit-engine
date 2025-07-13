@@ -67,6 +67,14 @@ import {
   getLocalACConfig,
   setLocalACConfig,
   updateFirmware,
+  changeIpAddress,
+  changeCanId,
+  setHardwareConfig,
+  getRS485CH1Config,
+  getRS485CH2Config,
+  setRS485CH1Config,
+  setRS485CH2Config,
+  createDefaultNetworkRS485Config,
 } from "./services/rcu-controller.js";
 import dgram from "dgram";
 import { updateElectronApp } from "update-electron-app";
@@ -1888,6 +1896,94 @@ function setupIpcHandlers() {
         return await triggerKnx(unitIp, canId, knxAddress);
       } catch (error) {
         console.error("Error triggering KNX:", error);
+        throw error;
+      }
+    }
+  );
+
+  // Network Unit Edit functions
+  ipcMain.handle(
+    "rcu:changeIpAddress",
+    async (event, { unitIp, canId, data }) => {
+      try {
+        const newIpBytes = data.slice(0, 4);
+        const oldIpBytes = data.slice(4, 8);
+        return await changeIpAddress(unitIp, canId, newIpBytes, oldIpBytes);
+      } catch (error) {
+        console.error("Error changing IP address:", error);
+        throw error;
+      }
+    }
+  );
+
+  ipcMain.handle(
+    "rcu:changeCanId",
+    async (event, { unitIp, canId, newLastPart }) => {
+      try {
+        return await changeCanId(unitIp, canId, newLastPart);
+      } catch (error) {
+        console.error("Error changing CAN ID:", error);
+        throw error;
+      }
+    }
+  );
+
+  ipcMain.handle(
+    "rcu:setHardwareConfig",
+    async (event, { unitIp, canId, configByte }) => {
+      try {
+        return await setHardwareConfig(unitIp, canId, configByte);
+      } catch (error) {
+        console.error("Error setting hardware config:", error);
+        throw error;
+      }
+    }
+  );
+
+  // RS485 Configuration functions
+  ipcMain.handle(
+    "rcu:getRS485CH1Config",
+    async (event, { unitIp, canId }) => {
+      try {
+        return await getRS485CH1Config(unitIp, canId);
+      } catch (error) {
+        console.error("Error getting RS485 CH1 config:", error);
+        throw error;
+      }
+    }
+  );
+
+  ipcMain.handle(
+    "rcu:getRS485CH2Config",
+    async (event, { unitIp, canId }) => {
+      try {
+        return await getRS485CH2Config(unitIp, canId);
+      } catch (error) {
+        console.error("Error getting RS485 CH2 config:", error);
+        throw error;
+      }
+    }
+  );
+
+  ipcMain.handle(
+    "rcu:setRS485CH1Config",
+    async (event, { unitIp, canId, config }) => {
+      try {
+        return await setRS485CH1Config(unitIp, canId, config);
+      } catch (error) {
+        console.error("Error setting RS485 CH1 config:", error);
+        throw error;
+      }
+    }
+  );
+
+  ipcMain.handle(
+    "rcu:setRS485CH2Config",
+    async (event, { unitIp, canId, config }) => {
+      try {
+        return await setRS485CH2Config(unitIp, canId, config);
+      } catch (error) {
+        console.error("Error setting RS485 CH2 config:", error);
         throw error;
       }
     }

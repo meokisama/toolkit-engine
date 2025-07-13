@@ -276,8 +276,8 @@ export const useNetworkIOConfig = (item, open, childDialogOpen = false) => {
   }, [item?.ip_address, item?.id_can]);
 
   // Sequential read function to ensure input completes before output with proper delays
-  const readStatesSequentiallyRef = useRef();
-  readStatesSequentiallyRef.current = async () => {
+  // Function for initial state read (doesn't check auto refresh enabled)
+  const readStatesInitial = useCallback(async () => {
     // Check if dialog is still open before proceeding
     if (!isDialogOpenRef.current) {
       return;
@@ -297,6 +297,43 @@ export const useNetworkIOConfig = (item, open, childDialogOpen = false) => {
 
       // Step 3: Check if dialog is still open before proceeding to outputs
       if (!isDialogOpenRef.current || childDialogOpenRef.current) {
+        return;
+      }
+
+      // Step 4: Read output states
+      await readOutputStatesBackground();
+
+    } catch (error) {
+      console.warn("❌ Initial state read failed:", error.message);
+    }
+  }, [readInputStatesBackground, readOutputStatesBackground]);
+
+  const readStatesSequentiallyRef = useRef();
+  readStatesSequentiallyRef.current = async () => {
+    // Check if dialog is still open before proceeding
+    if (!isDialogOpenRef.current) {
+      return;
+    }
+
+    // Additional check for child dialogs
+    if (childDialogOpenRef.current) {
+      return;
+    }
+
+    // Additional check for auto refresh enabled (only for auto refresh calls)
+    if (!autoRefreshEnabled) {
+      return;
+    }
+
+    try {
+      // Step 1: Read input states first
+      await readInputStatesBackground();
+
+      // Step 2: Wait for input processing to complete
+      await new Promise(resolve => setTimeout(resolve, 400));
+
+      // Step 3: Check if dialog is still open before proceeding to outputs
+      if (!isDialogOpenRef.current || childDialogOpenRef.current || !autoRefreshEnabled) {
         return;
       }
 
@@ -364,15 +401,10 @@ export const useNetworkIOConfig = (item, open, childDialogOpen = false) => {
       setConfigsLoaded(true);
       setIsInitialLoading(false);
 
-      // Initial state read
-      await readStatesSequentiallyRef.current();
+      // Initial state read to show current status (regardless of auto refresh setting)
+      await readStatesInitial();
 
-      // Set up auto-refresh only if enabled
-      if (autoRefreshEnabled) {
-        refreshIntervalRef.current = setInterval(() => {
-          readStatesSequentiallyRef.current();
-        }, 3000);
-      }
+      // Note: Auto-refresh setup is now handled by a separate effect
     };
 
     initializeDialog();
@@ -383,7 +415,7 @@ export const useNetworkIOConfig = (item, open, childDialogOpen = false) => {
         refreshIntervalRef.current = null;
       }
     };
-  }, [open, item, ioSpec, readInputConfigsFromUnit, autoRefreshEnabled]);
+  }, [open, item, ioSpec, readInputConfigsFromUnit, readStatesInitial]);
 
   // Effect to immediately stop auto refresh when dialog closes
   useEffect(() => {
@@ -401,15 +433,24 @@ export const useNetworkIOConfig = (item, open, childDialogOpen = false) => {
     }
   }, [open]);
 
+  // Function to force stop all auto refresh activities
+  const forceStopAutoRefresh = useCallback(() => {
+    if (refreshIntervalRef.current) {
+      clearInterval(refreshIntervalRef.current);
+      refreshIntervalRef.current = null;
+    }
+  }, []);
+
   // Effect to handle auto refresh enable/disable
   useEffect(() => {
     if (autoRefreshEnabled && open && configsLoaded && !refreshIntervalRef.current) {
       // Start auto refresh
+      isDialogOpenRef.current = true; // Ensure dialog flag is set
       refreshIntervalRef.current = setInterval(() => {
         readStatesSequentiallyRef.current();
       }, 3000);
     } else if (!autoRefreshEnabled && refreshIntervalRef.current) {
-      // Stop auto refresh
+      // Stop auto refresh immediately when disabled
       clearInterval(refreshIntervalRef.current);
       refreshIntervalRef.current = null;
     }
@@ -421,14 +462,15 @@ export const useNetworkIOConfig = (item, open, childDialogOpen = false) => {
       clearInterval(refreshIntervalRef.current);
       refreshIntervalRef.current = null;
     }
-    // Also set flag to prevent any ongoing reads
-    isDialogOpenRef.current = false;
+    // Note: Don't set isDialogOpenRef.current = false here as it's used for other purposes
+    // The interval clearing is sufficient to stop auto refresh
   }, []);
 
   // Function to resume auto refresh (when child dialogs are closed)
   const resumeAutoRefresh = useCallback(() => {
     if (!refreshIntervalRef.current && open && configsLoaded && autoRefreshEnabled) {
-      isDialogOpenRef.current = true; // Re-enable the flag
+      // Ensure dialog flag is set correctly
+      isDialogOpenRef.current = true;
       refreshIntervalRef.current = setInterval(() => {
         readStatesSequentiallyRef.current();
       }, 3000);
@@ -499,5 +541,7 @@ export const useNetworkIOConfig = (item, open, childDialogOpen = false) => {
     readAirconConfigsFromUnit,
     pauseAutoRefresh,
     resumeAutoRefresh,
+    forceStopAutoRefresh,
+    readStatesInitial,
   };
 };

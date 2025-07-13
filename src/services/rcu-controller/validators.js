@@ -24,7 +24,7 @@ const validators = {
   year: (year) => validators.range(year, 0, 99, "Year"),
   month: (month) => validators.range(month, 1, 12, "Month"),
   day: (day) => validators.range(day, 1, 31, "Day"),
-  dayOfWeek: (day) => validators.range(day, 0, 6, "Day of week"),
+  dayOfWeek: (day) => validators.range(day, 1, 7, "Day of week"),
 };
 
 export { validators };
