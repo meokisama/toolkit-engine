@@ -21,7 +21,12 @@ import {
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
 
-export function NetworkUnitEditDialog({ open, onOpenChange, unit, onUnitUpdated }) {
+export function NetworkUnitEditDialog({
+  open,
+  onOpenChange,
+  unit,
+  onUnitUpdated,
+}) {
   const [formData, setFormData] = useState({
     ip_address: "",
     id_can: "",
@@ -36,7 +41,7 @@ export function NetworkUnitEditDialog({ open, onOpenChange, unit, onUnitUpdated 
   // Initialize form data when unit changes
   useEffect(() => {
     if (unit) {
-      const canIdParts = (unit.id_can || "").split('.');
+      const canIdParts = (unit.id_can || "").split(".");
       const lastPart = canIdParts.length === 4 ? canIdParts[3] : "";
 
       const data = {
@@ -68,9 +73,9 @@ export function NetworkUnitEditDialog({ open, onOpenChange, unit, onUnitUpdated 
   }, [open]);
 
   const handleInputChange = (field, value) => {
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      [field]: value
+      [field]: value,
     }));
   };
 
@@ -83,7 +88,7 @@ export function NetworkUnitEditDialog({ open, onOpenChange, unit, onUnitUpdated 
     }
 
     // Validate IP address range (0-255 for each octet)
-    const ipParts = formData.ip_address.split('.');
+    const ipParts = formData.ip_address.split(".");
     for (const part of ipParts) {
       const num = parseInt(part);
       if (num < 0 || num > 255) {
@@ -121,7 +126,7 @@ export function NetworkUnitEditDialog({ open, onOpenChange, unit, onUnitUpdated 
       // Check for CAN ID change
       if (formData.id_can_last_part !== originalData.id_can_last_part) {
         // Build new CAN ID with updated last part
-        const originalCanIdParts = originalData.id_can.split('.');
+        const originalCanIdParts = originalData.id_can.split(".");
         const newCanId = `${originalCanIdParts[0]}.${originalCanIdParts[1]}.${originalCanIdParts[2]}.${formData.id_can_last_part}`;
         changes.id_can = newCanId;
         changes.id_can_last_part = parseInt(formData.id_can_last_part);
@@ -150,7 +155,11 @@ export function NetworkUnitEditDialog({ open, onOpenChange, unit, onUnitUpdated 
 
       // Apply changes sequentially
       if (changes.ip_address) {
-        await changeIpAddress(unit.ip_address, formData.ip_address, unit.id_can);
+        await changeIpAddress(
+          unit.ip_address,
+          formData.ip_address,
+          unit.id_can
+        );
       }
 
       if (changes.id_can) {
@@ -191,16 +200,16 @@ export function NetworkUnitEditDialog({ open, onOpenChange, unit, onUnitUpdated 
 
   const changeIpAddress = async (oldIp, newIp, canId) => {
     // Convert IP addresses to byte arrays
-    const oldIpBytes = oldIp.split('.').map(part => parseInt(part));
-    const newIpBytes = newIp.split('.').map(part => parseInt(part));
-    
+    const oldIpBytes = oldIp.split(".").map((part) => parseInt(part));
+    const newIpBytes = newIp.split(".").map((part) => parseInt(part));
+
     // Data: 4 bytes new IP + 4 bytes old IP
     const data = [...newIpBytes, ...oldIpBytes];
 
     const response = await window.electronAPI.rcuController.changeIpAddress({
       unitIp: oldIp,
       canId: canId,
-      data: data
+      data: data,
     });
 
     if (!response.result.success) {
@@ -212,7 +221,7 @@ export function NetworkUnitEditDialog({ open, onOpenChange, unit, onUnitUpdated 
     const response = await window.electronAPI.rcuController.changeCanId({
       unitIp: unitIp,
       canId: oldCanId,
-      newLastPart: newLastPart
+      newLastPart: newLastPart,
     });
 
     if (!response.result.success) {
@@ -227,8 +236,8 @@ export function NetworkUnitEditDialog({ open, onOpenChange, unit, onUnitUpdated 
     // 2 bits for action mode (0: Stand-Alone, 1: Slave, 2: Master)
     const modeMap = {
       "Stand-Alone": 0,
-      "Slave": 1,
-      "Master": 2
+      Slave: 1,
+      Master: 2,
     };
     configByte |= (modeMap[config.mode] || 0) & 0x03;
 
@@ -245,7 +254,7 @@ export function NetworkUnitEditDialog({ open, onOpenChange, unit, onUnitUpdated 
     const response = await window.electronAPI.rcuController.setHardwareConfig({
       unitIp: unitIp,
       canId: canId,
-      configByte: configByte
+      configByte: configByte,
     });
 
     if (!response.result.success) {
@@ -261,54 +270,63 @@ export function NetworkUnitEditDialog({ open, onOpenChange, unit, onUnitUpdated 
         <DialogHeader>
           <DialogTitle>Edit Network Unit</DialogTitle>
           <DialogDescription>
-            Modify the network unit configuration. Changes will be applied directly to the unit.
+            Modify the network unit configuration.
           </DialogDescription>
         </DialogHeader>
 
-        <div className="grid gap-4 py-4">
-          <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="ip_address" className="text-right">
-              IP Address
-            </Label>
-            <Input
-              id="ip_address"
-              value={formData.ip_address}
-              onChange={(e) => handleInputChange("ip_address", e.target.value)}
-              className="col-span-3"
-              placeholder="192.168.1.100"
-            />
-          </div>
-
-          <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="id_can" className="text-right">
-              CAN ID
-            </Label>
-            <div className="col-span-3 flex items-center gap-2">
-              <span className="text-sm text-muted-foreground">
-                {formData.id_can ? formData.id_can.split('.').slice(0, 3).join('.') + '.' : '0.0.1.'}
-              </span>
+        <div className="space-y-6 mb-6">
+          <div className="grid grid-cols-2 gap-4">
+            <div className="flex flex-col gap-2">
+              <Label htmlFor="ip_address" className="text-right">
+                IP Address
+              </Label>
               <Input
-                id="id_can_last_part"
-                type="number"
-                min="1"
-                max="255"
-                value={formData.id_can_last_part}
-                onChange={(e) => handleInputChange("id_can_last_part", e.target.value)}
-                className="w-20"
-                placeholder="1"
+                id="ip_address"
+                value={formData.ip_address}
+                onChange={(e) =>
+                  handleInputChange("ip_address", e.target.value)
+                }
+                placeholder="192.168.1.100"
               />
             </div>
+            <div className="flex flex-col gap-2">
+              <Label htmlFor="id_can" className="text-right">
+                CAN ID
+              </Label>
+              <div className="flex items-center gap-2">
+                <Input
+                  className="text-muted-foreground w-20 tracking-[2px] text-center"
+                  readOnly
+                  value={
+                    formData.id_can
+                      ? formData.id_can.split(".").slice(0, 3).join(".") + "."
+                      : "0.0.1."
+                  }
+                />
+                <Input
+                  id="id_can_last_part"
+                  type="number"
+                  min="1"
+                  max="255"
+                  value={formData.id_can_last_part}
+                  onChange={(e) =>
+                    handleInputChange("id_can_last_part", e.target.value)
+                  }
+                  className="w-15 text-center [&::-webkit-inner-spin-button]:appearance-none"
+                  placeholder="1"
+                />
+              </div>
+            </div>
           </div>
-
-          <div className="grid grid-cols-4 items-center gap-4">
+          <div className="flex flex-col gap-2">
             <Label htmlFor="mode" className="text-right">
-              Action Mode
+              Mode
             </Label>
             <Select
               value={formData.mode}
               onValueChange={(value) => handleInputChange("mode", value)}
             >
-              <SelectTrigger className="col-span-3">
+              <SelectTrigger className="w-full">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -318,30 +336,27 @@ export function NetworkUnitEditDialog({ open, onOpenChange, unit, onUnitUpdated 
               </SelectContent>
             </Select>
           </div>
-
-          <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="can_load" className="text-right">
-              CAN Load
-            </Label>
-            <div className="col-span-3">
+          <div className="grid grid-cols-2 gap-4">
+            <div className="flex flex-row gap-2">
               <Checkbox
                 id="can_load"
                 checked={formData.can_load}
-                onCheckedChange={(checked) => handleInputChange("can_load", checked)}
+                onCheckedChange={(checked) =>
+                  handleInputChange("can_load", checked)
+                }
               />
+              <Label htmlFor="can_load">CAN Load</Label>
             </div>
-          </div>
 
-          <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="recovery_mode" className="text-right">
-              Recovery
-            </Label>
-            <div className="col-span-3">
+            <div className="flex flex-row gap-2">
               <Checkbox
                 id="recovery_mode"
                 checked={formData.recovery_mode}
-                onCheckedChange={(checked) => handleInputChange("recovery_mode", checked)}
+                onCheckedChange={(checked) =>
+                  handleInputChange("recovery_mode", checked)
+                }
               />
+              <Label htmlFor="recovery_mode">Line Cut Recovery</Label>
             </div>
           </div>
         </div>

@@ -87,7 +87,12 @@ export function UnitDialog({
     }
 
     const num = parseInt(value, 10);
-    if (isNaN(num) || num < 1 || num > 255 || !Number.isInteger(parseFloat(value))) {
+    if (
+      isNaN(num) ||
+      num < 1 ||
+      num > 255 ||
+      !Number.isInteger(parseFloat(value))
+    ) {
       return "ID CAN last part must be a number between 1-255";
     }
 
@@ -99,7 +104,7 @@ export function UnitDialog({
     if (open) {
       if (mode === "edit" && item) {
         // Extract last part from existing CAN ID or default to empty
-        const canIdParts = (item.id_can || "").split('.');
+        const canIdParts = (item.id_can || "").split(".");
         const lastPart = canIdParts.length === 4 ? canIdParts[3] : "";
 
         const newFormData = {
@@ -161,8 +166,11 @@ export function UnitDialog({
         if (value.trim()) {
           // Get the first 3 parts from existing CAN ID or default to 0.0.0
           const existingCanId = prev.id_can || "0.0.0.1";
-          const canIdParts = existingCanId.split('.');
-          const prefix = canIdParts.length >= 3 ? `${canIdParts[0]}.${canIdParts[1]}.${canIdParts[2]}` : "0.0.0";
+          const canIdParts = existingCanId.split(".");
+          const prefix =
+            canIdParts.length >= 3
+              ? `${canIdParts[0]}.${canIdParts[1]}.${canIdParts[2]}`
+              : "0.0.0";
           newData.id_can = `${prefix}.${value}`;
         } else {
           newData.id_can = "";
@@ -357,15 +365,19 @@ export function UnitDialog({
                 </Label>
                 <div>
                   <div className="flex items-center gap-2">
-                    <span className="text-sm text-muted-foreground">
-                      {(() => {
+                    <Input
+                      className="text-muted-foreground w-20 tracking-[2px] text-center"
+                      readOnly
+                      value={(() => {
                         if (formData.id_can) {
-                          const parts = formData.id_can.split('.');
-                          return parts.length >= 3 ? `${parts[0]}.${parts[1]}.${parts[2]}.` : "0.0.0.";
+                          const parts = formData.id_can.split(".");
+                          return parts.length >= 3
+                            ? `${parts[0]}.${parts[1]}.${parts[2]}.`
+                            : "0.0.0.";
                         }
                         return "0.0.0.";
                       })()}
-                    </span>
+                    />
                     <Input
                       id="id_can_last_part"
                       type="number"
@@ -375,12 +387,15 @@ export function UnitDialog({
                       onChange={(e) =>
                         handleInputChange("id_can_last_part", e.target.value)
                       }
-                      placeholder="1"
-                      className={`w-20 ${errors.id_can_last_part ? "border-red-500" : ""}`}
+                      className={`w-15 text-center [&::-webkit-inner-spin-button]:appearance-none ${
+                        errors.id_can_last_part ? "border-red-500" : ""
+                      }`}
                     />
                   </div>
                   {errors.id_can_last_part && (
-                    <p className="text-sm text-red-500 mt-1">{errors.id_can_last_part}</p>
+                    <p className="text-sm text-red-500 mt-1">
+                      {errors.id_can_last_part}
+                    </p>
                   )}
                 </div>
               </div>
