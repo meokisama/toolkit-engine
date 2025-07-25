@@ -41,6 +41,7 @@ export function KnxItemDialog({ open, onOpenChange, mode, item }) {
     useProjectDetail();
   const [loading, setLoading] = useState(false);
   const [rcuGroupOpen, setRcuGroupOpen] = useState(false);
+  const [rcuDataLoading, setRcuDataLoading] = useState(false);
   const [formData, setFormData] = useState({
     name: "",
     address: "",
@@ -93,13 +94,22 @@ export function KnxItemDialog({ open, onOpenChange, mode, item }) {
 
     // Load data if not already loaded
     if (tabToLoad && !loadedTabs.has(tabToLoad)) {
-      await loadTabData(selectedProject.id, tabToLoad);
+      setRcuDataLoading(true);
+      try {
+        await loadTabData(selectedProject.id, tabToLoad);
+      } catch (error) {
+        console.error(`Failed to load ${tabToLoad} data:`, error);
+      } finally {
+        setRcuDataLoading(false);
+      }
     }
   }, [selectedProject, loadedTabs, loadTabData]);
+
 
   // Reset form when dialog opens/closes or item changes
   useEffect(() => {
     if (open) {
+      setRcuDataLoading(false); // Reset loading state
       if (mode === "edit" && item) {
         setFormData({
           name: item.name || "",
@@ -113,7 +123,7 @@ export function KnxItemDialog({ open, onOpenChange, mode, item }) {
           knx_value_group: item.knx_value_group || "",
           description: item.description || "",
         });
-        // Load RCU Group data for the current item's type (lazy loading)
+        // Load RCU Group data for the current item's type
         if (item.type && item.type !== 0) {
           loadRcuGroupDataForType(item.type);
         }
@@ -133,7 +143,8 @@ export function KnxItemDialog({ open, onOpenChange, mode, item }) {
       }
       setErrors({});
     }
-  }, [open, mode, item, loadRcuGroupDataForType]);
+  }, [open, mode, item]);
+
 
   const validateForm = () => {
     const newErrors = {};
@@ -230,6 +241,7 @@ export function KnxItemDialog({ open, onOpenChange, mode, item }) {
   };
 
   const handleInputChange = (field, value) => {
+    // Update form data first
     setFormData((prev) => {
       const newData = { ...prev, [field]: value };
 
@@ -250,14 +262,21 @@ export function KnxItemDialog({ open, onOpenChange, mode, item }) {
 
           // Reset RCU group when type changes to allow selection from appropriate items
           newData.rcu_group_id = null;
-
-          // Load RCU Group data for the new type (lazy loading)
-          loadRcuGroupDataForType(value);
         }
       }
 
       return newData;
     });
+
+    // If type changes, handle data loading after form state update
+    if (field === "type") {
+      const visibility = getKnxGroupVisibility(value);
+      
+      // Load RCU Group data for the new type immediately (works for all types)
+      if (visibility.allowInput && parseInt(value) !== 0) {
+        loadRcuGroupDataForType(value);
+      }
+    }
 
     // Clear error when user starts typing
     if (errors[field]) {
@@ -265,33 +284,44 @@ export function KnxItemDialog({ open, onOpenChange, mode, item }) {
     }
   };
 
-  // Get appropriate items for RCU Group selection based on KNX type
-  const getRcuGroupItems = (knxType) => {
-    const typeValue = parseInt(knxType);
+  // State to store current RCU group items
+  const [rcuGroupItems, setRcuGroupItems] = useState([]);
+
+  // Update RCU group items when type or projectItems change
+  useEffect(() => {
+    const typeValue = parseInt(formData.type);
+    let items = [];
 
     switch (typeValue) {
       case 1: // Switch
       case 2: // Dimmer
-        return projectItems?.lighting || [];
+        items = projectItems?.lighting || [];
+        break;
       case 3: // Curtain
-        return projectItems?.curtain || [];
+        items = projectItems?.curtain || [];
+        break;
       case 4: // Scene
-        return projectItems?.scene || [];
+        items = projectItems?.scene || [];
+        break;
       case 5: // Multi Scene
+        items = projectItems?.multi_scenes || [];
+        break;
       case 6: // Multi Scene Sequence
-        return projectItems?.multi_scenes || [];
+        items = projectItems?.sequences || [];
+        break;
       case 7: // AC Power
       case 8: // AC Mode
       case 9: // AC Fan Speed
       case 10: // AC Swing
       case 11: // AC Set Point
-        return projectItems?.aircon || [];
+        items = projectItems?.aircon || [];
+        break;
       default:
-        return projectItems?.lighting || [];
+        items = [];
     }
-  };
 
-  const rcuGroupItems = getRcuGroupItems(formData.type);
+    setRcuGroupItems(items);
+  }, [formData.type, projectItems]);
 
   // Determine which KNX group fields to show based on type
   const getKnxGroupVisibility = (type) => {
@@ -459,10 +489,12 @@ export function KnxItemDialog({ open, onOpenChange, mode, item }) {
                     role="combobox"
                     aria-expanded={rcuGroupOpen}
                     className="w-full justify-between"
-                    disabled={!knxGroupVisibility.allowInput}
+                    disabled={!knxGroupVisibility.allowInput || rcuDataLoading}
                   >
                     <span className="truncate whitespace-nowrap overflow-hidden text-ellipsis">
-                      {formData.rcu_group_id
+                      {rcuDataLoading
+                        ? "Loading..."
+                        : formData.rcu_group_id
                         ? (() => {
                             const selectedItem = rcuGroupItems.find(
                               (item) => item.id === formData.rcu_group_id

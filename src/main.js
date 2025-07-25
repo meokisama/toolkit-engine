@@ -78,6 +78,7 @@ import {
 } from "./services/rcu-controller.js";
 import dgram from "dgram";
 import { updateElectronApp } from "update-electron-app";
+import { networkInterfaceService } from "./services/network-interfaces.js";
 
 updateElectronApp();
 
@@ -1237,6 +1238,53 @@ function setupIpcHandlers() {
     }
   });
 
+  // Network Interface Management
+  ipcMain.handle("network:getInterfaces", async (event, forceRefresh = false) => {
+    try {
+      return networkInterfaceService.getNetworkInterfaces(forceRefresh);
+    } catch (error) {
+      console.error("Error getting network interfaces:", error);
+      throw error;
+    }
+  });
+
+  ipcMain.handle("network:getBroadcastAddresses", async (event, forceRefresh = false) => {
+    try {
+      return networkInterfaceService.getBroadcastAddresses(forceRefresh);
+    } catch (error) {
+      console.error("Error getting broadcast addresses:", error);
+      throw error;
+    }
+  });
+
+  ipcMain.handle("network:getSummary", async (event) => {
+    try {
+      return networkInterfaceService.getSummary();
+    } catch (error) {
+      console.error("Error getting network summary:", error);
+      throw error;
+    }
+  });
+
+  ipcMain.handle("network:findInterfaceForTarget", async (event, targetIp) => {
+    try {
+      return networkInterfaceService.findInterfaceForTarget(targetIp);
+    } catch (error) {
+      console.error("Error finding interface for target:", error);
+      throw error;
+    }
+  });
+
+  ipcMain.handle("network:clearCache", async (event) => {
+    try {
+      networkInterfaceService.clearCache();
+      return { success: true };
+    } catch (error) {
+      console.error("Error clearing network cache:", error);
+      throw error;
+    }
+  });
+
   // RCU Controller functions
   ipcMain.handle(
     "rcu:setupScene",
@@ -1991,16 +2039,25 @@ function setupIpcHandlers() {
 }
 
 /**
- * UDP Network Scanner Implementation
+ * UDP Network Scanner Implementation with Multi-Interface Support
+ * Enhanced version that broadcasts on all available network interfaces
  * Based on RLC C# implementation
  */
 async function scanUDPNetwork(config) {
-  const { broadcastIP, udpPort, localPort, timeout } = config;
+  const { 
+    broadcastAddresses, 
+    broadcastIP, 
+    udpPort, 
+    localPort, 
+    timeout, 
+    multiInterface = false 
+  } = config;
 
   return new Promise((resolve, reject) => {
     const results = [];
-    let socket = null;
+    const sockets = [];
     let timeoutHandle = null;
+    let completedScans = 0;
 
     // Create UDP request packet for hardware information
     const createHardwareInfoRequest = (targetId = "0.0.0.0") => {
@@ -2039,26 +2096,20 @@ async function scanUDPNetwork(config) {
         timeoutHandle = null;
       }
 
-      if (socket) {
-        try {
-          socket.close();
-        } catch (e) {
-          console.error("Error closing socket:", e);
+      sockets.forEach(socket => {
+        if (socket) {
+          try {
+            socket.close();
+          } catch (e) {
+            console.error("Error closing socket:", e);
+          }
         }
-        socket = null;
-      }
+      });
+      sockets.length = 0;
     }
 
-    // Create single socket for both send and receive
-    socket = dgram.createSocket("udp4");
-
-    socket.on("error", (err) => {
-      console.error("UDP socket error:", err);
-      cleanup();
-      reject(err);
-    });
-
-    socket.on("message", (msg, rinfo) => {
+    // Handle message reception
+    function handleMessage(msg, rinfo) {
       if (msg.length >= 6) {
         const dataLength = msg[5] * 256 + msg[4];
 
@@ -2070,37 +2121,120 @@ async function scanUDPNetwork(config) {
           });
         }
       }
-    });
+    }
 
-    socket.on("listening", () => {
-      // Set socket options
-      try {
-        socket.setBroadcast(true);
-        socket.setRecvBufferSize(0x40000);
-      } catch (e) {
-        // Ignore socket option errors
-      }
-
-      // Send broadcast request
+    // Multi-interface scanning
+    if (multiInterface && broadcastAddresses && broadcastAddresses.length > 0) {
+      console.log(`Multi-interface UDP scan starting on ${broadcastAddresses.length} interfaces:`, broadcastAddresses);
+      
+      const expectedScans = broadcastAddresses.length;
       const requestData = createHardwareInfoRequest("0.0.0.0");
 
-      socket.send(requestData, udpPort, broadcastIP, (err) => {
-        if (err) {
-          cleanup();
-          reject(err);
-          return;
+      // Create a socket for each broadcast address
+      broadcastAddresses.forEach((broadcastAddr, index) => {
+        const socket = dgram.createSocket("udp4");
+        sockets.push(socket);
+
+        socket.on("error", (err) => {
+          console.error(`UDP socket error on interface ${broadcastAddr}:`, err);
+          completedScans++;
+          if (completedScans === expectedScans) {
+            cleanup();
+            resolve(results);
+          }
+        });
+
+        socket.on("message", handleMessage);
+
+        socket.on("listening", () => {
+          // Set socket options
+          try {
+            socket.setBroadcast(true);
+            socket.setRecvBufferSize(0x40000);
+          } catch (e) {
+            console.log(`Socket option warning on ${broadcastAddr}:`, e.message);
+          }
+
+          // Send broadcast request to this interface
+          socket.send(requestData, udpPort, broadcastAddr, (err) => {
+            if (err) {
+              console.error(`Send error on interface ${broadcastAddr}:`, err);
+            } else {
+              console.log(`Broadcast sent on interface ${broadcastAddr}`);
+            }
+            
+            completedScans++;
+            
+            // If this is the last scan to complete, set the timeout
+            if (completedScans === expectedScans) {
+              timeoutHandle = setTimeout(() => {
+                console.log(`Multi-interface scan timeout reached. Found ${results.length} responses.`);
+                cleanup();
+                resolve(results);
+              }, timeout);
+            }
+          });
+        });
+
+        // Bind socket to any available port
+        socket.bind();
+      });
+
+      // Fallback timeout in case no sockets complete successfully
+      if (expectedScans === 0) {
+        console.log("No network interfaces available for scanning");
+        resolve([]);
+      }
+
+    } else {
+      // Fallback to single interface scanning (backward compatibility)
+      const targetBroadcast = broadcastIP || "255.255.255.255";
+      console.log(`Single-interface UDP scan starting on ${targetBroadcast}`);
+      
+      const socket = dgram.createSocket("udp4");
+      sockets.push(socket);
+
+      socket.on("error", (err) => {
+        console.error("UDP socket error:", err);
+        cleanup();
+        reject(err);
+      });
+
+      socket.on("message", handleMessage);
+
+      socket.on("listening", () => {
+        // Set socket options
+        try {
+          socket.setBroadcast(true);
+          socket.setRecvBufferSize(0x40000);
+        } catch (e) {
+          console.log("Socket option warning:", e.message);
         }
 
-        // Set timeout for responses
-        timeoutHandle = setTimeout(() => {
-          cleanup();
-          resolve(results);
-        }, timeout);
-      });
-    });
+        // Send broadcast request
+        const requestData = createHardwareInfoRequest("0.0.0.0");
 
-    // Bind socket to any available port
-    socket.bind();
+        socket.send(requestData, udpPort, targetBroadcast, (err) => {
+          if (err) {
+            cleanup();
+            reject(err);
+            return;
+          }
+
+          console.log(`Broadcast sent on ${targetBroadcast}`);
+
+          // Set timeout for responses
+          timeoutHandle = setTimeout(() => {
+            console.log(`Single-interface scan timeout reached. Found ${results.length} responses.`);
+            cleanup();
+            resolve(results);
+          }, timeout);
+        });
+      });
+
+      // Bind socket to any available port
+      socket.bind();
+    }
   });
 }
 

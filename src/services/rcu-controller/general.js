@@ -39,7 +39,9 @@ async function changeIpAddress(unitIp, canId, newIpBytes, oldIpBytes) {
     throw new Error("Failed to change IP address");
   }
 
-  return true;
+  return {
+    result: { success: true }
+  };
 }
 
 // Change CAN ID function
@@ -68,7 +70,9 @@ async function changeCanId(unitIp, canId, newLastPart) {
     throw new Error("Failed to change CAN ID");
   }
 
-  return true;
+  return {
+    result: { success: true }
+  };
 }
 
 // Set Hardware Configuration function
@@ -100,7 +104,9 @@ async function setHardwareConfig(unitIp, canId, configByte) {
     throw new Error("Failed to set hardware configuration");
   }
 
-  return true;
+  return {
+    result: { success: true }
+  };
 }
 
 

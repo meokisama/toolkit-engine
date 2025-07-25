@@ -279,6 +279,15 @@ contextBridge.exposeInMainWorld("electronAPI", {
   // UDP Network Scanning
   scanUDPNetwork: (config) => ipcRenderer.invoke("udp:scanNetwork", config),
 
+  // Network Interface Management
+  networkInterfaces: {
+    getAll: (forceRefresh = false) => ipcRenderer.invoke("network:getInterfaces", forceRefresh),
+    getBroadcastAddresses: (forceRefresh = false) => ipcRenderer.invoke("network:getBroadcastAddresses", forceRefresh),
+    getSummary: () => ipcRenderer.invoke("network:getSummary"),
+    findInterfaceForTarget: (targetIp) => ipcRenderer.invoke("network:findInterfaceForTarget", targetIp),
+    clearCache: () => ipcRenderer.invoke("network:clearCache"),
+  },
+
   // RCU Group Control
   rcuController: {
     setGroupState: (params) => ipcRenderer.invoke("rcu:setGroupState", params),

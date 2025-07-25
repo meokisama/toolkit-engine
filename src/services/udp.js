@@ -227,8 +227,8 @@ class UDPNetworkScanner {
   }
 
   /**
-   * Scan network for units using UDP broadcast
-   * Based on RLC Get_Infor_Unit method
+   * Scan network for units using UDP broadcast on all available interfaces
+   * Based on RLC Get_Infor_Unit method, enhanced for multi-interface support
    */
   async scanNetwork() {
     if (this.isScanning) {
@@ -236,7 +236,7 @@ class UDPNetworkScanner {
     }
 
     this.isScanning = true;
-    console.log("Starting network scan...");
+    console.log("Starting multi-interface network scan...");
 
     try {
       // Check if we're in Electron environment
@@ -245,17 +245,49 @@ class UDPNetworkScanner {
         window.electronAPI &&
         window.electronAPI.scanUDPNetwork
       ) {
-        // Use Electron IPC for UDP operations
+        // Get network interface information from main process
+        const interfaces = await window.electronAPI.networkInterfaces.getAll(true); // Force refresh
+        const broadcastAddresses = interfaces.map(iface => iface.broadcast);
+        
+        console.log(`Scanning on ${broadcastAddresses.length} network interfaces:`, broadcastAddresses);
+
+        // Use Electron IPC for UDP operations with multi-interface support
         const results = await window.electronAPI.scanUDPNetwork({
-          broadcastIP: UDP_CONFIG.BROADCAST_IP,
+          broadcastAddresses: broadcastAddresses, // Send array instead of single IP
+          broadcastIP: UDP_CONFIG.BROADCAST_IP, // Keep for backward compatibility
           udpPort: UDP_CONFIG.UDP_PORT,
           localPort: UDP_CONFIG.LOCAL_UDP_PORT,
           timeout: UDP_CONFIG.SCAN_TIMEOUT,
+          multiInterface: true, // Flag to indicate multi-interface mode
         });
 
-        this.scanResults = results
+        // Parse results and remove duplicates based on IP address
+        const parsedResults = results
           .map((result) => this.parseUDPResponse(result.data, result.sourceIP))
           .filter((unit) => unit !== null);
+
+        // Remove duplicates by IP address (same device might respond on multiple interfaces)
+        const uniqueResults = [];
+        const seenIPs = new Set();
+        
+        for (const unit of parsedResults) {
+          if (!seenIPs.has(unit.ip_address)) {
+            seenIPs.add(unit.ip_address);
+            // Add interface information to the unit using main process
+            const sourceInterface = await window.electronAPI.networkInterfaces.findInterfaceForTarget(unit.ip_address);
+            if (sourceInterface) {
+              unit.source_interface = {
+                name: sourceInterface.name,
+                address: sourceInterface.address,
+                network: sourceInterface.network,
+                broadcast: sourceInterface.broadcast
+              };
+            }
+            uniqueResults.push(unit);
+          }
+        }
+
+        this.scanResults = uniqueResults;
       } else {
         // Fallback for development/testing - simulate scan results
         await this.simulateScan();
@@ -264,12 +296,12 @@ class UDPNetworkScanner {
       // Update cache timestamp
       this.lastScanTime = Date.now();
       console.log(
-        `Network scan completed. Found ${this.scanResults.length} units`
+        `Multi-interface network scan completed. Found ${this.scanResults.length} unique units`
       );
 
       return this.scanResults;
     } catch (error) {
-      console.error("Network scan failed:", error);
+      console.error("Multi-interface network scan failed:", error);
       throw error;
     } finally {
       this.isScanning = false;
