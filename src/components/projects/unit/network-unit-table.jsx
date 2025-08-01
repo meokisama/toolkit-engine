@@ -11,6 +11,7 @@ import {
   MoreHorizontal,
   ChevronDown,
   Send,
+  Database,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -42,7 +43,10 @@ import { NetworkRS485ConfigDialog } from "@/components/projects/unit/network-men
 import { udpScanner } from "@/services/udp";
 import { toast } from "sonner";
 
-function NetworkUnitTableComponent({ onTransferToDatabase, existingUnits = [] }) {
+function NetworkUnitTableComponent({
+  onTransferToDatabase,
+  existingUnits = [],
+}) {
   const [networkUnits, setNetworkUnits] = useState([]);
   const [selectedNetworkUnits, setSelectedNetworkUnits] = useState([]);
   const [scanLoading, setScanLoading] = useState(false);
@@ -67,7 +71,8 @@ function NetworkUnitTableComponent({ onTransferToDatabase, existingUnits = [] })
   const [ioConfigDialogOpen, setIOConfigDialogOpen] = useState(false);
   const [selectedUnitForIOConfig, setSelectedUnitForIOConfig] = useState(null);
   const [rs485ConfigDialogOpen, setRS485ConfigDialogOpen] = useState(false);
-  const [selectedUnitForRS485Config, setSelectedUnitForRS485Config] = useState(null);
+  const [selectedUnitForRS485Config, setSelectedUnitForRS485Config] =
+    useState(null);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [selectedUnitForEdit, setSelectedUnitForEdit] = useState(null);
   const [selectedUnit, setSelectedUnit] = useState(null);
@@ -421,7 +426,7 @@ function NetworkUnitTableComponent({ onTransferToDatabase, existingUnits = [] })
                     {/* Send All Configurations */}
                     <DropdownMenuItem onClick={handleSendAllConfig}>
                       <Send className="h-4 w-4 mr-2" />
-                      Send All Configurations
+                      Send Configurations
                     </DropdownMenuItem>
 
                     {/* Clock Sync */}
@@ -575,8 +580,6 @@ function NetworkUnitTableComponent({ onTransferToDatabase, existingUnits = [] })
         <SendAllConfigDialog
           open={sendAllConfigDialogOpen}
           onOpenChange={setSendAllConfigDialogOpen}
-          units={networkUnits}
-          selectedUnits={selectedNetworkUnits}
         />
 
         <NetworkIOConfigDialog
@@ -597,8 +600,8 @@ function NetworkUnitTableComponent({ onTransferToDatabase, existingUnits = [] })
           unit={selectedUnitForEdit}
           onUnitUpdated={(updatedUnit) => {
             // Update the unit in the network units list
-            setNetworkUnits(prev =>
-              prev.map(unit =>
+            setNetworkUnits((prev) =>
+              prev.map((unit) =>
                 unit.id === updatedUnit.id ? { ...unit, ...updatedUnit } : unit
               )
             );

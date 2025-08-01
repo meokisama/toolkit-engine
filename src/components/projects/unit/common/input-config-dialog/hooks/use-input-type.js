@@ -13,6 +13,8 @@ export const useInputType = (
 ) => {
   const [currentInputType, setCurrentInputType] = useState(functionValue);
   const [isInputTypeChanging, setIsInputTypeChanging] = useState(false);
+  const [userHasChangedType, setUserHasChangedType] = useState(false);
+  const [hasInitialized, setHasInitialized] = useState(false);
 
   // Get available input functions for the unit type and specific input index
   const availableInputFunctions = useMemo(() => {
@@ -44,7 +46,8 @@ export const useInputType = (
     }
 
     // Get functions specific to this unit type and input index
-    return getInputFunctions(unitType, inputIndex);
+    const functions = getInputFunctions(unitType, inputIndex);
+    return functions;
   }, [unitType, inputIndex]);
 
   // Get current function from available functions
@@ -55,20 +58,27 @@ export const useInputType = (
     );
   }, [currentInputType, availableInputFunctions]);
 
-  // Sync currentInputType with functionValue prop
+  // Sync currentInputType with functionValue prop - only update if different and user hasn't manually changed it
   useEffect(() => {
-    if (functionValue !== null && functionValue !== undefined) {
+    if (functionValue !== null && functionValue !== undefined && functionValue !== currentInputType && !isInputTypeChanging && !userHasChangedType) {
       setCurrentInputType(functionValue);
     }
-  }, [functionValue]);
+  }, [functionValue, currentInputType, isInputTypeChanging, userHasChangedType]);
 
-  // Reset currentInputType when dialog opens to ensure fresh state
+  // Initialize state when dialog opens for the first time
   useEffect(() => {
-    if (open && functionValue !== null && functionValue !== undefined) {
-      setCurrentInputType(functionValue);
+    if (open && !hasInitialized) {
+      if (functionValue !== null && functionValue !== undefined) {
+        setCurrentInputType(functionValue);
+      }
       setIsInputTypeChanging(false);
+      setUserHasChangedType(false);
+      setHasInitialized(true);
+    } else if (!open) {
+      // Reset initialization flag when dialog closes
+      setHasInitialized(false);
     }
-  }, [open, functionValue]);
+  }, [open, functionValue, hasInitialized]);
 
   // Ensure current input type is valid for this unit type (only on initial load)
   useEffect(() => {
@@ -112,6 +122,7 @@ export const useInputType = (
 
       // Set flag to indicate input type is changing
       setIsInputTypeChanging(true);
+      setUserHasChangedType(true); // Mark that user has manually changed the type
 
       setCurrentInputType(numValue);
 
@@ -121,7 +132,9 @@ export const useInputType = (
       }
 
       // Reset flag after a short delay to allow useEffect to see it
-      setTimeout(() => setIsInputTypeChanging(false), 100);
+      setTimeout(() => {
+        setIsInputTypeChanging(false);
+      }, 200);
     },
     [selectedProject, loadRequiredDataForFunction]
   );
@@ -130,6 +143,7 @@ export const useInputType = (
   const resetInputType = useCallback(() => {
     setCurrentInputType(functionValue);
     setIsInputTypeChanging(false);
+    setUserHasChangedType(false);
   }, [functionValue]);
 
   return {

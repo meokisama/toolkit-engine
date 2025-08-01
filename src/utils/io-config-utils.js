@@ -28,34 +28,41 @@ const getOutputLabel = (type) => {
 };
 
 /**
- * Create a default I/O configuration for a unit
+ * Create default input configurations for a unit
  * @param {string} unitType - The type of unit (e.g., 'Bedside-17T', 'RLC-I20')
- * @returns {Object} Default I/O configuration
+ * @returns {Object} Default input configurations
  */
-export const createDefaultIOConfig = (unitType) => {
-  // Get unit specs from constants if available
+export const createDefaultInputConfigs = (unitType) => {
   const inputs = [];
-  const outputs = [];
 
   // Create default input configurations
-  // This will be populated based on unit type specifications
   for (let i = 0; i < getInputCount(unitType); i++) {
     inputs.push({
       index: i,
-      function: 0, // Default to first function
-      lightingId: null,
-      ramp: 0,
-      preset: 255,
-      led_status: 0,
-      auto_mode: 0,
-      auto_time: 0,
-      delay_off: 0,
-      delay_on: 0,
-      multiGroupConfig: [],
+      function_value: 0, // Default to first function
+      lighting_id: null,
+      multi_group_config: [],
+      rlc_config: {
+        ramp: 0,
+        preset: 255,
+        ledStatus: 0,
+        autoMode: 0,
+        delayOff: 0,
+        delayOn: 0,
+      },
     });
   }
 
-  // Create default output configurations
+  return { inputs };
+};
+
+/**
+ * Create default output configurations for a unit
+ * @param {string} unitType - The type of unit (e.g., 'Bedside-17T', 'RLC-I20')
+ * @returns {Object} Default output configurations
+ */
+export const createDefaultOutputConfigs = (unitType) => {
+  const outputs = [];
   const outputTypes = getOutputTypes(unitType);
   let outputIndex = 0;
 
@@ -63,20 +70,19 @@ export const createDefaultIOConfig = (unitType) => {
     for (let i = 0; i < count; i++) {
       outputs.push({
         index: outputIndex++,
+        type: type,
+        device_id: null,
+        device_type: type === "ac" ? "aircon" : "lighting",
         name: `${getOutputLabel(type)} ${i + 1}`,
-        type: type, // Raw output type for dialog logic
-        deviceId: null,
-        deviceType: type === "ac" ? "aircon" : "lighting", // Mapped type for database
-        config: null, // Configuration will be added when needed
+        config: {}, // Empty config object for detailed settings
       });
     }
   });
 
-  return {
-    inputs,
-    outputs,
-  };
+  return { outputs };
 };
+
+
 
 /**
  * Get the number of inputs for a unit type

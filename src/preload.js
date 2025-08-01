@@ -50,6 +50,7 @@ contextBridge.exposeInMainWorld("electronAPI", {
   },
   unit: {
     getAll: (projectId) => ipcRenderer.invoke("unit:getAll", projectId),
+    getById: (id) => ipcRenderer.invoke("unit:getById", id),
     create: (projectId, itemData) =>
       ipcRenderer.invoke("unit:create", projectId, itemData),
     update: (id, itemData) => ipcRenderer.invoke("unit:update", id, itemData),
@@ -312,6 +313,8 @@ contextBridge.exposeInMainWorld("electronAPI", {
       ipcRenderer.invoke("rcu:getOutputConfig", unitIp, canId),
     setOutputAssign: (unitIp, canId, outputIndex, lightingAddress) =>
       ipcRenderer.invoke("rcu:setOutputAssign", unitIp, canId, outputIndex, lightingAddress),
+    setAllOutputAssignments: (unitIp, canId, outputAssignments) =>
+      ipcRenderer.invoke("rcu:setAllOutputAssignments", unitIp, canId, outputAssignments),
     setOutputDelayOff: (unitIp, canId, outputIndex, delayOff) =>
       ipcRenderer.invoke("rcu:setOutputDelayOff", unitIp, canId, outputIndex, delayOff),
     setOutputDelayOn: (unitIp, canId, outputIndex, delayOn) =>

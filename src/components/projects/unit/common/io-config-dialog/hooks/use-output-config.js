@@ -1,6 +1,13 @@
 import { useState, useCallback } from "react";
+import { toast } from "sonner";
 
-export const useOutputConfig = (item) => {
+// Helper function to determine if unit is a network unit
+// Network units don't have database ID, database units have ID
+const isNetworkUnit = (unit) => {
+  return !unit?.id; // Network units don't have database ID
+};
+
+export const useOutputConfig = (item, setOutputConfigs) => {
   const [lightingOutputDialogOpen, setLightingOutputDialogOpen] = useState(false);
   const [acOutputDialogOpen, setACOutputDialogOpen] = useState(false);
   const [currentOutputConfig, setCurrentOutputConfig] = useState(null);
@@ -52,9 +59,17 @@ export const useOutputConfig = (item) => {
           }));
         }
 
+        // For AC outputs, include deviceId and address from outputConfig for sync
+        // These are needed by AC output config dialog but are stored at output level
+        const finalConfigData = outputType === "ac" ? {
+          ...configData,
+          deviceId: outputConfig.deviceId || null,
+          address: outputConfig.deviceId || 0 // address is equivalent to deviceId for AC outputs
+        } : configData;
+
         setCurrentOutputConfig((prev) => ({
           ...prev,
-          config: configData,
+          config: finalConfigData,
           isLoading: false,
         }));
       } catch (error) {
@@ -85,11 +100,51 @@ export const useOutputConfig = (item) => {
           ...prev,
           [currentOutputConfig.index]: configData,
         }));
+
+        // For AC outputs, update outputConfigs with deviceId for sync
+        if (currentOutputConfig.type === "ac" && configData.deviceId && setOutputConfigs) {
+          setOutputConfigs((prev) =>
+            prev.map((config) =>
+              config.index === currentOutputConfig.index
+                ? { ...config, deviceId: configData.deviceId }
+                : config
+            )
+          );
+        }
+
+        toast.success(`Output ${currentOutputConfig.index + 1} configuration saved successfully`);
       } catch (error) {
         console.error("Failed to save output config:", error);
+        toast.error("Failed to save output configuration");
       }
     },
-    [currentOutputConfig, item?.id]
+    [currentOutputConfig, item?.id, setOutputConfigs]
+  );
+
+  // Function to load all output configurations from database
+  const loadAllOutputConfigs = useCallback(
+    async () => {
+      if (!item?.id || isNetworkUnit(item)) return;
+
+      try {
+        // Load from JSON structure instead of separate table
+        const unit = await window.electronAPI.unit.getById(item.id);
+        if (!unit || !unit.output_configs) return;
+
+        const outputConfigs = unit.output_configs;
+        const newOutputConfigurations = {};
+
+        (outputConfigs.outputs || []).forEach((config) => {
+          if (config.config) {
+            newOutputConfigurations[config.index] = config.config;
+          }
+        });
+        setOutputConfigurations(newOutputConfigurations);
+      } catch (error) {
+        console.error("Failed to load all output configs:", error);
+      }
+    },
+    [item?.id]
   );
 
   return {
@@ -103,5 +158,6 @@ export const useOutputConfig = (item) => {
     handleOutputDeviceChange,
     handleOpenOutputConfig,
     handleSaveOutputConfig,
+    loadAllOutputConfigs,
   };
 };

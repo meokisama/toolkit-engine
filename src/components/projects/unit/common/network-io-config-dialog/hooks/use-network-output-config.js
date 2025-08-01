@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { toast } from "sonner";
 
 export const useNetworkOutputConfig = (item, outputConfigs = [], setOutputConfigs = null, lightingItems = [], airconItems = [], readAirconConfigsFromUnit = null) => {
@@ -7,6 +7,18 @@ export const useNetworkOutputConfig = (item, outputConfigs = [], setOutputConfig
   const [currentOutputConfig, setCurrentOutputConfig] = useState(null);
   const [allOutputConfigs, setAllOutputConfigs] = useState(null); // Cache for all output configs
   const [allACConfigs, setAllACConfigs] = useState(null); // Cache for all AC configs
+
+  // Reset cache and state when item changes (switching between different network units)
+  useEffect(() => {
+    // Clear all cached data when switching to a different unit
+    setAllOutputConfigs(null);
+    setAllACConfigs(null);
+    setCurrentOutputConfig(null);
+
+    // Close any open dialogs when switching units
+    setLightingOutputDialogOpen(false);
+    setACOutputDialogOpen(false);
+  }, [item?.ip_address, item?.id_can]); // Reset when unit IP or CAN ID changes
 
   // Load all AC configurations from network unit
   const loadAllACConfigs = useCallback(async () => {
@@ -436,6 +448,17 @@ export const useNetworkOutputConfig = (item, outputConfigs = [], setOutputConfig
             item.id_can,
             updatedACConfigs
           );
+
+          // Update local state to reflect the address change
+          if (setOutputConfigs) {
+            setOutputConfigs(prev =>
+              prev.map(outputConfig =>
+                outputConfig.index === currentOutputConfig.index
+                  ? { ...outputConfig, airconAddress: config.address || 0, isAssigned: (config.address || 0) > 0 }
+                  : outputConfig
+              )
+            );
+          }
 
           toast.success(`AC output ${currentOutputConfig.index + 1} configuration saved`);
         } else {

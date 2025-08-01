@@ -13,6 +13,7 @@ import {
   setupInputConfig,
   getOutputAssign,
   setOutputAssign,
+  setAllOutputAssignments,
   setOutputDelayOff,
   setOutputDelayOn,
   getOutputConfig,
@@ -365,6 +366,15 @@ function setupIpcHandlers() {
       return await dbService.getUnitItems(projectId);
     } catch (error) {
       console.error("Error getting unit items:", error);
+      throw error;
+    }
+  });
+
+  ipcMain.handle("unit:getById", async (event, id) => {
+    try {
+      return await dbService.getProjectItemById(id, "unit");
+    } catch (error) {
+      console.error("Error getting unit by ID:", error);
       throw error;
     }
   });
@@ -1624,6 +1634,18 @@ function setupIpcHandlers() {
   );
 
   ipcMain.handle(
+    "rcu:setAllOutputAssignments",
+    async (event, unitIp, canId, outputAssignments) => {
+      try {
+        return await setAllOutputAssignments(unitIp, canId, outputAssignments);
+      } catch (error) {
+        console.error("Error setting all output assignments:", error);
+        throw error;
+      }
+    }
+  );
+
+  ipcMain.handle(
     "rcu:setOutputDelayOff",
     async (event, unitIp, canId, outputIndex, delayOff) => {
       try {
@@ -2044,13 +2066,13 @@ function setupIpcHandlers() {
  * Based on RLC C# implementation
  */
 async function scanUDPNetwork(config) {
-  const { 
-    broadcastAddresses, 
-    broadcastIP, 
-    udpPort, 
-    localPort, 
-    timeout, 
-    multiInterface = false 
+  const {
+    broadcastAddresses,
+    broadcastIP,
+    udpPort,
+    localPort,
+    timeout,
+    multiInterface = false
   } = config;
 
   return new Promise((resolve, reject) => {
@@ -2126,7 +2148,7 @@ async function scanUDPNetwork(config) {
     // Multi-interface scanning
     if (multiInterface && broadcastAddresses && broadcastAddresses.length > 0) {
       console.log(`Multi-interface UDP scan starting on ${broadcastAddresses.length} interfaces:`, broadcastAddresses);
-      
+
       const expectedScans = broadcastAddresses.length;
       const requestData = createHardwareInfoRequest("0.0.0.0");
 
@@ -2162,9 +2184,9 @@ async function scanUDPNetwork(config) {
             } else {
               console.log(`Broadcast sent on interface ${broadcastAddr}`);
             }
-            
+
             completedScans++;
-            
+
             // If this is the last scan to complete, set the timeout
             if (completedScans === expectedScans) {
               timeoutHandle = setTimeout(() => {
@@ -2190,7 +2212,7 @@ async function scanUDPNetwork(config) {
       // Fallback to single interface scanning (backward compatibility)
       const targetBroadcast = broadcastIP || "255.255.255.255";
       console.log(`Single-interface UDP scan starting on ${targetBroadcast}`);
-      
+
       const socket = dgram.createSocket("udp4");
       sockets.push(socket);
 

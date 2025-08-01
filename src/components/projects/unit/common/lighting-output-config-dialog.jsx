@@ -1,4 +1,11 @@
-import React, { useState, useEffect, useCallback, memo, useMemo, useRef } from "react";
+import React, {
+  useState,
+  useEffect,
+  useCallback,
+  memo,
+  useMemo,
+  useRef,
+} from "react";
 import {
   Dialog,
   DialogContent,
@@ -81,7 +88,7 @@ const ValidatedInput = memo(
 
     const handleBlur = useCallback(() => {
       clearTimeout(timeoutRef.current);
-      
+
       if (!isValid) {
         const clampedValue = Math.max(
           validationRange.min,
@@ -125,57 +132,78 @@ const LightingOutputConfigDialogComponent = ({
   isLoading = false,
   onSave,
 }) => {
+  // Default config state
+  const defaultConfig = useMemo(
+    () => ({
+      delayOffHours: 0,
+      delayOffMinutes: 0,
+      delayOffSeconds: 0,
+      delayOnHours: 0,
+      delayOnMinutes: 0,
+      delayOnSeconds: 0,
+      minDim: 1,
+      maxDim: 100,
+      autoTrigger: false,
+      scheduleOnHour: 0,
+      scheduleOnMinute: 0,
+      scheduleOffHour: 0,
+      scheduleOffMinute: 0,
+    }),
+    []
+  );
+
+  // Default time picker states
+  const defaultDelayOffTime = useMemo(
+    () => new Date(new Date().setHours(0, 0, 0, 0)),
+    []
+  );
+  const defaultDelayOnTime = useMemo(
+    () => new Date(new Date().setHours(0, 0, 0, 0)),
+    []
+  );
+  const defaultScheduleOnTime = useMemo(
+    () => new Date(new Date().setHours(0, 0, 0, 0)),
+    []
+  );
+  const defaultScheduleOffTime = useMemo(
+    () => new Date(new Date().setHours(0, 0, 0, 0)),
+    []
+  );
+
   // State for all configuration options
-  const [config, setConfig] = useState({
-    delayOffHours: 0,
-    delayOffMinutes: 0,
-    delayOffSeconds: 0,
-    delayOnHours: 0,
-    delayOnMinutes: 0,
-    delayOnSeconds: 0,
-    minDim: 1,
-    maxDim: 100,
-    autoTrigger: false,
-    scheduleOnHour: 0,
-    scheduleOnMinute: 0,
-    scheduleOffHour: 0,
-    scheduleOffMinute: 0,
-  });
+  const [config, setConfig] = useState(defaultConfig);
 
   // Time picker states
-  const [delayOffTime, setDelayOffTime] = useState(
-    new Date(new Date().setHours(0, 0, 0, 0))
-  );
-  const [delayOnTime, setDelayOnTime] = useState(
-    new Date(new Date().setHours(0, 0, 0, 0))
-  );
-  const [scheduleOnTime, setScheduleOnTime] = useState(
-    new Date(new Date().setHours(0, 0, 0, 0))
-  );
+  const [delayOffTime, setDelayOffTime] = useState(defaultDelayOffTime);
+  const [delayOnTime, setDelayOnTime] = useState(defaultDelayOnTime);
+  const [scheduleOnTime, setScheduleOnTime] = useState(defaultScheduleOnTime);
   const [scheduleOffTime, setScheduleOffTime] = useState(
-    new Date(new Date().setHours(0, 0, 0, 0))
+    defaultScheduleOffTime
   );
 
   const [loading, setLoading] = useState(false);
 
   // Memoized helper functions for time conversion
-  const timeToDate = useMemo(() => 
-    (hours, minutes, seconds = 0) => {
-      const date = new Date();
-      date.setHours(hours || 0, minutes || 0, seconds || 0, 0);
-      return date;
-    }, []
+  const timeToDate = useMemo(
+    () =>
+      (hours, minutes, seconds = 0) => {
+        const date = new Date();
+        date.setHours(hours || 0, minutes || 0, seconds || 0, 0);
+        return date;
+      },
+    []
   );
 
-  const dateToTimeComponents = useMemo(() => 
-    (date) => {
+  const dateToTimeComponents = useMemo(
+    () => (date) => {
       if (!date) return { hours: 0, minutes: 0, seconds: 0 };
       return {
         hours: date.getHours(),
         minutes: date.getMinutes(),
         seconds: date.getSeconds(),
       };
-    }, []
+    },
+    []
   );
 
   // Check if this is a dimmer output (shows min/max dim options)
@@ -227,8 +255,43 @@ const LightingOutputConfigDialogComponent = ({
       setScheduleOffTime(
         timeToDate(newConfig.scheduleOffHour, newConfig.scheduleOffMinute)
       );
+    } else if (open && isLoading) {
+      // Reset to default config when loading new output
+      setConfig(defaultConfig);
+      setDelayOffTime(defaultDelayOffTime);
+      setDelayOnTime(defaultDelayOnTime);
+      setScheduleOnTime(defaultScheduleOnTime);
+      setScheduleOffTime(defaultScheduleOffTime);
     }
-  }, [open, initialConfig, isLoading]);
+  }, [
+    open,
+    initialConfig,
+    isLoading,
+    defaultConfig,
+    defaultDelayOffTime,
+    defaultDelayOnTime,
+    defaultScheduleOnTime,
+    defaultScheduleOffTime,
+  ]);
+
+  // Reset config when dialog closes
+  useEffect(() => {
+    if (!open) {
+      setConfig(defaultConfig);
+      setDelayOffTime(defaultDelayOffTime);
+      setDelayOnTime(defaultDelayOnTime);
+      setScheduleOnTime(defaultScheduleOnTime);
+      setScheduleOffTime(defaultScheduleOffTime);
+      setLoading(false);
+    }
+  }, [
+    open,
+    defaultConfig,
+    defaultDelayOffTime,
+    defaultDelayOnTime,
+    defaultScheduleOnTime,
+    defaultScheduleOffTime,
+  ]);
 
   // Handlers
   const handleClose = useCallback(() => {
@@ -253,8 +316,8 @@ const LightingOutputConfigDialogComponent = ({
   }, []);
 
   // Generic time handler factory for DRY code
-  const createTimeHandler = useCallback((setter, configFields) => 
-    (newDate) => {
+  const createTimeHandler = useCallback(
+    (setter, configFields) => (newDate) => {
       setter(newDate);
       const { hours, minutes, seconds } = dateToTimeComponents(newDate);
       setConfig((prev) => ({
@@ -262,38 +325,45 @@ const LightingOutputConfigDialogComponent = ({
         ...configFields.reduce((acc, field, index) => {
           acc[field] = [hours, minutes, seconds][index];
           return acc;
-        }, {})
+        }, {}),
       }));
-    }, [dateToTimeComponents]
+    },
+    [dateToTimeComponents]
   );
 
   // Time picker handlers using factory - use useCallback for functions
   const handleDelayOffTimeChange = useCallback(
-    createTimeHandler(
-      setDelayOffTime, 
-      ['delayOffHours', 'delayOffMinutes', 'delayOffSeconds']
-    ), [createTimeHandler]
+    createTimeHandler(setDelayOffTime, [
+      "delayOffHours",
+      "delayOffMinutes",
+      "delayOffSeconds",
+    ]),
+    [createTimeHandler]
   );
 
   const handleDelayOnTimeChange = useCallback(
-    createTimeHandler(
-      setDelayOnTime,
-      ['delayOnHours', 'delayOnMinutes', 'delayOnSeconds']
-    ), [createTimeHandler]
+    createTimeHandler(setDelayOnTime, [
+      "delayOnHours",
+      "delayOnMinutes",
+      "delayOnSeconds",
+    ]),
+    [createTimeHandler]
   );
 
   const handleScheduleOnTimeChange = useCallback(
-    createTimeHandler(
-      setScheduleOnTime,
-      ['scheduleOnHour', 'scheduleOnMinute']
-    ), [createTimeHandler]
+    createTimeHandler(setScheduleOnTime, [
+      "scheduleOnHour",
+      "scheduleOnMinute",
+    ]),
+    [createTimeHandler]
   );
 
   const handleScheduleOffTimeChange = useCallback(
-    createTimeHandler(
-      setScheduleOffTime,
-      ['scheduleOffHour', 'scheduleOffMinute']
-    ), [createTimeHandler]
+    createTimeHandler(setScheduleOffTime, [
+      "scheduleOffHour",
+      "scheduleOffMinute",
+    ]),
+    [createTimeHandler]
   );
 
   return (

@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { toast } from "sonner";
 import { getInputFunctionByValue, INPUT_TYPES } from "@/constants";
 
@@ -8,6 +8,17 @@ export const useNetworkInputConfig = (item, projectItems, refreshInputConfigs = 
   const [currentMultiGroupInput, setCurrentMultiGroupInput] = useState(null);
   const [inputConfigsFromUnit, setInputConfigsFromUnit] = useState({});
   const [loadingInputConfigs, setLoadingInputConfigs] = useState(false);
+
+  // Reset cache and state when item changes (switching between different network units)
+  useEffect(() => {
+    // Clear all cached data when switching to a different unit
+    setMultiGroupConfigs({});
+    setInputConfigsFromUnit({});
+    setCurrentMultiGroupInput(null);
+
+    // Close any open dialogs when switching units
+    setMultiGroupDialogOpen(false);
+  }, [item?.ip_address, item?.id_can]); // Reset when unit IP or CAN ID changes
 
   // Helper function to determine group type based on input function using INPUT_TYPES
   const getGroupTypeFromFunction = useCallback((functionValue) => {

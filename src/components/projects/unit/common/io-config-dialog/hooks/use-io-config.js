@@ -1,7 +1,8 @@
 import { useState, useEffect, useMemo, useCallback } from "react";
 import { getUnitIOSpec, getOutputTypes } from "@/constants";
 import {
-  createDefaultIOConfig,
+  createDefaultInputConfigs,
+  createDefaultOutputConfigs,
   cloneIOConfig,
   hasIOConfigChanges,
 } from "@/utils/io-config-utils";
@@ -84,77 +85,61 @@ export const useIOConfig = (item, open) => {
 
     const initializeAsync = async () => {
       try {
-        // Load I/O config from database or create default
-        let ioConfig = item.io_config || createDefaultIOConfig(item.type);
+        // Load input and output configs from new JSON structure
+        const inputConfigs = item.input_configs || { inputs: [] };
+        const outputConfigs = item.output_configs || { outputs: [] };
 
-        // Migrate old format if needed
-        if (ioConfig.outputConfigs && Array.isArray(ioConfig.outputConfigs)) {
-          const migratedOutputs = (ioConfig.outputs || []).map((output) => {
-            const outputConfig = ioConfig.outputConfigs.find(
-              (config) => config.index === output.index
-            );
-            if (outputConfig) {
-              const { index, ...config } = outputConfig;
-              return { ...output, config };
-            }
-            return output;
-          });
+        // Create original config for comparison
+        const originalConfig = {
+          inputs: (inputConfigs.inputs || []).map(input => ({
+            index: input.index,
+            function: input.function_value || 0,
+            lightingId: input.lighting_id || null,
+          })),
+          outputs: (outputConfigs.outputs || []).map(output => ({
+            index: output.index,
+            name: output.name,
+            type: output.type,
+            deviceId: output.device_id || null,
+            deviceType: output.device_type,
+          })),
+        };
 
-          ioConfig = {
-            inputs: ioConfig.inputs || [],
-            outputs: migratedOutputs,
-          };
-        }
+        setOriginalIOConfig(cloneIOConfig(originalConfig));
 
-        setOriginalIOConfig(cloneIOConfig(ioConfig));
-
-        // Load actual input configs from database
-        const actualInputConfigs =
-          await window.electronAPI.unit.getAllInputConfigs(item.id);
-
-        // Initialize input configs
-        const inputConfigsFromDB = ioConfig.inputs || [];
+        // Initialize input configs from JSON structure
         const mergedInputConfigs = initialInputConfigs.map((defaultConfig) => {
-          const actualConfig = actualInputConfigs.find(
-            (config) => config.input_index === defaultConfig.index
+          const savedConfig = inputConfigs.inputs?.find(
+            (input) => input.index === defaultConfig.index
           );
 
-          if (actualConfig) {
+          if (savedConfig) {
             return {
               ...defaultConfig,
-              lightingId: actualConfig.lighting_id,
-              functionValue: actualConfig.function_value || 0,
+              functionValue: savedConfig.function_value || 0,
+              lightingId: savedConfig.lighting_id || null,
             };
           }
 
-          const savedConfig = inputConfigsFromDB.find(
-            (saved) => saved.index === defaultConfig.index
-          );
-          return savedConfig
-            ? {
-                ...defaultConfig,
-                lightingId: savedConfig.lightingId,
-                functionValue: savedConfig.function || 0,
-              }
-            : defaultConfig;
+          return defaultConfig;
         });
         setInputConfigs(mergedInputConfigs);
 
-        // Initialize output configs
-        const outputConfigsFromDB = ioConfig.outputs || [];
-        const mergedOutputConfigs = initialOutputConfigs.map(
-          (defaultConfig) => {
-            const savedConfig = outputConfigsFromDB.find(
-              (saved) => saved.index === defaultConfig.index
-            );
-            return savedConfig
-              ? {
-                  ...defaultConfig,
-                  deviceId: savedConfig.deviceId,
-                }
-              : defaultConfig;
+        // Initialize output configs from JSON structure
+        const mergedOutputConfigs = initialOutputConfigs.map((defaultConfig) => {
+          const savedConfig = outputConfigs.outputs?.find(
+            (output) => output.index === defaultConfig.index
+          );
+
+          if (savedConfig) {
+            return {
+              ...defaultConfig,
+              deviceId: savedConfig.device_id || null,
+            };
           }
-        );
+
+          return defaultConfig;
+        });
         setOutputConfigs(mergedOutputConfigs);
       } catch (error) {
         console.error("Failed to initialize I/O config:", error);
@@ -171,58 +156,92 @@ export const useIOConfig = (item, open) => {
     if (!item?.id || !ioSpec) return;
 
     try {
-      const actualInputConfigs =
-        await window.electronAPI.unit.getAllInputConfigs(item.id);
+      // Reload the unit data to get fresh input configs
+      const updatedUnit = await window.electronAPI.unit.getById(item.id);
+      if (!updatedUnit || !updatedUnit.input_configs) return;
 
-      const updatedInputConfigs = inputConfigs.map((config) => {
-        const actualConfig = actualInputConfigs.find(
-          (actual) => actual.input_index === config.index
-        );
+      const inputConfigs = updatedUnit.input_configs;
 
-        if (actualConfig) {
-          return {
-            ...config,
-            lightingId: actualConfig.lighting_id,
-            functionValue: actualConfig.function_value || 0,
-          };
-        }
-        return config;
+      setInputConfigs((prevInputConfigs) => {
+        const updatedInputConfigs = prevInputConfigs.map((config) => {
+          const savedConfig = inputConfigs.inputs?.find(
+            (input) => input.index === config.index
+          );
+
+          if (savedConfig) {
+            return {
+              ...config,
+              functionValue: savedConfig.function_value || 0,
+              lightingId: savedConfig.lighting_id || null,
+            };
+          }
+          return config;
+        });
+
+        return updatedInputConfigs;
       });
-
-      setInputConfigs(updatedInputConfigs);
     } catch (error) {
       console.error("Failed to reload input configs:", error);
     }
-  }, [item?.id, ioSpec, inputConfigs]);
+  }, [item?.id, ioSpec]);
 
   const saveConfig = useCallback(
-    async (updateItem) => {
+    async (updateItem, multiGroupConfigs = {}, rlcConfigs = {}, outputConfigurations = {}) => {
       if (!item) return false;
 
       setLoading(true);
       try {
-        const ioConfig = {
-          inputs: inputConfigs.map((config) => ({
-            index: config.index,
-            function: config.functionValue,
-            lightingId: config.lightingId,
-          })),
-          outputs: outputConfigs.map((config) => ({
-            index: config.index,
-            name: config.name,
-            deviceId: config.deviceId,
-            deviceType: config.type === "ac" ? "aircon" : "lighting",
-          })),
-        };
+        // Create new input configs structure
+        const newInputConfigs = { inputs: [] };
+        const newOutputConfigs = { outputs: [] };
 
-        if (!hasIOConfigChanges(originalIOConfig, ioConfig)) {
-          return true; // No changes
+        // Build input configs with all data
+        for (const inputConfig of inputConfigs) {
+          const inputIndex = inputConfig.index;
+          const multiGroupConfig = multiGroupConfigs[inputIndex] || {};
+          const rlcConfig = rlcConfigs[inputIndex] || {};
+
+          newInputConfigs.inputs.push({
+            index: inputIndex,
+            function_value: inputConfig.functionValue || 0,
+            lighting_id: inputConfig.lightingId || null,
+            multi_group_config: multiGroupConfig.multiGroupConfig || [],
+            rlc_config: {
+              ramp: multiGroupConfig.ramp || rlcConfig.ramp || 0,
+              preset: multiGroupConfig.preset || rlcConfig.preset || 100,
+              ledStatus: multiGroupConfig.led_status || rlcConfig.ledStatus || 0,
+              autoMode: multiGroupConfig.auto_mode || rlcConfig.autoMode || 0,
+              delayOff: multiGroupConfig.delay_off || rlcConfig.delayOff || 0,
+              delayOn: multiGroupConfig.delay_on || rlcConfig.delayOn || 0,
+            },
+          });
         }
 
+        // Build output configs with all data
+        for (const outputConfig of outputConfigs) {
+          const detailedConfig = outputConfigurations[outputConfig.index] || {};
+
+          newOutputConfigs.outputs.push({
+            index: outputConfig.index,
+            type: outputConfig.type,
+            device_id: outputConfig.deviceId || null,
+            device_type: outputConfig.type === "ac" ? "aircon" : "lighting",
+            name: outputConfig.name,
+            config: {
+              name: outputConfig.name,
+              ...detailedConfig, // Include detailed settings like delays, dimming, etc.
+            },
+          });
+        }
+
+        // Save both input and output configs to unit table
         await updateItem("unit", item.id, {
           ...item,
-          io_config: ioConfig,
+          input_configs: newInputConfigs,
+          output_configs: newOutputConfigs,
         });
+
+        // All data is now saved in the JSON columns, no need for separate table operations
 
         return true;
       } catch (error) {

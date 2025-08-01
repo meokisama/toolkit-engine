@@ -24,6 +24,7 @@ export const NetworkUnitSelector = React.forwardRef(
       className = "",
       title = "Units",
       height = "h-60",
+      maxSelection = null,
     },
     ref
   ) {
@@ -73,21 +74,36 @@ export const NetworkUnitSelector = React.forwardRef(
       (unitId, checked) => {
         if (!onSelectionChange) return;
 
-        const newSelection = checked
-          ? [...selectedUnitIds, unitId]
-          : selectedUnitIds.filter((id) => id !== unitId);
+        let newSelection;
+        if (checked) {
+          // Check maxSelection limit
+          if (maxSelection && selectedUnitIds.length >= maxSelection) {
+            toast.warning(`Maximum ${maxSelection} unit(s) can be selected`);
+            return;
+          }
+          newSelection = [...selectedUnitIds, unitId];
+        } else {
+          newSelection = selectedUnitIds.filter((id) => id !== unitId);
+        }
 
         onSelectionChange(newSelection);
       },
-      [selectedUnitIds, onSelectionChange]
+      [selectedUnitIds, onSelectionChange, maxSelection]
     );
 
     // Handle select all units
     const handleSelectAll = useCallback(() => {
       if (!onSelectionChange) return;
-      const allUnitIds = networkUnits.map((unit) => unit.id);
+      let allUnitIds = networkUnits.map((unit) => unit.id);
+
+      // Respect maxSelection limit
+      if (maxSelection && allUnitIds.length > maxSelection) {
+        allUnitIds = allUnitIds.slice(0, maxSelection);
+        toast.warning(`Only first ${maxSelection} units selected due to limit`);
+      }
+
       onSelectionChange(allUnitIds);
-    }, [networkUnits, onSelectionChange]);
+    }, [networkUnits, onSelectionChange, maxSelection]);
 
     // Handle select none
     const handleSelectNone = useCallback(() => {
@@ -100,14 +116,20 @@ export const NetworkUnitSelector = React.forwardRef(
       return networkUnits.filter((unit) => selectedUnitIds.includes(unit.id));
     }, [networkUnits, selectedUnitIds]);
 
-    // Expose getSelectedUnits method
+    // Get all units data
+    const getAllUnits = useCallback(() => {
+      return networkUnits;
+    }, [networkUnits]);
+
+    // Expose methods
     React.useImperativeHandle(
       ref,
       () => ({
         getSelectedUnits,
+        getAllUnits,
         networkUnits,
       }),
-      [getSelectedUnits, networkUnits]
+      [getSelectedUnits, getAllUnits, networkUnits]
     );
 
     return (
@@ -124,13 +146,17 @@ export const NetworkUnitSelector = React.forwardRef(
                   <Button
                     onClick={handleSelectAll}
                     disabled={
-                      disabled || selectedUnitIds.length === networkUnits.length
+                      disabled ||
+                      selectedUnitIds.length === networkUnits.length ||
+                      (maxSelection && selectedUnitIds.length >= maxSelection)
                     }
                     size="sm"
                     variant="outline"
                   >
-                    <CheckSquare className="h-4 w-4 mr-2" />
-                    Select All
+                    <CheckSquare className="h-4 w-4" />
+                    {maxSelection
+                      ? `Select ${Math.min(maxSelection, networkUnits.length)}`
+                      : "Select All"}
                   </Button>
                   <Button
                     onClick={handleSelectNone}
@@ -138,7 +164,7 @@ export const NetworkUnitSelector = React.forwardRef(
                     size="sm"
                     variant="outline"
                   >
-                    <Square className="h-4 w-4 mr-2" />
+                    <Square className="h-4 w-4" />
                     Select None
                   </Button>
                 </>
@@ -150,9 +176,9 @@ export const NetworkUnitSelector = React.forwardRef(
                 variant="outline"
               >
                 {scanLoading ? (
-                  <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                  <Loader2 className="h-4 w-4 animate-spin" />
                 ) : (
-                  <Scan className="h-4 w-4 mr-2" />
+                  <Scan className="h-4 w-4" />
                 )}
                 {scanLoading ? "Scanning..." : "Scan Network"}
               </Button>

@@ -44,6 +44,32 @@ export function MultiGroupConfigDialog({
   const { projectItems, selectedProject, loadedTabs, loadTabData, createItem } =
     useProjectDetail();
 
+  // Prepare initial groups and RLC options in the correct format (before hooks)
+  const initialGroupsFormatted = React.useMemo(() => {
+    if (!initialGroups || !Array.isArray(initialGroups)) return [];
+
+    // Convert to consistent format (groupId/presetBrightness)
+    return initialGroups.map((group) => ({
+      groupId: group.groupId || group.address || 0,
+      presetBrightness: group.presetBrightness || group.preset || 255,
+    }));
+  }, [initialGroups]);
+
+  const initialRlcOptionsFormatted = React.useMemo(() => {
+    if (!initialRlcOptions || typeof initialRlcOptions !== "object") return {};
+
+    // Ensure consistent property names
+    return {
+      ramp: initialRlcOptions.ramp || 0,
+      preset: initialRlcOptions.preset || 100,
+      ledStatus:
+        initialRlcOptions.ledStatus || initialRlcOptions.led_status || 0,
+      autoMode: initialRlcOptions.autoMode || initialRlcOptions.auto_mode || 0,
+      delayOff: initialRlcOptions.delayOff || initialRlcOptions.delay_off || 0,
+      delayOn: initialRlcOptions.delayOn || initialRlcOptions.delay_on || 0,
+    };
+  }, [initialRlcOptions]);
+
   // Use custom hooks for state management
   const {
     currentInputType,
@@ -69,7 +95,7 @@ export function MultiGroupConfigDialog({
     handleDelayOffTimeChange,
     resetRlcOptions,
     getFinalRlcOptions,
-  } = useRlcOptions(initialRlcOptions);
+  } = useRlcOptions(initialRlcOptionsFormatted);
 
   const {
     selectedGroups,
@@ -93,7 +119,7 @@ export function MultiGroupConfigDialog({
     resetMultipleGroups,
     initializeGroups,
   } = useMultipleGroups(
-    initialGroups,
+    initialGroupsFormatted,
     currentInputType,
     projectItems,
     selectedProject,
@@ -101,16 +127,20 @@ export function MultiGroupConfigDialog({
   );
 
   // Memoized custom events for better performance
-  const pauseEvent = React.useMemo(() => 
-    new CustomEvent("pauseAllAutoRefresh", {
-      detail: { source: "MultiGroupConfigDialog" },
-    }), []
+  const pauseEvent = React.useMemo(
+    () =>
+      new CustomEvent("pauseAllAutoRefresh", {
+        detail: { source: "MultiGroupConfigDialog" },
+      }),
+    []
   );
 
-  const resumeEvent = React.useMemo(() => 
-    new CustomEvent("resumeAllAutoRefresh", {
-      detail: { source: "MultiGroupConfigDialog" },
-    }), []
+  const resumeEvent = React.useMemo(
+    () =>
+      new CustomEvent("resumeAllAutoRefresh", {
+        detail: { source: "MultiGroupConfigDialog" },
+      }),
+    []
   );
 
   // Effect to pause all auto refresh when this dialog is open
@@ -162,6 +192,18 @@ export function MultiGroupConfigDialog({
     }
   }, [isInputTypeChanging, handleClearAllGroups]);
 
+  // Track initialGroups changes with ref to prevent infinite loops
+  const initialGroupsRef = React.useRef(initialGroups);
+  const hasInitialGroupsChanged = React.useMemo(() => {
+    const changed =
+      JSON.stringify(initialGroupsRef.current) !==
+      JSON.stringify(initialGroups);
+    if (changed) {
+      initialGroupsRef.current = initialGroups;
+    }
+    return changed;
+  }, [initialGroups]);
+
   // Initialize groups when dialog opens or input type changes
   React.useEffect(() => {
     if (
@@ -169,11 +211,18 @@ export function MultiGroupConfigDialog({
       !isLoading &&
       !isInputTypeChanging &&
       initialGroups !== null &&
-      initialGroups !== undefined
+      initialGroups !== undefined &&
+      (hasInitialGroupsChanged || initialGroupsRef.current === null)
     ) {
       initializeGroups(initialGroups);
     }
-  }, [open, initialGroups, isLoading, isInputTypeChanging, initializeGroups]);
+  }, [
+    open,
+    isLoading,
+    isInputTypeChanging,
+    hasInitialGroupsChanged,
+    initializeGroups,
+  ]);
 
   // Handle dialog close
   const handleClose = React.useCallback(() => {
@@ -186,7 +235,7 @@ export function MultiGroupConfigDialog({
   // Transform save data using callback to avoid stale closure issues
   const getTransformedSaveData = React.useCallback(() => {
     const finalRlcOptions = getFinalRlcOptions();
-    
+
     const groups = isMultipleGroupFunction
       ? selectedGroups
           .map((group) => {
@@ -209,34 +258,42 @@ export function MultiGroupConfigDialog({
                 );
               }
 
-              return {
+              const result = {
                 groupId: groupItem ? parseInt(groupItem.address) : null,
                 presetBrightness: group.preset || 255,
               };
+              return result;
             }
             return null;
           })
           .filter(Boolean)
       : [];
 
-    return {
+    const result = {
       groups,
       inputType: currentInputType,
       rlcOptions: finalRlcOptions,
     };
-  }, [selectedGroups, currentInputType, isMultipleGroupFunction, availableItems, lightingItems, getFinalRlcOptions]);
+
+    return result;
+  }, [
+    selectedGroups,
+    currentInputType,
+    isMultipleGroupFunction,
+    availableItems,
+    lightingItems,
+    getFinalRlcOptions,
+  ]);
 
   // Handle save with proper callback
   const handleSave = React.useCallback(async () => {
     try {
       const saveData = getTransformedSaveData();
       await onSave(saveData);
+
       handleClose();
     } catch (onSaveError) {
-      console.error(
-        "❌ MultiGroupConfigDialog - Error in onSave:",
-        onSaveError
-      );
+      console.error("MultiGroupConfigDialog - Error in onSave:", onSaveError);
     }
   }, [getTransformedSaveData, onSave, handleClose]);
 

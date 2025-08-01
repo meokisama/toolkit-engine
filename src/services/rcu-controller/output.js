@@ -103,6 +103,54 @@ async function setOutputAssign(unitIp, canId, outputIndex, lightingAddress) {
   return result;
 }
 
+async function setAllOutputAssignments(unitIp, canId, outputAssignments) {
+  const idAddress = convertCanIdToInt(canId);
+
+  console.log(`Setting all output assignments in bulk:`, outputAssignments);
+
+  // Validate parameters
+  if (!Array.isArray(outputAssignments)) {
+    throw new Error("Output assignments must be an array");
+  }
+
+  if (outputAssignments.length === 0) {
+    console.log("No output assignments to set");
+    return { success: true };
+  }
+
+  // Prepare data: 2 bytes per assignment (index, address)
+  const data = [];
+
+  for (let i = 0; i < outputAssignments.length; i++) {
+    const lightingAddress = outputAssignments[i];
+
+    // Validate lighting address
+    if (lightingAddress < 0 || lightingAddress > 255) {
+      throw new Error(`Lighting address at index ${i} must be between 0 and 255`);
+    }
+
+    // Add output index and lighting address
+    data.push(i); // Output index (0-based)
+    data.push(lightingAddress); // Lighting address
+  }
+
+  console.log(`Sending bulk assignment data: [${data.join(',')}]`);
+
+  const result = await sendCommand(
+    unitIp,
+    UDP_PORT,
+    idAddress,
+    PROTOCOL.LIGHTING.CMD1,
+    PROTOCOL.LIGHTING.CMD2.SET_OUTPUT_ASSIGN,
+    data
+  );
+
+  await new Promise(resolve => setTimeout(resolve, 500));
+
+  console.log(`Bulk output assignment command completed for ${outputAssignments.length} outputs`);
+  return result;
+}
+
 async function setOutputDelayOff(unitIp, canId, outputIndex, delayOff) {
   const idAddress = convertCanIdToInt(canId);
 
@@ -333,6 +381,7 @@ async function setOutputConfig(unitIp, canId, outputIndex, config) {
 export {
   getOutputAssign,
   setOutputAssign,
+  setAllOutputAssignments,
   setOutputDelayOff,
   setOutputDelayOn,
   getOutputConfig,

@@ -91,62 +91,70 @@ const ACOutputConfigDialogComponent = ({
   isLoading = false,
   onSave,
 }) => {
+  // Default config state
+  const defaultConfig = useMemo(
+    () => ({
+      // Basic configuration
+      address: 0,
+      deviceId: null,
+      enable: false,
+      windowMode: "0",
+      fanType: "0",
+      tempType: "0",
+      tempUnit: "0",
+      valveContact: "0",
+      valveType: "0",
+      deadband: 0,
+      windowBypass: "0",
+      setPointOffset: 0,
+
+      // Group assignments
+      lowFCU_Group: 0,
+      medFCU_Group: 0,
+      highFCU_Group: 0,
+      fanAnalogGroup: 0,
+      analogCoolGroup: 0,
+      analogHeatGroup: 0,
+      valveCoolOpenGroup: 0,
+      valveCoolCloseGroup: 0,
+      valveHeatOpenGroup: 0,
+      valveHeatCloseGroup: 0,
+
+      // Power and mode settings
+      unoccupyPower: 0,
+      occupyPower: 0,
+      standbyPower: 0,
+      unoccupyMode: 0,
+      occupyMode: 0,
+      standbyMode: 0,
+      unoccupyFanSpeed: 0,
+      occupyFanSpeed: 0,
+      standbyFanSpeed: 0,
+
+      // Set point values
+      unoccupyCoolSetPoint: 0,
+      occupyCoolSetPoint: 0,
+      standbyCoolSetPoint: 0,
+      unoccupyHeatSetPoint: 0,
+      occupyHeatSetPoint: 0,
+      standbyHeatSetPoint: 0,
+    }),
+    []
+  );
+
   // State for all AC configuration options (64-byte structure)
-  const [config, setConfig] = useState({
-    // Basic configuration
-    address: 0,
-    enable: false,
-    windowMode: "0",
-    fanType: "0",
-    tempType: "0",
-    tempUnit: "0",
-    valveContact: "0",
-    valveType: "0",
-    deadband: 0,
-    windowBypass: "0",
-    setPointOffset: 0,
-
-    // Group assignments
-    lowFCU_Group: 0,
-    medFCU_Group: 0,
-    highFCU_Group: 0,
-    fanAnalogGroup: 0,
-    analogCoolGroup: 0,
-    analogHeatGroup: 0,
-    valveCoolOpenGroup: 0,
-    valveCoolCloseGroup: 0,
-    valveHeatOpenGroup: 0,
-    valveHeatCloseGroup: 0,
-
-    // Power and mode settings
-    unoccupyPower: 0,
-    occupyPower: 0,
-    standbyPower: 0,
-    unoccupyMode: 0,
-    occupyMode: 0,
-    standbyMode: 0,
-    unoccupyFanSpeed: 0,
-    occupyFanSpeed: 0,
-    standbyFanSpeed: 0,
-
-    // Set point values
-    unoccupyCoolSetPoint: 0,
-    occupyCoolSetPoint: 0,
-    standbyCoolSetPoint: 0,
-    unoccupyHeatSetPoint: 0,
-    occupyHeatSetPoint: 0,
-    standbyHeatSetPoint: 0,
-  });
+  const [config, setConfig] = useState(defaultConfig);
 
   const [loading, setLoading] = useState(false);
 
   // Memoize config processing to avoid expensive recreation
   const processedConfig = useMemo(() => {
     if (!initialConfig) return null;
-    
+
     return {
       // Basic configuration
       address: initialConfig.address || 0,
+      deviceId: initialConfig.deviceId || null, // Include deviceId for database unit sync
       enable: initialConfig.enable || false,
       windowMode: initialConfig.windowMode?.toString() || "0",
       fanType: initialConfig.fanType?.toString() || "0",
@@ -191,12 +199,53 @@ const ACOutputConfigDialogComponent = ({
     };
   }, [initialConfig]);
 
-  // Initialize config from memoized processed config
-  useEffect(() => {
-    if (open && !isLoading && processedConfig) {
-      setConfig(processedConfig);
+  // Auto-map deviceId to address and vice versa
+  const mappedConfig = useMemo(() => {
+    if (!processedConfig) return null;
+
+    let finalConfig = { ...processedConfig };
+
+    // For network units, prioritize address and map it to deviceId
+    // For database units, prioritize deviceId and map it to address
+    if (finalConfig.address && finalConfig.address > 0) {
+      // Find aircon item by address for network units
+      const airconItem = airconOptions.find(
+        (item) => parseInt(item.address) === finalConfig.address
+      );
+      if (airconItem) {
+        finalConfig.deviceId = parseInt(airconItem.value) || null;
+      }
     }
-  }, [open, processedConfig, isLoading]);
+    // If no address but we have deviceId (database units)
+    else if (finalConfig.deviceId) {
+      const airconItem = airconOptions.find(
+        (item) => item.value === finalConfig.deviceId.toString()
+      );
+      if (airconItem && airconItem.address) {
+        finalConfig.address = parseInt(airconItem.address) || 0;
+      }
+    }
+
+    return finalConfig;
+  }, [processedConfig, airconOptions]);
+
+  // Initialize config from memoized mapped config
+  useEffect(() => {
+    if (open && !isLoading && mappedConfig) {
+      setConfig(mappedConfig);
+    } else if (open && isLoading) {
+      // Reset to default config when loading new output
+      setConfig(defaultConfig);
+    }
+  }, [open, mappedConfig, isLoading, defaultConfig]);
+
+  // Reset config when dialog closes
+  useEffect(() => {
+    if (!open) {
+      setConfig(defaultConfig);
+      setLoading(false);
+    }
+  }, [open, defaultConfig]);
 
   // Handlers
   const handleClose = useCallback(() => {
@@ -206,21 +255,26 @@ const ACOutputConfigDialogComponent = ({
   // Memoize config transformation for better performance
   const configToSave = useMemo(() => {
     const stringFields = [
-      'windowMode', 'fanType', 'tempType', 'tempUnit', 'valveContact',
-      'valveType', 'windowBypass'
+      "windowMode",
+      "fanType",
+      "tempType",
+      "tempUnit",
+      "valveContact",
+      "valveType",
+      "windowBypass",
     ];
-    
+
     const result = { ...config };
-    
+
     // Convert string values to integers
-    Object.keys(result).forEach(key => {
+    Object.keys(result).forEach((key) => {
       if (stringFields.includes(key)) {
         result[key] = parseInt(result[key]) || 0;
-      } else if (typeof result[key] === 'string' && !isNaN(result[key])) {
+      } else if (typeof result[key] === "string" && !isNaN(result[key])) {
         result[key] = parseInt(result[key]) || 0;
       }
     });
-    
+
     return result;
   }, [config]);
 
@@ -331,11 +385,36 @@ const ACOutputConfigDialogComponent = ({
               <div className="space-y-2">
                 <Label className="text-sm font-medium">Aircon Address</Label>
                 <Combobox
-                  value={config.address?.toString() || ""}
-                  onValueChange={(value) => updateConfig("address", parseInt(value) || 0)}
-                  options={airconOptions.map(item => ({
-                    value: item.address.toString(),
-                    label: `${item.name} (${item.address})`
+                  value={(() => {
+                    // For network units, use address to find matching deviceId
+                    if (config.address && config.address > 0) {
+                      const airconItem = airconOptions.find(
+                        (item) => parseInt(item.address) === config.address
+                      );
+                      return airconItem ? airconItem.value : "";
+                    }
+                    // For database units, use deviceId directly
+                    return config.deviceId?.toString() || "";
+                  })()}
+                  onValueChange={(deviceId) => {
+                    // Find the aircon item by deviceId to get its address
+                    const airconItem = airconOptions.find(
+                      (item) => item.value === deviceId
+                    );
+                    const address = airconItem
+                      ? parseInt(airconItem.address) || 0
+                      : 0;
+
+                    // Update both deviceId and address for sync
+                    setConfig((prev) => ({
+                      ...prev,
+                      deviceId: deviceId ? parseInt(deviceId) : null,
+                      address: address,
+                    }));
+                  }}
+                  options={airconOptions.map((item) => ({
+                    value: item.value, // Use deviceId as value
+                    label: `${item.name} (${item.address})`,
                   }))}
                   placeholder="Select aircon address..."
                   searchPlaceholder="Search aircon..."
@@ -505,7 +584,9 @@ const ACOutputConfigDialogComponent = ({
                     </div>
 
                     <div className="space-y-2">
-                      <Label className="text-sm font-medium">Window Bypass</Label>
+                      <Label className="text-sm font-medium">
+                        Window Bypass
+                      </Label>
                       <Select
                         value={config.windowBypass}
                         onValueChange={(value) =>
@@ -544,7 +625,10 @@ const ACOutputConfigDialogComponent = ({
                         options={lightingOptions}
                         value={config.lowFCU_Group?.toString() || ""}
                         onValueChange={(value) =>
-                          updateConfig("lowFCU_Group", value ? parseInt(value) : 0)
+                          updateConfig(
+                            "lowFCU_Group",
+                            value ? parseInt(value) : 0
+                          )
                         }
                         placeholder="Select lighting group..."
                         emptyText="No lighting groups found"
@@ -557,7 +641,10 @@ const ACOutputConfigDialogComponent = ({
                         options={lightingOptions}
                         value={config.medFCU_Group?.toString() || ""}
                         onValueChange={(value) =>
-                          updateConfig("medFCU_Group", value ? parseInt(value) : 0)
+                          updateConfig(
+                            "medFCU_Group",
+                            value ? parseInt(value) : 0
+                          )
                         }
                         placeholder="Select lighting group..."
                         emptyText="No lighting groups found"
@@ -719,7 +806,9 @@ const ACOutputConfigDialogComponent = ({
                 <CardContent className="space-y-4">
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <Label className="text-sm font-medium">Set Point Offset</Label>
+                      <Label className="text-sm font-medium">
+                        Set Point Offset
+                      </Label>
                       <Select
                         value={config.setPointOffset?.toString() || "0"}
                         onValueChange={(value) =>
@@ -730,11 +819,16 @@ const ACOutputConfigDialogComponent = ({
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
-                          {Array.from({ length: 21 }, (_, i) => i - 10).map((offset) => (
-                            <SelectItem key={offset} value={offset.toString()}>
-                              {offset > 0 ? `+${offset}` : offset.toString()}
-                            </SelectItem>
-                          ))}
+                          {Array.from({ length: 21 }, (_, i) => i - 10).map(
+                            (offset) => (
+                              <SelectItem
+                                key={offset}
+                                value={offset.toString()}
+                              >
+                                {offset > 0 ? `+${offset}` : offset.toString()}
+                              </SelectItem>
+                            )
+                          )}
                         </SelectContent>
                       </Select>
                     </div>
@@ -766,13 +860,13 @@ const ACOutputConfigDialogComponent = ({
 const shallowEqual = (obj1, obj2) => {
   if (obj1 === obj2) return true;
   if (!obj1 || !obj2) return false;
-  
+
   const keys1 = Object.keys(obj1);
   const keys2 = Object.keys(obj2);
-  
+
   if (keys1.length !== keys2.length) return false;
-  
-  return keys1.every(key => obj1[key] === obj2[key]);
+
+  return keys1.every((key) => obj1[key] === obj2[key]);
 };
 
 // Export memoized component for optimal performance

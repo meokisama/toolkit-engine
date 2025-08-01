@@ -1,6 +1,5 @@
 import { useState, useEffect, useMemo, useCallback, useRef } from "react";
-import { getUnitIOSpec, getOutputTypes } from "@/utils/io-config-utils";
-import { createDefaultIOConfig } from "@/utils/io-config-utils";
+import { getUnitIOSpec, getOutputTypes, createDefaultInputConfigs, createDefaultOutputConfigs } from "@/utils/io-config-utils";
 
 export const useNetworkIOConfig = (item, open, childDialogOpen = false) => {
   const [inputConfigs, setInputConfigs] = useState([]);
@@ -364,24 +363,38 @@ export const useNetworkIOConfig = (item, open, childDialogOpen = false) => {
       setConfigsLoaded(false);
 
       // Create default configurations first
-      const defaultConfig = createDefaultIOConfig(item.type);
+      const defaultInputConfigs = createDefaultInputConfigs(item.type);
+      const defaultOutputConfigs = createDefaultOutputConfigs(item.type);
 
       // Initialize inputs with state tracking
-      const inputs = defaultConfig.inputs.map((input, index) => ({
-        ...input,
+      const inputs = (defaultInputConfigs.inputs || []).map((input, index) => ({
+        index: input.index,
+        function: input.function_value || 0,
+        lightingId: input.lighting_id,
         name: `Input ${index + 1}`,
         brightness: 0,
         isActive: false,
         functionValue: 0, // Default function, will be updated from unit
+        ramp: input.rlc_config?.ramp || 0,
+        preset: input.rlc_config?.preset || 255,
+        led_status: input.rlc_config?.ledStatus || 0,
+        auto_mode: input.rlc_config?.autoMode || 0,
+        auto_time: 0,
+        delay_off: input.rlc_config?.delayOff || 0,
+        delay_on: input.rlc_config?.delayOn || 0,
+        multiGroupConfig: input.multi_group_config || [],
       }));
 
       // Initialize outputs with state tracking
-      const outputs = defaultConfig.outputs.map((output, index) => ({
-        ...output,
-        name: `${output.type === "ac" ? "AC" : "Lighting"} ${index + 1}`,
+      const outputs = (defaultOutputConfigs.outputs || []).map((output, index) => ({
+        index: output.index,
+        name: output.name,
+        type: output.type,
+        deviceId: output.device_id,
+        deviceType: output.device_type,
+        config: output.config || {},
         state: false,
         brightness: 0,
-        deviceId: null,
       }));
 
       setInputConfigs(inputs);

@@ -18,6 +18,7 @@ export { setupInputConfig } from "./rcu-controller/input-setup.js";
 export {
   getOutputAssign,
   setOutputAssign,
+  setAllOutputAssignments,
   getOutputConfig,
   setOutputConfig,
   setOutputDelayOff,

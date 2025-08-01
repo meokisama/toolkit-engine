@@ -43,7 +43,7 @@ export const useMultipleGroups = (
   // Optimized available groups with early returns
   const availableGroups = useMemo(() => {
     if (!availableItems.length) return [];
-    
+
     const selectedIds = new Set(
       selectedGroups.map((group) => group.lightingId).filter(Boolean)
     );
@@ -90,25 +90,30 @@ export const useMultipleGroups = (
   // Handle group removal
   const handleRemoveGroup = useCallback(
     async (index) => {
-      const groupToRemove = selectedGroups[index];
+      setSelectedGroups((prevSelectedGroups) => {
+        const groupToRemove = prevSelectedGroups[index];
 
-      // If group has groupAddress (not in database), auto-create it when removed
-      if (groupToRemove?.groupAddress) {
-        try {
-          const newItem = await autoCreateGroupByType(groupToRemove.groupAddress);
-          if (newItem) {
-            console.log(
-              `Auto-created group ${groupToRemove.groupAddress} when removed from selected groups`
-            );
-          }
-        } catch (error) {
-          console.error(`Failed to auto-create group when removing:`, error);
+        // If group has groupAddress (not in database), auto-create it when removed
+        if (groupToRemove?.groupAddress) {
+          // Use setTimeout to avoid blocking the state update
+          setTimeout(async () => {
+            try {
+              const newItem = await autoCreateGroupByType(groupToRemove.groupAddress);
+              if (newItem) {
+                console.log(
+                  `Auto-created group ${groupToRemove.groupAddress} when removed from selected groups`
+                );
+              }
+            } catch (error) {
+              console.error(`Failed to auto-create group when removing:`, error);
+            }
+          }, 0);
         }
-      }
 
-      setSelectedGroups((prev) => prev.filter((_, i) => i !== index));
+        return prevSelectedGroups.filter((_, i) => i !== index);
+      });
     },
-    [selectedGroups, autoCreateGroupByType]
+    [autoCreateGroupByType]
   );
 
   // Handle group change
@@ -202,7 +207,9 @@ export const useMultipleGroups = (
         const groupAddress = group.groupId;
         if (groupAddress) {
           // Find existing group in database (based on current input type)
-          const existingGroup = availableItems.find(
+          // Get current availableItems without dependency
+          const currentAvailableItems = getAvailableItemsForFunction(currentInputType, projectItems);
+          const existingGroup = currentAvailableItems.find(
             (item) => parseInt(item.address) === groupAddress
           );
 
@@ -241,7 +248,7 @@ export const useMultipleGroups = (
 
       setSelectedGroups(enhancedGroups);
     }
-  }, [availableItems]);
+  }, [currentInputType, projectItems]);
 
   return {
     selectedGroups,

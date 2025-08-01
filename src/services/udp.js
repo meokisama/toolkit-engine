@@ -158,9 +158,8 @@ class UDPNetworkScanner {
       const fwVersionPos2 = posData + 88;
 
       if (hwVersionPos2 < data.length) {
-        hwVersion = `${data[hwVersionPos2]}.${data[hwVersionPos1] >> 4}.${
-          data[hwVersionPos1] & 0x0f
-        }`;
+        hwVersion = `${data[hwVersionPos2]}.${data[hwVersionPos1] >> 4}.${data[hwVersionPos1] & 0x0f
+          }`;
       }
 
       if (fwVersionPos2 < data.length) {
@@ -248,17 +247,17 @@ class UDPNetworkScanner {
         // Get network interface information from main process
         const interfaces = await window.electronAPI.networkInterfaces.getAll(true); // Force refresh
         const broadcastAddresses = interfaces.map(iface => iface.broadcast);
-        
+
         console.log(`Scanning on ${broadcastAddresses.length} network interfaces:`, broadcastAddresses);
 
         // Use Electron IPC for UDP operations with multi-interface support
         const results = await window.electronAPI.scanUDPNetwork({
-          broadcastAddresses: broadcastAddresses, // Send array instead of single IP
-          broadcastIP: UDP_CONFIG.BROADCAST_IP, // Keep for backward compatibility
+          broadcastAddresses: broadcastAddresses,
+          broadcastIP: UDP_CONFIG.BROADCAST_IP,
           udpPort: UDP_CONFIG.UDP_PORT,
           localPort: UDP_CONFIG.LOCAL_UDP_PORT,
           timeout: UDP_CONFIG.SCAN_TIMEOUT,
-          multiInterface: true, // Flag to indicate multi-interface mode
+          multiInterface: true,
         });
 
         // Parse results and remove duplicates based on IP address
@@ -269,7 +268,7 @@ class UDPNetworkScanner {
         // Remove duplicates by IP address (same device might respond on multiple interfaces)
         const uniqueResults = [];
         const seenIPs = new Set();
-        
+
         for (const unit of parsedResults) {
           if (!seenIPs.has(unit.ip_address)) {
             seenIPs.add(unit.ip_address);

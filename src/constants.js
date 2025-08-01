@@ -705,7 +705,7 @@ export const CONSTANTS = {
   ],
 };
 
-// Export individual parts for backward compatibility and easier access
+// Export individual parts for easier access
 export const OBJECT_TYPES = CONSTANTS.OBJECT_TYPES;
 export const UNIT_TYPES = CONSTANTS.UNIT.TYPES;
 export const UNIT_MODES = CONSTANTS.UNIT.MODES;
@@ -717,14 +717,14 @@ export const getUnitIOSpec = (unitName) => {
   const unit = CONSTANTS.UNIT.TYPES.find((u) => u.name === unitName);
   return unit
     ? {
-        inputs: unit.inputs,
-        outputs: unit.outputs,
-        totalOutputs:
-          unit.outputs.relay +
-          unit.outputs.dimmer +
-          unit.outputs.ao +
-          unit.outputs.ac,
-      }
+      inputs: unit.inputs,
+      outputs: unit.outputs,
+      totalOutputs:
+        unit.outputs.relay +
+        unit.outputs.dimmer +
+        unit.outputs.ao +
+        unit.outputs.ac,
+    }
     : null;
 };
 

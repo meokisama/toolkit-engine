@@ -29,7 +29,8 @@ import { useOutputConfig } from "./hooks/use-output-config";
 const PERFORMANCE_THRESHOLD = 50; // Show warning for large lists
 
 const IOConfigDialogComponent = ({ open, onOpenChange, item = null }) => {
-  const { projectItems, updateItem } = useProjectDetail();
+  const { projectItems, updateItem, selectedProject, loadTabData, loadedTabs } =
+    useProjectDetail();
 
   // Use custom hooks for better organization
   const {
@@ -55,6 +56,7 @@ const IOConfigDialogComponent = ({ open, onOpenChange, item = null }) => {
     handleInputFunctionChange,
     handleOpenMultiGroupConfig,
     handleSaveMultiGroupConfig,
+    loadAllMultiGroupConfigs,
   } = useInputConfig(item, setInputConfigs);
 
   const {
@@ -63,10 +65,12 @@ const IOConfigDialogComponent = ({ open, onOpenChange, item = null }) => {
     acOutputDialogOpen,
     setACOutputDialogOpen,
     currentOutputConfig,
+    outputConfigurations,
     handleOutputDeviceChange,
     handleOpenOutputConfig,
     handleSaveOutputConfig,
-  } = useOutputConfig(item);
+    loadAllOutputConfigs,
+  } = useOutputConfig(item, setOutputConfigs);
 
   // Memoize lighting and aircon items to prevent unnecessary re-renders
   const lightingItems = useMemo(() => {
@@ -97,11 +101,51 @@ const IOConfigDialogComponent = ({ open, onOpenChange, item = null }) => {
   }, [onOpenChange]);
 
   const handleSave = useCallback(async () => {
-    const success = await saveConfig(updateItem);
+    const success = await saveConfig(
+      updateItem,
+      multiGroupConfigs,
+      rlcConfigs,
+      outputConfigurations
+    );
     if (success) {
       handleClose();
     }
-  }, [saveConfig, updateItem, handleClose]);
+  }, [
+    saveConfig,
+    updateItem,
+    handleClose,
+    multiGroupConfigs,
+    rlcConfigs,
+    outputConfigurations,
+  ]);
+
+  // Load required data when dialog opens
+  useEffect(() => {
+    if (open && selectedProject) {
+      // Load aircon data if not already loaded
+      if (!loadedTabs.has("aircon")) {
+        loadTabData(selectedProject.id, "aircon");
+      }
+      // Load lighting data if not already loaded
+      if (!loadedTabs.has("lighting")) {
+        loadTabData(selectedProject.id, "lighting");
+      }
+    }
+  }, [open, selectedProject, loadedTabs, loadTabData]);
+
+  // Load all Multiple Group & RLC configurations and output configurations when dialog opens
+  useEffect(() => {
+    if (open && item && !isInitialLoading) {
+      loadAllMultiGroupConfigs();
+      loadAllOutputConfigs();
+    }
+  }, [
+    open,
+    item,
+    isInitialLoading,
+    loadAllMultiGroupConfigs,
+    loadAllOutputConfigs,
+  ]);
 
   // Prepare combobox options - memoized to prevent recalculation
   const lightingOptions = useMemo(() => {
@@ -121,10 +165,11 @@ const IOConfigDialogComponent = ({ open, onOpenChange, item = null }) => {
   // Device options mapping - restored full dependencies to catch content changes
   const outputDeviceOptionsMap = useMemo(() => {
     if (!outputConfigs.length) return new Map();
-    
+
     const map = new Map();
     outputConfigs.forEach((config) => {
-      const deviceOptions = config.type === "ac" ? airconOptions : lightingOptions;
+      const deviceOptions =
+        config.type === "ac" ? airconOptions : lightingOptions;
       map.set(config.index, deviceOptions);
     });
     return map;
@@ -183,7 +228,21 @@ const IOConfigDialogComponent = ({ open, onOpenChange, item = null }) => {
   const handleSaveMultiGroupConfigWithState = useCallback(
     async (data) => {
       try {
-        await handleSaveMultiGroupConfig(data, inputConfigs, setInputConfigs);
+        const success = await handleSaveMultiGroupConfig(data);
+
+        if (success) {
+          // Update UI state if needed
+          if (data.inputType !== undefined) {
+            setInputConfigs((prev) =>
+              prev.map((config) =>
+                config.index === currentMultiGroupInput?.index
+                  ? { ...config, functionValue: data.inputType }
+                  : config
+              )
+            );
+          }
+        }
+        return success;
       } catch (error) {
         console.error(
           "❌ IOConfigDialog - Failed to save multi-group configuration:",
@@ -191,9 +250,10 @@ const IOConfigDialogComponent = ({ open, onOpenChange, item = null }) => {
         );
         console.error("❌ IOConfigDialog - Error stack:", error.stack);
         toast.error("Failed to save configuration: " + error.message);
+        return false;
       }
     },
-    [handleSaveMultiGroupConfig, inputConfigs, setInputConfigs]
+    [handleSaveMultiGroupConfig, currentMultiGroupInput, setInputConfigs]
   );
 
   // Performance monitoring: Log warning for large lists
@@ -358,16 +418,19 @@ const IOConfigDialogComponent = ({ open, onOpenChange, item = null }) => {
         inputName={currentMultiGroupInput?.name || ""}
         functionName={currentMultiGroupInput?.functionName || ""}
         functionValue={currentMultiGroupInput?.functionValue || null}
-        unitType={item?.name || null}
+        unitType={item?.type || null}
         inputIndex={currentMultiGroupInput?.index || 0}
-        initialGroups={
-          currentMultiGroupInput
-            ? multiGroupConfigs[currentMultiGroupInput.index]
-            : null
-        }
+        initialGroups={currentMultiGroupInput?.config?.multiGroupConfig || null}
         initialRlcOptions={
-          currentMultiGroupInput
-            ? rlcConfigs[currentMultiGroupInput.index] || {}
+          currentMultiGroupInput?.config
+            ? {
+                ramp: currentMultiGroupInput.config.ramp || 0,
+                preset: currentMultiGroupInput.config.preset || 100,
+                ledStatus: currentMultiGroupInput.config.led_status || 0,
+                autoMode: currentMultiGroupInput.config.auto_mode || 0,
+                delayOff: currentMultiGroupInput.config.delay_off || 0,
+                delayOn: currentMultiGroupInput.config.delay_on || 0,
+              }
             : {}
         }
         isLoading={
@@ -394,6 +457,12 @@ const IOConfigDialogComponent = ({ open, onOpenChange, item = null }) => {
         outputName={currentOutputConfig?.name || ""}
         initialConfig={currentOutputConfig?.config}
         lightingOptions={lightingOptions}
+        airconOptions={airconItems.map((item) => ({
+          value: item.id.toString(),
+          label: `${item.name} (${item.address || "No Address"})`,
+          address: item.address,
+          name: item.name,
+        }))}
         isLoading={currentOutputConfig?.isLoading || false}
         onSave={handleSaveOutputConfig}
       />

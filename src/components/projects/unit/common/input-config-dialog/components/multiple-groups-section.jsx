@@ -1,6 +1,5 @@
 import React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
@@ -81,20 +80,20 @@ export const MultipleGroupsSection = ({
                 <div className="space-y-3 pr-4">
                   {selectedGroups.map((group, index) => {
                     // Find the group item based on current input type
-                    let groupItem = availableItems.find(
+                    const groupItem = availableItems.find(
                       (item) => item.id === group.lightingId
                     );
 
-                    // Fallback to lighting items if not found in current type (for backward compatibility)
-                    if (!groupItem) {
-                      groupItem = lightingItems.find(
-                        (item) => item.id === group.lightingId
-                      );
-                    }
+                    // Create stable key combining multiple properties
+                    const stableKey = `${
+                      group.lightingId ||
+                      "addr-" + group.groupAddress ||
+                      "unknown"
+                    }-${index}`;
 
                     return (
                       <GroupItem
-                        key={index}
+                        key={stableKey}
                         group={group}
                         index={index}
                         lightingItem={groupItem}

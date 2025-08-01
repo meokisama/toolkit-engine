@@ -15,7 +15,10 @@ import { createUnitColumns } from "@/components/projects/unit/unit-columns";
 import { NetworkUnitTable } from "@/components/projects/unit/network-unit-table";
 import { toast } from "sonner";
 import { createDefaultRS485Config } from "@/utils/rs485-utils";
-import { createDefaultIOConfig } from "@/utils/io-config-utils";
+import {
+  createDefaultInputConfigs,
+  createDefaultOutputConfigs,
+} from "@/utils/io-config-utils";
 
 export function UnitTable() {
   const category = "unit";
@@ -62,9 +65,10 @@ export function UnitTable() {
       );
 
       // Reset I/O config to default based on new unit type
-      itemChanges.io_config = createDefaultIOConfig(newValue);
+      itemChanges.input_configs = createDefaultInputConfigs(newValue);
+      itemChanges.output_configs = createDefaultOutputConfigs(newValue);
 
-      // Mark that we need to clear I/O configs from database tables
+      // Mark that we need to clear I/O configs
       itemChanges._clearIOConfigs = true;
     }
 

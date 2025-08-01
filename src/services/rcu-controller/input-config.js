@@ -216,20 +216,20 @@ function parseInputConfigResponse(msg, inputIndex) {
     isKeyCard: inputType === 4,
   };
 
-  console.log(`Input ${inputNumber} config:`, {
-    type: inputType,
-    ramp: ramp,
-    preset: preset,
-    ledDisplay: displayMode,
-    nightlight: nightlight,
-    backlight: backlight,
-    autoMode: autoMode,
-    delayOff: delayOff,
-    delayOn: delayOn,
-    groupCount: groupCount,
-    actualGroups: groups.length,
-    groups: groups,
-  });
+  // console.log(`Input ${inputNumber} config:`, {
+  //   type: inputType,
+  //   ramp: ramp,
+  //   preset: preset,
+  //   ledDisplay: displayMode,
+  //   nightlight: nightlight,
+  //   backlight: backlight,
+  //   autoMode: autoMode,
+  //   delayOff: delayOff,
+  //   delayOn: delayOn,
+  //   groupCount: groupCount,
+  //   actualGroups: groups.length,
+  //   groups: groups,
+  // });
 
   return config;
 }

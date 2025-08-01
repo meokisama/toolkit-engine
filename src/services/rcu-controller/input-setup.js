@@ -75,18 +75,18 @@ async function setupInputConfig(unitIp, canId, inputConfig) {
     }
   }
 
-  console.log(`Setting up input ${inputConfig.inputNumber} config:`, {
-    inputType: inputConfig.inputType,
-    ramp: inputConfig.ramp,
-    preset: inputConfig.preset,
-    ledStatus: inputConfig.ledStatus,
-    autoMode: inputConfig.autoMode,
-    delayOff: inputConfig.delayOff,
-    groupCount: groupCount,
-    actualGroups: groups.length,
-    isKeyCard: isKeyCard,
-    dataLength: data.length,
-  });
+  // console.log(`Setting up input ${inputConfig.inputNumber} config:`, {
+  //   inputType: inputConfig.inputType,
+  //   ramp: inputConfig.ramp,
+  //   preset: inputConfig.preset,
+  //   ledStatus: inputConfig.ledStatus,
+  //   autoMode: inputConfig.autoMode,
+  //   delayOff: inputConfig.delayOff,
+  //   groupCount: groupCount,
+  //   actualGroups: groups.length,
+  //   isKeyCard: isKeyCard,
+  //   dataLength: data.length,
+  // });
 
   try {
     const response = await sendCommand(

@@ -29,7 +29,10 @@ import {
   getModeConstraints,
   createDefaultRS485Config,
 } from "@/utils/rs485-utils";
-import { createDefaultIOConfig } from "@/utils/io-config-utils";
+import {
+  createDefaultInputConfigs,
+  createDefaultOutputConfigs,
+} from "@/utils/io-config-utils";
 
 export function UnitDialog({
   open,
@@ -206,9 +209,10 @@ export function UnitDialog({
         );
 
         // Reset I/O config when unit type changes
-        newData.io_config = createDefaultIOConfig(value);
+        newData.input_configs = createDefaultInputConfigs(value);
+        newData.output_configs = createDefaultOutputConfigs(value);
 
-        // Mark that we need to clear I/O configs from database tables if this is an edit
+        // Mark that we need to clear I/O configs if this is an edit
         if (mode === "edit" && originalUnitType && originalUnitType !== value) {
           newData._clearIOConfigs = true;
         }

@@ -38,7 +38,7 @@ export const GroupItem = memo(
     }, [index, onRemoveGroup]);
 
     return (
-      <div key={index} className="flex items-center gap-1">
+      <div className="flex items-center gap-1">
         <div className="flex-1 space-y-2">
           {!group.groupAddress ? (
             <Combobox
