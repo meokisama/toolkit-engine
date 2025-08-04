@@ -68,7 +68,7 @@ async function getAllInputConfigs(unitIp, canId) {
           // This is a data packet, add to responses
           responses.push({ msg, rinfo, result });
           responseCount++;
-          console.log(`📦 Input config data packet ${responseCount} collected`);
+          console.log(`- Input config data packet ${responseCount} collected`);
         }
       } catch (error) {
         console.error(

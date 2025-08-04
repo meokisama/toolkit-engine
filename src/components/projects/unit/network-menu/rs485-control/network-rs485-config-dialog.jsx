@@ -157,7 +157,7 @@ export function NetworkRS485ConfigDialog({ open, onOpenChange, unit }) {
     } catch (error) {
       console.error("Failed to load RS485 configurations:", error);
       toast.error(`Failed to load RS485 configurations: ${error.message}`);
-      
+
       // Set default configurations on error
       const defaultConfigs = Array.from({ length: 2 }, () =>
         createDefaultNetworkRS485Config()
@@ -306,6 +306,9 @@ export function NetworkRS485ConfigDialog({ open, onOpenChange, unit }) {
         canId: unit.id_can,
         config: ch1Config,
       });
+
+      // Add delay between RS485 channel writes to avoid conflicts
+      await new Promise((resolve) => setTimeout(resolve, 500));
 
       console.log("Saving RS485 CH2 configuration...");
       await window.electronAPI.rcuController.setRS485CH2Config({
@@ -557,11 +560,10 @@ export function NetworkRS485ConfigDialog({ open, onOpenChange, unit }) {
                                   Slave #{slaveIndex + 1}
                                 </span>
                                 <ChevronDown
-                                  className={`h-4 w-4 transition-transform duration-200 ${
-                                    openSlaves[slaveIndex] || false
+                                  className={`h-4 w-4 transition-transform duration-200 ${openSlaves[slaveIndex] || false
                                       ? "rotate-180"
                                       : ""
-                                  }`}
+                                    }`}
                                 />
                               </Button>
                             </CollapsibleTrigger>

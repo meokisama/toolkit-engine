@@ -386,6 +386,15 @@ const ACOutputConfigDialogComponent = ({
                 <Label className="text-sm font-medium">Aircon Address</Label>
                 <Combobox
                   value={(() => {
+                    // For database units, prioritize deviceId
+                    if (config.deviceId) {
+                      const deviceIdStr = config.deviceId.toString();
+                      const airconItem = airconOptions.find(
+                        (item) => item.value === deviceIdStr
+                      );
+                      return deviceIdStr;
+                    }
+
                     // For network units, use address to find matching deviceId
                     if (config.address && config.address > 0) {
                       const airconItem = airconOptions.find(
@@ -393,10 +402,15 @@ const ACOutputConfigDialogComponent = ({
                       );
                       return airconItem ? airconItem.value : "";
                     }
-                    // For database units, use deviceId directly
-                    return config.deviceId?.toString() || "";
+
+                    return "";
                   })()}
                   onValueChange={(deviceId) => {
+                    console.log(
+                      "AC Output Config - Value changed to:",
+                      deviceId
+                    );
+
                     // Find the aircon item by deviceId to get its address
                     const airconItem = airconOptions.find(
                       (item) => item.value === deviceId

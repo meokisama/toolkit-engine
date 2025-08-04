@@ -11,9 +11,9 @@ import { processResponse, calculateCRC } from "./utils.js";
 function createOptimalSocket(targetIp) {
   const dgram = require("dgram");
   const client = dgram.createSocket("udp4");
-  
+
   console.log(`Creating UDP socket for target ${targetIp} with default binding`);
-  
+
   return { client, interface: null };
 }
 
@@ -161,7 +161,7 @@ async function sendCommandMultipleResponses(
 
         if (isSuccessPacket) {
           console.log(
-            "✅ Success packet received - all data transmitted successfully"
+            "Success packet received - all data transmitted successfully"
           );
           successPacketReceived = true;
           clearTimeout(timeout);
@@ -171,7 +171,6 @@ async function sendCommandMultipleResponses(
           // This is a data packet, add to responses
           responses.push({ msg, rinfo, result });
           responseCount++;
-          console.log(`📦 Data packet ${responseCount} collected`);
         }
       } catch (error) {
         console.error(`Error processing response ${responseCount + 1}:`, error);

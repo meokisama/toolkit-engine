@@ -194,12 +194,6 @@ function AirconCardsComponent({ cards, loading }) {
             </CardHeader>
             <CardContent>
               <div className="space-y-2">
-                <div className="flex justify-between items-center p-2 bg-muted/50 rounded">
-                  <span className="text-sm">Air Conditioner</span>
-                  <Badge variant="outline" className="text-xs">
-                    OBJ_AIRCON
-                  </Badge>
-                </div>
                 <div className="text-xs text-muted-foreground mt-2 p-2 bg-blue-50 rounded">
                   Supports: Power, Mode, Fan Speed, Temperature, Swing
                 </div>

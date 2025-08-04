@@ -562,12 +562,12 @@ class DatabaseService {
     try {
       const lighting = this.db
         .prepare(
-          "SELECT * FROM lighting WHERE project_id = ? ORDER BY address ASC"
+          "SELECT * FROM lighting WHERE project_id = ? ORDER BY CAST(address AS INTEGER) ASC"
         )
         .all(projectId);
       const aircon = this.db
         .prepare(
-          "SELECT * FROM aircon WHERE project_id = ? ORDER BY address ASC"
+          "SELECT * FROM aircon WHERE project_id = ? ORDER BY CAST(address AS INTEGER) ASC"
         )
         .all(projectId);
       const unitRaw = this.db
@@ -577,25 +577,39 @@ class DatabaseService {
         .all(projectId);
 
       // Parse RS485 and I/O config from JSON for unit items
-      const unit = unitRaw.map((item) => ({
-        ...item,
-        rs485_config: item.rs485_config
-          ? JSON.parse(item.rs485_config)
-          : null,
-        input_configs: item.input_configs ? JSON.parse(item.input_configs) : null,
-        output_configs: item.output_configs ? JSON.parse(item.output_configs) : null,
-      }));
+      const unit = unitRaw.map((item) => {
+        const parsedItem = {
+          ...item,
+          rs485_config: item.rs485_config
+            ? JSON.parse(item.rs485_config)
+            : null,
+          input_configs: item.input_configs ? JSON.parse(item.input_configs) : null,
+          output_configs: item.output_configs ? JSON.parse(item.output_configs) : null,
+        };
+
+        // Debug logging for output configs
+        if (parsedItem.output_configs) {
+          console.log("Reading unit from database:", {
+            id: item.id,
+            ip_address: item.ip_address,
+            outputConfigsCount: parsedItem.output_configs?.outputs?.length || 0,
+            hasOutputConfigs: !!parsedItem.output_configs
+          });
+        }
+
+        return parsedItem;
+      });
       const curtain = this.db
         .prepare(
-          "SELECT * FROM curtain WHERE project_id = ? ORDER BY address ASC"
+          "SELECT * FROM curtain WHERE project_id = ? ORDER BY CAST(address AS INTEGER) ASC"
         )
         .all(projectId);
       const knx = this.db
-        .prepare("SELECT * FROM knx WHERE project_id = ? ORDER BY address ASC")
+        .prepare("SELECT * FROM knx WHERE project_id = ? ORDER BY CAST(address AS INTEGER) ASC")
         .all(projectId);
       const scene = this.db
         .prepare(
-          "SELECT * FROM scene WHERE project_id = ? ORDER BY address ASC"
+          "SELECT * FROM scene WHERE project_id = ? ORDER BY CAST(address AS INTEGER) ASC"
         )
         .all(projectId);
       const schedule = this.db
@@ -656,7 +670,7 @@ class DatabaseService {
         return stmt.all(projectId);
       } else {
         const stmt = this.db.prepare(
-          `SELECT * FROM ${tableName} WHERE project_id = ? ORDER BY address ASC`
+          `SELECT * FROM ${tableName} WHERE project_id = ? ORDER BY CAST(address AS INTEGER) ASC`
         );
         return stmt.all(projectId);
       }
@@ -1503,7 +1517,7 @@ class DatabaseService {
   getAirconCards(projectId) {
     try {
       const items = this.db
-        .prepare("SELECT * FROM aircon WHERE project_id = ? ORDER BY address")
+        .prepare("SELECT * FROM aircon WHERE project_id = ? ORDER BY CAST(address AS INTEGER) ASC")
         .all(projectId);
 
       // Each item is now a card
@@ -2746,7 +2760,7 @@ class DatabaseService {
         FROM schedule_scenes ss
         LEFT JOIN scene s ON ss.scene_id = s.id
         WHERE ss.schedule_id = ?
-        ORDER BY s.address ASC
+        ORDER BY CAST(s.address AS INTEGER) ASC
       `);
       const scenes = scenesStmt.all(scheduleId);
 
