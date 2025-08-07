@@ -111,15 +111,14 @@ const ScheduleTable = memo(function ScheduleTable({
   );
 
   const handleDeleteItem = useCallback(
-    (id) => {
+    (item) => {
       setConfirmDialog({
         open: true,
         title: "Delete Schedule",
-        description:
-          "Are you sure you want to delete this schedule? This action cannot be undone.",
+        description: `Are you sure you want to delete "${item.name || 'this schedule'}"? This action cannot be undone.`,
         onConfirm: async () => {
           try {
-            await deleteItem(category, id);
+            await deleteItem(category, item.id);
             toast.success("Schedule deleted successfully");
           } catch (error) {
             console.error("Failed to delete schedule:", error);

@@ -19,7 +19,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { toast } from "sonner";
-import { Loader2 } from "lucide-react";
+import { Loader2, Cable } from "lucide-react";
+import { NetworkRS485ConfigDialog } from "@/components/projects/unit/network-menu/rs485-control/network-rs485-config-dialog";
 
 export function NetworkUnitEditDialog({
   open,
@@ -37,6 +38,7 @@ export function NetworkUnitEditDialog({
   });
   const [loading, setLoading] = useState(false);
   const [originalData, setOriginalData] = useState({});
+  const [rs485ConfigDialogOpen, setRS485ConfigDialogOpen] = useState(false);
 
   // Initialize form data when unit changes
   useEffect(() => {
@@ -262,115 +264,139 @@ export function NetworkUnitEditDialog({
     }
   };
 
+  // Handle RS485 Config
+  const handleRS485Config = () => {
+    setRS485ConfigDialogOpen(true);
+  };
+
   if (!unit) return null;
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[500px]">
-        <DialogHeader>
-          <DialogTitle>Edit Network Unit</DialogTitle>
-          <DialogDescription>
-            Modify the network unit configuration.
-          </DialogDescription>
-        </DialogHeader>
+    <>
+      <Dialog open={open} onOpenChange={onOpenChange}>
+        <DialogContent className="sm:max-w-[500px]">
+          <DialogHeader>
+            <DialogTitle>Edit Network Unit</DialogTitle>
+            <DialogDescription>
+              Modify the network unit configuration.
+            </DialogDescription>
+          </DialogHeader>
 
-        <div className="space-y-6 mb-6">
-          <div className="grid grid-cols-2 gap-4">
-            <div className="flex flex-col gap-2">
-              <Label htmlFor="ip_address" className="text-right">
-                IP Address
-              </Label>
-              <Input
-                id="ip_address"
-                value={formData.ip_address}
-                onChange={(e) =>
-                  handleInputChange("ip_address", e.target.value)
-                }
-                placeholder="192.168.1.100"
-              />
-            </div>
-            <div className="flex flex-col gap-2">
-              <Label htmlFor="id_can" className="text-right">
-                CAN ID
-              </Label>
-              <div className="flex items-center gap-2">
+          <div className="space-y-6 mb-6">
+            <div className="grid grid-cols-2 gap-4">
+              <div className="flex flex-col gap-2">
+                <Label htmlFor="ip_address" className="text-right">
+                  IP Address
+                </Label>
                 <Input
-                  className="text-muted-foreground w-20 tracking-[2px] text-center"
-                  readOnly
-                  value={
-                    formData.id_can
-                      ? formData.id_can.split(".").slice(0, 3).join(".") + "."
-                      : "0.0.1."
-                  }
-                />
-                <Input
-                  id="id_can_last_part"
-                  type="number"
-                  min="1"
-                  max="255"
-                  value={formData.id_can_last_part}
+                  id="ip_address"
+                  value={formData.ip_address}
                   onChange={(e) =>
-                    handleInputChange("id_can_last_part", e.target.value)
+                    handleInputChange("ip_address", e.target.value)
                   }
-                  className="w-15 text-center [&::-webkit-inner-spin-button]:appearance-none"
-                  placeholder="1"
+                  placeholder="192.168.1.100"
                 />
               </div>
+              <div className="flex flex-col gap-2">
+                <Label htmlFor="id_can" className="text-right">
+                  CAN ID
+                </Label>
+                <div className="flex items-center gap-2">
+                  <Input
+                    className="text-muted-foreground w-20 tracking-[2px] text-center"
+                    readOnly
+                    value={
+                      formData.id_can
+                        ? formData.id_can.split(".").slice(0, 3).join(".") + "."
+                        : "0.0.1."
+                    }
+                  />
+                  <Input
+                    id="id_can_last_part"
+                    type="number"
+                    min="1"
+                    max="255"
+                    value={formData.id_can_last_part}
+                    onChange={(e) =>
+                      handleInputChange("id_can_last_part", e.target.value)
+                    }
+                    className="w-15 text-center [&::-webkit-inner-spin-button]:appearance-none"
+                    placeholder="1"
+                  />
+                </div>
+              </div>
             </div>
-          </div>
-          <div className="flex flex-col gap-2">
-            <Label htmlFor="mode" className="text-right">
-              Mode
-            </Label>
-            <Select
-              value={formData.mode}
-              onValueChange={(value) => handleInputChange("mode", value)}
+            <div className="flex flex-col gap-2">
+              <Label htmlFor="mode" className="text-right">
+                Mode
+              </Label>
+              <Select
+                value={formData.mode}
+                onValueChange={(value) => handleInputChange("mode", value)}
+              >
+                <SelectTrigger className="w-full">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Stand-Alone">Stand-Alone</SelectItem>
+                  <SelectItem value="Slave">Slave</SelectItem>
+                  <SelectItem value="Master">Master</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="flex flex-row gap-2">
+                <Checkbox
+                  id="can_load"
+                  checked={formData.can_load}
+                  onCheckedChange={(checked) =>
+                    handleInputChange("can_load", checked)
+                  }
+                />
+                <Label htmlFor="can_load">CAN Load</Label>
+              </div>
+
+              <div className="flex flex-row gap-2">
+                <Checkbox
+                  id="recovery_mode"
+                  checked={formData.recovery_mode}
+                  onCheckedChange={(checked) =>
+                    handleInputChange("recovery_mode", checked)
+                  }
+                />
+                <Label htmlFor="recovery_mode">Line Cut Recovery</Label>
+              </div>
+            </div>
+            <Button
+              variant="outline"
+              onClick={handleRS485Config}
+              className="flex items-center gap-2 w-full"
             >
-              <SelectTrigger className="w-full">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="Stand-Alone">Stand-Alone</SelectItem>
-                <SelectItem value="Slave">Slave</SelectItem>
-                <SelectItem value="Master">Master</SelectItem>
-              </SelectContent>
-            </Select>
+              <Cable className="h-4 w-4" />
+              RS485 Configuration
+            </Button>
           </div>
-          <div className="grid grid-cols-2 gap-4">
-            <div className="flex flex-row gap-2">
-              <Checkbox
-                id="can_load"
-                checked={formData.can_load}
-                onCheckedChange={(checked) =>
-                  handleInputChange("can_load", checked)
-                }
-              />
-              <Label htmlFor="can_load">CAN Load</Label>
-            </div>
 
-            <div className="flex flex-row gap-2">
-              <Checkbox
-                id="recovery_mode"
-                checked={formData.recovery_mode}
-                onCheckedChange={(checked) =>
-                  handleInputChange("recovery_mode", checked)
-                }
-              />
-              <Label htmlFor="recovery_mode">Line Cut Recovery</Label>
+          <DialogFooter className="flex justify-between">
+            <div className="flex gap-2">
+              <Button variant="outline" onClick={() => onOpenChange(false)}>
+                Cancel
+              </Button>
+              <Button onClick={handleSave} disabled={loading}>
+                {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                Save Changes
+              </Button>
             </div>
-          </div>
-        </div>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
-        <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>
-            Cancel
-          </Button>
-          <Button onClick={handleSave} disabled={loading}>
-            {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            Save Changes
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+      {/* RS485 Configuration Dialog */}
+      <NetworkRS485ConfigDialog
+        open={rs485ConfigDialogOpen}
+        onOpenChange={setRS485ConfigDialogOpen}
+        unit={unit}
+      />
+    </>
   );
 }

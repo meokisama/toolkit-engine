@@ -8,7 +8,7 @@ export const CONSTANTS = {
     AC_FAN_SPEED: { obj_name: "OBJ_AC_FAN_SPEED", obj_value: 5 },
     AC_TEMPERATURE: { obj_name: "OBJ_AC_TEMPERATURE", obj_value: 6 },
     AC_SWING: { obj_name: "OBJ_AC_SWING", obj_value: 7 },
-    TIMER: { obj_name: "OBJ_TIMER", obj_value: 8 },
+    // TIMER: { obj_name: "OBJ_TIMER", obj_value: 8 },
   },
 
   UNIT: {

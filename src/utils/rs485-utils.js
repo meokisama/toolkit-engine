@@ -145,10 +145,16 @@ export const serializeRS485Config = (configs) => {
       configStr += `,${slave.slave_group}`;
       configStr += `,${slave.num_indoors}`;
 
-      // Add indoor groups
-      slave.indoor_group.forEach(group => {
+      // Add indoor groups (ensure exactly 16 values)
+      const indoorGroups = Array.isArray(slave.indoor_group)
+        ? slave.indoor_group
+        : Array.from({ length: RS485.SLAVE_MAX_INDOORS }, () => 0);
+
+      // Ensure we have exactly 16 values
+      for (let k = 0; k < RS485.SLAVE_MAX_INDOORS; k++) {
+        const group = indoorGroups[k] || 0;
         configStr += `,${group}`;
-      });
+      }
     });
 
     result.push(configStr);

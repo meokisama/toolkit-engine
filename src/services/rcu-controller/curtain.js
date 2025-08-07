@@ -117,7 +117,6 @@ async function getCurtainConfig(unitIp, canId, curtainIndex = null) {
 // Helper function to parse curtain configuration response
 function parseCurtainConfigResponse(data) {
   if (!data || data.length < 14) {
-    console.warn("Invalid curtain config response data length:", data?.length);
     return null;
   }
 
@@ -132,7 +131,7 @@ function parseCurtainConfigResponse(data) {
     const closeGroup = data[13];
     const stopGroup = data[14];
 
-    return {
+    const parsedResult = {
       index,
       address,
       curtainType,
@@ -142,8 +141,8 @@ function parseCurtainConfigResponse(data) {
       closeGroup,
       stopGroup,
     };
+    return parsedResult;
   } catch (error) {
-    console.error("Error parsing curtain config response:", error);
     return null;
   }
 }
@@ -161,13 +160,13 @@ async function setCurtain(unitIp, canId, curtainAddress, value) {
   // Data is curtain address (1 byte) + value (1 byte)
   const data = [curtainAddress & 0xff, value & 0xff];
 
-  console.log("Setting curtain:", {
-    unitIp,
-    canId,
-    curtainAddress,
-    value,
-    valueLabel: ["Stop", "Open", "Close"][value],
-  });
+  // console.log("Setting curtain:", {
+  //   unitIp,
+  //   canId,
+  //   curtainAddress,
+  //   value,
+  //   valueLabel: ["Stop", "Open", "Close"][value],
+  // });
 
   const response = await sendCommand(
     unitIp,
@@ -216,12 +215,12 @@ async function setCurtainConfig(unitIp, canId, curtainConfig) {
     stopGroup & 0xff,
   ];
 
-  console.log("Sending curtain config:", {
-    unitIp,
-    canId,
-    ...curtainConfig,
-    dataLength: data.length,
-  });
+  // console.log("Sending curtain config:", {
+  //   unitIp,
+  //   canId,
+  //   ...curtainConfig,
+  //   dataLength: data.length,
+  // });
 
   const response = await sendCommand(
     unitIp,

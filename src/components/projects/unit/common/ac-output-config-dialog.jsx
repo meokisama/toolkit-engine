@@ -94,9 +94,7 @@ const ACOutputConfigDialogComponent = ({
   // Default config state
   const defaultConfig = useMemo(
     () => ({
-      // Basic configuration
-      address: 0,
-      deviceId: null,
+      // Basic configuration (address and deviceId are handled separately)
       enable: false,
       windowMode: "0",
       fanType: "0",
@@ -266,6 +264,10 @@ const ACOutputConfigDialogComponent = ({
 
     const result = { ...config };
 
+    // Remove address and deviceId from config - these are handled separately
+    delete result.address;
+    delete result.deviceId;
+
     // Convert string values to integers
     Object.keys(result).forEach((key) => {
       if (stringFields.includes(key)) {
@@ -281,14 +283,19 @@ const ACOutputConfigDialogComponent = ({
   const handleSave = useCallback(async () => {
     setLoading(true);
     try {
-      await onSave(configToSave);
+      // Include deviceId in the save data for database sync
+      const saveData = {
+        ...configToSave,
+        deviceId: config.deviceId, // Add deviceId back for database processing
+      };
+      await onSave(saveData);
       handleClose();
     } catch (error) {
       console.error("Failed to save AC output configuration:", error);
     } finally {
       setLoading(false);
     }
-  }, [configToSave, onSave, handleClose]);
+  }, [configToSave, config.deviceId, onSave, handleClose]);
 
   const updateConfig = useCallback((field, value) => {
     setConfig((prev) => ({

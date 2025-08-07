@@ -44,6 +44,7 @@ const SceneTable = memo(function SceneTable({ items = [], loading = false }) {
     pageSize: 10,
   });
   const [saveLoading, setSaveLoading] = useState(false);
+  const [selectedRowsCount, setSelectedRowsCount] = useState(0);
 
   // ✅ Use ref instead of state to avoid re-renders when pendingChanges update
   const pendingChangesRef = useRef(new Map());
@@ -176,9 +177,8 @@ const SceneTable = memo(function SceneTable({ items = [], loading = false }) {
       setConfirmDialog({
         open: true,
         title: "Delete Scene",
-        description: `Are you sure you want to delete "${
-          item.name || `Scene ${item.address}`
-        }"? This action cannot be undone and will also remove all items associated with this scene.`,
+        description: `Are you sure you want to delete "${item.name || `Scene ${item.address}`
+          }"? This action cannot be undone and will also remove all items associated with this scene.`,
         onConfirm: async () => {
           try {
             await deleteItem(category, item.id);
@@ -204,8 +204,8 @@ const SceneTable = memo(function SceneTable({ items = [], loading = false }) {
     [items]
   );
 
-  const handleRowSelectionChange = useCallback((selectedRows) => {
-    // Handle row selection if needed
+  const handleRowSelectionChange = useCallback((selectedCount) => {
+    setSelectedRowsCount(selectedCount);
   }, []);
 
   const handleColumnVisibilityChange = useCallback((visibility) => {
@@ -215,6 +215,21 @@ const SceneTable = memo(function SceneTable({ items = [], loading = false }) {
   const handlePaginationChange = useCallback((newPagination) => {
     setPagination(newPagination);
   }, []);
+
+  const handleBulkDelete = useCallback(async (selectedItems) => {
+    try {
+      const deletePromises = selectedItems.map((item) =>
+        deleteItem(category, item.id)
+      );
+      await Promise.all(deletePromises);
+
+      if (table) {
+        table.resetRowSelection();
+      }
+    } catch (error) {
+      console.error("Failed to bulk delete scenes:", error);
+    }
+  }, [deleteItem, table]);
 
   const handleSendAllScenes = useCallback(() => {
     // Add calculated index to all scenes
@@ -290,6 +305,8 @@ const SceneTable = memo(function SceneTable({ items = [], loading = false }) {
                   saveLoading={saveLoading}
                   onSendAll={handleSendAllScenes}
                   sendAllLabel="Send All Scenes"
+                  onBulkDelete={handleBulkDelete}
+                  selectedRowsCount={selectedRowsCount}
                 />
               )}
               <DataTable

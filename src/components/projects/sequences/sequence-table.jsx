@@ -111,15 +111,14 @@ const SequenceTable = memo(function SequenceTable({
   );
 
   const handleDeleteItem = useCallback(
-    (id) => {
-      const item = items.find((item) => item.id === id);
+    (item) => {
       setConfirmDialog({
         open: true,
         title: "Delete Sequence",
         description: `Are you sure you want to delete "${item?.name}"? This action cannot be undone.`,
         onConfirm: async () => {
           try {
-            await deleteItem(category, id);
+            await deleteItem(category, item.id);
             setConfirmDialog({ ...confirmDialog, open: false });
             // Reload multi-scene counts after deletion
             setTimeout(loadSequenceCounts, 100);
@@ -129,7 +128,7 @@ const SequenceTable = memo(function SequenceTable({
         },
       });
     },
-    [items, deleteItem, confirmDialog, loadSequenceCounts]
+    [deleteItem, confirmDialog, loadSequenceCounts]
   );
 
   const handleSendToUnit = useCallback(
@@ -160,8 +159,8 @@ const SequenceTable = memo(function SequenceTable({
   }, [items]);
 
   // Add handlers for table functionality
-  const handleRowSelectionChange = useCallback((selectedRows) => {
-    setSelectedRowsCount(selectedRows.length);
+  const handleRowSelectionChange = useCallback((selectedCount) => {
+    setSelectedRowsCount(selectedCount);
   }, []);
 
   const handleColumnVisibilityChange = useCallback((visibility) => {

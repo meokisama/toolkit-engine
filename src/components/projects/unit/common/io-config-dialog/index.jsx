@@ -424,13 +424,13 @@ const IOConfigDialogComponent = ({ open, onOpenChange, item = null }) => {
         initialRlcOptions={
           currentMultiGroupInput?.config
             ? {
-                ramp: currentMultiGroupInput.config.ramp || 0,
-                preset: currentMultiGroupInput.config.preset || 100,
-                ledStatus: currentMultiGroupInput.config.led_status || 0,
-                autoMode: currentMultiGroupInput.config.auto_mode || 0,
-                delayOff: currentMultiGroupInput.config.delay_off || 0,
-                delayOn: currentMultiGroupInput.config.delay_on || 0,
-              }
+              ramp: currentMultiGroupInput.config.ramp || 0,
+              preset: currentMultiGroupInput.config.preset || 100,
+              ledStatus: currentMultiGroupInput.config.led_status || 0,
+              autoMode: currentMultiGroupInput.config.auto_mode || 0,
+              delayOff: currentMultiGroupInput.config.delay_off || 0,
+              delayOn: currentMultiGroupInput.config.delay_on || 0,
+            }
             : {}
         }
         isLoading={

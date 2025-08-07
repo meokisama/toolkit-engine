@@ -206,8 +206,8 @@ const LightingOutputConfigDialogComponent = ({
     []
   );
 
-  // Check if this is a dimmer output (shows min/max dim options)
-  const isDimmerOutput = outputType === "dimmer";
+  // Check if this is a dimmer or AO output (shows min/max dim options)
+  const isDimmerOutput = outputType === "dimmer" || outputType === "ao";
 
   // Initialize config from props
   useEffect(() => {
@@ -498,7 +498,7 @@ const LightingOutputConfigDialogComponent = ({
                 </CardContent>
               </Card>
 
-              {/* Dimming Configuration - Only for dimmer outputs */}
+              {/* Dimming Configuration - For dimmer and AO outputs */}
               {isDimmerOutput && (
                 <Card>
                   <CardHeader>

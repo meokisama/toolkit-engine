@@ -170,8 +170,8 @@ function KnxTableComponent({ items, loading }) {
     }
   }, [deleteItem, itemsToDelete, table, category]);
 
-  const handleRowSelectionChange = useCallback((selectedRows) => {
-    setSelectedRowsCount(selectedRows.length);
+  const handleRowSelectionChange = useCallback((selectedCount) => {
+    setSelectedRowsCount(selectedCount);
   }, []);
 
   const handleColumnVisibilityChange = useCallback((visibility) => {
@@ -316,9 +316,8 @@ function KnxTableComponent({ items, loading }) {
         open={confirmDialogOpen}
         onOpenChange={setConfirmDialogOpen}
         title="Delete KNX Device"
-        description={`Are you sure you want to delete "${
-          itemToDelete?.name || `Device ${itemToDelete?.address}`
-        }"? This action cannot be undone.`}
+        description={`Are you sure you want to delete "${itemToDelete?.name || `Device ${itemToDelete?.address}`
+          }"? This action cannot be undone.`}
         onConfirm={handleConfirmDelete}
         loading={deleteLoading}
       />

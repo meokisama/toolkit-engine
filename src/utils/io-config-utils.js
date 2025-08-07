@@ -57,6 +57,98 @@ export const createDefaultInputConfigs = (unitType) => {
 };
 
 /**
+ * Create default AC output configuration
+ * @returns {Object} Default AC configuration
+ */
+const createDefaultACConfig = () => ({
+  // Basic configuration
+  enable: false,
+  windowMode: 0,
+  fanType: 0,
+  tempType: 0,
+  tempUnit: 0,
+  valveContact: 0,
+  valveType: 0,
+  deadband: 10,
+  windowBypass: 0,
+  setPointOffset: 0,
+
+  // Group assignments
+  lowFCU_Group: 0,
+  medFCU_Group: 0,
+  highFCU_Group: 0,
+  fanAnalogGroup: 0,
+  analogCoolGroup: 0,
+  analogHeatGroup: 0,
+  valveCoolOpenGroup: 0,
+  valveCoolCloseGroup: 0,
+  valveHeatOpenGroup: 0,
+  valveHeatCloseGroup: 0,
+
+  // Power and mode settings
+  unoccupyPower: 0,
+  occupyPower: 0,
+  standbyPower: 0,
+  unoccupyMode: 0,
+  occupyMode: 0,
+  standbyMode: 0,
+  unoccupyFanSpeed: 0,
+  occupyFanSpeed: 0,
+  standbyFanSpeed: 0,
+
+  // Set point values
+  unoccupyCoolSetPoint: 0,
+  occupyCoolSetPoint: 0,
+  standbyCoolSetPoint: 0,
+  unoccupyHeatSetPoint: 0,
+  occupyHeatSetPoint: 0,
+  standbyHeatSetPoint: 0,
+});
+
+/**
+ * Create default lighting/relay/dimmer/AO output configuration
+ * @returns {Object} Default lighting configuration
+ */
+const createDefaultLightingConfig = () => ({
+  // Delay settings
+  delayOffHours: 0,
+  delayOffMinutes: 0,
+  delayOffSeconds: 0,
+  delayOnHours: 0,
+  delayOnMinutes: 0,
+  delayOnSeconds: 0,
+
+  // Dimming settings (for dimmer and AO outputs)
+  minDim: 1,
+  maxDim: 100,
+
+  // Auto trigger and schedule settings
+  autoTrigger: false,
+  scheduleOnHour: 0,
+  scheduleOnMinute: 0,
+  scheduleOffHour: 0,
+  scheduleOffMinute: 0,
+});
+
+/**
+ * Create default output configuration based on type
+ * @param {string} type - Output type ('relay', 'dimmer', 'ao', 'ac')
+ * @returns {Object} Default configuration for the output type
+ */
+const createDefaultConfigByType = (type) => {
+  switch (type) {
+    case "ac":
+      return createDefaultACConfig();
+    case "relay":
+    case "dimmer":
+    case "ao":
+      return createDefaultLightingConfig();
+    default:
+      return {};
+  }
+};
+
+/**
  * Create default output configurations for a unit
  * @param {string} unitType - The type of unit (e.g., 'Bedside-17T', 'RLC-I20')
  * @returns {Object} Default output configurations
@@ -74,7 +166,7 @@ export const createDefaultOutputConfigs = (unitType) => {
         device_id: null,
         device_type: type === "ac" ? "aircon" : "lighting",
         name: `${getOutputLabel(type)} ${i + 1}`,
-        config: {}, // Empty config object for detailed settings
+        config: createDefaultConfigByType(type), // Create full default config
       });
     }
   });

@@ -111,15 +111,14 @@ const MultiSceneTable = memo(function MultiSceneTable({
   );
 
   const handleDeleteItem = useCallback(
-    (id) => {
-      const item = items.find((item) => item.id === id);
+    (item) => {
       setConfirmDialog({
         open: true,
         title: "Delete Multi-Scene",
         description: `Are you sure you want to delete "${item?.name}"? This action cannot be undone.`,
         onConfirm: async () => {
           try {
-            await deleteItem(category, id);
+            await deleteItem(category, item.id);
             setConfirmDialog({ ...confirmDialog, open: false });
             // Reload scene counts after deletion
             setTimeout(loadMultiSceneCounts, 100);
@@ -129,7 +128,7 @@ const MultiSceneTable = memo(function MultiSceneTable({
         },
       });
     },
-    [items, deleteItem, confirmDialog, loadMultiSceneCounts]
+    [deleteItem, confirmDialog, loadMultiSceneCounts]
   );
 
   const handleSendToUnit = useCallback(
@@ -160,8 +159,8 @@ const MultiSceneTable = memo(function MultiSceneTable({
   }, [items]);
 
   // Add handlers for table functionality
-  const handleRowSelectionChange = useCallback((selectedRows) => {
-    setSelectedRowsCount(selectedRows.length);
+  const handleRowSelectionChange = useCallback((selectedCount) => {
+    setSelectedRowsCount(selectedCount);
   }, []);
 
   const handleColumnVisibilityChange = useCallback((visibility) => {

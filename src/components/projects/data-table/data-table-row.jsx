@@ -18,7 +18,6 @@ import {
   ListOrdered,
   Network,
   Upload,
-  Cable,
 } from "lucide-react";
 
 import { TableCell, TableRow } from "@/components/ui/table";
@@ -51,14 +50,19 @@ export function DataTableRow({
   onSendSchedule,
   onSendScene,
   onFirmwareUpdate,
-  onRS485Config,
+  onTransferToDatabase,
+  customRowClass,
 }) {
   const item = row.original;
 
   return (
     <ContextMenu>
       <ContextMenuTrigger asChild>
-        <TableRow key={row.id} data-state={row.getIsSelected() && "selected"}>
+        <TableRow
+          key={row.id}
+          data-state={row.getIsSelected() && "selected"}
+          className={customRowClass}
+        >
           {row.getVisibleCells().map((cell) => (
             <TableCell key={cell.id}>
               {flexRender(cell.column.columnDef.cell, cell.getContext())}
@@ -79,7 +83,7 @@ export function DataTableRow({
             <span>Duplicate</span>
           </ContextMenuItem>
         )}
-        {(onEdit || onDuplicate) &&
+        {(onEdit || onDuplicate || onTransferToDatabase) &&
           (onIOConfig ||
             onGroupControl ||
             onAirconControl ||
@@ -176,7 +180,7 @@ export function DataTableRow({
           </>
         )}
         {/* System Submenu */}
-        {(onClockControl || onFirmwareUpdate || onRS485Config) && (
+        {(onClockControl || onFirmwareUpdate) && (
           <>
             <ContextMenuSub>
               <ContextMenuSubTrigger>
@@ -188,12 +192,6 @@ export function DataTableRow({
                   <ContextMenuItem onClick={() => onClockControl(item)}>
                     <Clock className="text-muted-foreground" />
                     <span>Clock Control</span>
-                  </ContextMenuItem>
-                )}
-                {onRS485Config && (
-                  <ContextMenuItem onClick={() => onRS485Config(item)}>
-                    <Cable className="text-muted-foreground" />
-                    <span>RS485 Configuration</span>
                   </ContextMenuItem>
                 )}
                 {onFirmwareUpdate && (
@@ -248,6 +246,15 @@ export function DataTableRow({
             <Trash2 />
             <span>Delete</span>
           </ContextMenuItem>
+        )}
+        {onTransferToDatabase && (
+          <>
+            <ContextMenuSeparator />
+            <ContextMenuItem onClick={() => onTransferToDatabase(item)}>
+              <Upload className="text-muted-foreground" />
+              <span>Transfer to Database</span>
+            </ContextMenuItem>
+          </>
         )}
       </ContextMenuContent>
     </ContextMenu>

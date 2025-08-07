@@ -39,7 +39,7 @@ import { FirmwareUpdateDialog } from "@/components/projects/unit/network-menu/ba
 import { SendAllConfigDialog } from "@/components/projects/unit/network-menu/base/send-all-config-dialog";
 import { NetworkUnitEditDialog } from "@/components/projects/unit/network-menu/base/network-unit-edit-dialog";
 import NetworkIOConfigDialog from "@/components/projects/unit/common/network-io-config-dialog";
-import { NetworkRS485ConfigDialog } from "@/components/projects/unit/network-menu/rs485-control/network-rs485-config-dialog";
+
 import { udpScanner } from "@/services/udp";
 import { toast } from "sonner";
 import { getUnitIOSpec } from "@/utils/io-config-utils";
@@ -48,6 +48,8 @@ import { useProjectDetail } from "@/contexts/project-detail-context";
 function NetworkUnitTableComponent({
   onTransferToDatabase,
   existingUnits = [],
+  onNetworkUnitsChange,
+  getRowClassName,
 }) {
   const { selectedProject, projectItems, createItem } = useProjectDetail();
 
@@ -79,9 +81,6 @@ function NetworkUnitTableComponent({
   const [sendAllConfigDialogOpen, setSendAllConfigDialogOpen] = useState(false);
   const [ioConfigDialogOpen, setIOConfigDialogOpen] = useState(false);
   const [selectedUnitForIOConfig, setSelectedUnitForIOConfig] = useState(null);
-  const [rs485ConfigDialogOpen, setRS485ConfigDialogOpen] = useState(false);
-  const [selectedUnitForRS485Config, setSelectedUnitForRS485Config] =
-    useState(null);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [selectedUnitForEdit, setSelectedUnitForEdit] = useState(null);
   const [selectedUnit, setSelectedUnit] = useState(null);
@@ -94,6 +93,13 @@ function NetworkUnitTableComponent({
       console.log(`Auto-loaded ${cachedUnits.length} cached network units`);
     }
   }, []);
+
+  // Notify parent component when network units change
+  useEffect(() => {
+    if (onNetworkUnitsChange) {
+      onNetworkUnitsChange(networkUnits);
+    }
+  }, [networkUnits, onNetworkUnitsChange]);
 
   const handleScanNetwork = async () => {
     setScanLoading(true);
@@ -412,17 +418,57 @@ function NetworkUnitTableComponent({
     setIOConfigDialogOpen(true);
   };
 
-  // Handle RS485 Config
-  const handleRS485Config = useCallback((unit) => {
-    setSelectedUnitForRS485Config(unit);
-    setRS485ConfigDialogOpen(true);
-  }, []);
+
 
   // Handle Edit Unit
   const handleEditUnit = useCallback((unit) => {
     setSelectedUnitForEdit(unit);
     setEditDialogOpen(true);
   }, []);
+
+  // Handle Transfer Single Unit to Database
+  const handleTransferSingleToDatabase = useCallback(async (unit) => {
+    // Check if unit already exists in database
+    const existingUnit = existingUnits.find(
+      (existingUnit) =>
+        existingUnit.ip_address === unit.ip_address ||
+        existingUnit.serial_no === unit.serial_no
+    );
+
+    if (existingUnit) {
+      toast.warning(
+        `Unit ${unit.type} (${unit.ip_address}) already exists in database`
+      );
+      return;
+    }
+
+    const loadingToast = toast.loading(
+      `Reading configuration from unit ${unit.ip_address}...`
+    );
+
+    try {
+      // Read configurations from network unit and create new unit with configs
+      const unitToTransfer = await readNetworkUnitConfigurations(unit);
+
+      if (unitToTransfer) {
+        toast.loading("Saving unit to database...", { id: loadingToast });
+        await onTransferToDatabase([unitToTransfer]);
+
+        toast.success(
+          `Successfully transferred unit ${unit.ip_address} to database`,
+          { id: loadingToast }
+        );
+      } else {
+        toast.dismiss(loadingToast);
+      }
+    } catch (error) {
+      console.error("Failed to transfer unit to database:", error);
+      toast.error(
+        `Failed to transfer unit ${unit.ip_address} to database: ${error.message}`,
+        { id: loadingToast }
+      );
+    }
+  }, [onTransferToDatabase, existingUnits]);
 
   // Create columns for network units (read-only)
   const networkColumns = createNetworkUnitColumns();
@@ -543,9 +589,10 @@ function NetworkUnitTableComponent({
                 }}
                 onFirmwareUpdate={handleFirmwareUpdateForUnit}
                 onIOConfig={handleIOConfig}
-                onRS485Config={handleRS485Config}
                 onEdit={handleEditUnit}
+                onTransferToDatabase={handleTransferSingleToDatabase}
                 enableRowSelection={true}
+                getRowClassName={getRowClassName}
               />
               {networkTable && <DataTablePagination table={networkTable} />}
             </div>
@@ -634,11 +681,7 @@ function NetworkUnitTableComponent({
           item={selectedUnitForIOConfig}
         />
 
-        <NetworkRS485ConfigDialog
-          open={rs485ConfigDialogOpen}
-          onOpenChange={setRS485ConfigDialogOpen}
-          unit={selectedUnitForRS485Config}
-        />
+
 
         <NetworkUnitEditDialog
           open={editDialogOpen}
@@ -656,6 +699,8 @@ function NetworkUnitTableComponent({
       </Card>
     </div>
   );
+
+
 
   // Function to read all configurations from network unit and prepare for database transfer
   async function readNetworkUnitConfigurations(networkUnit) {
@@ -675,6 +720,13 @@ function NetworkUnitTableComponent({
         rs485_config: null,
         input_configs: null,
         output_configs: null,
+        // Add fields to store advanced configurations
+        scenes: [],
+        schedules: [],
+        curtains: [],
+        knxConfigs: [],
+        multiScenes: [],
+        sequences: [],
       };
 
       // Read RS485 configurations sequentially to avoid UDP conflicts
@@ -734,6 +786,10 @@ function NetworkUnitTableComponent({
         // Continue without I/O configs
       }
 
+      // Store network unit data for advanced configuration reading
+      // We'll read advanced configs after the unit is created in database
+      newUnit.readAdvancedConfigs = true;
+
       return newUnit;
     } catch (error) {
       console.error(
@@ -747,6 +803,12 @@ function NetworkUnitTableComponent({
         rs485_config: null,
         input_configs: null,
         output_configs: null,
+        scenes: [],
+        schedules: [],
+        curtains: [],
+        knxConfigs: [],
+        multiScenes: [],
+        sequences: [],
       };
     }
   }
@@ -1091,10 +1153,9 @@ function NetworkUnitTableComponent({
 
         if (outputType === "ac") {
           // Aircon config structure - populate from AC config if available
+          // Note: address and deviceId are handled separately at output level, not in config
           configData = {
             name: outputName,
-            address: assignmentAddress || 0,
-            deviceId: finalDeviceId,
             enable: acConfig?.enable || false,
             windowMode: acConfig?.windowMode || 0,
             fanType: acConfig?.fanType || 0,

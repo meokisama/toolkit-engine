@@ -43,10 +43,11 @@ export function DataTable({
   onSendSchedule,
   onSendScene,
   onFirmwareUpdate,
-  onRS485Config,
+  onTransferToDatabase,
   initialPagination,
   initialColumnVisibility,
   enableRowSelection = false,
+  getRowClassName,
 }) {
   const [sorting, setSorting] = React.useState([]);
   const [columnFilters, setColumnFilters] = React.useState([]);
@@ -187,9 +188,9 @@ export function DataTable({
                     {header.isPlaceholder
                       ? null
                       : flexRender(
-                          header.column.columnDef.header,
-                          header.getContext()
-                        )}
+                        header.column.columnDef.header,
+                        header.getContext()
+                      )}
                   </TableHead>
                 );
               })}
@@ -220,7 +221,8 @@ export function DataTable({
                   onSendSchedule={onSendSchedule}
                   onSendScene={onSendScene}
                   onFirmwareUpdate={onFirmwareUpdate}
-                  onRS485Config={onRS485Config}
+                  onTransferToDatabase={onTransferToDatabase}
+                  customRowClass={getRowClassName ? getRowClassName(row.original) : undefined}
                 />
               ))
           ) : (
