@@ -50,10 +50,10 @@ export class CSVImporter {
 
     // Special handling for scene category - expect scene format
     if (category === 'scene') {
-      if (sceneImportType === 'template') {
-        return this.parseScenesTemplateCSV(csvContent);
-      } else if (sceneImportType === 'list') {
-        return this.parseScenesCSV(csvContent);
+      if (sceneImportType === 'template2') {
+        return this.parseScenesTemplate2CSV(csvContent);
+      } else if (sceneImportType === 'template1') {
+        return this.parseScenesTemplate1CSV(csvContent);
       } else {
         // Auto-detect format
         return this.detectAndParseScenesCSV(csvContent);
@@ -129,8 +129,8 @@ export class CSVImporter {
     return cards;
   }
 
-  // Parse scenes CSV format
-  static parseScenesCSV(csvContent) {
+  // Parse scenes CSV format - Template 1 (vertical list format)
+  static parseScenesTemplate1CSV(csvContent) {
     const lines = csvContent.split('\n').filter(line => line.trim());
     if (lines.length < 2) return [];
 
@@ -258,21 +258,21 @@ export class CSVImporter {
 
     const headers = lines[0].split(',').map(h => h.trim().replace(/"/g, ''));
 
-    // Check if it's template format (ITEM NAME, TYPE, ADDRESS, Scene1, Scene2, ...)
-    const isTemplateFormat = headers.length >= 4 &&
+    // Check if it's template2 format (ITEM NAME, TYPE, ADDRESS, Scene1, Scene2, ...)
+    const isTemplate2Format = headers.length >= 4 &&
       headers[0].toUpperCase().includes('ITEM') &&
       headers[1].toUpperCase().includes('TYPE') &&
       headers[2].toUpperCase().includes('ADDRESS');
 
-    if (isTemplateFormat) {
-      return this.parseScenesTemplateCSV(csvContent);
+    if (isTemplate2Format) {
+      return this.parseScenesTemplate2CSV(csvContent);
     } else {
-      return this.parseScenesCSV(csvContent);
+      return this.parseScenesTemplate1CSV(csvContent);
     }
   }
 
-  // Parse scenes CSV in template format (horizontal layout)
-  static parseScenesTemplateCSV(csvContent) {
+  // Parse scenes CSV in template format - Template 2 (horizontal layout)
+  static parseScenesTemplate2CSV(csvContent) {
     const lines = csvContent.split('\n').filter(line => line.trim());
     if (lines.length < 2) return [];
 
@@ -374,4 +374,6 @@ export class CSVImporter {
 
     return nonEmptyScenes;
   }
+
+
 }

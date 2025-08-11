@@ -67,11 +67,6 @@ class ExportImportService {
     return CSVExporter.getItemValueForExport(itemType, itemValue, command, objectType);
   }
 
-  // Parse scenes CSV format
-  parseScenesCSV(csvContent) {
-    return CSVImporter.parseScenesCSV(csvContent);
-  }
-
   // Update scene names to add part numbers when needed
   updateSceneNamesForParts(scenes) {
     return CSVImporter.updateSceneNamesForParts(scenes);
@@ -107,10 +102,17 @@ class ExportImportService {
     return CSVImporter.detectAndParseScenesCSV(csvContent);
   }
 
-  // Parse scenes CSV in template format (horizontal layout)
-  parseScenesTemplateCSV(csvContent) {
-    return CSVImporter.parseScenesTemplateCSV(csvContent);
+  // Parse scenes CSV - Template 1 (vertical list format)
+  parseScenesTemplate1CSV(csvContent) {
+    return CSVImporter.parseScenesTemplate1CSV(csvContent);
   }
+
+  // Parse scenes CSV - Template 2 (horizontal layout)
+  parseScenesTemplate2CSV(csvContent) {
+    return CSVImporter.parseScenesTemplate2CSV(csvContent);
+  }
+
+
 }
 
 export const exportImportService = new ExportImportService();
