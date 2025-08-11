@@ -59,7 +59,6 @@ import {
   Lightbulb,
   Wind,
   Blinds,
-  Network,
   Sun,
   Edit,
 } from "lucide-react";
@@ -201,10 +200,7 @@ export function SceneDialog({
         if (!loadedTabs.has("lighting")) {
           loadTabData(selectedProject.id, "lighting");
         }
-        // Load KNX data if not already loaded
-        if (!loadedTabs.has("knx")) {
-          loadTabData(selectedProject.id, "knx");
-        }
+
       }
     }
   }, [
@@ -754,45 +750,7 @@ export function SceneDialog({
     originalSceneItems,
   ]);
 
-  const filteredKnxItems = useMemo(() => {
-    return (
-      projectItems.knx?.filter((item) => {
-        // Filter out items already in current scene
-        const isInCurrentScene = sceneItems.some(
-          (si) => si.item_type === "knx" && si.item_id === item.id
-        );
 
-        // Filter out items used by other scenes with same address
-        // When editing, we need to check if the item is ONLY used by the current scene
-        const isUsedByOtherScene = usedItemsByAddress.some((usedItem) => {
-          if (usedItem.item_type === "knx" && usedItem.item_id === item.id) {
-            // If we're editing a scene, check if this item is only used by the current scene
-            if (mode === "edit" && scene) {
-              // Check if this item exists in the original scene items
-              const isInOriginalScene = originalSceneItems.some(
-                (origItem) =>
-                  origItem.item_type === "knx" && origItem.item_id === item.id
-              );
-              // If it's in the original scene, it means it's used by the current scene
-              // So we should allow it to be available when removed from current scene
-              return !isInOriginalScene;
-            }
-            return true;
-          }
-          return false;
-        });
-
-        return !isInCurrentScene && !isUsedByOtherScene;
-      }) || []
-    );
-  }, [
-    projectItems.knx,
-    sceneItems,
-    usedItemsByAddress,
-    mode,
-    scene,
-    originalSceneItems,
-  ]);
 
   const removeItemFromScene = useCallback((sceneItemId) => {
     // Always remove from local state only - changes will be saved when user clicks Save
@@ -817,6 +775,30 @@ export function SceneDialog({
     },
     [getCommandForAirconItem]
   );
+
+  // All On: Set all lighting items to 100% brightness
+  const handleAllLightingOn = useCallback(() => {
+    setSceneItems((prev) =>
+      prev.map((item) => {
+        if (item.item_type === "lighting") {
+          return { ...item, item_value: "100" };
+        }
+        return item;
+      })
+    );
+  }, []);
+
+  // All Off: Set all lighting items to 0% brightness
+  const handleAllLightingOff = useCallback(() => {
+    setSceneItems((prev) =>
+      prev.map((item) => {
+        if (item.item_type === "lighting") {
+          return { ...item, item_value: "0" };
+        }
+        return item;
+      })
+    );
+  }, []);
 
   const applySceneItemsChanges = async (sceneId) => {
     // Compare current sceneItems with originalSceneItems to determine changes
@@ -1266,8 +1248,36 @@ export function SceneDialog({
                 {/* Current Scene Items - Left Side */}
                 <Card>
                   <CardHeader className="flex items-center justify-between">
-                    <CardTitle className="text-sm">Current Items</CardTitle>
-                    <Badge variant="secondary">{sceneItems.length} items</Badge>
+                    <CardTitle className="text-sm flex items-center gap-2">
+                      Current Items
+                      <Badge variant="secondary">{sceneItems.length} items</Badge>
+                    </CardTitle>
+                    <div className="flex items-center gap-2">
+                      {/* All On/Off buttons for lighting items */}
+                      {sceneItems.some(item => item.item_type === "lighting") && (
+                        <>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            onClick={handleAllLightingOn}
+                            className="text-xs"
+                          >
+                            All On
+                          </Button>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            onClick={handleAllLightingOff}
+                            className="text-xs"
+                          >
+                            All Off
+                          </Button>
+                        </>
+                      )}
+
+                    </div>
                   </CardHeader>
                   <CardContent>
                     {sceneItems.length > 0 ? (
@@ -1406,7 +1416,7 @@ export function SceneDialog({
                   </CardHeader>
                   <CardContent>
                     <Tabs defaultValue="lighting" className="w-full">
-                      <TabsList className="grid w-full grid-cols-4">
+                      <TabsList className="grid w-full grid-cols-3">
                         <TabsTrigger value="lighting">
                           <Lightbulb className="h-4 w-4 mr-2" />
                           Lighting
@@ -1418,10 +1428,6 @@ export function SceneDialog({
                         <TabsTrigger value="curtain">
                           <Blinds className="h-4 w-4 mr-2" />
                           Curtain
-                        </TabsTrigger>
-                        <TabsTrigger value="knx">
-                          <Network className="h-4 w-4 mr-2" />
-                          KNX
                         </TabsTrigger>
                       </TabsList>
 
@@ -1536,46 +1542,7 @@ export function SceneDialog({
                         </div>
                       </TabsContent>
 
-                      <TabsContent value="knx" className="space-y-2">
-                        <div className="max-h-80 overflow-y-auto space-y-2 pr-2">
-                          {filteredKnxItems.length > 0 ? (
-                            filteredKnxItems.map((item) => (
-                              <div
-                                key={item.id}
-                                className="flex items-center justify-between p-2 border rounded-lg"
-                              >
-                                <div>
-                                  <div className="font-medium text-sm">
-                                    {item.name || `KNX ${item.address}`}
-                                  </div>
-                                  <div className="text-xs text-muted-foreground">
-                                    Address: {item.address}
-                                  </div>
-                                  {item.description && (
-                                    <div className="text-xs text-muted-foreground">
-                                      {item.description}
-                                    </div>
-                                  )}
-                                </div>
-                                <Button
-                                  type="button"
-                                  variant="outline"
-                                  size="icon"
-                                  onClick={() =>
-                                    addItemToScene("knx", item.id, "1")
-                                  }
-                                >
-                                  <Plus className="h-4 w-4" />
-                                </Button>
-                              </div>
-                            ))
-                          ) : (
-                            <p className="text-sm text-muted-foreground text-center py-4">
-                              No KNX devices available
-                            </p>
-                          )}
-                        </div>
-                      </TabsContent>
+
                     </Tabs>
                   </CardContent>
                 </Card>
