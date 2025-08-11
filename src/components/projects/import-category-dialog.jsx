@@ -208,7 +208,7 @@ export function ImportItemsDialog({ open, onOpenChange, onImport, category, onCo
             {category === "aircon"
               ? "Import aircon cards from a CSV file. Each row will create a card with 5 items (Power, Mode, Fan Speed, Temperature, Swing)."
               : category === "scene"
-                ? "Import scenes from a CSV file. Each scene can contain multiple items with their settings. Scene name should be in the first column and only appear on the first item of each scene. Note: Scenes with more than 60 items will be automatically split into multiple parts."
+                ? "Import scenes from a CSV file. Each scene can contain multiple items with their settings."
                 : `Import ${category} items from a CSV file. The CSV file should have the correct headers.`}
           </DialogDescription>
         </DialogHeader>

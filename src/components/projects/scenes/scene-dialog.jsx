@@ -59,11 +59,12 @@ import {
   Lightbulb,
   Wind,
   Blinds,
-  Network,
   Sun,
   Edit,
 } from "lucide-react";
 import { AirconPropertiesDialog } from "./aircon-properties-dialog";
+import { ProjectItemDialog } from "../lighting/lighting-dialog";
+import { CurtainDialog } from "../curtain/curtain-dialog";
 import { toast } from "sonner";
 
 export function SceneDialog({
@@ -98,6 +99,28 @@ export function SceneDialog({
     open: false,
     airconGroup: null,
   });
+  const [lightingDialog, setLightingDialog] = useState({
+    open: false,
+  });
+  const [airconDialog, setAirconDialog] = useState({
+    open: false,
+  });
+  const [curtainDialog, setCurtainDialog] = useState({
+    open: false,
+  });
+  const [editLightingDialog, setEditLightingDialog] = useState({
+    open: false,
+    item: null,
+  });
+  const [editAirconDialog, setEditAirconDialog] = useState({
+    open: false,
+    item: null,
+  });
+  const [editCurtainDialog, setEditCurtainDialog] = useState({
+    open: false,
+    item: null,
+  });
+  const [currentTab, setCurrentTab] = useState("lighting"); // Track current active tab
   const [usedItemsByAddress, setUsedItemsByAddress] = useState([]); // Store items used by other scenes with same address
 
   // Debounce timer for validation
@@ -201,10 +224,7 @@ export function SceneDialog({
         if (!loadedTabs.has("lighting")) {
           loadTabData(selectedProject.id, "lighting");
         }
-        // Load KNX data if not already loaded
-        if (!loadedTabs.has("knx")) {
-          loadTabData(selectedProject.id, "knx");
-        }
+
       }
     }
   }, [
@@ -469,6 +489,99 @@ export function SceneDialog({
     },
     [addAirconCardToScene]
   );
+
+  // Handle opening add new item dialogs
+  const handleOpenLightingDialog = useCallback(() => {
+    setLightingDialog({ open: true });
+  }, []);
+
+  const handleOpenAirconDialog = useCallback(() => {
+    setAirconDialog({ open: true });
+  }, []);
+
+  const handleOpenCurtainDialog = useCallback(() => {
+    setCurtainDialog({ open: true });
+  }, []);
+
+  // Handle closing add new item dialogs
+  const handleCloseLightingDialog = useCallback((open) => {
+    setLightingDialog({ open });
+    // Reload lighting data when dialog closes after successful creation
+    if (!open && selectedProject) {
+      loadTabData("lighting");
+    }
+  }, [selectedProject, loadTabData]);
+
+  const handleCloseAirconDialog = useCallback((open) => {
+    setAirconDialog({ open });
+    // Reload aircon data when dialog closes after successful creation
+    if (!open && selectedProject) {
+      loadTabData("aircon");
+    }
+  }, [selectedProject, loadTabData]);
+
+  const handleCloseCurtainDialog = useCallback((open) => {
+    setCurtainDialog({ open });
+    // Reload curtain data when dialog closes after successful creation
+    if (!open && selectedProject) {
+      loadTabData("curtain");
+    }
+  }, [selectedProject, loadTabData]);
+
+  // Handle opening dialog based on current tab
+  const handleAddNewItem = useCallback(() => {
+    switch (currentTab) {
+      case "lighting":
+        handleOpenLightingDialog();
+        break;
+      case "aircon":
+        handleOpenAirconDialog();
+        break;
+      case "curtain":
+        handleOpenCurtainDialog();
+        break;
+      default:
+        break;
+    }
+  }, [currentTab, handleOpenLightingDialog, handleOpenAirconDialog, handleOpenCurtainDialog]);
+
+  // Handle opening edit dialogs
+  const handleEditLightingItem = useCallback((item) => {
+    setEditLightingDialog({ open: true, item });
+  }, []);
+
+  const handleEditAirconItem = useCallback((item) => {
+    setEditAirconDialog({ open: true, item });
+  }, []);
+
+  const handleEditCurtainItem = useCallback((item) => {
+    setEditCurtainDialog({ open: true, item });
+  }, []);
+
+  // Handle closing edit dialogs
+  const handleCloseEditLightingDialog = useCallback((open) => {
+    setEditLightingDialog({ open, item: null });
+    // Reload lighting data when dialog closes after successful edit
+    if (!open && selectedProject) {
+      loadTabData("lighting");
+    }
+  }, [selectedProject, loadTabData]);
+
+  const handleCloseEditAirconDialog = useCallback((open) => {
+    setEditAirconDialog({ open, item: null });
+    // Reload aircon data when dialog closes after successful edit
+    if (!open && selectedProject) {
+      loadTabData("aircon");
+    }
+  }, [selectedProject, loadTabData]);
+
+  const handleCloseEditCurtainDialog = useCallback((open) => {
+    setEditCurtainDialog({ open, item: null });
+    // Reload curtain data when dialog closes after successful edit
+    if (!open && selectedProject) {
+      loadTabData("curtain");
+    }
+  }, [selectedProject, loadTabData]);
 
   // Remove all aircon items from a specific address
   const removeAirconGroupFromScene = useCallback((address) => {
@@ -754,45 +867,7 @@ export function SceneDialog({
     originalSceneItems,
   ]);
 
-  const filteredKnxItems = useMemo(() => {
-    return (
-      projectItems.knx?.filter((item) => {
-        // Filter out items already in current scene
-        const isInCurrentScene = sceneItems.some(
-          (si) => si.item_type === "knx" && si.item_id === item.id
-        );
 
-        // Filter out items used by other scenes with same address
-        // When editing, we need to check if the item is ONLY used by the current scene
-        const isUsedByOtherScene = usedItemsByAddress.some((usedItem) => {
-          if (usedItem.item_type === "knx" && usedItem.item_id === item.id) {
-            // If we're editing a scene, check if this item is only used by the current scene
-            if (mode === "edit" && scene) {
-              // Check if this item exists in the original scene items
-              const isInOriginalScene = originalSceneItems.some(
-                (origItem) =>
-                  origItem.item_type === "knx" && origItem.item_id === item.id
-              );
-              // If it's in the original scene, it means it's used by the current scene
-              // So we should allow it to be available when removed from current scene
-              return !isInOriginalScene;
-            }
-            return true;
-          }
-          return false;
-        });
-
-        return !isInCurrentScene && !isUsedByOtherScene;
-      }) || []
-    );
-  }, [
-    projectItems.knx,
-    sceneItems,
-    usedItemsByAddress,
-    mode,
-    scene,
-    originalSceneItems,
-  ]);
 
   const removeItemFromScene = useCallback((sceneItemId) => {
     // Always remove from local state only - changes will be saved when user clicks Save
@@ -817,6 +892,30 @@ export function SceneDialog({
     },
     [getCommandForAirconItem]
   );
+
+  // All On: Set all lighting items to 100% brightness
+  const handleAllLightingOn = useCallback(() => {
+    setSceneItems((prev) =>
+      prev.map((item) => {
+        if (item.item_type === "lighting") {
+          return { ...item, item_value: "100" };
+        }
+        return item;
+      })
+    );
+  }, []);
+
+  // All Off: Set all lighting items to 0% brightness
+  const handleAllLightingOff = useCallback(() => {
+    setSceneItems((prev) =>
+      prev.map((item) => {
+        if (item.item_type === "lighting") {
+          return { ...item, item_value: "0" };
+        }
+        return item;
+      })
+    );
+  }, []);
 
   const applySceneItemsChanges = async (sceneId) => {
     // Compare current sceneItems with originalSceneItems to determine changes
@@ -1266,8 +1365,36 @@ export function SceneDialog({
                 {/* Current Scene Items - Left Side */}
                 <Card>
                   <CardHeader className="flex items-center justify-between">
-                    <CardTitle className="text-sm">Current Items</CardTitle>
-                    <Badge variant="secondary">{sceneItems.length} items</Badge>
+                    <CardTitle className="text-sm flex items-center gap-2">
+                      Current Items
+                      <Badge variant="secondary">{sceneItems.length} items</Badge>
+                    </CardTitle>
+                    <div className="flex items-center gap-2">
+                      {/* All On/Off buttons for lighting items */}
+                      {sceneItems.some(item => item.item_type === "lighting") && (
+                        <>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            onClick={handleAllLightingOn}
+                            className="text-xs"
+                          >
+                            All On
+                          </Button>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            onClick={handleAllLightingOff}
+                            className="text-xs"
+                          >
+                            All Off
+                          </Button>
+                        </>
+                      )}
+
+                    </div>
                   </CardHeader>
                   <CardContent>
                     {sceneItems.length > 0 ? (
@@ -1402,11 +1529,27 @@ export function SceneDialog({
                 {/* Add Items to Scene - Right Side */}
                 <Card>
                   <CardHeader>
-                    <CardTitle className="text-sm">Available Items</CardTitle>
+                    <div className="flex items-center justify-between">
+                      <CardTitle className="text-sm">Available Items</CardTitle>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={handleAddNewItem}
+                        className="text-xs"
+                      >
+                        <Plus className="h-3 w-3" />
+                        Add new
+                      </Button>
+                    </div>
                   </CardHeader>
                   <CardContent>
-                    <Tabs defaultValue="lighting" className="w-full">
-                      <TabsList className="grid w-full grid-cols-4">
+                    <Tabs
+                      defaultValue="lighting"
+                      className="w-full"
+                      onValueChange={setCurrentTab}
+                    >
+                      <TabsList className="grid w-full grid-cols-3">
                         <TabsTrigger value="lighting">
                           <Lightbulb className="h-4 w-4 mr-2" />
                           Lighting
@@ -1418,10 +1561,6 @@ export function SceneDialog({
                         <TabsTrigger value="curtain">
                           <Blinds className="h-4 w-4 mr-2" />
                           Curtain
-                        </TabsTrigger>
-                        <TabsTrigger value="knx">
-                          <Network className="h-4 w-4 mr-2" />
-                          KNX
                         </TabsTrigger>
                       </TabsList>
 
@@ -1441,16 +1580,28 @@ export function SceneDialog({
                                     Address: {item.address}
                                   </div>
                                 </div>
-                                <Button
-                                  type="button"
-                                  variant="outline"
-                                  size="icon"
-                                  onClick={() =>
-                                    addItemToScene("lighting", item.id, "100")
-                                  }
-                                >
-                                  <Plus className="h-4 w-4" />
-                                </Button>
+                                <div className="flex items-center gap-1">
+                                  <Button
+                                    type="button"
+                                    variant="outline"
+                                    size="icon"
+                                    onClick={() => handleEditLightingItem(item)}
+                                    className="h-8 w-8"
+                                  >
+                                    <Edit className="h-3 w-3" />
+                                  </Button>
+                                  <Button
+                                    type="button"
+                                    variant="outline"
+                                    size="icon"
+                                    onClick={() =>
+                                      addItemToScene("lighting", item.id, "100")
+                                    }
+                                    className="h-8 w-8"
+                                  >
+                                    <Plus className="h-4 w-4" />
+                                  </Button>
+                                </div>
                               </div>
                             ))
                           ) : (
@@ -1482,14 +1633,26 @@ export function SceneDialog({
                                     </div>
                                   )}
                                 </div>
-                                <Button
-                                  type="button"
-                                  variant="outline"
-                                  size="icon"
-                                  onClick={() => handleAddAirconCard(card)}
-                                >
-                                  <Plus className="h-4 w-4" />
-                                </Button>
+                                <div className="flex items-center gap-1">
+                                  <Button
+                                    type="button"
+                                    variant="outline"
+                                    size="icon"
+                                    onClick={() => handleEditAirconItem(card.item)}
+                                    className="h-8 w-8"
+                                  >
+                                    <Edit className="h-3 w-3" />
+                                  </Button>
+                                  <Button
+                                    type="button"
+                                    variant="outline"
+                                    size="icon"
+                                    onClick={() => handleAddAirconCard(card)}
+                                    className="h-8 w-8"
+                                  >
+                                    <Plus className="h-4 w-4" />
+                                  </Button>
+                                </div>
                               </div>
                             ))
                           ) : (
@@ -1516,16 +1679,28 @@ export function SceneDialog({
                                     Address: {item.address}
                                   </div>
                                 </div>
-                                <Button
-                                  type="button"
-                                  variant="outline"
-                                  size="icon"
-                                  onClick={() =>
-                                    addItemToScene("curtain", item.id, "1")
-                                  }
-                                >
-                                  <Plus className="h-4 w-4" />
-                                </Button>
+                                <div className="flex items-center gap-1">
+                                  <Button
+                                    type="button"
+                                    variant="outline"
+                                    size="icon"
+                                    onClick={() => handleEditCurtainItem(item)}
+                                    className="h-8 w-8"
+                                  >
+                                    <Edit className="h-3 w-3" />
+                                  </Button>
+                                  <Button
+                                    type="button"
+                                    variant="outline"
+                                    size="icon"
+                                    onClick={() =>
+                                      addItemToScene("curtain", item.id, "1")
+                                    }
+                                    className="h-8 w-8"
+                                  >
+                                    <Plus className="h-4 w-4" />
+                                  </Button>
+                                </div>
                               </div>
                             ))
                           ) : (
@@ -1536,46 +1711,7 @@ export function SceneDialog({
                         </div>
                       </TabsContent>
 
-                      <TabsContent value="knx" className="space-y-2">
-                        <div className="max-h-80 overflow-y-auto space-y-2 pr-2">
-                          {filteredKnxItems.length > 0 ? (
-                            filteredKnxItems.map((item) => (
-                              <div
-                                key={item.id}
-                                className="flex items-center justify-between p-2 border rounded-lg"
-                              >
-                                <div>
-                                  <div className="font-medium text-sm">
-                                    {item.name || `KNX ${item.address}`}
-                                  </div>
-                                  <div className="text-xs text-muted-foreground">
-                                    Address: {item.address}
-                                  </div>
-                                  {item.description && (
-                                    <div className="text-xs text-muted-foreground">
-                                      {item.description}
-                                    </div>
-                                  )}
-                                </div>
-                                <Button
-                                  type="button"
-                                  variant="outline"
-                                  size="icon"
-                                  onClick={() =>
-                                    addItemToScene("knx", item.id, "1")
-                                  }
-                                >
-                                  <Plus className="h-4 w-4" />
-                                </Button>
-                              </div>
-                            ))
-                          ) : (
-                            <p className="text-sm text-muted-foreground text-center py-4">
-                              No KNX devices available
-                            </p>
-                          )}
-                        </div>
-                      </TabsContent>
+
                     </Tabs>
                   </CardContent>
                 </Card>
@@ -1634,6 +1770,55 @@ export function SceneDialog({
         airconGroup={editAirconPropertiesDialog.airconGroup}
         mode="edit"
         onConfirm={handleEditAirconPropertiesConfirm}
+      />
+
+      {/* Add New Lighting Dialog */}
+      <ProjectItemDialog
+        open={lightingDialog.open}
+        onOpenChange={handleCloseLightingDialog}
+        category="lighting"
+        mode="create"
+      />
+
+      {/* Add New Aircon Dialog */}
+      <ProjectItemDialog
+        open={airconDialog.open}
+        onOpenChange={handleCloseAirconDialog}
+        category="aircon"
+        mode="create"
+      />
+
+      {/* Add New Curtain Dialog */}
+      <CurtainDialog
+        open={curtainDialog.open}
+        onOpenChange={handleCloseCurtainDialog}
+        mode="create"
+      />
+
+      {/* Edit Lighting Dialog */}
+      <ProjectItemDialog
+        open={editLightingDialog.open}
+        onOpenChange={handleCloseEditLightingDialog}
+        category="lighting"
+        item={editLightingDialog.item}
+        mode="edit"
+      />
+
+      {/* Edit Aircon Dialog */}
+      <ProjectItemDialog
+        open={editAirconDialog.open}
+        onOpenChange={handleCloseEditAirconDialog}
+        category="aircon"
+        item={editAirconDialog.item}
+        mode="edit"
+      />
+
+      {/* Edit Curtain Dialog */}
+      <CurtainDialog
+        open={editCurtainDialog.open}
+        onOpenChange={handleCloseEditCurtainDialog}
+        item={editCurtainDialog.item}
+        mode="edit"
       />
     </Dialog>
   );
