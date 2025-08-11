@@ -36,13 +36,13 @@ class ExportImportService {
   }
 
   // Import items from CSV file
-  async importItemsFromCSV(category) {
-    return modularService.importItemsFromCSV(category);
+  async importItemsFromCSV(category, sceneImportType = null) {
+    return modularService.importItemsFromCSV(category, sceneImportType);
   }
 
   // Parse CSV content to items array
-  parseCSVToItems(csvContent, category) {
-    return modularService.parseCSVToItems(csvContent, category);
+  parseCSVToItems(csvContent, category, sceneImportType = null) {
+    return modularService.parseCSVToItems(csvContent, category, sceneImportType);
   }
 
   // Parse aircon cards CSV content
@@ -98,6 +98,16 @@ class ExportImportService {
   // Parse a single CSV line handling quotes and commas
   parseCSVLine(line) {
     return modularService.parseCSVLine(line);
+  }
+
+  // Auto-detect and parse scenes CSV format
+  detectAndParseScenesCSV(csvContent) {
+    return modularService.detectAndParseScenesCSV(csvContent);
+  }
+
+  // Parse scenes CSV in template format (horizontal layout)
+  parseScenesTemplateCSV(csvContent) {
+    return modularService.parseScenesTemplateCSV(csvContent);
   }
 }
 

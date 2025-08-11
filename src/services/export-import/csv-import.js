@@ -5,7 +5,7 @@ import { CSVParser } from "./csv-parser.js";
 
 export class CSVImporter {
   // Import items from CSV file
-  static async importItemsFromCSV(category) {
+  static async importItemsFromCSV(category, sceneImportType = null) {
     return new Promise((resolve, reject) => {
       const input = document.createElement('input');
       input.type = 'file';
@@ -20,7 +20,7 @@ export class CSVImporter {
 
         try {
           const text = await file.text();
-          const items = this.parseCSVToItems(text, category);
+          const items = this.parseCSVToItems(text, category, sceneImportType);
 
           if (!items || items.length === 0) {
             toast.error('No valid items found in CSV file');
@@ -41,7 +41,7 @@ export class CSVImporter {
   }
 
   // Parse CSV content to items array
-  static parseCSVToItems(csvContent, category) {
+  static parseCSVToItems(csvContent, category, sceneImportType = null) {
     const lines = csvContent.split('\n').filter(line => line.trim());
     if (lines.length < 2) return [];
 
@@ -50,7 +50,14 @@ export class CSVImporter {
 
     // Special handling for scene category - expect scene format
     if (category === 'scene') {
-      return this.parseScenesCSV(csvContent);
+      if (sceneImportType === 'template') {
+        return this.parseScenesTemplateCSV(csvContent);
+      } else if (sceneImportType === 'list') {
+        return this.parseScenesCSV(csvContent);
+      } else {
+        // Auto-detect format
+        return this.detectAndParseScenesCSV(csvContent);
+      }
     }
 
     // Special handling for aircon category - expect card format
@@ -242,5 +249,129 @@ export class CSVImporter {
         delete scene.partNumber;
       });
     });
+  }
+
+  // Auto-detect and parse scenes CSV format
+  static detectAndParseScenesCSV(csvContent) {
+    const lines = csvContent.split('\n').filter(line => line.trim());
+    if (lines.length < 2) return [];
+
+    const headers = lines[0].split(',').map(h => h.trim().replace(/"/g, ''));
+
+    // Check if it's template format (ITEM NAME, TYPE, ADDRESS, Scene1, Scene2, ...)
+    const isTemplateFormat = headers.length >= 4 &&
+      headers[0].toUpperCase().includes('ITEM') &&
+      headers[1].toUpperCase().includes('TYPE') &&
+      headers[2].toUpperCase().includes('ADDRESS');
+
+    if (isTemplateFormat) {
+      return this.parseScenesTemplateCSV(csvContent);
+    } else {
+      return this.parseScenesCSV(csvContent);
+    }
+  }
+
+  // Parse scenes CSV in template format (horizontal layout)
+  static parseScenesTemplateCSV(csvContent) {
+    const lines = csvContent.split('\n').filter(line => line.trim());
+    if (lines.length < 2) return [];
+
+    const headers = lines[0].split(',').map(h => h.trim().replace(/"/g, ''));
+
+    // Validate template format headers
+    if (headers.length < 4) {
+      throw new Error('Invalid template format. Expected at least 4 columns: ITEM NAME, TYPE, ADDRESS, Scene1, ...');
+    }
+
+    const itemNameCol = headers.findIndex(h => h.toUpperCase().includes('ITEM'));
+    const typeCol = headers.findIndex(h => h.toUpperCase().includes('TYPE'));
+    const addressCol = headers.findIndex(h => h.toUpperCase().includes('ADDRESS'));
+
+    if (itemNameCol === -1 || typeCol === -1 || addressCol === -1) {
+      throw new Error('Invalid template format. Required columns: ITEM NAME, TYPE, ADDRESS');
+    }
+
+    // Scene columns start from index 3 (or after ADDRESS column)
+    const sceneColumns = headers.slice(Math.max(3, addressCol + 1));
+
+    if (sceneColumns.length === 0) {
+      throw new Error('No scene columns found in template format');
+    }
+
+    const MAX_ITEMS_PER_SCENE = 60;
+    const scenes = [];
+
+    // Create scenes from column headers
+    sceneColumns.forEach(sceneName => {
+      if (sceneName.trim()) {
+        const scene = {
+          name: sceneName.trim(),
+          originalName: sceneName.trim(),
+          description: `Imported scene: ${sceneName.trim()}`,
+          items: [],
+          partNumber: 1
+        };
+        scenes.push(scene);
+      }
+    });
+
+    // Parse items and add to scenes
+    for (let i = 1; i < lines.length; i++) {
+      const values = CSVParser.parseCSVLine(lines[i]);
+      if (values.length < headers.length) continue;
+
+      const itemName = values[itemNameCol]?.trim();
+      const itemType = values[typeCol]?.trim();
+      const address = values[addressCol]?.trim();
+
+      if (!itemName || !itemType || !address) continue;
+
+      // Add item to each scene with corresponding value
+      sceneColumns.forEach((sceneName, sceneIndex) => {
+        const sceneValueIndex = Math.max(3, addressCol + 1) + sceneIndex;
+        const itemValue = values[sceneValueIndex]?.trim();
+
+        if (!itemValue) return; // Skip if no value for this scene
+
+        // Find the current scene (might be split into parts)
+        let targetScene = scenes.find(s =>
+          s.originalName === sceneName.trim() &&
+          s.items.length < MAX_ITEMS_PER_SCENE
+        );
+
+        // If scene is full, create a new part
+        if (!targetScene) {
+          const existingParts = scenes.filter(s => s.originalName === sceneName.trim());
+          const newPartNumber = existingParts.length + 1;
+          const newSceneName = `${sceneName.trim()} (Part ${newPartNumber})`;
+
+          targetScene = {
+            name: newSceneName,
+            originalName: sceneName.trim(),
+            description: `Imported scene: ${newSceneName}`,
+            items: [],
+            partNumber: newPartNumber
+          };
+          scenes.push(targetScene);
+        }
+
+        const sceneItem = {
+          itemName: itemName,
+          itemType: CSVParser.parseItemTypeFromCSV(itemType),
+          address: address,
+          value: CSVParser.parseItemValueFromCSV(itemType, itemValue),
+          command: CSVParser.getCommandFromType(itemType),
+          objectType: CSVParser.getObjectTypeFromType(itemType)
+        };
+
+        targetScene.items.push(sceneItem);
+      });
+    }
+
+    // Filter out empty scenes and update names for parts
+    const nonEmptyScenes = scenes.filter(scene => scene.items.length > 0);
+    this.updateSceneNamesForParts(nonEmptyScenes);
+
+    return nonEmptyScenes;
   }
 }
