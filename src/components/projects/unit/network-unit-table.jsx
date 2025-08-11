@@ -982,7 +982,7 @@ function NetworkUnitTableComponent({
           name: `Lighting ${addressStr}`,
           address: addressStr,
           description: `Auto-created from network unit`,
-          object_type: 1,
+          object_type: "OBJ_LIGHTING",
           object_value: 1,
         };
 

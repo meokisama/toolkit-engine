@@ -10,8 +10,9 @@ import {
 } from "@/components/ui/dialog";
 import { Upload, FileText, AlertCircle, CheckCircle } from "lucide-react";
 import { toast } from "sonner";
+import { exportImportService } from "@/services/export-import";
 
-export function ImportItemsDialog({ open, onOpenChange, onImport, category }) {
+export function ImportItemsDialog({ open, onOpenChange, onImport, category, onConfirm }) {
   const [importData, setImportData] = useState(null);
   const [loading, setLoading] = useState(false);
 
@@ -27,7 +28,14 @@ export function ImportItemsDialog({ open, onOpenChange, onImport, category }) {
 
         try {
           const text = await file.text();
-          const items = parseCSVToItems(text, category);
+          let items;
+
+          // Use exportImportService for scene parsing, fallback to local parsing for others
+          if (category === 'scene') {
+            items = exportImportService.parseCSVToItems(text, category);
+          } else {
+            items = parseCSVToItems(text, category);
+          }
 
           if (!items || items.length === 0) {
             toast.error("No valid items found in CSV file");
@@ -38,7 +46,7 @@ export function ImportItemsDialog({ open, onOpenChange, onImport, category }) {
           toast.success(`${items.length} items loaded successfully`);
         } catch (error) {
           console.error("Failed to read file:", error);
-          toast.error("Failed to read CSV file");
+          toast.error(error.message || "Failed to read CSV file");
         }
       };
 
@@ -60,15 +68,15 @@ export function ImportItemsDialog({ open, onOpenChange, onImport, category }) {
     const expectedHeaders =
       category === "unit"
         ? [
-            "name",
-            "type",
-            "serial_no",
-            "ip_address",
-            "id_can",
-            "mode",
-            "firmware_version",
-            "description",
-          ]
+          "name",
+          "type",
+          "serial_no",
+          "ip_address",
+          "id_can",
+          "mode",
+          "firmware_version",
+          "description",
+        ]
         : ["name", "address", "description"];
 
     const hasValidHeaders = expectedHeaders.every((header) =>
@@ -136,7 +144,12 @@ export function ImportItemsDialog({ open, onOpenChange, onImport, category }) {
 
     setLoading(true);
     try {
-      await onImport(importData);
+      // Use onConfirm if provided (for scene), otherwise use onImport
+      if (onConfirm) {
+        await onConfirm(importData);
+      } else {
+        await onImport(importData);
+      }
       handleClose();
     } catch (error) {
       console.error("Import failed:", error);
@@ -176,6 +189,8 @@ export function ImportItemsDialog({ open, onOpenChange, onImport, category }) {
         "close_group",
         "stop_group",
       ];
+    } else if (category === "scene") {
+      return ["SCENE NAME", "ITEM NAME", "TYPE", "ADDRESS", "VALUE"];
     } else {
       return ["name", "address", "description", "object_type"];
     }
@@ -186,13 +201,15 @@ export function ImportItemsDialog({ open, onOpenChange, onImport, category }) {
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="sm:max-w-[500px]">
+      <DialogContent className="sm:!max-w-[600px]">
         <DialogHeader>
           <DialogTitle>Import {categoryDisplayName} Items</DialogTitle>
           <DialogDescription>
             {category === "aircon"
               ? "Import aircon cards from a CSV file. Each row will create a card with 5 items (Power, Mode, Fan Speed, Temperature, Swing)."
-              : `Import ${category} items from a CSV file. The CSV file should have the correct headers.`}
+              : category === "scene"
+                ? "Import scenes from a CSV file. Each scene can contain multiple items with their settings. Scene name should be in the first column and only appear on the first item of each scene. Note: Scenes with more than 60 items will be automatically split into multiple parts."
+                : `Import ${category} items from a CSV file. The CSV file should have the correct headers.`}
           </DialogDescription>
         </DialogHeader>
 
@@ -254,8 +271,10 @@ export function ImportItemsDialog({ open, onOpenChange, onImport, category }) {
                         key={index}
                         className="font-mono text-xs bg-background rounded px-2 py-1"
                       >
-                        {item.name} {item.address && `- ${item.address}`}{" "}
-                        {item.type && `(${item.type})`}
+                        {category === "scene"
+                          ? `${item.name} (${item.items?.length || 0} items)${item.name.includes('(Part') ? ' - Auto-split' : ''}`
+                          : `${item.name} ${item.address && `- ${item.address}`} ${item.type && `(${item.type})`}`
+                        }
                       </div>
                     ))}
                     {importData.length > 3 && (
@@ -292,8 +311,10 @@ export function ImportItemsDialog({ open, onOpenChange, onImport, category }) {
                 {loading
                   ? "Importing..."
                   : category === "aircon"
-                  ? `Import ${importData.length} Cards`
-                  : `Import ${importData.length} Items`}
+                    ? `Import ${importData.length} Cards`
+                    : category === "scene"
+                      ? `Import ${importData.length} Scenes`
+                      : `Import ${importData.length} Items`}
               </Button>
             </>
           )}
@@ -302,3 +323,6 @@ export function ImportItemsDialog({ open, onOpenChange, onImport, category }) {
     </Dialog>
   );
 }
+
+// Export alias for backward compatibility
+export const ImportCategoryDialog = ImportItemsDialog;

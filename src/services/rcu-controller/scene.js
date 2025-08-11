@@ -10,8 +10,8 @@ async function setupScene(unitIp, canId, sceneConfig) {
   // Validations
   validators.sceneIndex(sceneIndex);
 
-  if (isSendName && (!sceneName || sceneName.length > 15)) {
-    throw new Error("Scene name must be provided and not exceed 15 characters");
+  if (isSendName && !sceneName) {
+    throw new Error("Scene name must be provided");
   }
 
   if (!sceneAddress) {

@@ -7,7 +7,7 @@ import React, {
   useMemo,
 } from "react";
 import { Button } from "@/components/ui/button";
-import { Plus } from "lucide-react";
+import { Plus, Upload } from "lucide-react";
 import { useProjectDetail } from "@/contexts/project-detail-context";
 import { SceneDialog } from "@/components/projects/scenes/scene-dialog";
 import { ConfirmDialog } from "@/components/projects/confirm-dialog";
@@ -18,11 +18,12 @@ import { DataTableSkeleton } from "@/components/projects/table-skeleton";
 import { createSceneColumns } from "@/components/projects/scenes/scene-columns";
 import { SlidersHorizontal } from "lucide-react";
 import { SendSceneDialog } from "@/components/projects/scenes/send-scene-dialog";
+import { ImportCategoryDialog } from "@/components/projects/import-category-dialog";
 import { toast } from "sonner";
 
 const SceneTable = memo(function SceneTable({ items = [], loading = false }) {
   const category = "scene";
-  const { deleteItem, duplicateItem, updateItem } = useProjectDetail();
+  const { deleteItem, duplicateItem, updateItem, exportItems, importItems, selectedProject } = useProjectDetail();
   const [sceneItemCounts, setSceneItemCounts] = useState({});
   const [table, setTable] = useState(null);
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -38,6 +39,7 @@ const SceneTable = memo(function SceneTable({ items = [], loading = false }) {
     open: false,
     items: [],
   });
+  const [importDialogOpen, setImportDialogOpen] = useState(false);
   const [columnVisibility, setColumnVisibility] = useState({});
   const [pagination, setPagination] = useState({
     pageIndex: 0,
@@ -244,6 +246,35 @@ const SceneTable = memo(function SceneTable({ items = [], loading = false }) {
     });
   }, [items]);
 
+  // Export/Import handlers
+  const handleExport = useCallback(async () => {
+    try {
+      await exportItems(category);
+    } catch (error) {
+      console.error("Failed to export scene items:", error);
+    }
+  }, [exportItems]);
+
+  const handleImport = useCallback(() => {
+    setImportDialogOpen(true);
+  }, []);
+
+  const handleImportConfirm = useCallback(
+    async (items) => {
+      try {
+        await importItems(category, items);
+        setImportDialogOpen(false);
+        // Reload scene item counts after import
+        setTimeout(() => {
+          reloadSceneItemCounts();
+        }, 100);
+      } catch (error) {
+        console.error("Failed to import scene items:", error);
+      }
+    },
+    [importItems, reloadSceneItemCounts]
+  );
+
   // Add item counts to items data
   const itemsWithCounts = items.map((item) => ({
     ...item,
@@ -283,12 +314,18 @@ const SceneTable = memo(function SceneTable({ items = [], loading = false }) {
             <SlidersHorizontal className="h-12 w-12 mx-auto mb-4 opacity-50" />
             <p>No scenes found.</p>
             <p className="text-sm mb-8">
-              Click "Add Scene" to create your first item.
+              Click "Add Scene" to create your first item or "Import" to import from CSV.
             </p>
-            <Button onClick={handleCreateItem}>
-              <Plus className="h-4 w-4" />
-              Add Scene
-            </Button>
+            <div className="flex gap-2">
+              <Button onClick={handleCreateItem}>
+                <Plus className="h-4 w-4" />
+                Add Scene
+              </Button>
+              <Button variant="outline" onClick={handleImport}>
+                <Upload className="h-4 w-4" />
+                Import
+              </Button>
+            </div>
           </div>
         ) : (
           <div className="space-y-4 flex flex-col h-full justify-between">
@@ -307,6 +344,8 @@ const SceneTable = memo(function SceneTable({ items = [], loading = false }) {
                   sendAllLabel="Send All Scenes"
                   onBulkDelete={handleBulkDelete}
                   selectedRowsCount={selectedRowsCount}
+                  onExport={handleExport}
+                  onImport={handleImport}
                 />
               )}
               <DataTable
@@ -353,6 +392,13 @@ const SceneTable = memo(function SceneTable({ items = [], loading = false }) {
           setSendSceneDialog({ ...sendSceneDialog, open })
         }
         items={sendSceneDialog.items}
+      />
+
+      <ImportCategoryDialog
+        open={importDialogOpen}
+        onOpenChange={setImportDialogOpen}
+        category={category}
+        onConfirm={handleImportConfirm}
       />
     </div>
   );

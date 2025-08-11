@@ -166,7 +166,7 @@ class DatabaseService {
       CREATE TABLE IF NOT EXISTS scene (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         project_id INTEGER NOT NULL,
-        name TEXT NOT NULL CHECK(length(name) <= 15),
+        name TEXT NOT NULL,
         address TEXT NOT NULL,
         description TEXT,
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
@@ -783,10 +783,8 @@ class DatabaseService {
         if (!address || !address.trim()) {
           throw new Error("Address is required for scene.");
         }
-        if (!name || name.length > 15) {
-          throw new Error(
-            "Scene name is required and must be 15 characters or less."
-          );
+        if (!name) {
+          throw new Error("Scene name is required.");
         }
 
         // Check maximum scene limit (100 scenes)
@@ -1041,10 +1039,8 @@ class DatabaseService {
         if (!address || !address.trim()) {
           throw new Error("Address is required for scene.");
         }
-        if (!name || name.length > 15) {
-          throw new Error(
-            "Scene name is required and must be 15 characters or less."
-          );
+        if (!name) {
+          throw new Error("Scene name is required.");
         }
       }
 
@@ -1470,6 +1466,8 @@ class DatabaseService {
             item = this.createProjectItem(projectId, itemData, "aircon");
           } else if (category === "schedule") {
             item = this.createScheduleItem(projectId, itemData);
+          } else if (category === "scene") {
+            item = this.bulkImportSingleScene(projectId, itemData);
           } else {
             item = this.createProjectItem(projectId, itemData, category);
           }
@@ -1483,6 +1481,108 @@ class DatabaseService {
     } catch (error) {
       console.error(`Failed to bulk import ${category} items:`, error);
       throw error;
+    }
+  }
+
+  // Bulk import a single scene with its items
+  bulkImportSingleScene(projectId, sceneData) {
+    try {
+      // Find next available address to avoid conflicts
+      const availableAddress = this.findNextAvailableAddress(projectId, "scene");
+
+      // Create the scene first
+      const scene = this.createProjectItem(projectId, {
+        name: sceneData.name,
+        address: availableAddress.toString(),
+        description: sceneData.description
+      }, "scene");
+
+      // Process each scene item
+      if (sceneData.items && sceneData.items.length > 0) {
+        for (const itemData of sceneData.items) {
+          // Find or create the item based on type and address
+          const item = this.findOrCreateItemForScene(projectId, itemData);
+
+          if (item) {
+            // Add item to scene
+            this.addItemToScene(
+              scene.id,
+              itemData.itemType,
+              item.id,
+              itemData.value,
+              itemData.command,
+              itemData.objectType
+            );
+          }
+        }
+      }
+
+      return scene;
+    } catch (error) {
+      console.error("Failed to bulk import single scene:", error);
+      throw error;
+    }
+  }
+
+  // Find or create item for scene import
+  findOrCreateItemForScene(projectId, itemData) {
+    try {
+      const { itemType, address, itemName } = itemData;
+
+      if (!address) {
+        console.warn("No address provided for item:", itemData);
+        return null;
+      }
+
+      let tableName = itemType;
+      let existingItem = null;
+
+      // Find existing item by address
+      if (itemType === 'lighting') {
+        existingItem = this.db.prepare(
+          "SELECT * FROM lighting WHERE project_id = ? AND address = ?"
+        ).get(projectId, address);
+      } else if (itemType === 'aircon') {
+        existingItem = this.db.prepare(
+          "SELECT * FROM aircon WHERE project_id = ? AND address = ?"
+        ).get(projectId, address);
+      } else if (itemType === 'curtain') {
+        existingItem = this.db.prepare(
+          "SELECT * FROM curtain WHERE project_id = ? AND address = ?"
+        ).get(projectId, address);
+      }
+
+      // If item exists, return it
+      if (existingItem) {
+        return existingItem;
+      }
+
+      // Create new item
+      const newItemData = {
+        name: itemName || `${itemType} ${address}`,
+        address: address,
+        description: `Auto-created from scene import`
+      };
+
+      // Add type-specific properties
+      if (itemType === 'lighting') {
+        newItemData.object_type = 'OBJ_LIGHTING';
+        newItemData.object_value = 1;
+      } else if (itemType === 'curtain') {
+        newItemData.object_type = 'OBJ_CURTAIN';
+        newItemData.object_value = 2;
+        newItemData.curtain_type = '';
+        newItemData.curtain_value = 0;
+        newItemData.pause_period = 0;
+        newItemData.transition_period = 0;
+      } else if (itemType === 'aircon') {
+        newItemData.label = 'Aircon';
+      }
+
+      return this.createProjectItem(projectId, newItemData, tableName);
+    } catch (error) {
+      console.error("Failed to find or create item for scene:", error);
+      return null;
     }
   }
 

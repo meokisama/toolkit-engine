@@ -127,10 +127,6 @@ export function SceneDialog({
       return "Name is required";
     }
 
-    if (value.length > 15) {
-      return "Name must be 15 characters or less";
-    }
-
     return null;
   }, []);
 
@@ -410,11 +406,9 @@ export function SceneDialog({
 
             if (!canAdd) {
               toast.error(
-                `Aircon ${
-                  CONSTANTS.AIRCON.find(item => item.obj_type === property.objectType)?.label ||
-                  property.objectType
-                } is already used by another scene with address ${
-                  formData.address
+                `Aircon ${CONSTANTS.AIRCON.find(item => item.obj_type === property.objectType)?.label ||
+                property.objectType
+                } is already used by another scene with address ${formData.address
                 }`
               );
               return;
@@ -519,11 +513,9 @@ export function SceneDialog({
 
             if (!canAdd) {
               toast.error(
-                `Aircon ${
-                  CONSTANTS.AIRCON.find(item => item.obj_type === property.objectType)?.label ||
-                  property.objectType
-                } is already used by another scene with address ${
-                  formData.address
+                `Aircon ${CONSTANTS.AIRCON.find(item => item.obj_type === property.objectType)?.label ||
+                property.objectType
+                } is already used by another scene with address ${formData.address
                 }`
               );
               return;
@@ -949,11 +941,7 @@ export function SceneDialog({
         // Extract the clean error message after the last colon
         const cleanMessage = error.message.split(": ").pop();
         setErrors({ address: cleanMessage });
-      } else if (
-        error.message &&
-        error.message.includes("15 characters or less")
-      ) {
-        setErrors({ name: "Scene name must be 15 characters or less" });
+
       } else if (
         error.message &&
         error.message.includes("Address is required")
