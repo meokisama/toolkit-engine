@@ -45,7 +45,9 @@ export class CSVImporter {
     const lines = csvContent.split('\n').filter(line => line.trim());
     if (lines.length < 2) return [];
 
-    const headers = lines[0].split(',').map(h => h.trim().replace(/"/g, ''));
+    // Detect delimiter from first line
+    const delimiter = CSVParser.detectDelimiter(lines[0]);
+    const headers = lines[0].split(delimiter).map(h => h.trim().replace(/"/g, ''));
     const items = [];
 
     // Special handling for scene category - expect scene format
@@ -71,7 +73,7 @@ export class CSVImporter {
     }
 
     for (let i = 1; i < lines.length; i++) {
-      const values = CSVParser.parseCSVLine(lines[i]);
+      const values = CSVParser.parseCSVLine(lines[i], delimiter);
       if (values.length !== headers.length) continue;
 
       const item = {};
@@ -93,7 +95,9 @@ export class CSVImporter {
     const lines = csvContent.split('\n').filter(line => line.trim());
     if (lines.length < 2) return [];
 
-    const headers = lines[0].split(',').map(h => h.trim().replace(/"/g, ''));
+    // Detect delimiter from first line
+    const delimiter = CSVParser.detectDelimiter(lines[0]);
+    const headers = lines[0].split(delimiter).map(h => h.trim().replace(/"/g, ''));
     const cards = [];
 
     // Validate headers for aircon cards
@@ -104,7 +108,7 @@ export class CSVImporter {
     }
 
     for (let i = 1; i < lines.length; i++) {
-      const values = CSVParser.parseCSVLine(lines[i]);
+      const values = CSVParser.parseCSVLine(lines[i], delimiter);
       if (values.length !== headers.length) continue;
 
       const card = {};
@@ -134,7 +138,9 @@ export class CSVImporter {
     const lines = csvContent.split('\n').filter(line => line.trim());
     if (lines.length < 2) return [];
 
-    const headers = lines[0].split(',').map(h => h.trim().replace(/"/g, ''));
+    // Detect delimiter from first line
+    const delimiter = CSVParser.detectDelimiter(lines[0]);
+    const headers = lines[0].split(delimiter).map(h => h.trim().replace(/"/g, ''));
 
     // Validate headers
     const expectedHeaders = ['SCENE NAME', 'ITEM NAME', 'TYPE', 'ADDRESS', 'VALUE'];
@@ -151,7 +157,7 @@ export class CSVImporter {
     let currentScene = null;
 
     for (let i = 1; i < lines.length; i++) {
-      const values = CSVParser.parseCSVLine(lines[i]);
+      const values = CSVParser.parseCSVLine(lines[i], delimiter);
       if (values.length !== headers.length) continue;
 
       const row = {};
@@ -178,8 +184,8 @@ export class CSVImporter {
         scenes.push(currentScene);
       }
 
-      // Add item to current scene if we have item data
-      if (currentScene && (itemName || itemType || address || value)) {
+      // Add item to current scene if we have required item data (itemType and address are required)
+      if (currentScene && itemType && address) {
         // Check if current scene has reached max items limit
         if (currentScene.items.length >= MAX_ITEMS_PER_SCENE) {
           // Create a new part of the same scene
@@ -197,7 +203,7 @@ export class CSVImporter {
         }
 
         const sceneItem = {
-          itemName: itemName,
+          itemName: itemName || `Group ${address}`, // Auto-generate name if empty
           itemType: CSVParser.parseItemTypeFromCSV(itemType),
           address: address,
           value: CSVParser.parseItemValueFromCSV(itemType, value),
@@ -256,7 +262,9 @@ export class CSVImporter {
     const lines = csvContent.split('\n').filter(line => line.trim());
     if (lines.length < 2) return [];
 
-    const headers = lines[0].split(',').map(h => h.trim().replace(/"/g, ''));
+    // Detect delimiter from first line
+    const delimiter = CSVParser.detectDelimiter(lines[0]);
+    const headers = lines[0].split(delimiter).map(h => h.trim().replace(/"/g, ''));
 
     // Check if it's template2 format (ITEM NAME, TYPE, ADDRESS, Scene1, Scene2, ...)
     const isTemplate2Format = headers.length >= 4 &&
@@ -276,7 +284,9 @@ export class CSVImporter {
     const lines = csvContent.split('\n').filter(line => line.trim());
     if (lines.length < 2) return [];
 
-    const headers = lines[0].split(',').map(h => h.trim().replace(/"/g, ''));
+    // Detect delimiter from first line
+    const delimiter = CSVParser.detectDelimiter(lines[0]);
+    const headers = lines[0].split(delimiter).map(h => h.trim().replace(/"/g, ''));
 
     // Validate template format headers
     if (headers.length < 4) {
@@ -317,21 +327,22 @@ export class CSVImporter {
 
     // Parse items and add to scenes
     for (let i = 1; i < lines.length; i++) {
-      const values = CSVParser.parseCSVLine(lines[i]);
+      const values = CSVParser.parseCSVLine(lines[i], delimiter);
       if (values.length < headers.length) continue;
 
       const itemName = values[itemNameCol]?.trim();
       const itemType = values[typeCol]?.trim();
       const address = values[addressCol]?.trim();
 
-      if (!itemName || !itemType || !address) continue;
+      // Skip if missing required fields (itemName can be empty, will be auto-generated)
+      if (!itemType || !address) continue;
 
       // Add item to each scene with corresponding value
       sceneColumns.forEach((sceneName, sceneIndex) => {
         const sceneValueIndex = Math.max(3, addressCol + 1) + sceneIndex;
         const itemValue = values[sceneValueIndex]?.trim();
 
-        if (!itemValue) return; // Skip if no value for this scene
+        // Don't skip empty values - let parseItemValueFromCSV handle defaults
 
         // Find the current scene (might be split into parts)
         let targetScene = scenes.find(s =>
@@ -356,7 +367,7 @@ export class CSVImporter {
         }
 
         const sceneItem = {
-          itemName: itemName,
+          itemName: itemName || `Group ${address}`, // Auto-generate name if empty
           itemType: CSVParser.parseItemTypeFromCSV(itemType),
           address: address,
           value: CSVParser.parseItemValueFromCSV(itemType, itemValue),

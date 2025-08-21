@@ -1,8 +1,23 @@
 // CSV parsing utilities
 
 export class CSVParser {
-  // Parse a single CSV line handling quotes and commas
-  static parseCSVLine(line) {
+  // Detect CSV delimiter from the first line
+  static detectDelimiter(line) {
+    // Count occurrences of potential delimiters
+    const commaCount = (line.match(/,/g) || []).length;
+    const semicolonCount = (line.match(/;/g) || []).length;
+
+    // Return the delimiter with more occurrences, default to comma
+    return semicolonCount > commaCount ? ';' : ',';
+  }
+
+  // Parse a single CSV line handling quotes and delimiters
+  static parseCSVLine(line, delimiter = null) {
+    // Auto-detect delimiter if not provided
+    if (!delimiter) {
+      delimiter = this.detectDelimiter(line);
+    }
+
     const result = [];
     let current = '';
     let inQuotes = false;
@@ -18,7 +33,7 @@ export class CSVParser {
         } else {
           inQuotes = !inQuotes;
         }
-      } else if (char === ',' && !inQuotes) {
+      } else if (char === delimiter && !inQuotes) {
         result.push(current.trim());
         current = '';
       } else {
@@ -44,7 +59,14 @@ export class CSVParser {
 
   // Parse item value from CSV
   static parseItemValueFromCSV(csvType, csvValue) {
-    if (!csvValue) return '';
+    if (!csvValue || !csvValue.trim()) {
+      // Default value for lighting if empty
+      const type = csvType?.toUpperCase();
+      if (type === 'LIGHTING') {
+        return '100';
+      }
+      return '';
+    }
 
     const type = csvType?.toUpperCase();
     const value = csvValue.trim();

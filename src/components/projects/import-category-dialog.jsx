@@ -12,7 +12,13 @@ import { Upload, FileText, AlertCircle, CheckCircle } from "lucide-react";
 import { toast } from "sonner";
 import { exportImportService } from "@/services/export-import";
 
-export function ImportItemsDialog({ open, onOpenChange, onImport, category, onConfirm }) {
+export function ImportItemsDialog({
+  open,
+  onOpenChange,
+  onImport,
+  category,
+  onConfirm,
+}) {
   const [importData, setImportData] = useState(null);
   const [loading, setLoading] = useState(false);
 
@@ -31,7 +37,7 @@ export function ImportItemsDialog({ open, onOpenChange, onImport, category, onCo
           let items;
 
           // Use exportImportService for scene parsing, fallback to local parsing for others
-          if (category === 'scene') {
+          if (category === "scene") {
             items = exportImportService.parseCSVToItems(text, category);
           } else {
             items = parseCSVToItems(text, category);
@@ -57,26 +63,37 @@ export function ImportItemsDialog({ open, onOpenChange, onImport, category, onCo
     }
   };
 
+  // Detect CSV delimiter from the first line
+  const detectDelimiter = (line) => {
+    const commaCount = (line.match(/,/g) || []).length;
+    const semicolonCount = (line.match(/;/g) || []).length;
+    return semicolonCount > commaCount ? ";" : ",";
+  };
+
   const parseCSVToItems = (csvContent, category) => {
     const lines = csvContent.split("\n").filter((line) => line.trim());
     if (lines.length < 2) return [];
 
-    const headers = lines[0].split(",").map((h) => h.trim().replace(/"/g, ""));
+    // Detect delimiter from first line
+    const delimiter = detectDelimiter(lines[0]);
+    const headers = lines[0]
+      .split(delimiter)
+      .map((h) => h.trim().replace(/"/g, ""));
     const items = [];
 
     // Validate headers based on category
     const expectedHeaders =
       category === "unit"
         ? [
-          "name",
-          "type",
-          "serial_no",
-          "ip_address",
-          "id_can",
-          "mode",
-          "firmware_version",
-          "description",
-        ]
+            "name",
+            "type",
+            "serial_no",
+            "ip_address",
+            "id_can",
+            "mode",
+            "firmware_version",
+            "description",
+          ]
         : ["name", "address", "description"];
 
     const hasValidHeaders = expectedHeaders.every((header) =>
@@ -91,7 +108,7 @@ export function ImportItemsDialog({ open, onOpenChange, onImport, category, onCo
     }
 
     for (let i = 1; i < lines.length; i++) {
-      const values = parseCSVLine(lines[i]);
+      const values = parseCSVLine(lines[i], delimiter);
       if (values.length !== headers.length) continue;
 
       const item = {};
@@ -108,7 +125,7 @@ export function ImportItemsDialog({ open, onOpenChange, onImport, category, onCo
     return items;
   };
 
-  const parseCSVLine = (line) => {
+  const parseCSVLine = (line, delimiter = ",") => {
     const result = [];
     let current = "";
     let inQuotes = false;
@@ -124,7 +141,7 @@ export function ImportItemsDialog({ open, onOpenChange, onImport, category, onCo
         } else {
           inQuotes = !inQuotes;
         }
-      } else if (char === "," && !inQuotes) {
+      } else if (char === delimiter && !inQuotes) {
         result.push(current.trim());
         current = "";
       } else {
@@ -208,8 +225,8 @@ export function ImportItemsDialog({ open, onOpenChange, onImport, category, onCo
             {category === "aircon"
               ? "Import aircon cards from a CSV file. Each row will create a card with 5 items (Power, Mode, Fan Speed, Temperature, Swing)."
               : category === "scene"
-                ? "Import scenes from a CSV file. Each scene can contain multiple items with their settings."
-                : `Import ${category} items from a CSV file. The CSV file should have the correct headers.`}
+              ? "Import scenes from a CSV file. Each scene can contain multiple items with their settings."
+              : `Import ${category} items from a CSV file. The CSV file should have the correct headers.`}
           </DialogDescription>
         </DialogHeader>
 
@@ -272,9 +289,12 @@ export function ImportItemsDialog({ open, onOpenChange, onImport, category, onCo
                         className="font-mono text-xs bg-background rounded px-2 py-1"
                       >
                         {category === "scene"
-                          ? `${item.name} (${item.items?.length || 0} items)${item.name.includes('(Part') ? ' - Auto-split' : ''}`
-                          : `${item.name} ${item.address && `- ${item.address}`} ${item.type && `(${item.type})`}`
-                        }
+                          ? `${item.name} (${item.items?.length || 0} items)${
+                              item.name.includes("(Part") ? " - Auto-split" : ""
+                            }`
+                          : `${item.name} ${
+                              item.address && `- ${item.address}`
+                            } ${item.type && `(${item.type})`}`}
                       </div>
                     ))}
                     {importData.length > 3 && (
@@ -311,10 +331,10 @@ export function ImportItemsDialog({ open, onOpenChange, onImport, category, onCo
                 {loading
                   ? "Importing..."
                   : category === "aircon"
-                    ? `Import ${importData.length} Cards`
-                    : category === "scene"
-                      ? `Import ${importData.length} Scenes`
-                      : `Import ${importData.length} Items`}
+                  ? `Import ${importData.length} Cards`
+                  : category === "scene"
+                  ? `Import ${importData.length} Scenes`
+                  : `Import ${importData.length} Items`}
               </Button>
             </>
           )}
