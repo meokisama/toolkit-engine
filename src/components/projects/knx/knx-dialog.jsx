@@ -24,6 +24,7 @@ import {
   CommandGroup,
   CommandInput,
   CommandItem,
+  CommandList,
 } from "@/components/ui/command";
 import {
   Popover,
@@ -525,47 +526,51 @@ export function KnxItemDialog({ open, onOpenChange, mode, item }) {
                 <PopoverContent className="w-full p-0">
                   <Command>
                     <CommandInput placeholder="Search RCU groups..." />
-                    <CommandEmpty>No RCU group found.</CommandEmpty>
-                    <CommandGroup>
-                      <CommandItem
-                        value="none"
-                        onSelect={() => {
-                          handleInputChange("rcu_group_id", null);
-                          setRcuGroupOpen(false);
-                        }}
-                      >
-                        <Check
-                          className={cn(
-                            "mr-2 h-4 w-4",
-                            !formData.rcu_group_id ? "opacity-100" : "opacity-0"
-                          )}
-                        />
-                        None
-                      </CommandItem>
-                      {rcuGroupItems.map((item) => (
+                    <CommandList>
+                      <CommandEmpty>No RCU group found.</CommandEmpty>
+                      <CommandGroup>
                         <CommandItem
-                          key={item.id}
-                          value={`${item.name || `Group ${item.address}`} ${
-                            item.address
-                          }`}
+                          value="none"
                           onSelect={() => {
-                            handleInputChange("rcu_group_id", item.id);
+                            handleInputChange("rcu_group_id", null);
                             setRcuGroupOpen(false);
                           }}
                         >
                           <Check
                             className={cn(
                               "mr-2 h-4 w-4",
-                              formData.rcu_group_id === item.id
+                              !formData.rcu_group_id
                                 ? "opacity-100"
                                 : "opacity-0"
                             )}
                           />
-                          {item.name || `Group ${item.address}`} (Address:{" "}
-                          {item.address})
+                          None
                         </CommandItem>
-                      ))}
-                    </CommandGroup>
+                        {rcuGroupItems.map((item) => (
+                          <CommandItem
+                            key={item.id}
+                            value={`${item.name || `Group ${item.address}`} ${
+                              item.address
+                            }`}
+                            onSelect={() => {
+                              handleInputChange("rcu_group_id", item.id);
+                              setRcuGroupOpen(false);
+                            }}
+                          >
+                            <Check
+                              className={cn(
+                                "mr-2 h-4 w-4",
+                                formData.rcu_group_id === item.id
+                                  ? "opacity-100"
+                                  : "opacity-0"
+                              )}
+                            />
+                            {item.name || `Group ${item.address}`} (Address:{" "}
+                            {item.address})
+                          </CommandItem>
+                        ))}
+                      </CommandGroup>
+                    </CommandList>
                   </Command>
                 </PopoverContent>
               </Popover>
