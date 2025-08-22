@@ -342,7 +342,8 @@ export class CSVImporter {
         const sceneValueIndex = Math.max(3, addressCol + 1) + sceneIndex;
         const itemValue = values[sceneValueIndex]?.trim();
 
-        // Don't skip empty values - let parseItemValueFromCSV handle defaults
+        // Skip if no value for this scene
+        // if (!itemValue) return;
 
         // Find the current scene (might be split into parts)
         let targetScene = scenes.find(s =>

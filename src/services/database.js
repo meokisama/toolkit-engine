@@ -51,6 +51,7 @@ class DatabaseService {
   }
 
   createTables() {
+
     const createProjectsTable = `
       CREATE TABLE IF NOT EXISTS projects (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -150,6 +151,7 @@ class DatabaseService {
         factor INTEGER NOT NULL DEFAULT 1 CHECK(factor >= 1),
         feedback INTEGER NOT NULL DEFAULT 0,
         rcu_group_id INTEGER,
+        rcu_group_type TEXT,
         knx_switch_group TEXT,
         knx_dimming_group TEXT,
         knx_value_group TEXT,
@@ -157,7 +159,6 @@ class DatabaseService {
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
         updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
         FOREIGN KEY (project_id) REFERENCES projects (id) ON DELETE CASCADE,
-        FOREIGN KEY (rcu_group_id) REFERENCES lighting (id) ON DELETE SET NULL,
         UNIQUE(project_id, address)
       )
     `;
@@ -1052,9 +1053,43 @@ class DatabaseService {
         return this.getProjectItemById(result.lastInsertRowid, tableName);
       } else if (tableName === "knx") {
         // For knx table, use new KNX-specific fields
+        // Determine rcu_group_type based on KNX type
+        let rcu_group_type = null;
+        if (rcu_group_id) {
+          const typeValue = parseInt(type) || 0;
+          switch (typeValue) {
+            case 1: // Switch
+            case 2: // Dimmer
+              rcu_group_type = "lighting";
+              break;
+            case 3: // Curtain
+              rcu_group_type = "curtain";
+              break;
+            case 4: // Scene
+              rcu_group_type = "scene";
+              break;
+            case 5: // Multi Scene
+              rcu_group_type = "multi_scenes";
+              break;
+            case 6: // Multi Scene Sequence
+              rcu_group_type = "sequences";
+              break;
+            case 7: // AC Power
+            case 8: // AC Mode
+            case 9: // AC Fan Speed
+            case 10: // AC Swing
+            case 11: // AC Set Point
+              rcu_group_type = "aircon";
+              break;
+            default:
+              rcu_group_type = null;
+              break;
+          }
+        }
+
         const stmt = this.db.prepare(`
-          INSERT INTO ${tableName} (project_id, name, address, type, factor, feedback, rcu_group_id, knx_switch_group, knx_dimming_group, knx_value_group, description)
-          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+          INSERT INTO ${tableName} (project_id, name, address, type, factor, feedback, rcu_group_id, rcu_group_type, knx_switch_group, knx_dimming_group, knx_value_group, description)
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         `);
         const result = stmt.run(
           projectId,
@@ -1064,6 +1099,7 @@ class DatabaseService {
           factor || 2,
           feedback || 0,
           rcu_group_id || null,
+          rcu_group_type,
           knx_switch_group || null,
           knx_dimming_group || null,
           knx_value_group || null,
@@ -1307,9 +1343,43 @@ class DatabaseService {
         }
       } else if (tableName === "knx") {
         // For knx table, use new KNX-specific fields
+        // Determine rcu_group_type based on KNX type
+        let rcu_group_type = null;
+        if (rcu_group_id) {
+          const typeValue = parseInt(type) || 0;
+          switch (typeValue) {
+            case 1: // Switch
+            case 2: // Dimmer
+              rcu_group_type = "lighting";
+              break;
+            case 3: // Curtain
+              rcu_group_type = "curtain";
+              break;
+            case 4: // Scene
+              rcu_group_type = "scene";
+              break;
+            case 5: // Multi Scene
+              rcu_group_type = "multi_scenes";
+              break;
+            case 6: // Multi Scene Sequence
+              rcu_group_type = "sequences";
+              break;
+            case 7: // AC Power
+            case 8: // AC Mode
+            case 9: // AC Fan Speed
+            case 10: // AC Swing
+            case 11: // AC Set Point
+              rcu_group_type = "aircon";
+              break;
+            default:
+              rcu_group_type = null;
+              break;
+          }
+        }
+
         const stmt = this.db.prepare(`
           UPDATE ${tableName}
-          SET name = ?, address = ?, type = ?, factor = ?, feedback = ?, rcu_group_id = ?, knx_switch_group = ?, knx_dimming_group = ?, knx_value_group = ?, description = ?, updated_at = CURRENT_TIMESTAMP
+          SET name = ?, address = ?, type = ?, factor = ?, feedback = ?, rcu_group_id = ?, rcu_group_type = ?, knx_switch_group = ?, knx_dimming_group = ?, knx_value_group = ?, description = ?, updated_at = CURRENT_TIMESTAMP
           WHERE id = ?
         `);
         const result = stmt.run(
@@ -1319,6 +1389,7 @@ class DatabaseService {
           factor || 2,
           feedback || 0,
           rcu_group_id || null,
+          rcu_group_type,
           knx_switch_group || null,
           knx_dimming_group || null,
           knx_value_group || null,

@@ -239,7 +239,9 @@ export const createKnxItemsColumns = (
           case 4: // Scene
             return projectItems?.scene || [];
           case 5: // Multi Scene
-            return projectItems?.multi_scene || [];
+            return projectItems?.multi_scenes || [];
+          case 6: // Multi Scene Sequence
+            return projectItems?.sequences || [];
           case 7: // AC Power
           case 8: // AC Mode
           case 9: // AC Fan Speed
@@ -272,6 +274,8 @@ export const createKnxItemsColumns = (
             return "scene";
           case 5:
             return "multi scene";
+          case 6:
+            return "sequence";
           case 7:
           case 8:
           case 9:
