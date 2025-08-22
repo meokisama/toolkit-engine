@@ -1071,7 +1071,7 @@ class DatabaseService {
             case 5: // Multi Scene
               rcu_group_type = "multi_scenes";
               break;
-            case 6: // Multi Scene Sequence
+            case 6: // Sequences
               rcu_group_type = "sequences";
               break;
             case 7: // AC Power
@@ -1361,7 +1361,7 @@ class DatabaseService {
             case 5: // Multi Scene
               rcu_group_type = "multi_scenes";
               break;
-            case 6: // Multi Scene Sequence
+            case 6: // Sequences
               rcu_group_type = "sequences";
               break;
             case 7: // AC Power

@@ -84,7 +84,7 @@ export function KnxItemDialog({ open, onOpenChange, mode, item }) {
         case 5: // Multi Scene
           tabToLoad = "multi_scenes";
           break;
-        case 6: // Multi Scene Sequence
+        case 6: // Sequences
           tabToLoad = "sequences";
           break;
         case 7: // AC Power
@@ -313,7 +313,7 @@ export function KnxItemDialog({ open, onOpenChange, mode, item }) {
       case 5: // Multi Scene
         items = projectItems?.multi_scenes || [];
         break;
-      case 6: // Multi Scene Sequence
+      case 6: // Sequences
         items = projectItems?.sequences || [];
         break;
       case 7: // AC Power
@@ -506,18 +506,18 @@ export function KnxItemDialog({ open, onOpenChange, mode, item }) {
                       {rcuDataLoading
                         ? "Loading..."
                         : formData.rcu_group_id
-                        ? (() => {
-                            const selectedItem = rcuGroupItems.find(
-                              (item) => item.id === formData.rcu_group_id
-                            );
-                            return selectedItem
-                              ? `${
-                                  selectedItem.name ||
-                                  `Group ${selectedItem.address}`
-                                } (Address: ${selectedItem.address})`
-                              : "Select group...";
-                          })()
-                        : "Select group..."}
+                          ? (() => {
+                              const selectedItem = rcuGroupItems.find(
+                                (item) => item.id === formData.rcu_group_id
+                              );
+                              return selectedItem
+                                ? `${
+                                    selectedItem.name ||
+                                    `Group ${selectedItem.address}`
+                                  } (Address: ${selectedItem.address})`
+                                : "Select group...";
+                            })()
+                          : "Select group..."}
                     </span>
                     <ChevronsUpDown className="h-4 w-4 shrink-0 opacity-50" />
                   </Button>

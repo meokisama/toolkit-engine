@@ -240,7 +240,7 @@ export const createKnxItemsColumns = (
             return projectItems?.scene || [];
           case 5: // Multi Scene
             return projectItems?.multi_scenes || [];
-          case 6: // Multi Scene Sequence
+          case 6: // Sequences
             return projectItems?.sequences || [];
           case 7: // AC Power
           case 8: // AC Mode

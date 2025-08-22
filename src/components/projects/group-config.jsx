@@ -1,4 +1,4 @@
-import React, { useMemo } from "react";
+import React, { useMemo, useEffect, useCallback } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent } from "@/components/ui/card";
 import { useProjectDetail } from "@/contexts/project-detail-context";
@@ -52,7 +52,43 @@ export function GroupConfig() {
     loading,
     tabLoading,
     loadedTabs,
+    loadTabData,
   } = useProjectDetail();
+
+  // Load all required data for KNX tab when it becomes active
+  const loadKnxRequiredData = useCallback(async () => {
+    if (!selectedProject) return;
+
+    // List of tabs that KNX RCU Group column depends on
+    const requiredTabs = [
+      "lighting",
+      "aircon",
+      "curtain",
+      "scene",
+      "multi_scenes",
+      "sequences",
+    ];
+
+    // Load each required tab if not already loaded
+    const loadPromises = requiredTabs
+      .filter((tab) => !loadedTabs.has(tab))
+      .map((tab) => loadTabData(selectedProject.id, tab));
+
+    if (loadPromises.length > 0) {
+      try {
+        await Promise.all(loadPromises);
+      } catch (error) {
+        console.error("Failed to load required data for KNX tab:", error);
+      }
+    }
+  }, [selectedProject, loadedTabs, loadTabData]);
+
+  // Load required data when KNX tab becomes active
+  useEffect(() => {
+    if (activeTab === "knx") {
+      loadKnxRequiredData();
+    }
+  }, [activeTab, loadKnxRequiredData]);
 
   // Memoize tab entries to prevent recreating on every render
   const tabEntries = useMemo(() => Object.entries(groupConfigTabConfig), []);
@@ -139,7 +175,11 @@ export function GroupConfig() {
                       />
                     )}
                     {key === "knx" && (
-                      <KnxTable items={projectItems.knx} category="knx" />
+                      <KnxTable
+                        items={projectItems.knx}
+                        category="knx"
+                        loading={isTabLoading}
+                      />
                     )}
                     {key === "unit" && (
                       <UnitTable items={projectItems.unit} category="unit" />

@@ -71,7 +71,7 @@ export function SendKnxDialog({ open, onOpenChange, items = [] }) {
         rcuGroup = sceneItems.find((item) => item.id === knxData.rcu_group_id);
         break;
       case 5: // Multi Scene
-      case 6: // Multi Scene Sequence
+      case 6: // Sequences
         const multiSceneItems = await window.electronAPI.multiScenes.getAll(
           knxData.project_id
         );
@@ -178,9 +178,8 @@ export function SendKnxDialog({ open, onOpenChange, items = [] }) {
     const lightingItems = await window.electronAPI.lighting.getAll(projectId);
     const curtainItems = await window.electronAPI.curtain.getAll(projectId);
     const sceneItems = await window.electronAPI.scene.getAll(projectId);
-    const multiSceneItems = await window.electronAPI.multiScenes.getAll(
-      projectId
-    );
+    const multiSceneItems =
+      await window.electronAPI.multiScenes.getAll(projectId);
     const airconItems = await window.electronAPI.aircon.getAll(projectId);
 
     for (let i = 0; i < knxConfigs.length; i++) {
@@ -223,7 +222,7 @@ export function SendKnxDialog({ open, onOpenChange, items = [] }) {
           );
           break;
         case 5: // Multi Scene
-        case 6: // Multi Scene Sequence
+        case 6: // Sequences
           rcuGroup = multiSceneItems.find(
             (item) => item.id === knxData.rcu_group_id
           );

@@ -563,7 +563,7 @@ export const CONSTANTS = {
       {
         value: 6,
         name: "KNX_OUTPUT_MULTI_SCENE_SEQ",
-        label: "Multi Scene Sequence",
+        label: "Sequence",
       },
       { value: 7, name: "KNX_AC_POWER", label: "AC Power" },
       { value: 8, name: "KNX_AC_MODE", label: "AC Mode" },
