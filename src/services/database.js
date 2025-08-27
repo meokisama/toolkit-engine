@@ -478,12 +478,12 @@ class DatabaseService {
       "lighting",
       "aircon",
       "unit",
-      "curtain",
-      "knx",
       "scene",
       "schedule",
       "multi_scenes",
       "sequences",
+      "curtain",
+      "knx",
     ];
 
     // Create mapping from old IDs to new IDs for relationships
@@ -880,13 +880,6 @@ class DatabaseService {
         description,
         object_type,
         label,
-        curtain_type,
-        curtain_value,
-        open_group_id,
-        close_group_id,
-        stop_group_id,
-        pause_period,
-        transition_period,
         type,
         factor,
         feedback,
@@ -1024,33 +1017,8 @@ class DatabaseService {
         const result = stmt.run(projectId, name, address, description, label);
         return this.getProjectItemById(result.lastInsertRowid, tableName);
       } else if (tableName === "curtain") {
-        // For curtain table, include curtain-specific fields
-        // Address is required for curtain items
-        if (!address) {
-          throw new Error("Address is required for curtain items.");
-        }
-        const object_value = this.getObjectValue(object_type);
-
-        const stmt = this.db.prepare(`
-          INSERT INTO ${tableName} (project_id, name, address, description, object_type, object_value, curtain_type, curtain_value, open_group_id, close_group_id, stop_group_id, pause_period, transition_period)
-          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-        `);
-        const result = stmt.run(
-          projectId,
-          name,
-          address,
-          description,
-          object_type,
-          object_value,
-          curtain_type,
-          curtain_value || 3, // Default to CURTAIN_PULSE_2P value
-          open_group_id || null,
-          close_group_id || null,
-          stop_group_id || null,
-          pause_period || 0,
-          transition_period || 0
-        );
-        return this.getProjectItemById(result.lastInsertRowid, tableName);
+        // Use specialized createCurtainItem method to handle address-to-ID mapping
+        return this.createCurtainItem(projectId, itemData);
       } else if (tableName === "knx") {
         // For knx table, use new KNX-specific fields
         // Determine rcu_group_type based on KNX type
@@ -1684,6 +1652,12 @@ class DatabaseService {
               newItem = this.createProjectItem(project.id, itemData, "aircon");
             } else if (category === "schedule") {
               newItem = this.createScheduleItem(project.id, itemData);
+            } else if (category === "knx") {
+              // Handle KNX items with special logic for RCU group references
+              newItem = this.createKnxItem(project.id, itemData);
+            } else if (category === "curtain") {
+              // Handle Curtain items with special logic for lighting group references
+              newItem = this.createCurtainItem(project.id, itemData);
             } else {
               newItem = this.createProjectItem(project.id, itemData, category);
             }
@@ -1699,6 +1673,9 @@ class DatabaseService {
 
         // Import relationship tables after all main items are created
         this.importProjectRelationships(itemsData, project.id, idMappings);
+
+        // Update KNX items to resolve RCU group addresses to new IDs
+        this.updateKnxRcuGroupReferences(project.id, itemsData);
 
         return { project, importedCounts };
       });
@@ -1716,8 +1693,24 @@ class DatabaseService {
       // Import scene_items
       const sceneItems = itemsData.scene_items || [];
       sceneItems.forEach((sceneItem) => {
-        const newSceneId = idMappings.scene[sceneItem.scene_id];
-        if (newSceneId) {
+        let newSceneId = null;
+        let newItemId = null;
+
+        // Handle both old format (scene_id) and new format (scene_address)
+        if (sceneItem.scene_address) {
+          newSceneId = this.findSceneIdByAddress(newProjectId, sceneItem.scene_address);
+        } else if (sceneItem.scene_id) {
+          newSceneId = idMappings.scene[sceneItem.scene_id]; // Backward compatibility
+        }
+
+        // Handle both old format (item_id) and new format (item_address)
+        if (sceneItem.item_address && sceneItem.item_type) {
+          newItemId = this.findItemIdByAddress(newProjectId, sceneItem.item_address, sceneItem.item_type);
+        } else if (sceneItem.item_id) {
+          newItemId = sceneItem.item_id; // Backward compatibility - may not work cross-machine
+        }
+
+        if (newSceneId && newItemId) {
           const stmt = this.db.prepare(`
             INSERT INTO scene_items (scene_id, item_type, item_id, item_address, item_value, command, object_type, object_value)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?)
@@ -1725,7 +1718,7 @@ class DatabaseService {
           stmt.run(
             newSceneId,
             sceneItem.item_type,
-            sceneItem.item_id,
+            newItemId,
             sceneItem.item_address,
             sceneItem.item_value,
             sceneItem.command,
@@ -1755,8 +1748,23 @@ class DatabaseService {
       // Import schedule_scenes
       const scheduleScenes = itemsData.schedule_scenes || [];
       scheduleScenes.forEach((scheduleScene) => {
-        const newScheduleId = idMappings.schedule[scheduleScene.schedule_id];
-        const newSceneId = idMappings.scene[scheduleScene.scene_id];
+        let newScheduleId = null;
+        let newSceneId = null;
+
+        // Handle both old format (schedule_id) and new format (schedule_identifier)
+        if (scheduleScene.schedule_identifier) {
+          newScheduleId = this.findScheduleIdByIdentifier(newProjectId, scheduleScene.schedule_identifier);
+        } else if (scheduleScene.schedule_id) {
+          newScheduleId = idMappings.schedule[scheduleScene.schedule_id]; // Backward compatibility
+        }
+
+        // Handle both old format (scene_id) and new format (scene_address)
+        if (scheduleScene.scene_address) {
+          newSceneId = this.findSceneIdByAddress(newProjectId, scheduleScene.scene_address);
+        } else if (scheduleScene.scene_id) {
+          newSceneId = idMappings.scene[scheduleScene.scene_id]; // Backward compatibility
+        }
+
         if (newScheduleId && newSceneId) {
           const stmt = this.db.prepare(`
             INSERT INTO schedule_scenes (schedule_id, scene_id)
@@ -1769,8 +1777,23 @@ class DatabaseService {
       // Import multi_scene_scenes
       const multiSceneScenes = itemsData.multi_scene_scenes || [];
       multiSceneScenes.forEach((multiSceneScene) => {
-        const newMultiSceneId = idMappings.multi_scenes[multiSceneScene.multi_scene_id];
-        const newSceneId = idMappings.scene[multiSceneScene.scene_id];
+        let newMultiSceneId = null;
+        let newSceneId = null;
+
+        // Handle both old format (multi_scene_id) and new format (multi_scene_address)
+        if (multiSceneScene.multi_scene_address) {
+          newMultiSceneId = this.findMultiSceneIdByAddress(newProjectId, multiSceneScene.multi_scene_address);
+        } else if (multiSceneScene.multi_scene_id) {
+          newMultiSceneId = idMappings.multi_scenes[multiSceneScene.multi_scene_id]; // Backward compatibility
+        }
+
+        // Handle both old format (scene_id) and new format (scene_address)
+        if (multiSceneScene.scene_address) {
+          newSceneId = this.findSceneIdByAddress(newProjectId, multiSceneScene.scene_address);
+        } else if (multiSceneScene.scene_id) {
+          newSceneId = idMappings.scene[multiSceneScene.scene_id]; // Backward compatibility
+        }
+
         if (newMultiSceneId && newSceneId) {
           const stmt = this.db.prepare(`
             INSERT INTO multi_scene_scenes (multi_scene_id, scene_id, scene_order)
@@ -1783,8 +1806,23 @@ class DatabaseService {
       // Import sequence_multi_scenes
       const sequenceMultiScenes = itemsData.sequence_multi_scenes || [];
       sequenceMultiScenes.forEach((sequenceMultiScene) => {
-        const newSequenceId = idMappings.sequences[sequenceMultiScene.sequence_id];
-        const newMultiSceneId = idMappings.multi_scenes[sequenceMultiScene.multi_scene_id];
+        let newSequenceId = null;
+        let newMultiSceneId = null;
+
+        // Handle both old format (sequence_id) and new format (sequence_address)
+        if (sequenceMultiScene.sequence_address) {
+          newSequenceId = this.findSequenceIdByAddress(newProjectId, sequenceMultiScene.sequence_address);
+        } else if (sequenceMultiScene.sequence_id) {
+          newSequenceId = idMappings.sequences[sequenceMultiScene.sequence_id]; // Backward compatibility
+        }
+
+        // Handle both old format (multi_scene_id) and new format (multi_scene_address)
+        if (sequenceMultiScene.multi_scene_address) {
+          newMultiSceneId = this.findMultiSceneIdByAddress(newProjectId, sequenceMultiScene.multi_scene_address);
+        } else if (sequenceMultiScene.multi_scene_id) {
+          newMultiSceneId = idMappings.multi_scenes[sequenceMultiScene.multi_scene_id]; // Backward compatibility
+        }
+
         if (newSequenceId && newMultiSceneId) {
           const stmt = this.db.prepare(`
             INSERT INTO sequence_multi_scenes (sequence_id, multi_scene_id, multi_scene_order)
@@ -1797,6 +1835,305 @@ class DatabaseService {
     } catch (error) {
       console.error("Failed to import project relationships:", error);
       throw error;
+    }
+  }
+
+  // Update KNX items to resolve RCU group addresses to new IDs
+  updateKnxRcuGroupReferences(projectId, itemsData) {
+    try {
+      const knxItems = itemsData.knx || [];
+
+      knxItems.forEach(knxItem => {
+        // Check if this KNX item has rcu_group_address (new format)
+        if (knxItem.rcu_group_address && knxItem.rcu_group_type) {
+          const newRcuGroupId = this.findRcuGroupIdByAddress(
+            projectId,
+            knxItem.rcu_group_address,
+            knxItem.rcu_group_type
+          );
+
+          if (newRcuGroupId) {
+            // Update the KNX item with the new RCU group ID
+            const stmt = this.db.prepare(`
+              UPDATE knx
+              SET rcu_group_id = ?
+              WHERE project_id = ? AND address = ?
+            `);
+            stmt.run(newRcuGroupId, projectId, knxItem.address);
+          }
+        }
+      });
+    } catch (error) {
+      console.error("Failed to update KNX RCU group references:", error);
+      throw error;
+    }
+  }
+
+  // Find RCU group ID by address and type in the new project
+  findRcuGroupIdByAddress(projectId, address, rcuGroupType) {
+    try {
+      const stmt = this.db.prepare(`
+        SELECT id FROM ${rcuGroupType}
+        WHERE project_id = ? AND address = ?
+      `);
+      const result = stmt.get(projectId, address);
+      return result ? result.id : null;
+    } catch (error) {
+      console.error(`Failed to find RCU group ID for ${rcuGroupType} address ${address}:`, error);
+      return null;
+    }
+  }
+
+  // Create KNX item with special handling for RCU group references
+  createKnxItem(projectId, itemData) {
+    try {
+      const {
+        name,
+        address,
+        type,
+        factor,
+        feedback,
+        rcu_group_id,
+        rcu_group_address, // New format
+        rcu_group_type,
+        knx_switch_group,
+        knx_dimming_group,
+        knx_value_group,
+        description,
+      } = itemData;
+
+      let finalRcuGroupId = null;
+      let finalRcuGroupType = null;
+
+      // Handle both old format (rcu_group_id) and new format (rcu_group_address)
+      if (rcu_group_address && rcu_group_type) {
+        // New format: lookup ID by address
+        finalRcuGroupId = this.findRcuGroupIdByAddress(projectId, rcu_group_address, rcu_group_type);
+        finalRcuGroupType = rcu_group_type;
+      } else if (rcu_group_id && rcu_group_type) {
+        // Old format: use ID directly (for backward compatibility)
+        finalRcuGroupId = rcu_group_id;
+        finalRcuGroupType = rcu_group_type;
+      } else if (rcu_group_id) {
+        // Very old format: determine type from KNX type
+        finalRcuGroupId = rcu_group_id;
+        const typeValue = parseInt(type) || 0;
+        switch (typeValue) {
+          case 1: // Switch
+          case 2: // Dimmer
+            finalRcuGroupType = "lighting";
+            break;
+          case 3: // Curtain
+            finalRcuGroupType = "curtain";
+            break;
+          case 4: // Scene
+            finalRcuGroupType = "scene";
+            break;
+          case 5: // Multi Scene
+            finalRcuGroupType = "multi_scenes";
+            break;
+          case 6: // Sequences
+            finalRcuGroupType = "sequences";
+            break;
+          case 7: // AC Power
+          case 8: // AC Mode
+          case 9: // AC Fan Speed
+          case 10: // AC Swing
+          case 11: // AC Set Point
+            finalRcuGroupType = "aircon";
+            break;
+          default:
+            finalRcuGroupType = null;
+            break;
+        }
+      }
+
+      const stmt = this.db.prepare(`
+        INSERT INTO knx (project_id, name, address, type, factor, feedback, rcu_group_id, rcu_group_type, knx_switch_group, knx_dimming_group, knx_value_group, description)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      `);
+      const result = stmt.run(
+        projectId,
+        name,
+        address,
+        type || 0,
+        factor || 2,
+        feedback || 0,
+        finalRcuGroupId || null,
+        finalRcuGroupType,
+        knx_switch_group || null,
+        knx_dimming_group || null,
+        knx_value_group || null,
+        description
+      );
+
+      return this.getProjectItemById(result.lastInsertRowid, "knx");
+    } catch (error) {
+      console.error("Failed to create KNX item:", error);
+      throw error;
+    }
+  }
+
+  // Create Curtain item with special handling for lighting group references
+  createCurtainItem(projectId, itemData) {
+    try {
+      const {
+        name,
+        address,
+        description,
+        object_type,
+        curtain_type,
+        curtain_value,
+        open_group_id,
+        close_group_id,
+        stop_group_id,
+        open_group_address, // New format
+        close_group_address, // New format
+        stop_group_address, // New format
+        pause_period,
+        transition_period,
+      } = itemData;
+
+      let finalOpenGroupId = null;
+      let finalCloseGroupId = null;
+      let finalStopGroupId = null;
+
+      // Handle both old format (group_id) and new format (group_address)
+      if (open_group_address) {
+        finalOpenGroupId = this.findLightingIdByAddress(projectId, open_group_address);
+      } else if (open_group_id) {
+        finalOpenGroupId = open_group_id; // Backward compatibility
+      }
+
+      if (close_group_address) {
+        finalCloseGroupId = this.findLightingIdByAddress(projectId, close_group_address);
+      } else if (close_group_id) {
+        finalCloseGroupId = close_group_id; // Backward compatibility
+      }
+
+      if (stop_group_address) {
+        finalStopGroupId = this.findLightingIdByAddress(projectId, stop_group_address);
+      } else if (stop_group_id) {
+        finalStopGroupId = stop_group_id; // Backward compatibility
+      }
+
+      const object_value = this.getObjectValue(object_type);
+
+      const stmt = this.db.prepare(`
+        INSERT INTO curtain (project_id, name, address, description, object_type, object_value, curtain_type, curtain_value, open_group_id, close_group_id, stop_group_id, pause_period, transition_period)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      `);
+      const result = stmt.run(
+        projectId,
+        name,
+        address,
+        description,
+        object_type,
+        object_value,
+        curtain_type,
+        curtain_value || 3, // Default to CURTAIN_PULSE_2P value
+        finalOpenGroupId || null,
+        finalCloseGroupId || null,
+        finalStopGroupId || null,
+        pause_period || 0,
+        transition_period || 0
+      );
+
+      return this.getProjectItemById(result.lastInsertRowid, "curtain");
+    } catch (error) {
+      console.error("Failed to create Curtain item:", error);
+      throw error;
+    }
+  }
+
+  // Find lighting ID by address in the new project
+  findLightingIdByAddress(projectId, address) {
+    try {
+      const stmt = this.db.prepare(`
+        SELECT id FROM lighting
+        WHERE project_id = ? AND address = ?
+      `);
+      const result = stmt.get(projectId, address);
+      return result ? result.id : null;
+    } catch (error) {
+      console.error(`Failed to find lighting ID for address ${address}:`, error);
+      return null;
+    }
+  }
+
+  // Find scene ID by address in the new project
+  findSceneIdByAddress(projectId, address) {
+    try {
+      const stmt = this.db.prepare(`
+        SELECT id FROM scene
+        WHERE project_id = ? AND address = ?
+      `);
+      const result = stmt.get(projectId, address);
+      return result ? result.id : null;
+    } catch (error) {
+      console.error(`Failed to find scene ID for address ${address}:`, error);
+      return null;
+    }
+  }
+
+  // Find item ID by address and type in the new project
+  findItemIdByAddress(projectId, address, itemType) {
+    try {
+      const stmt = this.db.prepare(`
+        SELECT id FROM ${itemType}
+        WHERE project_id = ? AND address = ?
+      `);
+      const result = stmt.get(projectId, address);
+      return result ? result.id : null;
+    } catch (error) {
+      console.error(`Failed to find ${itemType} ID for address ${address}:`, error);
+      return null;
+    }
+  }
+
+  // Find schedule ID by identifier (name + time combination)
+  findScheduleIdByIdentifier(projectId, identifier) {
+    try {
+      const [name, time] = identifier.split('|');
+      const stmt = this.db.prepare(`
+        SELECT id FROM schedule
+        WHERE project_id = ? AND name = ? AND time = ?
+      `);
+      const result = stmt.get(projectId, name, time);
+      return result ? result.id : null;
+    } catch (error) {
+      console.error(`Failed to find schedule ID for identifier ${identifier}:`, error);
+      return null;
+    }
+  }
+
+  // Find multi_scene ID by address in the new project
+  findMultiSceneIdByAddress(projectId, address) {
+    try {
+      const stmt = this.db.prepare(`
+        SELECT id FROM multi_scenes
+        WHERE project_id = ? AND address = ?
+      `);
+      const result = stmt.get(projectId, address);
+      return result ? result.id : null;
+    } catch (error) {
+      console.error(`Failed to find multi_scene ID for address ${address}:`, error);
+      return null;
+    }
+  }
+
+  // Find sequence ID by address in the new project
+  findSequenceIdByAddress(projectId, address) {
+    try {
+      const stmt = this.db.prepare(`
+        SELECT id FROM sequences
+        WHERE project_id = ? AND address = ?
+      `);
+      const result = stmt.get(projectId, address);
+      return result ? result.id : null;
+    } catch (error) {
+      console.error(`Failed to find sequence ID for address ${address}:`, error);
+      return null;
     }
   }
 
@@ -2505,7 +2842,7 @@ class DatabaseService {
     return this.getProjectItems(projectId, "curtain");
   }
 
-  createCurtainItem(projectId, itemData) {
+  createCurtainItemSimple(projectId, itemData) {
     return this.createProjectItem(projectId, itemData, "curtain");
   }
 

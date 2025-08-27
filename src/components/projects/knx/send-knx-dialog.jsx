@@ -71,11 +71,18 @@ export function SendKnxDialog({ open, onOpenChange, items = [] }) {
         rcuGroup = sceneItems.find((item) => item.id === knxData.rcu_group_id);
         break;
       case 5: // Multi Scene
-      case 6: // Sequences
         const multiSceneItems = await window.electronAPI.multiScenes.getAll(
           knxData.project_id
         );
         rcuGroup = multiSceneItems.find(
+          (item) => item.id === knxData.rcu_group_id
+        );
+        break;
+      case 6: // Sequences
+        const sequenceItems = await window.electronAPI.sequences.getAll(
+          knxData.project_id
+        );
+        rcuGroup = sequenceItems.find(
           (item) => item.id === knxData.rcu_group_id
         );
         break;
@@ -132,7 +139,8 @@ export function SendKnxDialog({ open, onOpenChange, items = [] }) {
             knxSwitchGroup: knxData.knx_switch_group || "",
             knxDimmingGroup: knxData.knx_dimming_group || "",
             knxValueGroup: knxData.knx_value_group || "",
-          }
+          },
+          unit.type || "Unknown Unit" // Pass unit type for logging
         );
 
         if (success) {
@@ -180,6 +188,7 @@ export function SendKnxDialog({ open, onOpenChange, items = [] }) {
     const sceneItems = await window.electronAPI.scene.getAll(projectId);
     const multiSceneItems =
       await window.electronAPI.multiScenes.getAll(projectId);
+    const sequenceItems = await window.electronAPI.sequences.getAll(projectId);
     const airconItems = await window.electronAPI.aircon.getAll(projectId);
 
     for (let i = 0; i < knxConfigs.length; i++) {
@@ -222,8 +231,12 @@ export function SendKnxDialog({ open, onOpenChange, items = [] }) {
           );
           break;
         case 5: // Multi Scene
-        case 6: // Sequences
           rcuGroup = multiSceneItems.find(
+            (item) => item.id === knxData.rcu_group_id
+          );
+          break;
+        case 6: // Sequences
+          rcuGroup = sequenceItems.find(
             (item) => item.id === knxData.rcu_group_id
           );
           break;
@@ -286,7 +299,8 @@ export function SendKnxDialog({ open, onOpenChange, items = [] }) {
               knxSwitchGroup: knxData.knx_switch_group || "",
               knxDimmingGroup: knxData.knx_dimming_group || "",
               knxValueGroup: knxData.knx_value_group || "",
-            }
+            },
+            unit.type || "Unknown Unit" // Pass unit type for logging
           );
 
           if (success) {

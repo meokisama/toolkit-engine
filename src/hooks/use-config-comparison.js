@@ -340,6 +340,116 @@ export function useConfigComparison() {
         unitWithConfigs.output_configs = null;
       }
 
+      // Read advanced configurations (scenes, schedules, curtains, knx, multi scenes, sequences)
+      try {
+        console.log("Reading advanced configurations...");
+
+        // Read scenes
+        try {
+          const scenesResult = await window.electronAPI.rcuController.getAllScenesInformation({
+            unitIp: networkUnit.ip_address,
+            canId: networkUnit.id_can,
+          });
+          unitWithConfigs.scenes = scenesResult?.scenes || [];
+          console.log(`Found ${unitWithConfigs.scenes.length} scenes on network unit`);
+        } catch (error) {
+          console.warn(`Failed to read scenes from ${networkUnit.ip_address}:`, error);
+          unitWithConfigs.scenes = [];
+        }
+
+        // Add delay between reads
+        await new Promise((resolve) => setTimeout(resolve, 500));
+
+        // Read schedules
+        try {
+          const schedulesResult = await window.electronAPI.rcuController.getAllSchedulesInformation({
+            unitIp: networkUnit.ip_address,
+            canId: networkUnit.id_can,
+          });
+          unitWithConfigs.schedules = schedulesResult?.schedules || [];
+          console.log(`Found ${unitWithConfigs.schedules.length} schedules on network unit`);
+        } catch (error) {
+          console.warn(`Failed to read schedules from ${networkUnit.ip_address}:`, error);
+          unitWithConfigs.schedules = [];
+        }
+
+        // Add delay between reads
+        await new Promise((resolve) => setTimeout(resolve, 500));
+
+        // Read curtains
+        try {
+          const curtainsResult = await window.electronAPI.rcuController.getCurtainConfig({
+            unitIp: networkUnit.ip_address,
+            canId: networkUnit.id_can,
+            curtainIndex: null, // Get all curtains
+          });
+          unitWithConfigs.curtains = curtainsResult?.curtains || [];
+          console.log(`Found ${unitWithConfigs.curtains.length} curtains on network unit`);
+        } catch (error) {
+          console.warn(`Failed to read curtains from ${networkUnit.ip_address}:`, error);
+          unitWithConfigs.curtains = [];
+        }
+
+        // Add delay between reads
+        await new Promise((resolve) => setTimeout(resolve, 500));
+
+        // Read KNX configurations
+        try {
+          const knxResult = await window.electronAPI.rcuController.getKnxConfig({
+            unitIp: networkUnit.ip_address,
+            canId: networkUnit.id_can,
+            knxAddress: null, // Get all KNX configs
+          });
+          unitWithConfigs.knxConfigs = knxResult?.knxConfigs || [];
+          console.log(`Found ${unitWithConfigs.knxConfigs.length} KNX configs on network unit`);
+        } catch (error) {
+          console.warn(`Failed to read KNX configs from ${networkUnit.ip_address}:`, error);
+          unitWithConfigs.knxConfigs = [];
+        }
+
+        // Add delay between reads
+        await new Promise((resolve) => setTimeout(resolve, 500));
+
+        // Read multi scenes
+        try {
+          const multiScenesResult = await window.electronAPI.rcuController.getAllMultiScenesInformation({
+            unitIp: networkUnit.ip_address,
+            canId: networkUnit.id_can,
+          });
+          unitWithConfigs.multiScenes = multiScenesResult?.multiScenes || [];
+          console.log(`Found ${unitWithConfigs.multiScenes.length} multi scenes on network unit`);
+        } catch (error) {
+          console.warn(`Failed to read multi scenes from ${networkUnit.ip_address}:`, error);
+          unitWithConfigs.multiScenes = [];
+        }
+
+        // Add delay between reads
+        await new Promise((resolve) => setTimeout(resolve, 500));
+
+        // Read sequences
+        try {
+          const sequencesResult = await window.electronAPI.rcuController.getAllSequencesInformation({
+            unitIp: networkUnit.ip_address,
+            canId: networkUnit.id_can,
+          });
+          unitWithConfigs.sequences = sequencesResult?.sequences || [];
+          console.log(`Found ${unitWithConfigs.sequences.length} sequences on network unit`);
+        } catch (error) {
+          console.warn(`Failed to read sequences from ${networkUnit.ip_address}:`, error);
+          unitWithConfigs.sequences = [];
+        }
+
+      } catch (error) {
+        console.warn(`Failed to read advanced configurations from ${networkUnit.ip_address}:`, error);
+        // Set default empty arrays for all advanced configs
+        unitWithConfigs.scenes = [];
+        unitWithConfigs.schedules = [];
+        unitWithConfigs.curtains = [];
+        unitWithConfigs.knxConfigs = [];
+        unitWithConfigs.multiScenes = [];
+        unitWithConfigs.sequences = [];
+      }
+
       // Cache the result
       networkConfigCache.current.set(cacheKey, unitWithConfigs);
 
@@ -349,6 +459,107 @@ export function useConfigComparison() {
       throw error;
     }
   }, [convertNetworkToDialogFormat]);
+
+  /**
+   * Get database configurations for a project (scenes, schedules, curtains, knx, multi scenes, sequences)
+   * @param {number} projectId - Project ID
+   * @returns {Object} Database configurations
+   */
+  const getDatabaseConfigurations = useCallback(async (projectId) => {
+    try {
+      console.log(`Loading database configurations for project ${projectId}`);
+
+      // Load all database configurations in parallel
+      const [scenes, schedules, curtains, knx, multiScenes, sequences] = await Promise.all([
+        window.electronAPI.scenes.getAll(projectId),
+        window.electronAPI.schedules.getAll(projectId),
+        window.electronAPI.curtains.getAll(projectId),
+        window.electronAPI.knx.getAll(projectId),
+        window.electronAPI.multiScenes.getAll(projectId),
+        window.electronAPI.sequences.getAll(projectId),
+      ]);
+
+      // For scenes, we need to get scene items as well
+      const scenesWithItems = await Promise.all(
+        scenes.map(async (scene) => {
+          try {
+            const items = await window.electronAPI.scenes.getItems(scene.id);
+            return { ...scene, items };
+          } catch (error) {
+            console.warn(`Failed to load items for scene ${scene.id}:`, error);
+            return { ...scene, items: [] };
+          }
+        })
+      );
+
+      // For schedules, we need to get schedule scenes as well
+      const schedulesWithScenes = await Promise.all(
+        schedules.map(async (schedule) => {
+          try {
+            const scenes = await window.electronAPI.schedules.getScenes(schedule.id);
+            return { ...schedule, scenes };
+          } catch (error) {
+            console.warn(`Failed to load scenes for schedule ${schedule.id}:`, error);
+            return { ...schedule, scenes: [] };
+          }
+        })
+      );
+
+      // For multi scenes, we need to get multi scene scenes as well
+      const multiScenesWithScenes = await Promise.all(
+        multiScenes.map(async (multiScene) => {
+          try {
+            const scenes = await window.electronAPI.multiScenes.getScenes(multiScene.id);
+            return { ...multiScene, scenes };
+          } catch (error) {
+            console.warn(`Failed to load scenes for multi scene ${multiScene.id}:`, error);
+            return { ...multiScene, scenes: [] };
+          }
+        })
+      );
+
+      // For sequences, we need to get sequence multi scenes as well
+      const sequencesWithMultiScenes = await Promise.all(
+        sequences.map(async (sequence) => {
+          try {
+            const multiScenes = await window.electronAPI.sequences.getMultiScenes(sequence.id);
+            return { ...sequence, multiScenes };
+          } catch (error) {
+            console.warn(`Failed to load multi scenes for sequence ${sequence.id}:`, error);
+            return { ...sequence, multiScenes: [] };
+          }
+        })
+      );
+
+      console.log(`Loaded database configurations:`, {
+        scenes: scenesWithItems.length,
+        schedules: schedulesWithScenes.length,
+        curtains: curtains.length,
+        knx: knx.length,
+        multiScenes: multiScenesWithScenes.length,
+        sequences: sequencesWithMultiScenes.length,
+      });
+
+      return {
+        scenes: scenesWithItems,
+        schedules: schedulesWithScenes,
+        curtains,
+        knx,
+        multiScenes: multiScenesWithScenes,
+        sequences: sequencesWithMultiScenes,
+      };
+    } catch (error) {
+      console.error(`Failed to load database configurations for project ${projectId}:`, error);
+      return {
+        scenes: [],
+        schedules: [],
+        curtains: [],
+        knx: [],
+        multiScenes: [],
+        sequences: [],
+      };
+    }
+  }, []);
 
   /**
    * Compare configurations between database units and network units
@@ -395,8 +606,11 @@ export function useConfigComparison() {
           // Read network unit configurations
           const networkUnitWithConfigs = await readNetworkUnitConfigurations(networkUnit);
 
+          // Get database configurations for this unit's project
+          const databaseConfigs = await getDatabaseConfigurations(databaseUnit.project_id);
+
           // Compare configurations
-          const comparisonResult = await compareUnitConfigurations(databaseUnit, networkUnitWithConfigs, projectItems);
+          const comparisonResult = await compareUnitConfigurations(databaseUnit, networkUnitWithConfigs, projectItems, databaseConfigs);
 
           // Store results for both database and network units
           const resultData = {

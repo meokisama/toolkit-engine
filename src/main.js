@@ -2,6 +2,7 @@ import { app, BrowserWindow, ipcMain } from "electron";
 import path from "node:path";
 import started from "electron-squirrel-startup";
 import DatabaseService from "./services/database.js";
+import LoggerService from "./services/logger.js";
 import {
   setGroupState,
   setOutputState,
@@ -88,8 +89,9 @@ if (started) {
   app.quit();
 }
 
-// Initialize database service
+// Initialize services
 let dbService;
+let loggerService;
 
 const createWindow = () => {
   // Create the browser window.
@@ -126,8 +128,9 @@ const createWindow = () => {
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.
 app.whenReady().then(async () => {
-  // Initialize database
+  // Initialize services
   dbService = new DatabaseService();
+  loggerService = new LoggerService();
 
   // Setup IPC handlers
   setupIpcHandlers();
@@ -542,7 +545,7 @@ function setupIpcHandlers() {
 
   ipcMain.handle("curtain:create", async (event, projectId, itemData) => {
     try {
-      return await dbService.createCurtainItem(projectId, itemData);
+      return await dbService.createCurtainItemSimple(projectId, itemData);
     } catch (error) {
       console.error("Error creating curtain item:", error);
       throw error;
@@ -1916,9 +1919,9 @@ function setupIpcHandlers() {
   // KNX Control functions
   ipcMain.handle(
     "rcu:setKnxConfig",
-    async (event, unitIp, canId, knxConfig) => {
+    async (event, unitIp, canId, knxConfig, unitType) => {
       try {
-        return await setKnxConfig(unitIp, canId, knxConfig);
+        return await setKnxConfig(unitIp, canId, knxConfig, loggerService, unitType);
       } catch (error) {
         console.error("Error setting KNX config:", error);
         throw error;

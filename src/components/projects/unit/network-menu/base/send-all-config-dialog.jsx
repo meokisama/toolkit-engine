@@ -1107,16 +1107,72 @@ function SendAllConfigDialogComponent({ open, onOpenChange }) {
           break;
 
         case "knx":
-          // Get lighting items once for all KNX configs (optimization)
+          // Get all project items for RCU group lookup
           const lightingItems = await window.electronAPI.lighting.getAll(
+            selectedProject.id
+          );
+          const curtainItems = await window.electronAPI.curtain.getAll(
+            selectedProject.id
+          );
+          const sceneItems = await window.electronAPI.scene.getAll(
+            selectedProject.id
+          );
+          const multiSceneItems = await window.electronAPI.multiScenes.getAll(
+            selectedProject.id
+          );
+          const sequenceItems = await window.electronAPI.sequences.getAll(
+            selectedProject.id
+          );
+          const airconItems = await window.electronAPI.aircon.getAll(
             selectedProject.id
           );
 
           for (const knx of configData) {
-            // Get RCU group from lighting items
-            const rcuGroup = lightingItems.find(
-              (item) => item.id === knx.rcu_group_id
-            );
+            // Get RCU group based on KNX type
+            let rcuGroup = null;
+
+            switch (knx.type) {
+              case 1: // Switch
+              case 2: // Dimmer
+                rcuGroup = lightingItems.find(
+                  (item) => item.id === knx.rcu_group_id
+                );
+                break;
+              case 3: // Curtain
+                rcuGroup = curtainItems.find(
+                  (item) => item.id === knx.rcu_group_id
+                );
+                break;
+              case 4: // Scene
+                rcuGroup = sceneItems.find(
+                  (item) => item.id === knx.rcu_group_id
+                );
+                break;
+              case 5: // Multi Scene
+                rcuGroup = multiSceneItems.find(
+                  (item) => item.id === knx.rcu_group_id
+                );
+                break;
+              case 6: // Sequences
+                rcuGroup = sequenceItems.find(
+                  (item) => item.id === knx.rcu_group_id
+                );
+                break;
+              case 7: // AC Power
+              case 8: // AC Mode
+              case 9: // AC Fan Speed
+              case 10: // AC Swing
+              case 11: // AC Set Point
+                rcuGroup = airconItems.find(
+                  (item) => item.id === knx.rcu_group_id
+                );
+                break;
+              default:
+                rcuGroup = lightingItems.find(
+                  (item) => item.id === knx.rcu_group_id
+                );
+                break;
+            }
 
             if (rcuGroup) {
               await window.electronAPI.rcuController.setKnxConfig(
@@ -1131,7 +1187,8 @@ function SendAllConfigDialogComponent({ open, onOpenChange }) {
                   knxSwitchGroup: knx.knx_switch_group || "",
                   knxDimmingGroup: knx.knx_dimming_group || "",
                   knxValueGroup: knx.knx_value_group || "",
-                }
+                },
+                unit.type || "Unknown Unit" // Pass unit type for logging
               );
             }
           }

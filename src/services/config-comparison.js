@@ -782,6 +782,317 @@ export function compareCurtains(databaseCurtains, networkCurtains) {
 }
 
 /**
+ * Compare multi scene configurations between database and network unit
+ * @param {Array} databaseMultiScenes - Multi scenes from database
+ * @param {Array} networkMultiScenes - Multi scenes from network unit
+ * @returns {Object} Comparison result with differences
+ */
+export function compareMultiScenes(databaseMultiScenes, networkMultiScenes) {
+  const differences = [];
+
+  if (!databaseMultiScenes && !networkMultiScenes) {
+    return { isEqual: true, differences: [] };
+  }
+
+  if (!databaseMultiScenes || !networkMultiScenes) {
+    return {
+      isEqual: false,
+      differences: ['One unit has multi scenes while the other does not']
+    };
+  }
+
+  const dbMultiScenes = Array.isArray(databaseMultiScenes) ? databaseMultiScenes : [];
+  const netMultiScenes = Array.isArray(networkMultiScenes) ? networkMultiScenes : [];
+
+  // Create maps for easier comparison by address
+  const dbMultiSceneMap = new Map();
+  const netMultiSceneMap = new Map();
+
+  dbMultiScenes.forEach(multiScene => {
+    if (multiScene.address !== undefined) {
+      dbMultiSceneMap.set(multiScene.address, multiScene);
+    }
+  });
+
+  netMultiScenes.forEach(multiScene => {
+    if (multiScene.address !== undefined) {
+      netMultiSceneMap.set(multiScene.address, multiScene);
+    }
+  });
+
+  // Get all unique addresses
+  const allAddresses = new Set([...dbMultiSceneMap.keys(), ...netMultiSceneMap.keys()]);
+
+  // Compare multi scene count
+  if (dbMultiScenes.length !== netMultiScenes.length) {
+    differences.push(`Multi Scene count: DB=${dbMultiScenes.length}, Network=${netMultiScenes.length}`);
+  }
+
+  // Compare multi scenes by address
+  allAddresses.forEach(address => {
+    const dbMultiScene = dbMultiSceneMap.get(address);
+    const netMultiScene = netMultiSceneMap.get(address);
+
+    if (!dbMultiScene && !netMultiScene) return;
+
+    if (!dbMultiScene) {
+      differences.push(`Multi Scene Address ${address}: Only exists in Network unit`);
+      return;
+    }
+
+    if (!netMultiScene) {
+      differences.push(`Multi Scene Address ${address}: Only exists in Database unit`);
+      return;
+    }
+
+    // Compare multi scene properties
+    const multiSceneFields = [
+      { name: 'name', label: 'Name' },
+      { name: 'type', label: 'Type' }
+    ];
+
+    multiSceneFields.forEach(field => {
+      if (dbMultiScene[field.name] !== netMultiScene[field.name]) {
+        differences.push(
+          `Multi Scene ${address} ${field.label}: DB="${dbMultiScene[field.name]}", Network="${netMultiScene[field.name]}"`
+        );
+      }
+    });
+
+    // Compare multi scene scenes
+    const dbScenes = dbMultiScene.scenes || [];
+    const netScenes = netMultiScene.scenes || [];
+
+    if (dbScenes.length !== netScenes.length) {
+      differences.push(`Multi Scene ${address} Scene count: DB=${dbScenes.length}, Network=${netScenes.length}`);
+    } else {
+      for (let i = 0; i < dbScenes.length; i++) {
+        const dbScene = dbScenes[i];
+        const netScene = netScenes[i];
+
+        if (dbScene.scene_address !== netScene.scene_address) {
+          differences.push(
+            `Multi Scene ${address} Scene ${i + 1} Address: DB=${dbScene.scene_address}, Network=${netScene.scene_address}`
+          );
+        }
+      }
+    }
+  });
+
+  return {
+    isEqual: differences.length === 0,
+    differences
+  };
+}
+
+/**
+ * Compare sequence configurations between database and network unit
+ * @param {Array} databaseSequences - Sequences from database
+ * @param {Array} networkSequences - Sequences from network unit
+ * @returns {Object} Comparison result with differences
+ */
+export function compareSequences(databaseSequences, networkSequences) {
+  const differences = [];
+
+  if (!databaseSequences && !networkSequences) {
+    return { isEqual: true, differences: [] };
+  }
+
+  if (!databaseSequences || !networkSequences) {
+    return {
+      isEqual: false,
+      differences: ['One unit has sequences while the other does not']
+    };
+  }
+
+  const dbSequences = Array.isArray(databaseSequences) ? databaseSequences : [];
+  const netSequences = Array.isArray(networkSequences) ? networkSequences : [];
+
+  // Create maps for easier comparison by address
+  const dbSequenceMap = new Map();
+  const netSequenceMap = new Map();
+
+  dbSequences.forEach(sequence => {
+    if (sequence.address !== undefined) {
+      dbSequenceMap.set(sequence.address, sequence);
+    }
+  });
+
+  netSequences.forEach(sequence => {
+    if (sequence.address !== undefined) {
+      netSequenceMap.set(sequence.address, sequence);
+    }
+  });
+
+  // Get all unique addresses
+  const allAddresses = new Set([...dbSequenceMap.keys(), ...netSequenceMap.keys()]);
+
+  // Compare sequence count
+  if (dbSequences.length !== netSequences.length) {
+    differences.push(`Sequence count: DB=${dbSequences.length}, Network=${netSequences.length}`);
+  }
+
+  // Compare sequences by address
+  allAddresses.forEach(address => {
+    const dbSequence = dbSequenceMap.get(address);
+    const netSequence = netSequenceMap.get(address);
+
+    if (!dbSequence && !netSequence) return;
+
+    if (!dbSequence) {
+      differences.push(`Sequence Address ${address}: Only exists in Network unit`);
+      return;
+    }
+
+    if (!netSequence) {
+      differences.push(`Sequence Address ${address}: Only exists in Database unit`);
+      return;
+    }
+
+    // Compare sequence properties
+    if (dbSequence.name !== netSequence.name) {
+      differences.push(`Sequence ${address} Name: DB="${dbSequence.name}", Network="${netSequence.name}"`);
+    }
+
+    // Compare sequence multi scenes
+    const dbMultiScenes = dbSequence.multiScenes || [];
+    const netMultiScenes = netSequence.multiScenes || [];
+
+    if (dbMultiScenes.length !== netMultiScenes.length) {
+      differences.push(`Sequence ${address} Multi Scene count: DB=${dbMultiScenes.length}, Network=${netMultiScenes.length}`);
+    } else {
+      for (let i = 0; i < dbMultiScenes.length; i++) {
+        const dbMultiScene = dbMultiScenes[i];
+        const netMultiScene = netMultiScenes[i];
+
+        if (dbMultiScene.multi_scene_address !== netMultiScene.multi_scene_address) {
+          differences.push(
+            `Sequence ${address} Multi Scene ${i + 1} Address: DB=${dbMultiScene.multi_scene_address}, Network=${netMultiScene.multi_scene_address}`
+          );
+        }
+      }
+    }
+  });
+
+  return {
+    isEqual: differences.length === 0,
+    differences
+  };
+}
+
+/**
+ * Compare KNX configurations between database and network unit
+ * @param {Array} databaseKnx - KNX configs from database
+ * @param {Array} networkKnx - KNX configs from network unit
+ * @returns {Object} Comparison result with differences
+ */
+export function compareKnx(databaseKnx, networkKnx) {
+  const differences = [];
+
+  if (!databaseKnx && !networkKnx) {
+    return { isEqual: true, differences: [] };
+  }
+
+  if (!databaseKnx || !networkKnx) {
+    return {
+      isEqual: false,
+      differences: ['One unit has KNX configs while the other does not']
+    };
+  }
+
+  const dbKnx = Array.isArray(databaseKnx) ? databaseKnx : [];
+  const netKnx = Array.isArray(networkKnx) ? networkKnx : [];
+
+  // Create maps for easier comparison by address
+  const dbKnxMap = new Map();
+  const netKnxMap = new Map();
+
+  dbKnx.forEach(knx => {
+    if (knx.address !== undefined) {
+      dbKnxMap.set(knx.address, knx);
+    }
+  });
+
+  netKnx.forEach(knx => {
+    if (knx.address !== undefined) {
+      netKnxMap.set(knx.address, knx);
+    }
+  });
+
+  // Get all unique addresses
+  const allAddresses = new Set([...dbKnxMap.keys(), ...netKnxMap.keys()]);
+
+  // Compare KNX count
+  if (dbKnx.length !== netKnx.length) {
+    differences.push(`KNX count: DB=${dbKnx.length}, Network=${netKnx.length}`);
+  }
+
+  // Compare KNX configs by address
+  allAddresses.forEach(address => {
+    const dbKnxConfig = dbKnxMap.get(address);
+    const netKnxConfig = netKnxMap.get(address);
+
+    if (!dbKnxConfig && !netKnxConfig) return;
+
+    if (!dbKnxConfig) {
+      differences.push(`KNX Address ${address}: Only exists in Network unit`);
+      return;
+    }
+
+    if (!netKnxConfig) {
+      differences.push(`KNX Address ${address}: Only exists in Database unit`);
+      return;
+    }
+
+    // Compare KNX properties
+    const knxFields = [
+      { name: 'name', label: 'Name' },
+      { name: 'type', label: 'Type' },
+      { name: 'factor', label: 'Factor' },
+      { name: 'feedback', label: 'Feedback' },
+      { name: 'knx_switch_group', label: 'KNX Switch Group' },
+      { name: 'knx_dimming_group', label: 'KNX Dimming Group' },
+      { name: 'knx_value_group', label: 'KNX Value Group' }
+    ];
+
+    knxFields.forEach(field => {
+      // Handle different field names between database and network
+      let dbValue = dbKnxConfig[field.name];
+      let netValue = netKnxConfig[field.name];
+
+      // Map network field names to database field names
+      if (field.name === 'knx_switch_group' && netValue === undefined) {
+        netValue = netKnxConfig.knxSwitchGroup;
+      }
+      if (field.name === 'knx_dimming_group' && netValue === undefined) {
+        netValue = netKnxConfig.knxDimmingGroup;
+      }
+      if (field.name === 'knx_value_group' && netValue === undefined) {
+        netValue = netKnxConfig.knxValueGroup;
+      }
+
+      if (dbValue !== netValue) {
+        differences.push(
+          `KNX ${address} ${field.label}: DB="${dbValue}", Network="${netValue}"`
+        );
+      }
+    });
+
+    // Compare RCU group - need to handle the relationship
+    // Database stores rcu_group_id, network stores rcuGroup address
+    if (dbKnxConfig.rcu_group_id && netKnxConfig.rcuGroup) {
+      // This would require looking up the RCU group address from the database
+      // For now, we'll skip this comparison or implement it later
+    }
+  });
+
+  return {
+    isEqual: differences.length === 0,
+    differences
+  };
+}
+
+/**
  * Find matching units between database and network based on board type, CAN ID, and IP address
  * @param {Array} databaseUnits - Units from database
  * @param {Array} networkUnits - Units from network
@@ -814,9 +1125,10 @@ export function findMatchingUnits(databaseUnits, networkUnits) {
  * @param {Object} databaseUnit - Database unit with all configurations
  * @param {Object} networkUnit - Network unit with all configurations
  * @param {Object} projectItems - Project items for device_id to address lookup
+ * @param {Object} databaseConfigs - Database configurations (scenes, schedules, curtains, knx, multiScenes, sequences)
  * @returns {Object} Complete comparison result
  */
-export async function compareUnitConfigurations(databaseUnit, networkUnit, projectItems = null) {
+export async function compareUnitConfigurations(databaseUnit, networkUnit, projectItems = null, databaseConfigs = null) {
   const allDifferences = [];
   let hasAnyDifferences = false;
 
@@ -872,24 +1184,45 @@ export async function compareUnitConfigurations(databaseUnit, networkUnit, proje
     hasAnyDifferences = true;
   }
 
-  // Compare scenes
-  const sceneComparison = compareScenes(databaseUnit.scenes, networkUnit.scenes);
+  // Compare scenes (use databaseConfigs instead of databaseUnit.scenes)
+  const sceneComparison = compareScenes(databaseConfigs?.scenes, networkUnit.scenes);
   if (!sceneComparison.isEqual) {
     allDifferences.push(...sceneComparison.differences.map(diff => `Scene: ${diff}`));
     hasAnyDifferences = true;
   }
 
-  // Compare schedules
-  const scheduleComparison = compareSchedules(databaseUnit.schedules, networkUnit.schedules);
+  // Compare schedules (use databaseConfigs instead of databaseUnit.schedules)
+  const scheduleComparison = compareSchedules(databaseConfigs?.schedules, networkUnit.schedules);
   if (!scheduleComparison.isEqual) {
     allDifferences.push(...scheduleComparison.differences.map(diff => `Schedule: ${diff}`));
     hasAnyDifferences = true;
   }
 
-  // Compare curtains
-  const curtainComparison = compareCurtains(databaseUnit.curtains, networkUnit.curtains);
+  // Compare curtains (use databaseConfigs instead of databaseUnit.curtains)
+  const curtainComparison = compareCurtains(databaseConfigs?.curtains, networkUnit.curtains);
   if (!curtainComparison.isEqual) {
     allDifferences.push(...curtainComparison.differences.map(diff => `Curtain: ${diff}`));
+    hasAnyDifferences = true;
+  }
+
+  // Compare multi scenes
+  const multiSceneComparison = compareMultiScenes(databaseConfigs?.multiScenes, networkUnit.multiScenes);
+  if (!multiSceneComparison.isEqual) {
+    allDifferences.push(...multiSceneComparison.differences.map(diff => `Multi Scene: ${diff}`));
+    hasAnyDifferences = true;
+  }
+
+  // Compare sequences
+  const sequenceComparison = compareSequences(databaseConfigs?.sequences, networkUnit.sequences);
+  if (!sequenceComparison.isEqual) {
+    allDifferences.push(...sequenceComparison.differences.map(diff => `Sequence: ${diff}`));
+    hasAnyDifferences = true;
+  }
+
+  // Compare KNX configurations
+  const knxComparison = compareKnx(databaseConfigs?.knx, networkUnit.knxConfigs);
+  if (!knxComparison.isEqual) {
+    allDifferences.push(...knxComparison.differences.map(diff => `KNX: ${diff}`));
     hasAnyDifferences = true;
   }
 
@@ -903,7 +1236,10 @@ export async function compareUnitConfigurations(databaseUnit, networkUnit, proje
       output: outputComparison,
       scenes: sceneComparison,
       schedules: scheduleComparison,
-      curtains: curtainComparison
+      curtains: curtainComparison,
+      multiScenes: multiSceneComparison,
+      sequences: sequenceComparison,
+      knx: knxComparison
     }
   };
 }
