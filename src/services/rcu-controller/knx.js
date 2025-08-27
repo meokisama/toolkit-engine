@@ -53,8 +53,8 @@ async function setKnxConfig(unitIp, canId, knxConfig, loggerService = null, unit
     throw new Error("KNX feedback must be between 0 and 2");
   }
 
-  if (rcuGroup < 1 || rcuGroup > 255) {
-    throw new Error("RCU group must be between 1 and 255");
+  if (rcuGroup < 0 || rcuGroup > 255) {
+    throw new Error("RCU group must be between 0 and 255");
   }
 
   const idAddress = convertCanIdToInt(canId);
