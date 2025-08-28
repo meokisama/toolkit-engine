@@ -21,21 +21,28 @@ export function EditableSelectCell({
   renderBadge = false,
   badgeVariant = "secondary",
 }) {
-  const [editValue, setEditValue] = useState(value || "");
+  // Convert value to string for Select component compatibility
+  const [editValue, setEditValue] = useState(value !== null && value !== undefined ? String(value) : "");
 
   // Update editValue when value prop changes
   useEffect(() => {
-    setEditValue(value || "");
+    setEditValue(value !== null && value !== undefined ? String(value) : "");
   }, [value]);
 
   const handleValueChange = (newValue) => {
     setEditValue(newValue);
-    if (newValue !== value) {
-      onSave(newValue);
+    // Convert back to original type if it was a number
+    const originalOption = options.find(opt => String(opt.value) === newValue);
+    const convertedValue = originalOption ? originalOption.value : newValue;
+
+    if (convertedValue !== value) {
+      onSave(convertedValue);
     }
   };
 
-  const displayText = renderValue ? renderValue(editValue) : editValue;
+  // Find the option for display text
+  const selectedOption = options.find(opt => String(opt.value) === editValue);
+  const displayText = renderValue ? renderValue(editValue) : (selectedOption ? selectedOption.label : editValue);
 
   return (
     <Select value={editValue} onValueChange={handleValueChange}>
@@ -50,7 +57,7 @@ export function EditableSelectCell({
       </SelectTrigger>
       <SelectContent>
         {options.map((option) => (
-          <SelectItem key={option.value} value={option.value}>
+          <SelectItem key={option.value} value={String(option.value)}>
             {option.label}
           </SelectItem>
         ))}

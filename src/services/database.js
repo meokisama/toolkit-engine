@@ -832,9 +832,14 @@ class DatabaseService {
           input_configs: item.input_configs ? JSON.parse(item.input_configs) : null,
           output_configs: item.output_configs ? JSON.parse(item.output_configs) : null,
         }));
-      } else if (tableName === "schedule" || tableName === "multi_scenes") {
+      } else if (tableName === "schedule") {
         const stmt = this.db.prepare(
           `SELECT * FROM ${tableName} WHERE project_id = ? ORDER BY name ASC`
+        );
+        return stmt.all(projectId);
+      } else if (tableName === "multi_scenes") {
+        const stmt = this.db.prepare(
+          `SELECT * FROM ${tableName} WHERE project_id = ? ORDER BY CAST(address AS INTEGER) ASC`
         );
         return stmt.all(projectId);
       } else {
@@ -3115,6 +3120,14 @@ class DatabaseService {
         .get(sceneId);
       if (!scene) {
         throw new Error("Scene not found");
+      }
+
+      // Check scene items limit (60 items maximum)
+      const currentItemCount = this.db
+        .prepare("SELECT COUNT(*) as count FROM scene_items WHERE scene_id = ?")
+        .get(sceneId);
+      if (currentItemCount.count >= 60) {
+        throw new Error("Maximum 60 items allowed per scene");
       }
 
       // Get item address from the corresponding table

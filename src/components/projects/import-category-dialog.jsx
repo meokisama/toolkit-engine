@@ -8,7 +8,12 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Upload, FileText, AlertCircle, CheckCircle } from "lucide-react";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { Upload, FileText, AlertCircle, CheckCircle, Download, Info } from "lucide-react";
 import { toast } from "sonner";
 import { exportImportService } from "@/services/export-import";
 
@@ -85,15 +90,15 @@ export function ImportItemsDialog({
     const expectedHeaders =
       category === "unit"
         ? [
-            "name",
-            "type",
-            "serial_no",
-            "ip_address",
-            "id_can",
-            "mode",
-            "firmware_version",
-            "description",
-          ]
+          "name",
+          "type",
+          "serial_no",
+          "ip_address",
+          "id_can",
+          "mode",
+          "firmware_version",
+          "description",
+        ]
         : ["name", "address", "description"];
 
     const hasValidHeaders = expectedHeaders.every((header) =>
@@ -182,6 +187,26 @@ export function ImportItemsDialog({
     onOpenChange(false);
   };
 
+  const handleDownloadTemplate1 = () => {
+    try {
+      exportImportService.downloadSceneTemplate1();
+      toast.success("Template 1 (Vertical Format) downloaded successfully");
+    } catch (error) {
+      console.error("Failed to download template 1:", error);
+      toast.error("Failed to download template 1");
+    }
+  };
+
+  const handleDownloadTemplate2 = () => {
+    try {
+      exportImportService.downloadSceneTemplate2();
+      toast.success("Template 2 (Horizontal Format) downloaded successfully");
+    } catch (error) {
+      console.error("Failed to download template 2:", error);
+      toast.error("Failed to download template 2");
+    }
+  };
+
   const getExpectedHeaders = () => {
     if (category === "unit") {
       return [
@@ -225,8 +250,8 @@ export function ImportItemsDialog({
             {category === "aircon"
               ? "Import aircon cards from a CSV file. Each row will create a card with 5 items (Power, Mode, Fan Speed, Temperature, Swing)."
               : category === "scene"
-              ? "Import scenes from a CSV file. Each scene can contain multiple items with their settings."
-              : `Import ${category} items from a CSV file. The CSV file should have the correct headers.`}
+                ? "Import scenes from a CSV file. Each scene can contain multiple items with their settings."
+                : `Import ${category} items from a CSV file. The CSV file should have the correct headers.`}
           </DialogDescription>
         </DialogHeader>
 
@@ -244,22 +269,117 @@ export function ImportItemsDialog({
                 </Button>
               </div>
 
-              <div className="bg-muted/50 rounded-lg p-4">
-                <div className="flex items-center gap-2 mb-2">
-                  <AlertCircle className="h-4 w-4 text-blue-600" />
-                  <span className="text-sm font-medium">
-                    Required CSV Headers
-                  </span>
-                </div>
-                <div className="text-sm text-muted-foreground">
-                  <p>
-                    Your CSV file must include these headers (in any order):
-                  </p>
-                  <div className="mt-1 font-mono text-xs bg-background rounded px-2 py-1">
-                    {getExpectedHeaders().join(", ")}
+              {category === "scene" ? (
+                <div className="bg-muted/50 rounded-lg p-4 relative">
+                  <div className="flex items-center gap-2 mb-3">
+                    <Download className="h-4 w-4 text-blue-600" />
+                    <span className="text-sm font-medium">
+                      Download Template
+                    </span>
+                  </div>
+
+                  {/* Info icon with popover */}
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="absolute top-2 right-2 p-1 hover:bg-muted rounded-full transition-colors"
+                      >
+                        <Info className="h-4 w-4 text-muted-foreground hover:text-foreground" />
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-96" align="end">
+                      <div className="space-y-3">
+                        <div className="space-y-2 text-xs">
+                          <div className="grid grid-cols-3 gap-2 font-bold border-b pb-1">
+                            <span>TYPE</span>
+                            <span className="col-span-2">
+                              Value điền chính xác như sau
+                            </span>
+                          </div>
+                          <div className="grid grid-cols-3 gap-2 border-b pb-1">
+                            <span className="font-mono">LIGHTING</span>
+                            <span className="col-span-2">
+                              Độ sáng (Ví dụ: 50%, hoặc 50)
+                            </span>
+                          </div>
+                          <div className="grid grid-cols-3 gap-2 border-b pb-1">
+                            <span className="font-mono">CURTAIN</span>
+                            <span className="col-span-2">
+                              Open - Close - Stop
+                            </span>
+                          </div>
+                          <div className="grid grid-cols-3 gap-2 border-b pb-1">
+                            <span className="font-mono">AC_POWER</span>
+                            <span className="col-span-2">On - Off</span>
+                          </div>
+                          <div className="grid grid-cols-3 gap-2 border-b pb-1">
+                            <span className="font-mono">AC_MODE</span>
+                            <span className="col-span-2">
+                              Cool - Heat - Ventilation - Dry - Auto
+                            </span>
+                          </div>
+                          <div className="grid grid-cols-3 gap-2 border-b pb-1">
+                            <span className="font-mono">AC_FAN_SPEED</span>
+                            <span className="col-span-2">
+                              Low - Medium - High - Auto - Off
+                            </span>
+                          </div>
+                          <div className="grid grid-cols-3 gap-2">
+                            <span className="font-mono">AC_TEMPERATURE</span>
+                            <span className="col-span-2">
+                              Nhiệt độ (Ví dụ: 25, phải là số nguyên)
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    </PopoverContent>
+                  </Popover>
+                  <div className="text-sm text-muted-foreground mb-3">
+                    <p>
+                      Download CSV templates to get started with the correct format:
+                    </p>
+                  </div>
+                  <div className="flex gap-2">
+                    <Button
+                      onClick={handleDownloadTemplate1}
+                      variant="outline"
+                      size="sm"
+                      className="flex-1"
+                    >
+                      <Download className="h-3 w-3 mr-1" />
+                      Template 1 (Vertical)
+                    </Button>
+                    <Button
+                      onClick={handleDownloadTemplate2}
+                      variant="outline"
+                      size="sm"
+                      className="flex-1"
+                    >
+                      <Download className="h-3 w-3 mr-1" />
+                      Template 2 (Horizontal)
+                    </Button>
                   </div>
                 </div>
-              </div>
+              ) : (
+                <div className="bg-muted/50 rounded-lg p-4">
+                  <div className="flex items-center gap-2 mb-2">
+                    <AlertCircle className="h-4 w-4 text-blue-600" />
+                    <span className="text-sm font-medium">
+                      Required CSV Headers
+                    </span>
+                  </div>
+                  <div className="text-sm text-muted-foreground">
+                    <p>
+                      Your CSV file must include these headers (in any order):
+                    </p>
+                    <div className="mt-1 font-mono text-xs bg-background rounded px-2 py-1">
+                      {getExpectedHeaders().join(", ")}
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           ) : (
             <div className="space-y-4">
@@ -289,12 +409,10 @@ export function ImportItemsDialog({
                         className="font-mono text-xs bg-background rounded px-2 py-1"
                       >
                         {category === "scene"
-                          ? `${item.name} (${item.items?.length || 0} items)${
-                              item.name.includes("(Part") ? " - Auto-split" : ""
-                            }`
-                          : `${item.name} ${
-                              item.address && `- ${item.address}`
-                            } ${item.type && `(${item.type})`}`}
+                          ? `${item.name} (${item.items?.length || 0} items)${item.name.includes("(Part") ? " - Auto-split" : ""
+                          }`
+                          : `${item.name} ${item.address && `- ${item.address}`
+                          } ${item.type && `(${item.type})`}`}
                       </div>
                     ))}
                     {importData.length > 3 && (
@@ -331,10 +449,10 @@ export function ImportItemsDialog({
                 {loading
                   ? "Importing..."
                   : category === "aircon"
-                  ? `Import ${importData.length} Cards`
-                  : category === "scene"
-                  ? `Import ${importData.length} Scenes`
-                  : `Import ${importData.length} Items`}
+                    ? `Import ${importData.length} Cards`
+                    : category === "scene"
+                      ? `Import ${importData.length} Scenes`
+                      : `Import ${importData.length} Items`}
               </Button>
             </>
           )}

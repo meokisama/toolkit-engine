@@ -110,6 +110,20 @@ class ExportImportService {
     return modularService.parseScenesTemplate2CSV(csvContent);
   }
 
+  // Download scene CSV template 1 (vertical format)
+  downloadSceneTemplate1() {
+    return modularService.downloadSceneTemplate1();
+  }
+
+  // Download scene CSV template 2 (horizontal format)
+  downloadSceneTemplate2() {
+    return modularService.downloadSceneTemplate2();
+  }
+
+  // Download both scene CSV templates
+  downloadBothSceneTemplates() {
+    return modularService.downloadBothSceneTemplates();
+  }
 
 }
 

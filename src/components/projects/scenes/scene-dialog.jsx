@@ -26,6 +26,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import { useProjectDetail } from "@/contexts/project-detail-context";
 import {
   OBJECT_TYPES,
@@ -98,6 +103,10 @@ export function SceneDialog({
   const [editAirconPropertiesDialog, setEditAirconPropertiesDialog] = useState({
     open: false,
     airconGroup: null,
+  });
+  const [customBrightnessDialog, setCustomBrightnessDialog] = useState({
+    open: false,
+    brightness: 50,
   });
   const [lightingDialog, setLightingDialog] = useState({
     open: false,
@@ -340,6 +349,12 @@ export function SceneDialog({
 
   const addItemToScene = useCallback(
     async (itemType, itemId, itemValue = null) => {
+      // Check scene items limit (60 items maximum)
+      if (sceneItems.length >= 60) {
+        toast.error("Maximum 60 items allowed per scene");
+        return;
+      }
+
       const item = getItemDetails(itemType, itemId);
       if (!item) return;
 
@@ -392,6 +407,7 @@ export function SceneDialog({
       setSceneItems((prev) => [...prev, newSceneItem]);
     },
     [
+      sceneItems.length,
       getItemDetails,
       getCommandForAirconItem,
       mode,
@@ -404,6 +420,12 @@ export function SceneDialog({
   // Add multiple aircon items to scene from a card
   const addAirconCardToScene = useCallback(
     async (address, selectedProperties) => {
+      // Check scene items limit (60 items maximum)
+      if (sceneItems.length + selectedProperties.length > 60) {
+        toast.error(`Cannot add ${selectedProperties.length} items. Maximum 60 items allowed per scene (current: ${sceneItems.length})`);
+        return;
+      }
+
       // Find the single aircon item for this address
       const airconItem = projectItems.aircon?.find(
         (item) => item.address === address
@@ -465,6 +487,7 @@ export function SceneDialog({
       });
     },
     [
+      sceneItems.length,
       projectItems.aircon,
       getCommandForAirconItem,
       mode,
@@ -917,6 +940,40 @@ export function SceneDialog({
     );
   }, []);
 
+  // Custom: Set all lighting items to custom brightness
+  const handleCustomBrightness = useCallback((brightness) => {
+    // Handle empty string or invalid input
+    if (brightness === '' || brightness === null || brightness === undefined) {
+      toast.error("Please enter a valid brightness value");
+      return;
+    }
+
+    // Validate brightness value
+    const numBrightness = parseInt(brightness);
+    if (isNaN(numBrightness)) {
+      toast.error("Please enter a valid number");
+      return;
+    }
+
+    const validBrightness = Math.min(100, Math.max(0, numBrightness));
+
+    if (validBrightness !== numBrightness) {
+      toast.error("Brightness must be between 0 and 100");
+      return;
+    }
+
+    setSceneItems((prev) =>
+      prev.map((item) => {
+        if (item.item_type === "lighting") {
+          return { ...item, item_value: validBrightness.toString() };
+        }
+        return item;
+      })
+    );
+    setCustomBrightnessDialog({ open: false, brightness: 50 });
+    toast.success(`Set all lighting to ${validBrightness}% brightness`);
+  }, []);
+
   const applySceneItemsChanges = async (sceneId) => {
     // Compare current sceneItems with originalSceneItems to determine changes
 
@@ -1367,7 +1424,9 @@ export function SceneDialog({
                   <CardHeader className="flex items-center justify-between">
                     <CardTitle className="text-sm flex items-center gap-2">
                       Current Items
-                      <Badge variant="secondary">{sceneItems.length} items</Badge>
+                      <Badge variant={sceneItems.length >= 60 ? "destructive" : "secondary"}>
+                        {sceneItems.length}/60 items
+                      </Badge>
                     </CardTitle>
                     <div className="flex items-center gap-2">
                       {/* All On/Off buttons for lighting items */}
@@ -1391,6 +1450,83 @@ export function SceneDialog({
                           >
                             All Off
                           </Button>
+                          <Popover
+                            open={customBrightnessDialog.open}
+                            onOpenChange={(open) => setCustomBrightnessDialog(prev => ({ ...prev, open }))}
+                          >
+                            <PopoverTrigger asChild>
+                              <Button
+                                type="button"
+                                variant="outline"
+                                size="sm"
+                                className="text-xs"
+                              >
+                                Custom
+                              </Button>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-80">
+                              <div className="space-y-4">
+                                <div className="space-y-2">
+                                  <Label htmlFor="brightness">Custom Brightness (%)</Label>
+                                  <Input
+                                    id="brightness"
+                                    type="number"
+                                    min={0}
+                                    max={100}
+                                    value={customBrightnessDialog.brightness}
+                                    onChange={(e) => {
+                                      const value = e.target.value;
+                                      // Allow empty string for user to clear and type new value
+                                      if (value === '') {
+                                        setCustomBrightnessDialog(prev => ({ ...prev, brightness: '' }));
+                                        return;
+                                      }
+                                      const numValue = parseInt(value);
+                                      if (!isNaN(numValue)) {
+                                        const clampedValue = Math.min(100, Math.max(0, numValue));
+                                        setCustomBrightnessDialog(prev => ({ ...prev, brightness: clampedValue }));
+                                      }
+                                    }}
+                                    onBlur={(e) => {
+                                      // Ensure we have a valid number when user leaves the field
+                                      const value = e.target.value;
+                                      if (value === '' || isNaN(parseInt(value))) {
+                                        setCustomBrightnessDialog(prev => ({ ...prev, brightness: 50 }));
+                                      }
+                                    }}
+                                    placeholder="Enter brightness (0-100)"
+                                    className="w-full"
+                                  />
+                                  <p className="text-xs text-muted-foreground">
+                                    Enter a value between 0 and 100.
+                                  </p>
+                                </div>
+                                <div className="flex justify-end gap-2">
+                                  <Button
+                                    type="button"
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => setCustomBrightnessDialog({ open: false, brightness: 50 })}
+                                  >
+                                    Cancel
+                                  </Button>
+                                  <Button
+                                    type="button"
+                                    size="sm"
+                                    onClick={() => handleCustomBrightness(customBrightnessDialog.brightness)}
+                                    disabled={
+                                      customBrightnessDialog.brightness === '' ||
+                                      isNaN(parseInt(customBrightnessDialog.brightness)) ||
+                                      parseInt(customBrightnessDialog.brightness) < 0 ||
+                                      parseInt(customBrightnessDialog.brightness) > 100
+                                    }
+                                  >
+                                    Apply
+                                  </Button>
+                                </div>
+                              </div>
+                            </PopoverContent>
+                          </Popover>
                         </>
                       )}
 

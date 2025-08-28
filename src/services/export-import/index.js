@@ -4,6 +4,7 @@ import { ProjectImporter } from "./project-import.js";
 import { CSVExporter } from "./csv-export.js";
 import { CSVImporter } from "./csv-import.js";
 import { CSVParser } from "./csv-parser.js";
+import { CSVTemplateGenerator } from "./csv-template.js";
 import { Validators } from "./validators.js";
 
 class ExportImportService {
@@ -112,6 +113,20 @@ class ExportImportService {
     return CSVImporter.parseScenesTemplate2CSV(csvContent);
   }
 
+  // Download scene CSV template 1 (vertical format)
+  downloadSceneTemplate1() {
+    return CSVTemplateGenerator.downloadTemplate1();
+  }
+
+  // Download scene CSV template 2 (horizontal format)
+  downloadSceneTemplate2() {
+    return CSVTemplateGenerator.downloadTemplate2();
+  }
+
+  // Download both scene CSV templates
+  downloadBothSceneTemplates() {
+    return CSVTemplateGenerator.downloadBothTemplates();
+  }
 
 }
 

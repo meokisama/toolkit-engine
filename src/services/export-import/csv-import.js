@@ -155,6 +155,7 @@ export class CSVImporter {
     const MAX_ITEMS_PER_SCENE = 60;
     const scenes = [];
     let currentScene = null;
+    let isFirstDataRow = true;
 
     for (let i = 1; i < lines.length; i++) {
       const values = CSVParser.parseCSVLine(lines[i], delimiter);
@@ -170,6 +171,23 @@ export class CSVImporter {
       const itemType = row.TYPE?.trim();
       const address = row.ADDRESS?.trim();
       const value = row.VALUE?.trim();
+
+      // Handle first data row logic
+      if (isFirstDataRow) {
+        isFirstDataRow = false;
+
+        // If first row has empty scene name, create a default scene
+        if (!sceneName && (itemType && address)) {
+          currentScene = {
+            name: 'Scene 1',
+            originalName: 'Scene 1',
+            description: 'Imported scene: Scene 1',
+            items: [],
+            partNumber: 1
+          };
+          scenes.push(currentScene);
+        }
+      }
 
       // If scene name is provided, start a new scene
       if (sceneName) {
@@ -309,23 +327,16 @@ export class CSVImporter {
     }
 
     const MAX_ITEMS_PER_SCENE = 60;
-    const scenes = [];
+    const sceneGroups = {}; // Group scenes by original name
 
-    // Create scenes from column headers
+    // Initialize scene groups from column headers
     sceneColumns.forEach(sceneName => {
       if (sceneName.trim()) {
-        const scene = {
-          name: sceneName.trim(),
-          originalName: sceneName.trim(),
-          description: `Imported scene: ${sceneName.trim()}`,
-          items: [],
-          partNumber: 1
-        };
-        scenes.push(scene);
+        sceneGroups[sceneName.trim()] = [];
       }
     });
 
-    // Parse items and add to scenes
+    // Parse items and add to scene groups
     for (let i = 1; i < lines.length; i++) {
       const values = CSVParser.parseCSVLine(lines[i], delimiter);
       if (values.length < headers.length) continue;
@@ -345,26 +356,25 @@ export class CSVImporter {
         // Skip if no value for this scene
         // if (!itemValue) return;
 
-        // Find the current scene (might be split into parts)
-        let targetScene = scenes.find(s =>
-          s.originalName === sceneName.trim() &&
-          s.items.length < MAX_ITEMS_PER_SCENE
-        );
+        const sceneKey = sceneName.trim();
+        if (!sceneGroups[sceneKey]) return;
 
-        // If scene is full, create a new part
+        // Find the current scene part (might be split into parts)
+        let targetScene = sceneGroups[sceneKey].find(s => s.items.length < MAX_ITEMS_PER_SCENE);
+
+        // If no available scene part or all are full, create a new part
         if (!targetScene) {
-          const existingParts = scenes.filter(s => s.originalName === sceneName.trim());
-          const newPartNumber = existingParts.length + 1;
-          const newSceneName = `${sceneName.trim()} (Part ${newPartNumber})`;
+          const newPartNumber = sceneGroups[sceneKey].length + 1;
+          const newSceneName = newPartNumber === 1 ? sceneKey : `${sceneKey} (Part ${newPartNumber})`;
 
           targetScene = {
             name: newSceneName,
-            originalName: sceneName.trim(),
+            originalName: sceneKey,
             description: `Imported scene: ${newSceneName}`,
             items: [],
             partNumber: newPartNumber
           };
-          scenes.push(targetScene);
+          sceneGroups[sceneKey].push(targetScene);
         }
 
         const sceneItem = {
@@ -379,6 +389,15 @@ export class CSVImporter {
         targetScene.items.push(sceneItem);
       });
     }
+
+    // Flatten scene groups into a single array, maintaining scene grouping
+    const scenes = [];
+    sceneColumns.forEach(sceneName => {
+      const sceneKey = sceneName.trim();
+      if (sceneGroups[sceneKey]) {
+        scenes.push(...sceneGroups[sceneKey]);
+      }
+    });
 
     // Filter out empty scenes and update names for parts
     const nonEmptyScenes = scenes.filter(scene => scene.items.length > 0);

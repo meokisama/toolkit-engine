@@ -22,8 +22,8 @@ async function setupScene(unitIp, canId, sceneConfig) {
     throw new Error("Scene items must be an array");
   }
 
-  if (sceneItems.length > 85) {
-    throw new Error("Too many scene items. Maximum is 85 items.");
+  if (sceneItems.length > 60) {
+    throw new Error("Too many scene items. Maximum is 60 items.");
   }
 
   const idAddress = convertCanIdToInt(canId);
