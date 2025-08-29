@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import {
   Dialog,
   DialogContent,
@@ -144,8 +144,8 @@ export function CurtainDialog({
 
     // Get all existing addresses and sort them
     const existingAddresses = projectItems.curtain
-      .map(item => parseInt(item.address))
-      .filter(addr => !isNaN(addr) && addr >= 1 && addr <= 255)
+      .map((item) => parseInt(item.address))
+      .filter((addr) => !isNaN(addr) && addr >= 1 && addr <= 255)
       .sort((a, b) => a - b);
 
     // Find the first gap in the sequence
@@ -388,8 +388,9 @@ export function CurtainDialog({
 
             <div className="flex gap-2">
               <div
-                className={`flex flex-col gap-2 ${hasThreeGroups(formData.curtain_type) ? "w-1/3" : "w-1/2"
-                  }`}
+                className={`flex flex-col gap-2 ${
+                  hasThreeGroups(formData.curtain_type) ? "w-1/3" : "w-1/2"
+                }`}
               >
                 <Label htmlFor="open_group_id" className="text-right">
                   Open Group
@@ -402,10 +403,11 @@ export function CurtainDialog({
                     }
                     options={lightingOptions}
                     placeholder="Select group"
-                    className={`${hasThreeGroups(formData.curtain_type)
-                      ? "max-w-36"
-                      : "max-w-55"
-                      }`}
+                    className={`${
+                      hasThreeGroups(formData.curtain_type)
+                        ? "max-w-36"
+                        : "max-w-55"
+                    }`}
                   />
                 </div>
                 {errors.open_group_id && (
@@ -416,8 +418,9 @@ export function CurtainDialog({
               </div>
 
               <div
-                className={`flex flex-col gap-2 ${hasThreeGroups(formData.curtain_type) ? "w-1/3" : "w-1/2"
-                  }`}
+                className={`flex flex-col gap-2 ${
+                  hasThreeGroups(formData.curtain_type) ? "w-1/3" : "w-1/2"
+                }`}
               >
                 <Label htmlFor="close_group_id" className="text-right">
                   Close Group
@@ -430,10 +433,11 @@ export function CurtainDialog({
                     }
                     options={lightingOptions}
                     placeholder="Select group"
-                    className={`${hasThreeGroups(formData.curtain_type)
-                      ? "max-w-36"
-                      : "max-w-55"
-                      }`}
+                    className={`${
+                      hasThreeGroups(formData.curtain_type)
+                        ? "max-w-36"
+                        : "max-w-55"
+                    }`}
                   />
                 </div>
                 {errors.close_group_id && (
@@ -456,10 +460,11 @@ export function CurtainDialog({
                       }
                       options={lightingOptions}
                       placeholder="Select group"
-                      className={`${hasThreeGroups(formData.curtain_type)
-                        ? "max-w-36"
-                        : "max-w-55"
-                        }`}
+                      className={`${
+                        hasThreeGroups(formData.curtain_type)
+                          ? "max-w-36"
+                          : "max-w-55"
+                      }`}
                     />
                   </div>
                   {errors.stop_group_id && (
