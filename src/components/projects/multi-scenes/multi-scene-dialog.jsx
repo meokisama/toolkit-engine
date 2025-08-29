@@ -132,6 +132,31 @@ export function MultiSceneDialog({
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({});
 
+  // Function to find next available multi-scene address
+  const findNextAvailableMultiSceneAddress = useCallback(() => {
+    if (!projectItems.multi_scenes || projectItems.multi_scenes.length === 0) {
+      return 1; // Start from 1 if no multi-scenes exist
+    }
+
+    // Get all existing addresses and sort them
+    const existingAddresses = projectItems.multi_scenes
+      .map(item => parseInt(item.address))
+      .filter(addr => !isNaN(addr) && addr >= 1 && addr <= 255)
+      .sort((a, b) => a - b);
+
+    // Find the first gap in the sequence
+    let nextAddress = 1;
+    for (const addr of existingAddresses) {
+      if (nextAddress < addr) {
+        break; // Found a gap
+      }
+      nextAddress = addr + 1;
+    }
+
+    // Make sure we don't exceed the maximum address
+    return nextAddress <= 255 ? nextAddress : null;
+  }, [projectItems.multi_scenes]);
+
   // Load existing multi-scene scenes when editing
   const loadMultiSceneScenes = useCallback(
     async (multiSceneId) => {
@@ -172,9 +197,11 @@ export function MultiSceneDialog({
         });
         loadMultiSceneScenes(multiScene.id);
       } else {
+        // For new items, auto-fill the next available address
+        const nextAddress = findNextAvailableMultiSceneAddress();
         setFormData({
           name: "",
-          address: "",
+          address: nextAddress !== null ? nextAddress.toString() : "",
           type: 0,
           description: "",
         });
@@ -196,6 +223,7 @@ export function MultiSceneDialog({
     loadedTabs,
     loadTabData,
     loadMultiSceneScenes,
+    findNextAvailableMultiSceneAddress,
   ]);
 
   const handleInputChange = (field, value) => {

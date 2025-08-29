@@ -136,6 +136,31 @@ export function CurtainDialog({
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({});
 
+  // Function to find next available curtain address
+  const findNextAvailableCurtainAddress = useCallback(() => {
+    if (!projectItems.curtain || projectItems.curtain.length === 0) {
+      return 1; // Start from 1 if no curtains exist
+    }
+
+    // Get all existing addresses and sort them
+    const existingAddresses = projectItems.curtain
+      .map(item => parseInt(item.address))
+      .filter(addr => !isNaN(addr) && addr >= 1 && addr <= 255)
+      .sort((a, b) => a - b);
+
+    // Find the first gap in the sequence
+    let nextAddress = 1;
+    for (const addr of existingAddresses) {
+      if (nextAddress < addr) {
+        break; // Found a gap
+      }
+      nextAddress = addr + 1;
+    }
+
+    // Make sure we don't exceed the maximum address
+    return nextAddress <= 255 ? nextAddress : null;
+  }, [projectItems.curtain]);
+
   // Get lighting items for group selection
   const lightingItems = projectItems.lighting || [];
   const lightingOptions = lightingItems.map((item) => ({
@@ -164,9 +189,11 @@ export function CurtainDialog({
           transition_period: item.transition_period || 0,
         });
       } else {
+        // For new items, auto-fill the next available address
+        const nextAddress = findNextAvailableCurtainAddress();
         setFormData({
           name: "",
-          address: "",
+          address: nextAddress !== null ? nextAddress.toString() : "",
           description: "",
           object_type: OBJECT_TYPES.CURTAIN.obj_name,
           curtain_type: "",
@@ -179,7 +206,7 @@ export function CurtainDialog({
         });
       }
     }
-  }, [open, item, mode]);
+  }, [open, item, mode, findNextAvailableCurtainAddress]);
 
   // Helper function to check if curtain type has 3 groups
   const hasThreeGroups = (curtainType) => {
@@ -361,9 +388,8 @@ export function CurtainDialog({
 
             <div className="flex gap-2">
               <div
-                className={`flex flex-col gap-2 ${
-                  hasThreeGroups(formData.curtain_type) ? "w-1/3" : "w-1/2"
-                }`}
+                className={`flex flex-col gap-2 ${hasThreeGroups(formData.curtain_type) ? "w-1/3" : "w-1/2"
+                  }`}
               >
                 <Label htmlFor="open_group_id" className="text-right">
                   Open Group
@@ -376,11 +402,10 @@ export function CurtainDialog({
                     }
                     options={lightingOptions}
                     placeholder="Select group"
-                    className={`${
-                      hasThreeGroups(formData.curtain_type)
-                        ? "max-w-36"
-                        : "max-w-55"
-                    }`}
+                    className={`${hasThreeGroups(formData.curtain_type)
+                      ? "max-w-36"
+                      : "max-w-55"
+                      }`}
                   />
                 </div>
                 {errors.open_group_id && (
@@ -391,9 +416,8 @@ export function CurtainDialog({
               </div>
 
               <div
-                className={`flex flex-col gap-2 ${
-                  hasThreeGroups(formData.curtain_type) ? "w-1/3" : "w-1/2"
-                }`}
+                className={`flex flex-col gap-2 ${hasThreeGroups(formData.curtain_type) ? "w-1/3" : "w-1/2"
+                  }`}
               >
                 <Label htmlFor="close_group_id" className="text-right">
                   Close Group
@@ -406,11 +430,10 @@ export function CurtainDialog({
                     }
                     options={lightingOptions}
                     placeholder="Select group"
-                    className={`${
-                      hasThreeGroups(formData.curtain_type)
-                        ? "max-w-36"
-                        : "max-w-55"
-                    }`}
+                    className={`${hasThreeGroups(formData.curtain_type)
+                      ? "max-w-36"
+                      : "max-w-55"
+                      }`}
                   />
                 </div>
                 {errors.close_group_id && (
@@ -433,11 +456,10 @@ export function CurtainDialog({
                       }
                       options={lightingOptions}
                       placeholder="Select group"
-                      className={`${
-                        hasThreeGroups(formData.curtain_type)
-                          ? "max-w-36"
-                          : "max-w-55"
-                      }`}
+                      className={`${hasThreeGroups(formData.curtain_type)
+                        ? "max-w-36"
+                        : "max-w-55"
+                        }`}
                     />
                   </div>
                   {errors.stop_group_id && (
