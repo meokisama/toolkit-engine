@@ -151,7 +151,8 @@ export function SendItemsDialog({
       }
     } catch (error) {
       console.error(`Bulk send failed:`, error);
-      toast.error("Bulk send operation failed");
+      const errorMessage = error.message || "Bulk send operation failed";
+      toast.error(errorMessage);
     } finally {
       setCurrentItem("");
     }
@@ -285,9 +286,8 @@ export function SendItemsDialog({
                   ? "Sending..."
                   : `Send All (${items.length} ${itemTypePlural})`
                 : selectedUnitIds.length === 0
-                ? `Send ${ItemTypeCapitalized}`
-                : `Send ${ItemTypeCapitalized} to ${
-                    selectedUnitIds.length
+                  ? `Send ${ItemTypeCapitalized}`
+                  : `Send ${ItemTypeCapitalized} to ${selectedUnitIds.length
                   } Unit${selectedUnitIds.length !== 1 ? "s" : ""}`}
             </Button>
           ) : (

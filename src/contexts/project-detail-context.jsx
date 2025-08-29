@@ -77,7 +77,7 @@ export function ProjectDetailProvider({ children }) {
         // Load specific category items using individual API calls
         // Map tab name to API name
         const apiName = tabName === "multi_scenes" ? "multiScenes" :
-                       tabName === "sequences" ? "sequences" : tabName;
+          tabName === "sequences" ? "sequences" : tabName;
         const items = await window.electronAPI[apiName].getAll(projectId);
         setProjectItems((prev) => ({
           ...prev,
@@ -89,8 +89,9 @@ export function ProjectDetailProvider({ children }) {
       setLoadedTabs((prev) => new Set([...prev, tabName]));
     } catch (err) {
       console.error(`Failed to load ${tabName} items:`, err);
-      setError(`Failed to load ${tabName} items`);
-      toast.error(`Failed to load ${tabName} items`);
+      const errorMessage = err.message || `Failed to load ${tabName} items`;
+      setError(errorMessage);
+      toast.error(errorMessage);
     } finally {
       setTabLoading((prev) => ({ ...prev, [tabName]: false }));
     }
@@ -136,8 +137,9 @@ export function ProjectDetailProvider({ children }) {
       );
     } catch (err) {
       console.error("Failed to load project items:", err);
-      setError("Failed to load project items");
-      toast.error("Failed to load project items");
+      const errorMessage = err.message || "Failed to load project items";
+      setError(errorMessage);
+      toast.error(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -239,7 +241,8 @@ export function ProjectDetailProvider({ children }) {
         return newItem;
       } catch (err) {
         console.error(`Failed to create ${category} item:`, err);
-        toast.error(`Failed to create ${category} item`);
+        const errorMessage = err.message || `Failed to create ${category} item`;
+        toast.error(errorMessage);
         throw err;
       }
     },
@@ -266,7 +269,8 @@ export function ProjectDetailProvider({ children }) {
       return updatedItem;
     } catch (err) {
       console.error(`Failed to update ${category} item:`, err);
-      toast.error(`Failed to update ${category} item`);
+      const errorMessage = err.message || `Failed to update ${category} item`;
+      toast.error(errorMessage);
       throw err;
     }
   }, []);
@@ -285,7 +289,8 @@ export function ProjectDetailProvider({ children }) {
       );
     } catch (err) {
       console.error(`Failed to delete ${category} item:`, err);
-      toast.error(`Failed to delete ${category} item`);
+      const errorMessage = err.message || `Failed to delete ${category} item`;
+      toast.error(errorMessage);
       throw err;
     }
   }, []);
@@ -305,7 +310,8 @@ export function ProjectDetailProvider({ children }) {
       return duplicatedItem;
     } catch (err) {
       console.error(`Failed to duplicate ${category} item:`, err);
-      toast.error(`Failed to duplicate ${category} item`);
+      const errorMessage = err.message || `Failed to duplicate ${category} item`;
+      toast.error(errorMessage);
       throw err;
     }
   }, []);
@@ -327,7 +333,8 @@ export function ProjectDetailProvider({ children }) {
         );
       } catch (err) {
         console.error(`Failed to export ${category} items:`, err);
-        toast.error(`Failed to export ${category} items`);
+        const errorMessage = err.message || `Failed to export ${category} items`;
+        toast.error(errorMessage);
         return false;
       }
     },
@@ -453,7 +460,8 @@ export function ProjectDetailProvider({ children }) {
       toast.success("Aircon card deleted successfully");
     } catch (err) {
       console.error("Failed to delete aircon card:", err);
-      toast.error("Failed to delete aircon card");
+      const errorMessage = err.message || "Failed to delete aircon card";
+      toast.error(errorMessage);
       throw err;
     }
   }, []);
@@ -484,7 +492,8 @@ export function ProjectDetailProvider({ children }) {
       return duplicatedItems;
     } catch (err) {
       console.error("Failed to duplicate aircon card:", err);
-      toast.error("Failed to duplicate aircon card");
+      const errorMessage = err.message || "Failed to duplicate aircon card";
+      toast.error(errorMessage);
       throw err;
     }
   }, []);
@@ -535,17 +544,17 @@ export function ProjectDetailProvider({ children }) {
           prev.map((card) =>
             card.address === originalAddress
               ? {
-                  ...card,
-                  address: cardData.address, // Update the address
+                ...card,
+                address: cardData.address, // Update the address
+                name: cardData.name,
+                description: cardData.description,
+                item: {
+                  ...card.item,
+                  address: cardData.address, // Update the address in item too
                   name: cardData.name,
                   description: cardData.description,
-                  item: {
-                    ...card.item,
-                    address: cardData.address, // Update the address in item too
-                    name: cardData.name,
-                    description: cardData.description,
-                  },
-                }
+                },
+              }
               : card
           )
         );

@@ -202,18 +202,23 @@ const SequenceTable = memo(function SequenceTable({
     setSaveLoading(true);
     try {
       for (const [itemId, changes] of pendingChangesRef.current) {
-        await updateItem(category, itemId, changes);
+        const item = items.find((i) => i.id === itemId);
+        if (item) {
+          const updatedItem = { ...item, ...changes };
+          await updateItem(category, itemId, updatedItem);
+        }
       }
       pendingChangesRef.current.clear();
       setPendingChangesCount(0);
       toast.success("Changes saved successfully");
     } catch (error) {
       console.error("Failed to save changes:", error);
-      toast.error("Failed to save changes");
+      const errorMessage = error.message || "Failed to save changes";
+      toast.error(errorMessage);
     } finally {
       setSaveLoading(false);
     }
-  }, [updateItem]);
+  }, [updateItem, items]);
 
   const handleDialogClose = useCallback(
     (success) => {

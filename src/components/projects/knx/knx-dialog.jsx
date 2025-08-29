@@ -122,7 +122,7 @@ export function KnxItemDialog({ open, onOpenChange, mode, item }) {
       if (mode === "edit" && item) {
         setFormData({
           name: item.name || "",
-          address: item.address || "",
+          address: item.address !== null && item.address !== undefined ? item.address : "",
           type: item.type || 0,
           factor: item.factor || 1,
           feedback: item.feedback || 0,
@@ -508,16 +508,15 @@ export function KnxItemDialog({ open, onOpenChange, mode, item }) {
                         ? "Loading..."
                         : formData.rcu_group_id
                           ? (() => {
-                              const selectedItem = rcuGroupItems.find(
-                                (item) => item.id === formData.rcu_group_id
-                              );
-                              return selectedItem
-                                ? `${
-                                    selectedItem.name ||
-                                    `Group ${selectedItem.address}`
-                                  } (Address: ${selectedItem.address})`
-                                : "Select group...";
-                            })()
+                            const selectedItem = rcuGroupItems.find(
+                              (item) => item.id === formData.rcu_group_id
+                            );
+                            return selectedItem
+                              ? `${selectedItem.name ||
+                              `Group ${selectedItem.address}`
+                              } (Address: ${selectedItem.address})`
+                              : "Select group...";
+                          })()
                           : "Select group..."}
                     </span>
                     <ChevronsUpDown className="h-4 w-4 shrink-0 opacity-50" />
@@ -549,9 +548,8 @@ export function KnxItemDialog({ open, onOpenChange, mode, item }) {
                         {rcuGroupItems.map((item) => (
                           <CommandItem
                             key={item.id}
-                            value={`${item.name || `Group ${item.address}`} ${
-                              item.address
-                            }`}
+                            value={`${item.name || `Group ${item.address}`} ${item.address
+                              }`}
                             onSelect={() => {
                               handleInputChange("rcu_group_id", item.id);
                               setRcuGroupOpen(false);

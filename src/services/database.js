@@ -237,7 +237,7 @@ class DatabaseService {
       CREATE TABLE IF NOT EXISTS multi_scenes (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         project_id INTEGER NOT NULL,
-        name TEXT NOT NULL CHECK(length(name) <= 15),
+        name TEXT NOT NULL,
         address TEXT NOT NULL,
         type INTEGER NOT NULL DEFAULT 0,
         description TEXT,
@@ -263,7 +263,7 @@ class DatabaseService {
       CREATE TABLE IF NOT EXISTS sequences (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         project_id INTEGER NOT NULL,
-        name TEXT NOT NULL CHECK(length(name) <= 15),
+        name TEXT NOT NULL,
         address TEXT NOT NULL,
         description TEXT,
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
@@ -969,12 +969,18 @@ class DatabaseService {
           throw new Error("Name is required for multi-scene.");
         }
 
-        if (name.length > 15) {
-          throw new Error("Multi-scene name must be 15 characters or less.");
-        }
-
         if (!address || !address.trim()) {
           throw new Error("Address is required for multi-scene.");
+        }
+
+        // Check for duplicate addresses
+        const existingMultiScene = this.db
+          .prepare(
+            "SELECT COUNT(*) as count FROM multi_scenes WHERE project_id = ? AND address = ?"
+          )
+          .get(projectId, address.trim());
+        if (existingMultiScene.count > 0) {
+          throw new Error(`Multi-scene address ${address.trim()} already exists.`);
         }
 
         // Check maximum multi-scene limit (40 multi-scenes)
@@ -994,12 +1000,18 @@ class DatabaseService {
           throw new Error("Name is required for sequence.");
         }
 
-        if (name.length > 15) {
-          throw new Error("Sequence name must be 15 characters or less.");
-        }
-
         if (!address || !address.trim()) {
           throw new Error("Address is required for sequence.");
+        }
+
+        // Check for duplicate addresses
+        const existingSequence = this.db
+          .prepare(
+            "SELECT COUNT(*) as count FROM sequences WHERE project_id = ? AND address = ?"
+          )
+          .get(projectId, address.trim());
+        if (existingSequence.count > 0) {
+          throw new Error(`Sequence address ${address.trim()} already exists.`);
         }
 
         // Check maximum sequence limit (20 sequences)
@@ -1393,11 +1405,21 @@ class DatabaseService {
         if (!name || !name.trim()) {
           throw new Error("Name is required for multi-scene.");
         }
-        if (name.length > 15) {
-          throw new Error("Multi-scene name must be 15 characters or less.");
-        }
         if (!address || !address.trim()) {
           throw new Error("Address is required for multi-scene.");
+        }
+
+        // Check for duplicate addresses (excluding current item)
+        const currentItem = this.getProjectItemById(id, tableName);
+        if (currentItem && currentItem.address !== address.trim()) {
+          const existingMultiScene = this.db
+            .prepare(
+              "SELECT COUNT(*) as count FROM multi_scenes WHERE project_id = ? AND address = ? AND id != ?"
+            )
+            .get(currentItem.project_id, address.trim(), id);
+          if (existingMultiScene.count > 0) {
+            throw new Error(`Multi-scene address ${address.trim()} already exists.`);
+          }
         }
 
         const stmt = this.db.prepare(`
@@ -1418,11 +1440,21 @@ class DatabaseService {
         if (!name || !name.trim()) {
           throw new Error("Name is required for sequence.");
         }
-        if (name.length > 15) {
-          throw new Error("Sequence name must be 15 characters or less.");
-        }
         if (!address || !address.trim()) {
           throw new Error("Address is required for sequence.");
+        }
+
+        // Check for duplicate addresses (excluding current item)
+        const currentItem = this.getProjectItemById(id, tableName);
+        if (currentItem && currentItem.address !== address.trim()) {
+          const existingSequence = this.db
+            .prepare(
+              "SELECT COUNT(*) as count FROM sequences WHERE project_id = ? AND address = ? AND id != ?"
+            )
+            .get(currentItem.project_id, address.trim(), id);
+          if (existingSequence.count > 0) {
+            throw new Error(`Sequence address ${address.trim()} already exists.`);
+          }
         }
 
         const stmt = this.db.prepare(`

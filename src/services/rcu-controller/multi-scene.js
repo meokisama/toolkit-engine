@@ -117,10 +117,8 @@ async function setupMultiScene(unitIp, canId, multiSceneConfig) {
     throw new Error("Multi-scene index must be between 0 and 39");
   }
 
-  if (isSendName && (!multiSceneName || multiSceneName.length > 15)) {
-    throw new Error(
-      "Multi-scene name must be provided and not exceed 15 characters"
-    );
+  if (isSendName && !multiSceneName) {
+    throw new Error("Multi-scene name must be provided");
   }
 
   if (!multiSceneAddress) {

@@ -297,7 +297,8 @@ export function ScheduleDialog({
       ) {
         toast.error("Maximum 32 schedules allowed per project");
       } else {
-        toast.error("Failed to save schedule");
+        const errorMessage = error.message || "Failed to save schedule";
+        toast.error(errorMessage);
       }
     } finally {
       setLoading(false);
@@ -506,8 +507,8 @@ export function ScheduleDialog({
               {loading
                 ? "Saving..."
                 : mode === "edit"
-                ? "Update Schedule"
-                : "Create Schedule"}
+                  ? "Update Schedule"
+                  : "Create Schedule"}
             </Button>
           </div>
         </form>

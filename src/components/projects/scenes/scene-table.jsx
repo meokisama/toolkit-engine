@@ -133,6 +133,8 @@ const SceneTable = memo(function SceneTable({ items = [], loading = false }) {
       setPendingChangesCount(0);
     } catch (error) {
       console.error("Failed to save changes:", error);
+      const errorMessage = error.message || "Failed to save changes";
+      toast.error(errorMessage);
     } finally {
       setSaveLoading(false);
     }

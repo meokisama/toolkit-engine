@@ -118,8 +118,6 @@ export function SequenceDialog({
 
     if (!formData.name?.trim()) {
       newErrors.name = "Name is required";
-    } else if (formData.name.length > 15) {
-      newErrors.name = "Name must be 15 characters or less";
     }
 
     if (!formData.address?.trim()) {
@@ -128,6 +126,15 @@ export function SequenceDialog({
       const addressNum = parseInt(formData.address);
       if (isNaN(addressNum) || addressNum < 1 || addressNum > 255) {
         newErrors.address = "Address must be between 1 and 255";
+      } else {
+        // Check for duplicate addresses
+        const existingSequences = projectItems?.sequences || [];
+        const duplicateSequence = existingSequences.find(
+          (seq) => seq.address === formData.address.trim() && seq.id !== sequence?.id
+        );
+        if (duplicateSequence) {
+          newErrors.address = `Address ${formData.address.trim()} is already used by another sequence`;
+        }
       }
     }
 
@@ -182,7 +189,8 @@ export function SequenceDialog({
       setSelectedMultiSceneIds([]);
     } catch (error) {
       console.error("Failed to save sequence:", error);
-      toast.error("Failed to save sequence");
+      const errorMessage = error.message || "Failed to save sequence";
+      toast.error(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -223,7 +231,6 @@ export function SequenceDialog({
                   value={formData.name}
                   onChange={(e) => handleInputChange("name", e.target.value)}
                   placeholder="Sequence name"
-                  maxLength={15}
                   className={errors.name ? "border-red-500" : ""}
                 />
                 {errors.name && (

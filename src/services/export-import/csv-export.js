@@ -51,7 +51,8 @@ export class CSVExporter {
       return true;
     } catch (error) {
       console.error('Export items failed:', error);
-      toast.error(`Failed to export ${category} items`);
+      const errorMessage = error.message || `Failed to export ${category} items`;
+      toast.error(errorMessage);
       return false;
     }
   }

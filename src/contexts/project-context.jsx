@@ -33,8 +33,9 @@ export function ProjectProvider({ children }) {
       setProjects(projectsData);
     } catch (err) {
       console.error("Failed to load projects:", err);
-      setError("Failed to load projects");
-      toast.error("Failed to load projects");
+      const errorMessage = err.message || "Failed to load projects";
+      setError(errorMessage);
+      toast.error(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -49,7 +50,8 @@ export function ProjectProvider({ children }) {
       return newProject;
     } catch (err) {
       console.error("Failed to create project:", err);
-      toast.error("Failed to create project");
+      const errorMessage = err.message || "Failed to create project";
+      toast.error(errorMessage);
       throw err;
     }
   }, []);
@@ -68,7 +70,8 @@ export function ProjectProvider({ children }) {
       return updatedProject;
     } catch (err) {
       console.error("Failed to update project:", err);
-      toast.error("Failed to update project");
+      const errorMessage = err.message || "Failed to update project";
+      toast.error(errorMessage);
       throw err;
     }
   }, []);
@@ -81,7 +84,8 @@ export function ProjectProvider({ children }) {
       toast.success("Project deleted successfully");
     } catch (err) {
       console.error("Failed to delete project:", err);
-      toast.error("Failed to delete project");
+      const errorMessage = err.message || "Failed to delete project";
+      toast.error(errorMessage);
       throw err;
     }
   }, []);
@@ -95,7 +99,8 @@ export function ProjectProvider({ children }) {
       return duplicatedProject;
     } catch (err) {
       console.error("Failed to duplicate project:", err);
-      toast.error("Failed to duplicate project");
+      const errorMessage = err.message || "Failed to duplicate project";
+      toast.error(errorMessage);
       throw err;
     }
   }, []);
@@ -114,7 +119,8 @@ export function ProjectProvider({ children }) {
         return await exportImportService.exportProject(project, projectItems);
       } catch (err) {
         console.error("Failed to export project:", err);
-        toast.error("Failed to export project");
+        const errorMessage = err.message || "Failed to export project";
+        toast.error(errorMessage);
         return false;
       }
     },
@@ -138,7 +144,8 @@ export function ProjectProvider({ children }) {
       return result.project;
     } catch (err) {
       console.error("Failed to import project:", err);
-      toast.error("Failed to import project");
+      const errorMessage = err.message || "Failed to import project";
+      toast.error(errorMessage);
       throw err;
     }
   }, []);

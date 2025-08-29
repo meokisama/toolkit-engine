@@ -2,21 +2,13 @@ import React from "react";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import {
-  MoreHorizontal,
   Edit,
   Copy,
   Trash2,
   Send,
   FileText,
   Hash,
+  Settings,
 } from "lucide-react";
 import { CONSTANTS } from "@/constants";
 import { EditableCell } from "@/components/projects/data-table/editable-cell";
@@ -98,10 +90,7 @@ export function createMultiSceneColumns(
             <EditableCell
               value={effectiveValue?.toString() || ""}
               onSave={(newValue) => {
-                const numValue = parseInt(newValue);
-                if (!isNaN(numValue) && numValue >= 0 && numValue <= 255) {
-                  onCellEdit(row.original.id, "address", numValue);
-                }
+                onCellEdit(row.original.id, "address", newValue.toString());
               }}
               placeholder="0-255"
               type="number"
@@ -200,42 +189,50 @@ export function createMultiSceneColumns(
         const multiScene = row.original;
 
         return (
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="h-8 w-8 p-0">
-                <span className="sr-only">Open menu</span>
-                <MoreHorizontal className="h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={() => onEdit(multiScene)}>
-                <Edit className="mr-2 h-4 w-4" />
-                Edit
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => onSendToUnit(multiScene)}>
-                <Send className="mr-2 h-4 w-4" />
-                Send to Unit
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => onDuplicate(multiScene.id)}>
-                <Copy className="mr-2 h-4 w-4" />
-                Duplicate
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem
-                onClick={() => onDelete(multiScene.id)}
-                className="text-red-600"
-              >
-                <Trash2 className="mr-2 h-4 w-4" />
-                Delete
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+          <div className="flex justify-end gap-1">
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={() => onEdit(multiScene)}
+              className="cursor-pointer"
+              title="Edit multi-scene"
+            >
+              <Settings className="h-4 w-4" />
+            </Button>
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={() => onSendToUnit(multiScene)}
+              className="cursor-pointer"
+              title="Send multi-scene to network unit"
+            >
+              <Send className="h-4 w-4" />
+            </Button>
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={() => onDuplicate(multiScene.id)}
+              className="cursor-pointer"
+              title="Duplicate multi-scene"
+            >
+              <Copy className="h-4 w-4" />
+            </Button>
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={() => onDelete(multiScene)}
+              className="text-destructive hover:text-destructive cursor-pointer"
+              title="Delete multi-scene"
+            >
+              <Trash2 className="h-4 w-4" />
+            </Button>
+          </div>
         );
       },
       enableSorting: false,
       enableHiding: false,
       meta: {
-        className: "w-[3%]",
+        className: "w-[15%]",
       },
     },
   ];

@@ -516,7 +516,8 @@ export const useNetworkOutputConfig = (item, outputConfigs = [], setOutputConfig
       return true;
     } catch (error) {
       console.error("Failed to save output configuration:", error);
-      toast.error("Failed to save output configuration");
+      const errorMessage = error.message || "Failed to save output configuration";
+      toast.error(errorMessage);
       return false;
     }
   }, [currentOutputConfig, item?.ip_address, item?.id_can, loadAllACConfigs, setAllACConfigs, setAllOutputConfigs]);

@@ -46,14 +46,16 @@ export function ImportDialog({ open, onOpenChange, onImport }) {
           toast.success("Project file loaded successfully");
         } catch (error) {
           console.error("Failed to read file:", error);
-          toast.error("Failed to read project file");
+          const errorMessage = error.message || "Failed to read project file";
+          toast.error(errorMessage);
         }
       };
 
       input.click();
     } catch (error) {
       console.error("File selection failed:", error);
-      toast.error("Failed to select file");
+      const errorMessage = error.message || "Failed to select file";
+      toast.error(errorMessage);
     }
   };
 
@@ -97,7 +99,8 @@ export function ImportDialog({ open, onOpenChange, onImport }) {
       handleClose();
     } catch (error) {
       console.error("Import failed:", error);
-      toast.error("Failed to import project");
+      const errorMessage = error.message || "Failed to import project";
+      toast.error(errorMessage);
     } finally {
       setLoading(false);
     }

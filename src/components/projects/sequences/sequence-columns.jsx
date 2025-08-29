@@ -88,11 +88,7 @@ export function createSequenceColumns(
           <EditableCell
             value={effectiveValue?.toString() || ""}
             onSave={(newValue) => {
-              const numValue = parseInt(newValue);
-              if (isNaN(numValue) || numValue < 1 || numValue > 255) {
-                throw new Error("Address must be between 1 and 255");
-              }
-              onCellEdit(row.original.id, "address", numValue);
+              onCellEdit(row.original.id, "address", newValue.toString());
             }}
             placeholder="1-255"
             className="text-center w-full"
@@ -122,7 +118,7 @@ export function createSequenceColumns(
         const count = row.original.multiSceneCount || 0;
         return (
           <div className="w-full flex justify-center">
-            <Badge className="text-xs">{count}</Badge>
+            <Badge className="text-xs">{count} multi-scenes</Badge>
           </div>
         );
       },
@@ -194,7 +190,7 @@ export function createSequenceColumns(
             <Button
               variant="outline"
               size="icon"
-              onClick={() => onDelete(sequence.id)}
+              onClick={() => onDelete(sequence)}
               className="text-destructive hover:text-destructive cursor-pointer"
               title="Delete sequence"
             >

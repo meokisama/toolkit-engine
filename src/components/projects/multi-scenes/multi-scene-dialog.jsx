@@ -311,12 +311,24 @@ export function MultiSceneDialog({
 
     if (!formData.name.trim()) {
       newErrors.name = "Name is required";
-    } else if (formData.name.length > 15) {
-      newErrors.name = "Name must be 15 characters or less";
     }
 
     if (!formData.address.trim()) {
       newErrors.address = "Address is required";
+    } else {
+      const addressNum = parseInt(formData.address);
+      if (isNaN(addressNum) || addressNum < 0 || addressNum > 255) {
+        newErrors.address = "Address must be between 0 and 255";
+      } else {
+        // Check for duplicate addresses
+        const existingMultiScenes = projectItems?.multi_scenes || [];
+        const duplicateMultiScene = existingMultiScenes.find(
+          (ms) => ms.address === formData.address.trim() && ms.id !== multiScene?.id
+        );
+        if (duplicateMultiScene) {
+          newErrors.address = `Address ${formData.address.trim()} is already used by another multi-scene`;
+        }
+      }
     }
 
     if (selectedSceneIds.length === 0) {
@@ -390,7 +402,8 @@ export function MultiSceneDialog({
       setAddressOrder([]);
     } catch (error) {
       console.error("Failed to save multi-scene:", error);
-      toast.error("Failed to save multi-scene");
+      const errorMessage = error.message || "Failed to save multi-scene";
+      toast.error(errorMessage);
     } finally {
       setLoading(false);
     }

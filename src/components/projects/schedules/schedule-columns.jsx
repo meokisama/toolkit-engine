@@ -347,7 +347,7 @@ export function createScheduleColumns(
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem
-                onClick={() => onDelete(schedule.id)}
+                onClick={() => onDelete(schedule)}
                 className="text-destructive"
               >
                 <Trash2 className="mr-2 h-4 w-4" />
