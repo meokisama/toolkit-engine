@@ -43,6 +43,31 @@ export function SequenceDialog({
   const [loadingMultiScenes, setLoadingMultiScenes] = useState(false);
   const [errors, setErrors] = useState({});
 
+  // Function to find next available sequence address
+  const findNextAvailableSequenceAddress = useCallback(() => {
+    if (!projectItems.sequences || projectItems.sequences.length === 0) {
+      return 1; // Start from 1 if no sequences exist
+    }
+
+    // Get all existing addresses and sort them
+    const existingAddresses = projectItems.sequences
+      .map(item => parseInt(item.address))
+      .filter(addr => !isNaN(addr) && addr >= 1 && addr <= 255)
+      .sort((a, b) => a - b);
+
+    // Find the first gap in the sequence
+    let nextAddress = 1;
+    for (const addr of existingAddresses) {
+      if (nextAddress < addr) {
+        break; // Found a gap
+      }
+      nextAddress = addr + 1;
+    }
+
+    // Make sure we don't exceed the maximum address
+    return nextAddress <= 255 ? nextAddress : null;
+  }, [projectItems.sequences]);
+
   // Load existing sequence multi-scenes when editing
   const loadSequenceMultiScenes = useCallback(async (sequenceId) => {
     try {
@@ -67,16 +92,18 @@ export function SequenceDialog({
         });
         loadSequenceMultiScenes(sequence.id);
       } else {
+        // For new items, auto-fill the next available address
+        const nextAddress = findNextAvailableSequenceAddress();
         setFormData({
           name: "",
-          address: "",
+          address: nextAddress !== null ? nextAddress.toString() : "",
           description: "",
         });
         setSelectedMultiSceneIds([]);
       }
       setErrors({});
     }
-  }, [open, mode, sequence, loadSequenceMultiScenes]);
+  }, [open, mode, sequence, loadSequenceMultiScenes, findNextAvailableSequenceAddress]);
 
   // Load multi-scenes tab data when dialog opens
   useEffect(() => {

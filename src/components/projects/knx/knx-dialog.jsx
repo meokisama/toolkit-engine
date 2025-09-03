@@ -63,6 +63,31 @@ export function KnxItemDialog({ open, onOpenChange, mode, item }) {
   });
   const [errors, setErrors] = useState({});
 
+  // Function to find next available KNX address
+  const findNextAvailableKnxAddress = useCallback(() => {
+    if (!projectItems.knx || projectItems.knx.length === 0) {
+      return 0; // Start from 0 if no KNX items exist
+    }
+
+    // Get all existing addresses and sort them
+    const existingAddresses = projectItems.knx
+      .map(item => parseInt(item.address))
+      .filter(addr => !isNaN(addr) && addr >= 0 && addr <= 511)
+      .sort((a, b) => a - b);
+
+    // Find the first gap in the sequence
+    let nextAddress = 0;
+    for (const addr of existingAddresses) {
+      if (nextAddress < addr) {
+        break; // Found a gap
+      }
+      nextAddress = addr + 1;
+    }
+
+    // Make sure we don't exceed the maximum address
+    return nextAddress <= 511 ? nextAddress : null;
+  }, [projectItems.knx]);
+
   // Load RCU Group data based on KNX type
   const loadRcuGroupDataForType = useCallback(
     async (knxType) => {
@@ -137,9 +162,11 @@ export function KnxItemDialog({ open, onOpenChange, mode, item }) {
           loadRcuGroupDataForType(item.type);
         }
       } else {
+        // For new items, auto-fill the next available address
+        const nextAddress = findNextAvailableKnxAddress();
         setFormData({
           name: "",
-          address: "",
+          address: nextAddress !== null ? nextAddress.toString() : "",
           type: 0,
           factor: 1,
           feedback: 0,
@@ -152,7 +179,7 @@ export function KnxItemDialog({ open, onOpenChange, mode, item }) {
       }
       setErrors({});
     }
-  }, [open, mode, item]);
+  }, [open, mode, item, findNextAvailableKnxAddress]);
 
   const validateForm = () => {
     const newErrors = {};

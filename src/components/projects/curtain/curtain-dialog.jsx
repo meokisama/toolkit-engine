@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import {
   Dialog,
   DialogContent,
@@ -136,6 +136,31 @@ export function CurtainDialog({
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({});
 
+  // Function to find next available curtain address
+  const findNextAvailableCurtainAddress = useCallback(() => {
+    if (!projectItems.curtain || projectItems.curtain.length === 0) {
+      return 1; // Start from 1 if no curtains exist
+    }
+
+    // Get all existing addresses and sort them
+    const existingAddresses = projectItems.curtain
+      .map((item) => parseInt(item.address))
+      .filter((addr) => !isNaN(addr) && addr >= 1 && addr <= 255)
+      .sort((a, b) => a - b);
+
+    // Find the first gap in the sequence
+    let nextAddress = 1;
+    for (const addr of existingAddresses) {
+      if (nextAddress < addr) {
+        break; // Found a gap
+      }
+      nextAddress = addr + 1;
+    }
+
+    // Make sure we don't exceed the maximum address
+    return nextAddress <= 255 ? nextAddress : null;
+  }, [projectItems.curtain]);
+
   // Get lighting items for group selection
   const lightingItems = projectItems.lighting || [];
   const lightingOptions = lightingItems.map((item) => ({
@@ -164,9 +189,11 @@ export function CurtainDialog({
           transition_period: item.transition_period || 0,
         });
       } else {
+        // For new items, auto-fill the next available address
+        const nextAddress = findNextAvailableCurtainAddress();
         setFormData({
           name: "",
-          address: "",
+          address: nextAddress !== null ? nextAddress.toString() : "",
           description: "",
           object_type: OBJECT_TYPES.CURTAIN.obj_name,
           curtain_type: "",
@@ -179,7 +206,7 @@ export function CurtainDialog({
         });
       }
     }
-  }, [open, item, mode]);
+  }, [open, item, mode, findNextAvailableCurtainAddress]);
 
   // Helper function to check if curtain type has 3 groups
   const hasThreeGroups = (curtainType) => {
