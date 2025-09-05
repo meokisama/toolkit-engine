@@ -149,7 +149,8 @@ export function KnxControlDialog({ open, onOpenChange, unit }) {
 
   // Helper function to format KNX display name
   const formatKnxName = useCallback((networkKnx) => {
-    const networkName = networkKnx.name || "No name";
+    const defaultName = `KNX ${networkKnx.address}`;
+    const networkName = networkKnx.name || defaultName;
     const databaseName = getDatabaseKnxName(networkKnx.address);
 
     if (databaseName && networkName !== databaseName) {
