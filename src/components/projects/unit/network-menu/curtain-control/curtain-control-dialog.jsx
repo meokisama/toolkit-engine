@@ -149,7 +149,8 @@ export function CurtainControlDialog({ open, onOpenChange, unit }) {
 
   // Helper function to format curtain display name
   const formatCurtainName = useCallback((networkCurtain) => {
-    const networkName = networkCurtain.name || "No name";
+    const defaultName = `Curtain ${networkCurtain.index}`;
+    const networkName = networkCurtain.name || defaultName;
     const databaseName = getDatabaseCurtainName(networkCurtain.address);
 
     if (databaseName && networkName !== databaseName) {

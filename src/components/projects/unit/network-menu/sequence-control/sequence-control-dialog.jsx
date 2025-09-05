@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useMemo, memo, useEffect } from "react";
+import { useState, useCallback, memo, useEffect } from "react";
 import { Play, Trash2, List, ListOrdered } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -168,7 +168,8 @@ export function TriggerSequenceDialog({ open, onOpenChange, unit }) {
 
   // Helper function to format sequence display name
   const formatSequenceName = useCallback((networkSequence) => {
-    const networkName = networkSequence.sequenceName || "No name";
+    const defaultName = `Sequence ${networkSequence.sequenceIndex}`;
+    const networkName = networkSequence.sequenceName || defaultName;
     const databaseName = getDatabaseSequenceName(networkSequence.sequenceAddress);
 
     if (databaseName && networkName !== databaseName) {

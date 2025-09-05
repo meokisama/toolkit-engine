@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useMemo, memo, useEffect } from "react";
+import { useState, useCallback, memo, useEffect } from "react";
 import { Play, Trash2, List, GitCompare } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -185,8 +185,9 @@ export function TriggerMultiSceneDialog({ open, onOpenChange, unit }) {
 
   // Helper function to format multi-scene display name
   const formatMultiSceneName = useCallback((networkMultiScene) => {
-    const networkName = networkMultiScene.name || "No name";
-    const databaseName = getDatabaseMultiSceneName(networkMultiScene.address);
+    const defaultName = `Multi-Scene ${networkMultiScene.multiSceneIndex}`;
+    const networkName = networkMultiScene.multiSceneName || defaultName;
+    const databaseName = getDatabaseMultiSceneName(networkMultiScene.multiSceneAddress);
 
     if (databaseName && networkName !== databaseName) {
       return `${networkName} - ${databaseName}`;
