@@ -25,6 +25,7 @@ import {
 import { toast } from "sonner";
 import { CONSTANTS } from "@/constants";
 import { DeleteCurtainDialog } from "./delete-curtain-popover";
+import { useProjectDetail } from "@/contexts/project-detail-context";
 
 // Initial state for better state management
 const initialState = {
@@ -41,12 +42,14 @@ const initialLoadingState = {
 };
 
 // Memoized CurtainCard component to prevent unnecessary re-renders
-const CurtainCard = memo(({ curtain, onControl, onDelete, loading }) => (
+const CurtainCard = memo(({ curtain, onControl, onDelete, loading, formatCurtainName }) => (
   <Card className="relative">
     <CardContent>
       <div className="flex items-center justify-between">
         <CardTitle className="flex flex-col gap-2">
-          <span className="text-lg font-bold">Curtain #{curtain.index}</span>
+          <span className="text-lg font-bold">
+            {formatCurtainName ? formatCurtainName(curtain) : `Curtain #${curtain.index}`}
+          </span>
           <div className="text-sm text-muted-foreground font-light space-y-2">
             <p>
               <span className="font-bold">Groups:</span> Open:
@@ -122,6 +125,39 @@ CurtainCard.displayName = "CurtainCard";
 export function CurtainControlDialog({ open, onOpenChange, unit }) {
   const [state, setState] = useState(initialState);
   const [loadingState, setLoadingState] = useState(initialLoadingState);
+
+  // Access project context to get database curtains
+  const { selectedProject, projectItems, loadTabData, loadedTabs } = useProjectDetail();
+
+  // Load curtain data when dialog opens if not already loaded
+  useEffect(() => {
+    if (open && selectedProject && !loadedTabs.has('curtain')) {
+      loadTabData(selectedProject.id, 'curtain');
+    }
+  }, [open, selectedProject, loadedTabs, loadTabData]);
+
+  // Helper function to get database curtain name by address
+  const getDatabaseCurtainName = useCallback((address) => {
+    if (!selectedProject || !projectItems.curtain) return null;
+
+    const databaseCurtain = projectItems.curtain.find(curtain =>
+      parseInt(curtain.address) === parseInt(address)
+    );
+
+    return databaseCurtain ? databaseCurtain.name : null;
+  }, [selectedProject, projectItems.curtain]);
+
+  // Helper function to format curtain display name
+  const formatCurtainName = useCallback((networkCurtain) => {
+    const networkName = networkCurtain.name || "No name";
+    const databaseName = getDatabaseCurtainName(networkCurtain.address);
+
+    if (databaseName && networkName !== databaseName) {
+      return `${networkName} - ${databaseName}`;
+    }
+
+    return networkName;
+  }, [getDatabaseCurtainName]);
 
   // Reset state when dialog opens/closes or unit changes
   useEffect(() => {
@@ -425,6 +461,7 @@ export function CurtainControlDialog({ open, onOpenChange, unit }) {
                       onControl={handleCurtainControl}
                       onDelete={handleDeleteCurtainFromCard}
                       loading={loadingState.loading}
+                      formatCurtainName={formatCurtainName}
                     />
                   ))}
                 </div>

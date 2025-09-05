@@ -1,7 +1,8 @@
-import React, { useState, useCallback, useEffect, useMemo, memo } from "react";
+import React, { useState, useCallback, useEffect, memo } from "react";
 import { toast } from "sonner";
 import { Play, GitCompare, List, Trash2, Loader2 } from "lucide-react";
 import { DeleteSceneDialog } from "./delete-scene-popover";
+import { useProjectDetail } from "@/contexts/project-detail-context";
 import {
   Dialog,
   DialogContent,
@@ -175,12 +176,13 @@ const SceneCard = memo(
     loadingSceneDetails,
     memoizedGetObjectTypeInfo,
     memoizedGetFormattedValue,
+    formatSceneName,
   }) => (
     <Card key={scene.index} className="relative">
       <CardContent>
         <div className="flex items-center justify-between">
           <CardTitle className="flex flex-col gap-2">
-            <span className="text-lg font-bold">{scene.name || "No name"}</span>
+            <span className="text-lg font-bold">{formatSceneName ? formatSceneName(scene) : (scene.name || "No name")}</span>
             <div className="text-sm text-muted-foreground font-light">
               <span className="font-bold">Scene:</span> #{scene.index}
               <span className="mx-1"> | </span>
@@ -208,7 +210,7 @@ const SceneCard = memo(
                 <div className="space-y-3">
                   <div className="flex justify-between">
                     <h4 className="font-medium text-sm">
-                      {scene.name || "No name"}
+                      {formatSceneName ? formatSceneName(scene) : (scene.name || "No name")}
                     </h4>
                     <div className="text-xs text-muted-foreground">
                       <strong>Group:</strong> {scene.address} |{" "}
@@ -284,16 +286,42 @@ export function TriggerSceneDialog({ open, onOpenChange, unit }) {
   const [state, setState] = useState(initialState);
   const [loadingState, setLoadingState] = useState(initialLoadingState);
 
-  // Memoized values for better performance
-  const filteredScenes = useMemo(() => {
-    return state.scenes.filter((scene) => {
-      return !(scene.address === 0 && scene.itemCount === 0);
-    });
-  }, [state.scenes]);
+  // Access project context to get database scenes
+  const { selectedProject, projectItems, loadTabData, loadedTabs } = useProjectDetail();
+
+  // Load scene data when dialog opens if not already loaded
+  useEffect(() => {
+    if (open && selectedProject && !loadedTabs.has('scene')) {
+      loadTabData(selectedProject.id, 'scene');
+    }
+  }, [open, selectedProject, loadedTabs, loadTabData]);
 
   // Memoized helper functions
   const memoizedGetObjectTypeInfo = useCallback(getObjectTypeInfo, []);
   const memoizedGetFormattedValue = useCallback(getFormattedValue, []);
+
+  // Helper function to get database scene name by address
+  const getDatabaseSceneName = useCallback((address) => {
+    if (!selectedProject || !projectItems.scene) return null;
+
+    const databaseScene = projectItems.scene.find(scene =>
+      parseInt(scene.address) === parseInt(address)
+    );
+
+    return databaseScene ? databaseScene.name : null;
+  }, [selectedProject, projectItems.scene]);
+
+  // Helper function to format scene display name
+  const formatSceneName = useCallback((networkScene) => {
+    const networkName = networkScene.name || "No name";
+    const databaseName = getDatabaseSceneName(networkScene.address);
+
+    if (databaseName && networkName !== databaseName) {
+      return `${networkName} - ${databaseName}`;
+    }
+
+    return networkName;
+  }, [getDatabaseSceneName]);
 
   // Reset state when dialog opens/closes or unit changes
   useEffect(() => {
@@ -683,6 +711,7 @@ export function TriggerSceneDialog({ open, onOpenChange, unit }) {
                       loadingSceneDetails={loadingState.loadingSceneDetails}
                       memoizedGetObjectTypeInfo={memoizedGetObjectTypeInfo}
                       memoizedGetFormattedValue={memoizedGetFormattedValue}
+                      formatSceneName={formatSceneName}
                     />
                   ))}
                 </div>

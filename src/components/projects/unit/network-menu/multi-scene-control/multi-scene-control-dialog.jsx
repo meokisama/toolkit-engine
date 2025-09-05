@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useMemo, memo } from "react";
+import { useState, useCallback, useMemo, memo, useEffect } from "react";
 import { Play, Trash2, List, GitCompare } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -23,6 +23,7 @@ import {
 import { toast } from "sonner";
 import { DeleteMultiSceneDialog } from "./delete-multi-scene-popover";
 import { CONSTANTS } from "@/constants";
+import { useProjectDetail } from "@/contexts/project-detail-context";
 
 // Helper function to get multi-scene type label
 const getMultiSceneTypeLabel = (type) => {
@@ -50,13 +51,13 @@ const initialLoadingState = {
 };
 
 // Memoized MultiSceneCard component to prevent unnecessary re-renders
-const MultiSceneCard = memo(({ multiScene, onTrigger, onDelete, loading }) => (
+const MultiSceneCard = memo(({ multiScene, onTrigger, onDelete, loading, formatMultiSceneName }) => (
   <Card key={multiScene.multiSceneIndex} className="relative">
     <CardContent>
       <div className="flex items-center justify-between">
         <CardTitle className="flex flex-col gap-2">
           <span className="text-lg font-bold">
-            {multiScene.multiSceneName || "No name"}
+            {formatMultiSceneName ? formatMultiSceneName(multiScene) : (multiScene.multiSceneName || "No name")}
           </span>
           <div className="text-sm text-muted-foreground font-light">
             <span className="font-bold">Multi-Scene:</span> #
@@ -83,7 +84,7 @@ const MultiSceneCard = memo(({ multiScene, onTrigger, onDelete, loading }) => (
               <div className="space-y-3">
                 <div className="flex justify-between">
                   <h4 className="font-medium text-sm">
-                    {multiScene.multiSceneName || "No name"}
+                    {formatMultiSceneName ? formatMultiSceneName(multiScene) : (multiScene.multiSceneName || "No name")}
                   </h4>
                   <div className="text-xs text-muted-foreground">
                     <strong>Address:</strong> {multiScene.multiSceneAddress} |{" "}
@@ -92,7 +93,7 @@ const MultiSceneCard = memo(({ multiScene, onTrigger, onDelete, loading }) => (
                 </div>
 
                 {multiScene.sceneAddresses &&
-                multiScene.sceneAddresses.length > 0 ? (
+                  multiScene.sceneAddresses.length > 0 ? (
                   <div className="space-y-2">
                     <ScrollArea className="h-32 w-full rounded border pr-2">
                       <div className="p-2 space-y-1">
@@ -160,6 +161,39 @@ MultiSceneCard.displayName = "MultiSceneCard";
 export function TriggerMultiSceneDialog({ open, onOpenChange, unit }) {
   const [state, setState] = useState(initialState);
   const [loadingState, setLoadingState] = useState(initialLoadingState);
+
+  // Access project context to get database multi-scenes
+  const { selectedProject, projectItems, loadTabData, loadedTabs } = useProjectDetail();
+
+  // Load multi-scene data when dialog opens if not already loaded
+  useEffect(() => {
+    if (open && selectedProject && !loadedTabs.has('multi_scenes')) {
+      loadTabData(selectedProject.id, 'multi_scenes');
+    }
+  }, [open, selectedProject, loadedTabs, loadTabData]);
+
+  // Helper function to get database multi-scene name by address
+  const getDatabaseMultiSceneName = useCallback((address) => {
+    if (!selectedProject || !projectItems.multi_scenes) return null;
+
+    const databaseMultiScene = projectItems.multi_scenes.find(multiScene =>
+      parseInt(multiScene.address) === parseInt(address)
+    );
+
+    return databaseMultiScene ? databaseMultiScene.name : null;
+  }, [selectedProject, projectItems.multi_scenes]);
+
+  // Helper function to format multi-scene display name
+  const formatMultiSceneName = useCallback((networkMultiScene) => {
+    const networkName = networkMultiScene.name || "No name";
+    const databaseName = getDatabaseMultiSceneName(networkMultiScene.address);
+
+    if (databaseName && networkName !== databaseName) {
+      return `${networkName} - ${databaseName}`;
+    }
+
+    return networkName;
+  }, [getDatabaseMultiSceneName]);
 
   const handleMultiSceneIndexChange = useCallback((e) => {
     const value = e.target.value;
@@ -496,6 +530,7 @@ export function TriggerMultiSceneDialog({ open, onOpenChange, unit }) {
                       onTrigger={handleTriggerMultiSceneFromCard}
                       onDelete={handleDeleteMultiSceneFromCard}
                       loading={loadingState.loading}
+                      formatMultiSceneName={formatMultiSceneName}
                     />
                   ))}
                 </div>

@@ -23,6 +23,7 @@ import {
 import { toast } from "sonner";
 import { CONSTANTS } from "@/constants";
 import { DeleteKnxDialog } from "./delete-knx-popover";
+import { useProjectDetail } from "@/contexts/project-detail-context";
 
 // Initial state for better state management
 const initialState = {
@@ -51,12 +52,14 @@ const getKnxFeedbackLabel = (feedback) => {
 };
 
 // Memoized KnxConfigCard component to prevent unnecessary re-renders
-const KnxConfigCard = memo(({ knxConfig, onDelete, onTrigger, loading }) => (
+const KnxConfigCard = memo(({ knxConfig, onDelete, onTrigger, loading, formatKnxName }) => (
   <Card className="relative">
     <CardContent>
       <div className="flex items-center justify-between">
         <CardTitle className="flex flex-col gap-2">
-          <span className="text-lg font-bold">KNX Address: {knxConfig.address}</span>
+          <span className="text-lg font-bold">
+            {formatKnxName ? formatKnxName(knxConfig) : `KNX Address: ${knxConfig.address}`}
+          </span>
           <div className="text-sm text-muted-foreground font-light space-y-2">
             <p>
               <span className="font-bold">Type:</span> {getKnxTypeLabel(knxConfig.type)}
@@ -122,6 +125,39 @@ KnxConfigCard.displayName = "KnxConfigCard";
 export function KnxControlDialog({ open, onOpenChange, unit }) {
   const [state, setState] = useState(initialState);
   const [loadingState, setLoadingState] = useState(initialLoadingState);
+
+  // Access project context to get database KNX items
+  const { selectedProject, projectItems, loadTabData, loadedTabs } = useProjectDetail();
+
+  // Load KNX data when dialog opens if not already loaded
+  useEffect(() => {
+    if (open && selectedProject && !loadedTabs.has('knx')) {
+      loadTabData(selectedProject.id, 'knx');
+    }
+  }, [open, selectedProject, loadedTabs, loadTabData]);
+
+  // Helper function to get database KNX name by address
+  const getDatabaseKnxName = useCallback((address) => {
+    if (!selectedProject || !projectItems.knx) return null;
+
+    const databaseKnx = projectItems.knx.find(knx =>
+      parseInt(knx.address) === parseInt(address)
+    );
+
+    return databaseKnx ? databaseKnx.name : null;
+  }, [selectedProject, projectItems.knx]);
+
+  // Helper function to format KNX display name
+  const formatKnxName = useCallback((networkKnx) => {
+    const networkName = networkKnx.name || "No name";
+    const databaseName = getDatabaseKnxName(networkKnx.address);
+
+    if (databaseName && networkName !== databaseName) {
+      return `${networkName} - ${databaseName}`;
+    }
+
+    return networkName;
+  }, [getDatabaseKnxName]);
 
   // Reset state when dialog opens/closes or unit changes
   useEffect(() => {
@@ -395,6 +431,7 @@ export function KnxControlDialog({ open, onOpenChange, unit }) {
                       onDelete={handleDeleteKnxConfigFromCard}
                       onTrigger={handleTriggerKnxFromCard}
                       loading={loadingState.loading}
+                      formatKnxName={formatKnxName}
                     />
                   ))}
                 </div>

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useMemo, memo } from "react";
+import { useState, useCallback, useMemo, memo, useEffect } from "react";
 import { Play, Trash2, List, ListOrdered } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -22,6 +22,7 @@ import {
 } from "@/components/ui/popover";
 import { toast } from "sonner";
 import { DeleteSequenceDialog } from "./delete-sequence-popover";
+import { useProjectDetail } from "@/contexts/project-detail-context";
 
 // Initial state for better state management
 const initialState = {
@@ -43,13 +44,13 @@ const initialLoadingState = {
 };
 
 // Memoized SequenceCard component to prevent unnecessary re-renders
-const SequenceCard = memo(({ sequence, onTrigger, onDelete, loading }) => (
+const SequenceCard = memo(({ sequence, onTrigger, onDelete, loading, formatSequenceName }) => (
   <Card key={sequence.sequenceIndex} className="relative">
     <CardContent>
       <div className="flex items-center justify-between">
         <CardTitle className="flex flex-col gap-2">
           <span className="text-lg font-bold">
-            {sequence.sequenceName || "No name"}
+            {formatSequenceName ? formatSequenceName(sequence) : (sequence.sequenceName || "No name")}
           </span>
           <div className="text-sm text-muted-foreground font-light">
             <span className="font-bold">Sequence:</span> #
@@ -73,7 +74,7 @@ const SequenceCard = memo(({ sequence, onTrigger, onDelete, loading }) => (
               <div className="space-y-3">
                 <div className="flex justify-between">
                   <h4 className="font-medium text-sm">
-                    {sequence.sequenceName || "No name"}
+                    {formatSequenceName ? formatSequenceName(sequence) : (sequence.sequenceName || "No name")}
                   </h4>
                   <div className="text-xs text-muted-foreground">
                     <strong>Address:</strong> {sequence.sequenceAddress} |{" "}
@@ -83,7 +84,7 @@ const SequenceCard = memo(({ sequence, onTrigger, onDelete, loading }) => (
                 </div>
 
                 {sequence.multiSceneAddresses &&
-                sequence.multiSceneAddresses.length > 0 ? (
+                  sequence.multiSceneAddresses.length > 0 ? (
                   <div className="space-y-2">
                     <ScrollArea className="h-32 w-full rounded border pr-2">
                       <div className="p-2 space-y-1">
@@ -143,6 +144,39 @@ const SequenceCard = memo(({ sequence, onTrigger, onDelete, loading }) => (
 export function TriggerSequenceDialog({ open, onOpenChange, unit }) {
   const [state, setState] = useState(initialState);
   const [loadingState, setLoadingState] = useState(initialLoadingState);
+
+  // Access project context to get database sequences
+  const { selectedProject, projectItems, loadTabData, loadedTabs } = useProjectDetail();
+
+  // Load sequence data when dialog opens if not already loaded
+  useEffect(() => {
+    if (open && selectedProject && !loadedTabs.has('sequences')) {
+      loadTabData(selectedProject.id, 'sequences');
+    }
+  }, [open, selectedProject, loadedTabs, loadTabData]);
+
+  // Helper function to get database sequence name by address
+  const getDatabaseSequenceName = useCallback((address) => {
+    if (!selectedProject || !projectItems.sequences) return null;
+
+    const databaseSequence = projectItems.sequences.find(sequence =>
+      parseInt(sequence.address) === parseInt(address)
+    );
+
+    return databaseSequence ? databaseSequence.name : null;
+  }, [selectedProject, projectItems.sequences]);
+
+  // Helper function to format sequence display name
+  const formatSequenceName = useCallback((networkSequence) => {
+    const networkName = networkSequence.sequenceName || "No name";
+    const databaseName = getDatabaseSequenceName(networkSequence.sequenceAddress);
+
+    if (databaseName && networkName !== databaseName) {
+      return `${networkName} - ${databaseName}`;
+    }
+
+    return networkName;
+  }, [getDatabaseSequenceName]);
 
   // Handle sequence index input change
   const handleSequenceIndexChange = useCallback((value) => {
@@ -452,6 +486,7 @@ export function TriggerSequenceDialog({ open, onOpenChange, unit }) {
                         onTrigger={handleTriggerSequenceFromCard}
                         onDelete={handleDeleteSequenceFromCard}
                         loading={loadingState.loading}
+                        formatSequenceName={formatSequenceName}
                       />
                     ))}
                   </div>
