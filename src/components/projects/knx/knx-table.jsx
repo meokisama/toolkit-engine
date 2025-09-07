@@ -11,6 +11,11 @@ import { DataTableSkeleton } from "@/components/projects/table-skeleton";
 import { createKnxItemsColumns } from "@/components/projects/knx/knx-columns";
 import { ImportItemsDialog } from "@/components/projects/import-category-dialog";
 import { SendKnxDialog } from "@/components/projects/knx/send-knx-dialog";
+import { GenerateFromLightingSheet } from "@/components/projects/knx/sheets/generate-lighting";
+import { GenerateFromCurtainSheet } from "@/components/projects/knx/sheets/generate-curtain";
+import { GenerateFromSceneSheet } from "@/components/projects/knx/sheets/generate-scene";
+import { GenerateFromMultiSceneSheet } from "@/components/projects/knx/sheets/generate-multi-scene";
+import { GenerateFromSequenceSheet } from "@/components/projects/knx/sheets/generate-sequence";
 import { Network, Send } from "lucide-react";
 
 // Memoized component to prevent unnecessary rerenders
@@ -46,6 +51,11 @@ function KnxTableComponent({ items, loading }) {
   const [pendingChangesCount, setPendingChangesCount] = useState(0);
   const [sendDialogOpen, setSendDialogOpen] = useState(false);
   const [itemsToSend, setItemsToSend] = useState([]);
+  const [generateLightingSheetOpen, setGenerateLightingSheetOpen] = useState(false);
+  const [generateCurtainSheetOpen, setGenerateCurtainSheetOpen] = useState(false);
+  const [generateSceneSheetOpen, setGenerateSceneSheetOpen] = useState(false);
+  const [generateMultiSceneSheetOpen, setGenerateMultiSceneSheetOpen] = useState(false);
+  const [generateSequenceSheetOpen, setGenerateSequenceSheetOpen] = useState(false);
 
   const category = "knx";
 
@@ -216,6 +226,31 @@ function KnxTableComponent({ items, loading }) {
     setSendDialogOpen(true);
   }, [items]);
 
+  // Handle generate KNX from lighting
+  const handleGenerateFromLighting = useCallback(() => {
+    setGenerateLightingSheetOpen(true);
+  }, []);
+
+  // Handle generate KNX from curtain
+  const handleGenerateFromCurtain = useCallback(() => {
+    setGenerateCurtainSheetOpen(true);
+  }, []);
+
+  // Handle generate KNX from scene
+  const handleGenerateFromScene = useCallback(() => {
+    setGenerateSceneSheetOpen(true);
+  }, []);
+
+  // Handle generate KNX from multi scene
+  const handleGenerateFromMultiScene = useCallback(() => {
+    setGenerateMultiSceneSheetOpen(true);
+  }, []);
+
+  // Handle generate KNX from sequence
+  const handleGenerateFromSequence = useCallback(() => {
+    setGenerateSequenceSheetOpen(true);
+  }, []);
+
   // ✅ Now columns will be truly stable because all dependencies are stable!
   const columns = useMemo(
     () =>
@@ -280,6 +315,11 @@ function KnxTableComponent({ items, loading }) {
                   sendToUnitIcon={Send}
                   onSendAll={handleSendAll}
                   sendAllLabel="Send All to Unit"
+                  onGenerateFromLighting={handleGenerateFromLighting}
+                  onGenerateFromCurtain={handleGenerateFromCurtain}
+                  onGenerateFromScene={handleGenerateFromScene}
+                  onGenerateFromMultiScene={handleGenerateFromMultiScene}
+                  onGenerateFromSequence={handleGenerateFromSequence}
                 />
               )}
               <DataTable
@@ -342,6 +382,31 @@ function KnxTableComponent({ items, loading }) {
         open={sendDialogOpen}
         onOpenChange={setSendDialogOpen}
         items={itemsToSend}
+      />
+
+      <GenerateFromLightingSheet
+        open={generateLightingSheetOpen}
+        onOpenChange={setGenerateLightingSheetOpen}
+      />
+
+      <GenerateFromCurtainSheet
+        open={generateCurtainSheetOpen}
+        onOpenChange={setGenerateCurtainSheetOpen}
+      />
+
+      <GenerateFromSceneSheet
+        open={generateSceneSheetOpen}
+        onOpenChange={setGenerateSceneSheetOpen}
+      />
+
+      <GenerateFromMultiSceneSheet
+        open={generateMultiSceneSheetOpen}
+        onOpenChange={setGenerateMultiSceneSheetOpen}
+      />
+
+      <GenerateFromSequenceSheet
+        open={generateSequenceSheetOpen}
+        onOpenChange={setGenerateSequenceSheetOpen}
       />
     </>
   );

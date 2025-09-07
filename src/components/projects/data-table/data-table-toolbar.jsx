@@ -9,6 +9,12 @@ import {
   FileText,
   Save,
   Send,
+  Zap,
+  Lightbulb,
+  Blinds,
+  Play,
+  Layers,
+  Shuffle,
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -41,6 +47,11 @@ export function DataTableToolbar({
   onSendToUnit,
   sendToUnitLabel = "Send to Unit",
   sendToUnitIcon: SendToUnitIcon = Send,
+  onGenerateFromLighting,
+  onGenerateFromCurtain,
+  onGenerateFromScene,
+  onGenerateFromMultiScene,
+  onGenerateFromSequence,
 }) {
   const [searchValue, setSearchValue] = useState("");
 
@@ -172,7 +183,7 @@ export function DataTableToolbar({
             <DropdownMenuTrigger asChild>
               <Button variant="outline" className="text-gray-700">
                 <FileText className="h-4 w-4" />
-                <span className="hidden lg:inline">Import/Export Data</span>
+                <span className="hidden lg:inline">Import/Export</span>
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
@@ -186,6 +197,48 @@ export function DataTableToolbar({
                 <DropdownMenuItem onClick={handleImport}>
                   <Download className="h-4 w-4" />
                   Import data
+                </DropdownMenuItem>
+              )}
+            </DropdownMenuContent>
+          </DropdownMenu>
+        )}
+        {category === "knx" && (onGenerateFromLighting || onGenerateFromCurtain || onGenerateFromScene || onGenerateFromMultiScene || onGenerateFromSequence) && (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" className="text-gray-700">
+                <Zap className="h-4 w-4" />
+                <span className="hidden lg:inline">Generate KNX</span>
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              {onGenerateFromLighting && (
+                <DropdownMenuItem onClick={onGenerateFromLighting}>
+                  <Lightbulb className="h-4 w-4" />
+                  From Lighting
+                </DropdownMenuItem>
+              )}
+              {onGenerateFromCurtain && (
+                <DropdownMenuItem onClick={onGenerateFromCurtain}>
+                  <Blinds className="h-4 w-4" />
+                  From Curtain
+                </DropdownMenuItem>
+              )}
+              {onGenerateFromScene && (
+                <DropdownMenuItem onClick={onGenerateFromScene}>
+                  <Play className="h-4 w-4" />
+                  From Scene
+                </DropdownMenuItem>
+              )}
+              {onGenerateFromMultiScene && (
+                <DropdownMenuItem onClick={onGenerateFromMultiScene}>
+                  <Layers className="h-4 w-4" />
+                  From Multi Scene
+                </DropdownMenuItem>
+              )}
+              {onGenerateFromSequence && (
+                <DropdownMenuItem onClick={onGenerateFromSequence}>
+                  <Shuffle className="h-4 w-4" />
+                  From Sequence
                 </DropdownMenuItem>
               )}
             </DropdownMenuContent>
