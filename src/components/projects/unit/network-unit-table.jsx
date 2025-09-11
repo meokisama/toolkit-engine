@@ -12,6 +12,7 @@ import {
   ChevronDown,
   Send,
   Database,
+  Palette,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -27,6 +28,7 @@ import { DataTablePagination } from "@/components/projects/data-table/data-table
 import { createNetworkUnitColumns } from "@/components/projects/unit/unit-columns";
 import { GroupControlDialog } from "@/components/projects/unit/network-menu/base/group-control-dialog";
 import { RoomControlDialog } from "@/components/projects/unit/network-menu/base/ac-control-dialog";
+import RGBControlDialog from "@/components/projects/unit/network-menu/base/rgb-control-dialog";
 import { TriggerSceneDialog } from "@/components/projects/unit/network-menu/scene-control/scene-control-dialog";
 import { TriggerScheduleDialog } from "@/components/projects/unit/network-menu/schedule-control/schedule-control-dialog";
 import { ClockControlDialog } from "@/components/projects/unit/network-menu/clock-control/clock-control-dialog";
@@ -64,6 +66,7 @@ function NetworkUnitTableComponent({
   const [networkTable, setNetworkTable] = useState(null);
   const [groupControlDialogOpen, setGroupControlDialogOpen] = useState(false);
   const [airconControlDialogOpen, setAirconControlDialogOpen] = useState(false);
+  const [rgbControlDialogOpen, setRgbControlDialogOpen] = useState(false);
   const [triggerSceneDialogOpen, setTriggerSceneDialogOpen] = useState(false);
   const [triggerScheduleDialogOpen, setTriggerScheduleDialogOpen] =
     useState(false);
@@ -285,6 +288,12 @@ function NetworkUnitTableComponent({
   const handleAirconControl = useCallback((unit) => {
     setSelectedUnit(unit);
     setAirconControlDialogOpen(true);
+  }, []);
+
+  // Handle RGB Control
+  const handleRgbControl = useCallback((unit) => {
+    setSelectedUnit(unit);
+    setRgbControlDialogOpen(true);
   }, []);
 
   // Handle Scene Control
@@ -537,6 +546,24 @@ function NetworkUnitTableComponent({
                 </DropdownMenu>
               )}
 
+              {/* Test RGB Control Button - Always visible for testing */}
+              {/* <Button
+                onClick={() => {
+                  // Create a mock unit for testing RGB Control
+                  const mockUnit = {
+                    id_can: 999,
+                    ip_address: "192.168.1.100",
+                    name: "Test Unit"
+                  };
+                  handleRgbControl(mockUnit);
+                }}
+                variant="outline"
+                className="flex items-center gap-2"
+              >
+                <Palette className="h-4 w-4" />
+                Test RGB Control
+              </Button> */}
+
               {/* Scan Network Button - Always visible */}
               <Button
                 onClick={handleScanNetwork}
@@ -568,6 +595,7 @@ function NetworkUnitTableComponent({
                 onRowSelectionChange={handleNetworkRowSelectionChange}
                 onGroupControl={handleGroupControl}
                 onAirconControl={handleAirconControl}
+                onRgbControl={handleRgbControl}
                 onSceneControl={{
                   onTriggerScene: handleTriggerScene,
                 }}
@@ -614,6 +642,12 @@ function NetworkUnitTableComponent({
           }}
           open={airconControlDialogOpen}
           onOpenChange={setAirconControlDialogOpen}
+        />
+
+        <RGBControlDialog
+          open={rgbControlDialogOpen}
+          onOpenChange={setRgbControlDialogOpen}
+          unit={selectedUnit}
         />
 
         <TriggerSceneDialog

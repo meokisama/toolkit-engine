@@ -18,6 +18,8 @@ import {
   ListOrdered,
   Network,
   Upload,
+  Wrench,
+  Palette,
 } from "lucide-react";
 
 import { TableCell, TableRow } from "@/components/ui/table";
@@ -40,6 +42,7 @@ export function DataTableRow({
   onIOConfig,
   onGroupControl,
   onAirconControl,
+  onRgbControl,
   onSceneControl,
   onScheduleControl,
   onClockControl,
@@ -87,6 +90,7 @@ export function DataTableRow({
           (onIOConfig ||
             onGroupControl ||
             onAirconControl ||
+            onRgbControl ||
             onSceneControl ||
             onScheduleControl ||
             onClockControl ||
@@ -105,6 +109,7 @@ export function DataTableRow({
             </ContextMenuItem>
             {(onGroupControl ||
               onAirconControl ||
+              onRgbControl ||
               onSceneControl ||
               onScheduleControl ||
               onClockControl ||
@@ -117,67 +122,81 @@ export function DataTableRow({
               onDelete) && <ContextMenuSeparator />}
           </>
         )}
-        {onGroupControl && (
-          <ContextMenuItem onClick={() => onGroupControl(item)}>
-            <Settings2 className="text-muted-foreground" />
-            <span>Group Control</span>
-          </ContextMenuItem>
-        )}
-        {onAirconControl && (
-          <ContextMenuItem onClick={() => onAirconControl(item)}>
-            <Thermometer className="text-muted-foreground" />
-            <span>Aircon Control</span>
-          </ContextMenuItem>
+        {/* Utilities Submenu */}
+        {(onGroupControl || onAirconControl || onRgbControl) && (
+          <ContextMenuSub>
+            <ContextMenuSubTrigger>
+              <Wrench className="text-muted-foreground" />
+              <span className="pl-2">Utilities</span>
+            </ContextMenuSubTrigger>
+            <ContextMenuSubContent>
+              {onGroupControl && (
+                <ContextMenuItem onClick={() => onGroupControl(item)}>
+                  <Settings2 className="text-muted-foreground" />
+                  <span>Group Control</span>
+                </ContextMenuItem>
+              )}
+              {onAirconControl && (
+                <ContextMenuItem onClick={() => onAirconControl(item)}>
+                  <Thermometer className="text-muted-foreground" />
+                  <span>Aircon Control</span>
+                </ContextMenuItem>
+              )}
+              {onRgbControl && (
+                <ContextMenuItem onClick={() => onRgbControl(item)}>
+                  <Palette className="text-muted-foreground" />
+                  <span>RGB Control</span>
+                </ContextMenuItem>
+              )}
+            </ContextMenuSubContent>
+          </ContextMenuSub>
         )}
         {/* Automation Submenu */}
         {(onSceneControl || onScheduleControl || onMultiSceneControl || onSequenceControl) && (
-          <>
-            <ContextMenuSeparator />
-            <ContextMenuSub>
-              <ContextMenuSubTrigger>
-                <SlidersHorizontal className="text-muted-foreground" />
-                <span className="pl-2">Automation</span>
-              </ContextMenuSubTrigger>
-              <ContextMenuSubContent>
-                {onSceneControl && (
-                  <ContextMenuItem
-                    onClick={() => onSceneControl.onTriggerScene(item)}
-                  >
-                    <Play className="text-muted-foreground" />
-                    <span>Scene Control</span>
-                  </ContextMenuItem>
-                )}
-                {onScheduleControl && (
-                  <ContextMenuItem
-                    onClick={() => onScheduleControl.onTriggerSchedule(item)}
-                  >
-                    <Calendar className="text-muted-foreground" />
-                    <span>Schedule Control</span>
-                  </ContextMenuItem>
-                )}
-                {onMultiSceneControl && (
-                  <ContextMenuItem
-                    onClick={() =>
-                      onMultiSceneControl.onTriggerMultiScene(item)
-                    }
-                  >
-                    <GitCompare className="text-muted-foreground" />
-                    <span>Multi-Scene Control</span>
-                  </ContextMenuItem>
-                )}
-                {onSequenceControl && (
-                  <ContextMenuItem
-                    onClick={() =>
-                      onSequenceControl.onTriggerSequence(item)
-                    }
-                  >
-                    <ListOrdered className="text-muted-foreground" />
-                    <span>Sequence Control</span>
-                  </ContextMenuItem>
-                )}
-              </ContextMenuSubContent>
-            </ContextMenuSub>
-          </>
+          <ContextMenuSub>
+            <ContextMenuSubTrigger>
+              <SlidersHorizontal className="text-muted-foreground" />
+              <span className="pl-2">Automation</span>
+            </ContextMenuSubTrigger>
+            <ContextMenuSubContent>
+              {onSceneControl && (
+                <ContextMenuItem
+                  onClick={() => onSceneControl.onTriggerScene(item)}
+                >
+                  <Play className="text-muted-foreground" />
+                  <span>Scene Control</span>
+                </ContextMenuItem>
+              )}
+              {onScheduleControl && (
+                <ContextMenuItem
+                  onClick={() => onScheduleControl.onTriggerSchedule(item)}
+                >
+                  <Calendar className="text-muted-foreground" />
+                  <span>Schedule Control</span>
+                </ContextMenuItem>
+              )}
+              {onMultiSceneControl && (
+                <ContextMenuItem
+                  onClick={() =>
+                    onMultiSceneControl.onTriggerMultiScene(item)
+                  }
+                >
+                  <GitCompare className="text-muted-foreground" />
+                  <span>Multi-Scene Control</span>
+                </ContextMenuItem>
+              )}
+              {onSequenceControl && (
+                <ContextMenuItem
+                  onClick={() =>
+                    onSequenceControl.onTriggerSequence(item)
+                  }
+                >
+                  <ListOrdered className="text-muted-foreground" />
+                  <span>Sequence Control</span>
+                </ContextMenuItem>
+              )}
+            </ContextMenuSubContent>
+          </ContextMenuSub>
         )}
         {/* System Submenu */}
         {(onClockControl || onFirmwareUpdate) && (
@@ -257,6 +276,6 @@ export function DataTableRow({
           </>
         )}
       </ContextMenuContent>
-    </ContextMenu>
+    </ContextMenu >
   );
 }

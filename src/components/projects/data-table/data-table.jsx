@@ -33,6 +33,7 @@ export function DataTable({
   onIOConfig,
   onGroupControl,
   onAirconControl,
+  onRgbControl,
   onSceneControl,
   onScheduleControl,
   onClockControl,
@@ -211,6 +212,7 @@ export function DataTable({
                   onIOConfig={onIOConfig}
                   onGroupControl={onGroupControl}
                   onAirconControl={onAirconControl}
+                  onRgbControl={onRgbControl}
                   onSceneControl={onSceneControl}
                   onScheduleControl={onScheduleControl}
                   onClockControl={onClockControl}
