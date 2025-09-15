@@ -2,6 +2,7 @@
 export {
   setGroupState,
   setOutputState,
+  setInputState,
   setMultipleGroupStates,
   getAllGroupStates,
   getAllOutputStates,

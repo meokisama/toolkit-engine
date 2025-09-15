@@ -2,7 +2,7 @@ import { useState, useCallback, useEffect } from "react";
 import { toast } from "sonner";
 import { getInputFunctionByValue, INPUT_TYPES } from "@/constants";
 
-export const useNetworkInputConfig = (item, projectItems, refreshInputConfigs = null) => {
+export const useNetworkInputConfig = (item, projectItems, refreshInputConfigs = null, setInputConfigs = null) => {
   const [multiGroupConfigs, setMultiGroupConfigs] = useState({});
   const [multiGroupDialogOpen, setMultiGroupDialogOpen] = useState(false);
   const [currentMultiGroupInput, setCurrentMultiGroupInput] = useState(null);
@@ -411,6 +411,44 @@ export const useNetworkInputConfig = (item, projectItems, refreshInputConfigs = 
     [item?.ip_address, item?.id_can, inputConfigsFromUnit, refreshInputConfigs]
   );
 
+  // Handle input state toggle
+  const handleToggleInputState = useCallback(async (inputIndex, currentState) => {
+    if (!item?.ip_address || !item?.id_can) {
+      return;
+    }
+
+    try {
+      // Toggle state: if currently on (true), send 0 to turn off; if off (false), send 255 to turn on
+      const newValue = currentState ? 0 : 255;
+      const newActiveState = newValue > 0;
+
+      const response = await window.electronAPI.rcuController.setInputState({
+        unitIp: item.ip_address,
+        canId: item.id_can,
+        inputIndex: inputIndex,
+        value: newValue,
+      });
+
+      if (response) {
+        // Update local state immediately after successful command
+        if (setInputConfigs) {
+          setInputConfigs(prevConfigs =>
+            prevConfigs.map(config =>
+              config.index === inputIndex
+                ? { ...config, isActive: newActiveState }
+                : config
+            )
+          );
+        }
+
+        toast.success(`Input ${inputIndex + 1} turned ${newValue === 255 ? 'on' : 'off'}`);
+      }
+    } catch (error) {
+      console.error(`Failed to toggle input ${inputIndex} state:`, error);
+      toast.error(`Failed to toggle input state: ${error.message}`);
+    }
+  }, [item?.ip_address, item?.id_can, setInputConfigs]);
+
   return {
     multiGroupConfigs,
     multiGroupDialogOpen,
@@ -423,5 +461,6 @@ export const useNetworkInputConfig = (item, projectItems, refreshInputConfigs = 
     handleInputFunctionChange,
     handleOpenMultiGroupConfig,
     handleSaveMultiGroupConfig,
+    handleToggleInputState,
   };
 };

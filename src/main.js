@@ -6,6 +6,7 @@ import LoggerService from "./services/logger.js";
 import {
   setGroupState,
   setOutputState,
+  setInputState,
   setMultipleGroupStates,
   getAllGroupStates,
   getAllOutputStates,
@@ -1536,6 +1537,18 @@ function setupIpcHandlers() {
         return await setOutputState(unitIp, canId, outputIndex, value);
       } catch (error) {
         console.error("Error setting output state:", error);
+        throw error;
+      }
+    }
+  );
+
+  ipcMain.handle(
+    "rcu:setInputState",
+    async (event, { canId, inputIndex, value, unitIp }) => {
+      try {
+        return await setInputState(unitIp, canId, inputIndex, value);
+      } catch (error) {
+        console.error("Error setting input state:", error);
         throw error;
       }
     }

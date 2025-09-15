@@ -38,6 +38,7 @@ const NetworkIOConfigDialog = ({ open, onOpenChange, item = null }) => {
   const {
     inputConfigs,
     outputConfigs,
+    setInputConfigs,
     setOutputConfigs,
     ioSpec,
     loading,
@@ -61,7 +62,8 @@ const NetworkIOConfigDialog = ({ open, onOpenChange, item = null }) => {
     handleInputFunctionChange,
     handleOpenMultiGroupConfig,
     handleSaveMultiGroupConfig,
-  } = useNetworkInputConfig(item, projectItems, readInputConfigsFromUnit);
+    handleToggleInputState,
+  } = useNetworkInputConfig(item, projectItems, readInputConfigsFromUnit, setInputConfigs);
 
   // Memoize lighting and aircon items to prevent unnecessary re-renders
   const lightingItems = useMemo(() => {
@@ -377,6 +379,7 @@ const NetworkIOConfigDialog = ({ open, onOpenChange, item = null }) => {
                             unitType={item?.type}
                             onInputFunctionChange={handleInputFunctionChange}
                             onOpenMultiGroupConfig={handleOpenMultiGroupConfig}
+                            onToggleInputState={handleToggleInputState}
                           />
                         ))}
                       </div>

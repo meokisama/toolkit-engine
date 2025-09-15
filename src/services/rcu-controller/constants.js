@@ -52,6 +52,7 @@ const PROTOCOL = {
       GET_OUTPUT_STATE: 64,
       SET_GROUP_STATE: 62,
       GET_GROUP_STATE: 65,
+      SET_INPUT_STATE: 60,
       GET_INPUT_STATE: 63,
     },
   },

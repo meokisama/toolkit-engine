@@ -294,6 +294,8 @@ contextBridge.exposeInMainWorld("electronAPI", {
     setGroupState: (params) => ipcRenderer.invoke("rcu:setGroupState", params),
     setOutputState: (params) =>
       ipcRenderer.invoke("rcu:setOutputState", params),
+    setInputState: (params) =>
+      ipcRenderer.invoke("rcu:setInputState", params),
     setMultipleGroupStates: (params) =>
       ipcRenderer.invoke("rcu:setMultipleGroupStates", params),
     getAllGroupStates: (params) =>

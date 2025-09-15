@@ -16,6 +16,7 @@ const NetworkInputConfigItem = memo(
     unitType,
     onInputFunctionChange,
     onOpenMultiGroupConfig,
+    onToggleInputState,
   }) => {
     // Memoize available functions to prevent recalculation on every render
     const availableFunctions = useMemo(() => {
@@ -47,13 +48,20 @@ const NetworkInputConfigItem = memo(
       onOpenMultiGroupConfig(config.index, config.functionValue || 0);
     }, [config.index, config.functionValue, onOpenMultiGroupConfig]);
 
+    const handleToggleClick = useCallback(() => {
+      if (onToggleInputState) {
+        onToggleInputState(config.index, config.isActive);
+      }
+    }, [config.index, config.isActive, onToggleInputState]);
+
     return (
       <div className="p-4 border rounded-lg flex gap-4 items-center justify-between shadow">
         <div className="flex items-center gap-3">
           <img
             src={config.isActive ? lightOn : lightOff}
             alt="Input State"
-            className="w-[30px] h-auto rounded-lg"
+            className="w-[30px] h-auto rounded-lg cursor-pointer hover:opacity-80 transition-opacity"
+            onClick={handleToggleClick}
           />
           <Label className="text-sm font-medium">{config.name}</Label>
         </div>

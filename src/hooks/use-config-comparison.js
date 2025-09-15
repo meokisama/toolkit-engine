@@ -324,13 +324,6 @@ export function useConfigComparison() {
             config: configData
           };
 
-          console.log(`Network output ${i}:`, {
-            type: outputType,
-            assignmentAddress,
-            hasAssignment: !!assignment,
-            assignment: assignment
-          });
-
           outputConfigs.outputs.push(outputConfig);
         }
 
@@ -471,9 +464,9 @@ export function useConfigComparison() {
 
       // Load all database configurations in parallel
       const [scenes, schedules, curtains, knx, multiScenes, sequences] = await Promise.all([
-        window.electronAPI.scenes.getAll(projectId),
-        window.electronAPI.schedules.getAll(projectId),
-        window.electronAPI.curtains.getAll(projectId),
+        window.electronAPI.scene.getAll(projectId),
+        window.electronAPI.schedule.getAll(projectId),
+        window.electronAPI.curtain.getAll(projectId),
         window.electronAPI.knx.getAll(projectId),
         window.electronAPI.multiScenes.getAll(projectId),
         window.electronAPI.sequences.getAll(projectId),

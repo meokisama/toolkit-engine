@@ -358,24 +358,6 @@ export function compareOutputConfigs(databaseOutputs, networkOutputs, projectIte
     const dbAddressStr = dbAddress && dbAddress > 0 ? dbAddress.toString() : '0';
     const netAddressStr = netAddress && netAddress > 0 ? netAddress.toString() : '0';
 
-    console.log(`Comparing output ${i + 1} addresses:`, {
-      dbOutput: {
-        device_id: dbOutput.device_id,
-        device_type: dbOutput.device_type,
-        type: dbOutput.type,
-        resolved_address: dbAddress
-      },
-      netOutput: {
-        config_address: netOutput.config?.address,
-        type: netOutput.type
-      },
-      comparison: {
-        dbAddressStr,
-        netAddressStr,
-        isEqual: dbAddressStr === netAddressStr
-      }
-    });
-
     // Only report address differences if they are meaningful
     if (dbAddressStr !== netAddressStr) {
       if (dbOutput.type === 'ac' || netOutput.type === 'ac') {
@@ -740,28 +722,54 @@ export function compareCurtains(databaseCurtains, networkCurtains) {
   const dbCurtains = Array.isArray(databaseCurtains) ? databaseCurtains : [];
   const netCurtains = Array.isArray(networkCurtains) ? networkCurtains : [];
 
-  // Compare curtain count
-  if (dbCurtains.length !== netCurtains.length) {
-    differences.push(`Curtain count: DB=${dbCurtains.length}, Network=${netCurtains.length}`);
+  // Filter out disabled curtains (type = 0) from both database and network
+  // This matches the behavior for other disabled configurations
+  const validDbCurtains = dbCurtains.filter(curtain => curtain.type !== 0);
+  const validNetCurtains = netCurtains.filter(curtain => curtain.type !== 0);
+
+  // Create maps for easier comparison by address
+  const dbCurtainMap = new Map();
+  const netCurtainMap = new Map();
+
+  validDbCurtains.forEach(curtain => {
+    if (curtain.address !== undefined) {
+      dbCurtainMap.set(curtain.address, curtain);
+    }
+  });
+
+  validNetCurtains.forEach(curtain => {
+    if (curtain.address !== undefined) {
+      netCurtainMap.set(curtain.address, curtain);
+    }
+  });
+
+  // Get all unique addresses
+  const allAddresses = new Set([...dbCurtainMap.keys(), ...netCurtainMap.keys()]);
+
+  // Compare curtain count (using filtered arrays)
+  if (validDbCurtains.length !== validNetCurtains.length) {
+    differences.push(`Curtain count: DB=${validDbCurtains.length}, Network=${validNetCurtains.length}`);
   }
 
-  // Compare individual curtains
-  const maxLength = Math.max(dbCurtains.length, netCurtains.length);
-  for (let i = 0; i < maxLength; i++) {
-    const dbCurtain = dbCurtains[i];
-    const netCurtain = netCurtains[i];
+  // Compare curtains by address
+  allAddresses.forEach(address => {
+    const dbCurtain = dbCurtainMap.get(address);
+    const netCurtain = netCurtainMap.get(address);
 
-    if (!dbCurtain && !netCurtain) continue;
+    if (!dbCurtain && !netCurtain) return;
 
-    if (!dbCurtain || !netCurtain) {
-      differences.push(`Curtain ${i + 1}: Exists in only one unit`);
-      continue;
+    if (!dbCurtain) {
+      differences.push(`Curtain Address ${address}: Only exists in Network unit`);
+      return;
     }
 
-    // Compare curtain properties
+    if (!netCurtain) {
+      differences.push(`Curtain Address ${address}: Only exists in Database unit`);
+      return;
+    }
+
+    // Compare curtain properties (skip name as it's not meaningful for comparison)
     const fieldsToCompare = [
-      { name: 'name', label: 'Name' },
-      { name: 'address', label: 'Address' },
       { name: 'type', label: 'Type' },
       { name: 'runtime', label: 'Runtime' }
     ];
@@ -769,11 +777,11 @@ export function compareCurtains(databaseCurtains, networkCurtains) {
     fieldsToCompare.forEach(field => {
       if (dbCurtain[field.name] !== netCurtain[field.name]) {
         differences.push(
-          `Curtain ${i + 1} ${field.label}: DB=${dbCurtain[field.name]}, Network=${netCurtain[field.name]}`
+          `Curtain ${address} ${field.label}: DB=${dbCurtain[field.name]}, Network=${netCurtain[field.name]}`
         );
       }
     });
-  }
+  });
 
   return {
     isEqual: differences.length === 0,
@@ -1003,17 +1011,22 @@ export function compareKnx(databaseKnx, networkKnx) {
   const dbKnx = Array.isArray(databaseKnx) ? databaseKnx : [];
   const netKnx = Array.isArray(networkKnx) ? networkKnx : [];
 
+  // Filter out disabled KNX configs (type = 0) from both database and network
+  // This matches the behavior in KNX Control dialog
+  const validDbKnx = dbKnx.filter(knx => knx.type !== 0);
+  const validNetKnx = netKnx.filter(knx => knx.type !== 0);
+
   // Create maps for easier comparison by address
   const dbKnxMap = new Map();
   const netKnxMap = new Map();
 
-  dbKnx.forEach(knx => {
+  validDbKnx.forEach(knx => {
     if (knx.address !== undefined) {
       dbKnxMap.set(knx.address, knx);
     }
   });
 
-  netKnx.forEach(knx => {
+  validNetKnx.forEach(knx => {
     if (knx.address !== undefined) {
       netKnxMap.set(knx.address, knx);
     }
@@ -1022,9 +1035,9 @@ export function compareKnx(databaseKnx, networkKnx) {
   // Get all unique addresses
   const allAddresses = new Set([...dbKnxMap.keys(), ...netKnxMap.keys()]);
 
-  // Compare KNX count
-  if (dbKnx.length !== netKnx.length) {
-    differences.push(`KNX count: DB=${dbKnx.length}, Network=${netKnx.length}`);
+  // Compare KNX count (using filtered arrays)
+  if (validDbKnx.length !== validNetKnx.length) {
+    differences.push(`KNX count: DB=${validDbKnx.length}, Network=${validNetKnx.length}`);
   }
 
   // Compare KNX configs by address
@@ -1044,9 +1057,8 @@ export function compareKnx(databaseKnx, networkKnx) {
       return;
     }
 
-    // Compare KNX properties
+    // Compare KNX properties (skip name as it's not meaningful for comparison)
     const knxFields = [
-      { name: 'name', label: 'Name' },
       { name: 'type', label: 'Type' },
       { name: 'factor', label: 'Factor' },
       { name: 'feedback', label: 'Feedback' },
@@ -1069,6 +1081,20 @@ export function compareKnx(databaseKnx, networkKnx) {
       }
       if (field.name === 'knx_value_group' && netValue === undefined) {
         netValue = netKnxConfig.knxValueGroup;
+      }
+
+      // For KNX group fields, treat null and empty string as equivalent
+      if (field.name.includes('knx_') && field.name.includes('_group')) {
+        // Normalize values: treat null, undefined, and empty string as equivalent
+        const normalizeGroupValue = (value) => {
+          if (value === null || value === undefined || value === '' || value === 'null') {
+            return '';
+          }
+          return value;
+        };
+
+        dbValue = normalizeGroupValue(dbValue);
+        netValue = normalizeGroupValue(netValue);
       }
 
       if (dbValue !== netValue) {

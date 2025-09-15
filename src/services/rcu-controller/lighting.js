@@ -39,6 +39,17 @@ async function setOutputState(unitIp, canId, outputIndex, value) {
   );
 }
 
+async function setInputState(unitIp, canId, inputIndex, value) {
+  validators.outputIndex(inputIndex); // Use same validator for input index
+  validators.value(value);
+  return sendLightingCommand(
+    unitIp,
+    canId,
+    PROTOCOL.LIGHTING.CMD2.SET_INPUT_STATE,
+    [inputIndex, value]
+  );
+}
+
 async function setMultipleGroupStates(unitIp, canId, groupSettings) {
   if (!Array.isArray(groupSettings) || groupSettings.length === 0) {
     throw new Error("Invalid input. Provide an array of [group, value] pairs");
@@ -180,6 +191,7 @@ async function getAllInputStates(unitIp, canId) {
 export {
   setGroupState,
   setOutputState,
+  setInputState,
   setMultipleGroupStates,
   getAllGroupStates,
   getAllOutputStates,
