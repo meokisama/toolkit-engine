@@ -1513,14 +1513,60 @@ class DatabaseService {
 
   deleteProjectItem(id, tableName) {
     try {
-      const stmt = this.db.prepare(`DELETE FROM ${tableName} WHERE id = ?`);
-      const result = stmt.run(id);
+      // Start transaction to ensure data consistency
+      const transaction = this.db.transaction(() => {
+        // For lighting, curtain, and aircon items, also remove from scene_items and scene_address_items
+        if (tableName === 'lighting' || tableName === 'curtain' || tableName === 'aircon') {
+          // Get all scene items that reference this item
+          const sceneItems = this.db
+            .prepare(`
+              SELECT si.*, s.project_id, s.address
+              FROM scene_items si
+              JOIN scene s ON si.scene_id = s.id
+              WHERE si.item_type = ? AND si.item_id = ?
+            `)
+            .all(tableName, id);
 
-      if (result.changes === 0) {
-        throw new Error(`${tableName} item not found`);
-      }
+          // Remove from scene_address_items first
+          const deleteAddressItemStmt = this.db.prepare(`
+            DELETE FROM scene_address_items
+            WHERE project_id = ? AND address = ? AND item_type = ? AND item_id = ?
+          `);
 
-      return { success: true, deletedId: id };
+          for (const sceneItem of sceneItems) {
+            deleteAddressItemStmt.run(
+              sceneItem.project_id,
+              sceneItem.address,
+              sceneItem.item_type,
+              sceneItem.item_id
+            );
+          }
+
+          // Remove from scene_items
+          const deleteSceneItemStmt = this.db.prepare(`
+            DELETE FROM scene_items WHERE item_type = ? AND item_id = ?
+          `);
+          deleteSceneItemStmt.run(tableName, id);
+        }
+
+        // Delete the main item
+        // Note: For scene, multi_scenes, and sequences, foreign key constraints with CASCADE DELETE
+        // will automatically handle cleanup of related records in:
+        // - scene deletion: schedule_scenes, multi_scene_scenes
+        // - multi_scenes deletion: multi_scene_scenes, sequence_multi_scenes
+        // - sequences deletion: sequence_multi_scenes
+        // - schedule deletion: schedule_scenes
+        const stmt = this.db.prepare(`DELETE FROM ${tableName} WHERE id = ?`);
+        const result = stmt.run(id);
+
+        if (result.changes === 0) {
+          throw new Error(`${tableName} item not found`);
+        }
+
+        return { success: true, deletedId: id };
+      });
+
+      return transaction();
     } catch (error) {
       console.error(`Failed to delete ${tableName} item:`, error);
       throw error;

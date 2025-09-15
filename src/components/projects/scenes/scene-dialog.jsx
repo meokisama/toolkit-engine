@@ -247,13 +247,13 @@ export function SceneDialog({
     loadUsedItemsByAddress,
   ]);
 
-  // Reload scene items when aircon data changes (to reflect address updates)
+  // Reload scene items when project data changes (to reflect address updates or item deletions)
   useEffect(() => {
     if (open && mode === "edit" && scene && scene.id) {
-      // Reload scene items when aircon data changes to reflect any address updates
+      // Reload scene items when project data changes to reflect any address updates or item deletions
       loadSceneItems(scene.id);
     }
-  }, [open, mode, scene, projectItems.aircon, loadSceneItems]);
+  }, [open, mode, scene, projectItems.aircon, projectItems.lighting, projectItems.curtain, loadSceneItems]);
 
   // Cleanup timeout on unmount
   useEffect(() => {
