@@ -280,6 +280,86 @@ export const hasIOConfigChanges = (original, current) => {
 };
 
 /**
+ * Check if a specific input configuration has changed
+ * @param {Object} originalInput - Original input configuration
+ * @param {Object} currentInput - Current input configuration
+ * @returns {boolean} True if the input has changed
+ */
+export const hasInputConfigChanged = (originalInput, currentInput) => {
+  if (!originalInput && !currentInput) return false;
+  if (!originalInput || !currentInput) return true;
+
+  // Compare the key properties that indicate a change
+  if (originalInput.functionValue !== currentInput.functionValue ||
+    originalInput.lightingId !== currentInput.lightingId) {
+    return true;
+  }
+
+  // Compare multi group config (array comparison)
+  const originalMultiGroup = originalInput.multiGroupConfig || [];
+  const currentMultiGroup = currentInput.multiGroupConfig || [];
+
+  if (originalMultiGroup.length !== currentMultiGroup.length) {
+    return true;
+  }
+
+  // Deep compare multi group config array
+  for (let i = 0; i < originalMultiGroup.length; i++) {
+    if (JSON.stringify(originalMultiGroup[i]) !== JSON.stringify(currentMultiGroup[i])) {
+      return true;
+    }
+  }
+
+  // Compare RLC config - handle both naming conventions
+  const originalRlc = originalInput.rlcConfig || {};
+  const currentRlc = currentInput.rlcConfig || {};
+
+  // Compare each RLC property with fallback for different naming conventions
+  const rlcComparisons = [
+    { orig: originalRlc.ramp || 0, curr: currentRlc.ramp || 0 },
+    { orig: originalRlc.preset || 100, curr: currentRlc.preset || 100 },
+    { orig: originalRlc.ledStatus || originalRlc.led_status || 0, curr: currentRlc.ledStatus || currentRlc.led_status || 0 },
+    { orig: originalRlc.autoMode || originalRlc.auto_mode || 0, curr: currentRlc.autoMode || currentRlc.auto_mode || 0 },
+    { orig: originalRlc.delayOff || originalRlc.delay_off || 0, curr: currentRlc.delayOff || currentRlc.delay_off || 0 },
+    { orig: originalRlc.delayOn || originalRlc.delay_on || 0, curr: currentRlc.delayOn || currentRlc.delay_on || 0 },
+  ];
+
+  for (const comparison of rlcComparisons) {
+    if (comparison.orig !== comparison.curr) {
+      return true;
+    }
+  }
+
+  return false;
+};
+
+/**
+ * Get changed input indices by comparing original and current input configs
+ * @param {Array} originalInputs - Array of original input configurations
+ * @param {Array} currentInputs - Array of current input configurations
+ * @returns {Set} Set of input indices that have changed
+ */
+export const getChangedInputIndices = (originalInputs, currentInputs) => {
+  const changedIndices = new Set();
+
+  if (!originalInputs || !currentInputs) return changedIndices;
+
+  // Create maps for easier lookup
+  const originalMap = new Map(originalInputs.map(input => [input.index, input]));
+  const currentMap = new Map(currentInputs.map(input => [input.index, input]));
+
+  // Check each current input against its original
+  currentInputs.forEach(currentInput => {
+    const originalInput = originalMap.get(currentInput.index);
+    if (hasInputConfigChanged(originalInput, currentInput)) {
+      changedIndices.add(currentInput.index);
+    }
+  });
+
+  return changedIndices;
+};
+
+/**
  * Get input configuration by index
  * @param {Object} ioConfig - The I/O configuration
  * @param {number} inputIndex - The input index

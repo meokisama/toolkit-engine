@@ -7,6 +7,7 @@ import {
   getInputFunctions,
   getInputFunctionByValue,
 } from "@/constants";
+import { hasInputConfigChanged } from "@/utils/io-config-utils";
 
 const InputConfigItem = memo(
   ({
@@ -14,6 +15,7 @@ const InputConfigItem = memo(
     unitType,
     onInputFunctionChange,
     onOpenMultiGroupConfig,
+    originalConfig = null,
   }) => {
     // Memoize available functions to prevent recalculation on every render
     const availableFunctions = useMemo(() => {
@@ -29,6 +31,12 @@ const InputConfigItem = memo(
     const showConfigButton = useMemo(() => {
       return currentFunction && currentFunction.name !== "IP_UNUSED";
     }, [currentFunction]);
+
+    // Check if this input has changed from original configuration
+    const hasChanged = useMemo(() => {
+      if (!originalConfig) return false;
+      return hasInputConfigChanged(originalConfig, config);
+    }, [originalConfig, config]);
 
     // Memoized handlers to prevent unnecessary re-renders
     const handleFunctionChange = useCallback(
@@ -46,7 +54,8 @@ const InputConfigItem = memo(
     }, [config.index, config.functionValue, onOpenMultiGroupConfig]);
 
     return (
-      <div className="p-4 border rounded-lg flex gap-4 items-center justify-between shadow">
+      <div className={`p-4 border rounded-lg flex gap-4 items-center justify-between shadow ${hasChanged ? 'border-orange-500 border-2' : 'border-gray-200'
+        }`}>
         <Label className="text-sm font-medium">{config.name}</Label>
         <div className="flex items-center gap-2">
           <InputFunctionSubmenu

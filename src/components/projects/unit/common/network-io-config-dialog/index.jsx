@@ -207,10 +207,10 @@ const NetworkIOConfigDialog = ({ open, onOpenChange, item = null }) => {
             prevConfigs.map(config =>
               config.index === outputIndex
                 ? {
-                    ...config,
-                    state: originalConfig.state,
-                    brightness: originalConfig.brightness
-                  }
+                  ...config,
+                  state: originalConfig.state,
+                  brightness: originalConfig.brightness
+                }
                 : config
             )
           );
@@ -222,10 +222,10 @@ const NetworkIOConfigDialog = ({ open, onOpenChange, item = null }) => {
           prevConfigs.map(config =>
             config.index === outputIndex
               ? {
-                  ...config,
-                  state: originalConfig.state,
-                  brightness: originalConfig.brightness
-                }
+                ...config,
+                state: originalConfig.state,
+                brightness: originalConfig.brightness
+              }
               : config
           )
         );
@@ -252,9 +252,8 @@ const NetworkIOConfigDialog = ({ open, onOpenChange, item = null }) => {
           const newAirconItem = {
             name: `Group ${address}`,
             address: address.toString(),
-            description: `Auto-added from network unit output ${
-              outputIndex + 1
-            }`,
+            description: `Auto-added from network unit output ${outputIndex + 1
+              }`,
           };
 
           // Add to database via electronAPI with projectId
@@ -280,9 +279,8 @@ const NetworkIOConfigDialog = ({ open, onOpenChange, item = null }) => {
           const newLightingItem = {
             name: `Group ${address}`,
             address: address.toString(),
-            description: `Auto-added from network unit output ${
-              outputIndex + 1
-            }`,
+            description: `Auto-added from network unit output ${outputIndex + 1
+              }`,
             object_type: "OBJ_LIGHTING",
             object_value: 1,
           };

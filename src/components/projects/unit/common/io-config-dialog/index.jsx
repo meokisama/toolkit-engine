@@ -38,6 +38,7 @@ const IOConfigDialogComponent = ({ open, onOpenChange, item = null }) => {
     outputConfigs,
     setInputConfigs,
     setOutputConfigs,
+    originalInputConfigs,
     ioSpec,
     loading,
     isInitialLoading,
@@ -57,7 +58,9 @@ const IOConfigDialogComponent = ({ open, onOpenChange, item = null }) => {
     handleOpenMultiGroupConfig,
     handleSaveMultiGroupConfig,
     loadAllMultiGroupConfigs,
-  } = useInputConfig(item, setInputConfigs);
+  } = useInputConfig(item, setInputConfigs, open);
+
+
 
   const {
     lightingOutputDialogOpen,
@@ -319,19 +322,41 @@ const IOConfigDialogComponent = ({ open, onOpenChange, item = null }) => {
                     <ScrollArea className="h-full">
                       {inputConfigs.length > 0 ? (
                         <div className="space-y-3 pr-4">
-                          {inputConfigs.map((config) => (
-                            <InputConfigItem
-                              key={config.index}
-                              config={config}
-                              unitType={item?.type}
-                              onInputFunctionChange={
-                                handleInputFunctionChangeWithState
+                          {inputConfigs.map((config) => {
+                            // Find the original config for this input
+                            const originalConfig = originalInputConfigs.find(
+                              (orig) => orig.index === config.index
+                            );
+
+                            // Create enhanced config with current multi-group and RLC data
+                            const currentConfigWithExtras = {
+                              ...config,
+                              multiGroupConfig: multiGroupConfigs[config.index]?.multiGroupConfig || [],
+                              rlcConfig: {
+                                ramp: multiGroupConfigs[config.index]?.ramp || rlcConfigs[config.index]?.ramp || 0,
+                                preset: multiGroupConfigs[config.index]?.preset || rlcConfigs[config.index]?.preset || 100,
+                                ledStatus: multiGroupConfigs[config.index]?.led_status || rlcConfigs[config.index]?.ledStatus || 0,
+                                autoMode: multiGroupConfigs[config.index]?.auto_mode || rlcConfigs[config.index]?.autoMode || 0,
+                                delayOff: multiGroupConfigs[config.index]?.delay_off || rlcConfigs[config.index]?.delayOff || 0,
+                                delayOn: multiGroupConfigs[config.index]?.delay_on || rlcConfigs[config.index]?.delayOn || 0,
                               }
-                              onOpenMultiGroupConfig={
-                                handleOpenMultiGroupConfig
-                              }
-                            />
-                          ))}
+                            };
+
+                            return (
+                              <InputConfigItem
+                                key={config.index}
+                                config={currentConfigWithExtras}
+                                unitType={item?.type}
+                                originalConfig={originalConfig}
+                                onInputFunctionChange={
+                                  handleInputFunctionChangeWithState
+                                }
+                                onOpenMultiGroupConfig={
+                                  handleOpenMultiGroupConfig
+                                }
+                              />
+                            );
+                          })}
                         </div>
                       ) : (
                         <div className="text-center text-muted-foreground py-8">

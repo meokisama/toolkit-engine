@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { getInputFunctionByValue } from "@/constants";
 import { toast } from "sonner";
 
@@ -10,12 +10,23 @@ const isNetworkUnit = (unit) => {
 
 // Note: Network unit logic has been moved to use-network-input-config.js
 
-export const useInputConfig = (item, setInputConfigs = null) => {
+export const useInputConfig = (item, setInputConfigs = null, open = true) => {
   const [multiGroupConfigs, setMultiGroupConfigs] = useState({});
   const [rlcConfigs, setRlcConfigs] = useState({});
   const [multiGroupDialogOpen, setMultiGroupDialogOpen] = useState(false);
   const [currentMultiGroupInput, setCurrentMultiGroupInput] = useState(null);
   const [loadingInputConfig, setLoadingInputConfig] = useState(false);
+
+  // Reset state when dialog closes to clear any unsaved changes
+  useEffect(() => {
+    if (!open) {
+      setMultiGroupConfigs({});
+      setRlcConfigs({});
+      setMultiGroupDialogOpen(false);
+      setCurrentMultiGroupInput(null);
+      setLoadingInputConfig(false);
+    }
+  }, [open]);
 
   // Function to reload input config from database
   const reloadInputConfig = useCallback(

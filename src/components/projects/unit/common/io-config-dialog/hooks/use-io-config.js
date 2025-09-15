@@ -11,6 +11,7 @@ export const useIOConfig = (item, open) => {
   const [inputConfigs, setInputConfigs] = useState([]);
   const [outputConfigs, setOutputConfigs] = useState([]);
   const [originalIOConfig, setOriginalIOConfig] = useState(null);
+  const [originalInputConfigs, setOriginalInputConfigs] = useState([]);
   const [loading, setLoading] = useState(false);
   const [isInitialLoading, setIsInitialLoading] = useState(false);
 
@@ -74,6 +75,14 @@ export const useIOConfig = (item, open) => {
     return outputs;
   }, [ioSpec, outputTypes, getOutputLabel]);
 
+  // Reset original configs when dialog closes
+  useEffect(() => {
+    if (!open) {
+      setOriginalInputConfigs([]);
+      setOriginalIOConfig(null);
+    }
+  }, [open]);
+
   // Initialize configurations from database or defaults
   useEffect(() => {
     if (!open || !item) {
@@ -124,6 +133,30 @@ export const useIOConfig = (item, open) => {
           return defaultConfig;
         });
         setInputConfigs(mergedInputConfigs);
+
+        // Store original input configs for change detection with database data
+        const originalConfigs = mergedInputConfigs.map(config => {
+          const savedConfig = inputConfigs.inputs?.find(
+            (input) => input.index === config.index
+          );
+
+          return {
+            index: config.index,
+            functionValue: config.functionValue,
+            lightingId: config.lightingId,
+            multiGroupConfig: savedConfig?.multi_group_config || [],
+            rlcConfig: {
+              ramp: savedConfig?.rlc_config?.ramp || 0,
+              preset: savedConfig?.rlc_config?.preset || 100,
+              ledStatus: savedConfig?.rlc_config?.ledStatus || 0,
+              autoMode: savedConfig?.rlc_config?.autoMode || 0,
+              delayOff: savedConfig?.rlc_config?.delayOff || 0,
+              delayOn: savedConfig?.rlc_config?.delayOn || 0,
+            }
+          };
+        });
+
+        setOriginalInputConfigs(originalConfigs);
 
         // Initialize output configs from JSON structure
         const mergedOutputConfigs = initialOutputConfigs.map((defaultConfig) => {
@@ -259,6 +292,7 @@ export const useIOConfig = (item, open) => {
     outputConfigs,
     setInputConfigs,
     setOutputConfigs,
+    originalInputConfigs,
     ioSpec,
     outputTypes,
     loading,
