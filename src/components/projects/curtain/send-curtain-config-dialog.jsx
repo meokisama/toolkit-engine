@@ -91,8 +91,7 @@ export function SendCurtainConfigDialog({ open, onOpenChange, items = [] }) {
         if (success) {
           successCount++;
           toast.success(
-            `Curtain config sent successfully to ${
-              unit.type || "Unknown Unit"
+            `Curtain config sent successfully to ${unit.type || "Unknown Unit"
             } (${unit.ip_address})`
           );
         } else {
@@ -105,8 +104,7 @@ export function SendCurtainConfigDialog({ open, onOpenChange, items = [] }) {
           error
         );
         toast.error(
-          `Failed to send curtain config to ${unit.type || "Unknown Unit"} (${
-            unit.ip_address
+          `Failed to send curtain config to ${unit.type || "Unknown Unit"} (${unit.ip_address
           }): ${error.message}`
         );
       }
@@ -128,9 +126,50 @@ export function SendCurtainConfigDialog({ open, onOpenChange, items = [] }) {
     selectedUnits,
     onProgress
   ) => {
-    const totalOperations = curtains.length * selectedUnits.length;
+    // Add delete operations to total count (one delete per unit)
+    const totalOperations = curtains.length * selectedUnits.length + selectedUnits.length;
     let completedOperations = 0;
     const operationResults = [];
+
+    // First, delete all existing curtain configs from selected units
+    onProgress(0, "Deleting existing curtain configs...");
+    for (const unit of selectedUnits) {
+      try {
+        console.log("Deleting all curtain configs from unit:", {
+          unitIp: unit.ip_address,
+          canId: unit.id_can,
+        });
+
+        await window.electronAPI.rcuController.deleteAllCurtains(
+          unit.ip_address,
+          unit.id_can
+        );
+
+        operationResults.push({
+          scene: "Delete All Configs",
+          unit: `${unit.type || "Unknown Unit"} (${unit.ip_address})`,
+          success: true,
+          message: "Existing configs deleted successfully",
+        });
+
+        completedOperations++;
+        onProgress((completedOperations / totalOperations) * 100, "Deleting existing configs...");
+      } catch (error) {
+        console.error(
+          `Failed to delete existing curtain configs from unit ${unit.ip_address}:`,
+          error
+        );
+        operationResults.push({
+          scene: "Delete All Configs",
+          unit: `${unit.type || "Unknown Unit"} (${unit.ip_address})`,
+          success: false,
+          message: error.message || "Failed to delete existing configs",
+        });
+
+        completedOperations++;
+        onProgress((completedOperations / totalOperations) * 100, "Deleting existing configs...");
+      }
+    }
 
     // Get lighting items for all curtains (do this once)
     const lightingItems = await window.electronAPI.lighting.getAll(
@@ -141,7 +180,7 @@ export function SendCurtainConfigDialog({ open, onOpenChange, items = [] }) {
       const currentCurtain = curtains[curtainIndex];
       onProgress(
         (completedOperations / totalOperations) * 100,
-        `${currentCurtain.name} (${curtainIndex + 1}/${curtains.length})`
+        `Sending ${currentCurtain.name} (${curtainIndex + 1}/${curtains.length})`
       );
 
       // Validate curtain config

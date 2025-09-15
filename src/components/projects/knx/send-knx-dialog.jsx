@@ -146,8 +146,7 @@ export function SendKnxDialog({ open, onOpenChange, items = [] }) {
         if (success) {
           successCount++;
           toast.success(
-            `KNX config sent successfully to ${unit.type || "Unknown Unit"} (${
-              unit.ip_address
+            `KNX config sent successfully to ${unit.type || "Unknown Unit"} (${unit.ip_address
             })`
           );
         } else {
@@ -160,8 +159,7 @@ export function SendKnxDialog({ open, onOpenChange, items = [] }) {
           error
         );
         toast.error(
-          `Failed to send KNX config to ${unit.type || "Unknown Unit"} (${
-            unit.ip_address
+          `Failed to send KNX config to ${unit.type || "Unknown Unit"} (${unit.ip_address
           }): ${error.message}`
         );
       }
@@ -177,9 +175,50 @@ export function SendKnxDialog({ open, onOpenChange, items = [] }) {
   };
 
   const handleSendBulkKnx = async (knxConfigs, selectedUnits, onProgress) => {
-    const totalOperations = knxConfigs.length * selectedUnits.length;
+    // Add delete operations to total count (one delete per unit)
+    const totalOperations = knxConfigs.length * selectedUnits.length + selectedUnits.length;
     let completedOperations = 0;
     const operationResults = [];
+
+    // First, delete all existing KNX configs from selected units
+    onProgress(0, "Deleting existing KNX configs...");
+    for (const unit of selectedUnits) {
+      try {
+        console.log("Deleting all KNX configs from unit:", {
+          unitIp: unit.ip_address,
+          canId: unit.id_can,
+        });
+
+        await window.electronAPI.rcuController.deleteAllKnxConfigs(
+          unit.ip_address,
+          unit.id_can
+        );
+
+        operationResults.push({
+          scene: "Delete All KNX Configs",
+          unit: `${unit.type || "Unknown Unit"} (${unit.ip_address})`,
+          success: true,
+          message: "Existing KNX configs deleted successfully",
+        });
+
+        completedOperations++;
+        onProgress((completedOperations / totalOperations) * 100, "Deleting existing KNX configs...");
+      } catch (error) {
+        console.error(
+          `Failed to delete existing KNX configs from unit ${unit.ip_address}:`,
+          error
+        );
+        operationResults.push({
+          scene: "Delete All KNX Configs",
+          unit: `${unit.type || "Unknown Unit"} (${unit.ip_address})`,
+          success: false,
+          message: error.message || "Failed to delete existing KNX configs",
+        });
+
+        completedOperations++;
+        onProgress((completedOperations / totalOperations) * 100, "Deleting existing KNX configs...");
+      }
+    }
 
     // Get all project items for RCU group lookup
     const projectId = knxConfigs[0].project_id;
@@ -193,6 +232,10 @@ export function SendKnxDialog({ open, onOpenChange, items = [] }) {
 
     for (let i = 0; i < knxConfigs.length; i++) {
       const currentKnx = knxConfigs[i];
+      onProgress(
+        (completedOperations / totalOperations) * 100,
+        `Sending ${currentKnx.name} (${i + 1}/${knxConfigs.length})`
+      );
       const knxData = await handleLoadSingleKnx(currentKnx);
 
       if (!handleValidateSingleKnx(knxData)) {

@@ -38,6 +38,7 @@ import {
   useNetworkUnitSelector,
 } from "@/components/shared/network-unit-selector";
 import { DatabaseUnitSelector } from "@/components/shared/database-unit-selector";
+import { deleteAllConfigsFromUnits } from "./delete-all-configs-helper";
 
 function SendAllConfigDialogComponent({ open, onOpenChange }) {
   const { selectedProject, projectItems } = useProjectDetail();
@@ -1299,7 +1300,9 @@ function SendAllConfigDialogComponent({ open, onOpenChange }) {
         totalOperations += 1; // Database unit configuration write
       }
       if (selectedConfigTypes.length > 0) {
-        totalOperations += selectedUnits.length * selectedConfigTypes.length; // Project configurations
+        // Add delete operations (one delete per unit per config type) + send operations
+        totalOperations += selectedUnits.length * selectedConfigTypes.length; // Delete operations
+        totalOperations += selectedUnits.length * selectedConfigTypes.length; // Send operations
       }
 
       // Write database unit configuration if selected
@@ -1334,14 +1337,32 @@ function SendAllConfigDialogComponent({ open, onOpenChange }) {
         setCurrentOperation("Loading project configurations...");
         const configs = await getProjectConfigurations();
 
+        // First, delete all existing configs from selected units
+        setCurrentOperation("Deleting existing configurations...");
+        const deleteResults = await deleteAllConfigsFromUnits(
+          selectedUnits,
+          selectedConfigTypes,
+          (progress, message) => {
+            // Calculate progress: delete operations take up first 50% of total progress
+            const deleteProgress = (progress / 100) * 50;
+            setProgress(deleteProgress);
+            setCurrentOperation(message);
+          }
+        );
+
+        // Add delete results to operation results
+        operationResults.push(...deleteResults);
+
+        // Update completed operations to account for delete operations
+        completedOperations += selectedUnits.length * selectedConfigTypes.length;
+
         for (const unit of selectedUnits) {
           for (const configType of selectedConfigTypes) {
             const configData = configs[configType] || [];
 
             if (configData.length > 0) {
               setCurrentOperation(
-                `Sending ${configType} to ${unit.type || "Unit"} (${
-                  unit.ip_address
+                `Sending ${configType} to ${unit.type || "Unit"} (${unit.ip_address
                 })...`
               );
 
@@ -1369,7 +1390,9 @@ function SendAllConfigDialogComponent({ open, onOpenChange }) {
             }
 
             completedOperations++;
-            setProgress((completedOperations / totalOperations) * 100);
+            // Calculate progress: send operations take up remaining 50% of progress
+            const sendProgress = 50 + ((completedOperations - (selectedUnits.length * selectedConfigTypes.length)) / (selectedUnits.length * selectedConfigTypes.length)) * 50;
+            setProgress(sendProgress);
           }
         }
       }

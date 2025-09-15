@@ -59,8 +59,7 @@ export function SendSceneDialog({ open, onOpenChange, items = [] }) {
 
         successCount++;
         toast.success(
-          `Scene sent successfully to ${unit.type || "Unknown Unit"} (${
-            unit.ip_address
+          `Scene sent successfully to ${unit.type || "Unknown Unit"} (${unit.ip_address
           })`
         );
       } catch (error) {
@@ -70,8 +69,7 @@ export function SendSceneDialog({ open, onOpenChange, items = [] }) {
           error
         );
         toast.error(
-          `Failed to send scene to ${unit.type || "Unknown Unit"} (${
-            unit.ip_address
+          `Failed to send scene to ${unit.type || "Unknown Unit"} (${unit.ip_address
           }): ${error.message}`
         );
       }
@@ -87,15 +85,56 @@ export function SendSceneDialog({ open, onOpenChange, items = [] }) {
   };
 
   const handleSendBulkScenes = async (scenes, selectedUnits, onProgress) => {
-    const totalOperations = scenes.length * selectedUnits.length;
+    // Add delete operations to total count (one delete per unit)
+    const totalOperations = scenes.length * selectedUnits.length + selectedUnits.length;
     let completedOperations = 0;
     const operationResults = [];
+
+    // First, delete all existing scenes from selected units
+    onProgress(0, "Deleting existing scenes...");
+    for (const unit of selectedUnits) {
+      try {
+        console.log("Deleting all scenes from unit:", {
+          unitIp: unit.ip_address,
+          canId: unit.id_can,
+        });
+
+        await window.electronAPI.rcuController.deleteAllScenes(
+          unit.ip_address,
+          unit.id_can
+        );
+
+        operationResults.push({
+          scene: "Delete All Scenes",
+          unit: `${unit.type || "Unknown Unit"} (${unit.ip_address})`,
+          success: true,
+          message: "Existing scenes deleted successfully",
+        });
+
+        completedOperations++;
+        onProgress((completedOperations / totalOperations) * 100, "Deleting existing scenes...");
+      } catch (error) {
+        console.error(
+          `Failed to delete existing scenes from unit ${unit.ip_address}:`,
+          error
+        );
+        operationResults.push({
+          scene: "Delete All Scenes",
+          unit: `${unit.type || "Unknown Unit"} (${unit.ip_address})`,
+          success: false,
+          message: error.message || "Failed to delete existing scenes",
+        });
+
+        completedOperations++;
+        onProgress((completedOperations / totalOperations) * 100, "Deleting existing scenes...");
+      }
+    }
 
     for (let sceneIndex = 0; sceneIndex < scenes.length; sceneIndex++) {
       const currentSceneData = scenes[sceneIndex];
       onProgress(
         (completedOperations / totalOperations) * 100,
-        `${currentSceneData.name} (${sceneIndex + 1}/${scenes.length})`
+        `Sending ${currentSceneData.name} (${sceneIndex + 1}/${scenes.length})`
       );
 
       // Get scene items for this scene

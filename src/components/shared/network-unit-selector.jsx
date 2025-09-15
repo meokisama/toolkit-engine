@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { udpScanner } from "@/services/udp";
+import { sortByIpAddress } from "@/utils/ip-utils";
 
 export const NetworkUnitSelector = React.forwardRef(
   function NetworkUnitSelector(
@@ -35,8 +36,10 @@ export const NetworkUnitSelector = React.forwardRef(
     useEffect(() => {
       const cachedUnits = udpScanner.getLastScanResults();
       if (cachedUnits.length > 0 && udpScanner.isCacheValid()) {
-        setNetworkUnits(cachedUnits);
-        console.log(`Auto-loaded ${cachedUnits.length} cached network units`);
+        // Sort by IP address before setting
+        const sortedUnits = sortByIpAddress(cachedUnits);
+        setNetworkUnits(sortedUnits);
+        console.log(`Auto-loaded ${sortedUnits.length} cached network units (sorted by IP)`);
       } else {
         setNetworkUnits([]);
       }
@@ -49,15 +52,17 @@ export const NetworkUnitSelector = React.forwardRef(
         toast.info("Scanning network units...");
 
         const discoveredUnits = await udpScanner.getNetworkUnits(true);
-        setNetworkUnits(discoveredUnits);
+        // Sort by IP address before setting
+        const sortedUnits = sortByIpAddress(discoveredUnits);
+        setNetworkUnits(sortedUnits);
 
         // Clear selection when new units are discovered
         if (onSelectionChange) {
           onSelectionChange([]);
         }
 
-        if (discoveredUnits.length > 0) {
-          toast.success(`Found ${discoveredUnits.length} unit(s) on network`);
+        if (sortedUnits.length > 0) {
+          toast.success(`Found ${sortedUnits.length} unit(s) on network (sorted by IP)`);
         } else {
           toast.warning("No units found on network");
         }

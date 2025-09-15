@@ -25,6 +25,7 @@ import {
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
 import { UNIT_TYPES, UNIT_MODES } from "@/constants";
+import { compareIpAddresses } from "@/utils/ip-utils";
 
 // Memoized options to prevent recreation on every import
 const UNIT_TYPE_OPTIONS = UNIT_TYPES.map((unit) => ({
@@ -138,7 +139,7 @@ export const createUnitColumns = (
       <DataTableColumnHeader
         column={column}
         title="IP Address"
-        className="text-center"
+        className="flex items-center justify-center"
       />
     ),
     cell: ({ row }) => {
@@ -553,7 +554,7 @@ export const createNetworkUnitColumns = () => [
       <DataTableColumnHeader
         column={column}
         title="IP Address"
-        className="text-center"
+        className="justify-center"
       />
     ),
     cell: ({ row }) => {
@@ -567,7 +568,12 @@ export const createNetworkUnitColumns = () => [
         />
       );
     },
-    enableSorting: false,
+    enableSorting: true,
+    sortingFn: (rowA, rowB) => {
+      const ipA = rowA.getValue("ip_address");
+      const ipB = rowB.getValue("ip_address");
+      return compareIpAddresses(ipA, ipB);
+    },
     enableHiding: true,
     meta: {
       className: "w-[15%]",
@@ -727,5 +733,5 @@ export const createNetworkUnitColumns = () => [
     meta: {
       className: "w-[8%]",
     },
-  }
+  },
 ];

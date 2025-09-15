@@ -47,10 +47,11 @@ export function DataTable({
   onTransferToDatabase,
   initialPagination,
   initialColumnVisibility,
+  initialSorting = [],
   enableRowSelection = false,
   getRowClassName,
 }) {
-  const [sorting, setSorting] = React.useState([]);
+  const [sorting, setSorting] = React.useState(initialSorting);
   const [columnFilters, setColumnFilters] = React.useState([]);
   const [columnVisibility, setColumnVisibility] = React.useState(
     initialColumnVisibility || {}

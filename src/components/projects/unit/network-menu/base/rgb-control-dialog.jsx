@@ -37,10 +37,10 @@ const hexToRgb = (hex) => {
   const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
   return result
     ? {
-      r: parseInt(result[1], 16),
-      g: parseInt(result[2], 16),
-      b: parseInt(result[3], 16),
-    }
+        r: parseInt(result[1], 16),
+        g: parseInt(result[2], 16),
+        b: parseInt(result[3], 16),
+      }
     : null;
 };
 
@@ -223,7 +223,7 @@ const RGBControlDialog = ({ open, onOpenChange, unit }) => {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[600px] max-h-[80vh]">
+      <DialogContent className="sm:max-w-[600px] max-h-[80vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Palette className="h-5 w-5" />
@@ -320,7 +320,7 @@ const RGBControlDialog = ({ open, onOpenChange, unit }) => {
             <Button
               onClick={handleSendColor}
               disabled={sendingColor || !unit}
-              className="flex items-center gap-2 transition-all duration-200"
+              className="flex items-center gap-2 transition-all duration-200 shadow-md"
               style={buttonStyle}
             >
               {sendingColor ? (

@@ -2075,7 +2075,8 @@ async function scanUDPNetwork(config) {
     udpPort,
     localPort,
     timeout,
-    multiInterface = false
+    multiInterface = false,
+    targetCanId = "0.0.0.0"
   } = config;
 
   return new Promise((resolve, reject) => {
@@ -2153,7 +2154,7 @@ async function scanUDPNetwork(config) {
       console.log(`Multi-interface UDP scan starting on ${broadcastAddresses.length} interfaces:`, broadcastAddresses);
 
       const expectedScans = broadcastAddresses.length;
-      const requestData = createHardwareInfoRequest("0.0.0.0");
+      const requestData = createHardwareInfoRequest(targetCanId);
 
       // Create a socket for each broadcast address
       broadcastAddresses.forEach((broadcastAddr, index) => {
@@ -2237,7 +2238,7 @@ async function scanUDPNetwork(config) {
         }
 
         // Send broadcast request
-        const requestData = createHardwareInfoRequest("0.0.0.0");
+        const requestData = createHardwareInfoRequest(targetCanId);
 
         socket.send(requestData, udpPort, targetBroadcast, (err) => {
           if (err) {

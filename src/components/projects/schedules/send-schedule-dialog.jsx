@@ -47,8 +47,7 @@ export function SendScheduleDialog({ open, onOpenChange, items = [] }) {
 
         successCount++;
         toast.success(
-          `Schedule sent successfully to ${unit.type || unit.unit_type} (${
-            unit.ip_address
+          `Schedule sent successfully to ${unit.type || unit.unit_type} (${unit.ip_address
           })`
         );
       } catch (error) {
@@ -58,8 +57,7 @@ export function SendScheduleDialog({ open, onOpenChange, items = [] }) {
           error
         );
         toast.error(
-          `Failed to send schedule to ${unit.type || unit.unit_type} (${
-            unit.ip_address
+          `Failed to send schedule to ${unit.type || unit.unit_type} (${unit.ip_address
           }): ${error.message}`
         );
       }
@@ -75,15 +73,56 @@ export function SendScheduleDialog({ open, onOpenChange, items = [] }) {
   };
 
   const handleSendBulkSchedules = async (schedules, selectedUnits, onProgress) => {
-    const totalOperations = schedules.length * selectedUnits.length;
+    // Add delete operations to total count (one delete per unit)
+    const totalOperations = schedules.length * selectedUnits.length + selectedUnits.length;
     let completedOperations = 0;
     const operationResults = [];
+
+    // First, delete all existing schedules from selected units
+    onProgress(0, "Deleting existing schedules...");
+    for (const unit of selectedUnits) {
+      try {
+        console.log("Deleting all schedules from unit:", {
+          unitIp: unit.ip_address,
+          canId: unit.id_can,
+        });
+
+        await window.electronAPI.rcuController.deleteAllSchedules(
+          unit.ip_address,
+          unit.id_can
+        );
+
+        operationResults.push({
+          scene: "Delete All Schedules",
+          unit: `${unit.type || "Unknown Unit"} (${unit.ip_address})`,
+          success: true,
+          message: "Existing schedules deleted successfully",
+        });
+
+        completedOperations++;
+        onProgress((completedOperations / totalOperations) * 100, "Deleting existing schedules...");
+      } catch (error) {
+        console.error(
+          `Failed to delete existing schedules from unit ${unit.ip_address}:`,
+          error
+        );
+        operationResults.push({
+          scene: "Delete All Schedules",
+          unit: `${unit.type || "Unknown Unit"} (${unit.ip_address})`,
+          success: false,
+          message: error.message || "Failed to delete existing schedules",
+        });
+
+        completedOperations++;
+        onProgress((completedOperations / totalOperations) * 100, "Deleting existing schedules...");
+      }
+    }
 
     for (let scheduleIndex = 0; scheduleIndex < schedules.length; scheduleIndex++) {
       const currentScheduleData = schedules[scheduleIndex];
       onProgress(
         (completedOperations / totalOperations) * 100,
-        `${currentScheduleData.name} (${scheduleIndex + 1}/${schedules.length})`
+        `Sending ${currentScheduleData.name} (${scheduleIndex + 1}/${schedules.length})`
       );
 
       // Get schedule data
@@ -145,9 +184,8 @@ export function SendScheduleDialog({ open, onOpenChange, items = [] }) {
 
           operationResults.push({
             schedule: currentScheduleData.name,
-            unit: `${unit.type || unit.unit_type || "Unknown Unit"} (${
-              unit.ip_address
-            })`,
+            unit: `${unit.type || unit.unit_type || "Unknown Unit"} (${unit.ip_address
+              })`,
             success: true,
             message: "Sent successfully",
           });
@@ -160,9 +198,8 @@ export function SendScheduleDialog({ open, onOpenChange, items = [] }) {
           );
           operationResults.push({
             schedule: currentScheduleData.name,
-            unit: `${unit.type || unit.unit_type || "Unknown Unit"} (${
-              unit.ip_address
-            })`,
+            unit: `${unit.type || unit.unit_type || "Unknown Unit"} (${unit.ip_address
+              })`,
             success: false,
             message: error.message || "Failed to send",
           });

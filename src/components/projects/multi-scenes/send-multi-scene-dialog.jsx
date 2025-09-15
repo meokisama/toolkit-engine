@@ -68,8 +68,7 @@ export function SendMultiSceneDialog({ open, onOpenChange, items = [] }) {
 
         successCount++;
         toast.success(
-          `Multi-scene sent successfully to ${unit.type || "Unknown Unit"} (${
-            unit.ip_address
+          `Multi-scene sent successfully to ${unit.type || "Unknown Unit"} (${unit.ip_address
           })`
         );
       } catch (error) {
@@ -79,8 +78,7 @@ export function SendMultiSceneDialog({ open, onOpenChange, items = [] }) {
           error
         );
         toast.error(
-          `Failed to send multi-scene to ${unit.type || "Unknown Unit"} (${
-            unit.ip_address
+          `Failed to send multi-scene to ${unit.type || "Unknown Unit"} (${unit.ip_address
           }): ${error.message}`
         );
       }
@@ -100,13 +98,59 @@ export function SendMultiSceneDialog({ open, onOpenChange, items = [] }) {
     selectedUnits,
     onProgress
   ) => {
-    const totalOperations = multiScenes.length * selectedUnits.length;
+    // Add delete operations to total count (one delete per unit)
+    const totalOperations = multiScenes.length * selectedUnits.length + selectedUnits.length;
     let completedOperations = 0;
     const operationResults = [];
+
+    // First, delete all existing multi-scenes from selected units
+    onProgress(0, "Deleting existing multi-scenes...");
+    for (const unit of selectedUnits) {
+      try {
+        console.log("Deleting all multi-scenes from unit:", {
+          unitIp: unit.ip_address,
+          canId: unit.id_can,
+        });
+
+        await window.electronAPI.rcuController.deleteAllMultiScenes(
+          unit.ip_address,
+          unit.id_can
+        );
+
+        operationResults.push({
+          scene: "Delete All Multi-Scenes",
+          unit: `${unit.type || "Unknown Unit"} (${unit.ip_address})`,
+          success: true,
+          message: "Existing multi-scenes deleted successfully",
+        });
+
+        completedOperations++;
+        onProgress((completedOperations / totalOperations) * 100, "Deleting existing multi-scenes...");
+      } catch (error) {
+        console.error(
+          `Failed to delete existing multi-scenes from unit ${unit.ip_address}:`,
+          error
+        );
+        operationResults.push({
+          scene: "Delete All Multi-Scenes",
+          unit: `${unit.type || "Unknown Unit"} (${unit.ip_address})`,
+          success: false,
+          message: error.message || "Failed to delete existing multi-scenes",
+        });
+
+        completedOperations++;
+        onProgress((completedOperations / totalOperations) * 100, "Deleting existing multi-scenes...");
+      }
+    }
 
     for (let i = 0; i < multiScenes.length; i++) {
       const currentMultiScene = multiScenes[i];
       const multiSceneIndex = i; // Use array index as multi-scene index
+
+      onProgress(
+        (completedOperations / totalOperations) * 100,
+        `Sending ${currentMultiScene.name} (${i + 1}/${multiScenes.length})`
+      );
 
       // Load multi-scene data
       let multiSceneData;

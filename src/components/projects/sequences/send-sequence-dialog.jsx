@@ -60,8 +60,7 @@ export function SendSequenceDialog({ open, onOpenChange, items = [] }) {
 
         successCount++;
         toast.success(
-          `Sequence sent successfully to ${unit.type || "Unknown Unit"} (${
-            unit.ip_address
+          `Sequence sent successfully to ${unit.type || "Unknown Unit"} (${unit.ip_address
           })`
         );
       } catch (error) {
@@ -71,8 +70,7 @@ export function SendSequenceDialog({ open, onOpenChange, items = [] }) {
           error
         );
         toast.error(
-          `Failed to send sequence to ${unit.type || "Unknown Unit"} (${
-            unit.ip_address
+          `Failed to send sequence to ${unit.type || "Unknown Unit"} (${unit.ip_address
           }): ${error.message}`
         );
       }
@@ -92,15 +90,56 @@ export function SendSequenceDialog({ open, onOpenChange, items = [] }) {
     selectedUnits,
     onProgress
   ) => {
-    const totalOperations = sequences.length * selectedUnits.length;
+    // Add delete operations to total count (one delete per unit)
+    const totalOperations = sequences.length * selectedUnits.length + selectedUnits.length;
     let completedOperations = 0;
     const operationResults = [];
+
+    // First, delete all existing sequences from selected units
+    onProgress(0, "Deleting existing sequences...");
+    for (const unit of selectedUnits) {
+      try {
+        console.log("Deleting all sequences from unit:", {
+          unitIp: unit.ip_address,
+          canId: unit.id_can,
+        });
+
+        await window.electronAPI.rcuController.deleteAllSequences(
+          unit.ip_address,
+          unit.id_can
+        );
+
+        operationResults.push({
+          scene: "Delete All Sequences",
+          unit: `${unit.type || "Unknown Unit"} (${unit.ip_address})`,
+          success: true,
+          message: "Existing sequences deleted successfully",
+        });
+
+        completedOperations++;
+        onProgress((completedOperations / totalOperations) * 100, "Deleting existing sequences...");
+      } catch (error) {
+        console.error(
+          `Failed to delete existing sequences from unit ${unit.ip_address}:`,
+          error
+        );
+        operationResults.push({
+          scene: "Delete All Sequences",
+          unit: `${unit.type || "Unknown Unit"} (${unit.ip_address})`,
+          success: false,
+          message: error.message || "Failed to delete existing sequences",
+        });
+
+        completedOperations++;
+        onProgress((completedOperations / totalOperations) * 100, "Deleting existing sequences...");
+      }
+    }
 
     for (let sequenceIndex = 0; sequenceIndex < sequences.length; sequenceIndex++) {
       const currentSequence = sequences[sequenceIndex];
       onProgress(
         (completedOperations / totalOperations) * 100,
-        `${currentSequence.name} (${sequenceIndex + 1}/${sequences.length})`
+        `Sending ${currentSequence.name} (${sequenceIndex + 1}/${sequences.length})`
       );
 
       // Get sequence data for this sequence

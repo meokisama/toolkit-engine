@@ -1,4 +1,5 @@
 import { CONSTANTS } from "@/constants";
+import { sortByIpAddress } from "@/utils/ip-utils";
 
 const { UDP_CONFIG, TYPES } = CONSTANTS.UNIT;
 
@@ -214,7 +215,7 @@ class UDPNetworkScanner {
    * Get cached results if available, otherwise scan network
    * This is the main method to use for getting network units
    */
-  async getNetworkUnits(forceScan = false) {
+  async getNetworkUnits(forceScan = false, includeSlaves = true) {
     // Return cached results if available and not forcing scan
     if (!forceScan && this.isCacheValid()) {
       console.log("Returning cached network units");
@@ -222,7 +223,11 @@ class UDPNetworkScanner {
     }
 
     // If no cache or force scan, scan network
-    return await this.scanNetwork();
+    if (includeSlaves) {
+      return await this.scanNetworkWithSlaves();
+    } else {
+      return await this.scanNetwork();
+    }
   }
 
   /**
@@ -260,18 +265,19 @@ class UDPNetworkScanner {
           multiInterface: true,
         });
 
-        // Parse results and remove duplicates based on IP address
+        // Parse results and remove duplicates based on IP address + CAN ID combination
         const parsedResults = results
           .map((result) => this.parseUDPResponse(result.data, result.sourceIP))
           .filter((unit) => unit !== null);
 
-        // Remove duplicates by IP address (same device might respond on multiple interfaces)
+        // Remove duplicates by IP address + CAN ID combination (to support slave units with same IP but different CAN ID)
         const uniqueResults = [];
-        const seenIPs = new Set();
+        const seenUnits = new Set();
 
         for (const unit of parsedResults) {
-          if (!seenIPs.has(unit.ip_address)) {
-            seenIPs.add(unit.ip_address);
+          const unitKey = `${unit.ip_address}:${unit.id_can}`;
+          if (!seenUnits.has(unitKey)) {
+            seenUnits.add(unitKey);
             // Add interface information to the unit using main process
             const sourceInterface = await window.electronAPI.networkInterfaces.findInterfaceForTarget(unit.ip_address);
             if (sourceInterface) {
@@ -286,16 +292,19 @@ class UDPNetworkScanner {
           }
         }
 
-        this.scanResults = uniqueResults;
+        // Sort results by IP address before storing
+        this.scanResults = sortByIpAddress(uniqueResults);
       } else {
         // Fallback for development/testing - simulate scan results
         await this.simulateScan();
+        // Sort simulated results too
+        this.scanResults = sortByIpAddress(this.scanResults);
       }
 
       // Update cache timestamp
       this.lastScanTime = Date.now();
       console.log(
-        `Multi-interface network scan completed. Found ${this.scanResults.length} unique units`
+        `Multi-interface network scan completed. Found ${this.scanResults.length} unique units (sorted by IP)`
       );
 
       return this.scanResults;
@@ -308,13 +317,52 @@ class UDPNetworkScanner {
   }
 
   /**
+   * Enhanced network scan that includes slave unit discovery
+   * Based on RLC Core logic - broadcast scan should already return all units including slaves
+   * The key is proper deduplication by IP+CAN ID combination instead of just IP
+   */
+  async scanNetworkWithSlaves() {
+    console.log("Starting enhanced network scan with slave unit discovery...");
+
+    // Perform broadcast scan - this should return all units including slaves
+    // The RLC Core logic shows that all units (master and slaves) respond to broadcast
+    const allResults = await this.scanNetwork();
+
+    // Group units by IP to identify master-slave relationships
+    const unitsByIP = {};
+    allResults.forEach(unit => {
+      if (!unitsByIP[unit.ip_address]) {
+        unitsByIP[unit.ip_address] = [];
+      }
+      unitsByIP[unit.ip_address].push(unit);
+    });
+
+    // Log master-slave relationships for debugging
+    Object.entries(unitsByIP).forEach(([ip, units]) => {
+      if (units.length > 1) {
+        const masters = units.filter(u => u.mode === "Master");
+        const slaves = units.filter(u => u.mode === "Slave");
+        console.log(`IP ${ip}: ${masters.length} master(s), ${slaves.length} slave(s)`);
+
+        slaves.forEach(slave => {
+          console.log(`  - Slave: ${slave.type} (CAN ID: ${slave.id_can})`);
+        });
+      }
+    });
+
+    console.log(`Enhanced scan completed. Found ${allResults.length} total units`);
+
+    return allResults;
+  }
+
+  /**
    * Simulate network scan for development/testing
    */
   async simulateScan() {
     // Simulate network delay
     await new Promise((resolve) => setTimeout(resolve, 2000));
 
-    // Mock scan results based on RLC test data
+    // Mock scan results based on RLC test data - including slave units
     this.scanResults = [
       {
         id: `unit_${Date.now()}_1`,
@@ -322,7 +370,7 @@ class UDPNetworkScanner {
         serial_no: "8930000000019",
         ip_address: "192.168.1.23",
         id_can: "12.43.3.3",
-        mode: "Stand-Alone",
+        mode: "Master",
         firmware_version: "1.0.4",
         hardware_version: "3.2.5",
         manufacture_date: "06072015",
@@ -335,8 +383,8 @@ class UDPNetworkScanner {
         id: `unit_${Date.now()}_2`,
         type: "Bedside-17T",
         serial_no: "8930000000200",
-        ip_address: "192.168.1.24",
-        id_can: "12.43.3.5",
+        ip_address: "192.168.1.23", // Same IP as master
+        id_can: "12.43.3.5", // Different CAN ID
         mode: "Slave",
         firmware_version: "1.0.4",
         hardware_version: "3.2.5",
@@ -344,6 +392,21 @@ class UDPNetworkScanner {
         can_load: true,
         recovery_mode: false,
         description: "Bedside-17T discovered on network",
+        discovered_at: new Date().toISOString(),
+      },
+      {
+        id: `unit_${Date.now()}_3`,
+        type: "Bedside-12T",
+        serial_no: "8930000100214",
+        ip_address: "192.168.1.23", // Same IP as master
+        id_can: "12.43.3.6", // Different CAN ID
+        mode: "Slave",
+        firmware_version: "1.0.4",
+        hardware_version: "3.2.5",
+        manufacture_date: "10032015",
+        can_load: true,
+        recovery_mode: false,
+        description: "Bedside-12T discovered on network",
         discovered_at: new Date().toISOString(),
       },
     ];

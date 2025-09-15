@@ -46,6 +46,7 @@ import { udpScanner } from "@/services/udp";
 import { toast } from "sonner";
 import { getUnitIOSpec } from "@/utils/io-config-utils";
 import { useProjectDetail } from "@/contexts/project-detail-context";
+import { sortByIpAddress } from "@/utils/ip-utils";
 
 function NetworkUnitTableComponent({
   onTransferToDatabase,
@@ -92,8 +93,10 @@ function NetworkUnitTableComponent({
   useEffect(() => {
     const cachedUnits = udpScanner.getLastScanResults();
     if (cachedUnits.length > 0 && udpScanner.isCacheValid()) {
-      setNetworkUnits(cachedUnits);
-      console.log(`Auto-loaded ${cachedUnits.length} cached network units`);
+      // Sort by IP address before setting
+      const sortedUnits = sortByIpAddress(cachedUnits);
+      setNetworkUnits(sortedUnits);
+      console.log(`Auto-loaded ${sortedUnits.length} cached network units (sorted by IP)`);
     }
   }, []);
 
@@ -111,11 +114,13 @@ function NetworkUnitTableComponent({
 
       const discoveredUnits = await udpScanner.getNetworkUnits(true); // Always force scan when button is clicked
 
-      setNetworkUnits(discoveredUnits);
+      // Sort by IP address before setting
+      const sortedUnits = sortByIpAddress(discoveredUnits);
+      setNetworkUnits(sortedUnits);
       setSelectedNetworkUnits([]);
 
-      if (discoveredUnits.length > 0) {
-        toast.success(`Found ${discoveredUnits.length} unit(s) on network`);
+      if (sortedUnits.length > 0) {
+        toast.success(`Found ${sortedUnits.length} unit(s) on network (sorted by IP)`);
       } else {
         toast.warning("No units found on network");
       }
@@ -591,6 +596,7 @@ function NetworkUnitTableComponent({
                 key="network-unit"
                 columns={networkColumns}
                 data={networkUnits}
+                initialSorting={[{ id: "ip_address", desc: false }]}
                 onTableReady={setNetworkTable}
                 onRowSelectionChange={handleNetworkRowSelectionChange}
                 onGroupControl={handleGroupControl}
