@@ -112,7 +112,7 @@ async function getCurrentNetworkInfo() {
   return { address: '192.168.1.100' }; // fallback
 }
 
-// Broadcast method for cross-network IP change (similar to RLC Core)
+// Broadcast method for cross-network IP change
 // This function runs in main process and uses dgram directly
 async function changeIpAddressBroadcast(unitIp, canId, newIpBytes, oldIpBytes) {
   const dgram = require("dgram");
@@ -126,85 +126,128 @@ async function changeIpAddressBroadcast(unitIp, canId, newIpBytes, oldIpBytes) {
         oldIpBytes,
       });
 
-      // Convert CAN ID to address format (similar to convertCanIdToInt)
+      console.log("*** USING FIXED BROADCAST METHOD (proper socket init) ***");
+
+      // Create packet exactly like RLC Core
+      const Data = new Array(18).fill(0);
+
+      // Convert CAN ID to address format (like RLC Core)
       const canIdParts = canId.split(".");
-      const idAddress = Buffer.alloc(4);
-      idAddress[0] = parseInt(canIdParts[3]) & 0xff;
-      idAddress[1] = parseInt(canIdParts[2]) & 0xff;
-      idAddress[2] = parseInt(canIdParts[1]) & 0xff;
-      idAddress[3] = parseInt(canIdParts[0]) & 0xff;
+      Data[0] = parseInt(canIdParts[3]) & 0xff;  // Last part first
+      Data[1] = parseInt(canIdParts[2]) & 0xff;
+      Data[2] = parseInt(canIdParts[1]) & 0xff;
+      Data[3] = parseInt(canIdParts[0]) & 0xff;  // First part last
 
-      // Create packet: <ID Address><length><CMD><Data><CRC>
-      const data = [...newIpBytes, ...oldIpBytes];
-      const len = 2 + 2 + data.length; // cmd1 + cmd2 + data
-      const packetArray = [];
+      // Length: 12 bytes (CMD1 + CMD2 + 8 bytes data + 2 bytes CRC)
+      Data[4] = 12;
+      Data[5] = 0;
 
-      packetArray.push(len & 0xff);
-      packetArray.push((len >> 8) & 0xff);
-      packetArray.push(1); // CMD1 = GENERAL
-      packetArray.push(7); // CMD2 = CHANGE_IP
+      // Commands
+      Data[6] = 1;  // CMD1 = GENERAL
+      Data[7] = 7;  // CMD2 = CHANGE_IP
 
-      for (let i = 0; i < data.length; i++) {
-        packetArray.push(data[i]);
-      }
+      // New IP (4 bytes)
+      Data[8] = newIpBytes[0];
+      Data[9] = newIpBytes[1];
+      Data[10] = newIpBytes[2];
+      Data[11] = newIpBytes[3];
+
+      // Old IP (4 bytes)
+      Data[12] = oldIpBytes[0];
+      Data[13] = oldIpBytes[1];
+      Data[14] = oldIpBytes[2];
+      Data[15] = oldIpBytes[3];
 
       // Calculate CRC
-      let crc = 0;
-      for (let i = 0; i < packetArray.length; i++) {
-        crc += packetArray[i];
+      let SumCRC = 0;
+      for (let i = 4; i < Data[4] + 4; i++) {
+        SumCRC += Data[i];
       }
-      crc = crc & 0xffff;
 
-      packetArray.push(crc & 0xff);
-      packetArray.push((crc >> 8) & 0xff);
+      // Set CRC
+      Data[17] = Math.floor(SumCRC / 256);
+      Data[16] = SumCRC - Data[17] * 256;
 
-      const packetBuffer = Buffer.from(packetArray);
-      const buffer = Buffer.concat([idAddress, packetBuffer]);
+      const buffer = Buffer.from(Data);
 
-      console.log("Broadcast packet:", Array.from(buffer).map(b => b.toString(16).padStart(2, '0')).join(' '));
+      console.log("Broadcast packet structure:");
+      console.log("  ID Address:", Data.slice(0, 4).map(b => b.toString(16).padStart(2, '0')).join(' '));
+      console.log("  Length:", Data[4] + (Data[5] << 8));
+      console.log("  CMD1:", Data[6], "CMD2:", Data[7]);
+      console.log("  New IP:", Data.slice(8, 12).join('.'));
+      console.log("  Old IP:", Data.slice(12, 16).join('.'));
+      console.log("  CRC:", Data[16] + (Data[17] << 8), "(" + Data[16].toString(16) + " " + Data[17].toString(16) + ")");
+      console.log("Broadcast packet (fixed init):", Array.from(buffer).map(b => b.toString(16).padStart(2, '0')).join(' '));
 
       // Create UDP client for broadcast
       const client = dgram.createSocket("udp4");
 
+      // Set up error handler
       client.on("error", (err) => {
         console.error("Broadcast socket error:", err);
-        client.close();
+        try {
+          client.close();
+        } catch (closeErr) {
+          console.warn("Error closing socket:", closeErr);
+        }
         reject(err);
       });
 
-      client.on("message", (msg, rinfo) => {
-        console.log(`Broadcast response from ${rinfo.address}:${rinfo.port}`);
-        client.close();
+      // Wait for socket to be ready before setting broadcast and sending
+      client.on("listening", () => {
+        try {
+          console.log("Socket is ready, setting broadcast mode...");
 
-        // Check if response indicates success
-        if (msg.length >= 9 && msg[8] === 0) {
-          resolve({ result: { success: true } });
-        } else {
-          reject(new Error("IP change failed - unit returned error"));
+          // Now it's safe to set broadcast
+          client.setBroadcast(true);
+          console.log("Broadcast mode enabled");
+
+          // Send broadcast packet
+          client.send(buffer, 0, Data[4] + 6, 1234, "255.255.255.255", (err) => {
+            // Always close the socket after send attempt
+            try {
+              client.close();
+            } catch (closeErr) {
+              console.warn("Error closing socket after send:", closeErr);
+            }
+
+            if (err) {
+              console.error("Broadcast send error:", err);
+              reject(err);
+              return;
+            }
+
+            console.log("IP change broadcast sent successfully to 255.255.255.255:1234");
+            console.log("=== BROADCAST IP CHANGE COMPLETE ===");
+
+            // Resolve immediately after successful send (fire-and-forget)
+            resolve({ result: { success: true } });
+          });
+
+        } catch (broadcastErr) {
+          console.error("Error in broadcast setup or send:", broadcastErr);
+          try {
+            client.close();
+          } catch (closeErr) {
+            console.warn("Error closing socket:", closeErr);
+          }
+          reject(broadcastErr);
         }
       });
 
-      // Bind and send broadcast
-      client.bind(() => {
-        client.setBroadcast(true);
-
-        // Send to broadcast address (port 2000 like RLC Core)
-        client.send(buffer, 0, buffer.length, 2000, "255.255.255.255", (err) => {
-          if (err) {
-            console.error("Broadcast send error:", err);
+      // Bind to any available port to initialize the socket
+      // This triggers the 'listening' event when ready
+      client.bind(0, (err) => {
+        if (err) {
+          console.error("Socket bind error:", err);
+          try {
             client.close();
-            reject(err);
-            return;
+          } catch (closeErr) {
+            console.warn("Error closing socket:", closeErr);
           }
-
-          console.log("IP change broadcast sent");
-
-          // Set timeout for response
-          setTimeout(() => {
-            client.close();
-            resolve({ result: { success: true } }); // Assume success if no error response
-          }, 3000);
-        });
+          reject(err);
+        }
+        // Socket is now ready, 'listening' event will fire
       });
 
     } catch (error) {
