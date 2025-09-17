@@ -130,20 +130,26 @@ export const useNetworkInputConfig = (item, projectItems, refreshInputConfigs = 
 
         toast.success(`Input ${inputIndex + 1} function updated successfully`);
 
-        // Refresh input configurations in the main dialog
-        if (refreshInputConfigs) {
-          try {
-            await refreshInputConfigs();
-          } catch (refreshError) {
-            console.warn("⚠️ Failed to refresh input configurations:", refreshError);
-          }
+        // Update local state immediately instead of refreshing from unit
+        // This preserves the change detection state
+        if (setInputConfigs) {
+          setInputConfigs(prevConfigs =>
+            prevConfigs.map(config =>
+              config.index === inputIndex
+                ? {
+                  ...config,
+                  functionValue: parseInt(functionValue) || 0,
+                }
+                : config
+            )
+          );
         }
       } catch (error) {
         console.error(`Failed to update input ${inputIndex} function:`, error);
         toast.error(`Failed to update input function: ${error.message}`);
       }
     },
-    [item?.ip_address, item?.id_can, refreshInputConfigs]
+    [item?.ip_address, item?.id_can, setInputConfigs]
   );
 
   // Handle opening multi-group configuration
@@ -335,13 +341,31 @@ export const useNetworkInputConfig = (item, projectItems, refreshInputConfigs = 
           } configuration sent successfully`
         );
 
-        // Refresh input configurations in the main dialog
-        if (refreshInputConfigs) {
-          try {
-            await refreshInputConfigs();
-          } catch (refreshError) {
-            console.warn("⚠️ Failed to refresh input configurations:", refreshError);
-          }
+        // Update local state immediately instead of refreshing from unit
+        // This preserves the change detection state
+        if (setInputConfigs) {
+          setInputConfigs(prevConfigs =>
+            prevConfigs.map(config =>
+              config.index === currentMultiGroupInput.index
+                ? {
+                  ...config,
+                  functionValue: currentInputType,
+                  multiGroupConfig: groups.map((group) => ({
+                    groupId: parseInt(group.groupId) || 0,
+                    presetBrightness: parseInt(group.presetBrightness) || 255,
+                  })),
+                  rlcConfig: {
+                    ramp: rlcOptions.ramp || 0,
+                    preset: rlcOptions.preset || 255,
+                    ledStatus: ledStatus,
+                    autoMode: rlcOptions.autoMode || false,
+                    delayOff: delayOffSeconds,
+                    delayOn: rlcOptions.delayOn || 0,
+                  }
+                }
+                : config
+            )
+          );
         }
 
         return true;
@@ -351,7 +375,7 @@ export const useNetworkInputConfig = (item, projectItems, refreshInputConfigs = 
         return false;
       }
     },
-    [currentMultiGroupInput, item?.ip_address, item?.id_can, projectItems, refreshInputConfigs]
+    [currentMultiGroupInput, item?.ip_address, item?.id_can, projectItems, setInputConfigs]
   );
 
   // Handle input lighting change (for lighting selection in multi-group)

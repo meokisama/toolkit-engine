@@ -9,11 +9,13 @@ import {
   getInputFunctions,
   getInputFunctionByValue,
 } from "@/constants";
+import { hasInputConfigChanged } from "@/utils/io-config-utils";
 
 const NetworkInputConfigItem = memo(
   ({
     config,
     unitType,
+    originalConfig,
     onInputFunctionChange,
     onOpenMultiGroupConfig,
     onToggleInputState,
@@ -32,6 +34,12 @@ const NetworkInputConfigItem = memo(
     const showConfigButton = useMemo(() => {
       return currentFunction && currentFunction.name !== "IP_UNUSED";
     }, [currentFunction]);
+
+    // Check if this input has changed from original configuration
+    const hasChanged = useMemo(() => {
+      if (!originalConfig) return false;
+      return hasInputConfigChanged(originalConfig, config);
+    }, [originalConfig, config]);
 
     // Memoized handlers to prevent unnecessary re-renders
     const handleFunctionChange = useCallback(
@@ -55,7 +63,8 @@ const NetworkInputConfigItem = memo(
     }, [config.index, config.isActive, onToggleInputState]);
 
     return (
-      <div className="p-4 border rounded-lg flex gap-4 items-center justify-between shadow">
+      <div className={`p-4 border rounded-lg flex gap-4 items-center justify-between shadow ${hasChanged ? 'border-orange-500 border-2' : 'border-gray-200'
+        }`}>
         <div className="flex items-center gap-3">
           <img
             src={config.isActive ? lightOn : lightOff}

@@ -116,6 +116,7 @@ export {
   changeIpAddress,
   changeCanId,
   setHardwareConfig,
+  changeIpAddressBroadcast,
 } from "./rcu-controller/general.js";
 
 // Export RS485 functions

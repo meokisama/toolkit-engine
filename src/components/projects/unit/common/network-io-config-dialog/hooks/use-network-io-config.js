@@ -4,6 +4,8 @@ import { getUnitIOSpec, getOutputTypes, createDefaultInputConfigs, createDefault
 export const useNetworkIOConfig = (item, open, childDialogOpen = false) => {
   const [inputConfigs, setInputConfigs] = useState([]);
   const [outputConfigs, setOutputConfigs] = useState([]);
+  const [originalInputConfigs, setOriginalInputConfigs] = useState([]); // Store original configs for change detection
+  const [originalConfigsSet, setOriginalConfigsSet] = useState(false); // Flag to track if original configs have been set
   const [loading, setLoading] = useState(false);
   const [isInitialLoading, setIsInitialLoading] = useState(false);
   const [configsLoaded, setConfigsLoaded] = useState(false);
@@ -203,6 +205,15 @@ export const useNetworkIOConfig = (item, open, childDialogOpen = false) => {
             ? {
               ...input,
               functionValue: unitConfig.inputType || 0,
+              // Update rlcConfig with data from unit
+              rlcConfig: {
+                ramp: unitConfig.ramp || 0,
+                preset: unitConfig.preset || 255,
+                ledStatus: unitConfig.ledStatus || 0,
+                autoMode: unitConfig.autoMode || false,
+                delayOff: unitConfig.delayOff || 0,
+                delayOn: unitConfig.delayOn || 0,
+              },
               // Store additional config data for later use
               unitConfig: unitConfig,
             }
@@ -211,6 +222,26 @@ export const useNetworkIOConfig = (item, open, childDialogOpen = false) => {
 
         inputStatesRef.current = updatedInputs;
         setInputConfigs([...updatedInputs]);
+
+        // Store original input configs for change detection (only on first load)
+        if (!originalConfigsSet) {
+          const originalConfigs = updatedInputs.map(input => ({
+            index: input.index,
+            functionValue: input.functionValue,
+            lightingId: input.lightingId,
+            multiGroupConfig: input.multiGroupConfig || [],
+            rlcConfig: input.rlcConfig || {
+              ramp: 0,
+              preset: 255,
+              ledStatus: 0,
+              autoMode: 0,
+              delayOff: 0,
+              delayOn: 0,
+            }
+          }));
+          setOriginalInputConfigs(originalConfigs);
+          setOriginalConfigsSet(true);
+        }
 
         return true;
       }
@@ -383,6 +414,15 @@ export const useNetworkIOConfig = (item, open, childDialogOpen = false) => {
         delay_off: input.rlc_config?.delayOff || 0,
         delay_on: input.rlc_config?.delayOn || 0,
         multiGroupConfig: input.multi_group_config || [],
+        // Add rlcConfig object for consistency with change detection
+        rlcConfig: {
+          ramp: input.rlc_config?.ramp || 0,
+          preset: input.rlc_config?.preset || 255,
+          ledStatus: input.rlc_config?.ledStatus || 0,
+          autoMode: input.rlc_config?.autoMode || 0,
+          delayOff: input.rlc_config?.delayOff || 0,
+          delayOn: input.rlc_config?.delayOn || 0,
+        }
       }));
 
       // Initialize outputs with state tracking
@@ -441,6 +481,8 @@ export const useNetworkIOConfig = (item, open, childDialogOpen = false) => {
       // Reset states when dialog closes
       setConfigsLoaded(false);
       setIsInitialLoading(false);
+      setOriginalConfigsSet(false);
+      setOriginalInputConfigs([]);
     } else {
       isDialogOpenRef.current = true;
     }
@@ -539,6 +581,7 @@ export const useNetworkIOConfig = (item, open, childDialogOpen = false) => {
   return {
     inputConfigs,
     outputConfigs,
+    originalInputConfigs,
     setInputConfigs,
     setOutputConfigs,
     ioSpec,

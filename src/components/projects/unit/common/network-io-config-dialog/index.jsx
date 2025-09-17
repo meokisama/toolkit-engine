@@ -38,6 +38,7 @@ const NetworkIOConfigDialog = ({ open, onOpenChange, item = null }) => {
   const {
     inputConfigs,
     outputConfigs,
+    originalInputConfigs,
     setInputConfigs,
     setOutputConfigs,
     ioSpec,
@@ -372,16 +373,24 @@ const NetworkIOConfigDialog = ({ open, onOpenChange, item = null }) => {
                   <ScrollArea className="h-full">
                     {inputConfigs.length > 0 ? (
                       <div className="space-y-3 pr-4">
-                        {inputConfigs.map((config) => (
-                          <NetworkInputConfigItem
-                            key={config.index}
-                            config={config}
-                            unitType={item?.type}
-                            onInputFunctionChange={handleInputFunctionChange}
-                            onOpenMultiGroupConfig={handleOpenMultiGroupConfig}
-                            onToggleInputState={handleToggleInputState}
-                          />
-                        ))}
+                        {inputConfigs.map((config) => {
+                          // Find original config for this input
+                          const originalConfig = originalInputConfigs.find(
+                            (original) => original.index === config.index
+                          );
+
+                          return (
+                            <NetworkInputConfigItem
+                              key={config.index}
+                              config={config}
+                              unitType={item?.type}
+                              originalConfig={originalConfig}
+                              onInputFunctionChange={handleInputFunctionChange}
+                              onOpenMultiGroupConfig={handleOpenMultiGroupConfig}
+                              onToggleInputState={handleToggleInputState}
+                            />
+                          );
+                        })}
                       </div>
                     ) : (
                       <div className="flex items-center justify-center h-full text-muted-foreground">

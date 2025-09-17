@@ -451,6 +451,8 @@ contextBridge.exposeInMainWorld("electronAPI", {
     // Network Unit Edit functions
     changeIpAddress: (params) =>
       ipcRenderer.invoke("rcu:changeIpAddress", params),
+    changeIpAddressBroadcast: (params) =>
+      ipcRenderer.invoke("rcu:changeIpAddressBroadcast", params),
     changeCanId: (params) =>
       ipcRenderer.invoke("rcu:changeCanId", params),
     setHardwareConfig: (params) =>

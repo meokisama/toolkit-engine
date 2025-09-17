@@ -73,6 +73,7 @@ import {
   changeIpAddress,
   changeCanId,
   setHardwareConfig,
+  changeIpAddressBroadcast,
   getRS485CH1Config,
   getRS485CH2Config,
   setRS485CH1Config,
@@ -1997,6 +1998,18 @@ function setupIpcHandlers() {
         return await changeIpAddress(unitIp, canId, newIpBytes, oldIpBytes);
       } catch (error) {
         console.error("Error changing IP address:", error);
+        throw error;
+      }
+    }
+  );
+
+  ipcMain.handle(
+    "rcu:changeIpAddressBroadcast",
+    async (event, { unitIp, canId, newIpBytes, oldIpBytes }) => {
+      try {
+        return await changeIpAddressBroadcast(unitIp, canId, newIpBytes, oldIpBytes);
+      } catch (error) {
+        console.error("Error changing IP address via broadcast:", error);
         throw error;
       }
     }
