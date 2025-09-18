@@ -40,9 +40,9 @@ export function NetworkUnitEditDialog({
   const [originalData, setOriginalData] = useState({});
   const [rs485ConfigDialogOpen, setRS485ConfigDialogOpen] = useState(false);
 
-  // Initialize form data when unit changes
+  // Initialize form data when unit changes or dialog opens
   useEffect(() => {
-    if (unit) {
+    if (open && unit) {
       const canIdParts = (unit.id_can || "").split(".");
       const lastPart = canIdParts.length === 4 ? canIdParts[3] : "";
 
@@ -56,12 +56,8 @@ export function NetworkUnitEditDialog({
       };
       setFormData(data);
       setOriginalData(data);
-    }
-  }, [unit]);
-
-  // Reset form when dialog closes
-  useEffect(() => {
-    if (!open) {
+    } else if (!open) {
+      // Only reset when dialog closes, not when it opens
       setFormData({
         ip_address: "",
         id_can: "",
@@ -72,7 +68,7 @@ export function NetworkUnitEditDialog({
       });
       setOriginalData({});
     }
-  }, [open]);
+  }, [open, unit]);
 
   const handleInputChange = (field, value) => {
     setFormData((prev) => ({

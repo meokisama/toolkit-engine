@@ -1,12 +1,18 @@
 import React, { useCallback, memo } from "react";
 import { Button } from "@/components/ui/button";
-import { Plus } from "lucide-react";
+import { Plus, Edit } from "lucide-react";
 
 // Memoized available group item component
-export const AvailableGroupItem = memo(({ item, onAddFromAvailable }) => {
+export const AvailableGroupItem = memo(({ item, onAddFromAvailable, onEditItem }) => {
   const handleAdd = useCallback(() => {
     onAddFromAvailable(item);
   }, [item, onAddFromAvailable]);
+
+  const handleEdit = useCallback(() => {
+    if (onEditItem) {
+      onEditItem(item);
+    }
+  }, [item, onEditItem]);
 
   return (
     <div
@@ -26,9 +32,21 @@ export const AvailableGroupItem = memo(({ item, onAddFromAvailable }) => {
           </div>
         )}
       </div>
-      <Button type="button" variant="outline" size="icon" onClick={handleAdd}>
-        <Plus className="h-4 w-4" />
-      </Button>
+      <div className="flex items-center gap-2">
+        <Button
+          type="button"
+          variant="outline"
+          size="icon"
+          onClick={handleEdit}
+          disabled={!onEditItem}
+          title="Edit item"
+        >
+          <Edit className="h-4 w-4" />
+        </Button>
+        <Button type="button" variant="outline" size="icon" onClick={handleAdd}>
+          <Plus className="h-4 w-4" />
+        </Button>
+      </div>
     </div>
   );
 });

@@ -44,7 +44,7 @@ export const getGroupTypeLabel = (functionValue) => {
 
   switch (groupType) {
     case "aircon":
-      return "Air Conditioner";
+      return "Aircon";
     case "scene":
       return "Scene";
     case "multi-scene":

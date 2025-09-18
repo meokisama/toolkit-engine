@@ -5,7 +5,7 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Copy, X, Search } from "lucide-react";
+import { Copy, X, Search, Plus } from "lucide-react";
 import { GroupItem } from "./group-item";
 import { AvailableGroupItem } from "./available-group-item";
 import { Separator } from "@/components/ui/separator";
@@ -30,6 +30,8 @@ export const MultipleGroupsSection = ({
   onClearAllGroups,
   onSearchInputChange,
   onSearchKeyPress,
+  onCreateNewItem,
+  onEditItem,
 }) => {
   return (
     <>
@@ -85,11 +87,10 @@ export const MultipleGroupsSection = ({
                     );
 
                     // Create stable key combining multiple properties
-                    const stableKey = `${
-                      group.lightingId ||
+                    const stableKey = `${group.lightingId ||
                       "addr-" + group.groupAddress ||
                       "unknown"
-                    }-${index}`;
+                      }-${index}`;
 
                     return (
                       <GroupItem
@@ -123,7 +124,7 @@ export const MultipleGroupsSection = ({
             <CardTitle className="text-base">
               Available {groupTypeLabel} ({availableGroups.length})
             </CardTitle>
-            {/* Search Input */}
+            {/* Search Input and Create Button */}
             <div className="flex items-center gap-2">
               <div className="relative flex-1">
                 <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -136,6 +137,15 @@ export const MultipleGroupsSection = ({
                   className="pl-8"
                 />
               </div>
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={onCreateNewItem}
+                disabled={!onCreateNewItem}
+                title={`Create new ${groupTypeLabel?.toLowerCase() || 'item'}`}
+              >
+                <Plus className="h-4 w-4" />
+              </Button>
             </div>
             {searchTerm && (
               <div className="text-xs text-muted-foreground">
@@ -153,6 +163,7 @@ export const MultipleGroupsSection = ({
                       key={item.id}
                       item={item}
                       onAddFromAvailable={onAddFromAvailable}
+                      onEditItem={onEditItem}
                     />
                   ))}
                 </div>

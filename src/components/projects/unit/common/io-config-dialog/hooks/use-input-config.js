@@ -101,73 +101,65 @@ export const useInputConfig = (item, setInputConfigs = null, open = true) => {
   );
 
   const handleInputLightingChange = useCallback(
-    async (inputIndex, lightingId, inputConfigs) => {
+    async (inputIndex, lightingId) => {
       try {
-        const inputConfig = inputConfigs.find(
-          (config) => config.index === inputIndex
-        );
-        const multiGroupConfig = multiGroupConfigs[inputIndex] || [];
-        const rlcConfig = rlcConfigs[inputIndex] || {};
-
-        // Only save to database for database units
+        // For database units, only update local state - don't save to database yet
+        // The save will happen when user clicks the Save button
         if (!isNetworkUnit(item)) {
-          await window.electronAPI.unit.saveInputConfig(
-            item.id,
-            inputIndex,
-            inputConfig?.functionValue || 0,
-            lightingId,
-            multiGroupConfig,
-            rlcConfig
-          );
-
-          // Reload input config to update UI
-          await reloadInputConfig(inputIndex);
-
-          toast.success("Input lighting configuration saved");
+          // Update local state immediately to reflect the change in UI
+          if (setInputConfigs) {
+            setInputConfigs(prevConfigs =>
+              prevConfigs.map(config =>
+                config.index === inputIndex
+                  ? {
+                    ...config,
+                    lightingId: lightingId,
+                  }
+                  : config
+              )
+            );
+          }
+          // No toast message for local state changes - save confirmation will come when Save button is clicked
         } else {
           toast.info("Network unit - use multi-group config to send to unit");
         }
       } catch (error) {
-        console.error("Failed to save input lighting change:", error);
-        toast.error("Failed to save input lighting configuration");
+        console.error("Failed to update input lighting:", error);
+        toast.error("Failed to update input lighting: " + error.message);
       }
     },
-    [multiGroupConfigs, rlcConfigs, item, reloadInputConfig]
+    [item, setInputConfigs]
   );
 
   const handleInputFunctionChange = useCallback(
-    async (inputIndex, functionValue, inputConfigs) => {
+    async (inputIndex, functionValue) => {
       try {
-        const inputConfig = inputConfigs.find(
-          (config) => config.index === inputIndex
-        );
-        const multiGroupConfig = multiGroupConfigs[inputIndex] || [];
-        const rlcConfig = rlcConfigs[inputIndex] || {};
-
-        // Only save to database for database units
+        // For database units, only update local state - don't save to database yet
+        // The save will happen when user clicks the Save button
         if (!isNetworkUnit(item)) {
-          await window.electronAPI.unit.saveInputConfig(
-            item.id,
-            inputIndex,
-            functionValue,
-            inputConfig?.lightingId || null,
-            multiGroupConfig,
-            rlcConfig
-          );
-
-          // Reload input config to update UI
-          await reloadInputConfig(inputIndex);
-
-          toast.success("Input function configuration saved");
+          // Update local state immediately to reflect the change in UI
+          if (setInputConfigs) {
+            setInputConfigs(prevConfigs =>
+              prevConfigs.map(config =>
+                config.index === inputIndex
+                  ? {
+                    ...config,
+                    functionValue: parseInt(functionValue) || 0,
+                  }
+                  : config
+              )
+            );
+          }
+          // No toast message for local state changes - save confirmation will come when Save button is clicked
         } else {
           toast.info("Network unit - use multi-group config to send to unit");
         }
       } catch (error) {
-        console.error("Failed to save input function change:", error);
-        toast.error("Failed to save input function configuration");
+        console.error("Failed to update input function:", error);
+        toast.error("Failed to update input function: " + error.message);
       }
     },
-    [multiGroupConfigs, rlcConfigs, item, reloadInputConfig]
+    [item, setInputConfigs]
   );
 
   const handleOpenMultiGroupConfig = useCallback(
@@ -297,30 +289,29 @@ export const useInputConfig = (item, setInputConfigs = null, open = true) => {
           );
           return false;
         } else {
-          // Save to database with consistent structure
-          await window.electronAPI.unit.saveInputConfig(
-            item.id,
-            currentMultiGroupInput.index,
-            inputType !== undefined
-              ? inputType
-              : currentMultiGroupInput.functionValue || 0,
-            null, // No single lighting ID for multi-group
-            updatedConfig.multiGroupConfig, // Multi-group config array
-            {
-              ramp: updatedConfig.ramp,
-              preset: updatedConfig.preset,
-              ledStatus: updatedConfig.led_status,
-              autoMode: updatedConfig.auto_mode,
-              delayOff: updatedConfig.delay_off,
-              delayOn: updatedConfig.delay_on,
-            } // RLC options object
-          );
+          // For database units, only update local state - don't save to database yet
+          // The save will happen when user clicks the main Save button
 
-          // Note: UI update is handled by parent component to avoid race conditions
+          // Update the input config in local state if function type changed
+          if (inputType !== undefined && setInputConfigs) {
+            setInputConfigs(prevConfigs =>
+              prevConfigs.map(config =>
+                config.index === currentMultiGroupInput.index
+                  ? {
+                    ...config,
+                    functionValue: parseInt(inputType) || 0,
+                  }
+                  : config
+              )
+            );
+          }
+
+          // Note: Multi-group config is already stored in multiGroupConfigs state
+          // and will be saved when main Save button is clicked
 
           toast.success(
             `Input ${currentMultiGroupInput.index + 1
-            } configuration saved to database`
+            } configuration updated (will be saved when you click Save)`
           );
         }
 

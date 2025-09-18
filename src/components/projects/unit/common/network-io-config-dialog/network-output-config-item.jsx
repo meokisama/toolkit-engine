@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Combobox } from "@/components/custom/combobox";
-import { Settings, Plus } from "lucide-react";
+import { Settings, Plus, Edit } from "lucide-react";
 import lightOn from "@/assets/light-on.png";
 import lightOff from "@/assets/light-off.png";
 
@@ -15,6 +15,7 @@ const NetworkOutputConfigItem = memo(
     onOpenOutputConfig,
     onToggleState,
     onAddMissingAddress,
+    onCreateEditDevice,
     isLoadingConfig,
     allOutputConfigs,
   }) => {
@@ -149,6 +150,12 @@ const NetworkOutputConfigItem = memo(
       isAircon,
     ]);
 
+    const handleCreateEditClick = useCallback(() => {
+      if (onCreateEditDevice) {
+        onCreateEditDevice(config.index, config.type, autoMappedDeviceId);
+      }
+    }, [config.index, config.type, autoMappedDeviceId, onCreateEditDevice]);
+
     return (
       <div className="p-4 border rounded-lg flex gap-4 justify-between items-center w-full shadow">
         <div className="flex items-center gap-3">
@@ -164,15 +171,16 @@ const NetworkOutputConfigItem = memo(
             </Label>
           </div>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1">
           {/* Plus button for adding missing address to database */}
           {hasUnmappedAddress && onAddMissingAddress && (
             <Button
               variant="outline"
               size="icon"
               onClick={handleAddMissingAddress}
-              title={`Add ${isAircon ? "aircon" : "lighting"} address ${isAircon ? config.airconAddress : config.lightingAddress
-                } to database`}
+              title={`Add ${isAircon ? "aircon" : "lighting"} address ${
+                isAircon ? config.airconAddress : config.lightingAddress
+              } to database`}
             >
               <Plus className="h-4 w-4" />
             </Button>
@@ -181,7 +189,7 @@ const NetworkOutputConfigItem = memo(
           {/* Show combobox only if address is mapped */}
           {!hasUnmappedAddress ? (
             <Combobox
-              className="w-56"
+              className="w-48"
               options={deviceOptions}
               value={autoMappedDeviceId?.toString() || ""}
               onValueChange={handleDeviceChange}
@@ -199,8 +207,19 @@ const NetworkOutputConfigItem = memo(
           <Button
             variant="outline"
             size="icon"
+            onClick={handleCreateEditClick}
+            disabled={!onCreateEditDevice}
+            title={`${autoMappedDeviceId ? "Edit" : "Create"} ${isAircon ? "aircon" : "lighting"}`}
+          >
+            <Edit className="h-4 w-4" />
+          </Button>
+
+          <Button
+            variant="outline"
+            size="icon"
             onClick={handleConfigClick}
             disabled={isLoadingConfig}
+            title="Output settings"
           >
             {isLoadingConfig ? (
               <div className="h-4 w-4 animate-spin rounded-full border-2 border-gray-300 border-t-gray-600" />

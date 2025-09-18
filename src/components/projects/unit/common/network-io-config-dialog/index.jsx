@@ -1,4 +1,4 @@
-import React, { useMemo, useCallback, useEffect } from "react";
+import React, { useMemo, useCallback, useEffect, useState } from "react";
 import {
   Dialog,
   DialogContent,
@@ -23,6 +23,8 @@ import { LoadingSkeleton } from "../io-config-dialog/loading-skeleton";
 import { MultiGroupConfigDialog } from "@/components/projects/unit/common/input-config-dialog";
 import { LightingOutputConfigDialog } from "@/components/projects/unit/common/lighting-output-config-dialog";
 import { ACOutputConfigDialog } from "@/components/projects/unit/common/ac-output-config-dialog";
+import { ProjectItemDialog } from "@/components/projects/lighting/lighting-dialog";
+import { AirconCardDialog } from "@/components/projects/aircon/aircon-card-dialog";
 
 // Import hooks for network I/O configuration
 import { useNetworkIOConfig } from "./hooks/use-network-io-config";
@@ -95,9 +97,19 @@ const NetworkIOConfigDialog = ({ open, onOpenChange, item = null }) => {
     readAirconConfigsFromUnit
   );
 
+  // State for create/edit device dialogs
+  const [createEditDialog, setCreateEditDialog] = useState({
+    open: false,
+    type: null, // 'lighting' or 'aircon'
+    mode: 'create', // 'create' or 'edit'
+    outputIndex: null,
+    deviceId: null,
+    item: null
+  });
+
   // Check if any child dialog is open
   const anyChildDialogOpen =
-    multiGroupDialogOpen || lightingOutputDialogOpen || acOutputDialogOpen;
+    multiGroupDialogOpen || lightingOutputDialogOpen || acOutputDialogOpen || createEditDialog.open;
 
 
 
@@ -320,6 +332,40 @@ const NetworkIOConfigDialog = ({ open, onOpenChange, item = null }) => {
     ]
   );
 
+  // Handle create/edit device
+  const handleCreateEditDevice = useCallback((outputIndex, outputType, deviceId) => {
+    const isAircon = outputType === "ac";
+    const deviceType = isAircon ? "aircon" : "lighting";
+    const items = isAircon ? airconItems : lightingItems;
+
+    // Find existing item if deviceId is provided
+    const existingItem = deviceId ? items.find(item => item.id === deviceId) : null;
+
+    setCreateEditDialog({
+      open: true,
+      type: deviceType,
+      mode: existingItem ? 'edit' : 'create',
+      outputIndex,
+      deviceId,
+      item: existingItem
+    });
+  }, [airconItems, lightingItems]);
+
+  // Handle dialog close and refresh data
+  const handleCreateEditDialogClose = useCallback(async (open) => {
+    setCreateEditDialog(prev => ({ ...prev, open }));
+
+    // If dialog is closing and we have a project, refresh the data
+    if (!open && selectedProject) {
+      const { type } = createEditDialog;
+      if (type) {
+        await loadTabData(selectedProject.id, type);
+        // Also refresh output configs to update the mapping
+        await readOutputConfigsFromUnit();
+      }
+    }
+  }, [selectedProject, loadTabData, createEditDialog, readOutputConfigsFromUnit]);
+
   if (!item || !ioSpec) {
     return null;
   }
@@ -427,6 +473,7 @@ const NetworkIOConfigDialog = ({ open, onOpenChange, item = null }) => {
                             onOpenOutputConfig={handleOpenOutputConfig}
                             onToggleState={handleToggleOutput}
                             onAddMissingAddress={handleAddMissingAddress}
+                            onCreateEditDevice={handleCreateEditDevice}
                             isLoadingConfig={loading}
                             allOutputConfigs={outputConfigs}
                           />
@@ -512,6 +559,27 @@ const NetworkIOConfigDialog = ({ open, onOpenChange, item = null }) => {
         isLoading={currentOutputConfig?.isLoading || false}
         onSave={handleSaveOutputConfig}
       />
+
+      {/* Create/Edit Lighting Dialog */}
+      {createEditDialog.type === 'lighting' && (
+        <ProjectItemDialog
+          open={createEditDialog.open}
+          onOpenChange={handleCreateEditDialogClose}
+          category="lighting"
+          item={createEditDialog.item}
+          mode={createEditDialog.mode}
+        />
+      )}
+
+      {/* Create/Edit Aircon Dialog */}
+      {createEditDialog.type === 'aircon' && (
+        <AirconCardDialog
+          open={createEditDialog.open}
+          onOpenChange={handleCreateEditDialogClose}
+          mode={createEditDialog.mode}
+          card={createEditDialog.item}
+        />
+      )}
     </Dialog>
   );
 };

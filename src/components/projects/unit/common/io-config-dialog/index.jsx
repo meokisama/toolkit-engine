@@ -1,4 +1,10 @@
-import React, { useMemo, useCallback, memo, useEffect, useRef } from "react";
+import React, {
+  useMemo,
+  useCallback,
+  memo,
+  useEffect,
+  useState,
+} from "react";
 import {
   Dialog,
   DialogContent,
@@ -16,6 +22,8 @@ import { useProjectDetail } from "@/contexts/project-detail-context";
 import { MultiGroupConfigDialog } from "../input-config-dialog";
 import { LightingOutputConfigDialog } from "../lighting-output-config-dialog";
 import { ACOutputConfigDialog } from "../ac-output-config-dialog";
+import { ProjectItemDialog } from "@/components/projects/lighting/lighting-dialog";
+import { AirconCardDialog } from "@/components/projects/aircon/aircon-card-dialog";
 
 // Import optimized components and hooks
 import { InputConfigItem } from "./input-config-item";
@@ -43,7 +51,6 @@ const IOConfigDialogComponent = ({ open, onOpenChange, item = null }) => {
     loading,
     isInitialLoading,
     saveConfig,
-    reloadAllInputConfigs,
   } = useIOConfig(item, open);
 
   const {
@@ -53,14 +60,11 @@ const IOConfigDialogComponent = ({ open, onOpenChange, item = null }) => {
     setMultiGroupDialogOpen,
     currentMultiGroupInput,
     loadingInputConfig,
-    handleInputLightingChange,
     handleInputFunctionChange,
     handleOpenMultiGroupConfig,
     handleSaveMultiGroupConfig,
     loadAllMultiGroupConfigs,
   } = useInputConfig(item, setInputConfigs, open);
-
-
 
   const {
     lightingOutputDialogOpen,
@@ -75,6 +79,16 @@ const IOConfigDialogComponent = ({ open, onOpenChange, item = null }) => {
     loadAllOutputConfigs,
   } = useOutputConfig(item, setOutputConfigs);
 
+  // State for create/edit device dialogs
+  const [createEditDialog, setCreateEditDialog] = useState({
+    open: false,
+    type: null, // 'lighting' or 'aircon'
+    mode: "create", // 'create' or 'edit'
+    outputIndex: null,
+    deviceId: null,
+    item: null,
+  });
+
   // Memoize lighting and aircon items to prevent unnecessary re-renders
   const lightingItems = useMemo(() => {
     return projectItems?.lighting || [];
@@ -83,20 +97,6 @@ const IOConfigDialogComponent = ({ open, onOpenChange, item = null }) => {
   const airconItems = useMemo(() => {
     return projectItems?.aircon || [];
   }, [projectItems?.aircon]);
-
-  // Track previous multiGroupDialogOpen state to detect when it closes
-  const prevMultiGroupDialogOpen = useRef(multiGroupDialogOpen);
-
-  // Effect to reload input configs when multi-group dialog closes
-  useEffect(() => {
-    if (prevMultiGroupDialogOpen.current && !multiGroupDialogOpen && item?.id) {
-      // Dialog was open and now closed - reload input configs for database units
-      if (reloadAllInputConfigs) {
-        reloadAllInputConfigs();
-      }
-    }
-    prevMultiGroupDialogOpen.current = multiGroupDialogOpen;
-  }, [multiGroupDialogOpen, item?.id, reloadAllInputConfigs]);
 
   // Memoized handlers to prevent unnecessary re-renders
   const handleClose = useCallback(() => {
@@ -121,6 +121,46 @@ const IOConfigDialogComponent = ({ open, onOpenChange, item = null }) => {
     rlcConfigs,
     outputConfigurations,
   ]);
+
+  // Handle create/edit device
+  const handleCreateEditDevice = useCallback(
+    (outputIndex, outputType, deviceId) => {
+      const isAircon = outputType === "ac";
+      const deviceType = isAircon ? "aircon" : "lighting";
+      const items = isAircon ? airconItems : lightingItems;
+
+      // Find existing item if deviceId is provided
+      const existingItem = deviceId
+        ? items.find((item) => item.id === deviceId)
+        : null;
+
+      setCreateEditDialog({
+        open: true,
+        type: deviceType,
+        mode: existingItem ? "edit" : "create",
+        outputIndex,
+        deviceId,
+        item: existingItem,
+      });
+    },
+    [airconItems, lightingItems]
+  );
+
+  // Handle dialog close and refresh data
+  const handleCreateEditDialogClose = useCallback(
+    async (open) => {
+      setCreateEditDialog((prev) => ({ ...prev, open }));
+
+      // If dialog is closing and we have a project, refresh the data
+      if (!open && selectedProject) {
+        const { type } = createEditDialog;
+        if (type) {
+          await loadTabData(selectedProject.id, type);
+        }
+      }
+    },
+    [selectedProject, loadTabData, createEditDialog]
+  );
 
   // Load required data when dialog opens
   useEffect(() => {
@@ -179,32 +219,12 @@ const IOConfigDialogComponent = ({ open, onOpenChange, item = null }) => {
   }, [outputConfigs, airconOptions, lightingOptions]); // Full arrays as dependencies
 
   // Enhanced handlers that update local state
-  const handleInputLightingChangeWithState = useCallback(
-    async (inputIndex, lightingId) => {
-      // Update local state immediately for better UX
-      setInputConfigs((prev) =>
-        prev.map((config) =>
-          config.index === inputIndex ? { ...config, lightingId } : config
-        )
-      );
-      // Call the hook handler for database update
-      await handleInputLightingChange(inputIndex, lightingId, inputConfigs);
-    },
-    [handleInputLightingChange, inputConfigs, setInputConfigs]
-  );
-
   const handleInputFunctionChangeWithState = useCallback(
     async (inputIndex, functionValue) => {
-      // Update local state immediately for better UX
-      setInputConfigs((prev) =>
-        prev.map((config) =>
-          config.index === inputIndex ? { ...config, functionValue } : config
-        )
-      );
-      // Call the hook handler for database update
-      await handleInputFunctionChange(inputIndex, functionValue, inputConfigs);
+      // Call the hook handler which now only updates local state
+      await handleInputFunctionChange(inputIndex, functionValue);
     },
-    [handleInputFunctionChange, inputConfigs, setInputConfigs]
+    [handleInputFunctionChange]
   );
 
   const handleOutputDeviceChangeWithState = useCallback(
@@ -232,19 +252,8 @@ const IOConfigDialogComponent = ({ open, onOpenChange, item = null }) => {
     async (data) => {
       try {
         const success = await handleSaveMultiGroupConfig(data);
-
-        if (success) {
-          // Update UI state if needed
-          if (data.inputType !== undefined) {
-            setInputConfigs((prev) =>
-              prev.map((config) =>
-                config.index === currentMultiGroupInput?.index
-                  ? { ...config, functionValue: data.inputType }
-                  : config
-              )
-            );
-          }
-        }
+        // Note: Input config state update is already handled in handleSaveMultiGroupConfig
+        // No need to duplicate the logic here
         return success;
       } catch (error) {
         console.error(
@@ -256,7 +265,7 @@ const IOConfigDialogComponent = ({ open, onOpenChange, item = null }) => {
         return false;
       }
     },
-    [handleSaveMultiGroupConfig, currentMultiGroupInput, setInputConfigs]
+    [handleSaveMultiGroupConfig]
   );
 
   // Performance monitoring: Log warning for large lists
@@ -331,15 +340,35 @@ const IOConfigDialogComponent = ({ open, onOpenChange, item = null }) => {
                             // Create enhanced config with current multi-group and RLC data
                             const currentConfigWithExtras = {
                               ...config,
-                              multiGroupConfig: multiGroupConfigs[config.index]?.multiGroupConfig || [],
+                              multiGroupConfig:
+                                multiGroupConfigs[config.index]
+                                  ?.multiGroupConfig || [],
                               rlcConfig: {
-                                ramp: multiGroupConfigs[config.index]?.ramp || rlcConfigs[config.index]?.ramp || 0,
-                                preset: multiGroupConfigs[config.index]?.preset || rlcConfigs[config.index]?.preset || 100,
-                                ledStatus: multiGroupConfigs[config.index]?.led_status || rlcConfigs[config.index]?.ledStatus || 0,
-                                autoMode: multiGroupConfigs[config.index]?.auto_mode || rlcConfigs[config.index]?.autoMode || 0,
-                                delayOff: multiGroupConfigs[config.index]?.delay_off || rlcConfigs[config.index]?.delayOff || 0,
-                                delayOn: multiGroupConfigs[config.index]?.delay_on || rlcConfigs[config.index]?.delayOn || 0,
-                              }
+                                ramp:
+                                  multiGroupConfigs[config.index]?.ramp ||
+                                  rlcConfigs[config.index]?.ramp ||
+                                  0,
+                                preset:
+                                  multiGroupConfigs[config.index]?.preset ||
+                                  rlcConfigs[config.index]?.preset ||
+                                  100,
+                                ledStatus:
+                                  multiGroupConfigs[config.index]?.led_status ||
+                                  rlcConfigs[config.index]?.ledStatus ||
+                                  0,
+                                autoMode:
+                                  multiGroupConfigs[config.index]?.auto_mode ||
+                                  rlcConfigs[config.index]?.autoMode ||
+                                  0,
+                                delayOff:
+                                  multiGroupConfigs[config.index]?.delay_off ||
+                                  rlcConfigs[config.index]?.delayOff ||
+                                  0,
+                                delayOn:
+                                  multiGroupConfigs[config.index]?.delay_on ||
+                                  rlcConfigs[config.index]?.delayOn ||
+                                  0,
+                              },
                             };
 
                             return (
@@ -395,6 +424,7 @@ const IOConfigDialogComponent = ({ open, onOpenChange, item = null }) => {
                               onOpenOutputConfig={
                                 handleOpenOutputConfigWithState
                               }
+                              onCreateEditDevice={handleCreateEditDevice}
                               isLoadingConfig={false}
                             />
                           ))}
@@ -491,6 +521,27 @@ const IOConfigDialogComponent = ({ open, onOpenChange, item = null }) => {
         isLoading={currentOutputConfig?.isLoading || false}
         onSave={handleSaveOutputConfig}
       />
+
+      {/* Create/Edit Lighting Dialog */}
+      {createEditDialog.type === "lighting" && (
+        <ProjectItemDialog
+          open={createEditDialog.open}
+          onOpenChange={handleCreateEditDialogClose}
+          category="lighting"
+          item={createEditDialog.item}
+          mode={createEditDialog.mode}
+        />
+      )}
+
+      {/* Create/Edit Aircon Dialog */}
+      {createEditDialog.type === "aircon" && (
+        <AirconCardDialog
+          open={createEditDialog.open}
+          onOpenChange={handleCreateEditDialogClose}
+          mode={createEditDialog.mode}
+          card={createEditDialog.item}
+        />
+      )}
     </>
   );
 };

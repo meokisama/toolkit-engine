@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useCallback } from "react";
 import {
   Dialog,
   DialogContent,
@@ -15,6 +15,11 @@ import { InputTypeSelector } from "./input-config-dialog/components/input-type-s
 import { RlcOptionsSection } from "./input-config-dialog/components/rlc-options-section";
 import { MultipleGroupsSection } from "./input-config-dialog/components/multiple-groups-section";
 import { LoadingSkeleton } from "./input-config-dialog/components/loading-skeleton";
+import { ProjectItemDialog } from "@/components/projects/lighting/lighting-dialog";
+import { AirconCardDialog } from "@/components/projects/aircon/aircon-card-dialog";
+import { SceneDialog } from "@/components/projects/scenes/scene-dialog";
+import { MultiSceneDialog } from "@/components/projects/multi-scenes/multi-scene-dialog";
+import { SequenceDialog } from "@/components/projects/sequences/sequence-dialog";
 
 // Import hooks
 import { useRlcOptions } from "./input-config-dialog/hooks/use-rlc-options";
@@ -22,7 +27,7 @@ import { useMultipleGroups } from "./input-config-dialog/hooks/use-multiple-grou
 import { useInputType } from "./input-config-dialog/hooks/use-input-type";
 
 // Import utilities
-import { getGroupTypeLabel } from "./input-config-dialog/utils/group-helpers";
+import { getGroupTypeLabel, getGroupTypeFromFunction } from "./input-config-dialog/utils/group-helpers";
 
 import { useProjectDetail } from "@/contexts/project-detail-context";
 import { getRlcOptionsConfig, getInputFunctionByValue } from "@/constants";
@@ -39,7 +44,7 @@ export function MultiGroupConfigDialog({
   initialGroups = [],
   initialRlcOptions = {},
   isLoading = false,
-  onSave = () => {},
+  onSave = () => { },
 }) {
   const { projectItems, selectedProject, loadedTabs, loadTabData, createItem } =
     useProjectDetail();
@@ -126,6 +131,14 @@ export function MultiGroupConfigDialog({
     createItem
   );
 
+  // State for create/edit device dialogs
+  const [createEditDialog, setCreateEditDialog] = useState({
+    open: false,
+    type: null, // 'lighting' or 'aircon' or other types based on currentInputType
+    mode: 'create', // 'create' or 'edit'
+    item: null
+  });
+
   // Memoized custom events for better performance
   const pauseEvent = React.useMemo(
     () =>
@@ -178,12 +191,16 @@ export function MultiGroupConfigDialog({
     return false;
   }, [currentInputType, rlcOptionsConfig.multiGroupEnabled]);
 
-  // Reset input type when dialog opens to ensure fresh state
+  // Initialize input type when dialog opens with the passed functionValue
+  // This ensures we start with the current value from the input config card
   React.useEffect(() => {
-    if (open) {
-      resetInputType();
+    if (open && functionValue !== null && functionValue !== undefined) {
+      // Only set if different to avoid unnecessary re-renders
+      if (currentInputType !== functionValue) {
+        handleInputTypeChange(functionValue.toString());
+      }
     }
-  }, [open, resetInputType]);
+  }, [open, functionValue, currentInputType, handleInputTypeChange]);
 
   // Clear all groups when input type changes (user preference)
   React.useEffect(() => {
@@ -238,35 +255,35 @@ export function MultiGroupConfigDialog({
 
     const groups = isMultipleGroupFunction
       ? selectedGroups
-          .map((group) => {
-            // For network units, convert back to groupId/presetBrightness format
-            if (group.groupAddress) {
-              return {
-                groupId: group.groupAddress,
-                presetBrightness: group.preset || 255,
-              };
-            } else if (group.lightingId) {
-              // Group in database - find address from lightingId
-              let groupItem = availableItems.find(
+        .map((group) => {
+          // For network units, convert back to groupId/presetBrightness format
+          if (group.groupAddress) {
+            return {
+              groupId: group.groupAddress,
+              presetBrightness: group.preset || 255,
+            };
+          } else if (group.lightingId) {
+            // Group in database - find address from lightingId
+            let groupItem = availableItems.find(
+              (item) => item.id === group.lightingId
+            );
+
+            // Fallback to lighting items if not found in current type
+            if (!groupItem) {
+              groupItem = lightingItems.find(
                 (item) => item.id === group.lightingId
               );
-
-              // Fallback to lighting items if not found in current type
-              if (!groupItem) {
-                groupItem = lightingItems.find(
-                  (item) => item.id === group.lightingId
-                );
-              }
-
-              const result = {
-                groupId: groupItem ? parseInt(groupItem.address) : null,
-                presetBrightness: group.preset || 255,
-              };
-              return result;
             }
-            return null;
-          })
-          .filter(Boolean)
+
+            const result = {
+              groupId: groupItem ? parseInt(groupItem.address) : null,
+              presetBrightness: group.preset || 255,
+            };
+            return result;
+          }
+          return null;
+        })
+        .filter(Boolean)
       : [];
 
     const result = {
@@ -296,6 +313,48 @@ export function MultiGroupConfigDialog({
       console.error("MultiGroupConfigDialog - Error in onSave:", onSaveError);
     }
   }, [getTransformedSaveData, onSave, handleClose]);
+
+  // Get device type based on current input type using existing logic
+  const getDeviceTypeFromInputType = useCallback((inputType) => {
+    return getGroupTypeFromFunction(inputType);
+  }, []);
+
+  // Handle create new item
+  const handleCreateNewItem = useCallback(() => {
+    const deviceType = getDeviceTypeFromInputType(currentInputType);
+
+    setCreateEditDialog({
+      open: true,
+      type: deviceType,
+      mode: 'create',
+      item: null
+    });
+  }, [currentInputType, getDeviceTypeFromInputType]);
+
+  // Handle edit item
+  const handleEditItem = useCallback((item) => {
+    const deviceType = getDeviceTypeFromInputType(currentInputType);
+
+    setCreateEditDialog({
+      open: true,
+      type: deviceType,
+      mode: 'edit',
+      item: item
+    });
+  }, [currentInputType, getDeviceTypeFromInputType]);
+
+  // Handle dialog close and refresh data
+  const handleCreateEditDialogClose = useCallback(async (open) => {
+    setCreateEditDialog(prev => ({ ...prev, open }));
+
+    // If dialog is closing and we have a project, refresh the data
+    if (!open && selectedProject) {
+      const { type } = createEditDialog;
+      if (type && loadedTabs.has(type)) {
+        await loadTabData(selectedProject.id, type);
+      }
+    }
+  }, [selectedProject, loadTabData, createEditDialog, loadedTabs]);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange} modal={true}>
@@ -364,6 +423,8 @@ export function MultiGroupConfigDialog({
                 onClearAllGroups={handleClearAllGroups}
                 onSearchInputChange={handleSearchInputChange}
                 onSearchKeyPress={handleSearchKeyPress}
+                onCreateNewItem={handleCreateNewItem}
+                onEditItem={handleEditItem}
               />
             )}
           </>
@@ -378,6 +439,68 @@ export function MultiGroupConfigDialog({
           </Button>
         </DialogFooter>
       </DialogContent>
+
+      {/* Create/Edit Lighting Dialog */}
+      {createEditDialog.type === 'lighting' && (
+        <ProjectItemDialog
+          open={createEditDialog.open}
+          onOpenChange={handleCreateEditDialogClose}
+          category="lighting"
+          item={createEditDialog.item}
+          mode={createEditDialog.mode}
+        />
+      )}
+
+      {/* Create/Edit Aircon Dialog */}
+      {createEditDialog.type === 'aircon' && (
+        <AirconCardDialog
+          open={createEditDialog.open}
+          onOpenChange={handleCreateEditDialogClose}
+          mode={createEditDialog.mode}
+          card={createEditDialog.item}
+        />
+      )}
+
+      {/* Create/Edit Curtain Dialog */}
+      {createEditDialog.type === 'curtain' && (
+        <ProjectItemDialog
+          open={createEditDialog.open}
+          onOpenChange={handleCreateEditDialogClose}
+          category="curtain"
+          item={createEditDialog.item}
+          mode={createEditDialog.mode}
+        />
+      )}
+
+      {/* Create/Edit Scene Dialog */}
+      {createEditDialog.type === 'scene' && (
+        <SceneDialog
+          open={createEditDialog.open}
+          onOpenChange={handleCreateEditDialogClose}
+          scene={createEditDialog.item}
+          mode={createEditDialog.mode}
+        />
+      )}
+
+      {/* Create/Edit Multi-Scene Dialog */}
+      {createEditDialog.type === 'multi-scene' && (
+        <MultiSceneDialog
+          open={createEditDialog.open}
+          onOpenChange={handleCreateEditDialogClose}
+          multiScene={createEditDialog.item}
+          mode={createEditDialog.mode}
+        />
+      )}
+
+      {/* Create/Edit Sequence Dialog */}
+      {createEditDialog.type === 'sequence' && (
+        <SequenceDialog
+          open={createEditDialog.open}
+          onOpenChange={handleCreateEditDialogClose}
+          sequence={createEditDialog.item}
+          mode={createEditDialog.mode}
+        />
+      )}
     </Dialog>
   );
 }
