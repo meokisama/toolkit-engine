@@ -32,41 +32,42 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { useProjectDetail } from "@/contexts/project-detail-context";
-import {
-  OBJECT_TYPES,
-  CONSTANTS,
-} from "@/constants";
+import { OBJECT_TYPES, CONSTANTS } from "@/constants";
 
 // Create label mappings directly from CONSTANTS.AIRCON
-const AC_POWER_LABELS = CONSTANTS.AIRCON.find(item => item.obj_type === "OBJ_AC_POWER")?.values.reduce((acc, item) => {
-  acc[item.value] = item.label;
-  return acc;
-}, {}) || {};
+const AC_POWER_LABELS =
+  CONSTANTS.AIRCON.find(
+    (item) => item.obj_type === "OBJ_AC_POWER"
+  )?.values.reduce((acc, item) => {
+    acc[item.value] = item.label;
+    return acc;
+  }, {}) || {};
 
-const AC_MODE_LABELS = CONSTANTS.AIRCON.find(item => item.obj_type === "OBJ_AC_MODE")?.values.reduce((acc, item) => {
-  acc[item.value] = item.label;
-  return acc;
-}, {}) || {};
+const AC_MODE_LABELS =
+  CONSTANTS.AIRCON.find(
+    (item) => item.obj_type === "OBJ_AC_MODE"
+  )?.values.reduce((acc, item) => {
+    acc[item.value] = item.label;
+    return acc;
+  }, {}) || {};
 
-const AC_FAN_SPEED_LABELS = CONSTANTS.AIRCON.find(item => item.obj_type === "OBJ_AC_FAN_SPEED")?.values.reduce((acc, item) => {
-  acc[item.value] = item.label;
-  return acc;
-}, {}) || {};
+const AC_FAN_SPEED_LABELS =
+  CONSTANTS.AIRCON.find(
+    (item) => item.obj_type === "OBJ_AC_FAN_SPEED"
+  )?.values.reduce((acc, item) => {
+    acc[item.value] = item.label;
+    return acc;
+  }, {}) || {};
 
-const AC_SWING_LABELS = CONSTANTS.AIRCON.find(item => item.obj_type === "OBJ_AC_SWING")?.values.reduce((acc, item) => {
-  acc[item.value] = item.label;
-  return acc;
-}, {}) || {};
+const AC_SWING_LABELS =
+  CONSTANTS.AIRCON.find(
+    (item) => item.obj_type === "OBJ_AC_SWING"
+  )?.values.reduce((acc, item) => {
+    acc[item.value] = item.label;
+    return acc;
+  }, {}) || {};
 
-import {
-  Plus,
-  Trash2,
-  Lightbulb,
-  Wind,
-  Blinds,
-  Sun,
-  Edit,
-} from "lucide-react";
+import { Plus, Trash2, Lightbulb, Wind, Blinds, Sun, Edit } from "lucide-react";
 import { AirconPropertiesDialog } from "./aircon-properties-dialog";
 import { ProjectItemDialog } from "../lighting/lighting-dialog";
 import { CurtainDialog } from "../curtain/curtain-dialog";
@@ -233,7 +234,6 @@ export function SceneDialog({
         if (!loadedTabs.has("lighting")) {
           loadTabData(selectedProject.id, "lighting");
         }
-
       }
     }
   }, [
@@ -253,7 +253,15 @@ export function SceneDialog({
       // Reload scene items when project data changes to reflect any address updates or item deletions
       loadSceneItems(scene.id);
     }
-  }, [open, mode, scene, projectItems.aircon, projectItems.lighting, projectItems.curtain, loadSceneItems]);
+  }, [
+    open,
+    mode,
+    scene,
+    projectItems.aircon,
+    projectItems.lighting,
+    projectItems.curtain,
+    loadSceneItems,
+  ]);
 
   // Cleanup timeout on unmount
   useEffect(() => {
@@ -318,27 +326,31 @@ export function SceneDialog({
     switch (objectType) {
       case OBJECT_TYPES.AC_POWER.obj_name:
         return (
-          CONSTANTS.AIRCON.find(item => item.obj_type === "OBJ_AC_POWER").values.find(
-            item => item.value.toString() === itemValue
-          )?.command || null
+          CONSTANTS.AIRCON.find(
+            (item) => item.obj_type === "OBJ_AC_POWER"
+          ).values.find((item) => item.value.toString() === itemValue)
+            ?.command || null
         );
       case OBJECT_TYPES.AC_FAN_SPEED.obj_name:
         return (
-          CONSTANTS.AIRCON.find(item => item.obj_type === "OBJ_AC_FAN_SPEED").values.find(
-            item => item.value.toString() === itemValue
-          )?.command || null
+          CONSTANTS.AIRCON.find(
+            (item) => item.obj_type === "OBJ_AC_FAN_SPEED"
+          ).values.find((item) => item.value.toString() === itemValue)
+            ?.command || null
         );
       case OBJECT_TYPES.AC_MODE.obj_name:
         return (
-          CONSTANTS.AIRCON.find(item => item.obj_type === "OBJ_AC_MODE").values.find(
-            item => item.value.toString() === itemValue
-          )?.command || null
+          CONSTANTS.AIRCON.find(
+            (item) => item.obj_type === "OBJ_AC_MODE"
+          ).values.find((item) => item.value.toString() === itemValue)
+            ?.command || null
         );
       case OBJECT_TYPES.AC_SWING.obj_name:
         return (
-          CONSTANTS.AIRCON.find(item => item.obj_type === "OBJ_AC_SWING").values.find(
-            item => item.value.toString() === itemValue
-          )?.command || null
+          CONSTANTS.AIRCON.find(
+            (item) => item.obj_type === "OBJ_AC_SWING"
+          ).values.find((item) => item.value.toString() === itemValue)
+            ?.command || null
         );
       case OBJECT_TYPES.AC_TEMPERATURE.obj_name:
         return null; // Temperature doesn't use commands, just direct value
@@ -422,7 +434,9 @@ export function SceneDialog({
     async (address, selectedProperties) => {
       // Check scene items limit (60 items maximum)
       if (sceneItems.length + selectedProperties.length > 60) {
-        toast.error(`Cannot add ${selectedProperties.length} items. Maximum 60 items allowed per scene (current: ${sceneItems.length})`);
+        toast.error(
+          `Cannot add ${selectedProperties.length} items. Maximum 60 items allowed per scene (current: ${sceneItems.length})`
+        );
         return;
       }
 
@@ -448,9 +462,12 @@ export function SceneDialog({
 
             if (!canAdd) {
               toast.error(
-                `Aircon ${CONSTANTS.AIRCON.find(item => item.obj_type === property.objectType)?.label ||
-                property.objectType
-                } is already used by another scene with address ${formData.address
+                `Aircon ${
+                  CONSTANTS.AIRCON.find(
+                    (item) => item.obj_type === property.objectType
+                  )?.label || property.objectType
+                } is already used by another scene with address ${
+                  formData.address
                 }`
               );
               return;
@@ -481,7 +498,9 @@ export function SceneDialog({
           item_address: airconItem.address,
           item_description: airconItem.description,
           label:
-            CONSTANTS.AIRCON.find(item => item.obj_type === property.objectType)?.label || property.objectType,
+            CONSTANTS.AIRCON.find(
+              (item) => item.obj_type === property.objectType
+            )?.label || property.objectType,
         };
         setSceneItems((prev) => [...prev, newSceneItem]);
       });
@@ -527,29 +546,38 @@ export function SceneDialog({
   }, []);
 
   // Handle closing add new item dialogs
-  const handleCloseLightingDialog = useCallback((open) => {
-    setLightingDialog({ open });
-    // Reload lighting data when dialog closes after successful creation
-    if (!open && selectedProject) {
-      loadTabData("lighting");
-    }
-  }, [selectedProject, loadTabData]);
+  const handleCloseLightingDialog = useCallback(
+    (open) => {
+      setLightingDialog({ open });
+      // Reload lighting data when dialog closes after successful creation
+      if (!open && selectedProject) {
+        loadTabData("lighting");
+      }
+    },
+    [selectedProject, loadTabData]
+  );
 
-  const handleCloseAirconDialog = useCallback((open) => {
-    setAirconDialog({ open });
-    // Reload aircon data when dialog closes after successful creation
-    if (!open && selectedProject) {
-      loadTabData("aircon");
-    }
-  }, [selectedProject, loadTabData]);
+  const handleCloseAirconDialog = useCallback(
+    (open) => {
+      setAirconDialog({ open });
+      // Reload aircon data when dialog closes after successful creation
+      if (!open && selectedProject) {
+        loadTabData("aircon");
+      }
+    },
+    [selectedProject, loadTabData]
+  );
 
-  const handleCloseCurtainDialog = useCallback((open) => {
-    setCurtainDialog({ open });
-    // Reload curtain data when dialog closes after successful creation
-    if (!open && selectedProject) {
-      loadTabData("curtain");
-    }
-  }, [selectedProject, loadTabData]);
+  const handleCloseCurtainDialog = useCallback(
+    (open) => {
+      setCurtainDialog({ open });
+      // Reload curtain data when dialog closes after successful creation
+      if (!open && selectedProject) {
+        loadTabData("curtain");
+      }
+    },
+    [selectedProject, loadTabData]
+  );
 
   // Handle opening dialog based on current tab
   const handleAddNewItem = useCallback(() => {
@@ -566,7 +594,12 @@ export function SceneDialog({
       default:
         break;
     }
-  }, [currentTab, handleOpenLightingDialog, handleOpenAirconDialog, handleOpenCurtainDialog]);
+  }, [
+    currentTab,
+    handleOpenLightingDialog,
+    handleOpenAirconDialog,
+    handleOpenCurtainDialog,
+  ]);
 
   // Handle opening edit dialogs
   const handleEditLightingItem = useCallback((item) => {
@@ -582,29 +615,38 @@ export function SceneDialog({
   }, []);
 
   // Handle closing edit dialogs
-  const handleCloseEditLightingDialog = useCallback((open) => {
-    setEditLightingDialog({ open, item: null });
-    // Reload lighting data when dialog closes after successful edit
-    if (!open && selectedProject) {
-      loadTabData("lighting");
-    }
-  }, [selectedProject, loadTabData]);
+  const handleCloseEditLightingDialog = useCallback(
+    (open) => {
+      setEditLightingDialog({ open, item: null });
+      // Reload lighting data when dialog closes after successful edit
+      if (!open && selectedProject) {
+        loadTabData("lighting");
+      }
+    },
+    [selectedProject, loadTabData]
+  );
 
-  const handleCloseEditAirconDialog = useCallback((open) => {
-    setEditAirconDialog({ open, item: null });
-    // Reload aircon data when dialog closes after successful edit
-    if (!open && selectedProject) {
-      loadTabData("aircon");
-    }
-  }, [selectedProject, loadTabData]);
+  const handleCloseEditAirconDialog = useCallback(
+    (open) => {
+      setEditAirconDialog({ open, item: null });
+      // Reload aircon data when dialog closes after successful edit
+      if (!open && selectedProject) {
+        loadTabData("aircon");
+      }
+    },
+    [selectedProject, loadTabData]
+  );
 
-  const handleCloseEditCurtainDialog = useCallback((open) => {
-    setEditCurtainDialog({ open, item: null });
-    // Reload curtain data when dialog closes after successful edit
-    if (!open && selectedProject) {
-      loadTabData("curtain");
-    }
-  }, [selectedProject, loadTabData]);
+  const handleCloseEditCurtainDialog = useCallback(
+    (open) => {
+      setEditCurtainDialog({ open, item: null });
+      // Reload curtain data when dialog closes after successful edit
+      if (!open && selectedProject) {
+        loadTabData("curtain");
+      }
+    },
+    [selectedProject, loadTabData]
+  );
 
   // Remove all aircon items from a specific address
   const removeAirconGroupFromScene = useCallback((address) => {
@@ -649,9 +691,12 @@ export function SceneDialog({
 
             if (!canAdd) {
               toast.error(
-                `Aircon ${CONSTANTS.AIRCON.find(item => item.obj_type === property.objectType)?.label ||
-                property.objectType
-                } is already used by another scene with address ${formData.address
+                `Aircon ${
+                  CONSTANTS.AIRCON.find(
+                    (item) => item.obj_type === property.objectType
+                  )?.label || property.objectType
+                } is already used by another scene with address ${
+                  formData.address
                 }`
               );
               return;
@@ -689,7 +734,9 @@ export function SceneDialog({
           item_address: airconItem.address,
           item_description: airconItem.description,
           label:
-            CONSTANTS.AIRCON.find(item => item.obj_type === property.objectType)?.label || property.objectType,
+            CONSTANTS.AIRCON.find(
+              (item) => item.obj_type === property.objectType
+            )?.label || property.objectType,
         }));
 
         return [...filteredItems, ...newAirconItems];
@@ -890,8 +937,6 @@ export function SceneDialog({
     originalSceneItems,
   ]);
 
-
-
   const removeItemFromScene = useCallback((sceneItemId) => {
     // Always remove from local state only - changes will be saved when user clicks Save
     setSceneItems((prev) => prev.filter((item) => item.id !== sceneItemId));
@@ -943,7 +988,7 @@ export function SceneDialog({
   // Custom: Set all lighting items to custom brightness
   const handleCustomBrightness = useCallback((brightness) => {
     // Handle empty string or invalid input
-    if (brightness === '' || brightness === null || brightness === undefined) {
+    if (brightness === "" || brightness === null || brightness === undefined) {
       toast.error("Please enter a valid brightness value");
       return;
     }
@@ -1097,7 +1142,6 @@ export function SceneDialog({
         // Extract the clean error message after the last colon
         const cleanMessage = error.message.split(": ").pop();
         setErrors({ address: cleanMessage });
-
       } else if (
         error.message &&
         error.message.includes("Address is required")
@@ -1176,13 +1220,11 @@ export function SceneDialog({
         })
       ),
       [OBJECT_TYPES.AC_TEMPERATURE.obj_name]: [],
-      [OBJECT_TYPES.CURTAIN.obj_name]: CONSTANTS.CURTAIN.VALUES.map(
-        item => ({
-          value: item.value.toString(),
-          label: item.label,
-        })
-      ),
-      curtain: CONSTANTS.CURTAIN.VALUES.map(item => ({
+      [OBJECT_TYPES.CURTAIN.obj_name]: CONSTANTS.CURTAIN.VALUES.map((item) => ({
+        value: item.value.toString(),
+        label: item.label,
+      })),
+      curtain: CONSTANTS.CURTAIN.VALUES.map((item) => ({
         value: item.value.toString(),
         label: item.label,
       })),
@@ -1228,7 +1270,7 @@ export function SceneDialog({
               max="100"
               value={sceneItem.item_value || "100"}
               onChange={handleLightingChange}
-              className="w-40 pl-8 font-semibold"
+              className="w-30 pl-8 font-semibold"
             />
           </div>
         );
@@ -1244,7 +1286,7 @@ export function SceneDialog({
             value={sceneItem.item_value || "1"}
             onValueChange={handleCurtainChange}
           >
-            <SelectTrigger className="w-40">
+            <SelectTrigger className="w-30">
               <SelectValue placeholder="Select action" />
             </SelectTrigger>
             <SelectContent>
@@ -1424,13 +1466,19 @@ export function SceneDialog({
                   <CardHeader className="flex items-center justify-between">
                     <CardTitle className="text-sm flex items-center gap-2">
                       Current Items
-                      <Badge variant={sceneItems.length >= 60 ? "destructive" : "secondary"}>
+                      <Badge
+                        variant={
+                          sceneItems.length >= 60 ? "destructive" : "secondary"
+                        }
+                      >
                         {sceneItems.length}/60 items
                       </Badge>
                     </CardTitle>
                     <div className="flex items-center gap-2">
                       {/* All On/Off buttons for lighting items */}
-                      {sceneItems.some(item => item.item_type === "lighting") && (
+                      {sceneItems.some(
+                        (item) => item.item_type === "lighting"
+                      ) && (
                         <>
                           <Button
                             type="button"
@@ -1452,7 +1500,12 @@ export function SceneDialog({
                           </Button>
                           <Popover
                             open={customBrightnessDialog.open}
-                            onOpenChange={(open) => setCustomBrightnessDialog(prev => ({ ...prev, open }))}
+                            onOpenChange={(open) =>
+                              setCustomBrightnessDialog((prev) => ({
+                                ...prev,
+                                open,
+                              }))
+                            }
                           >
                             <PopoverTrigger asChild>
                               <Button
@@ -1467,7 +1520,9 @@ export function SceneDialog({
                             <PopoverContent className="w-80">
                               <div className="space-y-4">
                                 <div className="space-y-2">
-                                  <Label htmlFor="brightness">Custom Brightness (%)</Label>
+                                  <Label htmlFor="brightness">
+                                    Custom Brightness (%)
+                                  </Label>
                                   <Input
                                     id="brightness"
                                     type="number"
@@ -1477,21 +1532,36 @@ export function SceneDialog({
                                     onChange={(e) => {
                                       const value = e.target.value;
                                       // Allow empty string for user to clear and type new value
-                                      if (value === '') {
-                                        setCustomBrightnessDialog(prev => ({ ...prev, brightness: '' }));
+                                      if (value === "") {
+                                        setCustomBrightnessDialog((prev) => ({
+                                          ...prev,
+                                          brightness: "",
+                                        }));
                                         return;
                                       }
                                       const numValue = parseInt(value);
                                       if (!isNaN(numValue)) {
-                                        const clampedValue = Math.min(100, Math.max(0, numValue));
-                                        setCustomBrightnessDialog(prev => ({ ...prev, brightness: clampedValue }));
+                                        const clampedValue = Math.min(
+                                          100,
+                                          Math.max(0, numValue)
+                                        );
+                                        setCustomBrightnessDialog((prev) => ({
+                                          ...prev,
+                                          brightness: clampedValue,
+                                        }));
                                       }
                                     }}
                                     onBlur={(e) => {
                                       // Ensure we have a valid number when user leaves the field
                                       const value = e.target.value;
-                                      if (value === '' || isNaN(parseInt(value))) {
-                                        setCustomBrightnessDialog(prev => ({ ...prev, brightness: 50 }));
+                                      if (
+                                        value === "" ||
+                                        isNaN(parseInt(value))
+                                      ) {
+                                        setCustomBrightnessDialog((prev) => ({
+                                          ...prev,
+                                          brightness: 50,
+                                        }));
                                       }
                                     }}
                                     placeholder="Enter brightness (0-100)"
@@ -1506,19 +1576,37 @@ export function SceneDialog({
                                     type="button"
                                     variant="outline"
                                     size="sm"
-                                    onClick={() => setCustomBrightnessDialog({ open: false, brightness: 50 })}
+                                    onClick={() =>
+                                      setCustomBrightnessDialog({
+                                        open: false,
+                                        brightness: 50,
+                                      })
+                                    }
                                   >
                                     Cancel
                                   </Button>
                                   <Button
                                     type="button"
                                     size="sm"
-                                    onClick={() => handleCustomBrightness(customBrightnessDialog.brightness)}
+                                    onClick={() =>
+                                      handleCustomBrightness(
+                                        customBrightnessDialog.brightness
+                                      )
+                                    }
                                     disabled={
-                                      customBrightnessDialog.brightness === '' ||
-                                      isNaN(parseInt(customBrightnessDialog.brightness)) ||
-                                      parseInt(customBrightnessDialog.brightness) < 0 ||
-                                      parseInt(customBrightnessDialog.brightness) > 100
+                                      customBrightnessDialog.brightness ===
+                                        "" ||
+                                      isNaN(
+                                        parseInt(
+                                          customBrightnessDialog.brightness
+                                        )
+                                      ) ||
+                                      parseInt(
+                                        customBrightnessDialog.brightness
+                                      ) < 0 ||
+                                      parseInt(
+                                        customBrightnessDialog.brightness
+                                      ) > 100
                                     }
                                   >
                                     Apply
@@ -1529,7 +1617,6 @@ export function SceneDialog({
                           </Popover>
                         </>
                       )}
-
                     </div>
                   </CardHeader>
                   <CardContent>
@@ -1587,7 +1674,11 @@ export function SceneDialog({
                                       className="flex items-center justify-between text-sm"
                                     >
                                       <span className="text-muted-foreground">
-                                        {CONSTANTS.AIRCON.find(item => item.obj_type === airconItem.object_type)?.label || airconItem.object_type}
+                                        {CONSTANTS.AIRCON.find(
+                                          (item) =>
+                                            item.obj_type ===
+                                            airconItem.object_type
+                                        )?.label || airconItem.object_type}
                                       </span>
                                       <div className="flex items-center gap-2">
                                         {renderValueControl(airconItem)}
@@ -1615,26 +1706,26 @@ export function SceneDialog({
                               key={item.id}
                               className="flex items-center justify-between p-2 border rounded-lg"
                             >
-                              <div className="flex items-center gap-2">
+                              <div className="flex items-center gap-2 min-w-0 flex-1">
                                 {item.item_type === "lighting" && (
-                                  <Lightbulb className="h-4 w-4 text-yellow-500" />
+                                  <Lightbulb className="h-4 w-4 text-yellow-500 flex-shrink-0" />
                                 )}
                                 {item.item_type === "curtain" && (
-                                  <Blinds className="h-4 w-4 text-green-500" />
+                                  <Blinds className="h-4 w-4 text-green-500 flex-shrink-0" />
                                 )}
-                                <div>
-                                  <div className="font-medium text-sm">
+                                <div className="min-w-0 flex-1">
+                                  <div className="font-medium text-sm truncate">
                                     {item.item_name ||
                                       `${item.item_type} ${item.item_address}`}
                                   </div>
-                                  <div className="text-xs text-muted-foreground">
+                                  <div className="text-xs text-muted-foreground truncate">
                                     Address: {item.item_address}
-                                    {item.object_type &&
-                                      ` | ${item.object_type}`}
+                                    {item.item_description &&
+                                      ` | ${item.item_description}`}
                                   </div>
                                 </div>
                               </div>
-                              <div className="flex items-center gap-2">
+                              <div className="flex items-center gap-2 flex-shrink-0">
                                 {(item.object_type ||
                                   item.item_type === "lighting") &&
                                   renderValueControl(item)}
@@ -1714,6 +1805,8 @@ export function SceneDialog({
                                   </div>
                                   <div className="text-xs text-muted-foreground">
                                     Address: {item.address}
+                                    {item.description &&
+                                      ` | ${item.description}`}
                                   </div>
                                 </div>
                                 <div className="flex items-center gap-1">
@@ -1762,19 +1855,18 @@ export function SceneDialog({
                                   </div>
                                   <div className="text-xs text-muted-foreground">
                                     Address: {card.address}
+                                    {card.description &&
+                                      ` | ${card.description}`}
                                   </div>
-                                  {card.description && (
-                                    <div className="text-xs text-muted-foreground">
-                                      {card.description}
-                                    </div>
-                                  )}
                                 </div>
                                 <div className="flex items-center gap-1">
                                   <Button
                                     type="button"
                                     variant="outline"
                                     size="icon"
-                                    onClick={() => handleEditAirconItem(card.item)}
+                                    onClick={() =>
+                                      handleEditAirconItem(card.item)
+                                    }
                                     className="h-8 w-8"
                                   >
                                     <Edit className="h-3 w-3" />
@@ -1813,6 +1905,8 @@ export function SceneDialog({
                                   </div>
                                   <div className="text-xs text-muted-foreground">
                                     Address: {item.address}
+                                    {item.description &&
+                                      ` | ${item.description}`}
                                   </div>
                                 </div>
                                 <div className="flex items-center gap-1">
@@ -1846,8 +1940,6 @@ export function SceneDialog({
                           )}
                         </div>
                       </TabsContent>
-
-
                     </Tabs>
                   </CardContent>
                 </Card>
