@@ -28,11 +28,11 @@ function BreadcrumbNav() {
   const getSectionDisplayName = (section) => {
     switch (section) {
       case "group-config":
-        return "Group Config";
+        return "Group Configuration";
       case "scenes-schedules":
         return "Scenes & Schedules";
       default:
-        return "Group Config";
+        return "Group Configuration";
     }
   };
 
@@ -76,7 +76,7 @@ export default function App() {
         <SidebarProvider>
           <AppSidebar />
           <div className="h-8 w-full draggable-region absolute top-0"></div>
-          <SidebarInset className="!mt-8">
+          <SidebarInset className="mt-8!">
             <header className="flex h-16 shrink-0 items-center gap-2">
               <div className="flex items-center gap-2 px-4">
                 <SidebarTrigger className="-ml-1" />

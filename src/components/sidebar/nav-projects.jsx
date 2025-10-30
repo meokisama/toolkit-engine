@@ -10,6 +10,7 @@ import {
   ChevronRight,
   Library,
   Workflow,
+  Home,
 } from "lucide-react";
 
 import {
@@ -299,6 +300,21 @@ export function NavProjects() {
                               >
                                 <Workflow className="h-4 w-4" />
                                 <span>Automation</span>
+                              </SidebarMenuSubButton>
+                            </SidebarMenuSubItem>
+                            <SidebarMenuSubItem>
+                              <SidebarMenuSubButton
+                                className={`text-gray-700 cursor-pointer ${
+                                  isSelected && activeSection === "smarthome"
+                                    ? "bg-accent"
+                                    : ""
+                                }`}
+                                onClick={() =>
+                                  handleSectionSelect(project, "smarthome")
+                                }
+                              >
+                                <Home className="h-4 w-4" />
+                                <span>Smarthome</span>
                               </SidebarMenuSubButton>
                             </SidebarMenuSubItem>
                           </SidebarMenuSub>
