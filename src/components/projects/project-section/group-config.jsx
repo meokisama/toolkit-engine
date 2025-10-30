@@ -2,11 +2,11 @@ import React, { useMemo, useEffect, useCallback } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent } from "@/components/ui/card";
 import { useProjectDetail } from "@/contexts/project-detail-context";
-import { ProjectItemsTable } from "./lighting/lighting-table";
-import { UnitTable } from "./unit/unit-table";
-import { AirconCards } from "./aircon/aircon-cards";
-import { CurtainTable } from "./curtain/curtain-table";
-import { KnxTable } from "./knx/knx-table";
+import { ProjectItemsTable } from "@/components/projects/lighting/lighting-table";
+import { UnitTable } from "@/components/projects/unit/unit-table";
+import { AirconCards } from "@/components/projects/aircon/aircon-cards";
+import { CurtainTable } from "@/components/projects/curtain/curtain-table";
+import { KnxTable } from "@/components/projects/knx/knx-table";
 import {
   TabLoadingSkeleton,
   AirconCardsSkeleton,
