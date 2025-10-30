@@ -19,7 +19,7 @@ import {
   ProjectDetailProvider,
   useProjectDetail,
 } from "@/contexts/project-detail-context";
-import { ProjectDetail } from "@/components/projects/project-detail";
+import { ProjectDetail } from "@/components/projects/project-section/project-detail";
 
 // Breadcrumb component that uses the project context
 function BreadcrumbNav() {
