@@ -31,6 +31,8 @@ function BreadcrumbNav() {
         return "Group Configuration";
       case "scenes-schedules":
         return "Scenes & Schedules";
+      case "smarthome":
+        return "Smarthome";
       default:
         return "Group Configuration";
     }
