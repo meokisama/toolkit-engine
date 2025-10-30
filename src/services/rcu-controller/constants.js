@@ -93,6 +93,19 @@ const PROTOCOL = {
       CLEAR_KNX: 8,
     },
   },
+  ZIGBEE: {
+    CMD1: 60,
+    CMD2: {
+      OPEN_NETWORK: 0,
+      CLOSE_NETWORK: 1,
+      GET_INFOR_DEVICE: 2,
+      SET_INFOR_DEVICE: 3,
+      REMOVE_DEVICE: 4,
+      NEW_DEVICE: 5,
+      SEND_CMD: 6
+
+    }
+  }
 };
 
 // Error codes mapping based on RCU protocol
@@ -109,6 +122,8 @@ const ERROR_CODES = {
   9: "LOWER_FIRMWARE",
   10: "LICENSE_FAIL",
   11: "HEX_FILE_CRC",
+  24: "BUSY",
+  25: "NO_DEVICE",
   254: "TRANSFERED_FAILED",
   255: "OTHER",
 };
