@@ -8,6 +8,16 @@ import { CONSTANTS } from "@/constants";
 
 export function ZigbeeSwitchCard({ device }) {
   const [loadingEndpoints, setLoadingEndpoints] = useState({});
+  // Local state for endpoint values (for instant UI update)
+  const [endpointValues, setEndpointValues] = useState(() => {
+    const values = {};
+    for (let i = 1; i <= 4; i++) {
+      values[i] = device[`endpoint${i}_value`];
+    }
+    return values;
+  });
+  const [deviceStatus, setDeviceStatus] = useState(device.status);
+  const [deviceRssi, setDeviceRssi] = useState(device.rssi);
 
   // Get device type info
   const deviceTypeInfo = CONSTANTS.ZIGBEE.DEVICE_TYPE.find(
@@ -17,11 +27,11 @@ export function ZigbeeSwitchCard({ device }) {
   // Get number of gangs (endpoints)
   const numGangs = device.num_endpoints;
 
-  // Get endpoints data
+  // Get endpoints data with local state values
   const endpoints = [];
   for (let i = 1; i <= numGangs && i <= 4; i++) {
     const endpointId = device[`endpoint${i}_id`];
-    const endpointValue = device[`endpoint${i}_value`];
+    const endpointValue = endpointValues[i]; // Use local state
     const endpointAddress = device[`endpoint${i}_address`];
 
     if (endpointId > 0) {
@@ -54,14 +64,23 @@ export function ZigbeeSwitchCard({ device }) {
         deviceType: device.device_type,
         endpointId: endpoint.id,
         command: command,
+        deviceId: device.id, // Pass device ID for database update
       });
 
       if (result.success) {
         toast.success(
           `Switch ${endpoint.index} turned ${command === 1 ? "ON" : "OFF"}`
         );
-        // Update local state would require parent to reload devices
-        // You might want to implement a callback here
+
+        // Update local state with response data
+        if (result.statusUpdate) {
+          setEndpointValues((prev) => ({
+            ...prev,
+            [endpoint.index]: result.statusUpdate.endpointValue,
+          }));
+          setDeviceStatus(result.statusUpdate.onlineStatus);
+          setDeviceRssi(result.statusUpdate.rssi);
+        }
       } else {
         toast.error(`Failed to control switch ${endpoint.index}`);
       }
@@ -81,8 +100,8 @@ export function ZigbeeSwitchCard({ device }) {
             <Power className="h-4 w-4" />
             {deviceTypeInfo?.label || `Switch ${numGangs}-Gang`}
           </CardTitle>
-          <Badge variant={device.status === 1 ? "default" : "secondary"}>
-            {device.status === 1 ? "Online" : "Offline"}
+          <Badge variant={deviceStatus === 1 ? "default" : "secondary"}>
+            {deviceStatus === 1 ? "Online" : "Offline"}
           </Badge>
         </div>
       </CardHeader>
@@ -99,7 +118,7 @@ export function ZigbeeSwitchCard({ device }) {
           </div>
           <div className="flex justify-between">
             <span className="text-muted-foreground">RSSI:</span>
-            <span>{device.rssi} dBm</span>
+            <span>{deviceRssi} dBm</span>
           </div>
         </div>
 
@@ -127,7 +146,7 @@ export function ZigbeeSwitchCard({ device }) {
                 <Switch
                   checked={isOn}
                   onCheckedChange={() => handleToggle(endpoint)}
-                  disabled={isLoading || device.status !== 1}
+                  disabled={isLoading || deviceStatus !== 1}
                 />
               </div>
             );

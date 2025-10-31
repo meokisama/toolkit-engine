@@ -132,7 +132,7 @@ async function getZigbeeDevices(unitIp, canId) {
  * @param {number} deviceType - Device type
  * @param {number} endpointId - Endpoint ID to control
  * @param {number} command - Command type (0: OFF, 1: ON, 2: TOGGLE)
- * @returns {Promise<{success: boolean}>}
+ * @returns {Promise<{success: boolean, statusUpdate: object}>}
  */
 async function sendZigbeeCommand(
   unitIp,
@@ -174,9 +174,45 @@ async function sendZigbeeCommand(
 
     console.log(`Zigbee command sent successfully to ${ieeeAddress}`);
 
+    // Parse response data (after BUSY response)
+    // Response data format:
+    // - Byte 0-7: IEEE address (8 bytes)
+    // - Byte 8: online status
+    // - Byte 9: device type
+    // - Byte 10: RSSI
+    // - Byte 11-12: endpoint value (2 bytes, little endian)
+    const responseData = response.result.data;
+    let statusUpdate = null;
+
+    if (responseData && responseData.length >= 13) {
+      // Parse IEEE address from response
+      const respIeeeAddress = Array.from(responseData.slice(0, 8))
+        .map((b) => b.toString(16).padStart(2, "0"))
+        .join(":")
+        .toUpperCase();
+
+      // Parse status info
+      const onlineStatus = responseData[8];
+      const respDeviceType = responseData[9];
+      const rssi = responseData[10];
+      const endpointValue = responseData[11] | (responseData[12] << 8);
+
+      statusUpdate = {
+        ieeeAddress: respIeeeAddress,
+        onlineStatus,
+        deviceType: respDeviceType,
+        rssi,
+        endpointId,
+        endpointValue,
+      };
+
+      console.log("Zigbee device status update:", statusUpdate);
+    }
+
     return {
       success: response.result.success,
       data: response.result.data,
+      statusUpdate,
     };
   } catch (error) {
     console.error("Failed to send Zigbee command:", error);

@@ -8,6 +8,16 @@ import { CONSTANTS } from "@/constants";
 
 export function ZigbeeCurtainCard({ device }) {
   const [loadingEndpoints, setLoadingEndpoints] = useState({});
+  // Local state for endpoint values (for instant UI update)
+  const [endpointValues, setEndpointValues] = useState(() => {
+    const values = {};
+    for (let i = 1; i <= 4; i++) {
+      values[i] = device[`endpoint${i}_value`];
+    }
+    return values;
+  });
+  const [deviceStatus, setDeviceStatus] = useState(device.status);
+  const [deviceRssi, setDeviceRssi] = useState(device.rssi);
 
   // Get device type info
   const deviceTypeInfo = CONSTANTS.ZIGBEE.DEVICE_TYPE.find(
@@ -17,11 +27,11 @@ export function ZigbeeCurtainCard({ device }) {
   // Get number of curtains (1 or 2 gang)
   const numCurtains = device.device_type === 4 ? 1 : 2; // 4: 1-Gang, 5: 2-Gang
 
-  // Get endpoints data
+  // Get endpoints data with local state values
   const endpoints = [];
   for (let i = 1; i <= numCurtains && i <= 4; i++) {
     const endpointId = device[`endpoint${i}_id`];
-    const endpointValue = device[`endpoint${i}_value`];
+    const endpointValue = endpointValues[i]; // Use local state
     const endpointAddress = device[`endpoint${i}_address`];
 
     if (endpointId > 0) {
@@ -51,11 +61,22 @@ export function ZigbeeCurtainCard({ device }) {
         deviceType: device.device_type,
         endpointId: endpoint.id,
         command: command, // 0: Close, 1: Open
+        deviceId: device.id, // Pass device ID for database update
       });
 
       if (result.success) {
         const action = command === 1 ? "opened" : "closed";
         toast.success(`Curtain ${endpoint.index} ${action}`);
+
+        // Update local state with response data
+        if (result.statusUpdate) {
+          setEndpointValues((prev) => ({
+            ...prev,
+            [endpoint.index]: result.statusUpdate.endpointValue,
+          }));
+          setDeviceStatus(result.statusUpdate.onlineStatus);
+          setDeviceRssi(result.statusUpdate.rssi);
+        }
       } else {
         toast.error(`Failed to control curtain ${endpoint.index}`);
       }
@@ -75,8 +96,8 @@ export function ZigbeeCurtainCard({ device }) {
             <Blinds className="h-4 w-4" />
             {deviceTypeInfo?.label || `Curtain ${numCurtains}-Gang`}
           </CardTitle>
-          <Badge variant={device.status === 1 ? "default" : "secondary"}>
-            {device.status === 1 ? "Online" : "Offline"}
+          <Badge variant={deviceStatus === 1 ? "default" : "secondary"}>
+            {deviceStatus === 1 ? "Online" : "Offline"}
           </Badge>
         </div>
       </CardHeader>
@@ -93,7 +114,7 @@ export function ZigbeeCurtainCard({ device }) {
           </div>
           <div className="flex justify-between">
             <span className="text-muted-foreground">RSSI:</span>
-            <span>{device.rssi} dBm</span>
+            <span>{deviceRssi} dBm</span>
           </div>
         </div>
 
@@ -120,7 +141,7 @@ export function ZigbeeCurtainCard({ device }) {
                     size="sm"
                     variant="outline"
                     onClick={() => handleControl(endpoint, 0)}
-                    disabled={isLoading || device.status !== 1}
+                    disabled={isLoading || deviceStatus !== 1}
                   >
                     {isLoading ? (
                       <Loader2 className="h-4 w-4 animate-spin" />
@@ -131,7 +152,7 @@ export function ZigbeeCurtainCard({ device }) {
                   <Button
                     size="sm"
                     onClick={() => handleControl(endpoint, 1)}
-                    disabled={isLoading || device.status !== 1}
+                    disabled={isLoading || deviceStatus !== 1}
                   >
                     {isLoading ? (
                       <Loader2 className="h-4 w-4 animate-spin" />

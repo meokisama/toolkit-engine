@@ -2105,9 +2105,9 @@ function setupIpcHandlers() {
 
   ipcMain.handle(
     "rcu:sendZigbeeCommand",
-    async (event, { unitIp, canId, ieeeAddress, deviceType, endpointId, command }) => {
+    async (event, { unitIp, canId, ieeeAddress, deviceType, endpointId, command, deviceId }) => {
       try {
-        return await sendZigbeeCommand(
+        const result = await sendZigbeeCommand(
           unitIp,
           canId,
           ieeeAddress,
@@ -2115,6 +2115,59 @@ function setupIpcHandlers() {
           endpointId,
           command
         );
+
+        // If we have status update and deviceId, update the database
+        if (result.statusUpdate && deviceId) {
+          try {
+            // Get current device data
+            const currentDevice = await dbService.db.prepare(
+              "SELECT * FROM zigbee_devices WHERE id = ?"
+            ).get(deviceId);
+
+            if (currentDevice) {
+              // Find which endpoint index matches the endpointId
+              let endpointIndex = null;
+              for (let i = 1; i <= 4; i++) {
+                if (currentDevice[`endpoint${i}_id`] === endpointId) {
+                  endpointIndex = i;
+                  break;
+                }
+              }
+
+              if (endpointIndex) {
+                // Update the endpoint value and status
+                const updateFields = {
+                  [`endpoint${endpointIndex}_value`]: result.statusUpdate.endpointValue,
+                  status: result.statusUpdate.onlineStatus,
+                  rssi: result.statusUpdate.rssi,
+                };
+
+                const updateStmt = dbService.db.prepare(`
+                  UPDATE zigbee_devices
+                  SET endpoint${endpointIndex}_value = ?,
+                      status = ?,
+                      rssi = ?,
+                      updated_at = CURRENT_TIMESTAMP
+                  WHERE id = ?
+                `);
+
+                updateStmt.run(
+                  updateFields[`endpoint${endpointIndex}_value`],
+                  updateFields.status,
+                  updateFields.rssi,
+                  deviceId
+                );
+
+                console.log(`Updated device ${deviceId} endpoint ${endpointIndex} value to ${result.statusUpdate.endpointValue}`);
+              }
+            }
+          } catch (dbError) {
+            console.error("Failed to update device in database:", dbError);
+            // Don't throw - we still want to return the result
+          }
+        }
+
+        return result;
       } catch (error) {
         console.error("Error sending Zigbee command:", error);
         throw error;
