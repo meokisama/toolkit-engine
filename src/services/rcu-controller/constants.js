@@ -96,16 +96,15 @@ const PROTOCOL = {
   ZIGBEE: {
     CMD1: 60,
     CMD2: {
-      OPEN_NETWORK: 0,
-      CLOSE_NETWORK: 1,
-      GET_INFOR_DEVICE: 2,
-      SET_INFOR_DEVICE: 3,
-      REMOVE_DEVICE: 4,
-      NEW_DEVICE: 5,
-      SEND_CMD: 6
-
-    }
-  }
+      OPEN_ZIGBEE_NETWORK: 0,
+      CLOSE_ZIGBEE_NETWORK: 1,
+      GET_ZIGBEE_DEVICE: 2,
+      SET_ZIGBEE_DEVICE: 3,
+      REMOVE_ZIGBEE_DEVICE: 4,
+      NEW_ZIGBEE_DEVICE: 5,
+      SEND_ZIGBEE_CMD: 6,
+    },
+  },
 };
 
 // Error codes mapping based on RCU protocol

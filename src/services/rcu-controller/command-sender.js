@@ -1,18 +1,12 @@
-import { UDP_PORT } from "./constants.js";
 import { processResponse, calculateCRC } from "./utils.js";
 
-/**
- * Create a UDP socket with basic setup
- * For now, we'll use the default binding approach since we can't access
- * network interface service from renderer process
- * @param {string} targetIp - Target device IP address
- * @returns {Object} Socket and interface information
- */
 function createOptimalSocket(targetIp) {
   const dgram = require("dgram");
   const client = dgram.createSocket("udp4");
 
-  console.log(`Creating UDP socket for target ${targetIp} with default binding`);
+  console.log(
+    `Creating UDP socket for target ${targetIp} with default binding`
+  );
 
   return { client, interface: null };
 }
@@ -27,7 +21,8 @@ async function sendCommand(
   skipStatusCheck = false
 ) {
   return new Promise((resolve, reject) => {
-    const { client, interface: selectedInterface } = createOptimalSocket(unitIp);
+    const { client, interface: selectedInterface } =
+      createOptimalSocket(unitIp);
 
     const timeout = setTimeout(() => {
       client.close();
@@ -123,7 +118,8 @@ async function sendCommandMultipleResponses(
   timeoutMs = 15000
 ) {
   return new Promise((resolve, reject) => {
-    const { client, interface: selectedInterface } = createOptimalSocket(unitIp);
+    const { client, interface: selectedInterface } =
+      createOptimalSocket(unitIp);
     const responses = [];
     let responseCount = 0;
     let successPacketReceived = false;
