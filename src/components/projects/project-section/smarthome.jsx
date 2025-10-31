@@ -40,6 +40,147 @@ export function Smarthome() {
     }
   };
 
+  const handleRefresh = async () => {
+    if (!selectedProject) return;
+
+    setLoading(true);
+    try {
+      // 1. Get all devices from database to find unique units
+      const devicesData = await window.electronAPI.zigbee.getDevices(
+        selectedProject.id
+      );
+
+      if (devicesData.length === 0) {
+        toast.info("No devices to refresh");
+        setLoading(false);
+        return;
+      }
+
+      // 2. Group devices by unit (unit_ip + unit_can_id)
+      const unitMap = new Map();
+      devicesData.forEach((device) => {
+        const unitKey = `${device.unit_ip}|${device.unit_can_id}`;
+        if (!unitMap.has(unitKey)) {
+          unitMap.set(unitKey, {
+            unit_ip: device.unit_ip,
+            unit_can_id: device.unit_can_id,
+            devices: [],
+          });
+        }
+        unitMap.get(unitKey).devices.push(device);
+      });
+
+      console.log(`Found ${unitMap.size} unique units to refresh`);
+
+      let totalUpdated = 0;
+      let totalErrors = 0;
+
+      // 3. For each unit, send getZigbeeDevices command
+      for (const [unitKey, unitData] of unitMap) {
+        try {
+          console.log(
+            `Refreshing devices from unit ${unitData.unit_ip} (CAN ID: ${unitData.unit_can_id})`
+          );
+
+          // Send getZigbeeDevices command to unit
+          const response = await window.electronAPI.rcuController.getZigbeeDevices(
+            {
+              unitIp: unitData.unit_ip,
+              canId: unitData.unit_can_id,
+            }
+          );
+
+          if (!response.success || !response.devices) {
+            console.warn(
+              `Failed to get devices from unit ${unitData.unit_ip}`
+            );
+            totalErrors++;
+            continue;
+          }
+
+          console.log(
+            `Received ${response.devices.length} devices from unit ${unitData.unit_ip}`
+          );
+
+          // 4. Compare and update devices by IEEE address
+          for (const receivedDevice of response.devices) {
+            // Find matching device in database by IEEE address
+            const dbDevice = unitData.devices.find(
+              (d) =>
+                d.ieee_address.toUpperCase() ===
+                receivedDevice.ieee_address.toUpperCase()
+            );
+
+            if (dbDevice) {
+              // Update device with new values
+              try {
+                await window.electronAPI.zigbee.updateDevice(dbDevice.id, {
+                  device_type: receivedDevice.device_type,
+                  num_endpoints: receivedDevice.num_endpoints,
+                  endpoint1_id: receivedDevice.endpoint1_id,
+                  endpoint1_value: receivedDevice.endpoint1_value,
+                  endpoint1_address: receivedDevice.endpoint1_address,
+                  endpoint2_id: receivedDevice.endpoint2_id,
+                  endpoint2_value: receivedDevice.endpoint2_value,
+                  endpoint2_address: receivedDevice.endpoint2_address,
+                  endpoint3_id: receivedDevice.endpoint3_id,
+                  endpoint3_value: receivedDevice.endpoint3_value,
+                  endpoint3_address: receivedDevice.endpoint3_address,
+                  endpoint4_id: receivedDevice.endpoint4_id,
+                  endpoint4_value: receivedDevice.endpoint4_value,
+                  endpoint4_address: receivedDevice.endpoint4_address,
+                  rssi: receivedDevice.rssi,
+                  status: receivedDevice.status,
+                });
+
+                console.log(
+                  `Updated device ${receivedDevice.ieee_address} (RSSI: ${receivedDevice.rssi}, Status: ${receivedDevice.status})`
+                );
+                totalUpdated++;
+              } catch (updateError) {
+                console.error(
+                  `Failed to update device ${receivedDevice.ieee_address}:`,
+                  updateError
+                );
+                totalErrors++;
+              }
+            } else {
+              console.log(
+                `Device ${receivedDevice.ieee_address} from unit ${unitData.unit_ip} not found in database (skipping)`
+              );
+            }
+          }
+        } catch (unitError) {
+          console.error(
+            `Error refreshing unit ${unitData.unit_ip}:`,
+            unitError
+          );
+          totalErrors++;
+        }
+      }
+
+      // 5. Reload devices to show updated data
+      const updatedDevices = await window.electronAPI.zigbee.getDevices(
+        selectedProject.id
+      );
+      setDevices(updatedDevices);
+
+      // Show results
+      if (totalUpdated > 0) {
+        toast.success(`Refreshed ${totalUpdated} device(s)`);
+      } else if (totalErrors > 0) {
+        toast.error("Failed to refresh devices");
+      } else {
+        toast.info("No devices needed updating");
+      }
+    } catch (error) {
+      console.error("Failed to refresh devices:", error);
+      toast.error("Failed to refresh devices");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleDevicesAdded = () => {
     loadDevices();
     setAddDeviceDialogOpen(false);
@@ -53,13 +194,9 @@ export function Smarthome() {
     } else if (device.device_type === 4 || device.device_type === 5) {
       return <ZigbeeCurtainCard key={device.id} device={device} />;
     } else if (device.device_type === 7) {
-      return (
-        <ZigbeeMotionSensorCard key={device.id} device={device} />
-      );
+      return <ZigbeeMotionSensorCard key={device.id} device={device} />;
     } else if (device.device_type === 9) {
-      return (
-        <ZigbeeDoorContactCard key={device.id} device={device} />
-      );
+      return <ZigbeeDoorContactCard key={device.id} device={device} />;
     } else {
       // Unknown device type - show basic info card
       return (
@@ -107,8 +244,7 @@ export function Smarthome() {
             <div className="flex gap-2">
               <Button
                 variant="outline"
-                size="sm"
-                onClick={loadDevices}
+                onClick={handleRefresh}
                 disabled={loading}
               >
                 <RefreshCw
@@ -116,7 +252,7 @@ export function Smarthome() {
                 />
                 Refresh
               </Button>
-              <Button size="sm" onClick={() => setAddDeviceDialogOpen(true)}>
+              <Button onClick={() => setAddDeviceDialogOpen(true)}>
                 <Plus className="h-4 w-4 mr-2" />
                 Add Device
               </Button>
