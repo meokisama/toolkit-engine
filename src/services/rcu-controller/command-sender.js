@@ -18,11 +18,15 @@ async function sendCommand(
   cmd1,
   cmd2,
   data = [],
-  skipStatusCheck = false
+  skipStatusCheck = false,
+  waitAfterBusy = false
 ) {
   return new Promise((resolve, reject) => {
     const { client, interface: selectedInterface } =
       createOptimalSocket(unitIp);
+
+    let busyReceived = false;
+    let responseCount = 0;
 
     const timeout = setTimeout(() => {
       client.close();
@@ -36,14 +40,26 @@ async function sendCommand(
     }, 5000);
 
     client.on("message", (msg, rinfo) => {
-      clearTimeout(timeout);
-      console.log(`Received from ${rinfo.address}:${rinfo.port}`);
+      responseCount++;
+      console.log(`Received response #${responseCount} from ${rinfo.address}:${rinfo.port}`);
 
       try {
         const result = processResponse(msg, cmd1, cmd2, skipStatusCheck);
+        clearTimeout(timeout);
         client.close();
         resolve({ msg, rinfo, result });
       } catch (error) {
+        // Check if this is a BUSY error (error code 24 = 0x18)
+        const isBusyError = error.message && error.message.includes("BUSY");
+
+        if (waitAfterBusy && isBusyError && !busyReceived) {
+          console.log("BUSY error received, waiting for final response...");
+          busyReceived = true;
+          // Don't close client, continue listening for the next response
+          return;
+        }
+
+        clearTimeout(timeout);
         client.close();
         reject(error);
       }

@@ -167,7 +167,9 @@ async function sendZigbeeCommand(
       convertCanIdToInt(canId),
       PROTOCOL.ZIGBEE.CMD1,
       PROTOCOL.ZIGBEE.CMD2.SEND_ZIGBEE_CMD,
-      data
+      data,
+      false, // skipStatusCheck
+      true   // waitAfterBusy - wait for final response if BUSY is received
     );
 
     console.log(`Zigbee command sent successfully to ${ieeeAddress}`);
