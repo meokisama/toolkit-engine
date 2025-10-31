@@ -47,11 +47,16 @@ async function getZigbeeDevices(unitIp, canId) {
 
         // Parse device data according to protocol
         // Byte 0-7: IEEE address (8 bytes)
+        console.log("Raw IEEE bytes:", data.slice(0, 8));
+        console.log("Raw IEEE bytes hex:", data.slice(0, 8).map((b) => `0x${b.toString(16).padStart(2, "0")}`).join(" "));
+
         const ieeeAddress = data
           .slice(0, 8)
           .map((b) => b.toString(16).padStart(2, "0"))
           .join(":")
           .toUpperCase();
+
+        console.log("Parsed IEEE address:", ieeeAddress);
 
         // Byte 8: device type
         const deviceType = data[8];
