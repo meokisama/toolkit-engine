@@ -44,7 +44,9 @@ async function sendCommand(
       console.log(`Received response #${responseCount} from ${rinfo.address}:${rinfo.port}`);
 
       try {
-        const result = processResponse(msg, cmd1, cmd2, skipStatusCheck);
+        // If this is the response after BUSY, skip status check as it's a status update packet
+        const shouldSkipStatusCheck = busyReceived ? true : skipStatusCheck;
+        const result = processResponse(msg, cmd1, cmd2, shouldSkipStatusCheck);
         clearTimeout(timeout);
         client.close();
         resolve({ msg, rinfo, result });
