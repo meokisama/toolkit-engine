@@ -289,6 +289,7 @@ class DatabaseService {
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         project_id INTEGER NOT NULL,
         unit_ip TEXT NOT NULL,
+        unit_can_id TEXT NOT NULL,
         ieee_address TEXT NOT NULL,
         device_type INTEGER NOT NULL,
         num_endpoints INTEGER NOT NULL DEFAULT 0,
@@ -3970,18 +3971,19 @@ class DatabaseService {
     try {
       const stmt = this.db.prepare(`
         INSERT INTO zigbee_devices (
-          project_id, unit_ip, ieee_address, device_type, num_endpoints,
+          project_id, unit_ip, unit_can_id, ieee_address, device_type, num_endpoints,
           endpoint1_id, endpoint1_value, endpoint1_address,
           endpoint2_id, endpoint2_value, endpoint2_address,
           endpoint3_id, endpoint3_value, endpoint3_address,
           endpoint4_id, endpoint4_value, endpoint4_address,
           rssi, status
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       `);
 
       const result = stmt.run(
         projectId,
         deviceData.unit_ip,
+        deviceData.unit_can_id,
         deviceData.ieee_address,
         deviceData.device_type,
         deviceData.num_endpoints || 0,

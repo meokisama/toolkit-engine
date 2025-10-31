@@ -6,7 +6,7 @@ import { Blinds, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { CONSTANTS } from "@/constants";
 
-export function ZigbeeCurtainCard({ device, unit }) {
+export function ZigbeeCurtainCard({ device }) {
   const [loadingEndpoints, setLoadingEndpoints] = useState({});
 
   // Get device type info
@@ -35,7 +35,7 @@ export function ZigbeeCurtainCard({ device, unit }) {
   }
 
   const handleControl = async (endpoint, command) => {
-    if (!unit) {
+    if (!device.unit_ip || !device.unit_can_id) {
       toast.error("Unit information not found");
       return;
     }
@@ -45,8 +45,8 @@ export function ZigbeeCurtainCard({ device, unit }) {
 
     try {
       const result = await window.electronAPI.rcuController.sendZigbeeCommand({
-        unitIp: unit.ip_address,
-        canId: unit.id_can,
+        unitIp: device.unit_ip,
+        canId: device.unit_can_id,
         ieeeAddress: device.ieee_address,
         deviceType: device.device_type,
         endpointId: endpoint.id,
@@ -89,7 +89,7 @@ export function ZigbeeCurtainCard({ device, unit }) {
           </div>
           <div className="flex justify-between">
             <span className="text-muted-foreground">Unit:</span>
-            <span>{unit?.type || "Unknown"} ({device.unit_ip})</span>
+            <span>{device.unit_ip}</span>
           </div>
           <div className="flex justify-between">
             <span className="text-muted-foreground">RSSI:</span>
@@ -120,7 +120,7 @@ export function ZigbeeCurtainCard({ device, unit }) {
                     size="sm"
                     variant="outline"
                     onClick={() => handleControl(endpoint, 0)}
-                    disabled={isLoading || device.status !== 1 || !unit}
+                    disabled={isLoading || device.status !== 1}
                   >
                     {isLoading ? (
                       <Loader2 className="h-4 w-4 animate-spin" />
@@ -131,7 +131,7 @@ export function ZigbeeCurtainCard({ device, unit }) {
                   <Button
                     size="sm"
                     onClick={() => handleControl(endpoint, 1)}
-                    disabled={isLoading || device.status !== 1 || !unit}
+                    disabled={isLoading || device.status !== 1}
                   >
                     {isLoading ? (
                       <Loader2 className="h-4 w-4 animate-spin" />

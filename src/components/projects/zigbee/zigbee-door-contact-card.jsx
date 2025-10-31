@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { DoorOpen, DoorClosed } from "lucide-react";
 
-export function ZigbeeDoorContactCard({ device, unit }) {
+export function ZigbeeDoorContactCard({ device }) {
   // Door contact typically uses endpoint 1
   // Value 0 = Closed, Value > 0 = Open
   const isOpen = device.endpoint1_value > 0;
@@ -34,7 +34,7 @@ export function ZigbeeDoorContactCard({ device, unit }) {
           </div>
           <div className="flex justify-between">
             <span className="text-muted-foreground">Unit:</span>
-            <span>{unit?.type || "Unknown"} ({device.unit_ip})</span>
+            <span>{device.unit_ip}</span>
           </div>
           <div className="flex justify-between">
             <span className="text-muted-foreground">RSSI:</span>

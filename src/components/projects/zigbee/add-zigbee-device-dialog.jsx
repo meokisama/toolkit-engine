@@ -83,6 +83,7 @@ export function AddZigbeeDeviceDialog({ open, onOpenChange, onDevicesAdded }) {
             for (const device of response.devices) {
               const deviceData = {
                 unit_ip: unit.ip_address,
+                unit_can_id: unit.id_can,
                 ...device,
               };
 

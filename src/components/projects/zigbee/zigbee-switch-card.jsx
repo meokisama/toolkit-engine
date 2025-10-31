@@ -6,7 +6,7 @@ import { Power, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { CONSTANTS } from "@/constants";
 
-export function ZigbeeSwitchCard({ device, unit }) {
+export function ZigbeeSwitchCard({ device }) {
   const [loadingEndpoints, setLoadingEndpoints] = useState({});
 
   // Get device type info
@@ -35,7 +35,7 @@ export function ZigbeeSwitchCard({ device, unit }) {
   }
 
   const handleToggle = async (endpoint) => {
-    if (!unit) {
+    if (!device.unit_ip || !device.unit_can_id) {
       toast.error("Unit information not found");
       return;
     }
@@ -48,8 +48,8 @@ export function ZigbeeSwitchCard({ device, unit }) {
       const command = endpoint.value === 0 ? 1 : 0; // 0: OFF, 1: ON
 
       const result = await window.electronAPI.rcuController.sendZigbeeCommand({
-        unitIp: unit.ip_address,
-        canId: unit.id_can,
+        unitIp: device.unit_ip,
+        canId: device.unit_can_id,
         ieeeAddress: device.ieee_address,
         deviceType: device.device_type,
         endpointId: endpoint.id,
@@ -95,7 +95,7 @@ export function ZigbeeSwitchCard({ device, unit }) {
           </div>
           <div className="flex justify-between">
             <span className="text-muted-foreground">Unit:</span>
-            <span>{unit?.type || "Unknown"} ({device.unit_ip})</span>
+            <span>{device.unit_ip}</span>
           </div>
           <div className="flex justify-between">
             <span className="text-muted-foreground">RSSI:</span>
@@ -127,7 +127,7 @@ export function ZigbeeSwitchCard({ device, unit }) {
                 <Switch
                   checked={isOn}
                   onCheckedChange={() => handleToggle(endpoint)}
-                  disabled={isLoading || device.status !== 1 || !unit}
+                  disabled={isLoading || device.status !== 1}
                 />
               </div>
             );

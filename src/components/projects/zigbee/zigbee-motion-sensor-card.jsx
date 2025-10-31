@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Waves } from "lucide-react";
 
-export function ZigbeeMotionSensorCard({ device, unit }) {
+export function ZigbeeMotionSensorCard({ device }) {
   // Motion sensor typically uses endpoint 1
   const motionDetected = device.endpoint1_value > 0;
 
@@ -29,7 +29,7 @@ export function ZigbeeMotionSensorCard({ device, unit }) {
           </div>
           <div className="flex justify-between">
             <span className="text-muted-foreground">Unit:</span>
-            <span>{unit?.type || "Unknown"} ({device.unit_ip})</span>
+            <span>{device.unit_ip}</span>
           </div>
           <div className="flex justify-between">
             <span className="text-muted-foreground">RSSI:</span>

@@ -13,7 +13,6 @@ import { ZigbeeDoorContactCard } from "../zigbee/zigbee-door-contact-card";
 export function Smarthome() {
   const { selectedProject } = useProjectDetail();
   const [devices, setDevices] = useState([]);
-  const [units, setUnits] = useState([]);
   const [loading, setLoading] = useState(false);
   const [addDeviceDialogOpen, setAddDeviceDialogOpen] = useState(false);
 
@@ -21,7 +20,6 @@ export function Smarthome() {
   useEffect(() => {
     if (selectedProject) {
       loadDevices();
-      loadUnits();
     }
   }, [selectedProject]);
 
@@ -42,45 +40,25 @@ export function Smarthome() {
     }
   };
 
-  const loadUnits = async () => {
-    if (!selectedProject) return;
-
-    try {
-      const unitsData = await window.electronAPI.unit.getAll(
-        selectedProject.id
-      );
-      setUnits(unitsData);
-    } catch (error) {
-      console.error("Failed to load units:", error);
-    }
-  };
-
   const handleDevicesAdded = () => {
     loadDevices();
     setAddDeviceDialogOpen(false);
   };
 
-  // Helper to get unit info for a device
-  const getUnitForDevice = (device) => {
-    return units.find((unit) => unit.ip_address === device.unit_ip);
-  };
-
   // Helper to render appropriate card based on device type
   const renderDeviceCard = (device) => {
-    const unit = getUnitForDevice(device);
-
     // Device types: 0-3: Switch, 4-5: Curtain, 7: Motion Sensor, 9: Door Contact
     if (device.device_type >= 0 && device.device_type <= 3) {
-      return <ZigbeeSwitchCard key={device.id} device={device} unit={unit} />;
+      return <ZigbeeSwitchCard key={device.id} device={device} />;
     } else if (device.device_type === 4 || device.device_type === 5) {
-      return <ZigbeeCurtainCard key={device.id} device={device} unit={unit} />;
+      return <ZigbeeCurtainCard key={device.id} device={device} />;
     } else if (device.device_type === 7) {
       return (
-        <ZigbeeMotionSensorCard key={device.id} device={device} unit={unit} />
+        <ZigbeeMotionSensorCard key={device.id} device={device} />
       );
     } else if (device.device_type === 9) {
       return (
-        <ZigbeeDoorContactCard key={device.id} device={device} unit={unit} />
+        <ZigbeeDoorContactCard key={device.id} device={device} />
       );
     } else {
       // Unknown device type - show basic info card
