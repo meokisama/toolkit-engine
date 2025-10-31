@@ -2230,6 +2230,142 @@ function setupIpcHandlers() {
       }
     }
   );
+
+  // Refresh zigbee devices from units
+  ipcMain.handle("zigbee:refreshDevices", async (event, projectId) => {
+    try {
+      console.log(`Refreshing zigbee devices for project ${projectId}`);
+
+      // Get all distinct units from database
+      const units = await dbService.getDistinctUnitsForZigbeeDevices(projectId);
+      console.log(`Found ${units.length} unit(s) to refresh`);
+
+      if (units.length === 0) {
+        return {
+          success: true,
+          message: "No units found in database",
+          updatedCount: 0,
+        };
+      }
+
+      // Get devices from database for comparison
+      const dbDevices = await dbService.getZigbeeDevices(projectId);
+      console.log(`Found ${dbDevices.length} device(s) in database`);
+
+      let updatedCount = 0;
+      let errors = [];
+
+      // Query each unit
+      for (const unit of units) {
+        try {
+          console.log(
+            `Querying unit ${unit.unit_ip} (CAN ID: ${unit.unit_can_id})`
+          );
+
+          // Get devices from unit
+          const result = await getZigbeeDevices(
+            unit.unit_ip,
+            unit.unit_can_id
+          );
+
+          if (!result.success || !result.devices) {
+            console.warn(
+              `Failed to get devices from unit ${unit.unit_ip}:`,
+              result
+            );
+            errors.push({
+              unitIp: unit.unit_ip,
+              error: "Failed to get devices from unit",
+            });
+            continue;
+          }
+
+          console.log(
+            `Received ${result.devices.length} device(s) from unit ${unit.unit_ip}`
+          );
+
+          // Match and update devices
+          for (const unitDevice of result.devices) {
+            // Find matching device in database by IEEE address, device type, num_endpoints
+            const dbDevice = dbDevices.find(
+              (d) =>
+                d.unit_ip === unit.unit_ip &&
+                d.ieee_address === unitDevice.ieee_address &&
+                d.device_type === unitDevice.device_type &&
+                d.num_endpoints === unitDevice.num_endpoints &&
+                // Check endpoint IDs match
+                d.endpoint1_id === unitDevice.endpoint1_id &&
+                d.endpoint2_id === unitDevice.endpoint2_id &&
+                d.endpoint3_id === unitDevice.endpoint3_id &&
+                d.endpoint4_id === unitDevice.endpoint4_id
+            );
+
+            if (dbDevice) {
+              // Update device status in database
+              console.log(
+                `Updating device ${unitDevice.ieee_address} in database`
+              );
+
+              try {
+                await dbService.updateZigbeeDeviceStatus(
+                  projectId,
+                  unit.unit_ip,
+                  unitDevice.ieee_address,
+                  {
+                    endpoint1_value: unitDevice.endpoint1_value,
+                    endpoint1_address: unitDevice.endpoint1_address,
+                    endpoint2_value: unitDevice.endpoint2_value,
+                    endpoint2_address: unitDevice.endpoint2_address,
+                    endpoint3_value: unitDevice.endpoint3_value,
+                    endpoint3_address: unitDevice.endpoint3_address,
+                    endpoint4_value: unitDevice.endpoint4_value,
+                    endpoint4_address: unitDevice.endpoint4_address,
+                    rssi: unitDevice.rssi,
+                    status: unitDevice.status,
+                  }
+                );
+                updatedCount++;
+              } catch (updateError) {
+                console.error(
+                  `Failed to update device ${unitDevice.ieee_address}:`,
+                  updateError
+                );
+                errors.push({
+                  unitIp: unit.unit_ip,
+                  ieeeAddress: unitDevice.ieee_address,
+                  error: "Failed to update device in database",
+                });
+              }
+            } else {
+              console.log(
+                `Device ${unitDevice.ieee_address} not found in database or specs don't match`
+              );
+            }
+          }
+        } catch (unitError) {
+          console.error(`Error querying unit ${unit.unit_ip}:`, unitError);
+          errors.push({
+            unitIp: unit.unit_ip,
+            error: unitError.message,
+          });
+        }
+      }
+
+      console.log(
+        `Refresh complete. Updated ${updatedCount} device(s), ${errors.length} error(s)`
+      );
+
+      return {
+        success: true,
+        updatedCount,
+        errors: errors.length > 0 ? errors : undefined,
+        message: `Successfully refreshed ${updatedCount} device(s)`,
+      };
+    } catch (error) {
+      console.error("Error refreshing zigbee devices:", error);
+      throw error;
+    }
+  });
 }
 
 /**

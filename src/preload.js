@@ -487,5 +487,7 @@ contextBridge.exposeInMainWorld("electronAPI", {
       ipcRenderer.invoke("zigbee:deleteDevice", id),
     deleteAllDevicesForUnit: (projectId, unitIp) =>
       ipcRenderer.invoke("zigbee:deleteAllDevicesForUnit", projectId, unitIp),
+    refreshDevices: (projectId) =>
+      ipcRenderer.invoke("zigbee:refreshDevices", projectId),
   },
 });

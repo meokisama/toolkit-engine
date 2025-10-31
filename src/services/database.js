@@ -4092,6 +4092,64 @@ class DatabaseService {
     }
   }
 
+  getDistinctUnitsForZigbeeDevices(projectId) {
+    try {
+      const stmt = this.db.prepare(`
+        SELECT DISTINCT unit_ip, unit_can_id
+        FROM zigbee_devices
+        WHERE project_id = ?
+      `);
+      const units = stmt.all(projectId);
+      return units;
+    } catch (error) {
+      console.error("Failed to get distinct units for zigbee devices:", error);
+      throw error;
+    }
+  }
+
+  updateZigbeeDeviceStatus(projectId, unitIp, ieeeAddress, statusData) {
+    try {
+      const stmt = this.db.prepare(`
+        UPDATE zigbee_devices
+        SET endpoint1_value = ?, endpoint1_address = ?,
+            endpoint2_value = ?, endpoint2_address = ?,
+            endpoint3_value = ?, endpoint3_address = ?,
+            endpoint4_value = ?, endpoint4_address = ?,
+            rssi = ?, status = ?
+        WHERE project_id = ? AND unit_ip = ? AND ieee_address = ?
+      `);
+
+      const result = stmt.run(
+        statusData.endpoint1_value,
+        statusData.endpoint1_address,
+        statusData.endpoint2_value,
+        statusData.endpoint2_address,
+        statusData.endpoint3_value,
+        statusData.endpoint3_address,
+        statusData.endpoint4_value,
+        statusData.endpoint4_address,
+        statusData.rssi,
+        statusData.status,
+        projectId,
+        unitIp,
+        ieeeAddress
+      );
+
+      if (result.changes === 0) {
+        throw new Error("Zigbee device not found");
+      }
+
+      // Return updated device
+      const getStmt = this.db.prepare(
+        "SELECT * FROM zigbee_devices WHERE project_id = ? AND unit_ip = ? AND ieee_address = ?"
+      );
+      return getStmt.get(projectId, unitIp, ieeeAddress);
+    } catch (error) {
+      console.error("Failed to update zigbee device status:", error);
+      throw error;
+    }
+  }
+
   close() {
     if (this.db) {
       this.db.close();
