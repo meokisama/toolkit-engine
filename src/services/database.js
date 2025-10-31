@@ -284,6 +284,35 @@ class DatabaseService {
       )
     `;
 
+    const createZigbeeDevicesTable = `
+      CREATE TABLE IF NOT EXISTS zigbee_devices (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        project_id INTEGER NOT NULL,
+        unit_ip TEXT NOT NULL,
+        ieee_address TEXT NOT NULL,
+        device_type INTEGER NOT NULL,
+        num_endpoints INTEGER NOT NULL DEFAULT 0,
+        endpoint1_id INTEGER DEFAULT 0,
+        endpoint1_value INTEGER DEFAULT 0,
+        endpoint1_address INTEGER DEFAULT 0,
+        endpoint2_id INTEGER DEFAULT 0,
+        endpoint2_value INTEGER DEFAULT 0,
+        endpoint2_address INTEGER DEFAULT 0,
+        endpoint3_id INTEGER DEFAULT 0,
+        endpoint3_value INTEGER DEFAULT 0,
+        endpoint3_address INTEGER DEFAULT 0,
+        endpoint4_id INTEGER DEFAULT 0,
+        endpoint4_value INTEGER DEFAULT 0,
+        endpoint4_address INTEGER DEFAULT 0,
+        rssi INTEGER DEFAULT 0,
+        status INTEGER DEFAULT 0,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (project_id) REFERENCES projects (id) ON DELETE CASCADE,
+        UNIQUE(project_id, unit_ip, ieee_address)
+      )
+    `;
+
     // Note: unit_output_configs and unit_input_configs tables are removed
     // All I/O configuration data is now stored in unit.input_configs and unit.output_configs JSON columns
 
@@ -303,6 +332,7 @@ class DatabaseService {
       this.db.exec(createMultiSceneScenesTable);
       this.db.exec(createSequencesTable);
       this.db.exec(createSequenceMultiScenesTable);
+      this.db.exec(createZigbeeDevicesTable);
       // Note: unit_output_configs and unit_input_configs tables are removed
     } catch (error) {
       console.error("Failed to create tables:", error);
@@ -3908,6 +3938,154 @@ class DatabaseService {
       return { success: true };
     } catch (error) {
       console.error("Failed to update sequence multi-scenes:", error);
+      throw error;
+    }
+  }
+
+  // Zigbee Devices Management
+  getZigbeeDevices(projectId, unitIp = null) {
+    try {
+      let query = `
+        SELECT * FROM zigbee_devices
+        WHERE project_id = ?
+      `;
+      const params = [projectId];
+
+      if (unitIp) {
+        query += ` AND unit_ip = ?`;
+        params.push(unitIp);
+      }
+
+      query += ` ORDER BY created_at DESC`;
+
+      const stmt = this.db.prepare(query);
+      return stmt.all(...params);
+    } catch (error) {
+      console.error("Failed to get zigbee devices:", error);
+      throw error;
+    }
+  }
+
+  createZigbeeDevice(projectId, deviceData) {
+    try {
+      const stmt = this.db.prepare(`
+        INSERT INTO zigbee_devices (
+          project_id, unit_ip, ieee_address, device_type, num_endpoints,
+          endpoint1_id, endpoint1_value, endpoint1_address,
+          endpoint2_id, endpoint2_value, endpoint2_address,
+          endpoint3_id, endpoint3_value, endpoint3_address,
+          endpoint4_id, endpoint4_value, endpoint4_address,
+          rssi, status
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      `);
+
+      const result = stmt.run(
+        projectId,
+        deviceData.unit_ip,
+        deviceData.ieee_address,
+        deviceData.device_type,
+        deviceData.num_endpoints || 0,
+        deviceData.endpoint1_id || 0,
+        deviceData.endpoint1_value || 0,
+        deviceData.endpoint1_address || 0,
+        deviceData.endpoint2_id || 0,
+        deviceData.endpoint2_value || 0,
+        deviceData.endpoint2_address || 0,
+        deviceData.endpoint3_id || 0,
+        deviceData.endpoint3_value || 0,
+        deviceData.endpoint3_address || 0,
+        deviceData.endpoint4_id || 0,
+        deviceData.endpoint4_value || 0,
+        deviceData.endpoint4_address || 0,
+        deviceData.rssi || 0,
+        deviceData.status || 0
+      );
+
+      // Return the created device
+      const getStmt = this.db.prepare(
+        "SELECT * FROM zigbee_devices WHERE id = ?"
+      );
+      return getStmt.get(result.lastInsertRowid);
+    } catch (error) {
+      console.error("Failed to create zigbee device:", error);
+      throw error;
+    }
+  }
+
+  updateZigbeeDevice(id, deviceData) {
+    try {
+      const stmt = this.db.prepare(`
+        UPDATE zigbee_devices
+        SET device_type = ?, num_endpoints = ?,
+            endpoint1_id = ?, endpoint1_value = ?, endpoint1_address = ?,
+            endpoint2_id = ?, endpoint2_value = ?, endpoint2_address = ?,
+            endpoint3_id = ?, endpoint3_value = ?, endpoint3_address = ?,
+            endpoint4_id = ?, endpoint4_value = ?, endpoint4_address = ?,
+            rssi = ?, status = ?, updated_at = CURRENT_TIMESTAMP
+        WHERE id = ?
+      `);
+
+      const result = stmt.run(
+        deviceData.device_type,
+        deviceData.num_endpoints || 0,
+        deviceData.endpoint1_id || 0,
+        deviceData.endpoint1_value || 0,
+        deviceData.endpoint1_address || 0,
+        deviceData.endpoint2_id || 0,
+        deviceData.endpoint2_value || 0,
+        deviceData.endpoint2_address || 0,
+        deviceData.endpoint3_id || 0,
+        deviceData.endpoint3_value || 0,
+        deviceData.endpoint3_address || 0,
+        deviceData.endpoint4_id || 0,
+        deviceData.endpoint4_value || 0,
+        deviceData.endpoint4_address || 0,
+        deviceData.rssi || 0,
+        deviceData.status || 0,
+        id
+      );
+
+      if (result.changes === 0) {
+        throw new Error("Zigbee device not found");
+      }
+
+      // Return updated device
+      const getStmt = this.db.prepare(
+        "SELECT * FROM zigbee_devices WHERE id = ?"
+      );
+      return getStmt.get(id);
+    } catch (error) {
+      console.error("Failed to update zigbee device:", error);
+      throw error;
+    }
+  }
+
+  deleteZigbeeDevice(id) {
+    try {
+      const stmt = this.db.prepare("DELETE FROM zigbee_devices WHERE id = ?");
+      const result = stmt.run(id);
+
+      if (result.changes === 0) {
+        throw new Error("Zigbee device not found");
+      }
+
+      return { success: true };
+    } catch (error) {
+      console.error("Failed to delete zigbee device:", error);
+      throw error;
+    }
+  }
+
+  deleteAllZigbeeDevicesForUnit(projectId, unitIp) {
+    try {
+      const stmt = this.db.prepare(
+        "DELETE FROM zigbee_devices WHERE project_id = ? AND unit_ip = ?"
+      );
+      const result = stmt.run(projectId, unitIp);
+
+      return { success: true, deletedCount: result.changes };
+    } catch (error) {
+      console.error("Failed to delete zigbee devices for unit:", error);
       throw error;
     }
   }

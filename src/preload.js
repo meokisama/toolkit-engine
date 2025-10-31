@@ -467,5 +467,23 @@ contextBridge.exposeInMainWorld("electronAPI", {
       ipcRenderer.invoke("rcu:setRS485CH1Config", params),
     setRS485CH2Config: (params) =>
       ipcRenderer.invoke("rcu:setRS485CH2Config", params),
+
+    // Zigbee Devices functions
+    getZigbeeDevices: (params) =>
+      ipcRenderer.invoke("rcu:getZigbeeDevices", params),
+  },
+
+  // Zigbee Devices Database Operations
+  zigbee: {
+    getDevices: (projectId, unitIp = null) =>
+      ipcRenderer.invoke("zigbee:getDevices", projectId, unitIp),
+    createDevice: (projectId, deviceData) =>
+      ipcRenderer.invoke("zigbee:createDevice", projectId, deviceData),
+    updateDevice: (id, deviceData) =>
+      ipcRenderer.invoke("zigbee:updateDevice", id, deviceData),
+    deleteDevice: (id) =>
+      ipcRenderer.invoke("zigbee:deleteDevice", id),
+    deleteAllDevicesForUnit: (projectId, unitIp) =>
+      ipcRenderer.invoke("zigbee:deleteAllDevicesForUnit", projectId, unitIp),
   },
 });

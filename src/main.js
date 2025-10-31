@@ -79,6 +79,7 @@ import {
   setRS485CH1Config,
   setRS485CH2Config,
   createDefaultNetworkRS485Config,
+  getZigbeeDevices,
 } from "./services/rcu-controller.js";
 import dgram from "dgram";
 import { updateElectronApp } from "update-electron-app";
@@ -2083,6 +2084,74 @@ function setupIpcHandlers() {
         return await setRS485CH2Config(unitIp, canId, config);
       } catch (error) {
         console.error("Error setting RS485 CH2 config:", error);
+        throw error;
+      }
+    }
+  );
+
+  // Zigbee Devices - RCU Controller
+  ipcMain.handle(
+    "rcu:getZigbeeDevices",
+    async (event, { unitIp, canId }) => {
+      try {
+        return await getZigbeeDevices(unitIp, canId);
+      } catch (error) {
+        console.error("Error getting Zigbee devices:", error);
+        throw error;
+      }
+    }
+  );
+
+  // Zigbee Devices - Database Operations
+  ipcMain.handle(
+    "zigbee:getDevices",
+    async (event, projectId, unitIp = null) => {
+      try {
+        return await dbService.getZigbeeDevices(projectId, unitIp);
+      } catch (error) {
+        console.error("Error getting zigbee devices from database:", error);
+        throw error;
+      }
+    }
+  );
+
+  ipcMain.handle(
+    "zigbee:createDevice",
+    async (event, projectId, deviceData) => {
+      try {
+        return await dbService.createZigbeeDevice(projectId, deviceData);
+      } catch (error) {
+        console.error("Error creating zigbee device:", error);
+        throw error;
+      }
+    }
+  );
+
+  ipcMain.handle("zigbee:updateDevice", async (event, id, deviceData) => {
+    try {
+      return await dbService.updateZigbeeDevice(id, deviceData);
+    } catch (error) {
+      console.error("Error updating zigbee device:", error);
+      throw error;
+    }
+  });
+
+  ipcMain.handle("zigbee:deleteDevice", async (event, id) => {
+    try {
+      return await dbService.deleteZigbeeDevice(id);
+    } catch (error) {
+      console.error("Error deleting zigbee device:", error);
+      throw error;
+    }
+  });
+
+  ipcMain.handle(
+    "zigbee:deleteAllDevicesForUnit",
+    async (event, projectId, unitIp) => {
+      try {
+        return await dbService.deleteAllZigbeeDevicesForUnit(projectId, unitIp);
+      } catch (error) {
+        console.error("Error deleting all zigbee devices for unit:", error);
         throw error;
       }
     }
