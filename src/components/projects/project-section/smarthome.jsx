@@ -40,48 +40,6 @@ export function Smarthome() {
     }
   };
 
-  const handleRefresh = async () => {
-    if (!selectedProject) return;
-
-    setLoading(true);
-    try {
-      // Refresh devices from units and update database
-      const result = await window.electronAPI.zigbee.refreshDevices(
-        selectedProject.id
-      );
-
-      if (result.success) {
-        // Reload devices from database to update UI
-        const devicesData = await window.electronAPI.zigbee.getDevices(
-          selectedProject.id
-        );
-        setDevices(devicesData);
-
-        // Show success message
-        if (result.updatedCount > 0) {
-          toast.success(`Successfully refreshed ${result.updatedCount} device(s)`);
-        } else {
-          toast.info("No devices to refresh");
-        }
-
-        // Show errors if any
-        if (result.errors && result.errors.length > 0) {
-          toast.warning(
-            `Refresh completed with ${result.errors.length} error(s). Check console for details.`
-          );
-          console.error("Refresh errors:", result.errors);
-        }
-      } else {
-        toast.error("Failed to refresh devices");
-      }
-    } catch (error) {
-      console.error("Failed to refresh zigbee devices:", error);
-      toast.error("Failed to refresh devices");
-    } finally {
-      setLoading(false);
-    }
-  };
-
   const handleDevicesAdded = () => {
     loadDevices();
     setAddDeviceDialogOpen(false);
@@ -95,9 +53,13 @@ export function Smarthome() {
     } else if (device.device_type === 4 || device.device_type === 5) {
       return <ZigbeeCurtainCard key={device.id} device={device} />;
     } else if (device.device_type === 7) {
-      return <ZigbeeMotionSensorCard key={device.id} device={device} />;
+      return (
+        <ZigbeeMotionSensorCard key={device.id} device={device} />
+      );
     } else if (device.device_type === 9) {
-      return <ZigbeeDoorContactCard key={device.id} device={device} />;
+      return (
+        <ZigbeeDoorContactCard key={device.id} device={device} />
+      );
     } else {
       // Unknown device type - show basic info card
       return (
@@ -145,7 +107,8 @@ export function Smarthome() {
             <div className="flex gap-2">
               <Button
                 variant="outline"
-                onClick={handleRefresh}
+                size="sm"
+                onClick={loadDevices}
                 disabled={loading}
               >
                 <RefreshCw
@@ -153,7 +116,7 @@ export function Smarthome() {
                 />
                 Refresh
               </Button>
-              <Button onClick={() => setAddDeviceDialogOpen(true)}>
+              <Button size="sm" onClick={() => setAddDeviceDialogOpen(true)}>
                 <Plus className="h-4 w-4 mr-2" />
                 Add Device
               </Button>
