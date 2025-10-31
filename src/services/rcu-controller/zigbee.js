@@ -1,7 +1,4 @@
-import {
-  sendCommand,
-  sendCommandMultipleResponses,
-} from "./command-sender.js";
+import { sendCommand, sendCommandMultipleResponses } from "./command-sender.js";
 import { convertCanIdToInt } from "./utils.js";
 import { UDP_PORT, PROTOCOL } from "./constants.js";
 
@@ -38,80 +35,82 @@ async function getZigbeeDevices(unitIp, canId) {
     );
 
     // Parse each response into device information
-    const devices = responses.map((response) => {
-      const { result } = response;
-      const data = result.data;
+    const devices = responses
+      .map((response) => {
+        const { result } = response;
+        const data = result.data;
 
-      if (!data || data.length < 28) {
-        console.warn("Invalid device data packet, skipping");
-        return null;
-      }
-
-      // Parse device data according to protocol
-      // Byte 0-7: IEEE address (8 bytes)
-      const ieeeAddress = data
-        .slice(0, 8)
-        .map((b) => b.toString(16).padStart(2, "0"))
-        .join(":")
-        .toUpperCase();
-
-      // Byte 8: device type
-      const deviceType = data[8];
-
-      // Byte 9: number of endpoints
-      const numEndpoints = data[9];
-
-      // Parse endpoint data (maximum 4 endpoints)
-      const endpoints = [];
-      for (let i = 0; i < 4; i++) {
-        const baseIndex = 10 + i * 3; // Each endpoint: ID (1 byte) + value (2 bytes)
-        if (baseIndex + 2 < data.length) {
-          const endpointId = data[baseIndex];
-          const endpointValue =
-            data[baseIndex + 1] | (data[baseIndex + 2] << 8);
-
-          endpoints.push({
-            id: endpointId,
-            value: endpointValue,
-          });
+        if (!data || data.length < 28) {
+          console.warn("Invalid device data packet, skipping");
+          return null;
         }
-      }
 
-      // Byte 22-25: address mapping (4 bytes total, 1 byte per endpoint)
-      const addresses = [];
-      for (let i = 0; i < 4; i++) {
-        const addressIndex = 22 + i;
-        if (addressIndex < data.length) {
-          addresses.push(data[addressIndex]);
+        // Parse device data according to protocol
+        // Byte 0-7: IEEE address (8 bytes)
+        const ieeeAddress = data
+          .slice(0, 8)
+          .map((b) => b.toString(16).padStart(2, "0"))
+          .join(":")
+          .toUpperCase();
+
+        // Byte 8: device type
+        const deviceType = data[8];
+
+        // Byte 9: number of endpoints
+        const numEndpoints = data[9];
+
+        // Parse endpoint data (maximum 4 endpoints)
+        const endpoints = [];
+        for (let i = 0; i < 4; i++) {
+          const baseIndex = 10 + i * 3; // Each endpoint: ID (1 byte) + value (2 bytes)
+          if (baseIndex + 2 < data.length) {
+            const endpointId = data[baseIndex];
+            const endpointValue =
+              data[baseIndex + 1] | (data[baseIndex + 2] << 8);
+
+            endpoints.push({
+              id: endpointId,
+              value: endpointValue,
+            });
+          }
         }
-      }
 
-      // Byte 26: RSSI
-      const rssi = data.length > 26 ? data[26] : 0;
+        // Byte 22-25: address mapping (4 bytes total, 1 byte per endpoint)
+        const addresses = [];
+        for (let i = 0; i < 4; i++) {
+          const addressIndex = 22 + i;
+          if (addressIndex < data.length) {
+            addresses.push(data[addressIndex]);
+          }
+        }
 
-      // Byte 27: status (00 - offline, 01 - online)
-      const status = data.length > 27 ? data[27] : 0;
+        // Byte 26: RSSI
+        const rssi = data.length > 26 ? data[26] : 0;
 
-      return {
-        ieee_address: ieeeAddress,
-        device_type: deviceType,
-        num_endpoints: numEndpoints,
-        endpoint1_id: endpoints[0]?.id || 0,
-        endpoint1_value: endpoints[0]?.value || 0,
-        endpoint1_address: addresses[0] || 0,
-        endpoint2_id: endpoints[1]?.id || 0,
-        endpoint2_value: endpoints[1]?.value || 0,
-        endpoint2_address: addresses[1] || 0,
-        endpoint3_id: endpoints[2]?.id || 0,
-        endpoint3_value: endpoints[2]?.value || 0,
-        endpoint3_address: addresses[2] || 0,
-        endpoint4_id: endpoints[3]?.id || 0,
-        endpoint4_value: endpoints[3]?.value || 0,
-        endpoint4_address: addresses[3] || 0,
-        rssi,
-        status,
-      };
-    }).filter((device) => device !== null); // Remove invalid devices
+        // Byte 27: status (00 - offline, 01 - online)
+        const status = data.length > 27 ? data[27] : 0;
+
+        return {
+          ieee_address: ieeeAddress,
+          device_type: deviceType,
+          num_endpoints: numEndpoints,
+          endpoint1_id: endpoints[0]?.id || 0,
+          endpoint1_value: endpoints[0]?.value || 0,
+          endpoint1_address: addresses[0] || 0,
+          endpoint2_id: endpoints[1]?.id || 0,
+          endpoint2_value: endpoints[1]?.value || 0,
+          endpoint2_address: addresses[1] || 0,
+          endpoint3_id: endpoints[2]?.id || 0,
+          endpoint3_value: endpoints[2]?.value || 0,
+          endpoint3_address: addresses[2] || 0,
+          endpoint4_id: endpoints[3]?.id || 0,
+          endpoint4_value: endpoints[3]?.value || 0,
+          endpoint4_address: addresses[3] || 0,
+          rssi,
+          status,
+        };
+      })
+      .filter((device) => device !== null); // Remove invalid devices
 
     return {
       success: successPacketReceived,
@@ -124,4 +123,62 @@ async function getZigbeeDevices(unitIp, canId) {
   }
 }
 
-export { getZigbeeDevices };
+/**
+ * Send command to a Zigbee device
+ * @param {string} unitIp - IP address of the unit
+ * @param {string} canId - CAN ID of the unit
+ * @param {string} ieeeAddress - IEEE address of the device (format: "XX:XX:XX:XX:XX:XX:XX:XX")
+ * @param {number} deviceType - Device type
+ * @param {number} endpointId - Endpoint ID to control
+ * @param {number} command - Command type (0: OFF, 1: ON, 2: TOGGLE)
+ * @returns {Promise<{success: boolean}>}
+ */
+async function sendZigbeeCommand(
+  unitIp,
+  canId,
+  ieeeAddress,
+  deviceType,
+  endpointId,
+  command
+) {
+  try {
+    console.log(
+      `Sending Zigbee command to device ${ieeeAddress} on unit ${unitIp}`
+    );
+    // Parse IEEE address from string format "XX:XX:XX:XX:XX:XX:XX:XX" to bytes
+    const ieeeBytes = ieeeAddress.split(":").map((byte) => parseInt(byte, 16));
+
+    // Build data packet:
+    // - Byte 0-7: IEEE address (8 bytes)
+    // - Byte 8: device type
+    // - Byte 9: endpoint id
+    // - Byte 10: command
+    const data = [
+      ...ieeeBytes, // 8 bytes IEEE address
+      deviceType, // Byte 8: device type
+      endpointId, // Byte 9: endpoint id
+      command, // Byte 10: command (0: OFF, 1: ON, 2: TOGGLE)
+    ];
+
+    const response = await sendCommand(
+      unitIp,
+      UDP_PORT,
+      convertCanIdToInt(canId),
+      PROTOCOL.ZIGBEE.CMD1,
+      PROTOCOL.ZIGBEE.CMD2.SEND_ZIGBEE_CMD,
+      data
+    );
+
+    console.log(`Zigbee command sent successfully to ${ieeeAddress}`);
+
+    return {
+      success: response.result.success,
+      data: response.result.data,
+    };
+  } catch (error) {
+    console.error("Failed to send Zigbee command:", error);
+    throw error;
+  }
+}
+
+export { getZigbeeDevices, sendZigbeeCommand };

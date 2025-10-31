@@ -80,6 +80,7 @@ import {
   setRS485CH2Config,
   createDefaultNetworkRS485Config,
   getZigbeeDevices,
+  sendZigbeeCommand,
 } from "./services/rcu-controller.js";
 import dgram from "dgram";
 import { updateElectronApp } from "update-electron-app";
@@ -2097,6 +2098,25 @@ function setupIpcHandlers() {
         return await getZigbeeDevices(unitIp, canId);
       } catch (error) {
         console.error("Error getting Zigbee devices:", error);
+        throw error;
+      }
+    }
+  );
+
+  ipcMain.handle(
+    "rcu:sendZigbeeCommand",
+    async (event, { unitIp, canId, ieeeAddress, deviceType, endpointId, command }) => {
+      try {
+        return await sendZigbeeCommand(
+          unitIp,
+          canId,
+          ieeeAddress,
+          deviceType,
+          endpointId,
+          command
+        );
+      } catch (error) {
+        console.error("Error sending Zigbee command:", error);
         throw error;
       }
     }

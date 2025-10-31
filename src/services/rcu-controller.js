@@ -129,4 +129,4 @@ export {
 } from "./rcu-controller/rs485.js";
 
 // Export Zigbee functions
-export { getZigbeeDevices } from "./rcu-controller/zigbee.js";
+export { getZigbeeDevices, sendZigbeeCommand } from "./rcu-controller/zigbee.js";

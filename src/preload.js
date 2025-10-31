@@ -471,6 +471,8 @@ contextBridge.exposeInMainWorld("electronAPI", {
     // Zigbee Devices functions
     getZigbeeDevices: (params) =>
       ipcRenderer.invoke("rcu:getZigbeeDevices", params),
+    sendZigbeeCommand: (params) =>
+      ipcRenderer.invoke("rcu:sendZigbeeCommand", params),
   },
 
   // Zigbee Devices Database Operations
