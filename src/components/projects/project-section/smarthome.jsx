@@ -46,7 +46,7 @@ export function Smarthome() {
     if (!selectedProject) return;
 
     try {
-      const unitsData = await window.electronAPI.units.getAll(
+      const unitsData = await window.electronAPI.unit.getAll(
         selectedProject.id
       );
       setUnits(unitsData);

@@ -35,6 +35,11 @@ export function ZigbeeCurtainCard({ device, unit }) {
   }
 
   const handleControl = async (endpoint, command) => {
+    if (!unit) {
+      toast.error("Unit information not found");
+      return;
+    }
+
     const key = `endpoint${endpoint.index}`;
     setLoadingEndpoints((prev) => ({ ...prev, [key]: true }));
 
@@ -115,7 +120,7 @@ export function ZigbeeCurtainCard({ device, unit }) {
                     size="sm"
                     variant="outline"
                     onClick={() => handleControl(endpoint, 0)}
-                    disabled={isLoading || device.status !== 1}
+                    disabled={isLoading || device.status !== 1 || !unit}
                   >
                     {isLoading ? (
                       <Loader2 className="h-4 w-4 animate-spin" />
@@ -126,7 +131,7 @@ export function ZigbeeCurtainCard({ device, unit }) {
                   <Button
                     size="sm"
                     onClick={() => handleControl(endpoint, 1)}
-                    disabled={isLoading || device.status !== 1}
+                    disabled={isLoading || device.status !== 1 || !unit}
                   >
                     {isLoading ? (
                       <Loader2 className="h-4 w-4 animate-spin" />

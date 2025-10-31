@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Switch } from "@/components/ui/switch";
 import { Power, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { CONSTANTS } from "@/constants";
@@ -35,6 +35,11 @@ export function ZigbeeSwitchCard({ device, unit }) {
   }
 
   const handleToggle = async (endpoint) => {
+    if (!unit) {
+      toast.error("Unit information not found");
+      return;
+    }
+
     const key = `endpoint${endpoint.index}`;
     setLoadingEndpoints((prev) => ({ ...prev, [key]: true }));
 
@@ -110,27 +115,20 @@ export function ZigbeeSwitchCard({ device, unit }) {
                 key={endpoint.id}
                 className="flex items-center justify-between p-3 border rounded-lg"
               >
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-3 flex-1">
                   <span className="font-medium">Switch {endpoint.index}</span>
-                  <Badge variant={isOn ? "default" : "outline"}>
+                  {isLoading && (
+                    <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+                  )}
+                  <Badge variant={isOn ? "default" : "outline"} className="ml-auto mr-3">
                     {isOn ? "ON" : "OFF"}
                   </Badge>
                 </div>
-                <Button
-                  size="sm"
-                  variant={isOn ? "destructive" : "default"}
-                  onClick={() => handleToggle(endpoint)}
-                  disabled={isLoading || device.status !== 1}
-                >
-                  {isLoading ? (
-                    <>
-                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                      {isOn ? "Turning OFF..." : "Turning ON..."}
-                    </>
-                  ) : (
-                    <>{isOn ? "Turn OFF" : "Turn ON"}</>
-                  )}
-                </Button>
+                <Switch
+                  checked={isOn}
+                  onCheckedChange={() => handleToggle(endpoint)}
+                  disabled={isLoading || device.status !== 1 || !unit}
+                />
               </div>
             );
           })}
