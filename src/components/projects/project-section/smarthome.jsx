@@ -112,7 +112,7 @@ export function Smarthome() {
             );
 
             if (dbDevice) {
-              // Update device with new values
+              // Update existing device with new values
               try {
                 await window.electronAPI.zigbee.updateDevice(dbDevice.id, {
                   device_type: receivedDevice.device_type,
@@ -145,9 +145,46 @@ export function Smarthome() {
                 totalErrors++;
               }
             } else {
-              console.log(
-                `Device ${receivedDevice.ieee_address} from unit ${unitData.unit_ip} not found in database (skipping)`
-              );
+              // Device not found in database - create new device
+              try {
+                const newDeviceData = {
+                  unit_ip: unitData.unit_ip,
+                  unit_can_id: unitData.unit_can_id,
+                  ieee_address: receivedDevice.ieee_address,
+                  device_type: receivedDevice.device_type,
+                  num_endpoints: receivedDevice.num_endpoints,
+                  endpoint1_id: receivedDevice.endpoint1_id,
+                  endpoint1_value: receivedDevice.endpoint1_value,
+                  endpoint1_address: receivedDevice.endpoint1_address,
+                  endpoint2_id: receivedDevice.endpoint2_id,
+                  endpoint2_value: receivedDevice.endpoint2_value,
+                  endpoint2_address: receivedDevice.endpoint2_address,
+                  endpoint3_id: receivedDevice.endpoint3_id,
+                  endpoint3_value: receivedDevice.endpoint3_value,
+                  endpoint3_address: receivedDevice.endpoint3_address,
+                  endpoint4_id: receivedDevice.endpoint4_id,
+                  endpoint4_value: receivedDevice.endpoint4_value,
+                  endpoint4_address: receivedDevice.endpoint4_address,
+                  rssi: receivedDevice.rssi,
+                  status: receivedDevice.status,
+                };
+
+                await window.electronAPI.zigbee.createDevice(
+                  selectedProject.id,
+                  newDeviceData
+                );
+
+                console.log(
+                  `Created new device ${receivedDevice.ieee_address} from unit ${unitData.unit_ip}`
+                );
+                totalUpdated++;
+              } catch (createError) {
+                console.error(
+                  `Failed to create device ${receivedDevice.ieee_address}:`,
+                  createError
+                );
+                totalErrors++;
+              }
             }
           }
         } catch (unitError) {

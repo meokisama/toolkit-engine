@@ -14,18 +14,14 @@ async function getZigbeeDevices(unitIp, canId) {
       `Getting Zigbee devices from unit ${unitIp} with CAN ID ${canId}`
     );
 
-    const cmd1 = PROTOCOL.ZIGBEE.CMD1;
-    const cmd2 = PROTOCOL.ZIGBEE.CMD2.GET_ZIGBEE_DEVICE;
-    const idAddress = convertCanIdToInt(canId);
-
     // Send command and collect multiple responses (one per device)
     const { responses, successPacketReceived } =
       await sendCommandMultipleResponses(
         unitIp,
         UDP_PORT,
-        idAddress,
-        cmd1,
-        cmd2,
+        convertCanIdToInt(canId),
+        PROTOCOL.ZIGBEE.CMD1,
+        PROTOCOL.ZIGBEE.CMD2.GET_ZIGBEE_DEVICE,
         [],
         15000 // 15 seconds timeout
       );
@@ -169,7 +165,7 @@ async function sendZigbeeCommand(
       PROTOCOL.ZIGBEE.CMD2.SEND_ZIGBEE_CMD,
       data,
       false, // skipStatusCheck
-      true   // waitAfterBusy - wait for final response if BUSY is received
+      true // waitAfterBusy - wait for final response if BUSY is received
     );
 
     console.log(`Zigbee command sent successfully to ${ieeeAddress}`);
