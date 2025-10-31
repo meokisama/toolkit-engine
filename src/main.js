@@ -2125,10 +2125,11 @@ function setupIpcHandlers() {
             ).get(deviceId);
 
             if (currentDevice) {
-              // Find which endpoint index matches the endpointId
+              // Find which endpoint index matches the endpointId from response
+              const responseEndpointId = result.statusUpdate.endpointId;
               let endpointIndex = null;
               for (let i = 1; i <= 4; i++) {
-                if (currentDevice[`endpoint${i}_id`] === endpointId) {
+                if (currentDevice[`endpoint${i}_id`] === responseEndpointId) {
                   endpointIndex = i;
                   break;
                 }

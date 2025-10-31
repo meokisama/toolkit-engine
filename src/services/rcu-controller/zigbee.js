@@ -179,12 +179,13 @@ async function sendZigbeeCommand(
     // - Byte 0-7: IEEE address (8 bytes)
     // - Byte 8: online status
     // - Byte 9: device type
-    // - Byte 10: RSSI
-    // - Byte 11-12: endpoint value (2 bytes, little endian)
+    // - Byte 10: endpoint id
+    // - Byte 11: RSSI
+    // - Byte 12-13: endpoint value (2 bytes, little endian)
     const responseData = response.result.data;
     let statusUpdate = null;
 
-    if (responseData && responseData.length >= 13) {
+    if (responseData && responseData.length >= 14) {
       // Parse IEEE address from response
       const respIeeeAddress = Array.from(responseData.slice(0, 8))
         .map((b) => b.toString(16).padStart(2, "0"))
@@ -194,15 +195,16 @@ async function sendZigbeeCommand(
       // Parse status info
       const onlineStatus = responseData[8];
       const respDeviceType = responseData[9];
-      const rssi = responseData[10];
-      const endpointValue = responseData[11] | (responseData[12] << 8);
+      const respEndpointId = responseData[10];
+      const rssi = responseData[11];
+      const endpointValue = responseData[12] | (responseData[13] << 8);
 
       statusUpdate = {
         ieeeAddress: respIeeeAddress,
         onlineStatus,
         deviceType: respDeviceType,
+        endpointId: respEndpointId,
         rssi,
-        endpointId,
         endpointValue,
       };
 
