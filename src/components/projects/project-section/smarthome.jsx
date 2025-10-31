@@ -23,21 +23,6 @@ export function Smarthome() {
     }
   }, [selectedProject]);
 
-  // Auto refresh every second (silent mode)
-  useEffect(() => {
-    if (!selectedProject) return;
-
-    // Set up interval for auto refresh
-    const intervalId = setInterval(() => {
-      handleRefresh(true); // silent = true, no toast
-    }, 1000); // 1 second
-
-    // Cleanup interval on unmount or project change
-    return () => {
-      clearInterval(intervalId);
-    };
-  }, [selectedProject]);
-
   const loadDevices = async () => {
     if (!selectedProject) return;
 
@@ -55,14 +40,10 @@ export function Smarthome() {
     }
   };
 
-  const handleRefresh = async (silent = false) => {
+  const handleRefresh = async () => {
     if (!selectedProject) return;
 
-    // Only show loading spinner for manual refresh
-    if (!silent) {
-      setLoading(true);
-    }
-
+    setLoading(true);
     try {
       // 1. Get all devices from database to find unique units
       const devicesData = await window.electronAPI.zigbee.getDevices(
@@ -70,12 +51,8 @@ export function Smarthome() {
       );
 
       if (devicesData.length === 0) {
-        if (!silent) {
-          toast.info("No devices to refresh");
-        }
-        if (!silent) {
-          setLoading(false);
-        }
+        toast.info("No devices to refresh");
+        setLoading(false);
         return;
       }
 
@@ -99,7 +76,7 @@ export function Smarthome() {
       let totalErrors = 0;
 
       // 3. For each unit, send getZigbeeDevices command
-      for (const [, unitData] of unitMap) {
+      for (const [unitKey, unitData] of unitMap) {
         try {
           console.log(
             `Refreshing devices from unit ${unitData.unit_ip} (CAN ID: ${unitData.unit_can_id})`
@@ -225,25 +202,19 @@ export function Smarthome() {
       );
       setDevices(updatedDevices);
 
-      // Show results (only for manual refresh)
-      if (!silent) {
-        if (totalUpdated > 0) {
-          toast.success(`Refreshed ${totalUpdated} device(s)`);
-        } else if (totalErrors > 0) {
-          toast.error("Failed to refresh devices");
-        } else {
-          toast.info("No devices needed updating");
-        }
+      // Show results
+      if (totalUpdated > 0) {
+        toast.success(`Refreshed ${totalUpdated} device(s)`);
+      } else if (totalErrors > 0) {
+        toast.error("Failed to refresh devices");
+      } else {
+        toast.info("No devices needed updating");
       }
     } catch (error) {
       console.error("Failed to refresh devices:", error);
-      if (!silent) {
-        toast.error("Failed to refresh devices");
-      }
+      toast.error("Failed to refresh devices");
     } finally {
-      if (!silent) {
-        setLoading(false);
-      }
+      setLoading(false);
     }
   };
 
