@@ -240,9 +240,17 @@ contextBridge.exposeInMainWorld("electronAPI", {
         multiSceneOrder
       ),
     removeMultiScene: (sequenceId, multiSceneId) =>
-      ipcRenderer.invoke("sequences:removeMultiScene", sequenceId, multiSceneId),
+      ipcRenderer.invoke(
+        "sequences:removeMultiScene",
+        sequenceId,
+        multiSceneId
+      ),
     updateMultiScenes: (sequenceId, multiSceneIds) =>
-      ipcRenderer.invoke("sequences:updateMultiScenes", sequenceId, multiSceneIds),
+      ipcRenderer.invoke(
+        "sequences:updateMultiScenes",
+        sequenceId,
+        multiSceneIds
+      ),
   },
   // Firmware Update
   firmware: {
@@ -282,10 +290,13 @@ contextBridge.exposeInMainWorld("electronAPI", {
 
   // Network Interface Management
   networkInterfaces: {
-    getAll: (forceRefresh = false) => ipcRenderer.invoke("network:getInterfaces", forceRefresh),
-    getBroadcastAddresses: (forceRefresh = false) => ipcRenderer.invoke("network:getBroadcastAddresses", forceRefresh),
+    getAll: (forceRefresh = false) =>
+      ipcRenderer.invoke("network:getInterfaces", forceRefresh),
+    getBroadcastAddresses: (forceRefresh = false) =>
+      ipcRenderer.invoke("network:getBroadcastAddresses", forceRefresh),
     getSummary: () => ipcRenderer.invoke("network:getSummary"),
-    findInterfaceForTarget: (targetIp) => ipcRenderer.invoke("network:findInterfaceForTarget", targetIp),
+    findInterfaceForTarget: (targetIp) =>
+      ipcRenderer.invoke("network:findInterfaceForTarget", targetIp),
     clearCache: () => ipcRenderer.invoke("network:clearCache"),
   },
 
@@ -294,8 +305,7 @@ contextBridge.exposeInMainWorld("electronAPI", {
     setGroupState: (params) => ipcRenderer.invoke("rcu:setGroupState", params),
     setOutputState: (params) =>
       ipcRenderer.invoke("rcu:setOutputState", params),
-    setInputState: (params) =>
-      ipcRenderer.invoke("rcu:setInputState", params),
+    setInputState: (params) => ipcRenderer.invoke("rcu:setInputState", params),
     setMultipleGroupStates: (params) =>
       ipcRenderer.invoke("rcu:setMultipleGroupStates", params),
     getAllGroupStates: (params) =>
@@ -314,15 +324,44 @@ contextBridge.exposeInMainWorld("electronAPI", {
     getOutputConfig: (unitIp, canId) =>
       ipcRenderer.invoke("rcu:getOutputConfig", unitIp, canId),
     setOutputAssign: (unitIp, canId, outputIndex, lightingAddress) =>
-      ipcRenderer.invoke("rcu:setOutputAssign", unitIp, canId, outputIndex, lightingAddress),
+      ipcRenderer.invoke(
+        "rcu:setOutputAssign",
+        unitIp,
+        canId,
+        outputIndex,
+        lightingAddress
+      ),
     setAllOutputAssignments: (unitIp, canId, outputAssignments) =>
-      ipcRenderer.invoke("rcu:setAllOutputAssignments", unitIp, canId, outputAssignments),
+      ipcRenderer.invoke(
+        "rcu:setAllOutputAssignments",
+        unitIp,
+        canId,
+        outputAssignments
+      ),
     setOutputDelayOff: (unitIp, canId, outputIndex, delayOff) =>
-      ipcRenderer.invoke("rcu:setOutputDelayOff", unitIp, canId, outputIndex, delayOff),
+      ipcRenderer.invoke(
+        "rcu:setOutputDelayOff",
+        unitIp,
+        canId,
+        outputIndex,
+        delayOff
+      ),
     setOutputDelayOn: (unitIp, canId, outputIndex, delayOn) =>
-      ipcRenderer.invoke("rcu:setOutputDelayOn", unitIp, canId, outputIndex, delayOn),
+      ipcRenderer.invoke(
+        "rcu:setOutputDelayOn",
+        unitIp,
+        canId,
+        outputIndex,
+        delayOn
+      ),
     setOutputConfig: (unitIp, canId, outputIndex, config) =>
-      ipcRenderer.invoke("rcu:setOutputConfig", unitIp, canId, outputIndex, config),
+      ipcRenderer.invoke(
+        "rcu:setOutputConfig",
+        unitIp,
+        canId,
+        outputIndex,
+        config
+      ),
     getLocalACConfig: (unitIp, canId) =>
       ipcRenderer.invoke("rcu:getLocalACConfig", unitIp, canId),
     setLocalACConfig: (unitIp, canId, acConfigs) =>
@@ -397,12 +436,7 @@ contextBridge.exposeInMainWorld("electronAPI", {
       ipcRenderer.invoke("rcu:deleteAllSequences", unitIp, canId),
     // Sequence Setup
     setupSequence: (unitIp, canId, sequenceConfig) =>
-      ipcRenderer.invoke(
-        "rcu:setupSequence",
-        unitIp,
-        canId,
-        sequenceConfig
-      ),
+      ipcRenderer.invoke("rcu:setupSequence", unitIp, canId, sequenceConfig),
     // Sequence Information
     getSequenceInformation: (params) =>
       ipcRenderer.invoke("rcu:getSequenceInformation", params),
@@ -453,8 +487,7 @@ contextBridge.exposeInMainWorld("electronAPI", {
       ipcRenderer.invoke("rcu:changeIpAddress", params),
     changeIpAddressBroadcast: (params) =>
       ipcRenderer.invoke("rcu:changeIpAddressBroadcast", params),
-    changeCanId: (params) =>
-      ipcRenderer.invoke("rcu:changeCanId", params),
+    changeCanId: (params) => ipcRenderer.invoke("rcu:changeCanId", params),
     setHardwareConfig: (params) =>
       ipcRenderer.invoke("rcu:setHardwareConfig", params),
 
@@ -467,5 +500,34 @@ contextBridge.exposeInMainWorld("electronAPI", {
       ipcRenderer.invoke("rcu:setRS485CH1Config", params),
     setRS485CH2Config: (params) =>
       ipcRenderer.invoke("rcu:setRS485CH2Config", params),
+
+    // Zigbee Devices functions
+    getZigbeeDevices: (params) =>
+      ipcRenderer.invoke("rcu:getZigbeeDevices", params),
+    sendZigbeeCommand: (params) =>
+      ipcRenderer.invoke("rcu:sendZigbeeCommand", params),
+    removeZigbeeDevice: (params) =>
+      ipcRenderer.invoke("rcu:removeZigbeeDevice", params),
+    closeZigbeeNetwork: (params) =>
+      ipcRenderer.invoke("rcu:closeZigbeeNetwork", params),
+    exploreZigbeeNetwork: (params) =>
+      ipcRenderer.invoke("rcu:exploreZigbeeNetwork", params),
+    setupZigbeeDevice: (params) =>
+      ipcRenderer.invoke("rcu:setupZigbeeDevice", params),
+    factoryResetZigbee: (params) =>
+      ipcRenderer.invoke("rcu:factoryResetZigbee", params),
+  },
+
+  // Zigbee Devices Database Operations
+  zigbee: {
+    getDevices: (projectId, unitIp = null) =>
+      ipcRenderer.invoke("zigbee:getDevices", projectId, unitIp),
+    createDevice: (projectId, deviceData) =>
+      ipcRenderer.invoke("zigbee:createDevice", projectId, deviceData),
+    updateDevice: (id, deviceData) =>
+      ipcRenderer.invoke("zigbee:updateDevice", id, deviceData),
+    deleteDevice: (id) => ipcRenderer.invoke("zigbee:deleteDevice", id),
+    deleteAllDevicesForUnit: (projectId, unitIp) =>
+      ipcRenderer.invoke("zigbee:deleteAllDevicesForUnit", projectId, unitIp),
   },
 });

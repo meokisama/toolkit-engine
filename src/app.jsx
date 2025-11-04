@@ -19,7 +19,7 @@ import {
   ProjectDetailProvider,
   useProjectDetail,
 } from "@/contexts/project-detail-context";
-import { ProjectDetail } from "@/components/projects/project-detail";
+import { ProjectDetail } from "@/components/projects/project-section/project-detail";
 
 // Breadcrumb component that uses the project context
 function BreadcrumbNav() {
@@ -28,11 +28,13 @@ function BreadcrumbNav() {
   const getSectionDisplayName = (section) => {
     switch (section) {
       case "group-config":
-        return "Group Config";
+        return "Group Configuration";
       case "scenes-schedules":
         return "Scenes & Schedules";
+      case "smarthome":
+        return "Smarthome";
       default:
-        return "Group Config";
+        return "Group Configuration";
     }
   };
 
@@ -76,7 +78,7 @@ export default function App() {
         <SidebarProvider>
           <AppSidebar />
           <div className="h-8 w-full draggable-region absolute top-0"></div>
-          <SidebarInset className="!mt-8">
+          <SidebarInset className="mt-8!">
             <header className="flex h-16 shrink-0 items-center gap-2">
               <div className="flex items-center gap-2 px-4">
                 <SidebarTrigger className="-ml-1" />

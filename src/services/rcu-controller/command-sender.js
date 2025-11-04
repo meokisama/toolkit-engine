@@ -1,18 +1,12 @@
-import { UDP_PORT } from "./constants.js";
 import { processResponse, calculateCRC } from "./utils.js";
 
-/**
- * Create a UDP socket with basic setup
- * For now, we'll use the default binding approach since we can't access
- * network interface service from renderer process
- * @param {string} targetIp - Target device IP address
- * @returns {Object} Socket and interface information
- */
 function createOptimalSocket(targetIp) {
   const dgram = require("dgram");
   const client = dgram.createSocket("udp4");
 
-  console.log(`Creating UDP socket for target ${targetIp} with default binding`);
+  console.log(
+    `Creating UDP socket for target ${targetIp} with default binding`
+  );
 
   return { client, interface: null };
 }
@@ -24,10 +18,15 @@ async function sendCommand(
   cmd1,
   cmd2,
   data = [],
-  skipStatusCheck = false
+  skipStatusCheck = false,
+  waitAfterBusy = false
 ) {
   return new Promise((resolve, reject) => {
-    const { client, interface: selectedInterface } = createOptimalSocket(unitIp);
+    const { client, interface: selectedInterface } =
+      createOptimalSocket(unitIp);
+
+    let busyReceived = false;
+    let responseCount = 0;
 
     const timeout = setTimeout(() => {
       client.close();
@@ -41,14 +40,28 @@ async function sendCommand(
     }, 5000);
 
     client.on("message", (msg, rinfo) => {
-      clearTimeout(timeout);
-      console.log(`Received from ${rinfo.address}:${rinfo.port}`);
+      responseCount++;
+      console.log(`Received response #${responseCount} from ${rinfo.address}:${rinfo.port}`);
 
       try {
-        const result = processResponse(msg, cmd1, cmd2, skipStatusCheck);
+        // If this is the response after BUSY, skip status check as it's a status update packet
+        const shouldSkipStatusCheck = busyReceived ? true : skipStatusCheck;
+        const result = processResponse(msg, cmd1, cmd2, shouldSkipStatusCheck);
+        clearTimeout(timeout);
         client.close();
         resolve({ msg, rinfo, result });
       } catch (error) {
+        // Check if this is a BUSY error (error code 24 = 0x18)
+        const isBusyError = error.message && error.message.includes("BUSY");
+
+        if (waitAfterBusy && isBusyError && !busyReceived) {
+          console.log("BUSY error received, waiting for final response...");
+          busyReceived = true;
+          // Don't close client, continue listening for the next response
+          return;
+        }
+
+        clearTimeout(timeout);
         client.close();
         reject(error);
       }
@@ -123,7 +136,8 @@ async function sendCommandMultipleResponses(
   timeoutMs = 15000
 ) {
   return new Promise((resolve, reject) => {
-    const { client, interface: selectedInterface } = createOptimalSocket(unitIp);
+    const { client, interface: selectedInterface } =
+      createOptimalSocket(unitIp);
     const responses = [];
     let responseCount = 0;
     let successPacketReceived = false;

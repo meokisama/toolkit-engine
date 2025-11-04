@@ -79,6 +79,13 @@ import {
   setRS485CH1Config,
   setRS485CH2Config,
   createDefaultNetworkRS485Config,
+  getZigbeeDevices,
+  sendZigbeeCommand,
+  removeZigbeeDevice,
+  closeZigbeeNetwork,
+  exploreZigbeeNetwork,
+  setupZigbeeDevice,
+  factoryResetZigbee,
 } from "./services/rcu-controller.js";
 import dgram from "dgram";
 import { updateElectronApp } from "update-electron-app";
@@ -1153,7 +1160,10 @@ function setupIpcHandlers() {
     "sequences:removeMultiScene",
     async (event, sequenceId, multiSceneId) => {
       try {
-        return await dbService.removeMultiSceneFromSequence(sequenceId, multiSceneId);
+        return await dbService.removeMultiSceneFromSequence(
+          sequenceId,
+          multiSceneId
+        );
       } catch (error) {
         console.error("Error removing multi-scene from sequence:", error);
         throw error;
@@ -1165,7 +1175,10 @@ function setupIpcHandlers() {
     "sequences:updateMultiScenes",
     async (event, sequenceId, multiSceneIds) => {
       try {
-        return await dbService.updateSequenceMultiScenes(sequenceId, multiSceneIds);
+        return await dbService.updateSequenceMultiScenes(
+          sequenceId,
+          multiSceneIds
+        );
       } catch (error) {
         console.error("Error updating sequence multi-scenes:", error);
         throw error;
@@ -1254,23 +1267,29 @@ function setupIpcHandlers() {
   });
 
   // Network Interface Management
-  ipcMain.handle("network:getInterfaces", async (event, forceRefresh = false) => {
-    try {
-      return networkInterfaceService.getNetworkInterfaces(forceRefresh);
-    } catch (error) {
-      console.error("Error getting network interfaces:", error);
-      throw error;
+  ipcMain.handle(
+    "network:getInterfaces",
+    async (event, forceRefresh = false) => {
+      try {
+        return networkInterfaceService.getNetworkInterfaces(forceRefresh);
+      } catch (error) {
+        console.error("Error getting network interfaces:", error);
+        throw error;
+      }
     }
-  });
+  );
 
-  ipcMain.handle("network:getBroadcastAddresses", async (event, forceRefresh = false) => {
-    try {
-      return networkInterfaceService.getBroadcastAddresses(forceRefresh);
-    } catch (error) {
-      console.error("Error getting broadcast addresses:", error);
-      throw error;
+  ipcMain.handle(
+    "network:getBroadcastAddresses",
+    async (event, forceRefresh = false) => {
+      try {
+        return networkInterfaceService.getBroadcastAddresses(forceRefresh);
+      } catch (error) {
+        console.error("Error getting broadcast addresses:", error);
+        throw error;
+      }
     }
-  });
+  );
 
   ipcMain.handle("network:getSummary", async (event) => {
     try {
@@ -1626,23 +1645,25 @@ function setupIpcHandlers() {
     }
   });
 
-  ipcMain.handle(
-    "rcu:getOutputConfig",
-    async (event, unitIp, canId) => {
-      try {
-        return await getOutputConfig(unitIp, canId);
-      } catch (error) {
-        console.error("Error getting output config:", error);
-        throw error;
-      }
+  ipcMain.handle("rcu:getOutputConfig", async (event, unitIp, canId) => {
+    try {
+      return await getOutputConfig(unitIp, canId);
+    } catch (error) {
+      console.error("Error getting output config:", error);
+      throw error;
     }
-  );
+  });
 
   ipcMain.handle(
     "rcu:setOutputAssign",
     async (event, unitIp, canId, outputIndex, lightingAddress) => {
       try {
-        return await setOutputAssign(unitIp, canId, outputIndex, lightingAddress);
+        return await setOutputAssign(
+          unitIp,
+          canId,
+          outputIndex,
+          lightingAddress
+        );
       } catch (error) {
         console.error("Error setting output assignment:", error);
         throw error;
@@ -1841,14 +1862,17 @@ function setupIpcHandlers() {
     }
   });
 
-  ipcMain.handle("rcu:setLocalACConfig", async (event, unitIp, canId, acConfigs) => {
-    try {
-      return await setLocalACConfig(unitIp, canId, acConfigs);
-    } catch (error) {
-      console.error("Error setting local AC config:", error);
-      throw error;
+  ipcMain.handle(
+    "rcu:setLocalACConfig",
+    async (event, unitIp, canId, acConfigs) => {
+      try {
+        return await setLocalACConfig(unitIp, canId, acConfigs);
+      } catch (error) {
+        console.error("Error setting local AC config:", error);
+        throw error;
+      }
     }
-  });
+  );
 
   // Clock Control functions
   ipcMain.handle(
@@ -1935,7 +1959,13 @@ function setupIpcHandlers() {
     "rcu:setKnxConfig",
     async (event, unitIp, canId, knxConfig, unitType) => {
       try {
-        return await setKnxConfig(unitIp, canId, knxConfig, loggerService, unitType);
+        return await setKnxConfig(
+          unitIp,
+          canId,
+          knxConfig,
+          loggerService,
+          unitType
+        );
       } catch (error) {
         console.error("Error setting KNX config:", error);
         throw error;
@@ -2007,7 +2037,12 @@ function setupIpcHandlers() {
     "rcu:changeIpAddressBroadcast",
     async (event, { unitIp, canId, newIpBytes, oldIpBytes }) => {
       try {
-        return await changeIpAddressBroadcast(unitIp, canId, newIpBytes, oldIpBytes);
+        return await changeIpAddressBroadcast(
+          unitIp,
+          canId,
+          newIpBytes,
+          oldIpBytes
+        );
       } catch (error) {
         console.error("Error changing IP address via broadcast:", error);
         throw error;
@@ -2040,29 +2075,23 @@ function setupIpcHandlers() {
   );
 
   // RS485 Configuration functions
-  ipcMain.handle(
-    "rcu:getRS485CH1Config",
-    async (event, { unitIp, canId }) => {
-      try {
-        return await getRS485CH1Config(unitIp, canId);
-      } catch (error) {
-        console.error("Error getting RS485 CH1 config:", error);
-        throw error;
-      }
+  ipcMain.handle("rcu:getRS485CH1Config", async (event, { unitIp, canId }) => {
+    try {
+      return await getRS485CH1Config(unitIp, canId);
+    } catch (error) {
+      console.error("Error getting RS485 CH1 config:", error);
+      throw error;
     }
-  );
+  });
 
-  ipcMain.handle(
-    "rcu:getRS485CH2Config",
-    async (event, { unitIp, canId }) => {
-      try {
-        return await getRS485CH2Config(unitIp, canId);
-      } catch (error) {
-        console.error("Error getting RS485 CH2 config:", error);
-        throw error;
-      }
+  ipcMain.handle("rcu:getRS485CH2Config", async (event, { unitIp, canId }) => {
+    try {
+      return await getRS485CH2Config(unitIp, canId);
+    } catch (error) {
+      console.error("Error getting RS485 CH2 config:", error);
+      throw error;
     }
-  );
+  });
 
   ipcMain.handle(
     "rcu:setRS485CH1Config",
@@ -2087,6 +2116,209 @@ function setupIpcHandlers() {
       }
     }
   );
+
+  // Zigbee Devices - RCU Controller
+  ipcMain.handle("rcu:getZigbeeDevices", async (event, { unitIp, canId }) => {
+    try {
+      return await getZigbeeDevices(unitIp, canId);
+    } catch (error) {
+      console.error("Error getting Zigbee devices:", error);
+      throw error;
+    }
+  });
+
+  ipcMain.handle(
+    "rcu:sendZigbeeCommand",
+    async (
+      event,
+      { unitIp, canId, ieeeAddress, deviceType, endpointId, command, deviceId }
+    ) => {
+      try {
+        const result = await sendZigbeeCommand(
+          unitIp,
+          canId,
+          ieeeAddress,
+          deviceType,
+          endpointId,
+          command
+        );
+
+        // If we have status update and deviceId, update the database
+        if (result.statusUpdate && deviceId) {
+          try {
+            // Get current device data
+            const currentDevice = await dbService.db
+              .prepare("SELECT * FROM zigbee_devices WHERE id = ?")
+              .get(deviceId);
+
+            if (currentDevice) {
+              // Find which endpoint index matches the endpointId from response
+              const responseEndpointId = result.statusUpdate.endpointId;
+              let endpointIndex = null;
+              for (let i = 1; i <= 4; i++) {
+                if (currentDevice[`endpoint${i}_id`] === responseEndpointId) {
+                  endpointIndex = i;
+                  break;
+                }
+              }
+
+              if (endpointIndex) {
+                // Update the endpoint value and status
+                const updateFields = {
+                  [`endpoint${endpointIndex}_value`]:
+                    result.statusUpdate.endpointValue,
+                  status: result.statusUpdate.onlineStatus,
+                  rssi: result.statusUpdate.rssi,
+                };
+
+                const updateStmt = dbService.db.prepare(`
+                  UPDATE zigbee_devices
+                  SET endpoint${endpointIndex}_value = ?,
+                      status = ?,
+                      rssi = ?,
+                      updated_at = CURRENT_TIMESTAMP
+                  WHERE id = ?
+                `);
+
+                updateStmt.run(
+                  updateFields[`endpoint${endpointIndex}_value`],
+                  updateFields.status,
+                  updateFields.rssi,
+                  deviceId
+                );
+
+                console.log(
+                  `Updated device ${deviceId} endpoint ${endpointIndex} value to ${result.statusUpdate.endpointValue}`
+                );
+              }
+            }
+          } catch (dbError) {
+            console.error("Failed to update device in database:", dbError);
+            // Don't throw - we still want to return the result
+          }
+        }
+
+        return result;
+      } catch (error) {
+        console.error("Error sending Zigbee command:", error);
+        throw error;
+      }
+    }
+  );
+
+  ipcMain.handle(
+    "rcu:removeZigbeeDevice",
+    async (event, { unitIp, canId, ieeeAddress, deviceType }) => {
+      try {
+        return await removeZigbeeDevice(unitIp, canId, ieeeAddress, deviceType);
+      } catch (error) {
+        console.error("Error removing Zigbee device:", error);
+        throw error;
+      }
+    }
+  );
+
+  ipcMain.handle("rcu:closeZigbeeNetwork", async (event, { unitIp, canId }) => {
+    try {
+      return await closeZigbeeNetwork(unitIp, canId);
+    } catch (error) {
+      console.error("Error closing Zigbee network:", error);
+      throw error;
+    }
+  });
+
+  ipcMain.handle(
+    "rcu:exploreZigbeeNetwork",
+    async (event, { unitIp, canId, timeoutMs, onDeviceFound }) => {
+      try {
+        return await exploreZigbeeNetwork(
+          unitIp,
+          canId,
+          timeoutMs,
+          onDeviceFound
+        );
+      } catch (error) {
+        console.error("Error exploring Zigbee network:", error);
+        throw error;
+      }
+    }
+  );
+
+  ipcMain.handle(
+    "rcu:setupZigbeeDevice",
+    async (event, { unitIp, canId, devices }) => {
+      try {
+        return await setupZigbeeDevice(unitIp, canId, devices);
+      } catch (error) {
+        console.error("Error setting up Zigbee devices:", error);
+        throw error;
+      }
+    }
+  );
+
+  ipcMain.handle("rcu:factoryResetZigbee", async (event, { unitIp, canId }) => {
+    try {
+      return await factoryResetZigbee(unitIp, canId);
+    } catch (error) {
+      console.error("Error factory resetting Zigbee:", error);
+      throw error;
+    }
+  });
+
+  // Zigbee Devices - Database Operations
+  ipcMain.handle(
+    "zigbee:getDevices",
+    async (event, projectId, unitIp = null) => {
+      try {
+        return await dbService.getZigbeeDevices(projectId, unitIp);
+      } catch (error) {
+        console.error("Error getting zigbee devices from database:", error);
+        throw error;
+      }
+    }
+  );
+
+  ipcMain.handle(
+    "zigbee:createDevice",
+    async (event, projectId, deviceData) => {
+      try {
+        return await dbService.createZigbeeDevice(projectId, deviceData);
+      } catch (error) {
+        console.error("Error creating zigbee device:", error);
+        throw error;
+      }
+    }
+  );
+
+  ipcMain.handle("zigbee:updateDevice", async (event, id, deviceData) => {
+    try {
+      return await dbService.updateZigbeeDevice(id, deviceData);
+    } catch (error) {
+      console.error("Error updating zigbee device:", error);
+      throw error;
+    }
+  });
+
+  ipcMain.handle("zigbee:deleteDevice", async (event, id) => {
+    try {
+      return await dbService.deleteZigbeeDevice(id);
+    } catch (error) {
+      console.error("Error deleting zigbee device:", error);
+      throw error;
+    }
+  });
+
+  ipcMain.handle(
+    "zigbee:deleteAllDevicesForUnit",
+    async (event, projectId, unitIp) => {
+      try {
+        return await dbService.deleteAllZigbeeDevicesForUnit(projectId, unitIp);
+      } catch (error) {
+        console.error("Error deleting all zigbee devices for unit:", error);
+        throw error;
+      }
+    }
+  );
 }
 
 /**
@@ -2102,7 +2334,7 @@ async function scanUDPNetwork(config) {
     localPort,
     timeout,
     multiInterface = false,
-    targetCanId = "0.0.0.0"
+    targetCanId = "0.0.0.0",
   } = config;
 
   return new Promise((resolve, reject) => {
@@ -2148,7 +2380,7 @@ async function scanUDPNetwork(config) {
         timeoutHandle = null;
       }
 
-      sockets.forEach(socket => {
+      sockets.forEach((socket) => {
         if (socket) {
           try {
             socket.close();
@@ -2177,7 +2409,10 @@ async function scanUDPNetwork(config) {
 
     // Multi-interface scanning
     if (multiInterface && broadcastAddresses && broadcastAddresses.length > 0) {
-      console.log(`Multi-interface UDP scan starting on ${broadcastAddresses.length} interfaces:`, broadcastAddresses);
+      console.log(
+        `Multi-interface UDP scan starting on ${broadcastAddresses.length} interfaces:`,
+        broadcastAddresses
+      );
 
       const expectedScans = broadcastAddresses.length;
       const requestData = createHardwareInfoRequest(targetCanId);
@@ -2204,7 +2439,10 @@ async function scanUDPNetwork(config) {
             socket.setBroadcast(true);
             socket.setRecvBufferSize(0x40000);
           } catch (e) {
-            console.log(`Socket option warning on ${broadcastAddr}:`, e.message);
+            console.log(
+              `Socket option warning on ${broadcastAddr}:`,
+              e.message
+            );
           }
 
           // Send broadcast request to this interface
@@ -2220,7 +2458,9 @@ async function scanUDPNetwork(config) {
             // If this is the last scan to complete, set the timeout
             if (completedScans === expectedScans) {
               timeoutHandle = setTimeout(() => {
-                console.log(`Multi-interface scan timeout reached. Found ${results.length} responses.`);
+                console.log(
+                  `Multi-interface scan timeout reached. Found ${results.length} responses.`
+                );
                 cleanup();
                 resolve(results);
               }, timeout);
@@ -2237,7 +2477,6 @@ async function scanUDPNetwork(config) {
         console.log("No network interfaces available for scanning");
         resolve([]);
       }
-
     } else {
       // Fallback to single interface scanning (backward compatibility)
       const targetBroadcast = broadcastIP || "255.255.255.255";
@@ -2277,7 +2516,9 @@ async function scanUDPNetwork(config) {
 
           // Set timeout for responses
           timeoutHandle = setTimeout(() => {
-            console.log(`Single-interface scan timeout reached. Found ${results.length} responses.`);
+            console.log(
+              `Single-interface scan timeout reached. Found ${results.length} responses.`
+            );
             cleanup();
             resolve(results);
           }, timeout);

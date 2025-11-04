@@ -51,7 +51,6 @@ class DatabaseService {
   }
 
   createTables() {
-
     const createProjectsTable = `
       CREATE TABLE IF NOT EXISTS projects (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -284,6 +283,41 @@ class DatabaseService {
       )
     `;
 
+    const createZigbeeDevicesTable = `
+      CREATE TABLE IF NOT EXISTS zigbee_devices (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        project_id INTEGER NOT NULL,
+        unit_ip TEXT NOT NULL,
+        unit_can_id TEXT NOT NULL,
+        ieee_address TEXT NOT NULL,
+        device_type INTEGER NOT NULL,
+        device_name TEXT,
+        num_endpoints INTEGER NOT NULL DEFAULT 0,
+        endpoint1_id INTEGER DEFAULT 0,
+        endpoint1_value INTEGER DEFAULT 0,
+        endpoint1_address INTEGER DEFAULT 0,
+        endpoint1_name TEXT,
+        endpoint2_id INTEGER DEFAULT 0,
+        endpoint2_value INTEGER DEFAULT 0,
+        endpoint2_address INTEGER DEFAULT 0,
+        endpoint2_name TEXT,
+        endpoint3_id INTEGER DEFAULT 0,
+        endpoint3_value INTEGER DEFAULT 0,
+        endpoint3_address INTEGER DEFAULT 0,
+        endpoint3_name TEXT,
+        endpoint4_id INTEGER DEFAULT 0,
+        endpoint4_value INTEGER DEFAULT 0,
+        endpoint4_address INTEGER DEFAULT 0,
+        endpoint4_name TEXT,
+        rssi INTEGER DEFAULT 0,
+        status INTEGER DEFAULT 0,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (project_id) REFERENCES projects (id) ON DELETE CASCADE,
+        UNIQUE(project_id, unit_ip, ieee_address)
+      )
+    `;
+
     // Note: unit_output_configs and unit_input_configs tables are removed
     // All I/O configuration data is now stored in unit.input_configs and unit.output_configs JSON columns
 
@@ -303,6 +337,7 @@ class DatabaseService {
       this.db.exec(createMultiSceneScenesTable);
       this.db.exec(createSequencesTable);
       this.db.exec(createSequenceMultiScenesTable);
+      this.db.exec(createZigbeeDevicesTable);
       // Note: unit_output_configs and unit_input_configs tables are removed
     } catch (error) {
       console.error("Failed to create tables:", error);
@@ -577,7 +612,9 @@ class DatabaseService {
         }
 
         // Store ID mapping for relationships
-        if (["scene", "schedule", "multi_scenes", "sequences"].includes(category)) {
+        if (
+          ["scene", "schedule", "multi_scenes", "sequences"].includes(category)
+        ) {
           idMappings[category][item.id] = newItem.id;
         }
       });
@@ -646,7 +683,8 @@ class DatabaseService {
       // Copy multi_scene_scenes
       const multiSceneScenes = originalItems.multi_scene_scenes || [];
       multiSceneScenes.forEach((multiSceneScene) => {
-        const newMultiSceneId = idMappings.multi_scenes[multiSceneScene.multi_scene_id];
+        const newMultiSceneId =
+          idMappings.multi_scenes[multiSceneScene.multi_scene_id];
         const newSceneId = idMappings.scene[multiSceneScene.scene_id];
         if (newMultiSceneId && newSceneId) {
           const stmt = this.db.prepare(`
@@ -660,17 +698,22 @@ class DatabaseService {
       // Copy sequence_multi_scenes
       const sequenceMultiScenes = originalItems.sequence_multi_scenes || [];
       sequenceMultiScenes.forEach((sequenceMultiScene) => {
-        const newSequenceId = idMappings.sequences[sequenceMultiScene.sequence_id];
-        const newMultiSceneId = idMappings.multi_scenes[sequenceMultiScene.multi_scene_id];
+        const newSequenceId =
+          idMappings.sequences[sequenceMultiScene.sequence_id];
+        const newMultiSceneId =
+          idMappings.multi_scenes[sequenceMultiScene.multi_scene_id];
         if (newSequenceId && newMultiSceneId) {
           const stmt = this.db.prepare(`
             INSERT INTO sequence_multi_scenes (sequence_id, multi_scene_id, multi_scene_order)
             VALUES (?, ?, ?)
           `);
-          stmt.run(newSequenceId, newMultiSceneId, sequenceMultiScene.multi_scene_order);
+          stmt.run(
+            newSequenceId,
+            newMultiSceneId,
+            sequenceMultiScene.multi_scene_order
+          );
         }
       });
-
     } catch (error) {
       console.error("Failed to copy project relationships:", error);
       throw error;
@@ -703,8 +746,12 @@ class DatabaseService {
           rs485_config: item.rs485_config
             ? JSON.parse(item.rs485_config)
             : null,
-          input_configs: item.input_configs ? JSON.parse(item.input_configs) : null,
-          output_configs: item.output_configs ? JSON.parse(item.output_configs) : null,
+          input_configs: item.input_configs
+            ? JSON.parse(item.input_configs)
+            : null,
+          output_configs: item.output_configs
+            ? JSON.parse(item.output_configs)
+            : null,
         };
 
         // Debug logging for output configs
@@ -713,7 +760,7 @@ class DatabaseService {
             id: item.id,
             ip_address: item.ip_address,
             outputConfigsCount: parsedItem.output_configs?.outputs?.length || 0,
-            hasOutputConfigs: !!parsedItem.output_configs
+            hasOutputConfigs: !!parsedItem.output_configs,
           });
         }
 
@@ -725,7 +772,9 @@ class DatabaseService {
         )
         .all(projectId);
       const knx = this.db
-        .prepare("SELECT * FROM knx WHERE project_id = ? ORDER BY CAST(address AS INTEGER) ASC")
+        .prepare(
+          "SELECT * FROM knx WHERE project_id = ? ORDER BY CAST(address AS INTEGER) ASC"
+        )
         .all(projectId);
       const scene = this.db
         .prepare(
@@ -750,12 +799,14 @@ class DatabaseService {
 
       // Get all relationship tables for complete export
       const scene_items = this.db
-        .prepare(`
+        .prepare(
+          `
           SELECT si.* FROM scene_items si
           JOIN scene s ON si.scene_id = s.id
           WHERE s.project_id = ?
           ORDER BY si.scene_id, si.created_at
-        `)
+        `
+        )
         .all(projectId);
 
       const scene_address_items = this.db
@@ -765,30 +816,36 @@ class DatabaseService {
         .all(projectId);
 
       const schedule_scenes = this.db
-        .prepare(`
+        .prepare(
+          `
           SELECT ss.* FROM schedule_scenes ss
           JOIN schedule sch ON ss.schedule_id = sch.id
           WHERE sch.project_id = ?
           ORDER BY ss.schedule_id, ss.created_at
-        `)
+        `
+        )
         .all(projectId);
 
       const multi_scene_scenes = this.db
-        .prepare(`
+        .prepare(
+          `
           SELECT mss.* FROM multi_scene_scenes mss
           JOIN multi_scenes ms ON mss.multi_scene_id = ms.id
           WHERE ms.project_id = ?
           ORDER BY mss.multi_scene_id, mss.scene_order
-        `)
+        `
+        )
         .all(projectId);
 
       const sequence_multi_scenes = this.db
-        .prepare(`
+        .prepare(
+          `
           SELECT sms.* FROM sequence_multi_scenes sms
           JOIN sequences seq ON sms.sequence_id = seq.id
           WHERE seq.project_id = ?
           ORDER BY sms.sequence_id, sms.multi_scene_order
-        `)
+        `
+        )
         .all(projectId);
 
       return {
@@ -829,8 +886,12 @@ class DatabaseService {
           rs485_config: item.rs485_config
             ? JSON.parse(item.rs485_config)
             : null,
-          input_configs: item.input_configs ? JSON.parse(item.input_configs) : null,
-          output_configs: item.output_configs ? JSON.parse(item.output_configs) : null,
+          input_configs: item.input_configs
+            ? JSON.parse(item.input_configs)
+            : null,
+          output_configs: item.output_configs
+            ? JSON.parse(item.output_configs)
+            : null,
         }));
       } else if (tableName === "schedule") {
         const stmt = this.db.prepare(
@@ -980,7 +1041,9 @@ class DatabaseService {
           )
           .get(projectId, address.trim());
         if (existingMultiScene.count > 0) {
-          throw new Error(`Multi-scene address ${address.trim()} already exists.`);
+          throw new Error(
+            `Multi-scene address ${address.trim()} already exists.`
+          );
         }
 
         // Check maximum multi-scene limit (40 multi-scenes)
@@ -1121,12 +1184,7 @@ class DatabaseService {
           INSERT INTO ${tableName} (project_id, name, address, description)
           VALUES (?, ?, ?, ?)
         `);
-        const result = stmt.run(
-          projectId,
-          name,
-          address,
-          description
-        );
+        const result = stmt.run(projectId, name, address, description);
         return this.getProjectItemById(result.lastInsertRowid, tableName);
       } else {
         // For other tables, use original structure with object_type and object_value
@@ -1418,7 +1476,9 @@ class DatabaseService {
             )
             .get(currentItem.project_id, address.trim(), id);
           if (existingMultiScene.count > 0) {
-            throw new Error(`Multi-scene address ${address.trim()} already exists.`);
+            throw new Error(
+              `Multi-scene address ${address.trim()} already exists.`
+            );
           }
         }
 
@@ -1453,7 +1513,9 @@ class DatabaseService {
             )
             .get(currentItem.project_id, address.trim(), id);
           if (existingSequence.count > 0) {
-            throw new Error(`Sequence address ${address.trim()} already exists.`);
+            throw new Error(
+              `Sequence address ${address.trim()} already exists.`
+            );
           }
         }
 
@@ -1516,15 +1578,21 @@ class DatabaseService {
       // Start transaction to ensure data consistency
       const transaction = this.db.transaction(() => {
         // For lighting, curtain, and aircon items, also remove from scene_items and scene_address_items
-        if (tableName === 'lighting' || tableName === 'curtain' || tableName === 'aircon') {
+        if (
+          tableName === "lighting" ||
+          tableName === "curtain" ||
+          tableName === "aircon"
+        ) {
           // Get all scene items that reference this item
           const sceneItems = this.db
-            .prepare(`
+            .prepare(
+              `
               SELECT si.*, s.project_id, s.address
               FROM scene_items si
               JOIN scene s ON si.scene_id = s.id
               WHERE si.item_type = ? AND si.item_id = ?
-            `)
+            `
+            )
             .all(tableName, id);
 
           // Remove from scene_address_items first
@@ -1746,7 +1814,11 @@ class DatabaseService {
             }
 
             // Store ID mapping for relationships
-            if (["scene", "schedule", "multi_scenes", "sequences"].includes(category)) {
+            if (
+              ["scene", "schedule", "multi_scenes", "sequences"].includes(
+                category
+              )
+            ) {
               idMappings[category][itemData.id] = newItem.id;
             }
 
@@ -1781,14 +1853,21 @@ class DatabaseService {
 
         // Handle both old format (scene_id) and new format (scene_address)
         if (sceneItem.scene_address) {
-          newSceneId = this.findSceneIdByAddress(newProjectId, sceneItem.scene_address);
+          newSceneId = this.findSceneIdByAddress(
+            newProjectId,
+            sceneItem.scene_address
+          );
         } else if (sceneItem.scene_id) {
           newSceneId = idMappings.scene[sceneItem.scene_id]; // Backward compatibility
         }
 
         // Handle both old format (item_id) and new format (item_address)
         if (sceneItem.item_address && sceneItem.item_type) {
-          newItemId = this.findItemIdByAddress(newProjectId, sceneItem.item_address, sceneItem.item_type);
+          newItemId = this.findItemIdByAddress(
+            newProjectId,
+            sceneItem.item_address,
+            sceneItem.item_type
+          );
         } else if (sceneItem.item_id) {
           newItemId = sceneItem.item_id; // Backward compatibility - may not work cross-machine
         }
@@ -1836,14 +1915,20 @@ class DatabaseService {
 
         // Handle both old format (schedule_id) and new format (schedule_identifier)
         if (scheduleScene.schedule_identifier) {
-          newScheduleId = this.findScheduleIdByIdentifier(newProjectId, scheduleScene.schedule_identifier);
+          newScheduleId = this.findScheduleIdByIdentifier(
+            newProjectId,
+            scheduleScene.schedule_identifier
+          );
         } else if (scheduleScene.schedule_id) {
           newScheduleId = idMappings.schedule[scheduleScene.schedule_id]; // Backward compatibility
         }
 
         // Handle both old format (scene_id) and new format (scene_address)
         if (scheduleScene.scene_address) {
-          newSceneId = this.findSceneIdByAddress(newProjectId, scheduleScene.scene_address);
+          newSceneId = this.findSceneIdByAddress(
+            newProjectId,
+            scheduleScene.scene_address
+          );
         } else if (scheduleScene.scene_id) {
           newSceneId = idMappings.scene[scheduleScene.scene_id]; // Backward compatibility
         }
@@ -1865,14 +1950,21 @@ class DatabaseService {
 
         // Handle both old format (multi_scene_id) and new format (multi_scene_address)
         if (multiSceneScene.multi_scene_address) {
-          newMultiSceneId = this.findMultiSceneIdByAddress(newProjectId, multiSceneScene.multi_scene_address);
+          newMultiSceneId = this.findMultiSceneIdByAddress(
+            newProjectId,
+            multiSceneScene.multi_scene_address
+          );
         } else if (multiSceneScene.multi_scene_id) {
-          newMultiSceneId = idMappings.multi_scenes[multiSceneScene.multi_scene_id]; // Backward compatibility
+          newMultiSceneId =
+            idMappings.multi_scenes[multiSceneScene.multi_scene_id]; // Backward compatibility
         }
 
         // Handle both old format (scene_id) and new format (scene_address)
         if (multiSceneScene.scene_address) {
-          newSceneId = this.findSceneIdByAddress(newProjectId, multiSceneScene.scene_address);
+          newSceneId = this.findSceneIdByAddress(
+            newProjectId,
+            multiSceneScene.scene_address
+          );
         } else if (multiSceneScene.scene_id) {
           newSceneId = idMappings.scene[multiSceneScene.scene_id]; // Backward compatibility
         }
@@ -1894,16 +1986,23 @@ class DatabaseService {
 
         // Handle both old format (sequence_id) and new format (sequence_address)
         if (sequenceMultiScene.sequence_address) {
-          newSequenceId = this.findSequenceIdByAddress(newProjectId, sequenceMultiScene.sequence_address);
+          newSequenceId = this.findSequenceIdByAddress(
+            newProjectId,
+            sequenceMultiScene.sequence_address
+          );
         } else if (sequenceMultiScene.sequence_id) {
           newSequenceId = idMappings.sequences[sequenceMultiScene.sequence_id]; // Backward compatibility
         }
 
         // Handle both old format (multi_scene_id) and new format (multi_scene_address)
         if (sequenceMultiScene.multi_scene_address) {
-          newMultiSceneId = this.findMultiSceneIdByAddress(newProjectId, sequenceMultiScene.multi_scene_address);
+          newMultiSceneId = this.findMultiSceneIdByAddress(
+            newProjectId,
+            sequenceMultiScene.multi_scene_address
+          );
         } else if (sequenceMultiScene.multi_scene_id) {
-          newMultiSceneId = idMappings.multi_scenes[sequenceMultiScene.multi_scene_id]; // Backward compatibility
+          newMultiSceneId =
+            idMappings.multi_scenes[sequenceMultiScene.multi_scene_id]; // Backward compatibility
         }
 
         if (newSequenceId && newMultiSceneId) {
@@ -1911,10 +2010,13 @@ class DatabaseService {
             INSERT INTO sequence_multi_scenes (sequence_id, multi_scene_id, multi_scene_order)
             VALUES (?, ?, ?)
           `);
-          stmt.run(newSequenceId, newMultiSceneId, sequenceMultiScene.multi_scene_order);
+          stmt.run(
+            newSequenceId,
+            newMultiSceneId,
+            sequenceMultiScene.multi_scene_order
+          );
         }
       });
-
     } catch (error) {
       console.error("Failed to import project relationships:", error);
       throw error;
@@ -1926,7 +2028,7 @@ class DatabaseService {
     try {
       const knxItems = itemsData.knx || [];
 
-      knxItems.forEach(knxItem => {
+      knxItems.forEach((knxItem) => {
         // Check if this KNX item has rcu_group_address (new format)
         if (knxItem.rcu_group_address && knxItem.rcu_group_type) {
           const newRcuGroupId = this.findRcuGroupIdByAddress(
@@ -1962,7 +2064,10 @@ class DatabaseService {
       const result = stmt.get(projectId, address);
       return result ? result.id : null;
     } catch (error) {
-      console.error(`Failed to find RCU group ID for ${rcuGroupType} address ${address}:`, error);
+      console.error(
+        `Failed to find RCU group ID for ${rcuGroupType} address ${address}:`,
+        error
+      );
       return null;
     }
   }
@@ -1991,7 +2096,11 @@ class DatabaseService {
       // Handle both old format (rcu_group_id) and new format (rcu_group_address)
       if (rcu_group_address && rcu_group_type) {
         // New format: lookup ID by address
-        finalRcuGroupId = this.findRcuGroupIdByAddress(projectId, rcu_group_address, rcu_group_type);
+        finalRcuGroupId = this.findRcuGroupIdByAddress(
+          projectId,
+          rcu_group_address,
+          rcu_group_type
+        );
         finalRcuGroupType = rcu_group_type;
       } else if (rcu_group_id && rcu_group_type) {
         // Old format: use ID directly (for backward compatibility)
@@ -2083,19 +2192,28 @@ class DatabaseService {
 
       // Handle both old format (group_id) and new format (group_address)
       if (open_group_address) {
-        finalOpenGroupId = this.findLightingIdByAddress(projectId, open_group_address);
+        finalOpenGroupId = this.findLightingIdByAddress(
+          projectId,
+          open_group_address
+        );
       } else if (open_group_id) {
         finalOpenGroupId = open_group_id; // Backward compatibility
       }
 
       if (close_group_address) {
-        finalCloseGroupId = this.findLightingIdByAddress(projectId, close_group_address);
+        finalCloseGroupId = this.findLightingIdByAddress(
+          projectId,
+          close_group_address
+        );
       } else if (close_group_id) {
         finalCloseGroupId = close_group_id; // Backward compatibility
       }
 
       if (stop_group_address) {
-        finalStopGroupId = this.findLightingIdByAddress(projectId, stop_group_address);
+        finalStopGroupId = this.findLightingIdByAddress(
+          projectId,
+          stop_group_address
+        );
       } else if (stop_group_id) {
         finalStopGroupId = stop_group_id; // Backward compatibility
       }
@@ -2139,7 +2257,10 @@ class DatabaseService {
       const result = stmt.get(projectId, address);
       return result ? result.id : null;
     } catch (error) {
-      console.error(`Failed to find lighting ID for address ${address}:`, error);
+      console.error(
+        `Failed to find lighting ID for address ${address}:`,
+        error
+      );
       return null;
     }
   }
@@ -2169,7 +2290,10 @@ class DatabaseService {
       const result = stmt.get(projectId, address);
       return result ? result.id : null;
     } catch (error) {
-      console.error(`Failed to find ${itemType} ID for address ${address}:`, error);
+      console.error(
+        `Failed to find ${itemType} ID for address ${address}:`,
+        error
+      );
       return null;
     }
   }
@@ -2177,7 +2301,7 @@ class DatabaseService {
   // Find schedule ID by identifier (name + time combination)
   findScheduleIdByIdentifier(projectId, identifier) {
     try {
-      const [name, time] = identifier.split('|');
+      const [name, time] = identifier.split("|");
       const stmt = this.db.prepare(`
         SELECT id FROM schedule
         WHERE project_id = ? AND name = ? AND time = ?
@@ -2185,7 +2309,10 @@ class DatabaseService {
       const result = stmt.get(projectId, name, time);
       return result ? result.id : null;
     } catch (error) {
-      console.error(`Failed to find schedule ID for identifier ${identifier}:`, error);
+      console.error(
+        `Failed to find schedule ID for identifier ${identifier}:`,
+        error
+      );
       return null;
     }
   }
@@ -2200,7 +2327,10 @@ class DatabaseService {
       const result = stmt.get(projectId, address);
       return result ? result.id : null;
     } catch (error) {
-      console.error(`Failed to find multi_scene ID for address ${address}:`, error);
+      console.error(
+        `Failed to find multi_scene ID for address ${address}:`,
+        error
+      );
       return null;
     }
   }
@@ -2215,7 +2345,10 @@ class DatabaseService {
       const result = stmt.get(projectId, address);
       return result ? result.id : null;
     } catch (error) {
-      console.error(`Failed to find sequence ID for address ${address}:`, error);
+      console.error(
+        `Failed to find sequence ID for address ${address}:`,
+        error
+      );
       return null;
     }
   }
@@ -2256,14 +2389,21 @@ class DatabaseService {
   bulkImportSingleScene(projectId, sceneData) {
     try {
       // Find next available address to avoid conflicts
-      const availableAddress = this.findNextAvailableAddress(projectId, "scene");
+      const availableAddress = this.findNextAvailableAddress(
+        projectId,
+        "scene"
+      );
 
       // Create the scene first
-      const scene = this.createProjectItem(projectId, {
-        name: sceneData.name,
-        address: availableAddress.toString(),
-        description: sceneData.description
-      }, "scene");
+      const scene = this.createProjectItem(
+        projectId,
+        {
+          name: sceneData.name,
+          address: availableAddress.toString(),
+          description: sceneData.description,
+        },
+        "scene"
+      );
 
       // Process each scene item
       if (sceneData.items && sceneData.items.length > 0) {
@@ -2306,18 +2446,20 @@ class DatabaseService {
       let existingItem = null;
 
       // Find existing item by address
-      if (itemType === 'lighting') {
-        existingItem = this.db.prepare(
-          "SELECT * FROM lighting WHERE project_id = ? AND address = ?"
-        ).get(projectId, address);
-      } else if (itemType === 'aircon') {
-        existingItem = this.db.prepare(
-          "SELECT * FROM aircon WHERE project_id = ? AND address = ?"
-        ).get(projectId, address);
-      } else if (itemType === 'curtain') {
-        existingItem = this.db.prepare(
-          "SELECT * FROM curtain WHERE project_id = ? AND address = ?"
-        ).get(projectId, address);
+      if (itemType === "lighting") {
+        existingItem = this.db
+          .prepare(
+            "SELECT * FROM lighting WHERE project_id = ? AND address = ?"
+          )
+          .get(projectId, address);
+      } else if (itemType === "aircon") {
+        existingItem = this.db
+          .prepare("SELECT * FROM aircon WHERE project_id = ? AND address = ?")
+          .get(projectId, address);
+      } else if (itemType === "curtain") {
+        existingItem = this.db
+          .prepare("SELECT * FROM curtain WHERE project_id = ? AND address = ?")
+          .get(projectId, address);
       }
 
       // If item exists, return it
@@ -2329,22 +2471,22 @@ class DatabaseService {
       const newItemData = {
         name: itemName || `${itemType} ${address}`,
         address: address,
-        description: `Auto-created from scene import`
+        description: `Auto-created from scene import`,
       };
 
       // Add type-specific properties
-      if (itemType === 'lighting') {
-        newItemData.object_type = 'OBJ_LIGHTING';
+      if (itemType === "lighting") {
+        newItemData.object_type = "OBJ_LIGHTING";
         newItemData.object_value = 1;
-      } else if (itemType === 'curtain') {
-        newItemData.object_type = 'OBJ_CURTAIN';
+      } else if (itemType === "curtain") {
+        newItemData.object_type = "OBJ_CURTAIN";
         newItemData.object_value = 2;
-        newItemData.curtain_type = '';
+        newItemData.curtain_type = "";
         newItemData.curtain_value = 0;
         newItemData.pause_period = 0;
         newItemData.transition_period = 0;
-      } else if (itemType === 'aircon') {
-        newItemData.label = 'Aircon';
+      } else if (itemType === "aircon") {
+        newItemData.label = "Aircon";
       }
 
       return this.createProjectItem(projectId, newItemData, tableName);
@@ -2385,7 +2527,9 @@ class DatabaseService {
   getAirconCards(projectId) {
     try {
       const items = this.db
-        .prepare("SELECT * FROM aircon WHERE project_id = ? ORDER BY CAST(address AS INTEGER) ASC")
+        .prepare(
+          "SELECT * FROM aircon WHERE project_id = ? ORDER BY CAST(address AS INTEGER) ASC"
+        )
         .all(projectId);
 
       // Each item is now a card
@@ -2632,7 +2776,9 @@ class DatabaseService {
       }
 
       const inputConfigs = unit.input_configs;
-      const inputConfig = inputConfigs.inputs?.find(input => input.index === inputIndex);
+      const inputConfig = inputConfigs.inputs?.find(
+        (input) => input.index === inputIndex
+      );
 
       if (inputConfig) {
         return {
@@ -2659,7 +2805,9 @@ class DatabaseService {
       }
 
       const outputConfigs = unit.output_configs;
-      const outputConfig = outputConfigs.outputs?.find(output => output.index === outputIndex);
+      const outputConfig = outputConfigs.outputs?.find(
+        (output) => output.index === outputIndex
+      );
 
       if (outputConfig) {
         return {
@@ -2694,7 +2842,9 @@ class DatabaseService {
       let inputConfigs = unit.input_configs || { inputs: [] };
 
       // Find existing input config or create new one
-      const existingIndex = inputConfigs.inputs.findIndex(input => input.index === inputIndex);
+      const existingIndex = inputConfigs.inputs.findIndex(
+        (input) => input.index === inputIndex
+      );
       const inputConfig = {
         index: inputIndex,
         function_value: functionValue || 0,
@@ -2736,7 +2886,9 @@ class DatabaseService {
       let outputConfigs = unit.output_configs || { outputs: [] };
 
       // Find existing output config or create new one
-      const existingIndex = outputConfigs.outputs.findIndex(output => output.index === outputIndex);
+      const existingIndex = outputConfigs.outputs.findIndex(
+        (output) => output.index === outputIndex
+      );
 
       // Remove deviceId, deviceType, and address from config data to avoid duplication
       // For AC outputs, address is equivalent to deviceId and should be stored at output level
@@ -2746,7 +2898,8 @@ class DatabaseService {
         index: outputIndex,
         type: outputType,
         device_id: deviceId || null,
-        device_type: deviceType || (outputType === "ac" ? "aircon" : "lighting"),
+        device_type:
+          deviceType || (outputType === "ac" ? "aircon" : "lighting"),
         name: cleanConfigData.name || `${outputType} ${outputIndex + 1}`,
         config: cleanConfigData,
       };
@@ -2781,7 +2934,7 @@ class DatabaseService {
       }
 
       const inputConfigs = unit.input_configs;
-      return (inputConfigs.inputs || []).map(input => ({
+      return (inputConfigs.inputs || []).map((input) => ({
         unit_id: unitId,
         input_index: input.index,
         function_value: input.function_value || 0,
@@ -2803,7 +2956,7 @@ class DatabaseService {
       }
 
       const outputConfigs = unit.output_configs;
-      return (outputConfigs.outputs || []).map(output => ({
+      return (outputConfigs.outputs || []).map((output) => ({
         unit_id: unitId,
         output_index: output.index,
         output_type: output.type,
@@ -2828,7 +2981,9 @@ class DatabaseService {
       const originalLength = inputConfigs.inputs?.length || 0;
 
       // Remove the input config
-      inputConfigs.inputs = (inputConfigs.inputs || []).filter(input => input.index !== inputIndex);
+      inputConfigs.inputs = (inputConfigs.inputs || []).filter(
+        (input) => input.index !== inputIndex
+      );
 
       if (inputConfigs.inputs.length < originalLength) {
         // Update unit with new input configs
@@ -2856,7 +3011,9 @@ class DatabaseService {
       const originalLength = outputConfigs.outputs?.length || 0;
 
       // Remove the output config
-      outputConfigs.outputs = (outputConfigs.outputs || []).filter(output => output.index !== outputIndex);
+      outputConfigs.outputs = (outputConfigs.outputs || []).filter(
+        (output) => output.index !== outputIndex
+      );
 
       if (outputConfigs.outputs.length < originalLength) {
         // Update unit with new output configs
@@ -3908,6 +4065,171 @@ class DatabaseService {
       return { success: true };
     } catch (error) {
       console.error("Failed to update sequence multi-scenes:", error);
+      throw error;
+    }
+  }
+
+  // Zigbee Devices Management
+  getZigbeeDevices(projectId, unitIp = null) {
+    try {
+      let query = `
+        SELECT * FROM zigbee_devices
+        WHERE project_id = ?
+      `;
+      const params = [projectId];
+
+      if (unitIp) {
+        query += ` AND unit_ip = ?`;
+        params.push(unitIp);
+      }
+
+      query += ` ORDER BY created_at DESC`;
+
+      const stmt = this.db.prepare(query);
+      return stmt.all(...params);
+    } catch (error) {
+      console.error("Failed to get zigbee devices:", error);
+      throw error;
+    }
+  }
+
+  createZigbeeDevice(projectId, deviceData) {
+    try {
+      const stmt = this.db.prepare(`
+        INSERT INTO zigbee_devices (
+          project_id, unit_ip, unit_can_id, ieee_address, device_type, num_endpoints,
+          endpoint1_id, endpoint1_value, endpoint1_address,
+          endpoint2_id, endpoint2_value, endpoint2_address,
+          endpoint3_id, endpoint3_value, endpoint3_address,
+          endpoint4_id, endpoint4_value, endpoint4_address,
+          rssi, status
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      `);
+
+      const result = stmt.run(
+        projectId,
+        deviceData.unit_ip,
+        deviceData.unit_can_id,
+        deviceData.ieee_address,
+        deviceData.device_type,
+        deviceData.num_endpoints || 0,
+        deviceData.endpoint1_id || 0,
+        deviceData.endpoint1_value || 0,
+        deviceData.endpoint1_address || 0,
+        deviceData.endpoint2_id || 0,
+        deviceData.endpoint2_value || 0,
+        deviceData.endpoint2_address || 0,
+        deviceData.endpoint3_id || 0,
+        deviceData.endpoint3_value || 0,
+        deviceData.endpoint3_address || 0,
+        deviceData.endpoint4_id || 0,
+        deviceData.endpoint4_value || 0,
+        deviceData.endpoint4_address || 0,
+        deviceData.rssi || 0,
+        deviceData.status || 0
+      );
+
+      // Return the created device
+      const getStmt = this.db.prepare(
+        "SELECT * FROM zigbee_devices WHERE id = ?"
+      );
+      return getStmt.get(result.lastInsertRowid);
+    } catch (error) {
+      console.error("Failed to create zigbee device:", error);
+      throw error;
+    }
+  }
+
+  updateZigbeeDevice(id, deviceData) {
+    try {
+      // Build dynamic update query - only update fields that are provided
+      const updates = [];
+      const values = [];
+
+      // Define all possible fields that can be updated
+      const allowedFields = [
+        'device_type', 'device_name', 'num_endpoints',
+        'endpoint1_id', 'endpoint1_value', 'endpoint1_address', 'endpoint1_name',
+        'endpoint2_id', 'endpoint2_value', 'endpoint2_address', 'endpoint2_name',
+        'endpoint3_id', 'endpoint3_value', 'endpoint3_address', 'endpoint3_name',
+        'endpoint4_id', 'endpoint4_value', 'endpoint4_address', 'endpoint4_name',
+        'rssi', 'status'
+      ];
+
+      // Build SET clause dynamically based on provided fields
+      for (const field of allowedFields) {
+        if (field in deviceData) {
+          updates.push(`${field} = ?`);
+          // Handle null values for optional fields
+          if (field.endsWith('_name') || field === 'device_name') {
+            values.push(deviceData[field] || null);
+          } else {
+            values.push(deviceData[field]);
+          }
+        }
+      }
+
+      // If no fields to update, throw error
+      if (updates.length === 0) {
+        throw new Error("No fields provided for update");
+      }
+
+      // Always update the updated_at timestamp
+      updates.push('updated_at = CURRENT_TIMESTAMP');
+
+      // Build and execute the query
+      const sql = `
+        UPDATE zigbee_devices
+        SET ${updates.join(', ')}
+        WHERE id = ?
+      `;
+
+      values.push(id);
+
+      const stmt = this.db.prepare(sql);
+      const result = stmt.run(...values);
+
+      if (result.changes === 0) {
+        throw new Error("Zigbee device not found");
+      }
+
+      // Return updated device
+      const getStmt = this.db.prepare(
+        "SELECT * FROM zigbee_devices WHERE id = ?"
+      );
+      return getStmt.get(id);
+    } catch (error) {
+      console.error("Failed to update zigbee device:", error);
+      throw error;
+    }
+  }
+
+  deleteZigbeeDevice(id) {
+    try {
+      const stmt = this.db.prepare("DELETE FROM zigbee_devices WHERE id = ?");
+      const result = stmt.run(id);
+
+      if (result.changes === 0) {
+        throw new Error("Zigbee device not found");
+      }
+
+      return { success: true };
+    } catch (error) {
+      console.error("Failed to delete zigbee device:", error);
+      throw error;
+    }
+  }
+
+  deleteAllZigbeeDevicesForUnit(projectId, unitIp) {
+    try {
+      const stmt = this.db.prepare(
+        "DELETE FROM zigbee_devices WHERE project_id = ? AND unit_ip = ?"
+      );
+      const result = stmt.run(projectId, unitIp);
+
+      return { success: true, deletedCount: result.changes };
+    } catch (error) {
+      console.error("Failed to delete zigbee devices for unit:", error);
       throw error;
     }
   }

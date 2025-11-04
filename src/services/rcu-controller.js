@@ -127,3 +127,14 @@ export {
   setRS485CH2Config,
   createDefaultNetworkRS485Config,
 } from "./rcu-controller/rs485.js";
+
+// Export Zigbee functions
+export {
+  getZigbeeDevices,
+  sendZigbeeCommand,
+  removeZigbeeDevice,
+  closeZigbeeNetwork,
+  exploreZigbeeNetwork,
+  setupZigbeeDevice,
+  factoryResetZigbee,
+} from "./rcu-controller/zigbee.js";

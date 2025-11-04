@@ -2,10 +2,10 @@ import React, { useMemo } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent } from "@/components/ui/card";
 import { useProjectDetail } from "@/contexts/project-detail-context";
-import { SceneTable } from "./scenes/scene-table";
-import { ScheduleTable } from "./schedules/schedule-table";
-import { MultiSceneTable } from "./multi-scenes/multi-scene-table";
-import { SequenceTable } from "./sequences/sequence-table";
+import { SceneTable } from "@/components/projects/scenes/scene-table";
+import { ScheduleTable } from "@/components/projects/schedules/schedule-table";
+import { MultiSceneTable } from "@/components/projects/multi-scenes/multi-scene-table";
+import { SequenceTable } from "@/components/projects/sequences/sequence-table";
 import { TabLoadingSkeleton } from "@/components/projects/tab-loading-skeleton";
 import { SlidersHorizontal, Calendar, Layers, ListOrdered } from "lucide-react";
 
