@@ -19,6 +19,7 @@ import {
   ProjectDetailProvider,
   useProjectDetail,
 } from "@/contexts/project-detail-context";
+import { DaliProvider } from "@/contexts/dali-context";
 import { ProjectDetail } from "@/components/projects/project-section/project-detail";
 
 // Breadcrumb component that uses the project context
@@ -33,6 +34,8 @@ function BreadcrumbNav() {
         return "Scenes & Schedules";
       case "smarthome":
         return "Smarthome";
+      case "dali-core":
+        return "DALI Interface";
       default:
         return "Group Configuration";
     }
@@ -75,7 +78,8 @@ export default function App() {
   return (
     <ProjectProvider>
       <ProjectDetailProvider>
-        <SidebarProvider>
+        <DaliProvider>
+          <SidebarProvider>
           <AppSidebar />
           <div className="h-8 w-full draggable-region absolute top-0"></div>
           <SidebarInset className="mt-8!">
@@ -90,6 +94,7 @@ export default function App() {
           </SidebarInset>
           <Toaster richColors />
         </SidebarProvider>
+        </DaliProvider>
       </ProjectDetailProvider>
     </ProjectProvider>
   );

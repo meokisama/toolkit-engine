@@ -3,6 +3,7 @@ import { useProjectDetail } from "@/contexts/project-detail-context";
 import { GroupConfig } from "./group-config";
 import { ScenesSchedules } from "./automation";
 import { Smarthome } from "./smarthome";
+import { DaliCore } from "./dali-core";
 
 export function ProjectDetail() {
   const { selectedProject, activeSection } = useProjectDetail();
@@ -27,6 +28,10 @@ export function ProjectDetail() {
 
   if (activeSection === "smarthome") {
     return <Smarthome />;
+  }
+
+  if (activeSection === "dali-core") {
+    return <DaliCore />;
   }
 
   // Default to group config

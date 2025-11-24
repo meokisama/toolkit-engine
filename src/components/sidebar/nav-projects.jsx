@@ -11,6 +11,7 @@ import {
   Library,
   Workflow,
   Home,
+  Blocks,
 } from "lucide-react";
 
 import {
@@ -300,6 +301,21 @@ export function NavProjects() {
                               >
                                 <Workflow className="h-4 w-4" />
                                 <span>Automation</span>
+                              </SidebarMenuSubButton>
+                            </SidebarMenuSubItem>
+                            <SidebarMenuSubItem>
+                              <SidebarMenuSubButton
+                                className={`text-gray-700 cursor-pointer ${
+                                  isSelected && activeSection === "dali-core"
+                                    ? "bg-accent"
+                                    : ""
+                                }`}
+                                onClick={() =>
+                                  handleSectionSelect(project, "dali-core")
+                                }
+                              >
+                                <Blocks className="h-4 w-4" />
+                                <span>DALI Interface</span>
                               </SidebarMenuSubButton>
                             </SidebarMenuSubItem>
                             <SidebarMenuSubItem>

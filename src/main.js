@@ -3,90 +3,7 @@ import path from "node:path";
 import started from "electron-squirrel-startup";
 import DatabaseService from "./services/database.js";
 import LoggerService from "./services/logger.js";
-import {
-  setGroupState,
-  setOutputState,
-  setInputState,
-  setMultipleGroupStates,
-  getAllGroupStates,
-  getAllOutputStates,
-  getAllInputStates,
-  getAllInputConfigs,
-  setupInputConfig,
-  getOutputAssign,
-  setOutputAssign,
-  setAllOutputAssignments,
-  setOutputDelayOff,
-  setOutputDelayOn,
-  getOutputConfig,
-  setOutputConfig,
-  getACStatus,
-  getRoomTemp,
-  setSettingRoomTemp,
-  getSettingRoomTemp,
-  setFanMode,
-  getFanMode,
-  setPowerMode,
-  getPowerMode,
-  setOperateMode,
-  getOperateMode,
-  setEcoMode,
-  getEcoMode,
-  setupScene,
-  getSceneInformation,
-  getAllScenesInformation,
-  triggerScene,
-  deleteScene,
-  deleteAllScenes,
-  setupMultiScene,
-  getMultiSceneInformation,
-  getAllMultiScenesInformation,
-  triggerMultiScene,
-  deleteMultiScene,
-  deleteAllMultiScenes,
-  deleteSequence,
-  deleteAllSequences,
-  setupSequence,
-  getSequenceInformation,
-  getAllSequencesInformation,
-  triggerSequence,
-  setupSchedule,
-  getScheduleInformation,
-  getAllSchedulesInformation,
-  deleteSchedule,
-  deleteAllSchedules,
-  syncClock,
-  getClock,
-  getCurtainConfig,
-  setCurtain,
-  setCurtainConfig,
-  deleteCurtain,
-  deleteAllCurtains,
-  setKnxConfig,
-  getKnxConfig,
-  triggerKnx,
-  deleteKnxConfig,
-  deleteAllKnxConfigs,
-  getLocalACConfig,
-  setLocalACConfig,
-  updateFirmware,
-  changeIpAddress,
-  changeCanId,
-  setHardwareConfig,
-  changeIpAddressBroadcast,
-  getRS485CH1Config,
-  getRS485CH2Config,
-  setRS485CH1Config,
-  setRS485CH2Config,
-  createDefaultNetworkRS485Config,
-  getZigbeeDevices,
-  sendZigbeeCommand,
-  removeZigbeeDevice,
-  closeZigbeeNetwork,
-  exploreZigbeeNetwork,
-  setupZigbeeDevice,
-  factoryResetZigbee,
-} from "./services/rcu-controller.js";
+import * as rcu from "./services/rcu-controller.js";
 import dgram from "dgram";
 import { updateElectronApp } from "update-electron-app";
 import { networkInterfaceService } from "./services/network-interfaces.js";
@@ -101,10 +18,11 @@ if (started) {
 // Initialize services
 let dbService;
 let loggerService;
+let mainWindow;
 
 const createWindow = () => {
   // Create the browser window.
-  const mainWindow = new BrowserWindow({
+  mainWindow = new BrowserWindow({
     width: 1600,
     height: 900,
     autoHideMenuBar: true,
@@ -146,8 +64,12 @@ app.whenReady().then(async () => {
 
   createWindow();
 
-  // Network cache manager will be initialized in renderer process
-  // since UDP scanning needs to run in renderer context
+  // Listen for DALI device count changed events
+  rcu.daliEvents.on("deviceCountChanged", (data) => {
+    if (mainWindow && !mainWindow.isDestroyed()) {
+      mainWindow.webContents.send("dali:deviceCountChanged", data);
+    }
+  });
 
   // On OS X it's common to re-create a window in the app when the
   // dock icon is clicked and there are no other windows open.
@@ -1324,7 +1246,7 @@ function setupIpcHandlers() {
     "rcu:setupScene",
     async (event, unitIp, canId, sceneConfig) => {
       try {
-        return await setupScene(unitIp, canId, sceneConfig);
+        return await rcu.setupScene(unitIp, canId, sceneConfig);
       } catch (error) {
         console.error("Error setting up scene:", error);
         throw error;
@@ -1336,7 +1258,7 @@ function setupIpcHandlers() {
     "rcu:getSceneInformation",
     async (event, { unitIp, canId, sceneIndex }) => {
       try {
-        return await getSceneInformation(unitIp, canId, sceneIndex);
+        return await rcu.getSceneInformation(unitIp, canId, sceneIndex);
       } catch (error) {
         console.error("Error getting scene information:", error);
         throw error;
@@ -1348,7 +1270,7 @@ function setupIpcHandlers() {
     "rcu:getAllScenesInformation",
     async (event, { unitIp, canId }) => {
       try {
-        return await getAllScenesInformation(unitIp, canId);
+        return await rcu.getAllScenesInformation(unitIp, canId);
       } catch (error) {
         console.error("Error getting all scenes information:", error);
         throw error;
@@ -1360,7 +1282,7 @@ function setupIpcHandlers() {
     "rcu:triggerScene",
     async (event, { unitIp, canId, sceneIndex, sceneAddress }) => {
       try {
-        return await triggerScene(unitIp, canId, sceneAddress);
+        return await rcu.triggerScene(unitIp, canId, sceneAddress);
       } catch (error) {
         console.error("Error triggering scene:", error);
         throw error;
@@ -1372,7 +1294,7 @@ function setupIpcHandlers() {
     "rcu:deleteScene",
     async (event, unitIp, canId, sceneIndex) => {
       try {
-        return await deleteScene(unitIp, canId, sceneIndex);
+        return await rcu.deleteScene(unitIp, canId, sceneIndex);
       } catch (error) {
         console.error("Error deleting scene:", error);
         throw error;
@@ -1382,7 +1304,7 @@ function setupIpcHandlers() {
 
   ipcMain.handle("rcu:deleteAllScenes", async (event, unitIp, canId) => {
     try {
-      return await deleteAllScenes(unitIp, canId);
+      return await rcu.deleteAllScenes(unitIp, canId);
     } catch (error) {
       console.error("Error deleting all scenes:", error);
       throw error;
@@ -1394,7 +1316,7 @@ function setupIpcHandlers() {
     "rcu:setupMultiScene",
     async (event, unitIp, canId, multiSceneConfig) => {
       try {
-        return await setupMultiScene(unitIp, canId, multiSceneConfig);
+        return await rcu.setupMultiScene(unitIp, canId, multiSceneConfig);
       } catch (error) {
         console.error("Error setting up multi-scene:", error);
         throw error;
@@ -1407,7 +1329,11 @@ function setupIpcHandlers() {
     "rcu:getMultiSceneInformation",
     async (event, { unitIp, canId, multiSceneIndex }) => {
       try {
-        return await getMultiSceneInformation(unitIp, canId, multiSceneIndex);
+        return await rcu.getMultiSceneInformation(
+          unitIp,
+          canId,
+          multiSceneIndex
+        );
       } catch (error) {
         console.error("Error getting multi-scene information:", error);
         throw error;
@@ -1420,7 +1346,7 @@ function setupIpcHandlers() {
     "rcu:getAllMultiScenesInformation",
     async (event, { unitIp, canId }) => {
       try {
-        return await getAllMultiScenesInformation(unitIp, canId);
+        return await rcu.getAllMultiScenesInformation(unitIp, canId);
       } catch (error) {
         console.error("Error getting all multi-scenes information:", error);
         throw error;
@@ -1433,7 +1359,7 @@ function setupIpcHandlers() {
     "rcu:triggerMultiScene",
     async (event, { unitIp, canId, multiSceneAddress }) => {
       try {
-        return await triggerMultiScene(unitIp, canId, multiSceneAddress);
+        return await rcu.triggerMultiScene(unitIp, canId, multiSceneAddress);
       } catch (error) {
         console.error("Error triggering multi-scene:", error);
         throw error;
@@ -1446,7 +1372,7 @@ function setupIpcHandlers() {
     "rcu:deleteMultiScene",
     async (event, unitIp, canId, multiSceneIndex) => {
       try {
-        return await deleteMultiScene(unitIp, canId, multiSceneIndex);
+        return await rcu.deleteMultiScene(unitIp, canId, multiSceneIndex);
       } catch (error) {
         console.error("Error deleting multi-scene:", error);
         throw error;
@@ -1456,7 +1382,7 @@ function setupIpcHandlers() {
 
   ipcMain.handle("rcu:deleteAllMultiScenes", async (event, unitIp, canId) => {
     try {
-      return await deleteAllMultiScenes(unitIp, canId);
+      return await rcu.deleteAllMultiScenes(unitIp, canId);
     } catch (error) {
       console.error("Error deleting all multi-scenes:", error);
       throw error;
@@ -1468,7 +1394,7 @@ function setupIpcHandlers() {
     "rcu:deleteSequence",
     async (event, unitIp, canId, sequenceIndex) => {
       try {
-        return await deleteSequence(unitIp, canId, sequenceIndex);
+        return await rcu.deleteSequence(unitIp, canId, sequenceIndex);
       } catch (error) {
         console.error("Error deleting sequence:", error);
         throw error;
@@ -1478,7 +1404,7 @@ function setupIpcHandlers() {
 
   ipcMain.handle("rcu:deleteAllSequences", async (event, unitIp, canId) => {
     try {
-      return await deleteAllSequences(unitIp, canId);
+      return await rcu.deleteAllSequences(unitIp, canId);
     } catch (error) {
       console.error("Error deleting all sequences:", error);
       throw error;
@@ -1490,7 +1416,7 @@ function setupIpcHandlers() {
     "rcu:setupSequence",
     async (event, unitIp, canId, sequenceConfig) => {
       try {
-        return await setupSequence(unitIp, canId, sequenceConfig);
+        return await rcu.setupSequence(unitIp, canId, sequenceConfig);
       } catch (error) {
         console.error("Error setting up sequence:", error);
         throw error;
@@ -1503,7 +1429,7 @@ function setupIpcHandlers() {
     "rcu:getSequenceInformation",
     async (event, { unitIp, canId, sequenceIndex }) => {
       try {
-        return await getSequenceInformation(unitIp, canId, sequenceIndex);
+        return await rcu.getSequenceInformation(unitIp, canId, sequenceIndex);
       } catch (error) {
         console.error("Error getting sequence information:", error);
         throw error;
@@ -1516,7 +1442,7 @@ function setupIpcHandlers() {
     "rcu:getAllSequencesInformation",
     async (event, { unitIp, canId }) => {
       try {
-        return await getAllSequencesInformation(unitIp, canId);
+        return await rcu.getAllSequencesInformation(unitIp, canId);
       } catch (error) {
         console.error("Error getting all sequences information:", error);
         throw error;
@@ -1529,7 +1455,7 @@ function setupIpcHandlers() {
     "rcu:triggerSequence",
     async (event, { unitIp, canId, sequenceAddress }) => {
       try {
-        return await triggerSequence(unitIp, canId, sequenceAddress);
+        return await rcu.triggerSequence(unitIp, canId, sequenceAddress);
       } catch (error) {
         console.error("Error triggering sequence:", error);
         throw error;
@@ -1542,7 +1468,7 @@ function setupIpcHandlers() {
     "rcu:setGroupState",
     async (event, { canId, group, value, unitIp }) => {
       try {
-        return await setGroupState(unitIp, canId, group, value);
+        return await rcu.setGroupState(unitIp, canId, group, value);
       } catch (error) {
         console.error("Error setting group state:", error);
         throw error;
@@ -1554,7 +1480,7 @@ function setupIpcHandlers() {
     "rcu:setOutputState",
     async (event, { canId, outputIndex, value, unitIp }) => {
       try {
-        return await setOutputState(unitIp, canId, outputIndex, value);
+        return await rcu.setOutputState(unitIp, canId, outputIndex, value);
       } catch (error) {
         console.error("Error setting output state:", error);
         throw error;
@@ -1566,7 +1492,7 @@ function setupIpcHandlers() {
     "rcu:setInputState",
     async (event, { canId, inputIndex, value, unitIp }) => {
       try {
-        return await setInputState(unitIp, canId, inputIndex, value);
+        return await rcu.setInputState(unitIp, canId, inputIndex, value);
       } catch (error) {
         console.error("Error setting input state:", error);
         throw error;
@@ -1578,7 +1504,7 @@ function setupIpcHandlers() {
     "rcu:setMultipleGroupStates",
     async (event, { canId, groupSettings, unitIp }) => {
       try {
-        return await setMultipleGroupStates(unitIp, canId, groupSettings);
+        return await rcu.setMultipleGroupStates(unitIp, canId, groupSettings);
       } catch (error) {
         console.error("Error setting multiple group states:", error);
         throw error;
@@ -1588,7 +1514,7 @@ function setupIpcHandlers() {
 
   ipcMain.handle("rcu:getAllGroupStates", async (event, { canId, unitIp }) => {
     try {
-      return await getAllGroupStates(unitIp, canId);
+      return await rcu.getAllGroupStates(unitIp, canId);
     } catch (error) {
       console.error("Error getting group states:", error);
       throw error;
@@ -1597,7 +1523,7 @@ function setupIpcHandlers() {
 
   ipcMain.handle("rcu:getAllOutputStates", async (event, { canId, unitIp }) => {
     try {
-      return await getAllOutputStates(unitIp, canId);
+      return await rcu.getAllOutputStates(unitIp, canId);
     } catch (error) {
       console.error("Error getting output states:", error);
       throw error;
@@ -1606,7 +1532,7 @@ function setupIpcHandlers() {
 
   ipcMain.handle("rcu:getAllInputStates", async (event, { canId, unitIp }) => {
     try {
-      return await getAllInputStates(unitIp, canId);
+      return await rcu.getAllInputStates(unitIp, canId);
     } catch (error) {
       console.error("Error getting input states:", error);
       throw error;
@@ -1615,7 +1541,7 @@ function setupIpcHandlers() {
 
   ipcMain.handle("rcu:getAllInputConfigs", async (event, { canId, unitIp }) => {
     try {
-      return await getAllInputConfigs(unitIp, canId);
+      return await rcu.getAllInputConfigs(unitIp, canId);
     } catch (error) {
       console.error("Error getting input configs:", error);
       throw error;
@@ -1626,7 +1552,7 @@ function setupIpcHandlers() {
     "rcu:setupInputConfig",
     async (event, { unitIp, canId, inputConfig }) => {
       try {
-        return await setupInputConfig(unitIp, canId, inputConfig);
+        return await rcu.setupInputConfig(unitIp, canId, inputConfig);
       } catch (error) {
         console.error("Error setting up input config:", error);
         throw error;
@@ -1637,8 +1563,7 @@ function setupIpcHandlers() {
   // Output Configuration Control
   ipcMain.handle("rcu:getOutputAssign", async (event, { unitIp, canId }) => {
     try {
-      console.log("IPC getOutputAssign called with:", { unitIp, canId });
-      return await getOutputAssign(unitIp, canId);
+      return await rcu.getOutputAssign(unitIp, canId);
     } catch (error) {
       console.error("Error getting output assignments:", error);
       throw error;
@@ -1647,7 +1572,7 @@ function setupIpcHandlers() {
 
   ipcMain.handle("rcu:getOutputConfig", async (event, unitIp, canId) => {
     try {
-      return await getOutputConfig(unitIp, canId);
+      return await rcu.getOutputConfig(unitIp, canId);
     } catch (error) {
       console.error("Error getting output config:", error);
       throw error;
@@ -1658,7 +1583,7 @@ function setupIpcHandlers() {
     "rcu:setOutputAssign",
     async (event, unitIp, canId, outputIndex, lightingAddress) => {
       try {
-        return await setOutputAssign(
+        return await rcu.setOutputAssign(
           unitIp,
           canId,
           outputIndex,
@@ -1675,7 +1600,11 @@ function setupIpcHandlers() {
     "rcu:setAllOutputAssignments",
     async (event, unitIp, canId, outputAssignments) => {
       try {
-        return await setAllOutputAssignments(unitIp, canId, outputAssignments);
+        return await rcu.setAllOutputAssignments(
+          unitIp,
+          canId,
+          outputAssignments
+        );
       } catch (error) {
         console.error("Error setting all output assignments:", error);
         throw error;
@@ -1687,7 +1616,12 @@ function setupIpcHandlers() {
     "rcu:setOutputDelayOff",
     async (event, unitIp, canId, outputIndex, delayOff) => {
       try {
-        return await setOutputDelayOff(unitIp, canId, outputIndex, delayOff);
+        return await rcu.setOutputDelayOff(
+          unitIp,
+          canId,
+          outputIndex,
+          delayOff
+        );
       } catch (error) {
         console.error("Error setting output delay off:", error);
         throw error;
@@ -1699,7 +1633,7 @@ function setupIpcHandlers() {
     "rcu:setOutputDelayOn",
     async (event, unitIp, canId, outputIndex, delayOn) => {
       try {
-        return await setOutputDelayOn(unitIp, canId, outputIndex, delayOn);
+        return await rcu.setOutputDelayOn(unitIp, canId, outputIndex, delayOn);
       } catch (error) {
         console.error("Error setting output delay on:", error);
         throw error;
@@ -1711,7 +1645,7 @@ function setupIpcHandlers() {
     "rcu:setOutputConfig",
     async (event, unitIp, canId, outputIndex, config) => {
       try {
-        return await setOutputConfig(unitIp, canId, outputIndex, config);
+        return await rcu.setOutputConfig(unitIp, canId, outputIndex, config);
       } catch (error) {
         console.error("Error setting output config:", error);
         throw error;
@@ -1722,7 +1656,7 @@ function setupIpcHandlers() {
   // Air Conditioner Control
   ipcMain.handle("rcu:getACStatus", async (event, { canId, unitIp, group }) => {
     try {
-      return await getACStatus(unitIp, canId, group);
+      return await rcu.getACStatus(unitIp, canId, group);
     } catch (error) {
       console.error("Error getting AC status:", error);
       throw error;
@@ -1731,7 +1665,7 @@ function setupIpcHandlers() {
 
   ipcMain.handle("rcu:getRoomTemp", async (event, { canId, unitIp, group }) => {
     try {
-      return await getRoomTemp(unitIp, canId, group);
+      return await rcu.getRoomTemp(unitIp, canId, group);
     } catch (error) {
       console.error("Error getting room temperature:", error);
       throw error;
@@ -1742,7 +1676,7 @@ function setupIpcHandlers() {
     "rcu:setSettingRoomTemp",
     async (event, { canId, unitIp, group, temperature }) => {
       try {
-        return await setSettingRoomTemp(unitIp, canId, group, temperature);
+        return await rcu.setSettingRoomTemp(unitIp, canId, group, temperature);
       } catch (error) {
         console.error("Error setting room temperature:", error);
         throw error;
@@ -1754,7 +1688,7 @@ function setupIpcHandlers() {
     "rcu:getSettingRoomTemp",
     async (event, { canId, unitIp, group }) => {
       try {
-        return await getSettingRoomTemp(unitIp, canId, group);
+        return await rcu.getSettingRoomTemp(unitIp, canId, group);
       } catch (error) {
         console.error("Error getting setting room temperature:", error);
         throw error;
@@ -1766,7 +1700,7 @@ function setupIpcHandlers() {
     "rcu:setFanMode",
     async (event, { canId, unitIp, group, fanSpeed }) => {
       try {
-        return await setFanMode(unitIp, canId, group, fanSpeed);
+        return await rcu.setFanMode(unitIp, canId, group, fanSpeed);
       } catch (error) {
         console.error("Error setting fan mode:", error);
         throw error;
@@ -1776,7 +1710,7 @@ function setupIpcHandlers() {
 
   ipcMain.handle("rcu:getFanMode", async (event, { canId, unitIp, group }) => {
     try {
-      return await getFanMode(unitIp, canId, group);
+      return await rcu.getFanMode(unitIp, canId, group);
     } catch (error) {
       console.error("Error getting fan mode:", error);
       throw error;
@@ -1787,7 +1721,7 @@ function setupIpcHandlers() {
     "rcu:setPowerMode",
     async (event, { canId, unitIp, group, power }) => {
       try {
-        return await setPowerMode(unitIp, canId, group, power);
+        return await rcu.setPowerMode(unitIp, canId, group, power);
       } catch (error) {
         console.error("Error setting power mode:", error);
         throw error;
@@ -1799,7 +1733,7 @@ function setupIpcHandlers() {
     "rcu:getPowerMode",
     async (event, { canId, unitIp, group }) => {
       try {
-        return await getPowerMode(unitIp, canId, group);
+        return await rcu.getPowerMode(unitIp, canId, group);
       } catch (error) {
         console.error("Error getting power mode:", error);
         throw error;
@@ -1811,7 +1745,7 @@ function setupIpcHandlers() {
     "rcu:setOperateMode",
     async (event, { canId, unitIp, group, mode }) => {
       try {
-        return await setOperateMode(unitIp, canId, group, mode);
+        return await rcu.setOperateMode(unitIp, canId, group, mode);
       } catch (error) {
         console.error("Error setting operate mode:", error);
         throw error;
@@ -1823,7 +1757,7 @@ function setupIpcHandlers() {
     "rcu:getOperateMode",
     async (event, { canId, unitIp, group }) => {
       try {
-        return await getOperateMode(unitIp, canId, group);
+        return await rcu.getOperateMode(unitIp, canId, group);
       } catch (error) {
         console.error("Error getting operate mode:", error);
         throw error;
@@ -1835,7 +1769,7 @@ function setupIpcHandlers() {
     "rcu:setEcoMode",
     async (event, { canId, unitIp, group, eco }) => {
       try {
-        return await setEcoMode(unitIp, canId, group, eco);
+        return await rcu.setEcoMode(unitIp, canId, group, eco);
       } catch (error) {
         console.error("Error setting eco mode:", error);
         throw error;
@@ -1845,7 +1779,7 @@ function setupIpcHandlers() {
 
   ipcMain.handle("rcu:getEcoMode", async (event, { canId, unitIp, group }) => {
     try {
-      return await getEcoMode(unitIp, canId, group);
+      return await rcu.getEcoMode(unitIp, canId, group);
     } catch (error) {
       console.error("Error getting eco mode:", error);
       throw error;
@@ -1855,7 +1789,7 @@ function setupIpcHandlers() {
   // AC Output Configuration
   ipcMain.handle("rcu:getLocalACConfig", async (event, unitIp, canId) => {
     try {
-      return await getLocalACConfig(unitIp, canId);
+      return await rcu.getLocalACConfig(unitIp, canId);
     } catch (error) {
       console.error("Error getting local AC config:", error);
       throw error;
@@ -1866,7 +1800,7 @@ function setupIpcHandlers() {
     "rcu:setLocalACConfig",
     async (event, unitIp, canId, acConfigs) => {
       try {
-        return await setLocalACConfig(unitIp, canId, acConfigs);
+        return await rcu.setLocalACConfig(unitIp, canId, acConfigs);
       } catch (error) {
         console.error("Error setting local AC config:", error);
         throw error;
@@ -1879,7 +1813,7 @@ function setupIpcHandlers() {
     "rcu:syncClock",
     async (event, { unitIp, canId, clockData }) => {
       try {
-        return await syncClock(unitIp, canId, clockData);
+        return await rcu.syncClock(unitIp, canId, clockData);
       } catch (error) {
         console.error("Error syncing clock:", error);
         throw error;
@@ -1889,7 +1823,7 @@ function setupIpcHandlers() {
 
   ipcMain.handle("rcu:getClock", async (event, { unitIp, canId }) => {
     try {
-      return await getClock(unitIp, canId);
+      return await rcu.getClock(unitIp, canId);
     } catch (error) {
       console.error("Error getting clock:", error);
       throw error;
@@ -1901,7 +1835,7 @@ function setupIpcHandlers() {
     "rcu:getCurtainConfig",
     async (event, { unitIp, canId, curtainIndex }) => {
       try {
-        return await getCurtainConfig(unitIp, canId, curtainIndex);
+        return await rcu.getCurtainConfig(unitIp, canId, curtainIndex);
       } catch (error) {
         console.error("Error getting curtain configuration:", error);
         throw error;
@@ -1913,7 +1847,7 @@ function setupIpcHandlers() {
     "rcu:setCurtain",
     async (event, { unitIp, canId, curtainAddress, value }) => {
       try {
-        return await setCurtain(unitIp, canId, curtainAddress, value);
+        return await rcu.setCurtain(unitIp, canId, curtainAddress, value);
       } catch (error) {
         console.error("Error setting curtain:", error);
         throw error;
@@ -1925,7 +1859,7 @@ function setupIpcHandlers() {
     "rcu:setCurtainConfig",
     async (event, unitIp, canId, curtainConfig) => {
       try {
-        return await setCurtainConfig(unitIp, canId, curtainConfig);
+        return await rcu.setCurtainConfig(unitIp, canId, curtainConfig);
       } catch (error) {
         console.error("Error setting curtain configuration:", error);
         throw error;
@@ -1937,7 +1871,7 @@ function setupIpcHandlers() {
     "rcu:deleteCurtain",
     async (event, { unitIp, canId, curtainIndex }) => {
       try {
-        return await deleteCurtain(unitIp, canId, curtainIndex);
+        return await rcu.deleteCurtain(unitIp, canId, curtainIndex);
       } catch (error) {
         console.error("Error deleting curtain:", error);
         throw error;
@@ -1947,7 +1881,7 @@ function setupIpcHandlers() {
 
   ipcMain.handle("rcu:deleteAllCurtains", async (event, unitIp, canId) => {
     try {
-      return await deleteAllCurtains(unitIp, canId);
+      return await rcu.deleteAllCurtains(unitIp, canId);
     } catch (error) {
       console.error("Error deleting all curtains:", error);
       throw error;
@@ -1959,7 +1893,7 @@ function setupIpcHandlers() {
     "rcu:setKnxConfig",
     async (event, unitIp, canId, knxConfig, unitType) => {
       try {
-        return await setKnxConfig(
+        return await rcu.setKnxConfig(
           unitIp,
           canId,
           knxConfig,
@@ -1977,7 +1911,7 @@ function setupIpcHandlers() {
     "rcu:getKnxConfig",
     async (event, { unitIp, canId, knxAddress }) => {
       try {
-        return await getKnxConfig(unitIp, canId, knxAddress);
+        return await rcu.getKnxConfig(unitIp, canId, knxAddress);
       } catch (error) {
         console.error("Error getting KNX config:", error);
         throw error;
@@ -1989,7 +1923,7 @@ function setupIpcHandlers() {
     "rcu:deleteKnxConfig",
     async (event, { unitIp, canId, knxAddress }) => {
       try {
-        return await deleteKnxConfig(unitIp, canId, knxAddress);
+        return await rcu.deleteKnxConfig(unitIp, canId, knxAddress);
       } catch (error) {
         console.error("Error deleting KNX config:", error);
         throw error;
@@ -1999,7 +1933,7 @@ function setupIpcHandlers() {
 
   ipcMain.handle("rcu:deleteAllKnxConfigs", async (event, unitIp, canId) => {
     try {
-      return await deleteAllKnxConfigs(unitIp, canId);
+      return await rcu.deleteAllKnxConfigs(unitIp, canId);
     } catch (error) {
       console.error("Error deleting all KNX configs:", error);
       throw error;
@@ -2010,7 +1944,7 @@ function setupIpcHandlers() {
     "rcu:triggerKnx",
     async (event, { unitIp, canId, knxAddress }) => {
       try {
-        return await triggerKnx(unitIp, canId, knxAddress);
+        return await rcu.triggerKnx(unitIp, canId, knxAddress);
       } catch (error) {
         console.error("Error triggering KNX:", error);
         throw error;
@@ -2025,7 +1959,7 @@ function setupIpcHandlers() {
       try {
         const newIpBytes = data.slice(0, 4);
         const oldIpBytes = data.slice(4, 8);
-        return await changeIpAddress(unitIp, canId, newIpBytes, oldIpBytes);
+        return await rcu.changeIpAddress(unitIp, canId, newIpBytes, oldIpBytes);
       } catch (error) {
         console.error("Error changing IP address:", error);
         throw error;
@@ -2037,7 +1971,7 @@ function setupIpcHandlers() {
     "rcu:changeIpAddressBroadcast",
     async (event, { unitIp, canId, newIpBytes, oldIpBytes }) => {
       try {
-        return await changeIpAddressBroadcast(
+        return await rcu.changeIpAddressBroadcast(
           unitIp,
           canId,
           newIpBytes,
@@ -2054,7 +1988,7 @@ function setupIpcHandlers() {
     "rcu:changeCanId",
     async (event, { unitIp, canId, newLastPart }) => {
       try {
-        return await changeCanId(unitIp, canId, newLastPart);
+        return await rcu.changeCanId(unitIp, canId, newLastPart);
       } catch (error) {
         console.error("Error changing CAN ID:", error);
         throw error;
@@ -2066,7 +2000,7 @@ function setupIpcHandlers() {
     "rcu:setHardwareConfig",
     async (event, { unitIp, canId, configByte }) => {
       try {
-        return await setHardwareConfig(unitIp, canId, configByte);
+        return await rcu.setHardwareConfig(unitIp, canId, configByte);
       } catch (error) {
         console.error("Error setting hardware config:", error);
         throw error;
@@ -2077,7 +2011,7 @@ function setupIpcHandlers() {
   // RS485 Configuration functions
   ipcMain.handle("rcu:getRS485CH1Config", async (event, { unitIp, canId }) => {
     try {
-      return await getRS485CH1Config(unitIp, canId);
+      return await rcu.getRS485CH1Config(unitIp, canId);
     } catch (error) {
       console.error("Error getting RS485 CH1 config:", error);
       throw error;
@@ -2086,7 +2020,7 @@ function setupIpcHandlers() {
 
   ipcMain.handle("rcu:getRS485CH2Config", async (event, { unitIp, canId }) => {
     try {
-      return await getRS485CH2Config(unitIp, canId);
+      return await rcu.getRS485CH2Config(unitIp, canId);
     } catch (error) {
       console.error("Error getting RS485 CH2 config:", error);
       throw error;
@@ -2097,7 +2031,7 @@ function setupIpcHandlers() {
     "rcu:setRS485CH1Config",
     async (event, { unitIp, canId, config }) => {
       try {
-        return await setRS485CH1Config(unitIp, canId, config);
+        return await rcu.setRS485CH1Config(unitIp, canId, config);
       } catch (error) {
         console.error("Error setting RS485 CH1 config:", error);
         throw error;
@@ -2109,7 +2043,7 @@ function setupIpcHandlers() {
     "rcu:setRS485CH2Config",
     async (event, { unitIp, canId, config }) => {
       try {
-        return await setRS485CH2Config(unitIp, canId, config);
+        return await rcu.setRS485CH2Config(unitIp, canId, config);
       } catch (error) {
         console.error("Error setting RS485 CH2 config:", error);
         throw error;
@@ -2120,7 +2054,7 @@ function setupIpcHandlers() {
   // Zigbee Devices - RCU Controller
   ipcMain.handle("rcu:getZigbeeDevices", async (event, { unitIp, canId }) => {
     try {
-      return await getZigbeeDevices(unitIp, canId);
+      return await rcu.getZigbeeDevices(unitIp, canId);
     } catch (error) {
       console.error("Error getting Zigbee devices:", error);
       throw error;
@@ -2134,7 +2068,7 @@ function setupIpcHandlers() {
       { unitIp, canId, ieeeAddress, deviceType, endpointId, command, deviceId }
     ) => {
       try {
-        const result = await sendZigbeeCommand(
+        const result = await rcu.sendZigbeeCommand(
           unitIp,
           canId,
           ieeeAddress,
@@ -2210,7 +2144,12 @@ function setupIpcHandlers() {
     "rcu:removeZigbeeDevice",
     async (event, { unitIp, canId, ieeeAddress, deviceType }) => {
       try {
-        return await removeZigbeeDevice(unitIp, canId, ieeeAddress, deviceType);
+        return await rcu.removeZigbeeDevice(
+          unitIp,
+          canId,
+          ieeeAddress,
+          deviceType
+        );
       } catch (error) {
         console.error("Error removing Zigbee device:", error);
         throw error;
@@ -2220,7 +2159,7 @@ function setupIpcHandlers() {
 
   ipcMain.handle("rcu:closeZigbeeNetwork", async (event, { unitIp, canId }) => {
     try {
-      return await closeZigbeeNetwork(unitIp, canId);
+      return await rcu.closeZigbeeNetwork(unitIp, canId);
     } catch (error) {
       console.error("Error closing Zigbee network:", error);
       throw error;
@@ -2231,7 +2170,7 @@ function setupIpcHandlers() {
     "rcu:exploreZigbeeNetwork",
     async (event, { unitIp, canId, timeoutMs, onDeviceFound }) => {
       try {
-        return await exploreZigbeeNetwork(
+        return await rcu.exploreZigbeeNetwork(
           unitIp,
           canId,
           timeoutMs,
@@ -2248,7 +2187,7 @@ function setupIpcHandlers() {
     "rcu:setupZigbeeDevice",
     async (event, { unitIp, canId, devices }) => {
       try {
-        return await setupZigbeeDevice(unitIp, canId, devices);
+        return await rcu.setupZigbeeDevice(unitIp, canId, devices);
       } catch (error) {
         console.error("Error setting up Zigbee devices:", error);
         throw error;
@@ -2258,7 +2197,7 @@ function setupIpcHandlers() {
 
   ipcMain.handle("rcu:factoryResetZigbee", async (event, { unitIp, canId }) => {
     try {
-      return await factoryResetZigbee(unitIp, canId);
+      return await rcu.factoryResetZigbee(unitIp, canId);
     } catch (error) {
       console.error("Error factory resetting Zigbee:", error);
       throw error;
@@ -2319,12 +2258,394 @@ function setupIpcHandlers() {
       }
     }
   );
+
+  // DALI - RCU Controller
+  ipcMain.handle(
+    "rcu:daliCommissioning",
+    async (event, { unitIp, canId, extend }) => {
+      try {
+        return await rcu.daliCommissioning(unitIp, canId, extend);
+      } catch (error) {
+        console.error("Error in DALI commissioning:", error);
+        throw error;
+      }
+    }
+  );
+
+  ipcMain.handle("rcu:daliScan", async (event, { unitIp, canId }) => {
+    try {
+      return await rcu.daliScan(unitIp, canId);
+    } catch (error) {
+      console.error("Error in DALI scan:", error);
+      throw error;
+    }
+  });
+
+  ipcMain.handle(
+    "rcu:sendAddressMapping",
+    async (event, { unitIp, canId, addressMapping }) => {
+      try {
+        return await rcu.sendAddressMapping(unitIp, canId, addressMapping);
+      } catch (error) {
+        console.error("Error sending DALI address mapping:", error);
+        throw error;
+      }
+    }
+  );
+
+  ipcMain.handle("rcu:daliBroadcastOn", async (event, { unitIp, canId }) => {
+    try {
+      return await rcu.daliBroadcastOn(unitIp, canId);
+    } catch (error) {
+      console.error("Error in DALI broadcast ON:", error);
+      throw error;
+    }
+  });
+
+  ipcMain.handle("rcu:daliBroadcastOff", async (event, { unitIp, canId }) => {
+    try {
+      return await rcu.daliBroadcastOff(unitIp, canId);
+    } catch (error) {
+      console.error("Error in DALI broadcast OFF:", error);
+      throw error;
+    }
+  });
+
+  ipcMain.handle(
+    "rcu:triggerDaliDevice",
+    async (event, { unitIp, canId, deviceAddress, level }) => {
+      try {
+        return await rcu.triggerDaliDevice(unitIp, canId, deviceAddress, level);
+      } catch (error) {
+        console.error("Error triggering DALI device:", error);
+        throw error;
+      }
+    }
+  );
+
+  ipcMain.handle(
+    "rcu:triggerDaliGroup",
+    async (event, { unitIp, canId, groupId, level }) => {
+      try {
+        return await rcu.triggerDaliGroup(unitIp, canId, groupId, level);
+      } catch (error) {
+        console.error("Error triggering DALI group:", error);
+        throw error;
+      }
+    }
+  );
+
+  ipcMain.handle(
+    "rcu:triggerDaliScene",
+    async (event, { unitIp, canId, sceneId }) => {
+      try {
+        return await rcu.triggerDaliScene(unitIp, canId, sceneId);
+      } catch (error) {
+        console.error("Error triggering DALI scene:", error);
+        throw error;
+      }
+    }
+  );
+
+  ipcMain.handle(
+    "rcu:sendGroupSceneConfig",
+    async (event, { unitIp, canId, projectId }) => {
+      try {
+        return await rcu.sendGroupSceneConfig(
+          unitIp,
+          canId,
+          projectId,
+          dbService
+        );
+      } catch (error) {
+        console.error("Error sending Group & Scene config:", error);
+        throw error;
+      }
+    }
+  );
+
+  // DALI Devices - Database Operations
+  ipcMain.handle("dali:getAllDevices", async (event, projectId) => {
+    try {
+      return await dbService.getAllDaliDevices(projectId);
+    } catch (error) {
+      console.error("Error getting all DALI devices:", error);
+      throw error;
+    }
+  });
+
+  ipcMain.handle("dali:getDevice", async (event, projectId, address) => {
+    try {
+      return await dbService.getDaliDevice(projectId, address);
+    } catch (error) {
+      console.error("Error getting DALI device:", error);
+      throw error;
+    }
+  });
+
+  ipcMain.handle(
+    "dali:upsertDevice",
+    async (event, projectId, address, deviceData) => {
+      try {
+        return await dbService.upsertDaliDevice(projectId, address, deviceData);
+      } catch (error) {
+        console.error("Error upserting DALI device:", error);
+        throw error;
+      }
+    }
+  );
+
+  ipcMain.handle(
+    "dali:updateDeviceName",
+    async (event, projectId, address, name) => {
+      try {
+        return await dbService.updateDaliDeviceName(projectId, address, name);
+      } catch (error) {
+        console.error("Error updating DALI device name:", error);
+        throw error;
+      }
+    }
+  );
+
+  ipcMain.handle(
+    "dali:clearDeviceMapping",
+    async (event, projectId, address) => {
+      try {
+        return await dbService.clearDaliDeviceMapping(projectId, address);
+      } catch (error) {
+        console.error("Error clearing DALI device mapping:", error);
+        throw error;
+      }
+    }
+  );
+
+  ipcMain.handle("dali:deleteDevice", async (event, projectId, address) => {
+    try {
+      return await dbService.deleteDaliDevice(projectId, address);
+    } catch (error) {
+      console.error("Error deleting DALI device:", error);
+      throw error;
+    }
+  });
+
+  // DALI Group Metadata - Database Operations
+  ipcMain.handle("dali:getGroupName", async (event, projectId, groupId) => {
+    try {
+      return await dbService.getGroupName(projectId, groupId);
+    } catch (error) {
+      console.error("Error getting group name:", error);
+      throw error;
+    }
+  });
+
+  ipcMain.handle("dali:getAllGroupNames", async (event, projectId) => {
+    try {
+      return await dbService.getAllGroupNames(projectId);
+    } catch (error) {
+      console.error("Error getting all group names:", error);
+      throw error;
+    }
+  });
+
+  ipcMain.handle(
+    "dali:updateGroupName",
+    async (event, projectId, groupId, name) => {
+      try {
+        return await dbService.updateGroupName(projectId, groupId, name);
+      } catch (error) {
+        console.error("Error updating group name:", error);
+        throw error;
+      }
+    }
+  );
+
+  // DALI Groups - Database Operations
+  ipcMain.handle("dali:getGroupDevices", async (event, projectId, groupId) => {
+    try {
+      return await dbService.getGroupDevices(projectId, groupId);
+    } catch (error) {
+      console.error("Error getting group devices:", error);
+      throw error;
+    }
+  });
+
+  ipcMain.handle("dali:getAllGroupDevices", async (event, projectId) => {
+    try {
+      return await dbService.getAllGroupDevices(projectId);
+    } catch (error) {
+      console.error("Error getting all group devices:", error);
+      throw error;
+    }
+  });
+
+  ipcMain.handle(
+    "dali:addDeviceToGroup",
+    async (event, projectId, groupId, deviceAddress) => {
+      try {
+        return await dbService.addDeviceToGroup(
+          projectId,
+          groupId,
+          deviceAddress
+        );
+      } catch (error) {
+        console.error("Error adding device to group:", error);
+        throw error;
+      }
+    }
+  );
+
+  ipcMain.handle(
+    "dali:removeDeviceFromGroup",
+    async (event, projectId, groupId, deviceAddress) => {
+      try {
+        return await dbService.removeDeviceFromGroup(
+          projectId,
+          groupId,
+          deviceAddress
+        );
+      } catch (error) {
+        console.error("Error removing device from group:", error);
+        throw error;
+      }
+    }
+  );
+
+  ipcMain.handle(
+    "dali:getDeviceGroups",
+    async (event, projectId, deviceAddress) => {
+      try {
+        return await dbService.getDeviceGroups(projectId, deviceAddress);
+      } catch (error) {
+        console.error("Error getting device groups:", error);
+        throw error;
+      }
+    }
+  );
+
+  // DALI Scene Metadata - Database Operations
+  ipcMain.handle("dali:getSceneName", async (event, projectId, sceneId) => {
+    try {
+      return await dbService.getSceneName(projectId, sceneId);
+    } catch (error) {
+      console.error("Error getting scene name:", error);
+      throw error;
+    }
+  });
+
+  ipcMain.handle("dali:getAllSceneNames", async (event, projectId) => {
+    try {
+      return await dbService.getAllSceneNames(projectId);
+    } catch (error) {
+      console.error("Error getting all scene names:", error);
+      throw error;
+    }
+  });
+
+  ipcMain.handle(
+    "dali:updateSceneName",
+    async (event, projectId, sceneId, name) => {
+      try {
+        return await dbService.updateSceneName(projectId, sceneId, name);
+      } catch (error) {
+        console.error("Error updating scene name:", error);
+        throw error;
+      }
+    }
+  );
+
+  // DALI Scenes - Database Operations
+  ipcMain.handle("dali:getSceneDevices", async (event, projectId, sceneId) => {
+    try {
+      return await dbService.getSceneDevices(projectId, sceneId);
+    } catch (error) {
+      console.error("Error getting scene devices:", error);
+      throw error;
+    }
+  });
+
+  ipcMain.handle("dali:getAllSceneDevices", async (event, projectId) => {
+    try {
+      return await dbService.getAllSceneDevices(projectId);
+    } catch (error) {
+      console.error("Error getting all scene devices:", error);
+      throw error;
+    }
+  });
+
+  ipcMain.handle(
+    "dali:upsertSceneDevice",
+    async (event, projectId, sceneId, deviceAddress, active, brightness) => {
+      try {
+        return await dbService.upsertSceneDevice(
+          projectId,
+          sceneId,
+          deviceAddress,
+          active,
+          brightness
+        );
+      } catch (error) {
+        console.error("Error upserting scene device:", error);
+        throw error;
+      }
+    }
+  );
+
+  ipcMain.handle(
+    "dali:deleteSceneDevice",
+    async (event, projectId, sceneId, deviceAddress) => {
+      try {
+        return await dbService.deleteSceneDevice(
+          projectId,
+          sceneId,
+          deviceAddress
+        );
+      } catch (error) {
+        console.error("Error deleting scene device:", error);
+        throw error;
+      }
+    }
+  );
+
+  // DALI Clear All Configurations - Database Operations
+  ipcMain.handle("dali:clearAllDeviceMappings", async (event, projectId) => {
+    try {
+      return await dbService.clearAllDaliDeviceMappings(projectId);
+    } catch (error) {
+      console.error("Error clearing all DALI device mappings:", error);
+      throw error;
+    }
+  });
+
+  ipcMain.handle("dali:clearAllGroups", async (event, projectId) => {
+    try {
+      return await dbService.clearAllDaliGroups(projectId);
+    } catch (error) {
+      console.error("Error clearing all DALI groups:", error);
+      throw error;
+    }
+  });
+
+  ipcMain.handle("dali:clearAllScenes", async (event, projectId) => {
+    try {
+      return await dbService.clearAllDaliScenes(projectId);
+    } catch (error) {
+      console.error("Error clearing all DALI scenes:", error);
+      throw error;
+    }
+  });
+
+  ipcMain.handle("dali:clearAllConfigurations", async (event, projectId) => {
+    try {
+      return await dbService.clearAllDaliConfigurations(projectId);
+    } catch (error) {
+      console.error("Error clearing all DALI configurations:", error);
+      throw error;
+    }
+  });
 }
 
 /**
  * UDP Network Scanner Implementation with Multi-Interface Support
- * Enhanced version that broadcasts on all available network interfaces
- * Based on RLC C# implementation
  */
 async function scanUDPNetwork(config) {
   const {
@@ -2525,11 +2846,7 @@ async function scanUDPNetwork(config) {
         });
       });
 
-      // Bind socket to any available port
       socket.bind();
     }
   });
 }
-
-// In this file you can include the rest of your app's specific main process
-// code. You can also put them in separate files and import them here.

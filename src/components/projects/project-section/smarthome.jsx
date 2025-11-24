@@ -412,8 +412,8 @@ export function Smarthome() {
 
   return (
     <div className="flex flex-1 flex-col gap-4 p-4 pt-0">
-      <Card className="h-full">
-        <CardHeader className="border-b bg-gradient-to-r from-background to-muted/20">
+      <div className="h-full space-y-4">
+        <div className="bg-muted/50 border rounded-lg p-4 shadow">
           <div className="flex items-center justify-between flex-wrap gap-4">
             <CardTitle className="flex items-center gap-3 text-2xl">
               <div className="p-2 bg-primary/10 rounded-lg">
@@ -427,8 +427,8 @@ export function Smarthome() {
                 </span>
               )}
             </CardTitle>
-            <div className="flex items-center gap-4 flex-wrap">
-              <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg border bg-background/50">
+            <div className="flex items-center gap-2 flex-wrap">
+              <div className="flex items-center gap-2 px-3 py-2 rounded-lg border bg-background/50 shadow">
                 <Switch
                   id="auto-refresh"
                   checked={autoRefresh}
@@ -445,10 +445,9 @@ export function Smarthome() {
               <div className="flex gap-2 flex-wrap">
                 <Button
                   variant="outline"
-                  size="sm"
                   onClick={() => handleRefresh()}
                   disabled={loading || autoRefresh}
-                  className="gap-2"
+                  className="gap-2 shadow"
                 >
                   <RefreshCw
                     className={`h-4 w-4 ${loading ? "animate-spin" : ""}`}
@@ -457,37 +456,33 @@ export function Smarthome() {
                 </Button>
                 <Button
                   variant="outline"
-                  size="sm"
                   onClick={() => setExploreDeviceDialogOpen(true)}
-                  className="gap-2"
+                  className="gap-2 shadow"
                 >
                   <Radio className="h-4 w-4" />
                   Explore
                 </Button>
                 <Button
                   variant="outline"
-                  size="sm"
                   onClick={() => setAssignAddressDialogOpen(true)}
                   disabled={devices.length === 0}
-                  className="gap-2"
+                  className="gap-2 shadow"
                 >
                   <Cable className="h-4 w-4" />
                   Assign
                 </Button>
                 <Button
                   variant="outline"
-                  size="sm"
                   onClick={() => setFactoryResetDialogOpen(true)}
                   disabled={devices.length === 0}
-                  className="gap-2"
+                  className="gap-2 shadow"
                 >
                   <RotateCcw className="h-4 w-4" />
                   Reset
                 </Button>
                 <Button
-                  size="sm"
                   onClick={() => setAddDeviceDialogOpen(true)}
-                  className="gap-2"
+                  className="gap-2 shadow"
                 >
                   <Plus className="h-4 w-4" />
                   Add Device
@@ -495,8 +490,9 @@ export function Smarthome() {
               </div>
             </div>
           </div>
-        </CardHeader>
-        <CardContent className="p-6">
+        </div>
+        {/* Device Card */}
+        <div>
           {devices.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-16 text-center">
               <div className="p-4 bg-muted/50 rounded-full mb-4">
@@ -520,8 +516,8 @@ export function Smarthome() {
               {devices.map((device) => renderDeviceCard(device))}
             </div>
           )}
-        </CardContent>
-      </Card>
+        </div>
+      </div>
 
       <AddZigbeeDeviceDialog
         open={addDeviceDialogOpen}

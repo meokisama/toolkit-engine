@@ -106,6 +106,21 @@ const PROTOCOL = {
       FACTORY_RESET: 7,
     },
   },
+  DALI: {
+    CMD1: 70,
+    CMD2: {
+      DALI_COMMISSIONING: 0,
+      DALI_SCAN: 1,
+      DALI_CONFIG: 2,
+      APPLY_CONFIG: 3,
+      BROADCAST_ON: 5,
+      BROADCAST_OFF: 6,
+      TRIGGER_DALI_DEVICE: 7,
+      TRIGGER_DALI_GROUP: 8,
+      TRIGGER_DALI_SCENE: 9,
+      MAPPING_ADDRESS: 11,
+    },
+  },
 };
 
 // Error codes mapping based on RCU protocol

@@ -19,7 +19,8 @@ async function sendCommand(
   cmd2,
   data = [],
   skipStatusCheck = false,
-  waitAfterBusy = false
+  waitAfterBusy = false,
+  timeoutMs = 5000
 ) {
   return new Promise((resolve, reject) => {
     const { client, interface: selectedInterface } =
@@ -32,12 +33,12 @@ async function sendCommand(
       client.close();
       reject(
         new Error(
-          `Command timeout after 5s for ${unitIp}:${port} cmd1=0x${cmd1.toString(
+          `Command timeout after ${timeoutMs / 1000}s for ${unitIp}:${port} cmd1=0x${cmd1.toString(
             16
           )} cmd2=0x${cmd2.toString(16)}`
         )
       );
-    }, 5000);
+    }, timeoutMs);
 
     client.on("message", (msg, rinfo) => {
       responseCount++;
@@ -133,7 +134,9 @@ async function sendCommandMultipleResponses(
   cmd1,
   cmd2,
   data = [],
-  timeoutMs = 15000
+  timeoutMs = 15000,
+  keepaliveIntervalMs = 0, // 0 = disabled, e.g., 60000 = send keepalive every 60 seconds
+  onPacket = null // Optional callback called for each packet received: (msg, packetLength, dataSection) => void
 ) {
   return new Promise((resolve, reject) => {
     const { client, interface: selectedInterface } =
@@ -141,9 +144,40 @@ async function sendCommandMultipleResponses(
     const responses = [];
     let responseCount = 0;
     let successPacketReceived = false;
+    let keepaliveInterval = null;
+
+    // Setup keepalive if enabled
+    if (keepaliveIntervalMs > 0) {
+      console.log(
+        `Keepalive enabled: sending packet every ${keepaliveIntervalMs}ms to maintain firewall connection tracking`
+      );
+
+      keepaliveInterval = setInterval(() => {
+        // Send a minimal dummy packet to keep connection alive
+        // Just send the ID buffer (4 bytes) - minimal overhead
+        const keepaliveBuffer = Buffer.alloc(4);
+        keepaliveBuffer.writeUInt32LE(idAddress, 0);
+
+        client.send(keepaliveBuffer, 0, keepaliveBuffer.length, port, unitIp, (err) => {
+          if (err) {
+            console.warn("Keepalive send warning:", err);
+          } else {
+            console.log("Keepalive packet sent");
+          }
+        });
+      }, keepaliveIntervalMs);
+    }
+
+    const cleanup = () => {
+      if (keepaliveInterval) {
+        clearInterval(keepaliveInterval);
+        keepaliveInterval = null;
+      }
+      client.close();
+    };
 
     const timeout = setTimeout(() => {
-      client.close();
+      cleanup();
       console.log(
         `Timeout: collected ${responseCount} responses, success packet: ${successPacketReceived}`
       );
@@ -168,6 +202,12 @@ async function sendCommandMultipleResponses(
         // Length should be 5 (cmd1 + cmd2 + data + crc = 1+1+1+2 = 5)
         const packetLength = msg[4] | (msg[5] << 8);
         const dataSection = Array.from(msg.slice(8, 8 + packetLength - 4)); // Exclude cmd1, cmd2, and CRC
+
+        // Call onPacket callback if provided (for real-time packet handling)
+        if (onPacket) {
+          onPacket(msg, packetLength, dataSection);
+        }
+
         const isSuccessPacket =
           packetLength === 5 &&
           dataSection.length === 1 &&
@@ -179,7 +219,7 @@ async function sendCommandMultipleResponses(
           );
           successPacketReceived = true;
           clearTimeout(timeout);
-          client.close();
+          cleanup();
           resolve({ responses, successPacketReceived });
         } else {
           // This is a data packet, add to responses
@@ -200,7 +240,7 @@ async function sendCommandMultipleResponses(
 
     client.on("error", (err) => {
       clearTimeout(timeout);
-      client.close();
+      cleanup();
       reject(err);
     });
 
@@ -241,14 +281,14 @@ async function sendCommandMultipleResponses(
         if (err) {
           console.error("Send error:", err);
           clearTimeout(timeout);
-          client.close();
+          cleanup();
           reject(err);
         }
       });
     } catch (error) {
       console.error("Command preparation error:", error);
       clearTimeout(timeout);
-      client.close();
+      cleanup();
       reject(error);
     }
   });

@@ -300,6 +300,32 @@ contextBridge.exposeInMainWorld("electronAPI", {
     clearCache: () => ipcRenderer.invoke("network:clearCache"),
   },
 
+  // RCU DALI Control
+  daliController: {
+    commissioning: (params) =>
+      ipcRenderer.invoke("rcu:daliCommissioning", params),
+    scan: (params) => ipcRenderer.invoke("rcu:daliScan", params),
+    sendAddressMapping: (params) =>
+      ipcRenderer.invoke("rcu:sendAddressMapping", params),
+    sendGroupSceneConfig: (params) =>
+      ipcRenderer.invoke("rcu:sendGroupSceneConfig", params),
+    broadcastOn: (params) => ipcRenderer.invoke("rcu:daliBroadcastOn", params),
+    broadcastOff: (params) =>
+      ipcRenderer.invoke("rcu:daliBroadcastOff", params),
+    triggerDevice: (params) =>
+      ipcRenderer.invoke("rcu:triggerDaliDevice", params),
+    triggerGroup: (params) =>
+      ipcRenderer.invoke("rcu:triggerDaliGroup", params),
+    triggerScene: (params) =>
+      ipcRenderer.invoke("rcu:triggerDaliScene", params),
+    onDeviceCountChanged: (callback) => {
+      const handler = (event, data) => callback(data);
+      ipcRenderer.on("dali:deviceCountChanged", handler);
+      return () =>
+        ipcRenderer.removeListener("dali:deviceCountChanged", handler);
+    },
+  },
+
   // RCU Group Control
   rcuController: {
     setGroupState: (params) => ipcRenderer.invoke("rcu:setGroupState", params),
@@ -529,5 +555,98 @@ contextBridge.exposeInMainWorld("electronAPI", {
     deleteDevice: (id) => ipcRenderer.invoke("zigbee:deleteDevice", id),
     deleteAllDevicesForUnit: (projectId, unitIp) =>
       ipcRenderer.invoke("zigbee:deleteAllDevicesForUnit", projectId, unitIp),
+  },
+
+  // DALI Database Operations
+  dali: {
+    // Device operations
+    getAllDevices: (projectId) =>
+      ipcRenderer.invoke("dali:getAllDevices", projectId),
+    getDevice: (projectId, address) =>
+      ipcRenderer.invoke("dali:getDevice", projectId, address),
+    upsertDevice: (projectId, address, deviceData) =>
+      ipcRenderer.invoke("dali:upsertDevice", projectId, address, deviceData),
+    updateDeviceName: (projectId, address, name) =>
+      ipcRenderer.invoke("dali:updateDeviceName", projectId, address, name),
+    clearDeviceMapping: (projectId, address) =>
+      ipcRenderer.invoke("dali:clearDeviceMapping", projectId, address),
+    deleteDevice: (projectId, address) =>
+      ipcRenderer.invoke("dali:deleteDevice", projectId, address),
+
+    // Group metadata operations
+    getGroupName: (projectId, groupId) =>
+      ipcRenderer.invoke("dali:getGroupName", projectId, groupId),
+    getAllGroupNames: (projectId) =>
+      ipcRenderer.invoke("dali:getAllGroupNames", projectId),
+    updateGroupName: (projectId, groupId, name) =>
+      ipcRenderer.invoke("dali:updateGroupName", projectId, groupId, name),
+
+    // Group operations
+    getGroupDevices: (projectId, groupId) =>
+      ipcRenderer.invoke("dali:getGroupDevices", projectId, groupId),
+    getAllGroupDevices: (projectId) =>
+      ipcRenderer.invoke("dali:getAllGroupDevices", projectId),
+    addDeviceToGroup: (projectId, groupId, deviceAddress) =>
+      ipcRenderer.invoke(
+        "dali:addDeviceToGroup",
+        projectId,
+        groupId,
+        deviceAddress
+      ),
+    removeDeviceFromGroup: (projectId, groupId, deviceAddress) =>
+      ipcRenderer.invoke(
+        "dali:removeDeviceFromGroup",
+        projectId,
+        groupId,
+        deviceAddress
+      ),
+    getDeviceGroups: (projectId, deviceAddress) =>
+      ipcRenderer.invoke("dali:getDeviceGroups", projectId, deviceAddress),
+
+    // Scene metadata operations
+    getSceneName: (projectId, sceneId) =>
+      ipcRenderer.invoke("dali:getSceneName", projectId, sceneId),
+    getAllSceneNames: (projectId) =>
+      ipcRenderer.invoke("dali:getAllSceneNames", projectId),
+    updateSceneName: (projectId, sceneId, name) =>
+      ipcRenderer.invoke("dali:updateSceneName", projectId, sceneId, name),
+
+    // Scene operations
+    getSceneDevices: (projectId, sceneId) =>
+      ipcRenderer.invoke("dali:getSceneDevices", projectId, sceneId),
+    getAllSceneDevices: (projectId) =>
+      ipcRenderer.invoke("dali:getAllSceneDevices", projectId),
+    upsertSceneDevice: (
+      projectId,
+      sceneId,
+      deviceAddress,
+      active,
+      brightness
+    ) =>
+      ipcRenderer.invoke(
+        "dali:upsertSceneDevice",
+        projectId,
+        sceneId,
+        deviceAddress,
+        active,
+        brightness
+      ),
+    deleteSceneDevice: (projectId, sceneId, deviceAddress) =>
+      ipcRenderer.invoke(
+        "dali:deleteSceneDevice",
+        projectId,
+        sceneId,
+        deviceAddress
+      ),
+
+    // Clear all configurations
+    clearAllDeviceMappings: (projectId) =>
+      ipcRenderer.invoke("dali:clearAllDeviceMappings", projectId),
+    clearAllGroups: (projectId) =>
+      ipcRenderer.invoke("dali:clearAllGroups", projectId),
+    clearAllScenes: (projectId) =>
+      ipcRenderer.invoke("dali:clearAllScenes", projectId),
+    clearAllConfigurations: (projectId) =>
+      ipcRenderer.invoke("dali:clearAllConfigurations", projectId),
   },
 });

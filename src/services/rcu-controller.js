@@ -138,3 +138,17 @@ export {
   setupZigbeeDevice,
   factoryResetZigbee,
 } from "./rcu-controller/zigbee.js";
+
+// Export DALI functions
+export {
+  daliCommissioning,
+  daliScan,
+  sendAddressMapping,
+  sendGroupSceneConfig,
+  daliBroadcastOn,
+  daliBroadcastOff,
+  triggerDaliDevice,
+  triggerDaliGroup,
+  triggerDaliScene,
+  daliEvents,
+} from "./rcu-controller/dali.js";

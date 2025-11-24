@@ -318,8 +318,80 @@ class DatabaseService {
       )
     `;
 
-    // Note: unit_output_configs and unit_input_configs tables are removed
-    // All I/O configuration data is now stored in unit.input_configs and unit.output_configs JSON columns
+    // DALI Device Mapping Table - stores 64 fixed addresses (0-63)
+    const createDaliDevicesTable = `
+      CREATE TABLE IF NOT EXISTS dali_devices (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        project_id INTEGER NOT NULL,
+        address INTEGER NOT NULL CHECK(address >= 0 AND address <= 63),
+        name TEXT,
+        mapped_device_name TEXT,
+        mapped_device_type TEXT,
+        mapped_device_index INTEGER,
+        mapped_device_address INTEGER,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (project_id) REFERENCES projects (id) ON DELETE CASCADE,
+        UNIQUE(project_id, address)
+      )
+    `;
+
+    // DALI Groups Metadata Table - stores custom group names
+    const createDaliGroupsTable = `
+      CREATE TABLE IF NOT EXISTS dali_groups (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        project_id INTEGER NOT NULL,
+        group_id INTEGER NOT NULL CHECK(group_id >= 0 AND group_id <= 15),
+        name TEXT NOT NULL,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (project_id) REFERENCES projects (id) ON DELETE CASCADE,
+        UNIQUE(project_id, group_id)
+      )
+    `;
+
+    // DALI Group-Device Relationship Table
+    const createDaliGroupDevicesTable = `
+      CREATE TABLE IF NOT EXISTS dali_group_devices (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        project_id INTEGER NOT NULL,
+        group_id INTEGER NOT NULL CHECK(group_id >= 0 AND group_id <= 15),
+        device_address INTEGER NOT NULL CHECK(device_address >= 0 AND device_address <= 63),
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (project_id) REFERENCES projects (id) ON DELETE CASCADE,
+        UNIQUE(project_id, group_id, device_address)
+      )
+    `;
+
+    // DALI Scenes Metadata Table - stores custom scene names
+    const createDaliScenesTable = `
+      CREATE TABLE IF NOT EXISTS dali_scenes (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        project_id INTEGER NOT NULL,
+        scene_id INTEGER NOT NULL CHECK(scene_id >= 0 AND scene_id <= 15),
+        name TEXT NOT NULL,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (project_id) REFERENCES projects (id) ON DELETE CASCADE,
+        UNIQUE(project_id, scene_id)
+      )
+    `;
+
+    // DALI Scene-Device Configuration Table
+    const createDaliSceneDevicesTable = `
+      CREATE TABLE IF NOT EXISTS dali_scene_devices (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        project_id INTEGER NOT NULL,
+        scene_id INTEGER NOT NULL CHECK(scene_id >= 0 AND scene_id <= 15),
+        device_address INTEGER NOT NULL CHECK(device_address >= 0 AND device_address <= 63),
+        active BOOLEAN DEFAULT 0,
+        brightness INTEGER NOT NULL DEFAULT 255 CHECK(brightness >= 0 AND brightness <= 255),
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (project_id) REFERENCES projects (id) ON DELETE CASCADE,
+        UNIQUE(project_id, scene_id, device_address)
+      )
+    `;
 
     try {
       this.db.exec(createProjectsTable);
@@ -338,7 +410,11 @@ class DatabaseService {
       this.db.exec(createSequencesTable);
       this.db.exec(createSequenceMultiScenesTable);
       this.db.exec(createZigbeeDevicesTable);
-      // Note: unit_output_configs and unit_input_configs tables are removed
+      this.db.exec(createDaliDevicesTable);
+      this.db.exec(createDaliGroupsTable);
+      this.db.exec(createDaliGroupDevicesTable);
+      this.db.exec(createDaliScenesTable);
+      this.db.exec(createDaliSceneDevicesTable);
     } catch (error) {
       console.error("Failed to create tables:", error);
       throw error;
@@ -4148,12 +4224,27 @@ class DatabaseService {
 
       // Define all possible fields that can be updated
       const allowedFields = [
-        'device_type', 'device_name', 'num_endpoints',
-        'endpoint1_id', 'endpoint1_value', 'endpoint1_address', 'endpoint1_name',
-        'endpoint2_id', 'endpoint2_value', 'endpoint2_address', 'endpoint2_name',
-        'endpoint3_id', 'endpoint3_value', 'endpoint3_address', 'endpoint3_name',
-        'endpoint4_id', 'endpoint4_value', 'endpoint4_address', 'endpoint4_name',
-        'rssi', 'status'
+        "device_type",
+        "device_name",
+        "num_endpoints",
+        "endpoint1_id",
+        "endpoint1_value",
+        "endpoint1_address",
+        "endpoint1_name",
+        "endpoint2_id",
+        "endpoint2_value",
+        "endpoint2_address",
+        "endpoint2_name",
+        "endpoint3_id",
+        "endpoint3_value",
+        "endpoint3_address",
+        "endpoint3_name",
+        "endpoint4_id",
+        "endpoint4_value",
+        "endpoint4_address",
+        "endpoint4_name",
+        "rssi",
+        "status",
       ];
 
       // Build SET clause dynamically based on provided fields
@@ -4161,7 +4252,7 @@ class DatabaseService {
         if (field in deviceData) {
           updates.push(`${field} = ?`);
           // Handle null values for optional fields
-          if (field.endsWith('_name') || field === 'device_name') {
+          if (field.endsWith("_name") || field === "device_name") {
             values.push(deviceData[field] || null);
           } else {
             values.push(deviceData[field]);
@@ -4175,12 +4266,12 @@ class DatabaseService {
       }
 
       // Always update the updated_at timestamp
-      updates.push('updated_at = CURRENT_TIMESTAMP');
+      updates.push("updated_at = CURRENT_TIMESTAMP");
 
       // Build and execute the query
       const sql = `
         UPDATE zigbee_devices
-        SET ${updates.join(', ')}
+        SET ${updates.join(", ")}
         WHERE id = ?
       `;
 
@@ -4230,6 +4321,464 @@ class DatabaseService {
       return { success: true, deletedCount: result.changes };
     } catch (error) {
       console.error("Failed to delete zigbee devices for unit:", error);
+      throw error;
+    }
+  }
+
+  // ===== DALI Device Methods =====
+
+  getAllDaliDevices(projectId) {
+    try {
+      const stmt = this.db.prepare(
+        "SELECT * FROM dali_devices WHERE project_id = ? ORDER BY address"
+      );
+      return stmt.all(projectId);
+    } catch (error) {
+      console.error("Failed to get all DALI devices:", error);
+      throw error;
+    }
+  }
+
+  getDaliDevice(projectId, address) {
+    try {
+      const stmt = this.db.prepare(
+        "SELECT * FROM dali_devices WHERE project_id = ? AND address = ?"
+      );
+      return stmt.get(projectId, address);
+    } catch (error) {
+      console.error("Failed to get DALI device:", error);
+      throw error;
+    }
+  }
+
+  upsertDaliDevice(projectId, address, deviceData) {
+    try {
+      const {
+        name,
+        mapped_device_name,
+        mapped_device_type,
+        mapped_device_index,
+        mapped_device_address,
+      } = deviceData;
+
+      const stmt = this.db.prepare(`
+        INSERT INTO dali_devices (
+          project_id, address, name,
+          mapped_device_name, mapped_device_type, mapped_device_index, mapped_device_address
+        ) VALUES (?, ?, ?, ?, ?, ?, ?)
+        ON CONFLICT(project_id, address)
+        DO UPDATE SET
+          name = excluded.name,
+          mapped_device_name = excluded.mapped_device_name,
+          mapped_device_type = excluded.mapped_device_type,
+          mapped_device_index = excluded.mapped_device_index,
+          mapped_device_address = excluded.mapped_device_address,
+          updated_at = CURRENT_TIMESTAMP
+      `);
+
+      stmt.run(
+        projectId,
+        address,
+        name || null,
+        mapped_device_name || null,
+        mapped_device_type || null,
+        mapped_device_index !== undefined ? mapped_device_index : null,
+        mapped_device_address !== undefined ? mapped_device_address : null
+      );
+
+      return this.getDaliDevice(projectId, address);
+    } catch (error) {
+      console.error("Failed to upsert DALI device:", error);
+      throw error;
+    }
+  }
+
+  updateDaliDeviceName(projectId, address, name) {
+    try {
+      const stmt = this.db.prepare(`
+        UPDATE dali_devices
+        SET name = ?, updated_at = CURRENT_TIMESTAMP
+        WHERE project_id = ? AND address = ?
+      `);
+
+      stmt.run(name, projectId, address);
+      return this.getDaliDevice(projectId, address);
+    } catch (error) {
+      console.error("Failed to update DALI device name:", error);
+      throw error;
+    }
+  }
+
+  clearDaliDeviceMapping(projectId, address) {
+    try {
+      const stmt = this.db.prepare(
+        "DELETE FROM dali_devices WHERE project_id = ? AND address = ?"
+      );
+      const result = stmt.run(projectId, address);
+
+      return { success: true, deleted: result.changes > 0 };
+    } catch (error) {
+      console.error("Failed to clear DALI device mapping:", error);
+      throw error;
+    }
+  }
+
+  deleteDaliDevice(projectId, address) {
+    try {
+      const stmt = this.db.prepare(
+        "DELETE FROM dali_devices WHERE project_id = ? AND address = ?"
+      );
+      const result = stmt.run(projectId, address);
+
+      return { success: true, deleted: result.changes > 0 };
+    } catch (error) {
+      console.error("Failed to delete DALI device:", error);
+      throw error;
+    }
+  }
+
+  // ===== DALI Group Metadata Methods =====
+
+  getGroupName(projectId, groupId) {
+    try {
+      const stmt = this.db.prepare(`
+        SELECT name FROM dali_groups
+        WHERE project_id = ? AND group_id = ?
+      `);
+      const row = stmt.get(projectId, groupId);
+      return row ? row.name : `Group ${groupId}`;
+    } catch (error) {
+      console.error("Failed to get group name:", error);
+      throw error;
+    }
+  }
+
+  getAllGroupNames(projectId) {
+    try {
+      const stmt = this.db.prepare(`
+        SELECT group_id, name FROM dali_groups
+        WHERE project_id = ?
+        ORDER BY group_id
+      `);
+      return stmt.all(projectId);
+    } catch (error) {
+      console.error("Failed to get all group names:", error);
+      throw error;
+    }
+  }
+
+  updateGroupName(projectId, groupId, name) {
+    try {
+      const stmt = this.db.prepare(`
+        INSERT INTO dali_groups (project_id, group_id, name)
+        VALUES (?, ?, ?)
+        ON CONFLICT(project_id, group_id)
+        DO UPDATE SET
+          name = excluded.name,
+          updated_at = CURRENT_TIMESTAMP
+      `);
+
+      stmt.run(projectId, groupId, name);
+      return { success: true, name };
+    } catch (error) {
+      console.error("Failed to update group name:", error);
+      throw error;
+    }
+  }
+
+  // ===== DALI Group Methods =====
+
+  getGroupDevices(projectId, groupId) {
+    try {
+      const stmt = this.db.prepare(`
+        SELECT device_address
+        FROM dali_group_devices
+        WHERE project_id = ? AND group_id = ?
+        ORDER BY device_address
+      `);
+      return stmt.all(projectId, groupId).map((row) => row.device_address);
+    } catch (error) {
+      console.error("Failed to get group devices:", error);
+      throw error;
+    }
+  }
+
+  getAllGroupDevices(projectId) {
+    try {
+      const stmt = this.db.prepare(`
+        SELECT group_id, device_address
+        FROM dali_group_devices
+        WHERE project_id = ?
+        ORDER BY group_id, device_address
+      `);
+      return stmt.all(projectId);
+    } catch (error) {
+      console.error("Failed to get all group devices:", error);
+      throw error;
+    }
+  }
+
+  addDeviceToGroup(projectId, groupId, deviceAddress) {
+    try {
+      const stmt = this.db.prepare(`
+        INSERT OR IGNORE INTO dali_group_devices (project_id, group_id, device_address)
+        VALUES (?, ?, ?)
+      `);
+
+      stmt.run(projectId, groupId, deviceAddress);
+      return { success: true };
+    } catch (error) {
+      console.error("Failed to add device to group:", error);
+      throw error;
+    }
+  }
+
+  removeDeviceFromGroup(projectId, groupId, deviceAddress) {
+    try {
+      const stmt = this.db.prepare(`
+        DELETE FROM dali_group_devices
+        WHERE project_id = ? AND group_id = ? AND device_address = ?
+      `);
+
+      const result = stmt.run(projectId, groupId, deviceAddress);
+      return { success: true, deleted: result.changes > 0 };
+    } catch (error) {
+      console.error("Failed to remove device from group:", error);
+      throw error;
+    }
+  }
+
+  getDeviceGroups(projectId, deviceAddress) {
+    try {
+      const stmt = this.db.prepare(`
+        SELECT group_id
+        FROM dali_group_devices
+        WHERE project_id = ? AND device_address = ?
+        ORDER BY group_id
+      `);
+      return stmt.all(projectId, deviceAddress).map((row) => row.group_id);
+    } catch (error) {
+      console.error("Failed to get device groups:", error);
+      throw error;
+    }
+  }
+
+  // ===== DALI Scene Metadata Methods =====
+
+  getSceneName(projectId, sceneId) {
+    try {
+      const stmt = this.db.prepare(`
+        SELECT name FROM dali_scenes
+        WHERE project_id = ? AND scene_id = ?
+      `);
+      const row = stmt.get(projectId, sceneId);
+      return row ? row.name : `Scene ${sceneId}`;
+    } catch (error) {
+      console.error("Failed to get scene name:", error);
+      throw error;
+    }
+  }
+
+  getAllSceneNames(projectId) {
+    try {
+      const stmt = this.db.prepare(`
+        SELECT scene_id, name FROM dali_scenes
+        WHERE project_id = ?
+        ORDER BY scene_id
+      `);
+      return stmt.all(projectId);
+    } catch (error) {
+      console.error("Failed to get all scene names:", error);
+      throw error;
+    }
+  }
+
+  updateSceneName(projectId, sceneId, name) {
+    try {
+      const stmt = this.db.prepare(`
+        INSERT INTO dali_scenes (project_id, scene_id, name)
+        VALUES (?, ?, ?)
+        ON CONFLICT(project_id, scene_id)
+        DO UPDATE SET
+          name = excluded.name,
+          updated_at = CURRENT_TIMESTAMP
+      `);
+
+      stmt.run(projectId, sceneId, name);
+      return { success: true, name };
+    } catch (error) {
+      console.error("Failed to update scene name:", error);
+      throw error;
+    }
+  }
+
+  // ===== DALI Scene Methods =====
+
+  getSceneDevices(projectId, sceneId) {
+    try {
+      const stmt = this.db.prepare(`
+        SELECT device_address, active, brightness
+        FROM dali_scene_devices
+        WHERE project_id = ? AND scene_id = ?
+        ORDER BY device_address
+      `);
+      return stmt.all(projectId, sceneId);
+    } catch (error) {
+      console.error("Failed to get scene devices:", error);
+      throw error;
+    }
+  }
+
+  getAllSceneDevices(projectId) {
+    try {
+      const stmt = this.db.prepare(`
+        SELECT scene_id, device_address, active, brightness
+        FROM dali_scene_devices
+        WHERE project_id = ?
+        ORDER BY scene_id, device_address
+      `);
+      return stmt.all(projectId);
+    } catch (error) {
+      console.error("Failed to get all scene devices:", error);
+      throw error;
+    }
+  }
+
+  upsertSceneDevice(projectId, sceneId, deviceAddress, active, brightness) {
+    try {
+      const stmt = this.db.prepare(`
+        INSERT INTO dali_scene_devices (
+          project_id, scene_id, device_address, active, brightness
+        ) VALUES (?, ?, ?, ?, ?)
+        ON CONFLICT(project_id, scene_id, device_address)
+        DO UPDATE SET
+          active = excluded.active,
+          brightness = excluded.brightness,
+          updated_at = CURRENT_TIMESTAMP
+      `);
+
+      stmt.run(projectId, sceneId, deviceAddress, active ? 1 : 0, brightness);
+      return { success: true };
+    } catch (error) {
+      console.error("Failed to upsert scene device:", error);
+      throw error;
+    }
+  }
+
+  deleteSceneDevice(projectId, sceneId, deviceAddress) {
+    try {
+      const stmt = this.db.prepare(`
+        DELETE FROM dali_scene_devices
+        WHERE project_id = ? AND scene_id = ? AND device_address = ?
+      `);
+
+      const result = stmt.run(projectId, sceneId, deviceAddress);
+      return { success: true, deleted: result.changes > 0 };
+    } catch (error) {
+      console.error("Failed to delete scene device:", error);
+      throw error;
+    }
+  }
+
+  // ===== DALI Clear All Configurations =====
+
+  /**
+   * Clear all device mappings for a project
+   * Deletes all devices with mappings
+   */
+  clearAllDaliDeviceMappings(projectId) {
+    try {
+      const stmt = this.db.prepare(`
+        DELETE FROM dali_devices
+        WHERE project_id = ? AND mapped_device_address IS NOT NULL
+      `);
+
+      const result = stmt.run(projectId);
+      return { success: true, cleared: result.changes };
+    } catch (error) {
+      console.error("Failed to clear all DALI device mappings:", error);
+      throw error;
+    }
+  }
+
+  /**
+   * Clear all group configurations for a project
+   * Deletes all group metadata and group-device relationships
+   */
+  clearAllDaliGroups(projectId) {
+    try {
+      // Delete group-device relationships
+      const deleteRelationships = this.db.prepare(`
+        DELETE FROM dali_group_devices WHERE project_id = ?
+      `);
+
+      // Delete group metadata (names)
+      const deleteMetadata = this.db.prepare(`
+        DELETE FROM dali_groups WHERE project_id = ?
+      `);
+
+      const relationshipsResult = deleteRelationships.run(projectId);
+      const metadataResult = deleteMetadata.run(projectId);
+
+      return {
+        success: true,
+        clearedRelationships: relationshipsResult.changes,
+        clearedMetadata: metadataResult.changes,
+      };
+    } catch (error) {
+      console.error("Failed to clear all DALI groups:", error);
+      throw error;
+    }
+  }
+
+  /**
+   * Clear all scene configurations for a project
+   * Deletes all scene metadata and scene-device configurations
+   */
+  clearAllDaliScenes(projectId) {
+    try {
+      // Delete scene-device configurations
+      const deleteDevices = this.db.prepare(`
+        DELETE FROM dali_scene_devices WHERE project_id = ?
+      `);
+
+      // Delete scene metadata (names)
+      const deleteMetadata = this.db.prepare(`
+        DELETE FROM dali_scenes WHERE project_id = ?
+      `);
+
+      const devicesResult = deleteDevices.run(projectId);
+      const metadataResult = deleteMetadata.run(projectId);
+
+      return {
+        success: true,
+        clearedDevices: devicesResult.changes,
+        clearedMetadata: metadataResult.changes,
+      };
+    } catch (error) {
+      console.error("Failed to clear all DALI scenes:", error);
+      throw error;
+    }
+  }
+
+  /**
+   * Clear all DALI configurations for a project
+   * Clears device mappings, groups, and scenes
+   */
+  clearAllDaliConfigurations(projectId) {
+    try {
+      const mappingsResult = this.clearAllDaliDeviceMappings(projectId);
+      const groupsResult = this.clearAllDaliGroups(projectId);
+      const scenesResult = this.clearAllDaliScenes(projectId);
+
+      return {
+        success: true,
+        mappings: mappingsResult,
+        groups: groupsResult,
+        scenes: scenesResult,
+      };
+    } catch (error) {
+      console.error("Failed to clear all DALI configurations:", error);
       throw error;
     }
   }
