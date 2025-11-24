@@ -468,7 +468,28 @@ async function sendGroupSceneConfig(unitIp, canId, projectId, database) {
     // Get all group device relationships
     const groupDevices = await database.getAllGroupDevices(projectId);
 
+    // Filter to only include devices that are in at least one group or scene
+    const devicesInGroups = new Set(groupDevices.map((gd) => gd.device_address));
+    const devicesInScenes = new Set(
+      sceneDevices.filter((sd) => sd.active).map((sd) => sd.device_address)
+    );
+
+    const filteredDevices = mappedDevices.filter(
+      (device) =>
+        devicesInGroups.has(device.address) ||
+        devicesInScenes.has(device.address)
+    );
+
+    if (filteredDevices.length === 0) {
+      throw new Error(
+        "No devices found in any group or scene. Please assign devices to groups or scenes first."
+      );
+    }
+
     console.log(`Found ${mappedDevices.length} mapped device(s)`);
+    console.log(
+      `Found ${filteredDevices.length} device(s) in groups or scenes`
+    );
     console.log(`Found ${sceneDevices.length} scene device configuration(s)`);
     console.log(`Found ${groupDevices.length} group device assignment(s)`);
 
@@ -476,7 +497,7 @@ async function sendGroupSceneConfig(unitIp, canId, projectId, database) {
     // Max 16 devices per packet, each device = 20 bytes
     const configData = [];
 
-    for (const device of mappedDevices.slice(0, 16)) {
+    for (const device of filteredDevices.slice(0, 16)) {
       // Limit to 16 devices per packet
       const deviceConfig = buildDeviceConfig(
         device,
@@ -492,7 +513,7 @@ async function sendGroupSceneConfig(unitIp, canId, projectId, database) {
 
     console.log(
       `Sending configuration for ${
-        mappedDevices.slice(0, 16).length
+        filteredDevices.slice(0, 16).length
       } device(s) (${configData.length} bytes)`
     );
 
@@ -529,7 +550,7 @@ async function sendGroupSceneConfig(unitIp, canId, projectId, database) {
 
     return {
       success: configResult.success && applyResult.success,
-      deviceCount: mappedDevices.slice(0, 16).length,
+      deviceCount: filteredDevices.slice(0, 16).length,
       totalBytes: configData.length,
     };
   } catch (error) {
