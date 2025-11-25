@@ -207,12 +207,12 @@ export const useNetworkIOConfig = (item, open, childDialogOpen = false) => {
               functionValue: unitConfig.inputType || 0,
               // Update rlcConfig with data from unit
               rlcConfig: {
-                ramp: unitConfig.ramp || 0,
-                preset: unitConfig.preset || 255,
+                ramp: unitConfig.ramp ?? 0,
+                preset: unitConfig.preset ?? 255,
                 ledStatus: unitConfig.ledStatus || 0,
                 autoMode: unitConfig.autoMode || false,
-                delayOff: unitConfig.delayOff || 0,
-                delayOn: unitConfig.delayOn || 0,
+                delayOff: unitConfig.delayOff ?? 0,
+                delayOn: unitConfig.delayOn ?? 0,
               },
               // Store additional config data for later use
               unitConfig: unitConfig,
@@ -406,22 +406,22 @@ export const useNetworkIOConfig = (item, open, childDialogOpen = false) => {
         brightness: 0,
         isActive: false,
         functionValue: 0, // Default function, will be updated from unit
-        ramp: input.rlc_config?.ramp || 0,
-        preset: input.rlc_config?.preset || 255,
+        ramp: input.rlc_config?.ramp ?? 0,
+        preset: input.rlc_config?.preset ?? 255,
         led_status: input.rlc_config?.ledStatus || 0,
         auto_mode: input.rlc_config?.autoMode || 0,
         auto_time: 0,
-        delay_off: input.rlc_config?.delayOff || 0,
-        delay_on: input.rlc_config?.delayOn || 0,
+        delay_off: input.rlc_config?.delayOff ?? 0,
+        delay_on: input.rlc_config?.delayOn ?? 0,
         multiGroupConfig: input.multi_group_config || [],
         // Add rlcConfig object for consistency with change detection
         rlcConfig: {
-          ramp: input.rlc_config?.ramp || 0,
-          preset: input.rlc_config?.preset || 255,
+          ramp: input.rlc_config?.ramp ?? 0,
+          preset: input.rlc_config?.preset ?? 255,
           ledStatus: input.rlc_config?.ledStatus || 0,
           autoMode: input.rlc_config?.autoMode || 0,
-          delayOff: input.rlc_config?.delayOff || 0,
-          delayOn: input.rlc_config?.delayOn || 0,
+          delayOff: input.rlc_config?.delayOff ?? 0,
+          delayOn: input.rlc_config?.delayOn ?? 0,
         }
       }));
 

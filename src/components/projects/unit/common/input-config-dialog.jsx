@@ -55,8 +55,8 @@ export function MultiGroupConfigDialog({
 
     // Convert to consistent format (groupId/presetBrightness)
     return initialGroups.map((group) => ({
-      groupId: group.groupId || group.address || 0,
-      presetBrightness: group.presetBrightness || group.preset || 255,
+      groupId: group.groupId ?? group.address ?? 0,
+      presetBrightness: group.presetBrightness ?? group.preset ?? 255,
     }));
   }, [initialGroups]);
 
@@ -260,7 +260,7 @@ export function MultiGroupConfigDialog({
           if (group.groupAddress) {
             return {
               groupId: group.groupAddress,
-              presetBrightness: group.preset || 255,
+              presetBrightness: group.preset ?? 255,
             };
           } else if (group.lightingId) {
             // Group in database - find address from lightingId
@@ -277,7 +277,7 @@ export function MultiGroupConfigDialog({
 
             const result = {
               groupId: groupItem ? parseInt(groupItem.address) : null,
-              presetBrightness: group.preset || 255,
+              presetBrightness: group.preset ?? 255,
             };
             return result;
           }

@@ -217,8 +217,8 @@ export const useMultipleGroups = (
             // Group exists in database - add to selected groups
             enhancedGroups.push({
               lightingId: existingGroup.id,
-              value: group.presetBrightness?.toString() || "255",
-              preset: group.presetBrightness || 255,
+              value: group.presetBrightness?.toString() ?? "255",
+              preset: group.presetBrightness ?? 255,
               presetPercent:
                 Math.round((group.presetBrightness / 255) * 100) || 100,
             });
@@ -227,8 +227,8 @@ export const useMultipleGroups = (
             enhancedGroups.push({
               lightingId: null,
               groupAddress: groupAddress,
-              value: group.presetBrightness?.toString() || "255",
-              preset: group.presetBrightness || 255,
+              value: group.presetBrightness?.toString() ?? "255",
+              preset: group.presetBrightness ?? 255,
               presetPercent:
                 Math.round((group.presetBrightness / 255) * 100) || 100,
             });
@@ -241,9 +241,9 @@ export const useMultipleGroups = (
       // Handle database unit format or empty array
       const enhancedGroups = initialGroups.map((group) => ({
         lightingId: group.lightingId,
-        value: group.value || "100",
-        preset: group.preset || 255,
-        presetPercent: group.presetPercent || 100,
+        value: group.value ?? "100",
+        preset: group.preset ?? 255,
+        presetPercent: group.presetPercent ?? 100,
       }));
 
       setSelectedGroups(enhancedGroups);

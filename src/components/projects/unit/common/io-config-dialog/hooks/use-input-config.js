@@ -271,7 +271,7 @@ export const useInputConfig = (item, setInputConfigs = null, open = true) => {
           delay_on: rlcOptions.delayOn || 0,
           multiGroupConfig: groups.map((group) => ({
             groupId: parseInt(group.groupId) || 0,
-            presetBrightness: parseInt(group.presetBrightness) || 255,
+            presetBrightness: parseInt(group.presetBrightness) ?? 255,
           })),
         };
 

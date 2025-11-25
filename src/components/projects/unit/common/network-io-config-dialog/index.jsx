@@ -518,12 +518,12 @@ const NetworkIOConfigDialog = ({ open, onOpenChange, item = null }) => {
         inputIndex={currentMultiGroupInput?.index || 0}
         initialGroups={currentMultiGroupInput?.config?.multiGroupConfig || []}
         initialRlcOptions={{
-          ramp: currentMultiGroupInput?.config?.ramp || 0,
-          preset: currentMultiGroupInput?.config?.preset || 255,
+          ramp: currentMultiGroupInput?.config?.ramp ?? 0,
+          preset: currentMultiGroupInput?.config?.preset ?? 255,
           led_status: currentMultiGroupInput?.config?.led_status || 0,
           auto_mode: currentMultiGroupInput?.config?.auto_mode || 0,
-          delay_off: currentMultiGroupInput?.config?.delay_off || 0,
-          delay_on: currentMultiGroupInput?.config?.delay_on || 0,
+          delay_off: currentMultiGroupInput?.config?.delay_off ?? 0,
+          delay_on: currentMultiGroupInput?.config?.delay_on ?? 0,
         }}
         isLoading={currentMultiGroupInput?.isLoading || false}
         onSave={handleSaveMultiGroupConfig}

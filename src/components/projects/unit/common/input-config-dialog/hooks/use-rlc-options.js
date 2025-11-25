@@ -71,13 +71,13 @@ export const useRlcOptions = (initialRlcOptions = {}) => {
       const ledStatusParsed = parseLedStatus(ledStatusValue);
 
       setRlcOptions({
-        ramp: initialRlcOptions.ramp || 0,
-        preset: initialRlcOptions.preset || 255,
+        ramp: initialRlcOptions.ramp ?? 0,
+        preset: initialRlcOptions.preset ?? 255,
         ledDisplay: ledStatusParsed.displayMode,
         nightlight: ledStatusParsed.nightlight,
         backlight: ledStatusParsed.backlight,
         autoMode:
-          initialRlcOptions.autoMode || initialRlcOptions.auto_mode || false,
+          initialRlcOptions.autoMode ?? initialRlcOptions.auto_mode ?? false,
         delayOff: delayTime,
       });
 

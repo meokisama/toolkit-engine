@@ -279,11 +279,11 @@ function SendAllConfigDialogComponent({ open, onOpenChange }) {
             const inputConfigData = {
               inputNumber: inputIndex,
               inputType: parseInt(input.functionValue) || 0,
-              ramp: parseInt(input.ramp) || 0,
-              preset: parseInt(input.preset) || 255,
+              ramp: parseInt(input.ramp) ?? 0,
+              preset: parseInt(input.preset) ?? 255,
               ledStatus: parseInt(input.ledStatus) || 0,
               autoMode: input.autoMode || false,
-              delayOff: parseInt(input.delayOff) || 0,
+              delayOff: parseInt(input.delayOff) ?? 0,
               groups: input.groups || [],
             };
 

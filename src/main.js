@@ -870,7 +870,7 @@ function setupIpcHandlers() {
         sceneAddresses,
       } = params;
 
-      return await setupSchedule(unitIp, canId, {
+      return await rcu.setupSchedule(unitIp, canId, {
         scheduleIndex,
         enabled,
         weekDays,
@@ -1113,7 +1113,7 @@ function setupIpcHandlers() {
     "rcu:getScheduleInformation",
     async (event, { unitIp, canId, scheduleIndex }) => {
       try {
-        return await getScheduleInformation(unitIp, canId, scheduleIndex);
+        return await rcu.getScheduleInformation(unitIp, canId, scheduleIndex);
       } catch (error) {
         console.error("Error getting schedule information:", error);
         throw error;
@@ -1125,7 +1125,7 @@ function setupIpcHandlers() {
     "rcu:getAllSchedulesInformation",
     async (event, { unitIp, canId }) => {
       try {
-        return await getAllSchedulesInformation(unitIp, canId);
+        return await rcu.getAllSchedulesInformation(unitIp, canId);
       } catch (error) {
         console.error("Error getting all schedules information:", error);
         throw error;
@@ -1137,7 +1137,7 @@ function setupIpcHandlers() {
     "rcu:deleteSchedule",
     async (event, { unitIp, canId, scheduleIndex }) => {
       try {
-        return await deleteSchedule(unitIp, canId, scheduleIndex);
+        return await rcu.deleteSchedule(unitIp, canId, scheduleIndex);
       } catch (error) {
         console.error("Error deleting schedule:", error);
         throw error;
@@ -1147,7 +1147,7 @@ function setupIpcHandlers() {
 
   ipcMain.handle("rcu:deleteAllSchedules", async (event, unitIp, canId) => {
     try {
-      return await deleteAllSchedules(unitIp, canId);
+      return await rcu.deleteAllSchedules(unitIp, canId);
     } catch (error) {
       console.error("Error deleting all schedules:", error);
       throw error;
@@ -1164,7 +1164,7 @@ function setupIpcHandlers() {
           event.sender.send("firmware:progress", { progress, status });
         };
 
-        return await updateFirmware(
+        return await rcu.updateFirmware(
           unitIp,
           canId,
           hexContent,

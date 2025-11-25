@@ -313,8 +313,8 @@ export const useNetworkInputConfig = (item, projectItems, refreshInputConfigs = 
         const inputConfigData = {
           inputNumber: currentMultiGroupInput.index,
           inputType: currentInputType,
-          ramp: rlcOptions.ramp || 0,
-          preset: rlcOptions.preset || 255,
+          ramp: rlcOptions.ramp ?? 0,
+          preset: rlcOptions.preset ?? 255,
           ledStatus: ledStatus,
           autoMode: rlcOptions.autoMode || false,
           delayOff: delayOffSeconds,
@@ -323,7 +323,7 @@ export const useNetworkInputConfig = (item, projectItems, refreshInputConfigs = 
             // { groupId: address, presetBrightness: value }
             return {
               groupId: parseInt(group.groupId) || 0,
-              presetBrightness: parseInt(group.presetBrightness) || 255,
+              presetBrightness: parseInt(group.presetBrightness) ?? 255,
             };
           }),
         };
@@ -352,15 +352,15 @@ export const useNetworkInputConfig = (item, projectItems, refreshInputConfigs = 
                   functionValue: currentInputType,
                   multiGroupConfig: groups.map((group) => ({
                     groupId: parseInt(group.groupId) || 0,
-                    presetBrightness: parseInt(group.presetBrightness) || 255,
+                    presetBrightness: parseInt(group.presetBrightness) ?? 255,
                   })),
                   rlcConfig: {
-                    ramp: rlcOptions.ramp || 0,
-                    preset: rlcOptions.preset || 255,
+                    ramp: rlcOptions.ramp ?? 0,
+                    preset: rlcOptions.preset ?? 255,
                     ledStatus: ledStatus,
                     autoMode: rlcOptions.autoMode || false,
                     delayOff: delayOffSeconds,
-                    delayOn: rlcOptions.delayOn || 0,
+                    delayOn: rlcOptions.delayOn ?? 0,
                   }
                 }
                 : config
@@ -394,11 +394,11 @@ export const useNetworkInputConfig = (item, projectItems, refreshInputConfigs = 
         const inputConfigData = {
           inputNumber: inputIndex,
           inputType: currentConfig.inputType || 0,
-          ramp: currentConfig.ramp || 0,
-          preset: currentConfig.preset || 255,
+          ramp: currentConfig.ramp ?? 0,
+          preset: currentConfig.preset ?? 255,
           ledStatus: currentConfig.ledStatus || 0,
           autoMode: currentConfig.autoMode || false,
-          delayOff: currentConfig.delayOff || 0,
+          delayOff: currentConfig.delayOff ?? 0,
           groups: lightingId
             ? [{ groupId: lightingId, presetBrightness: 255 }]
             : [],

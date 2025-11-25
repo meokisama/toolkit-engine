@@ -15,6 +15,7 @@ const PROTOCOL = {
       CHANGE_ID: 8,
       SYNC_CLOCK: 9,
       GET_CLOCK: 10,
+      CHANGE_ACT_MODE: 11,
       HARDWARE_CONFIG: 12,
       GET_RS485_CH1_CONFIG: 13,
       GET_RS485_CH2_CONFIG: 14,

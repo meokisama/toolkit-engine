@@ -42,7 +42,12 @@ async function changeIpAddress(unitIp, canId, newIpBytes, oldIpBytes) {
 
     if (isDifferentNetwork) {
       console.log("*** USING BROADCAST METHOD ***");
-      return await changeIpAddressBroadcast(unitIp, canId, newIpBytes, oldIpBytes);
+      return await changeIpAddressBroadcast(
+        unitIp,
+        canId,
+        newIpBytes,
+        oldIpBytes
+      );
     } else {
       console.log("*** USING DIRECT METHOD ***");
     }
@@ -65,37 +70,40 @@ async function changeIpAddress(unitIp, canId, newIpBytes, oldIpBytes) {
 
   console.log("=== CHANGE IP ADDRESS SUCCESS ===");
   return {
-    result: { success: true }
+    result: { success: true },
   };
 }
 
 // Helper function to check if unit is on different network (main process only)
 async function checkIfDifferentNetwork(unitIp) {
   try {
-    const os = require('os');
+    const os = require("os");
     const interfaces = os.networkInterfaces();
 
     // Get all local IPv4 addresses
     const localAddresses = [];
     for (const [name, addresses] of Object.entries(interfaces)) {
-      const ipv4Addresses = addresses.filter(addr =>
-        addr.family === 'IPv4' && !addr.internal
+      const ipv4Addresses = addresses.filter(
+        (addr) => addr.family === "IPv4" && !addr.internal
       );
-      localAddresses.push(...ipv4Addresses.map(addr => addr.address));
+      localAddresses.push(...ipv4Addresses.map((addr) => addr.address));
     }
 
     // Check if unit IP is on same network as any local interface
-    const unitNetwork = unitIp.split('.').slice(0, 3).join('.');
+    const unitNetwork = unitIp.split(".").slice(0, 3).join(".");
 
     for (const localAddr of localAddresses) {
-      const localNetwork = localAddr.split('.').slice(0, 3).join('.');
+      const localNetwork = localAddr.split(".").slice(0, 3).join(".");
       if (unitNetwork === localNetwork) {
         console.log(`Unit ${unitIp} is on same network as local ${localAddr}`);
         return false; // Same network
       }
     }
 
-    console.log(`Unit ${unitIp} is on different network from all local interfaces:`, localAddresses);
+    console.log(
+      `Unit ${unitIp} is on different network from all local interfaces:`,
+      localAddresses
+    );
     return true; // Different network
   } catch (error) {
     console.error("Error checking network:", error);
@@ -107,9 +115,12 @@ async function checkIfDifferentNetwork(unitIp) {
 async function getCurrentNetworkInfo() {
   if (typeof window !== "undefined" && window.electronAPI) {
     const interfaces = await window.electronAPI.networkInterfaces.getAll();
-    return interfaces.find(iface => !iface.address.startsWith('127.')) || interfaces[0];
+    return (
+      interfaces.find((iface) => !iface.address.startsWith("127.")) ||
+      interfaces[0]
+    );
   }
-  return { address: '192.168.1.100' }; // fallback
+  return { address: "192.168.1.100" }; // fallback
 }
 
 // Broadcast method for cross-network IP change
@@ -133,18 +144,18 @@ async function changeIpAddressBroadcast(unitIp, canId, newIpBytes, oldIpBytes) {
 
       // Convert CAN ID to address format (like RLC Core)
       const canIdParts = canId.split(".");
-      Data[0] = parseInt(canIdParts[3]) & 0xff;  // Last part first
+      Data[0] = parseInt(canIdParts[3]) & 0xff; // Last part first
       Data[1] = parseInt(canIdParts[2]) & 0xff;
       Data[2] = parseInt(canIdParts[1]) & 0xff;
-      Data[3] = parseInt(canIdParts[0]) & 0xff;  // First part last
+      Data[3] = parseInt(canIdParts[0]) & 0xff; // First part last
 
       // Length: 12 bytes (CMD1 + CMD2 + 8 bytes data + 2 bytes CRC)
       Data[4] = 12;
       Data[5] = 0;
 
       // Commands
-      Data[6] = 1;  // CMD1 = GENERAL
-      Data[7] = 7;  // CMD2 = CHANGE_IP
+      Data[6] = 1; // CMD1 = GENERAL
+      Data[7] = 7; // CMD2 = CHANGE_IP
 
       // New IP (4 bytes)
       Data[8] = newIpBytes[0];
@@ -171,13 +182,27 @@ async function changeIpAddressBroadcast(unitIp, canId, newIpBytes, oldIpBytes) {
       const buffer = Buffer.from(Data);
 
       console.log("Broadcast packet structure:");
-      console.log("  ID Address:", Data.slice(0, 4).map(b => b.toString(16).padStart(2, '0')).join(' '));
+      console.log(
+        "  ID Address:",
+        Data.slice(0, 4)
+          .map((b) => b.toString(16).padStart(2, "0"))
+          .join(" ")
+      );
       console.log("  Length:", Data[4] + (Data[5] << 8));
       console.log("  CMD1:", Data[6], "CMD2:", Data[7]);
-      console.log("  New IP:", Data.slice(8, 12).join('.'));
-      console.log("  Old IP:", Data.slice(12, 16).join('.'));
-      console.log("  CRC:", Data[16] + (Data[17] << 8), "(" + Data[16].toString(16) + " " + Data[17].toString(16) + ")");
-      console.log("Broadcast packet (fixed init):", Array.from(buffer).map(b => b.toString(16).padStart(2, '0')).join(' '));
+      console.log("  New IP:", Data.slice(8, 12).join("."));
+      console.log("  Old IP:", Data.slice(12, 16).join("."));
+      console.log(
+        "  CRC:",
+        Data[16] + (Data[17] << 8),
+        "(" + Data[16].toString(16) + " " + Data[17].toString(16) + ")"
+      );
+      console.log(
+        "Broadcast packet (fixed init):",
+        Array.from(buffer)
+          .map((b) => b.toString(16).padStart(2, "0"))
+          .join(" ")
+      );
 
       // Create UDP client for broadcast
       const client = dgram.createSocket("udp4");
@@ -203,27 +228,35 @@ async function changeIpAddressBroadcast(unitIp, canId, newIpBytes, oldIpBytes) {
           console.log("Broadcast mode enabled");
 
           // Send broadcast packet
-          client.send(buffer, 0, Data[4] + 6, 1234, "255.255.255.255", (err) => {
-            // Always close the socket after send attempt
-            try {
-              client.close();
-            } catch (closeErr) {
-              console.warn("Error closing socket after send:", closeErr);
+          client.send(
+            buffer,
+            0,
+            Data[4] + 6,
+            1234,
+            "255.255.255.255",
+            (err) => {
+              // Always close the socket after send attempt
+              try {
+                client.close();
+              } catch (closeErr) {
+                console.warn("Error closing socket after send:", closeErr);
+              }
+
+              if (err) {
+                console.error("Broadcast send error:", err);
+                reject(err);
+                return;
+              }
+
+              console.log(
+                "IP change broadcast sent successfully to 255.255.255.255:1234"
+              );
+              console.log("=== BROADCAST IP CHANGE COMPLETE ===");
+
+              // Resolve immediately after successful send (fire-and-forget)
+              resolve({ result: { success: true } });
             }
-
-            if (err) {
-              console.error("Broadcast send error:", err);
-              reject(err);
-              return;
-            }
-
-            console.log("IP change broadcast sent successfully to 255.255.255.255:1234");
-            console.log("=== BROADCAST IP CHANGE COMPLETE ===");
-
-            // Resolve immediately after successful send (fire-and-forget)
-            resolve({ result: { success: true } });
-          });
-
+          );
         } catch (broadcastErr) {
           console.error("Error in broadcast setup or send:", broadcastErr);
           try {
@@ -249,7 +282,6 @@ async function changeIpAddressBroadcast(unitIp, canId, newIpBytes, oldIpBytes) {
         }
         // Socket is now ready, 'listening' event will fire
       });
-
     } catch (error) {
       console.error("Error in changeIpAddressBroadcast:", error);
       reject(error);
@@ -284,7 +316,7 @@ async function changeCanId(unitIp, canId, newLastPart) {
   }
 
   return {
-    result: { success: true }
+    result: { success: true },
   };
 }
 
@@ -298,7 +330,7 @@ async function setHardwareConfig(unitIp, canId, configByte) {
   console.log("Setting hardware config:", {
     unitIp,
     canId,
-    configByte: `0x${configByte.toString(16).padStart(2, '0')}`,
+    configByte: `0x${configByte.toString(16).padStart(2, "0")}`,
     actionMode: configByte & 0x03,
     canLoad: !!(configByte & 0x04),
     recovery: !!(configByte & 0x40),
@@ -317,12 +349,24 @@ async function setHardwareConfig(unitIp, canId, configByte) {
     throw new Error("Failed to set hardware configuration");
   }
 
+  // Send separate CHANGE_ACT_MODE command
+  const actionMode = configByte & 0x03; // Extract action mode from bit 0-1
+
+  const actModeResponse = await sendGeneralCommand(
+    unitIp,
+    canId,
+    PROTOCOL.GENERAL.CMD2.CHANGE_ACT_MODE,
+    [actionMode]
+  );
+
+  if (!parseResponse.success(actModeResponse)) {
+    throw new Error("Failed to change action mode");
+  }
+
   return {
-    result: { success: true }
+    result: { success: true },
   };
 }
-
-
 
 export {
   changeIpAddress,

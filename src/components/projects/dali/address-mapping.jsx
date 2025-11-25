@@ -593,22 +593,20 @@ export function AddressMapping({ isActive }) {
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Device Count Changed</AlertDialogTitle>
-            <AlertDialogDescription>
+            <AlertDialogDescription className="flex flex-col gap-2">
               The number of DALI devices has changed during commissioning.
-              <div className="mt-4 space-y-2">
-                <div className="flex justify-between">
-                  <span>Old device count:</span>
-                  <span className="font-semibold">
-                    {deviceCountDialog.oldCount}
-                  </span>
-                </div>
-                <div className="flex justify-between">
-                  <span>New device count:</span>
-                  <span className="font-semibold">
-                    {deviceCountDialog.newCount}
-                  </span>
-                </div>
-              </div>
+              <span>
+                - Old device count:{" "}
+                <span className="font-bold text-rose-900">
+                  {deviceCountDialog.oldCount}
+                </span>
+              </span>
+              <span>
+                - New device count:{" "}
+                <span className="font-bold text-rose-900">
+                  {deviceCountDialog.newCount}
+                </span>
+              </span>
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

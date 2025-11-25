@@ -12,8 +12,8 @@ async function setupInputConfig(unitIp, canId, inputConfig) {
   // Convert all input values to integers to ensure proper data types
   const inputNumber = parseInt(inputConfig.inputNumber) || 0;
   const inputType = parseInt(inputConfig.inputType) || 0;
-  const ramp = parseInt(inputConfig.ramp) || 0;
-  const preset = parseInt(inputConfig.preset) || 255;
+  const ramp = parseInt(inputConfig.ramp) ?? 0;
+  const preset = parseInt(inputConfig.preset) ?? 255;
   const ledStatus = parseInt(inputConfig.ledStatus) || 0;
   const autoMode = inputConfig.autoMode ? 1 : 0; // Boolean conversion
 

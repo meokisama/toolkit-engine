@@ -120,12 +120,12 @@ export function useConfigComparison() {
                 lighting_id: null, // Will be resolved when needed
                 multi_group_config: unitConfig.groups || [],
                 rlc_config: {
-                  ramp: unitConfig.ramp || 0,
-                  preset: unitConfig.preset || 255,
+                  ramp: unitConfig.ramp ?? 0,
+                  preset: unitConfig.preset ?? 255,
                   ledStatus: unitConfig.ledStatus?.raw || 0,
                   autoMode: unitConfig.autoMode || 0,
-                  delayOff: unitConfig.delayOff || 0,
-                  delayOn: unitConfig.delayOn || 0,
+                  delayOff: unitConfig.delayOff ?? 0,
+                  delayOn: unitConfig.delayOn ?? 0,
                 },
               });
             } else {
