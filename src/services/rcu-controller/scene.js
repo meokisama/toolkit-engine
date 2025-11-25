@@ -50,7 +50,8 @@ async function setupScene(unitIp, canId, sceneConfig) {
 
     let itemValue = parseFloat(item.item_value) || 0;
     if (item.object_value === 1) {
-      itemValue = Math.round((itemValue / 100) * 255); // LIGHTING
+      // LIGHTING: already stored as 0-255, no conversion needed
+      itemValue = parseInt(itemValue) || 0;
     } else if (item.object_value === 6) {
       itemValue = parseInt(itemValue) || 0; // AC_TEMPERATURE
     } else {

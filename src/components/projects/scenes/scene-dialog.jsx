@@ -67,7 +67,16 @@ const AC_SWING_LABELS =
     return acc;
   }, {}) || {};
 
-import { Plus, Trash2, Lightbulb, Wind, Blinds, Sun, Edit } from "lucide-react";
+import {
+  Plus,
+  Trash2,
+  Lightbulb,
+  Wind,
+  Blinds,
+  Sun,
+  Edit,
+  Percent,
+} from "lucide-react";
 import { AirconPropertiesDialog } from "./aircon-properties-dialog";
 import { ProjectItemDialog } from "../lighting/lighting-dialog";
 import { CurtainDialog } from "../curtain/curtain-dialog";
@@ -108,6 +117,7 @@ export function SceneDialog({
   const [customBrightnessDialog, setCustomBrightnessDialog] = useState({
     open: false,
     brightness: 50,
+    brightness255: 128,
   });
   const [lightingDialog, setLightingDialog] = useState({
     open: false,
@@ -961,12 +971,12 @@ export function SceneDialog({
     [getCommandForAirconItem]
   );
 
-  // All On: Set all lighting items to 100% brightness
+  // All On: Set all lighting items to 100% brightness (255 in 0-255 scale)
   const handleAllLightingOn = useCallback(() => {
     setSceneItems((prev) =>
       prev.map((item) => {
         if (item.item_type === "lighting") {
-          return { ...item, item_value: "100" };
+          return { ...item, item_value: "255" };
         }
         return item;
       })
@@ -986,38 +996,35 @@ export function SceneDialog({
   }, []);
 
   // Custom: Set all lighting items to custom brightness
-  const handleCustomBrightness = useCallback((brightness) => {
-    // Handle empty string or invalid input
-    if (brightness === "" || brightness === null || brightness === undefined) {
-      toast.error("Please enter a valid brightness value");
+  const handleCustomBrightness = useCallback(() => {
+    const { brightness255 } = customBrightnessDialog;
+
+    // Use the 0-255 value for storage
+    const value255 = parseInt(brightness255);
+    if (isNaN(value255) || value255 < 0 || value255 > 255) {
+      toast.error("Brightness must be between 0 and 255");
       return;
     }
 
-    // Validate brightness value
-    const numBrightness = parseInt(brightness);
-    if (isNaN(numBrightness)) {
-      toast.error("Please enter a valid number");
-      return;
-    }
-
-    const validBrightness = Math.min(100, Math.max(0, numBrightness));
-
-    if (validBrightness !== numBrightness) {
-      toast.error("Brightness must be between 0 and 100");
-      return;
-    }
+    const percentValue = Math.round((value255 * 100) / 255);
 
     setSceneItems((prev) =>
       prev.map((item) => {
         if (item.item_type === "lighting") {
-          return { ...item, item_value: validBrightness.toString() };
+          return { ...item, item_value: value255.toString() };
         }
         return item;
       })
     );
-    setCustomBrightnessDialog({ open: false, brightness: 50 });
-    toast.success(`Set all lighting to ${validBrightness}% brightness`);
-  }, []);
+    setCustomBrightnessDialog({
+      open: false,
+      brightness: 50,
+      brightness255: 128,
+    });
+    toast.success(
+      `Set all lighting to ${percentValue}% (${value255}/255) brightness`
+    );
+  }, [customBrightnessDialog]);
 
   const applySceneItemsChanges = async (sceneId) => {
     // Compare current sceneItems with originalSceneItems to determine changes
@@ -1249,29 +1256,62 @@ export function SceneDialog({
         sceneItem.item_type
       );
 
-      // For lighting items, always use number input for brightness (0-100)
+      // For lighting items, always use number input for brightness (stored as 0-255)
       if (sceneItem.item_type === "lighting") {
-        const handleLightingChange = (e) => {
+        // Value is stored as 0-255, convert to percent for display
+        const current255Value = parseInt(sceneItem.item_value || "255");
+        const currentPercentValue = Math.round((current255Value * 100) / 255);
+
+        const handlePercentChange = (e) => {
           const inputValue = e.target.value;
           if (inputValue === "") {
-            updateSceneItemValue(sceneItem.id, "100");
+            updateSceneItemValue(sceneItem.id, "255");
           } else {
-            const value = Math.min(100, Math.max(0, parseInt(inputValue) || 0));
+            const percentValue = Math.min(
+              100,
+              Math.max(0, parseInt(inputValue) || 0)
+            );
+            // Convert from percent to 0-255 for storage
+            const value255 = Math.round((percentValue * 255) / 100);
+            updateSceneItemValue(sceneItem.id, value255.toString());
+          }
+        };
+
+        const handle255Change = (e) => {
+          const inputValue = e.target.value;
+          if (inputValue === "") {
+            updateSceneItemValue(sceneItem.id, "255");
+          } else {
+            const value = Math.min(255, Math.max(0, parseInt(inputValue) || 0));
+            // Store directly as 0-255
             updateSceneItemValue(sceneItem.id, value.toString());
           }
         };
 
         return (
-          <div className="relative">
-            <Sun className="h-4 w-4 absolute left-2 top-1/2 -translate-y-1/2 text-muted-foreground" />
-            <Input
-              type="number"
-              min="0"
-              max="100"
-              value={sceneItem.item_value || "100"}
-              onChange={handleLightingChange}
-              className="w-30 pl-8 font-semibold"
-            />
+          <div className="flex items-center gap-2">
+            <div className="relative">
+              <Percent className="h-4 w-4 absolute left-2 top-1/2 -translate-y-1/2 text-muted-foreground" />
+              <Input
+                type="number"
+                min="0"
+                max="100"
+                value={currentPercentValue}
+                onChange={handlePercentChange}
+                className="w-23 pl-8 font-semibold"
+              />
+            </div>
+            <div className="relative">
+              <Sun className="h-4 w-4 absolute left-2 top-1/2 -translate-y-1/2 text-muted-foreground" />
+              <Input
+                type="number"
+                min="0"
+                max="255"
+                value={current255Value}
+                onChange={handle255Change}
+                className="w-23 pl-8 font-semibold"
+              />
+            </div>
           </div>
         );
       }
@@ -1517,60 +1557,122 @@ export function SceneDialog({
                                 Custom
                               </Button>
                             </PopoverTrigger>
-                            <PopoverContent className="w-80">
+                            <PopoverContent className="w-90">
                               <div className="space-y-4">
-                                <div className="space-y-2">
-                                  <Label htmlFor="brightness">
-                                    Custom Brightness (%)
-                                  </Label>
-                                  <Input
-                                    id="brightness"
-                                    type="number"
-                                    min={0}
-                                    max={100}
-                                    value={customBrightnessDialog.brightness}
-                                    onChange={(e) => {
-                                      const value = e.target.value;
-                                      // Allow empty string for user to clear and type new value
-                                      if (value === "") {
-                                        setCustomBrightnessDialog((prev) => ({
-                                          ...prev,
-                                          brightness: "",
-                                        }));
-                                        return;
+                                <div className="grid grid-cols-2 gap-3">
+                                  <div className="space-y-2">
+                                    <Label htmlFor="brightness-percent">
+                                      Brightness (%)
+                                    </Label>
+                                    <Input
+                                      id="brightness-percent"
+                                      type="number"
+                                      min={0}
+                                      max={100}
+                                      value={customBrightnessDialog.brightness}
+                                      onChange={(e) => {
+                                        const value = e.target.value;
+                                        if (value === "") {
+                                          setCustomBrightnessDialog((prev) => ({
+                                            ...prev,
+                                            brightness: "",
+                                            brightness255: "",
+                                          }));
+                                          return;
+                                        }
+                                        const numValue = parseInt(value);
+                                        if (!isNaN(numValue)) {
+                                          const clampedValue = Math.min(
+                                            100,
+                                            Math.max(0, numValue)
+                                          );
+                                          const value255 = Math.round(
+                                            (clampedValue * 255) / 100
+                                          );
+                                          setCustomBrightnessDialog((prev) => ({
+                                            ...prev,
+                                            brightness: clampedValue,
+                                            brightness255: value255,
+                                          }));
+                                        }
+                                      }}
+                                      onBlur={(e) => {
+                                        const value = e.target.value;
+                                        if (
+                                          value === "" ||
+                                          isNaN(parseInt(value))
+                                        ) {
+                                          setCustomBrightnessDialog((prev) => ({
+                                            ...prev,
+                                            brightness: 50,
+                                            brightness255: 128,
+                                          }));
+                                        }
+                                      }}
+                                      placeholder="0-100"
+                                      className="w-full"
+                                    />
+                                  </div>
+                                  <div className="space-y-2">
+                                    <Label htmlFor="brightness-255">
+                                      Brightness (0-255)
+                                    </Label>
+                                    <Input
+                                      id="brightness-255"
+                                      type="number"
+                                      min={0}
+                                      max={255}
+                                      value={
+                                        customBrightnessDialog.brightness255
                                       }
-                                      const numValue = parseInt(value);
-                                      if (!isNaN(numValue)) {
-                                        const clampedValue = Math.min(
-                                          100,
-                                          Math.max(0, numValue)
-                                        );
-                                        setCustomBrightnessDialog((prev) => ({
-                                          ...prev,
-                                          brightness: clampedValue,
-                                        }));
-                                      }
-                                    }}
-                                    onBlur={(e) => {
-                                      // Ensure we have a valid number when user leaves the field
-                                      const value = e.target.value;
-                                      if (
-                                        value === "" ||
-                                        isNaN(parseInt(value))
-                                      ) {
-                                        setCustomBrightnessDialog((prev) => ({
-                                          ...prev,
-                                          brightness: 50,
-                                        }));
-                                      }
-                                    }}
-                                    placeholder="Enter brightness (0-100)"
-                                    className="w-full"
-                                  />
-                                  <p className="text-xs text-muted-foreground">
-                                    Enter a value between 0 and 100.
-                                  </p>
+                                      onChange={(e) => {
+                                        const value = e.target.value;
+                                        if (value === "") {
+                                          setCustomBrightnessDialog((prev) => ({
+                                            ...prev,
+                                            brightness: "",
+                                            brightness255: "",
+                                          }));
+                                          return;
+                                        }
+                                        const numValue = parseInt(value);
+                                        if (!isNaN(numValue)) {
+                                          const clampedValue = Math.min(
+                                            255,
+                                            Math.max(0, numValue)
+                                          );
+                                          const percentValue = Math.round(
+                                            (clampedValue * 100) / 255
+                                          );
+                                          setCustomBrightnessDialog((prev) => ({
+                                            ...prev,
+                                            brightness: percentValue,
+                                            brightness255: clampedValue,
+                                          }));
+                                        }
+                                      }}
+                                      onBlur={(e) => {
+                                        const value = e.target.value;
+                                        if (
+                                          value === "" ||
+                                          isNaN(parseInt(value))
+                                        ) {
+                                          setCustomBrightnessDialog((prev) => ({
+                                            ...prev,
+                                            brightness: 50,
+                                            brightness255: 128,
+                                          }));
+                                        }
+                                      }}
+                                      placeholder="0-255"
+                                      className="w-full"
+                                    />
+                                  </div>
                                 </div>
+                                <p className="text-xs text-muted-foreground">
+                                  Enter in either format. Values will sync
+                                  automatically.
+                                </p>
                                 <div className="flex justify-end gap-2">
                                   <Button
                                     type="button"
@@ -1580,6 +1682,7 @@ export function SceneDialog({
                                       setCustomBrightnessDialog({
                                         open: false,
                                         brightness: 50,
+                                        brightness255: 128,
                                       })
                                     }
                                   >
@@ -1588,25 +1691,21 @@ export function SceneDialog({
                                   <Button
                                     type="button"
                                     size="sm"
-                                    onClick={() =>
-                                      handleCustomBrightness(
-                                        customBrightnessDialog.brightness
-                                      )
-                                    }
+                                    onClick={handleCustomBrightness}
                                     disabled={
-                                      customBrightnessDialog.brightness ===
+                                      customBrightnessDialog.brightness255 ===
                                         "" ||
                                       isNaN(
                                         parseInt(
-                                          customBrightnessDialog.brightness
+                                          customBrightnessDialog.brightness255
                                         )
                                       ) ||
                                       parseInt(
-                                        customBrightnessDialog.brightness
+                                        customBrightnessDialog.brightness255
                                       ) < 0 ||
                                       parseInt(
-                                        customBrightnessDialog.brightness
-                                      ) > 100
+                                        customBrightnessDialog.brightness255
+                                      ) > 255
                                     }
                                   >
                                     Apply
@@ -1708,10 +1807,10 @@ export function SceneDialog({
                             >
                               <div className="flex items-center gap-2 min-w-0 flex-1">
                                 {item.item_type === "lighting" && (
-                                  <Lightbulb className="h-4 w-4 text-yellow-500 flex-shrink-0" />
+                                  <Lightbulb className="h-4 w-4 text-yellow-500 shrink-0" />
                                 )}
                                 {item.item_type === "curtain" && (
-                                  <Blinds className="h-4 w-4 text-green-500 flex-shrink-0" />
+                                  <Blinds className="h-4 w-4 text-green-500 shrink-0" />
                                 )}
                                 <div className="min-w-0 flex-1">
                                   <div className="font-medium text-sm truncate">
@@ -1725,7 +1824,7 @@ export function SceneDialog({
                                   </div>
                                 </div>
                               </div>
-                              <div className="flex items-center gap-2 flex-shrink-0">
+                              <div className="flex items-center gap-2 shrink-0">
                                 {(item.object_type ||
                                   item.item_type === "lighting") &&
                                   renderValueControl(item)}
@@ -1824,7 +1923,7 @@ export function SceneDialog({
                                     variant="outline"
                                     size="icon"
                                     onClick={() =>
-                                      addItemToScene("lighting", item.id, "100")
+                                      addItemToScene("lighting", item.id, "255")
                                     }
                                     className="h-8 w-8"
                                   >
