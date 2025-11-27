@@ -8,15 +8,9 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { RoomStateConfiguration } from "./RoomStateConfiguration";
+import { LibraryBig, Settings2, SlidersVertical, Timer } from "lucide-react";
 
 const ROOM_STATES = [
   "Unrent",
@@ -71,14 +65,14 @@ export function RoomConfiguration({
       <div className="space-y-6">
         {/* Basic Room Settings */}
         <div className="space-y-4 pb-4">
-          <h3 className="font-semibold text-sm">1. Basic Settings</h3>
           <div className="grid grid-cols-4 gap-2">
             {/* Room Address */}
             <div className="flex flex-col gap-2">
               <Label
                 htmlFor={`room-${roomIndex}-address`}
-                className="text-right"
+                className="text-right gap-1"
               >
+                <LibraryBig className="size-4" />
                 Room Address
               </Label>
               <Select
@@ -107,8 +101,9 @@ export function RoomConfiguration({
             <div className="flex flex-col gap-2">
               <Label
                 htmlFor={`room-${roomIndex}-occupancy`}
-                className="text-right"
+                className="text-right gap-1"
               >
+                <Settings2 className="size-4" />
                 Occupancy Type
               </Label>
               <Select
@@ -136,8 +131,9 @@ export function RoomConfiguration({
               <div className="flex flex-col gap-2">
                 <Label
                   htmlFor={`room-${roomIndex}-scene-type`}
-                  className="text-right"
+                  className="text-right gap-1"
                 >
+                  <SlidersVertical className="size-4" />
                   Occupancy Scene Type
                 </Label>
                 <Select
@@ -165,8 +161,9 @@ export function RoomConfiguration({
               <div className="flex flex-col gap-2">
                 <Label
                   htmlFor={`room-${roomIndex}-period`}
-                  className="text-right"
+                  className="text-right gap-1"
                 >
+                  <Timer className="size-4" />
                   Period (seconds)
                 </Label>
                 <Input
@@ -189,8 +186,9 @@ export function RoomConfiguration({
               <div className="flex flex-col gap-2">
                 <Label
                   htmlFor={`room-${roomIndex}-pir-init`}
-                  className="text-right"
+                  className="text-right gap-1"
                 >
+                  <Timer className="size-4" />
                   PIR Init Time (seconds)
                 </Label>
                 <Input
@@ -211,8 +209,9 @@ export function RoomConfiguration({
               <div className="flex flex-col gap-2">
                 <Label
                   htmlFor={`room-${roomIndex}-pir-verify`}
-                  className="text-right"
+                  className="text-right gap-1"
                 >
+                  <Timer className="size-4" />
                   PIR Verify Time (seconds)
                 </Label>
                 <Input
@@ -233,8 +232,9 @@ export function RoomConfiguration({
               <div className="flex flex-col gap-2">
                 <Label
                   htmlFor={`room-${roomIndex}-unrent`}
-                  className="text-right"
+                  className="text-right gap-1"
                 >
+                  <Timer className="size-4" />
                   Unrent Period (seconds)
                 </Label>
                 <Input
@@ -255,8 +255,9 @@ export function RoomConfiguration({
               <div className="flex flex-col gap-2">
                 <Label
                   htmlFor={`room-${roomIndex}-standby`}
-                  className="text-right"
+                  className="text-right gap-1"
                 >
+                  <Timer className="size-4" />
                   Standby Time (seconds)
                 </Label>
                 <Input
@@ -279,7 +280,12 @@ export function RoomConfiguration({
 
         {/* Room States Configuration */}
         <div className="space-y-4">
-          <h3 className="font-semibold text-sm">2. State Configurations</h3>
+          <div>
+            <h3 className="font-semibold text-sm">State Configurations</h3>
+            <p className="text-xs text-muted-foreground">
+              Aircon configuration and scenes for 7 states.
+            </p>
+          </div>
           <Tabs defaultValue={ROOM_STATES[0]} className="w-full">
             <TabsList className="grid w-full grid-cols-7">
               {ROOM_STATES.map((state) => (
@@ -289,7 +295,7 @@ export function RoomConfiguration({
               ))}
             </TabsList>
             {ROOM_STATES.map((state) => (
-              <TabsContent key={state} value={state} className="mt-4">
+              <TabsContent key={state} value={state} className="mt-1">
                 <RoomStateConfiguration
                   state={state}
                   config={states[state] || {}}

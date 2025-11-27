@@ -8,7 +8,20 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import {
+  Settings2,
+  LibraryBig,
+  Network,
+  ChevronsLeftRightEllipsis,
+  Share2,
+} from "lucide-react";
 
 export function RoomGeneralSettings({ config, updateConfig }) {
   const {
@@ -41,15 +54,21 @@ export function RoomGeneralSettings({ config, updateConfig }) {
 
   return (
     <div className="space-y-4">
-      <Card>
+      <Card className="">
         <CardHeader>
-          <CardTitle>Room General Settings</CardTitle>
+          <CardTitle className="text-gray-800 font-extrabold">
+            Room General Settings
+          </CardTitle>
+          <CardDescription>
+            Overview configuration of the room and the room's slaves.
+          </CardDescription>
         </CardHeader>
         <CardContent className="space-y-5">
           <div className="grid grid-cols-4 gap-2">
             {/* Room Mode */}
             <div className="flex flex-col gap-2">
-              <Label htmlFor="room-mode" className="text-right">
+              <Label htmlFor="room-mode" className="text-right gap-1">
+                <Settings2 className="size-4" />
                 Room Mode
               </Label>
               <Select
@@ -72,7 +91,8 @@ export function RoomGeneralSettings({ config, updateConfig }) {
             {/* Room Amount - Only show for Standalone mode */}
             {showRoomAmount && (
               <div className="flex flex-col gap-2">
-                <Label htmlFor="room-amount" className="text-right">
+                <Label htmlFor="room-amount" className="text-right gap-1">
+                  <LibraryBig className="size-4" />
                   Room Amount
                 </Label>
                 <Select
@@ -97,7 +117,8 @@ export function RoomGeneralSettings({ config, updateConfig }) {
 
             {/* TCP Mode */}
             <div className="flex flex-col gap-2">
-              <Label htmlFor="tcp-mode" className="text-right">
+              <Label htmlFor="tcp-mode" className="text-right gap-1">
+                <Network className="size-4" />
                 TCP Mode
               </Label>
               <Select
@@ -120,7 +141,8 @@ export function RoomGeneralSettings({ config, updateConfig }) {
             <div className="grid grid-cols-2 gap-2">
               {/* Port */}
               <div className="flex flex-col gap-2">
-                <Label htmlFor="port" className="text-right">
+                <Label htmlFor="port" className="text-right gap-1">
+                  <ChevronsLeftRightEllipsis className="size-4" />
                   Port
                 </Label>
                 <Input
@@ -137,7 +159,8 @@ export function RoomGeneralSettings({ config, updateConfig }) {
               {/* Slave Amount - Only show for Master mode */}
               {showSlaveFields && (
                 <div className="flex flex-col gap-2">
-                  <Label htmlFor="slave-amount" className="text-right">
+                  <Label htmlFor="slave-amount" className="text-right gap-1">
+                    <LibraryBig className="size-4" />
                     Slave Amount
                   </Label>
                   <Select
@@ -168,6 +191,7 @@ export function RoomGeneralSettings({ config, updateConfig }) {
               {Array.from({ length: slaveAmount }).map((_, index) => (
                 <div key={index} className="flex flex-col gap-2">
                   <Label htmlFor={`slave-ip-${index}`} className="text-right">
+                    <Share2 className="size-4" />
                     Slave {index + 1} IP
                   </Label>
                   <Input
@@ -186,12 +210,18 @@ export function RoomGeneralSettings({ config, updateConfig }) {
 
       <Card>
         <CardHeader>
-          <CardTitle>Client Settings</CardTitle>
+          <CardTitle className="text-gray-800 font-extrabold">
+            Client Settings
+          </CardTitle>
+          <CardDescription>
+            Configuration of third-party client.
+          </CardDescription>
         </CardHeader>
-        <CardContent className="grid grid-cols-3 gap-4">
+        <CardContent className="grid grid-cols-3 gap-2">
           {/* Client Mode */}
           <div className="flex flex-col gap-2">
-            <Label htmlFor="client-mode" className="text-right">
+            <Label htmlFor="client-mode" className="text-right gap-1">
+              <Settings2 className="size-4" />
               Client Mode
             </Label>
             <Select
@@ -215,7 +245,8 @@ export function RoomGeneralSettings({ config, updateConfig }) {
           {showClientFields && (
             <>
               <div className="flex flex-col gap-2">
-                <Label htmlFor="client-ip" className="text-right">
+                <Label htmlFor="client-ip" className="text-right gap-1">
+                  <Share2 className="size-4" />
                   Client IP
                 </Label>
                 <Input
@@ -228,7 +259,8 @@ export function RoomGeneralSettings({ config, updateConfig }) {
               </div>
 
               <div className="flex flex-col gap-2">
-                <Label htmlFor="client-port" className="text-right">
+                <Label htmlFor="client-port" className="text-right gap-1">
+                  <ChevronsLeftRightEllipsis className="size-4" />
                   Client Port
                 </Label>
                 <Input

@@ -1,5 +1,11 @@
 import React, { useState, useEffect } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { RoomGeneralSettings } from "./RoomGeneralSettings";
 import { RoomConfiguration } from "./RoomConfiguration";
@@ -76,7 +82,12 @@ export function RoomSettings() {
       {/* Room specific configurations */}
       <Card>
         <CardHeader>
-          <CardTitle>Room Configurations</CardTitle>
+          <CardTitle className="text-gray-800 font-extrabold">
+            Room Configurations
+          </CardTitle>
+          <CardDescription>
+            Room's detail settings and aircons & scenes configuration.
+          </CardDescription>
         </CardHeader>
         <CardContent>
           {effectiveRoomAmount === 1 ? (
