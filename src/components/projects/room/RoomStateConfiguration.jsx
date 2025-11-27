@@ -125,6 +125,10 @@ export function RoomStateConfiguration({
               max="36"
               value={airconCoolSetpoint}
               onChange={(e) => {
+                const value = e.target.value === "" ? 16 : parseInt(e.target.value);
+                handleUpdate("airconCoolSetpoint", value);
+              }}
+              onBlur={(e) => {
                 const value = parseInt(e.target.value) || 16;
                 const clamped = Math.max(16, Math.min(36, value));
                 handleUpdate("airconCoolSetpoint", clamped);
@@ -145,6 +149,10 @@ export function RoomStateConfiguration({
               max="28"
               value={airconHeatSetpoint}
               onChange={(e) => {
+                const value = e.target.value === "" ? 10 : parseInt(e.target.value);
+                handleUpdate("airconHeatSetpoint", value);
+              }}
+              onBlur={(e) => {
                 const value = parseInt(e.target.value) || 10;
                 const clamped = Math.max(10, Math.min(28, value));
                 handleUpdate("airconHeatSetpoint", clamped);
