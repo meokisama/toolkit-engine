@@ -11,13 +11,12 @@ import { Button } from "@/components/ui/button";
 import { RoomGeneralSettings } from "./RoomGeneralSettings";
 import { RoomConfiguration } from "./RoomConfiguration";
 import { useProjectDetail } from "@/contexts/project-detail-context";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import { Save } from "lucide-react";
 
 export function RoomSettings() {
   const { selectedProject, projectItems, loadTabData, loadedTabs } =
     useProjectDetail();
-  const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
 
@@ -122,18 +121,14 @@ export function RoomSettings() {
         }
       } catch (error) {
         console.error("Error loading room data:", error);
-        toast({
-          title: "Error",
-          description: "Failed to load room configurations",
-          variant: "destructive",
-        });
+        toast.error("Failed to load room configurations");
       } finally {
         setIsLoading(false);
       }
     };
 
     loadRoomData();
-  }, [selectedProject, toast]);
+  }, [selectedProject]);
 
   // Save room configurations
   const handleSave = async () => {
@@ -175,17 +170,10 @@ export function RoomSettings() {
         );
       }
 
-      toast({
-        title: "Success",
-        description: "Room configurations saved successfully",
-      });
+      toast.success("Room configurations saved successfully");
     } catch (error) {
       console.error("Error saving room data:", error);
-      toast({
-        title: "Error",
-        description: "Failed to save room configurations",
-        variant: "destructive",
-      });
+      toast.error("Failed to save room configurations");
     } finally {
       setIsSaving(false);
     }
