@@ -469,7 +469,9 @@ async function sendGroupSceneConfig(unitIp, canId, projectId, database) {
     const groupDevices = await database.getAllGroupDevices(projectId);
 
     // Filter to only include devices that are in at least one group or scene
-    const devicesInGroups = new Set(groupDevices.map((gd) => gd.device_address));
+    const devicesInGroups = new Set(
+      groupDevices.map((gd) => gd.device_address)
+    );
     const devicesInScenes = new Set(
       sceneDevices.filter((sd) => sd.active).map((sd) => sd.device_address)
     );
@@ -490,47 +492,62 @@ async function sendGroupSceneConfig(unitIp, canId, projectId, database) {
     console.log(
       `Found ${filteredDevices.length} device(s) in groups or scenes`
     );
-    console.log(`Found ${sceneDevices.length} scene device configuration(s)`);
-    console.log(`Found ${groupDevices.length} group device assignment(s)`);
 
     // Build configuration data
-    // Max 16 devices per packet, each device = 20 bytes
-    const configData = [];
+    // Split devices into batches of 16
+    const DEVICES_PER_BATCH = 16;
+    const batches = [];
 
-    for (const device of filteredDevices.slice(0, 16)) {
-      // Limit to 16 devices per packet
-      const deviceConfig = buildDeviceConfig(
-        device,
-        sceneDevices,
-        groupDevices
+    for (let i = 0; i < filteredDevices.length; i += DEVICES_PER_BATCH) {
+      batches.push(filteredDevices.slice(i, i + DEVICES_PER_BATCH));
+    }
+
+    let totalBytesSent = 0;
+    let allConfigResults = [];
+
+    // Send configuration for each batch
+    for (let batchIndex = 0; batchIndex < batches.length; batchIndex++) {
+      const batch = batches[batchIndex];
+      const configData = [];
+
+      for (const device of batch) {
+        const deviceConfig = buildDeviceConfig(
+          device,
+          sceneDevices,
+          groupDevices
+        );
+        configData.push(...deviceConfig);
+      }
+
+      if (configData.length === 0) {
+        console.warn(
+          `Batch ${batchIndex + 1} has no configuration data, skipping`
+        );
+        continue;
+      }
+
+      // Send DALI_CONFIG command for this batch
+      const configResult = await sendCommand(
+        unitIp,
+        UDP_PORT,
+        idAddress,
+        CMD1,
+        CMD2.DALI_CONFIG,
+        configData,
+        false,
+        false,
+        60000 // 60 second timeout
       );
-      configData.push(...deviceConfig);
+
+      allConfigResults.push(configResult);
+      totalBytesSent += configData.length;
+
+      console.log(
+        `Batch ${batchIndex + 1}/${batches.length} sent successfully`
+      );
     }
 
-    if (configData.length === 0) {
-      throw new Error("No configuration data to send");
-    }
-
-    console.log(
-      `Sending configuration for ${
-        filteredDevices.slice(0, 16).length
-      } device(s) (${configData.length} bytes)`
-    );
-
-    // Send DALI_CONFIG command
-    const configResult = await sendCommand(
-      unitIp,
-      UDP_PORT,
-      idAddress,
-      CMD1,
-      CMD2.DALI_CONFIG,
-      configData,
-      false,
-      false,
-      60000 // 60 second timeout
-    );
-
-    console.log("Group & Scene configuration sent successfully");
+    console.log(`All ${batches.length} batch(es) sent successfully`);
 
     // Send APPLY_CONFIG command to apply the configuration
     console.log("Sending APPLY_CONFIG command...");
@@ -548,10 +565,16 @@ async function sendGroupSceneConfig(unitIp, canId, projectId, database) {
 
     console.log("APPLY_CONFIG command sent successfully");
 
+    // Check if all batches were successful
+    const allBatchesSuccessful = allConfigResults.every(
+      (result) => result.success
+    );
+
     return {
-      success: configResult.success && applyResult.success,
-      deviceCount: filteredDevices.slice(0, 16).length,
-      totalBytes: configData.length,
+      success: allBatchesSuccessful && applyResult.success,
+      deviceCount: filteredDevices.length,
+      batchCount: batches.length,
+      totalBytes: totalBytesSent,
     };
   } catch (error) {
     console.error("Send Group & Scene Config failed:", error);

@@ -11,9 +11,10 @@ import {
   TabLoadingSkeleton,
   AirconCardsSkeleton,
 } from "@/components/projects/tab-loading-skeleton";
-import { Lightbulb, Wind, Cpu, Blinds, Network } from "lucide-react";
+import { Lightbulb, Wind, Cpu, Blinds, Network, BedDouble } from "lucide-react";
+import { RoomSettings } from "@/components/projects/room/RoomSettings";
 
-// Tab config for Group Config (5 tabs: lighting, aircon, curtain, knx, unit)
+// Tab config for Group Config (6 tabs: lighting, aircon, curtain, knx, room, unit)
 const groupConfigTabConfig = {
   lighting: {
     label: "Lighting",
@@ -34,6 +35,11 @@ const groupConfigTabConfig = {
     label: "KNX",
     icon: Network,
     description: "Manage KNX devices and controls",
+  },
+  room: {
+    label: "Room",
+    icon: BedDouble,
+    description: "Manage room configurations",
   },
   unit: {
     label: "Unit",
@@ -124,7 +130,7 @@ export function GroupConfig() {
   return (
     <div className="flex flex-1 flex-col gap-4 p-4 pt-0">
       <Tabs value={activeTab} onValueChange={setActiveTab} className="h-full">
-        <TabsList className="grid w-full grid-cols-5">
+        <TabsList className="grid w-full grid-cols-6">
           {tabEntries.map(([key, config]) => {
             const Icon = config.icon;
             const itemCount = itemCounts[key];
@@ -158,6 +164,8 @@ export function GroupConfig() {
                 ) : (
                   <TabLoadingSkeleton />
                 )
+              ) : key === "room" ? (
+                <RoomSettings />
               ) : (
                 <Card className="h-full">
                   <CardContent className="h-full">

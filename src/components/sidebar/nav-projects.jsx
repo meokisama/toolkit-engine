@@ -11,7 +11,7 @@ import {
   Library,
   Workflow,
   Home,
-  Blocks,
+  Eclipse,
 } from "lucide-react";
 
 import {
@@ -314,8 +314,8 @@ export function NavProjects() {
                                   handleSectionSelect(project, "dali-core")
                                 }
                               >
-                                <Blocks className="h-4 w-4" />
-                                <span>DALI Interface</span>
+                                <Eclipse className="h-4 w-4" />
+                                <span>Dali Interface</span>
                               </SidebarMenuSubButton>
                             </SidebarMenuSubItem>
                             <SidebarMenuSubItem>

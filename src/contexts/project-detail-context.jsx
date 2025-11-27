@@ -34,6 +34,7 @@ export function ProjectDetailProvider({ children }) {
     unit: [],
     curtain: [],
     knx: [],
+    room: [],
     scene: [],
     schedule: [],
     multi_scenes: [],
@@ -51,6 +52,12 @@ export function ProjectDetailProvider({ children }) {
   // Load specific tab data - memoized
   const loadTabData = useCallback(async (projectId, tabName) => {
     if (!projectId || !tabName) return;
+
+    // Temporarily skip room tab until backend API is ready
+    if (tabName === "room") {
+      setLoadedTabs((prev) => new Set([...prev, tabName]));
+      return;
+    }
 
     try {
       setTabLoading((prev) => ({ ...prev, [tabName]: true }));
@@ -129,6 +136,7 @@ export function ProjectDetailProvider({ children }) {
           "unit",
           "curtain",
           "knx",
+          "room",
           "scene",
           "schedule",
           "multi_scenes",
@@ -168,6 +176,7 @@ export function ProjectDetailProvider({ children }) {
           unit: [],
           curtain: [],
           knx: [],
+          room: [],
           scene: [],
           schedule: [],
           multi_scenes: [],
@@ -185,6 +194,7 @@ export function ProjectDetailProvider({ children }) {
           unit: [],
           curtain: [],
           knx: [],
+          room: [],
           scene: [],
           schedule: [],
           multi_scenes: [],

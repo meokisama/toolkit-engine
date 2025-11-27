@@ -60,10 +60,10 @@ export class CSVParser {
   // Parse item value from CSV
   static parseItemValueFromCSV(csvType, csvValue) {
     if (!csvValue || !csvValue.trim()) {
-      // Default value for lighting if empty
+      // Default value for lighting if empty (100% = 255)
       const type = csvType?.toUpperCase();
       if (type === 'LIGHTING') {
-        return '100';
+        return '255';
       }
       return '';
     }
@@ -72,9 +72,14 @@ export class CSVParser {
     const value = csvValue.trim();
 
     if (type === 'LIGHTING') {
-      // Remove % sign and convert to number
-      const numValue = parseInt(value.replace('%', ''));
-      return isNaN(numValue) ? '50' : numValue.toString();
+      // Remove % sign and convert percentage (0-100) to 0-255 value
+      const numValue = parseInt(value.replace('%', '').trim());
+      if (isNaN(numValue)) return '128'; // Default 50% = 128
+
+      // Convert from percentage (0-100) to 0-255
+      const value255 = Math.round((numValue * 255) / 100);
+      // Clamp to 0-255 range
+      return Math.min(255, Math.max(0, value255)).toString();
     } else if (type === 'AC_POWER') {
       return value.toLowerCase() === 'on' ? '1' : '0';
     } else if (type === 'AC_MODE') {
