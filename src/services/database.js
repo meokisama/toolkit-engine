@@ -311,6 +311,7 @@ class DatabaseService {
         room_address INTEGER NOT NULL,
         occupancy_type INTEGER NOT NULL DEFAULT 0,
         occupancy_scene_type INTEGER DEFAULT 0,
+        enable_welcome_night INTEGER DEFAULT 0,
         period INTEGER DEFAULT 0,
         pir_init_time INTEGER DEFAULT 0,
         pir_verify_time INTEGER DEFAULT 0,
@@ -500,6 +501,20 @@ class DatabaseService {
       this.db.exec(createSequenceMultiScenesTable);
       this.db.exec(createRoomGeneralConfigTable);
       this.db.exec(createRoomConfigTable);
+
+      // Migration: Add enable_welcome_night column if it doesn't exist
+      try {
+        this.db.exec(`
+          ALTER TABLE room_config
+          ADD COLUMN enable_welcome_night INTEGER DEFAULT 0
+        `);
+      } catch (error) {
+        // Column already exists, ignore error
+        if (!error.message.includes('duplicate column name')) {
+          throw error;
+        }
+      }
+
       this.db.exec(createZigbeeDevicesTable);
       this.db.exec(createDaliDevicesTable);
       this.db.exec(createDaliGroupsTable);
@@ -5112,8 +5127,8 @@ class DatabaseService {
         // Update existing
         const stmt = this.db.prepare(`
           UPDATE room_config
-          SET occupancy_type = ?, occupancy_scene_type = ?, period = ?,
-              pir_init_time = ?, pir_verify_time = ?, unrent_period = ?,
+          SET occupancy_type = ?, occupancy_scene_type = ?, enable_welcome_night = ?,
+              period = ?, pir_init_time = ?, pir_verify_time = ?, unrent_period = ?,
               standby_time = ?,
               unrent_aircon_active = ?, unrent_aircon_mode = ?,
               unrent_aircon_fan_speed = ?, unrent_aircon_cool_setpoint = ?,
@@ -5150,6 +5165,7 @@ class DatabaseService {
         stmt.run(
           config.occupancyType ?? 0,
           config.occupancySceneType ?? 0,
+          config.enableWelcomeNight ?? 0,
           config.period ?? 0,
           config.pirInitTime ?? 0,
           config.pirVerifyTime ?? 0,
@@ -5218,7 +5234,7 @@ class DatabaseService {
         // Create new
         const stmt = this.db.prepare(`
           INSERT INTO room_config (
-            project_id, room_address, occupancy_type, occupancy_scene_type,
+            project_id, room_address, occupancy_type, occupancy_scene_type, enable_welcome_night,
             period, pir_init_time, pir_verify_time, unrent_period, standby_time,
             unrent_aircon_active, unrent_aircon_mode, unrent_aircon_fan_speed,
             unrent_aircon_cool_setpoint, unrent_aircon_heat_setpoint,
@@ -5242,7 +5258,7 @@ class DatabaseService {
             out_of_service_aircon_cool_setpoint, out_of_service_aircon_heat_setpoint,
             out_of_service_scene_amount, out_of_service_scenes
           ) VALUES (
-            ?, ?, ?, ?, ?, ?, ?, ?, ?,
+            ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,
             ?, ?, ?, ?, ?, ?, ?,
             ?, ?, ?, ?, ?, ?, ?,
             ?, ?, ?, ?, ?, ?, ?,
@@ -5258,6 +5274,7 @@ class DatabaseService {
           roomAddress,
           config.occupancyType ?? 0,
           config.occupancySceneType ?? 0,
+          config.enableWelcomeNight ?? 0,
           config.period ?? 0,
           config.pirInitTime ?? 0,
           config.pirVerifyTime ?? 0,

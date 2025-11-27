@@ -32,6 +32,7 @@ export function RoomConfiguration({
     roomAddress = roomIndex + 1,
     occupancyType = 0, // 0: None, 1: Keycard, 2: Keyless
     occupancySceneType = 0, // 0: Welcome, 1: Restore
+    enableWelcomeNight = 0, // 0: Welcome, 1: Welcome Day/Night
     pirInitTime = 0,
     pirVerifyTime = 0,
     unrentPeriod = 0,
@@ -57,6 +58,7 @@ export function RoomConfiguration({
 
   // Determine which fields to show based on occupancy type
   const showOccupancySceneType = occupancyType === 1 || occupancyType === 2; // Keycard or Keyless
+  const showEnableWelcomeNight = occupancyType === 1 || occupancyType === 2; // Keycard or Keyless
   const showPeriod = occupancyType === 1 || occupancyType === 2; // Keycard or Keyless
   const showAllFields = occupancyType === 2; // Keyless only
 
@@ -65,7 +67,7 @@ export function RoomConfiguration({
       <div className="space-y-6">
         {/* Basic Room Settings */}
         <div className="space-y-4 pb-4">
-          <div className="grid grid-cols-4 gap-2">
+          <div className="grid grid-cols-5 gap-2">
             {/* Room Address */}
             <div className="flex flex-col gap-2">
               <Label
@@ -151,6 +153,36 @@ export function RoomConfiguration({
                   <SelectContent>
                     <SelectItem value="0">Welcome</SelectItem>
                     <SelectItem value="1">Restore</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+
+            {/* Enable Welcome Night - Show for Keycard and Keyless */}
+            {showEnableWelcomeNight && (
+              <div className="flex flex-col gap-2">
+                <Label
+                  htmlFor={`room-${roomIndex}-enable-welcome-night`}
+                  className="text-right gap-1"
+                >
+                  <SlidersVertical className="size-4" />
+                  Enable Welcome Night
+                </Label>
+                <Select
+                  value={enableWelcomeNight.toString()}
+                  onValueChange={(value) =>
+                    handleFieldUpdate("enableWelcomeNight", parseInt(value))
+                  }
+                >
+                  <SelectTrigger
+                    id={`room-${roomIndex}-enable-welcome-night`}
+                    className="w-full"
+                  >
+                    <SelectValue placeholder="Select welcome night mode" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="0">Welcome</SelectItem>
+                    <SelectItem value="1">Welcome Day/Night</SelectItem>
                   </SelectContent>
                 </Select>
               </div>

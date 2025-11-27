@@ -41,6 +41,7 @@ export function RoomSettings() {
         roomAddress: index + 1,
         occupancyType: 0,
         occupancySceneType: 0,
+        enableWelcomeNight: 0,
         pirInitTime: 0,
         pirVerifyTime: 0,
         unrentPeriod: 0,
@@ -107,6 +108,7 @@ export function RoomSettings() {
                   roomAddress: config.room_address,
                   occupancyType: config.occupancy_type,
                   occupancySceneType: config.occupancy_scene_type,
+                  enableWelcomeNight: config.enable_welcome_night || 0,
                   pirInitTime: config.pir_init_time,
                   pirVerifyTime: config.pir_verify_time,
                   unrentPeriod: config.unrent_period,
@@ -160,6 +162,7 @@ export function RoomSettings() {
           {
             occupancyType: config.occupancyType,
             occupancySceneType: config.occupancySceneType,
+            enableWelcomeNight: config.enableWelcomeNight,
             period: config.period,
             pirInitTime: config.pirInitTime,
             pirVerifyTime: config.pirVerifyTime,
