@@ -649,4 +649,25 @@ contextBridge.exposeInMainWorld("electronAPI", {
     clearAllConfigurations: (projectId) =>
       ipcRenderer.invoke("dali:clearAllConfigurations", projectId),
   },
+
+  // Room Configuration Database Operations
+  room: {
+    // Room general config operations
+    getGeneralConfig: (projectId) =>
+      ipcRenderer.invoke("room:getGeneralConfig", projectId),
+    setGeneralConfig: (projectId, config) =>
+      ipcRenderer.invoke("room:setGeneralConfig", projectId, config),
+
+    // Room config operations
+    getRoomConfig: (projectId, roomAddress) =>
+      ipcRenderer.invoke("room:getRoomConfig", projectId, roomAddress),
+    getAllRoomConfigs: (projectId) =>
+      ipcRenderer.invoke("room:getAllRoomConfigs", projectId),
+    setRoomConfig: (projectId, roomAddress, config) =>
+      ipcRenderer.invoke("room:setRoomConfig", projectId, roomAddress, config),
+    deleteRoomConfig: (projectId, roomAddress) =>
+      ipcRenderer.invoke("room:deleteRoomConfig", projectId, roomAddress),
+    deleteAllRoomConfigs: (projectId) =>
+      ipcRenderer.invoke("room:deleteAllRoomConfigs", projectId),
+  },
 });

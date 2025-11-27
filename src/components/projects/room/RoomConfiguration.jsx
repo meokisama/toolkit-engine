@@ -17,9 +17,9 @@ const ROOM_STATES = [
   "Unoccupy",
   "Checkin",
   "Welcome",
-  "Welcome Night",
+  "WelcomeNight",
   "Staff",
-  "Out Of Service",
+  "OutOfService",
 ];
 
 export function RoomConfiguration({

@@ -2051,6 +2051,97 @@ function setupIpcHandlers() {
     }
   );
 
+  // ==================== Room Configuration ====================
+
+  // Get room general config
+  ipcMain.handle("room:getGeneralConfig", async (event, projectId) => {
+    try {
+      return await dbService.getRoomGeneralConfig(projectId);
+    } catch (error) {
+      console.error("Error getting room general config:", error);
+      throw error;
+    }
+  });
+
+  // Create or update room general config
+  ipcMain.handle(
+    "room:setGeneralConfig",
+    async (event, projectId, config) => {
+      try {
+        return await dbService.createOrUpdateRoomGeneralConfig(
+          projectId,
+          config
+        );
+      } catch (error) {
+        console.error("Error setting room general config:", error);
+        throw error;
+      }
+    }
+  );
+
+  // Get room config for specific address
+  ipcMain.handle(
+    "room:getRoomConfig",
+    async (event, projectId, roomAddress) => {
+      try {
+        return await dbService.getRoomConfig(projectId, roomAddress);
+      } catch (error) {
+        console.error("Error getting room config:", error);
+        throw error;
+      }
+    }
+  );
+
+  // Get all room configs for project
+  ipcMain.handle("room:getAllRoomConfigs", async (event, projectId) => {
+    try {
+      return await dbService.getAllRoomConfigs(projectId);
+    } catch (error) {
+      console.error("Error getting all room configs:", error);
+      throw error;
+    }
+  });
+
+  // Create or update room config
+  ipcMain.handle(
+    "room:setRoomConfig",
+    async (event, projectId, roomAddress, config) => {
+      try {
+        return await dbService.createOrUpdateRoomConfig(
+          projectId,
+          roomAddress,
+          config
+        );
+      } catch (error) {
+        console.error("Error setting room config:", error);
+        throw error;
+      }
+    }
+  );
+
+  // Delete room config
+  ipcMain.handle(
+    "room:deleteRoomConfig",
+    async (event, projectId, roomAddress) => {
+      try {
+        return await dbService.deleteRoomConfig(projectId, roomAddress);
+      } catch (error) {
+        console.error("Error deleting room config:", error);
+        throw error;
+      }
+    }
+  );
+
+  // Delete all room configs
+  ipcMain.handle("room:deleteAllRoomConfigs", async (event, projectId) => {
+    try {
+      return await dbService.deleteAllRoomConfigs(projectId);
+    } catch (error) {
+      console.error("Error deleting all room configs:", error);
+      throw error;
+    }
+  });
+
   // Zigbee Devices - RCU Controller
   ipcMain.handle("rcu:getZigbeeDevices", async (event, { unitIp, canId }) => {
     try {

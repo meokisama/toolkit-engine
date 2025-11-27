@@ -36,6 +36,10 @@ const PROTOCOL = {
       CLEAR_MULTI_SCENE: 31,
       CLEAR_SEQUENCE: 32,
       CLEAR_SCHEDULE: 33,
+      GET_ROOM_CONFIG: 34,
+      SET_ROOM_CONFIG: 35,
+      GET_ROOM_STATUS: 36,
+      SET_ROOM_STATUS: 37,
     },
   },
   LIGHTING: {
