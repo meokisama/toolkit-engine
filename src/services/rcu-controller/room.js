@@ -412,8 +412,8 @@ async function getRoomConfiguration(unitIp, canId) {
     const roomConfig = decodeRoomConfig(responseData, pos);
     pos += roomConfig.bytesRead;
 
-    // Only include rooms with non-zero room_address
-    if (roomConfig.room_address > 0) {
+    // Only include rooms up to room_amount (in order)
+    if (i < roomAmount) {
       rooms.push(roomConfig);
     }
   }
