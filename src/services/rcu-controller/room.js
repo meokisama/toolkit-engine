@@ -49,14 +49,18 @@ function encodeRoomConfig(roomConfig) {
   const data = [];
   const states = roomConfig.states || {};
 
-  // Basic room settings (7 bytes)
+  // Basic room settings (8 bytes)
   data.push(roomConfig.room_address || 0); // room_address: UINT8
   data.push(roomConfig.occupancy_type || 0); // occupancy_type: UINT8
   data.push(roomConfig.occupancy_scene_type || 0); // occupancy_scene_type: UINT8
   data.push(roomConfig.enable_welcome_night || 0); // enable_welcome_night: UINT8
   data.push(roomConfig.pir_init_time || 0); // pir_init_time: UINT8
   data.push(roomConfig.pir_verify_time || 0); // pir_verify_time: UINT8
-  data.push(roomConfig.unrent_period || 0); // unrent_period: UINT8
+
+  // unrent_period: UINT16 (little endian)
+  const unrentPeriod = roomConfig.unrent_period || 0;
+  data.push(unrentPeriod & 0xff); // Low byte
+  data.push((unrentPeriod >> 8) & 0xff); // High byte
 
   // Standby time and period (4 bytes, UINT16 each, little endian)
   const standbyTime = roomConfig.standby_time || 0;
@@ -209,8 +213,8 @@ async function setRoomConfiguration(unitIp, canId, generalConfig, roomConfigs) {
       data.push(...roomBytes);
     } else {
       // Fill empty room with zeros
-      // Size: 7 + 4 + 8 + 35 + 7 + 8 + (7 * MAX_SCENE_ITEM) = 7 + 4 + 8 + 35 + 7 + 8 + 140 = 209 bytes
-      data.push(...Array(209).fill(0x00));
+      // Size: 8 + 4 + 8 + 35 + 7 + 8 + (7 * MAX_SCENE_ITEM) = 8 + 4 + 8 + 35 + 7 + 8 + 140 = 210 bytes
+      data.push(...Array(210).fill(0x00));
     }
   }
 
@@ -243,14 +247,17 @@ function decodeRoomConfig(data, offset = 0) {
 
   let pos = offset;
 
-  // Basic room settings (7 bytes)
+  // Basic room settings (8 bytes)
   const roomAddress = data[pos++];
   const occupancyType = data[pos++];
   const occupancySceneType = data[pos++];
   const enableWelcomeNight = data[pos++];
   const pirInitTime = data[pos++];
   const pirVerifyTime = data[pos++];
-  const unrentPeriod = data[pos++];
+
+  // unrent_period: UINT16 (little endian)
+  const unrentPeriod = data[pos] | (data[pos + 1] << 8);
+  pos += 2;
 
   // Standby time and period (4 bytes, UINT16 each, little endian)
   const standbyTime = data[pos] | (data[pos + 1] << 8);
