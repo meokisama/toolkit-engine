@@ -105,9 +105,7 @@ export function RoomSettings() {
             tcpMode: generalConfig.tcp_mode,
             slaveAmount: generalConfig.slave_amount,
             port: generalConfig.port,
-            slaveIPs: generalConfig.slave_ips
-              ? generalConfig.slave_ips.split(",")
-              : ["", "", "", ""],
+            slaveIPs: generalConfig.slaveIPs || ["", "", "", ""],
             clientIP: generalConfig.client_ip || "",
             clientPort: generalConfig.client_port,
           });
@@ -271,9 +269,9 @@ export function RoomSettings() {
 
           successCount++;
           toast.success(
-            `Configuration sent successfully to ${unit.type || "Unknown Unit"} (${
-              unit.ip_address
-            })`
+            `Configuration sent successfully to ${
+              unit.type || "Unknown Unit"
+            } (${unit.ip_address})`
           );
         } catch (error) {
           errorCount++;
