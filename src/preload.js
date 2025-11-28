@@ -554,6 +554,16 @@ contextBridge.exposeInMainWorld("electronAPI", {
       ),
     getRoomConfiguration: (unitIp, canId) =>
       ipcRenderer.invoke("rcu:getRoomConfiguration", unitIp, canId),
+    getRoomStatus: (unitIp, canId) =>
+      ipcRenderer.invoke("rcu:getRoomStatus", unitIp, canId),
+    setRoomStatus: (unitIp, canId, airconMode, roomStatuses) =>
+      ipcRenderer.invoke(
+        "rcu:setRoomStatus",
+        unitIp,
+        canId,
+        airconMode,
+        roomStatuses
+      ),
   },
 
   // Zigbee Devices Database Operations

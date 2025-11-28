@@ -157,4 +157,6 @@ export {
 export {
   setRoomConfiguration,
   getRoomConfiguration,
+  getRoomStatus,
+  setRoomStatus,
 } from "./rcu-controller/room.js";

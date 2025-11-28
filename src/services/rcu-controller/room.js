@@ -434,4 +434,156 @@ async function getRoomConfiguration(unitIp, canId) {
   };
 }
 
-export { setRoomConfiguration, getRoomConfiguration };
+/**
+ * Encode ROOM_S structure according to C struct
+ * @param {Object} roomStatus - Room status object
+ * @returns {number[]} - Encoded bytes array (20 bytes)
+ */
+function encodeRoomStatus(roomStatus) {
+  const data = [];
+
+  // rent_status: UINT8 (0: unrent, 1: rent)
+  data.push(roomStatus.rent_status || 0);
+
+  // guest_status: UINT8 (0: normal, 1: VIP)
+  data.push(roomStatus.guest_status || 0);
+
+  // reserved: 18 bytes
+  data.push(...Array(18).fill(0x00));
+
+  return data;
+}
+
+/**
+ * Decode ROOM_S structure from bytes
+ * @param {number[]} data - Byte array containing ROOM_S structure
+ * @param {number} offset - Starting offset in the data array
+ * @returns {Object} - Decoded room status object
+ */
+function decodeRoomStatus(data, offset = 0) {
+  let pos = offset;
+
+  const rentStatus = data[pos++];
+  const guestStatus = data[pos++];
+
+  // Skip reserved 18 bytes
+  pos += 18;
+
+  return {
+    rent_status: rentStatus,
+    guest_status: guestStatus,
+    bytesRead: pos - offset,
+  };
+}
+
+/**
+ * Get Room Status command
+ * @param {string} unitIp - Unit IP address
+ * @param {string} canId - CAN ID in format "1.1.1.1"
+ * @returns {Promise<Object>} - Decoded room status
+ */
+async function getRoomStatus(unitIp, canId) {
+  const idAddress = convertCanIdToInt(canId);
+
+  // No data parameter for GET command
+  const data = [];
+
+  const response = await sendCommand(
+    unitIp,
+    UDP_PORT,
+    idAddress,
+    PROTOCOL.GENERAL.CMD1,
+    PROTOCOL.GENERAL.CMD2.GET_ROOM_STATUS,
+    data,
+    true // Skip status check for GET command
+  );
+
+  if (!response || !response.msg || response.msg.length < 8) {
+    throw new Error("Invalid response from get room status command");
+  }
+
+  // Skip header (4 bytes ID + 2 bytes length + 2 bytes cmd)
+  const responseData = response.msg.slice(8);
+
+  // Parse ROOM_SETTING structure
+  let pos = 0;
+
+  // aircon_mode: UINT8 (0: cool, 1: heat)
+  const airconMode = responseData[pos++];
+
+  // reserved: 11 bytes
+  pos += 11;
+
+  // room[MAX_ROOM]: decode each room status
+  const rooms = [];
+  for (let i = 0; i < MAX_ROOM; i++) {
+    const roomStatus = decodeRoomStatus(responseData, pos);
+    pos += roomStatus.bytesRead;
+    rooms.push({
+      room_index: i,
+      rent_status: roomStatus.rent_status,
+      guest_status: roomStatus.guest_status,
+    });
+  }
+
+  return {
+    aircon_mode: airconMode,
+    rooms: rooms,
+  };
+}
+
+/**
+ * Set Room Status command
+ * @param {string} unitIp - Unit IP address
+ * @param {string} canId - CAN ID in format "1.1.1.1"
+ * @param {number} airconMode - Aircon mode (0: cool, 1: heat)
+ * @param {Array} roomStatuses - Array of room status objects (max 5 items)
+ * @returns {Promise} - Result of the command
+ */
+async function setRoomStatus(unitIp, canId, airconMode, roomStatuses) {
+  // Validate inputs
+  if (!Array.isArray(roomStatuses)) {
+    throw new Error("Room statuses must be an array");
+  }
+
+  if (roomStatuses.length > MAX_ROOM) {
+    throw new Error(`Too many rooms. Maximum is ${MAX_ROOM} rooms.`);
+  }
+
+  const idAddress = convertCanIdToInt(canId);
+  const data = [];
+
+  // ROOM_SETTING structure
+  // aircon_mode: UINT8 (0: cool, 1: heat)
+  data.push(airconMode || 0);
+
+  // reserved: 11 bytes
+  data.push(...Array(11).fill(0x00));
+
+  // room[MAX_ROOM]: encode each room status
+  for (let i = 0; i < MAX_ROOM; i++) {
+    if (i < roomStatuses.length) {
+      const roomBytes = encodeRoomStatus(roomStatuses[i]);
+      data.push(...roomBytes);
+    } else {
+      // Fill empty room with zeros (20 bytes)
+      data.push(...Array(20).fill(0x00));
+    }
+  }
+
+  return sendCommand(
+    unitIp,
+    UDP_PORT,
+    idAddress,
+    PROTOCOL.GENERAL.CMD1,
+    PROTOCOL.GENERAL.CMD2.SET_ROOM_STATUS,
+    data
+  );
+}
+
+export {
+  setRoomConfiguration,
+  getRoomConfiguration,
+  getRoomStatus,
+  setRoomStatus,
+};

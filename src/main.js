@@ -2081,6 +2081,27 @@ function setupIpcHandlers() {
     }
   );
 
+  ipcMain.handle("rcu:getRoomStatus", async (event, unitIp, canId) => {
+    try {
+      return await rcu.getRoomStatus(unitIp, canId);
+    } catch (error) {
+      console.error("Error getting room status:", error);
+      throw error;
+    }
+  });
+
+  ipcMain.handle(
+    "rcu:setRoomStatus",
+    async (event, unitIp, canId, airconMode, roomStatuses) => {
+      try {
+        return await rcu.setRoomStatus(unitIp, canId, airconMode, roomStatuses);
+      } catch (error) {
+        console.error("Error setting room status:", error);
+        throw error;
+      }
+    }
+  );
+
   // ==================== Room Configuration ====================
 
   // Get room general config
