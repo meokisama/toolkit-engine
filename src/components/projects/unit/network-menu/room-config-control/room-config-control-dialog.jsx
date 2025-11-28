@@ -149,12 +149,12 @@ export function RoomConfigControlDialog({ open, onOpenChange, unit }) {
 
         <div className="space-y-4">
           {/* Read Configuration Button */}
-          <div className="flex justify-center">
+          <div className="flex justify-end">
             <Button onClick={handleReadConfig} disabled={loading}>
               {loading ? (
-                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                <Loader2 className="h-4 w-4 animate-spin" />
               ) : (
-                <Download className="h-4 w-4 mr-2" />
+                <Download className="h-4 w-4" />
               )}
               {loading ? "Reading..." : "Read Configuration"}
             </Button>
