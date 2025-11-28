@@ -159,7 +159,7 @@ export function RoomStatusControl({ unit }) {
               <div className="flex items-center gap-4">
                 <Label htmlFor="aircon-mode">Aircon Mode</Label>
                 <Select
-                  value={roomStatus.aircon_mode.toString()}
+                  value={(roomStatus.aircon_mode ?? 0).toString()}
                   onValueChange={handleAirconModeChange}
                 >
                   <SelectTrigger id="aircon-mode" className="w-48">
@@ -207,7 +207,7 @@ export function RoomStatusControl({ unit }) {
                           </Label>
                           <div className="flex items-center gap-2">
                             <Select
-                              value={room.rent_status.toString()}
+                              value={(room.rent_status ?? 0).toString()}
                               onValueChange={(value) =>
                                 handleRoomStatusChange(
                                   index,
@@ -232,7 +232,7 @@ export function RoomStatusControl({ unit }) {
                                 room.rent_status === 1 ? "default" : "secondary"
                               }
                             >
-                              {RENT_STATUS_LABELS[room.rent_status]}
+                              {RENT_STATUS_LABELS[room.rent_status ?? 0]}
                             </Badge>
                           </div>
                         </div>
@@ -247,7 +247,7 @@ export function RoomStatusControl({ unit }) {
                           </Label>
                           <div className="flex items-center gap-2">
                             <Select
-                              value={room.guest_status.toString()}
+                              value={(room.guest_status ?? 0).toString()}
                               onValueChange={(value) =>
                                 handleRoomStatusChange(
                                   index,
@@ -272,7 +272,7 @@ export function RoomStatusControl({ unit }) {
                                 room.guest_status === 1 ? "default" : "outline"
                               }
                             >
-                              {GUEST_STATUS_LABELS[room.guest_status]}
+                              {GUEST_STATUS_LABELS[room.guest_status ?? 0]}
                             </Badge>
                           </div>
                         </div>
