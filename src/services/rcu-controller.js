@@ -152,3 +152,9 @@ export {
   triggerDaliScene,
   daliEvents,
 } from "./rcu-controller/dali.js";
+
+// Export Room configuration functions
+export {
+  setRoomConfiguration,
+  getRoomConfiguration,
+} from "./rcu-controller/room.js";

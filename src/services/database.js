@@ -501,20 +501,6 @@ class DatabaseService {
       this.db.exec(createSequenceMultiScenesTable);
       this.db.exec(createRoomGeneralConfigTable);
       this.db.exec(createRoomConfigTable);
-
-      // Migration: Add enable_welcome_night column if it doesn't exist
-      try {
-        this.db.exec(`
-          ALTER TABLE room_config
-          ADD COLUMN enable_welcome_night INTEGER DEFAULT 0
-        `);
-      } catch (error) {
-        // Column already exists, ignore error
-        if (!error.message.includes('duplicate column name')) {
-          throw error;
-        }
-      }
-
       this.db.exec(createZigbeeDevicesTable);
       this.db.exec(createDaliDevicesTable);
       this.db.exec(createDaliGroupsTable);

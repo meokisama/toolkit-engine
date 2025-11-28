@@ -542,6 +542,18 @@ contextBridge.exposeInMainWorld("electronAPI", {
       ipcRenderer.invoke("rcu:setupZigbeeDevice", params),
     factoryResetZigbee: (params) =>
       ipcRenderer.invoke("rcu:factoryResetZigbee", params),
+
+    // Room Configuration functions
+    setRoomConfiguration: (unitIp, canId, generalConfig, roomConfigs) =>
+      ipcRenderer.invoke(
+        "rcu:setRoomConfiguration",
+        unitIp,
+        canId,
+        generalConfig,
+        roomConfigs
+      ),
+    getRoomConfiguration: (unitIp, canId) =>
+      ipcRenderer.invoke("rcu:getRoomConfiguration", unitIp, canId),
   },
 
   // Zigbee Devices Database Operations

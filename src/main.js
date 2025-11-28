@@ -2051,6 +2051,36 @@ function setupIpcHandlers() {
     }
   );
 
+  // Room Configuration - RCU Controller
+  ipcMain.handle(
+    "rcu:setRoomConfiguration",
+    async (event, unitIp, canId, generalConfig, roomConfigs) => {
+      try {
+        return await rcu.setRoomConfiguration(
+          unitIp,
+          canId,
+          generalConfig,
+          roomConfigs
+        );
+      } catch (error) {
+        console.error("Error setting room configuration:", error);
+        throw error;
+      }
+    }
+  );
+
+  ipcMain.handle(
+    "rcu:getRoomConfiguration",
+    async (event, unitIp, canId) => {
+      try {
+        return await rcu.getRoomConfiguration(unitIp, canId);
+      } catch (error) {
+        console.error("Error getting room configuration:", error);
+        throw error;
+      }
+    }
+  );
+
   // ==================== Room Configuration ====================
 
   // Get room general config
