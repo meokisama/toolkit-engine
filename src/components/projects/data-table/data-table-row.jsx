@@ -20,6 +20,7 @@ import {
   Upload,
   Wrench,
   Palette,
+  Building2,
 } from "lucide-react";
 
 import { TableCell, TableRow } from "@/components/ui/table";
@@ -48,6 +49,7 @@ export function DataTableRow({
   onClockControl,
   onCurtainControl,
   onKnxControl,
+  onRoomConfigControl,
   onMultiSceneControl,
   onSequenceControl,
   onSendSchedule,
@@ -239,6 +241,14 @@ export function DataTableRow({
             <ContextMenuItem onClick={() => onKnxControl.onTriggerKnx(item)}>
               <Network className="text-muted-foreground" />
               <span>KNX Control</span>
+            </ContextMenuItem>
+          </>
+        )}
+        {onRoomConfigControl && (
+          <>
+            <ContextMenuItem onClick={() => onRoomConfigControl.onRoomConfigControl(item)}>
+              <Building2 className="text-muted-foreground" />
+              <span>Room Control</span>
             </ContextMenuItem>
           </>
         )}
