@@ -57,9 +57,7 @@ export function RoomConfiguration({
   };
 
   // Determine which fields to show based on occupancy type
-  const showOccupancySceneType = occupancyType === 1 || occupancyType === 2; // Keycard or Keyless
-  const showEnableWelcomeNight = occupancyType === 1 || occupancyType === 2; // Keycard or Keyless
-  const showPeriod = occupancyType === 1 || occupancyType === 2; // Keycard or Keyless
+  const showKeycardFields = occupancyType === 1 || occupancyType === 2; // Keycard or Keyless
   const showAllFields = occupancyType === 2; // Keyless only
 
   return (
@@ -67,7 +65,7 @@ export function RoomConfiguration({
       <div className="space-y-6">
         {/* Basic Room Settings */}
         <div className="space-y-4 pb-4">
-          <div className="grid grid-cols-5 gap-2">
+          <div className="grid grid-cols-4 gap-2">
             {/* Room Address */}
             <div className="flex flex-col gap-2">
               <Label
@@ -129,7 +127,7 @@ export function RoomConfiguration({
             </div>
 
             {/* Occupancy Scene Type - Show for Keycard and Keyless */}
-            {showOccupancySceneType && (
+            {showKeycardFields && (
               <div className="flex flex-col gap-2">
                 <Label
                   htmlFor={`room-${roomIndex}-scene-type`}
@@ -158,8 +156,33 @@ export function RoomConfiguration({
               </div>
             )}
 
-            {/* Enable Welcome Night - Show for Keycard and Keyless */}
-            {showEnableWelcomeNight && (
+            {/* Period - Show for Keycard only */}
+            {showKeycardFields && (
+              <div className="flex flex-col gap-2">
+                <Label
+                  htmlFor={`room-${roomIndex}-period`}
+                  className="text-right gap-1"
+                >
+                  <Timer className="size-4" />
+                  Period (s)
+                </Label>
+                <Input
+                  id={`room-${roomIndex}-period`}
+                  type="number"
+                  min="0"
+                  value={period}
+                  onChange={(e) =>
+                    handleFieldUpdate("period", parseInt(e.target.value) || 0)
+                  }
+                  className="col-span-3"
+                />
+              </div>
+            )}
+          </div>
+
+          {/* Additional fields - Show for Keyless only */}
+          {showAllFields && (
+            <div className="grid grid-cols-4 gap-2">
               <div className="flex flex-col gap-2">
                 <Label
                   htmlFor={`room-${roomIndex}-enable-welcome-night`}
@@ -186,79 +209,52 @@ export function RoomConfiguration({
                   </SelectContent>
                 </Select>
               </div>
-            )}
+              <div className="grid grid-cols-2 gap-2">
+                <div className="flex flex-col gap-2">
+                  <Label
+                    htmlFor={`room-${roomIndex}-pir-init`}
+                    className="text-right gap-1"
+                  >
+                    <Timer className="size-4" />
+                    PIR Init (s)
+                  </Label>
+                  <Input
+                    id={`room-${roomIndex}-pir-init`}
+                    type="number"
+                    min="0"
+                    value={pirInitTime}
+                    onChange={(e) =>
+                      handleFieldUpdate(
+                        "pirInitTime",
+                        parseInt(e.target.value) || 0
+                      )
+                    }
+                    className="col-span-3"
+                  />
+                </div>
 
-            {/* Period - Show for Keycard only */}
-            {showPeriod && (
-              <div className="flex flex-col gap-2">
-                <Label
-                  htmlFor={`room-${roomIndex}-period`}
-                  className="text-right gap-1"
-                >
-                  <Timer className="size-4" />
-                  Period (seconds)
-                </Label>
-                <Input
-                  id={`room-${roomIndex}-period`}
-                  type="number"
-                  min="0"
-                  value={period}
-                  onChange={(e) =>
-                    handleFieldUpdate("period", parseInt(e.target.value) || 0)
-                  }
-                  className="col-span-3"
-                />
-              </div>
-            )}
-          </div>
-
-          {/* Additional fields - Show for Keyless only */}
-          {showAllFields && (
-            <div className="grid grid-cols-4 gap-2">
-              <div className="flex flex-col gap-2">
-                <Label
-                  htmlFor={`room-${roomIndex}-pir-init`}
-                  className="text-right gap-1"
-                >
-                  <Timer className="size-4" />
-                  PIR Init Time (seconds)
-                </Label>
-                <Input
-                  id={`room-${roomIndex}-pir-init`}
-                  type="number"
-                  min="0"
-                  value={pirInitTime}
-                  onChange={(e) =>
-                    handleFieldUpdate(
-                      "pirInitTime",
-                      parseInt(e.target.value) || 0
-                    )
-                  }
-                  className="col-span-3"
-                />
-              </div>
-
-              <div className="flex flex-col gap-2">
-                <Label
-                  htmlFor={`room-${roomIndex}-pir-verify`}
-                  className="text-right gap-1"
-                >
-                  <Timer className="size-4" />
-                  PIR Verify Time (seconds)
-                </Label>
-                <Input
-                  id={`room-${roomIndex}-pir-verify`}
-                  type="number"
-                  min="0"
-                  value={pirVerifyTime}
-                  onChange={(e) =>
-                    handleFieldUpdate(
-                      "pirVerifyTime",
-                      parseInt(e.target.value) || 0
-                    )
-                  }
-                  className="col-span-3"
-                />
+                <div className="flex flex-col gap-2">
+                  <Label
+                    htmlFor={`room-${roomIndex}-pir-verify`}
+                    className="text-right gap-1"
+                  >
+                    <Timer className="size-4" />
+                    PIR Verify (s)
+                  </Label>
+                  <Input
+                    id={`room-${roomIndex}-pir-verify`}
+                    type="number"
+                    min="0"
+                    value={pirVerifyTime}
+                    onChange={(e) =>
+                      handleFieldUpdate(
+                        "pirVerifyTime",
+                        parseInt(e.target.value) || 0
+                      )
+                    }
+                    className="col-span-3"
+                  />
+                </div>
               </div>
 
               <div className="flex flex-col gap-2">
@@ -267,7 +263,7 @@ export function RoomConfiguration({
                   className="text-right gap-1"
                 >
                   <Timer className="size-4" />
-                  Unrent Period (seconds)
+                  Unrent Period (s)
                 </Label>
                 <Input
                   id={`room-${roomIndex}-unrent`}
@@ -290,7 +286,7 @@ export function RoomConfiguration({
                   className="text-right gap-1"
                 >
                   <Timer className="size-4" />
-                  Standby Time (seconds)
+                  Standby Time (s)
                 </Label>
                 <Input
                   id={`room-${roomIndex}-standby`}

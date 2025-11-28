@@ -387,11 +387,11 @@ export function RoomSettings() {
           disabled={isSaving || isSending}
           variant="outline"
         >
-          <Send className="size-4 mr-2" />
+          <Send className="size-4" />
           Send Configuration
         </Button>
         <Button onClick={handleSave} disabled={isSaving || isSending}>
-          <Save className="size-4 mr-2" />
+          <Save className="size-4" />
           {isSaving ? "Saving..." : "Save Configurations"}
         </Button>
       </div>
@@ -441,7 +441,7 @@ export function RoomSettings() {
               onClick={handleSendConfiguration}
               disabled={isSending || selectedUnitIds.length === 0}
             >
-              {isSending && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+              {isSending && <Loader2 className="h-4 w-4 animate-spin" />}
               {selectedUnitIds.length === 0
                 ? "Send Configuration"
                 : `Send to ${selectedUnitIds.length} Unit${
