@@ -9,16 +9,17 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Lightbulb, CircleCheck } from "lucide-react";
+import {
+  Lightbulb,
+  CircleCheck,
+  Settings2,
+  Fan,
+  ThermometerSnowflake,
+  ThermometerSun,
+} from "lucide-react";
 import * as CheckboxPrimitive from "@radix-ui/react-checkbox";
+import { Card, CardContent } from "@/components/ui/card";
 
 export function RoomStateConfiguration({
   state,
@@ -47,23 +48,25 @@ export function RoomStateConfiguration({
   };
 
   return (
-    <div>
-      <div className="space-y-6">
+    <Card>
+      <CardContent className="space-y-6">
         {/* Aircon Active */}
-        <div className="flex items-center gap-4">
-          <Label htmlFor={`${state}-aircon-active`} className="cursor-pointer">
-            {state} Aircon Active
-          </Label>
+        <div className="flex items-center gap-2">
           <Checkbox
             id={`${state}-aircon-active`}
             checked={airconActive}
             onCheckedChange={(checked) => handleUpdate("airconActive", checked)}
           />
+          <Label htmlFor={`${state}-aircon-active`} className="cursor-pointer">
+            {state} Aircon Active
+          </Label>
         </div>
         <div className="grid grid-cols-4 gap-2">
           {/* Aircon Mode */}
           <div className="space-y-2">
-            <Label htmlFor={`${state}-aircon-mode`}>Aircon Mode</Label>
+            <Label htmlFor={`${state}-aircon-mode`} className="gap-1">
+              <Settings2 className="size-4" /> Aircon Mode
+            </Label>
             <Select
               value={airconMode.toString()}
               onValueChange={(value) =>
@@ -86,7 +89,9 @@ export function RoomStateConfiguration({
 
           {/* Aircon Fan Speed */}
           <div className="space-y-2">
-            <Label htmlFor={`${state}-fan-speed`}>Aircon Fan Speed</Label>
+            <Label htmlFor={`${state}-fan-speed`} className="gap-1">
+              <Fan className="size-4" /> Fan Speed
+            </Label>
             <Select
               value={airconFanSpeed.toString()}
               onValueChange={(value) =>
@@ -109,7 +114,8 @@ export function RoomStateConfiguration({
 
           {/* Aircon Cool Setpoint */}
           <div className="space-y-2">
-            <Label htmlFor={`${state}-cool-setpoint`}>
+            <Label htmlFor={`${state}-cool-setpoint`} className="gap-1">
+              <ThermometerSnowflake className="size-4" />
               Cool Setpoint (16-36°C)
             </Label>
             <Input
@@ -119,6 +125,10 @@ export function RoomStateConfiguration({
               max="36"
               value={airconCoolSetpoint}
               onChange={(e) => {
+                const value = e.target.value === "" ? 16 : parseInt(e.target.value);
+                handleUpdate("airconCoolSetpoint", value);
+              }}
+              onBlur={(e) => {
                 const value = parseInt(e.target.value) || 16;
                 const clamped = Math.max(16, Math.min(36, value));
                 handleUpdate("airconCoolSetpoint", clamped);
@@ -128,7 +138,8 @@ export function RoomStateConfiguration({
 
           {/* Aircon Heat Setpoint */}
           <div className="space-y-2">
-            <Label htmlFor={`${state}-heat-setpoint`}>
+            <Label htmlFor={`${state}-heat-setpoint`} className="gap-1">
+              <ThermometerSun className="size-4" />
               Heat Setpoint (10-28°C)
             </Label>
             <Input
@@ -138,6 +149,10 @@ export function RoomStateConfiguration({
               max="28"
               value={airconHeatSetpoint}
               onChange={(e) => {
+                const value = e.target.value === "" ? 10 : parseInt(e.target.value);
+                handleUpdate("airconHeatSetpoint", value);
+              }}
+              onBlur={(e) => {
                 const value = parseInt(e.target.value) || 10;
                 const clamped = Math.max(10, Math.min(28, value));
                 handleUpdate("airconHeatSetpoint", clamped);
@@ -148,8 +163,8 @@ export function RoomStateConfiguration({
         {/* Scenes List */}
         <div className="space-y-2">
           <Label>Select Scenes</Label>
-          <p className="text-xs text-muted-foreground mb-2">
-            Select the scenes you want to run in this state
+          <p className="text-xs text-muted-foreground mb-2 -mt-1">
+            Select the scenes to run in this state
           </p>
           <ScrollArea className="h-48 rounded-md">
             {availableScenes.length === 0 ? (
@@ -160,7 +175,7 @@ export function RoomStateConfiguration({
                 </p>
               </div>
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-2 p-1">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-2 p-1">
                 {availableScenes.map((scene) => (
                   <CheckboxPrimitive.Root
                     key={scene.id}
@@ -191,7 +206,7 @@ export function RoomStateConfiguration({
             )}
           </ScrollArea>
         </div>
-      </div>
-    </div>
+      </CardContent>
+    </Card>
   );
 }

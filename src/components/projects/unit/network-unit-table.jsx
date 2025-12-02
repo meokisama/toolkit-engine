@@ -35,6 +35,7 @@ import { ClockControlDialog } from "@/components/projects/unit/network-menu/cloc
 import { BulkClockSyncDialog } from "@/components/projects/unit/network-menu/clock-control/bulk-clock-sync-dialog";
 import { TriggerCurtainDialog } from "@/components/projects/unit/network-menu/curtain-control/curtain-control-dialog";
 import { TriggerKnxDialog } from "@/components/projects/unit/network-menu/knx-control/knx-control-dialog";
+import { RoomConfigControlDialog } from "@/components/projects/unit/network-menu/room-config-control/room-config-control-dialog";
 import { TriggerMultiSceneDialog } from "@/components/projects/unit/network-menu/multi-scene-control/multi-scene-control-dialog";
 import { TriggerSequenceDialog } from "@/components/projects/unit/network-menu/sequence-control/sequence-control-dialog";
 import { FirmwareUpdateDialog } from "@/components/projects/unit/network-menu/base/firmware-update-dialog";
@@ -76,6 +77,8 @@ function NetworkUnitTableComponent({
   const [triggerCurtainDialogOpen, setTriggerCurtainDialogOpen] =
     useState(false);
   const [triggerKnxDialogOpen, setTriggerKnxDialogOpen] = useState(false);
+  const [roomConfigControlDialogOpen, setRoomConfigControlDialogOpen] =
+    useState(false);
   const [triggerMultiSceneDialogOpen, setTriggerMultiSceneDialogOpen] =
     useState(false);
   const [triggerSequenceDialogOpen, setTriggerSequenceDialogOpen] =
@@ -334,6 +337,12 @@ function NetworkUnitTableComponent({
   const handleTriggerKnx = useCallback((unit) => {
     setSelectedUnit(unit);
     setTriggerKnxDialogOpen(true);
+  }, []);
+
+  // Handle Room Config Control
+  const handleRoomConfigControl = useCallback((unit) => {
+    setSelectedUnit(unit);
+    setRoomConfigControlDialogOpen(true);
   }, []);
 
   // Handle Multi-Scene Control
@@ -615,6 +624,9 @@ function NetworkUnitTableComponent({
                 onKnxControl={{
                   onTriggerKnx: handleTriggerKnx,
                 }}
+                onRoomConfigControl={{
+                  onRoomConfigControl: handleRoomConfigControl,
+                }}
                 onMultiSceneControl={{
                   onTriggerMultiScene: handleTriggerMultiScene,
                 }}
@@ -688,6 +700,12 @@ function NetworkUnitTableComponent({
         <TriggerKnxDialog
           open={triggerKnxDialogOpen}
           onOpenChange={setTriggerKnxDialogOpen}
+          unit={selectedUnit}
+        />
+
+        <RoomConfigControlDialog
+          open={roomConfigControlDialogOpen}
+          onOpenChange={setRoomConfigControlDialogOpen}
           unit={selectedUnit}
         />
 

@@ -71,6 +71,13 @@ app.whenReady().then(async () => {
     }
   });
 
+  // Listen for DALI address conflict events
+  rcu.daliEvents.on("addressConflict", (data) => {
+    if (mainWindow && !mainWindow.isDestroyed()) {
+      mainWindow.webContents.send("dali:addressConflict", data);
+    }
+  });
+
   // On OS X it's common to re-create a window in the app when the
   // dock icon is clicked and there are no other windows open.
   app.on("activate", () => {
@@ -2051,6 +2058,148 @@ function setupIpcHandlers() {
     }
   );
 
+  // Room Configuration - RCU Controller
+  ipcMain.handle(
+    "rcu:setRoomConfiguration",
+    async (event, unitIp, canId, generalConfig, roomConfigs) => {
+      try {
+        return await rcu.setRoomConfiguration(
+          unitIp,
+          canId,
+          generalConfig,
+          roomConfigs
+        );
+      } catch (error) {
+        console.error("Error setting room configuration:", error);
+        throw error;
+      }
+    }
+  );
+
+  ipcMain.handle(
+    "rcu:getRoomConfiguration",
+    async (event, unitIp, canId) => {
+      try {
+        return await rcu.getRoomConfiguration(unitIp, canId);
+      } catch (error) {
+        console.error("Error getting room configuration:", error);
+        throw error;
+      }
+    }
+  );
+
+  ipcMain.handle("rcu:getRoomStatus", async (event, unitIp, canId) => {
+    try {
+      return await rcu.getRoomStatus(unitIp, canId);
+    } catch (error) {
+      console.error("Error getting room status:", error);
+      throw error;
+    }
+  });
+
+  ipcMain.handle(
+    "rcu:setRoomStatus",
+    async (event, unitIp, canId, airconMode, roomStatuses) => {
+      try {
+        return await rcu.setRoomStatus(unitIp, canId, airconMode, roomStatuses);
+      } catch (error) {
+        console.error("Error setting room status:", error);
+        throw error;
+      }
+    }
+  );
+
+  // ==================== Room Configuration ====================
+
+  // Get room general config
+  ipcMain.handle("room:getGeneralConfig", async (event, projectId) => {
+    try {
+      return await dbService.getRoomGeneralConfig(projectId);
+    } catch (error) {
+      console.error("Error getting room general config:", error);
+      throw error;
+    }
+  });
+
+  // Create or update room general config
+  ipcMain.handle(
+    "room:setGeneralConfig",
+    async (event, projectId, config) => {
+      try {
+        return await dbService.createOrUpdateRoomGeneralConfig(
+          projectId,
+          config
+        );
+      } catch (error) {
+        console.error("Error setting room general config:", error);
+        throw error;
+      }
+    }
+  );
+
+  // Get room config for specific address
+  ipcMain.handle(
+    "room:getRoomConfig",
+    async (event, projectId, roomAddress) => {
+      try {
+        return await dbService.getRoomConfig(projectId, roomAddress);
+      } catch (error) {
+        console.error("Error getting room config:", error);
+        throw error;
+      }
+    }
+  );
+
+  // Get all room configs for project
+  ipcMain.handle("room:getAllRoomConfigs", async (event, projectId) => {
+    try {
+      return await dbService.getAllRoomConfigs(projectId);
+    } catch (error) {
+      console.error("Error getting all room configs:", error);
+      throw error;
+    }
+  });
+
+  // Create or update room config
+  ipcMain.handle(
+    "room:setRoomConfig",
+    async (event, projectId, roomAddress, config) => {
+      try {
+        return await dbService.createOrUpdateRoomConfig(
+          projectId,
+          roomAddress,
+          config
+        );
+      } catch (error) {
+        console.error("Error setting room config:", error);
+        throw error;
+      }
+    }
+  );
+
+  // Delete room config
+  ipcMain.handle(
+    "room:deleteRoomConfig",
+    async (event, projectId, roomAddress) => {
+      try {
+        return await dbService.deleteRoomConfig(projectId, roomAddress);
+      } catch (error) {
+        console.error("Error deleting room config:", error);
+        throw error;
+      }
+    }
+  );
+
+  // Delete all room configs
+  ipcMain.handle("room:deleteAllRoomConfigs", async (event, projectId) => {
+    try {
+      return await dbService.deleteAllRoomConfigs(projectId);
+    } catch (error) {
+      console.error("Error deleting all room configs:", error);
+      throw error;
+    }
+  });
+
   // Zigbee Devices - RCU Controller
   ipcMain.handle("rcu:getZigbeeDevices", async (event, { unitIp, canId }) => {
     try {
@@ -2282,12 +2431,61 @@ function setupIpcHandlers() {
   });
 
   ipcMain.handle(
+    "rcu:daliConflictAddressCommissioning",
+    async (event, { unitIp, canId, conflictAddresses }) => {
+      try {
+        return await rcu.daliConflictAddressCommissioning(
+          unitIp,
+          canId,
+          conflictAddresses
+        );
+      } catch (error) {
+        console.error("Error in DALI conflict address commissioning:", error);
+        throw error;
+      }
+    }
+  );
+
+  ipcMain.handle(
     "rcu:sendAddressMapping",
     async (event, { unitIp, canId, addressMapping }) => {
       try {
         return await rcu.sendAddressMapping(unitIp, canId, addressMapping);
       } catch (error) {
         console.error("Error sending DALI address mapping:", error);
+        throw error;
+      }
+    }
+  );
+
+  ipcMain.handle(
+    "rcu:sendMappingRCU",
+    async (event, { unitIp, canId, rcuMapping }) => {
+      try {
+        return await rcu.sendMappingRCU(unitIp, canId, rcuMapping);
+      } catch (error) {
+        console.error("Error sending DALI RCU mapping:", error);
+        throw error;
+      }
+    }
+  );
+
+  ipcMain.handle("rcu:resetAllConfig", async (event, { unitIp, canId }) => {
+    try {
+      return await rcu.resetAllConfig(unitIp, canId);
+    } catch (error) {
+      console.error("Error resetting DALI configuration:", error);
+      throw error;
+    }
+  });
+
+  ipcMain.handle(
+    "rcu:sendDeleteAddress",
+    async (event, { unitIp, canId, address }) => {
+      try {
+        return await rcu.sendDeleteAddress(unitIp, canId, address);
+      } catch (error) {
+        console.error("Error deleting DALI address:", error);
         throw error;
       }
     }
@@ -2318,6 +2516,29 @@ function setupIpcHandlers() {
         return await rcu.triggerDaliDevice(unitIp, canId, deviceAddress, level);
       } catch (error) {
         console.error("Error triggering DALI device:", error);
+        throw error;
+      }
+    }
+  );
+
+  ipcMain.handle(
+    "rcu:triggerDaliType8Device",
+    async (
+      event,
+      { unitIp, canId, deviceIndex, deviceAddress, colorFeature, brightness, colorData }
+    ) => {
+      try {
+        return await rcu.triggerDaliType8Device(
+          unitIp,
+          canId,
+          deviceIndex,
+          deviceAddress,
+          colorFeature,
+          brightness,
+          colorData
+        );
+      } catch (error) {
+        console.error("Error triggering DALI Type 8 device:", error);
         throw error;
       }
     }
@@ -2459,6 +2680,50 @@ function setupIpcHandlers() {
     }
   );
 
+  // Initialize 16 DALI groups for a project
+  ipcMain.handle("dali:initializeGroups", async (event, projectId) => {
+    try {
+      return await dbService.initializeGroups(projectId);
+    } catch (error) {
+      console.error("Error initializing groups:", error);
+      throw error;
+    }
+  });
+
+  // Update group's lighting_group_address
+  ipcMain.handle(
+    "dali:updateGroupLightingAddress",
+    async (event, projectId, groupId, lightingGroupAddress) => {
+      try {
+        return await dbService.updateGroupLightingAddress(
+          projectId,
+          groupId,
+          lightingGroupAddress
+        );
+      } catch (error) {
+        console.error("Error updating group lighting address:", error);
+        throw error;
+      }
+    }
+  );
+
+  // Update device's lighting_group_address
+  ipcMain.handle(
+    "dali:updateDeviceLightingAddress",
+    async (event, projectId, address, lightingGroupAddress) => {
+      try {
+        return await dbService.updateDeviceLightingAddress(
+          projectId,
+          address,
+          lightingGroupAddress
+        );
+      } catch (error) {
+        console.error("Error updating device lighting address:", error);
+        throw error;
+      }
+    }
+  );
+
   // DALI Groups - Database Operations
   ipcMain.handle("dali:getGroupDevices", async (event, projectId, groupId) => {
     try {
@@ -2574,14 +2839,19 @@ function setupIpcHandlers() {
 
   ipcMain.handle(
     "dali:upsertSceneDevice",
-    async (event, projectId, sceneId, deviceAddress, active, brightness) => {
+    async (event, projectId, sceneId, deviceAddress, active, brightness, colorTemp, r, g, b, w) => {
       try {
         return await dbService.upsertSceneDevice(
           projectId,
           sceneId,
           deviceAddress,
           active,
-          brightness
+          brightness,
+          colorTemp,
+          r,
+          g,
+          b,
+          w
         );
       } catch (error) {
         console.error("Error upserting scene device:", error);

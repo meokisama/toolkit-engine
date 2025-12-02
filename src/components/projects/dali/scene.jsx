@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback, useMemo, memo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
-import { Lightbulb, Sun, Percent } from "lucide-react";
+import { Lightbulb } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { useProjectDetail } from "@/contexts/project-detail-context";
@@ -10,8 +10,8 @@ import { toast } from "sonner";
 import { useDaliDevices } from "./hooks/useDaliDevices";
 import { useEditableName } from "./hooks/useEditableName";
 import { DALI_SCENE_COUNT, BRIGHTNESS_MAX } from "./utils/constants";
-import { parseBrightnessInput, brightnessToPercent } from "./utils/brightness";
 import { TriggerSceneButton, TriggerDeviceButton } from "./trigger-buttons";
+import { DeviceSceneControl } from "./device-scene-control";
 
 export function Scene({ isActive }) {
   const { selectedProject } = useProjectDetail();
@@ -21,7 +21,7 @@ export function Scene({ isActive }) {
     Array.from({ length: DALI_SCENE_COUNT }, (_, i) => ({
       id: i,
       name: `Scene ${i}`,
-      devices: {}, // deviceAddress -> { active, brightness }
+      devices: {}, // deviceAddress -> { active, brightness, colorTemp, r, g, b, w }
     }))
   );
 
@@ -64,6 +64,11 @@ export function Scene({ isActive }) {
               devicesMap[sd.device_address] = {
                 active: Boolean(sd.active),
                 brightness: sd.brightness,
+                colorTemp: sd.color_temp,
+                r: sd.r,
+                g: sd.g,
+                b: sd.b,
+                w: sd.w,
               };
             });
 
@@ -125,6 +130,11 @@ export function Scene({ isActive }) {
         const deviceData = scene?.devices[deviceAddress];
         const isCurrentlyActive = deviceData?.active || false;
         const brightness = deviceData?.brightness ?? BRIGHTNESS_MAX;
+        const colorTemp = deviceData?.colorTemp ?? null;
+        const r = deviceData?.r ?? null;
+        const g = deviceData?.g ?? null;
+        const b = deviceData?.b ?? null;
+        const w = deviceData?.w ?? null;
 
         if (isCurrentlyActive) {
           // Delete from database when unchecking
@@ -142,7 +152,12 @@ export function Scene({ isActive }) {
               selectedSceneId,
               deviceAddress,
               true,
-              brightness
+              brightness,
+              colorTemp,
+              r,
+              g,
+              b,
+              w
             )
             .catch((error) => {
               console.error("Failed to add device to scene:", error);
@@ -169,6 +184,11 @@ export function Scene({ isActive }) {
                   [deviceAddress]: {
                     active: true,
                     brightness,
+                    colorTemp,
+                    r,
+                    g,
+                    b,
+                    w,
                   },
                 },
               };
@@ -181,11 +201,11 @@ export function Scene({ isActive }) {
     [selectedProject, selectedSceneId]
   );
 
-  const handleBrightnessChange = useCallback(
-    async (deviceAddress, value, type) => {
+  const handleValuesChange = useCallback(
+    async (deviceAddress, values) => {
       if (!selectedProject) return;
 
-      const brightness = parseBrightnessInput(value, type);
+      const { brightness, colorTemp, r, g, b, w } = values;
 
       // Save to database
       window.electronAPI.dali
@@ -193,12 +213,17 @@ export function Scene({ isActive }) {
           selectedProject.id,
           selectedSceneId,
           deviceAddress,
-          true, // Auto-activate when setting brightness
-          brightness
+          true, // Auto-activate when setting values
+          brightness,
+          colorTemp ?? null,
+          r ?? null,
+          g ?? null,
+          b ?? null,
+          w ?? null
         )
         .catch((error) => {
-          console.error("Failed to update brightness:", error);
-          toast.error("Failed to update brightness");
+          console.error("Failed to update device values:", error);
+          toast.error("Failed to update device values");
         });
 
       // Update state optimistically
@@ -210,9 +235,13 @@ export function Scene({ isActive }) {
               devices: {
                 ...scene.devices,
                 [deviceAddress]: {
-                  ...(scene.devices[deviceAddress] || {}),
-                  brightness,
                   active: true,
+                  brightness,
+                  colorTemp: colorTemp ?? null,
+                  r: r ?? null,
+                  g: g ?? null,
+                  b: b ?? null,
+                  w: w ?? null,
                 },
               },
             };
@@ -259,18 +288,23 @@ export function Scene({ isActive }) {
               {devices.map((device) => {
                 const deviceData = selectedScene?.devices[device.id];
                 const isActive = deviceData?.active || false;
-                const brightness = deviceData?.brightness ?? BRIGHTNESS_MAX;
-                const brightnessPercent = brightnessToPercent(brightness);
+                const values = {
+                  brightness: deviceData?.brightness ?? BRIGHTNESS_MAX,
+                  colorTemp: deviceData?.colorTemp ?? 2700,
+                  r: deviceData?.r ?? 0,
+                  g: deviceData?.g ?? 0,
+                  b: deviceData?.b ?? 0,
+                  w: deviceData?.w ?? 0,
+                };
 
                 return (
                   <DeviceSceneItem
                     key={device.id}
                     device={device}
                     active={isActive}
-                    brightness={brightness}
-                    brightnessPercent={brightnessPercent}
+                    values={values}
                     onToggle={handleToggleDevice}
-                    onBrightnessChange={handleBrightnessChange}
+                    onValuesChange={handleValuesChange}
                   />
                 );
               })}
@@ -374,27 +408,19 @@ const SceneItem = memo(function SceneItem({
 const DeviceSceneItem = memo(function DeviceSceneItem({
   device,
   active,
-  brightness,
-  brightnessPercent,
+  values,
   onToggle,
-  onBrightnessChange,
+  onValuesChange,
 }) {
   const handleToggle = useCallback(() => {
     onToggle(device.id);
   }, [onToggle, device.id]);
 
-  const handleBrightnessChange255 = useCallback(
-    (e) => {
-      onBrightnessChange(device.id, e.target.value, "0-255");
+  const handleValuesChange = useCallback(
+    (newValues) => {
+      onValuesChange(device.id, newValues);
     },
-    [onBrightnessChange, device.id]
-  );
-
-  const handleBrightnessChange100 = useCallback(
-    (e) => {
-      onBrightnessChange(device.id, e.target.value, "0-100");
-    },
-    [onBrightnessChange, device.id]
+    [onValuesChange, device.id]
   );
 
   return (
@@ -402,7 +428,6 @@ const DeviceSceneItem = memo(function DeviceSceneItem({
       className={cn(
         "border rounded-md p-3 transition-colors",
         active ? "bg-card border-muted-foreground/80 shadow" : "bg-muted/50"
-        // device.name ? "" : "opacity-60"
       )}
     >
       <div className="flex items-center gap-3">
@@ -418,40 +443,27 @@ const DeviceSceneItem = memo(function DeviceSceneItem({
             <span className="font-medium">{device.name || "Unmapped"}</span>
           </div>
 
-          {/* Brightness Inputs - Only show when active */}
+          {/* Device Control Inputs - Only show when active */}
           {active && (
-            <div className="grid grid-cols-2 gap-3 w-3/5">
-              <div className="relative">
-                <Sun className="absolute left-2 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
-                <Input
-                  id={`brightness-255-${device.id}`}
-                  type="number"
-                  min="0"
-                  max="255"
-                  value={brightness}
-                  onChange={handleBrightnessChange255}
-                  className="h-10 pl-8 font-bold"
-                />
-              </div>
-              <div className="relative">
-                <Percent className="absolute left-2 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
-                <Input
-                  id={`brightness-100-${device.id}`}
-                  type="number"
-                  min="0"
-                  max="100"
-                  value={brightnessPercent}
-                  onChange={handleBrightnessChange100}
-                  className="h-10 pl-8 font-bold"
-                />
-              </div>
+            <div className="w-3/5">
+              <DeviceSceneControl
+                device={device}
+                values={values}
+                onChange={handleValuesChange}
+              />
             </div>
           )}
         </div>
 
         {/* Trigger Device Button */}
         <div className="pt-1">
-          <TriggerDeviceButton address={device.address} disabled={false} />
+          <TriggerDeviceButton
+            address={device.address}
+            index={device.index}
+            disabled={false}
+            deviceType={device.type}
+            colorFeature={device.colorFeature}
+          />
         </div>
       </div>
     </div>

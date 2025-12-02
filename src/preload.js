@@ -305,15 +305,25 @@ contextBridge.exposeInMainWorld("electronAPI", {
     commissioning: (params) =>
       ipcRenderer.invoke("rcu:daliCommissioning", params),
     scan: (params) => ipcRenderer.invoke("rcu:daliScan", params),
+    conflictAddressCommissioning: (params) =>
+      ipcRenderer.invoke("rcu:daliConflictAddressCommissioning", params),
     sendAddressMapping: (params) =>
       ipcRenderer.invoke("rcu:sendAddressMapping", params),
+    sendMappingRCU: (params) =>
+      ipcRenderer.invoke("rcu:sendMappingRCU", params),
     sendGroupSceneConfig: (params) =>
       ipcRenderer.invoke("rcu:sendGroupSceneConfig", params),
+    resetAllConfig: (params) =>
+      ipcRenderer.invoke("rcu:resetAllConfig", params),
+    sendDeleteAddress: (params) =>
+      ipcRenderer.invoke("rcu:sendDeleteAddress", params),
     broadcastOn: (params) => ipcRenderer.invoke("rcu:daliBroadcastOn", params),
     broadcastOff: (params) =>
       ipcRenderer.invoke("rcu:daliBroadcastOff", params),
     triggerDevice: (params) =>
       ipcRenderer.invoke("rcu:triggerDaliDevice", params),
+    triggerType8Device: (params) =>
+      ipcRenderer.invoke("rcu:triggerDaliType8Device", params),
     triggerGroup: (params) =>
       ipcRenderer.invoke("rcu:triggerDaliGroup", params),
     triggerScene: (params) =>
@@ -323,6 +333,12 @@ contextBridge.exposeInMainWorld("electronAPI", {
       ipcRenderer.on("dali:deviceCountChanged", handler);
       return () =>
         ipcRenderer.removeListener("dali:deviceCountChanged", handler);
+    },
+    onAddressConflict: (callback) => {
+      const handler = (event, data) => callback(data);
+      ipcRenderer.on("dali:addressConflict", handler);
+      return () =>
+        ipcRenderer.removeListener("dali:addressConflict", handler);
     },
   },
 
@@ -542,6 +558,28 @@ contextBridge.exposeInMainWorld("electronAPI", {
       ipcRenderer.invoke("rcu:setupZigbeeDevice", params),
     factoryResetZigbee: (params) =>
       ipcRenderer.invoke("rcu:factoryResetZigbee", params),
+
+    // Room Configuration functions
+    setRoomConfiguration: (unitIp, canId, generalConfig, roomConfigs) =>
+      ipcRenderer.invoke(
+        "rcu:setRoomConfiguration",
+        unitIp,
+        canId,
+        generalConfig,
+        roomConfigs
+      ),
+    getRoomConfiguration: (unitIp, canId) =>
+      ipcRenderer.invoke("rcu:getRoomConfiguration", unitIp, canId),
+    getRoomStatus: (unitIp, canId) =>
+      ipcRenderer.invoke("rcu:getRoomStatus", unitIp, canId),
+    setRoomStatus: (unitIp, canId, airconMode, roomStatuses) =>
+      ipcRenderer.invoke(
+        "rcu:setRoomStatus",
+        unitIp,
+        canId,
+        airconMode,
+        roomStatuses
+      ),
   },
 
   // Zigbee Devices Database Operations
@@ -580,6 +618,22 @@ contextBridge.exposeInMainWorld("electronAPI", {
       ipcRenderer.invoke("dali:getAllGroupNames", projectId),
     updateGroupName: (projectId, groupId, name) =>
       ipcRenderer.invoke("dali:updateGroupName", projectId, groupId, name),
+    initializeGroups: (projectId) =>
+      ipcRenderer.invoke("dali:initializeGroups", projectId),
+    updateGroupLightingAddress: (projectId, groupId, lightingGroupAddress) =>
+      ipcRenderer.invoke(
+        "dali:updateGroupLightingAddress",
+        projectId,
+        groupId,
+        lightingGroupAddress
+      ),
+    updateDeviceLightingAddress: (projectId, address, lightingGroupAddress) =>
+      ipcRenderer.invoke(
+        "dali:updateDeviceLightingAddress",
+        projectId,
+        address,
+        lightingGroupAddress
+      ),
 
     // Group operations
     getGroupDevices: (projectId, groupId) =>
@@ -621,7 +675,12 @@ contextBridge.exposeInMainWorld("electronAPI", {
       sceneId,
       deviceAddress,
       active,
-      brightness
+      brightness,
+      colorTemp,
+      r,
+      g,
+      b,
+      w
     ) =>
       ipcRenderer.invoke(
         "dali:upsertSceneDevice",
@@ -629,7 +688,12 @@ contextBridge.exposeInMainWorld("electronAPI", {
         sceneId,
         deviceAddress,
         active,
-        brightness
+        brightness,
+        colorTemp,
+        r,
+        g,
+        b,
+        w
       ),
     deleteSceneDevice: (projectId, sceneId, deviceAddress) =>
       ipcRenderer.invoke(
@@ -648,5 +712,26 @@ contextBridge.exposeInMainWorld("electronAPI", {
       ipcRenderer.invoke("dali:clearAllScenes", projectId),
     clearAllConfigurations: (projectId) =>
       ipcRenderer.invoke("dali:clearAllConfigurations", projectId),
+  },
+
+  // Room Configuration Database Operations
+  room: {
+    // Room general config operations
+    getGeneralConfig: (projectId) =>
+      ipcRenderer.invoke("room:getGeneralConfig", projectId),
+    setGeneralConfig: (projectId, config) =>
+      ipcRenderer.invoke("room:setGeneralConfig", projectId, config),
+
+    // Room config operations
+    getRoomConfig: (projectId, roomAddress) =>
+      ipcRenderer.invoke("room:getRoomConfig", projectId, roomAddress),
+    getAllRoomConfigs: (projectId) =>
+      ipcRenderer.invoke("room:getAllRoomConfigs", projectId),
+    setRoomConfig: (projectId, roomAddress, config) =>
+      ipcRenderer.invoke("room:setRoomConfig", projectId, roomAddress, config),
+    deleteRoomConfig: (projectId, roomAddress) =>
+      ipcRenderer.invoke("room:deleteRoomConfig", projectId, roomAddress),
+    deleteAllRoomConfigs: (projectId) =>
+      ipcRenderer.invoke("room:deleteAllRoomConfigs", projectId),
   },
 });

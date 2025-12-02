@@ -8,6 +8,17 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Network, Upload, Trash2, ChevronDown } from "lucide-react";
 import { useProjectDetail } from "@/contexts/project-detail-context";
 import { useDali } from "@/contexts/dali-context";
@@ -24,6 +35,24 @@ export function DaliCore() {
   const [showGatewayDialog, setShowGatewayDialog] = useState(false);
   const [sending, setSending] = useState(false);
   const [clearing, setClearing] = useState(false);
+  const [showDeleteAddressDialog, setShowDeleteAddressDialog] = useState(false);
+  const [deleteMode, setDeleteMode] = useState("all");
+  const [deleteAddressInput, setDeleteAddressInput] = useState("");
+
+  // Helper: Get scanned devices from localStorage
+  const getScannedDevices = () => {
+    const scannedDevicesKey = `dali-scanned-devices-${selectedProject.id}`;
+    return JSON.parse(localStorage.getItem(scannedDevicesKey) || "[]");
+  };
+
+  // Helper: Load project DALI data
+  const loadProjectData = async () => {
+    const dbDevices = await window.electronAPI.dali.getAllDevices(
+      selectedProject.id
+    );
+    const scannedDevices = getScannedDevices();
+    return { dbDevices, scannedDevices };
+  };
 
   const handleSendAddressMapping = async () => {
     if (!selectedProject) {
@@ -40,16 +69,8 @@ export function DaliCore() {
       setSending(true);
       toast.info("Preparing address mapping...");
 
-      // Get all devices from database
-      const dbDevices = await window.electronAPI.dali.getAllDevices(
-        selectedProject.id
-      );
-
-      // Get scanned devices from localStorage (unmapped devices)
-      const scannedDevicesKey = `dali-scanned-devices-${selectedProject.id}`;
-      const scannedDevices = JSON.parse(
-        localStorage.getItem(scannedDevicesKey) || []
-      );
+      // Load project data
+      const { dbDevices, scannedDevices } = await loadProjectData();
 
       // Build initial addressMapping from scanned devices (keep their positions)
       const addressMapping = new Array(64);
@@ -137,6 +158,8 @@ export function DaliCore() {
               mapped_device_name: `Device ${newAddress}`,
               mapped_device_type: device.mapped_device_type,
               mapped_device_address: newAddress,
+              lighting_group_address: device.lighting_group_address,
+              color_feature: device.color_feature,
             }
           );
         }
@@ -155,6 +178,7 @@ export function DaliCore() {
         return scannedDevice;
       });
 
+      const scannedDevicesKey = `dali-scanned-devices-${selectedProject.id}`;
       localStorage.setItem(
         scannedDevicesKey,
         JSON.stringify(updatedScannedDevices)
@@ -166,6 +190,80 @@ export function DaliCore() {
     } catch (error) {
       console.error("Failed to send address mapping:", error);
       toast.error(`Failed to send address mapping: ${error.message}`);
+    } finally {
+      setSending(false);
+    }
+  };
+
+  const handleSendMappingRCU = async () => {
+    if (!selectedProject) {
+      toast.error("Please select a project first");
+      return;
+    }
+
+    if (!selectedGateway) {
+      toast.error("Please select a gateway first");
+      return;
+    }
+
+    try {
+      setSending(true);
+      toast.info("Preparing RCU mapping...");
+
+      // Load project data
+      const { dbDevices, scannedDevices } = await loadProjectData();
+
+      // Get all groups from database
+      await window.electronAPI.dali.initializeGroups(selectedProject.id);
+      const groupNames = await window.electronAPI.dali.getAllGroupNames(
+        selectedProject.id
+      );
+
+      // Build RCU mapping array (80 bytes)
+      const rcuMapping = new Array(80).fill(0);
+
+      // First 64 bytes: lightingGroupAddress for each device (by index)
+      // Similar to addressMapping, start with scanned devices' lightingGroupAddress
+      scannedDevices.forEach((device) => {
+        if (device.index >= 0 && device.index < 64) {
+          rcuMapping[device.index] = device.lightingGroupAddress ?? 0;
+        }
+      });
+
+      // Then apply mapped devices' lighting_group_address from database
+      dbDevices.forEach((device) => {
+        if (
+          device.mapped_device_index !== null &&
+          device.mapped_device_index >= 0 &&
+          device.mapped_device_index < 64 &&
+          device.lighting_group_address !== null
+        ) {
+          rcuMapping[device.mapped_device_index] =
+            device.lighting_group_address;
+        }
+      });
+
+      // Last 16 bytes: lightingGroupAddress for each group (0-15)
+      for (let i = 0; i < 16; i++) {
+        const groupData = groupNames.find((g) => g.group_id === i);
+        // Use lighting_group_address if available, otherwise default to 100 + i
+        rcuMapping[64 + i] = groupData?.lighting_group_address ?? 100 + i;
+      }
+
+      console.log("RCU Mapping (devices 0-63):", rcuMapping.slice(0, 64));
+      console.log("RCU Mapping (groups 0-15):", rcuMapping.slice(64, 80));
+
+      // Send RCU mapping to gateway
+      await window.electronAPI.daliController.sendMappingRCU({
+        unitIp: selectedGateway.ip_address,
+        canId: selectedGateway.id_can,
+        rcuMapping,
+      });
+
+      toast.success("RCU mapping sent successfully!");
+    } catch (error) {
+      console.error("Failed to send RCU mapping:", error);
+      toast.error(`Failed to send RCU mapping: ${error.message}`);
     } finally {
       setSending(false);
     }
@@ -201,6 +299,35 @@ export function DaliCore() {
       toast.error(
         `Failed to send Group & Scene configuration: ${error.message}`
       );
+    } finally {
+      setSending(false);
+    }
+  };
+
+  const handleResetAllConfig = async () => {
+    if (!selectedProject) {
+      toast.error("Please select a project first");
+      return;
+    }
+
+    if (!selectedGateway) {
+      toast.error("Please select a gateway first");
+      return;
+    }
+
+    try {
+      setSending(true);
+      toast.info("Resetting all DALI configuration...");
+
+      await window.electronAPI.daliController.resetAllConfig({
+        unitIp: selectedGateway.ip_address,
+        canId: selectedGateway.id_can,
+      });
+
+      toast.success("All DALI configuration reset successfully!");
+    } catch (error) {
+      console.error("Failed to reset DALI configuration:", error);
+      toast.error(`Failed to reset configuration: ${error.message}`);
     } finally {
       setSending(false);
     }
@@ -337,6 +464,100 @@ export function DaliCore() {
     }
   };
 
+  const parseAddresses = (input) => {
+    const addresses = [];
+    const parts = input.split(",").map((p) => p.trim());
+
+    for (const part of parts) {
+      if (part.includes("-")) {
+        // Range: e.g., "5-10"
+        const [start, end] = part.split("-").map((n) => parseInt(n.trim(), 10));
+        if (!isNaN(start) && !isNaN(end) && start <= end) {
+          for (let i = start; i <= end; i++) {
+            if (i >= 0 && i <= 63) {
+              addresses.push(i);
+            }
+          }
+        }
+      } else {
+        // Single address
+        const addr = parseInt(part, 10);
+        if (!isNaN(addr) && addr >= 0 && addr <= 63) {
+          addresses.push(addr);
+        }
+      }
+    }
+
+    // Remove duplicates
+    return [...new Set(addresses)];
+  };
+
+  const handleDeleteAddress = async () => {
+    if (!selectedProject) {
+      toast.error("Please select a project first");
+      return;
+    }
+
+    if (!selectedGateway) {
+      toast.error("Please select a gateway first");
+      return;
+    }
+
+    try {
+      setSending(true);
+      setShowDeleteAddressDialog(false);
+
+      let addresses = [];
+
+      if (deleteMode === "all") {
+        // Delete all: send 0xFF
+        addresses = [0xff];
+        toast.info("Deleting all addresses...");
+      } else {
+        // Delete custom: parse input
+        if (!deleteAddressInput.trim()) {
+          toast.error("Please enter address(es) to delete");
+          setSending(false);
+          return;
+        }
+
+        addresses = parseAddresses(deleteAddressInput);
+        if (addresses.length === 0) {
+          toast.error("No valid addresses found in input");
+          setSending(false);
+          return;
+        }
+
+        toast.info(`Deleting ${addresses.length} address(es)...`);
+      }
+
+      // Send DELETE_ADDRESS command (13) for each address
+      // Format: [address_byte, 0x00, 0x00, 0x00]
+      for (const address of addresses) {
+        await window.electronAPI.daliController.sendDeleteAddress({
+          unitIp: selectedGateway.ip_address,
+          canId: selectedGateway.id_can,
+          address: address,
+        });
+      }
+
+      toast.success(
+        `Successfully deleted ${
+          deleteMode === "all" ? "all" : addresses.length
+        } address(es)`
+      );
+
+      // Reset form
+      setDeleteMode("all");
+      setDeleteAddressInput("");
+    } catch (error) {
+      console.error("Failed to delete address:", error);
+      toast.error(`Failed to delete address: ${error.message}`);
+    } finally {
+      setSending(false);
+    }
+  };
+
   if (!selectedProject) {
     return (
       <div className="flex flex-1 items-center justify-center">
@@ -409,8 +630,17 @@ export function DaliCore() {
               <DropdownMenuItem onClick={handleSendAddressMapping}>
                 Address Mapping
               </DropdownMenuItem>
+              <DropdownMenuItem onClick={handleSendMappingRCU}>
+                Mapping RCU
+              </DropdownMenuItem>
               <DropdownMenuItem onClick={handleSendGroupAndScene}>
                 Group & Scene
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setShowDeleteAddressDialog(true)}>
+                Delete Address
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={handleResetAllConfig}>
+                Reset
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -453,6 +683,70 @@ export function DaliCore() {
         onOpenChange={setShowGatewayDialog}
         onSelect={selectGateway}
       />
+
+      <Dialog
+        open={showDeleteAddressDialog}
+        onOpenChange={setShowDeleteAddressDialog}
+      >
+        <DialogContent className="sm:max-w-[500px]">
+          <DialogHeader>
+            <DialogTitle>Delete Address</DialogTitle>
+            <DialogDescription>
+              Choose to delete all addresses or specify custom addresses to
+              delete.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <RadioGroup value={deleteMode} onValueChange={setDeleteMode}>
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="all" id="delete-all" />
+                <Label htmlFor="delete-all" className="cursor-pointer">
+                  Delete all addresses
+                </Label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="custom" id="delete-custom" />
+                <Label htmlFor="delete-custom" className="cursor-pointer">
+                  Delete custom addresses
+                </Label>
+              </div>
+            </RadioGroup>
+
+            {deleteMode === "custom" && (
+              <div className="grid gap-2">
+                <Label htmlFor="address-input">
+                  Enter address(es) to delete
+                </Label>
+                <Input
+                  id="address-input"
+                  placeholder="e.g., 5, 10, 15-20"
+                  value={deleteAddressInput}
+                  onChange={(e) => setDeleteAddressInput(e.target.value)}
+                />
+                <p className="text-sm text-muted-foreground">
+                  Enter single addresses (e.g., 5, 10) or ranges (e.g., 15-20)
+                  separated by commas
+                </p>
+              </div>
+            )}
+          </div>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setShowDeleteAddressDialog(false);
+                setDeleteMode("all");
+                setDeleteAddressInput("");
+              }}
+            >
+              Cancel
+            </Button>
+            <Button onClick={handleDeleteAddress} disabled={sending}>
+              {sending ? "Deleting..." : "Confirm Delete"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

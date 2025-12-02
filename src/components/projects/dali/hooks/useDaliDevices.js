@@ -15,6 +15,8 @@ export function useDaliDevices(selectedProject, isActive) {
       address: i,
       name: null,
       type: null,
+      colorFeature: null,
+      index: null,
     }))
   );
   const [loading, setLoading] = useState(true);
@@ -37,6 +39,8 @@ export function useDaliDevices(selectedProject, isActive) {
                 ...device,
                 name: dbDevice.mapped_device_name,
                 type: dbDevice.mapped_device_type,
+                colorFeature: dbDevice.color_feature,
+                index: dbDevice.mapped_device_index,
               };
             }
             return device;

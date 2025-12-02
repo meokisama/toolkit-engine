@@ -39,6 +39,7 @@ export function DataTable({
   onClockControl,
   onCurtainControl,
   onKnxControl,
+  onRoomConfigControl,
   onMultiSceneControl,
   onSequenceControl,
   onSendSchedule,
@@ -219,6 +220,7 @@ export function DataTable({
                   onClockControl={onClockControl}
                   onCurtainControl={onCurtainControl}
                   onKnxControl={onKnxControl}
+                  onRoomConfigControl={onRoomConfigControl}
                   onMultiSceneControl={onMultiSceneControl}
                   onSequenceControl={onSequenceControl}
                   onSendSchedule={onSendSchedule}

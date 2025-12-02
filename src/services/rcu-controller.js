@@ -144,11 +144,23 @@ export {
   daliCommissioning,
   daliScan,
   sendAddressMapping,
+  sendMappingRCU,
   sendGroupSceneConfig,
+  resetAllConfig,
+  sendDeleteAddress,
   daliBroadcastOn,
   daliBroadcastOff,
   triggerDaliDevice,
   triggerDaliGroup,
   triggerDaliScene,
+  triggerDaliType8Device,
   daliEvents,
 } from "./rcu-controller/dali.js";
+
+// Export Room configuration functions
+export {
+  setRoomConfiguration,
+  getRoomConfiguration,
+  getRoomStatus,
+  setRoomStatus,
+} from "./rcu-controller/room.js";

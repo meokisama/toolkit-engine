@@ -49,7 +49,10 @@ export function Group({ isActive }) {
       try {
         setLoading(true);
 
-        // Load group names
+        // Initialize 16 groups in database if not exists
+        await window.electronAPI.dali.initializeGroups(selectedProject.id);
+
+        // Load group names and lighting_group_address
         const groupNames = await window.electronAPI.dali.getAllGroupNames(
           selectedProject.id
         );
@@ -65,6 +68,7 @@ export function Group({ isActive }) {
             return {
               ...group,
               name: nameData ? nameData.name : `Group ${group.id}`,
+              lightingGroupAddress: nameData?.lighting_group_address,
               deviceIds: groupDevices
                 .filter((gd) => gd.group_id === group.id)
                 .map((gd) => gd.device_address),
@@ -103,6 +107,40 @@ export function Group({ isActive }) {
       } catch (error) {
         console.error("Failed to update group name:", error);
         toast.error("Failed to update group name");
+      }
+    },
+    [selectedProject]
+  );
+
+  const handleUpdateGroupLightingAddress = useCallback(
+    async (groupId, lightingGroupAddress) => {
+      if (!selectedProject) return;
+
+      try {
+        await window.electronAPI.dali.updateGroupLightingAddress(
+          selectedProject.id,
+          groupId,
+          lightingGroupAddress === "" ? null : parseInt(lightingGroupAddress)
+        );
+
+        setGroups((prev) =>
+          prev.map((group) =>
+            group.id === groupId
+              ? {
+                  ...group,
+                  lightingGroupAddress:
+                    lightingGroupAddress === ""
+                      ? null
+                      : parseInt(lightingGroupAddress),
+                }
+              : group
+          )
+        );
+
+        toast.success("Group RCU address updated");
+      } catch (error) {
+        console.error("Failed to update group lighting address:", error);
+        toast.error("Failed to update group RCU address");
       }
     },
     [selectedProject]
@@ -242,6 +280,7 @@ export function Group({ isActive }) {
                     onToggleExpanded={() => toggleGroupExpanded(group.id)}
                     onRemoveDevice={handleRemoveFromGroup}
                     onUpdateName={handleUpdateGroupName}
+                    onUpdateLightingAddress={handleUpdateGroupLightingAddress}
                   />
                 ))}
               </div>
@@ -292,6 +331,7 @@ const GroupItem = memo(function GroupItem({
   onToggleExpanded,
   onRemoveDevice,
   onUpdateName,
+  onUpdateLightingAddress,
 }) {
   const { setNodeRef, isOver } = useDroppable({
     id: `group-${group.id}`,
@@ -313,6 +353,29 @@ const GroupItem = memo(function GroupItem({
     group.name,
     handleSaveName
   );
+
+  const [lightingAddress, setLightingAddress] = useState(
+    group.lightingGroupAddress ?? ""
+  );
+
+  useEffect(() => {
+    setLightingAddress(group.lightingGroupAddress ?? "");
+  }, [group.lightingGroupAddress]);
+
+  const handleLightingAddressChange = useCallback((e) => {
+    const value = e.target.value;
+    setLightingAddress(value);
+  }, []);
+
+  const handleLightingAddressBlur = useCallback(() => {
+    onUpdateLightingAddress(group.id, lightingAddress);
+  }, [onUpdateLightingAddress, group.id, lightingAddress]);
+
+  const handleLightingAddressKeyDown = useCallback((e) => {
+    if (e.key === "Enter") {
+      e.target.blur();
+    }
+  }, []);
 
   return (
     <div
@@ -345,8 +408,22 @@ const GroupItem = memo(function GroupItem({
                   {group.name}
                 </div>
               )}
-              <div className="text-xs text-muted-foreground">
-                {group.deviceIds.length} device(s)
+              <div className="text-xs text-muted-foreground flex items-center gap-2">
+                <span>{group.deviceIds.length} device(s)</span>
+                <span>|</span>
+                <span className="flex items-center gap-1">
+                  RCU Group:
+                  <Input
+                    type="number"
+                    value={lightingAddress}
+                    onChange={handleLightingAddressChange}
+                    onBlur={handleLightingAddressBlur}
+                    onKeyDown={handleLightingAddressKeyDown}
+                    onClick={(e) => e.stopPropagation()}
+                    placeholder="N/A"
+                    className="h-6 w-13 text-center text-xs [&::-webkit-inner-spin-button]:appearance-none"
+                  />
+                </span>
               </div>
             </div>
           </div>
@@ -434,7 +511,13 @@ const DeviceItem = memo(function DeviceItem({ device, groups }) {
           </div>
         </div>
         <div className="shrink-0">
-          <TriggerDeviceButton address={device.address} disabled={false} />
+          <TriggerDeviceButton
+            address={device.address}
+            index={device.index}
+            disabled={false}
+            deviceType={device.type}
+            colorFeature={device.colorFeature}
+          />
         </div>
       </div>
     </div>
