@@ -91,8 +91,6 @@ export const daliTableSchemas = {
 
 // DALI-related methods that will be mixed into DatabaseService
 export const daliMethods = {
-  // ===== DALI Device Methods =====
-
   getAllDaliDevices(projectId) {
     try {
       const stmt = this.db.prepare(
