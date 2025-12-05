@@ -10,8 +10,3 @@ export { sequenceTableSchemas, sequenceMethods } from "./sequence.js";
 export { knxTableSchemas, knxMethods } from "./knx.js";
 export { daliTableSchemas, daliMethods } from "./dali.js";
 export { roomTableSchemas, roomMethods } from "./room.js";
-
-// Future exports for other modules:
-// export { lightingTableSchemas, lightingMethods } from "./lighting.js";
-// export { airconTableSchemas, airconMethods } from "./aircon.js";
-// etc.
