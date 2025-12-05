@@ -118,9 +118,7 @@ export function RoomConfigDisplay({ roomConfig }) {
                 </div>
                 <div className="text-sm">
                   {roomConfig.generalConfig.room_amount}{" "}
-                  {roomConfig.generalConfig.room_amount === 1
-                    ? "Room"
-                    : "Rooms"}
+                  {roomConfig.generalConfig.room_amount === 1 ? "Room" : "Rooms"}
                 </div>
               </div>
             )}
@@ -402,9 +400,8 @@ export function RoomConfigDisplay({ roomConfig }) {
                                         Fan Speed
                                       </div>
                                       <div className="text-sm">
-                                        {FAN_SPEED_LABELS[
-                                          state.airconFanSpeed
-                                        ] || state.airconFanSpeed}
+                                        {FAN_SPEED_LABELS[state.airconFanSpeed] ||
+                                          state.airconFanSpeed}
                                       </div>
                                     </div>
                                     <div>
@@ -429,24 +426,21 @@ export function RoomConfigDisplay({ roomConfig }) {
                                 </div>
 
                                 {/* Scenes List */}
-                                {state.scenesList &&
-                                  state.scenesList.length > 0 && (
-                                    <div>
-                                      <div className="text-sm font-semibold mb-2 flex items-center gap-1">
-                                        <Lightbulb className="h-4 w-4" />
-                                        Selected Scenes
-                                      </div>
-                                      <div className="flex flex-wrap gap-2">
-                                        {state.scenesList.map(
-                                          (sceneAddress, idx) => (
-                                            <Badge key={idx} variant="outline">
-                                              Scene {sceneAddress}
-                                            </Badge>
-                                          )
-                                        )}
-                                      </div>
+                                {state.scenesList && state.scenesList.length > 0 && (
+                                  <div>
+                                    <div className="text-sm font-semibold mb-2 flex items-center gap-1">
+                                      <Lightbulb className="h-4 w-4" />
+                                      Selected Scenes
                                     </div>
-                                  )}
+                                    <div className="flex flex-wrap gap-2">
+                                      {state.scenesList.map((sceneId, idx) => (
+                                        <Badge key={idx} variant="outline">
+                                          Scene {sceneId}
+                                        </Badge>
+                                      ))}
+                                    </div>
+                                  </div>
+                                )}
 
                                 {(!state.scenesList ||
                                   state.scenesList.length === 0) &&
