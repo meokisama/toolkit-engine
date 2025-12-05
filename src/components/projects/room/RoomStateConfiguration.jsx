@@ -40,10 +40,10 @@ export function RoomStateConfiguration({
     updateConfig(state, field, value);
   };
 
-  const handleSceneToggle = (sceneAddress, checked) => {
+  const handleSceneToggle = (sceneId, checked) => {
     const newScenesList = checked
-      ? [...scenesList, sceneAddress]
-      : scenesList.filter((id) => id !== sceneAddress);
+      ? [...scenesList, sceneId]
+      : scenesList.filter((id) => id !== sceneId);
     handleUpdate("scenesList", newScenesList);
   };
 
@@ -125,8 +125,7 @@ export function RoomStateConfiguration({
               max="36"
               value={airconCoolSetpoint}
               onChange={(e) => {
-                const value =
-                  e.target.value === "" ? 16 : parseInt(e.target.value);
+                const value = e.target.value === "" ? 16 : parseInt(e.target.value);
                 handleUpdate("airconCoolSetpoint", value);
               }}
               onBlur={(e) => {
@@ -150,8 +149,7 @@ export function RoomStateConfiguration({
               max="28"
               value={airconHeatSetpoint}
               onChange={(e) => {
-                const value =
-                  e.target.value === "" ? 10 : parseInt(e.target.value);
+                const value = e.target.value === "" ? 10 : parseInt(e.target.value);
                 handleUpdate("airconHeatSetpoint", value);
               }}
               onBlur={(e) => {
@@ -181,9 +179,9 @@ export function RoomStateConfiguration({
                 {availableScenes.map((scene) => (
                   <CheckboxPrimitive.Root
                     key={scene.id}
-                    checked={scenesList.includes(scene.address)}
+                    checked={scenesList.includes(scene.id)}
                     onCheckedChange={(checked) =>
-                      handleSceneToggle(scene.address, checked)
+                      handleSceneToggle(scene.id, checked)
                     }
                     className="relative ring-[1px] ring-border rounded-lg px-3 py-2 text-start text-muted-foreground data-[state=checked]:ring-2 data-[state=checked]:ring-primary data-[state=checked]:text-primary flex flex-row items-center gap-2 cursor-pointer"
                   >
