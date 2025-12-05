@@ -2493,13 +2493,6 @@ class DatabaseService {
     return this.duplicateProjectItem(id, "curtain");
   }
 
-  // Scene
-  // Scene methods are now imported from database/scene.js module
-
-  // Schedule methods are now imported from database/schedule.js module
-
-  // Multi-scene and sequence methods are now imported from database/multiscene.js and database/sequence.js
-
   // Zigbee Devices Management
   getZigbeeDevices(projectId, unitIp = null) {
     try {
