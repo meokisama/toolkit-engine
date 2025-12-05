@@ -40,10 +40,10 @@ export function RoomStateConfiguration({
     updateConfig(state, field, value);
   };
 
-  const handleSceneToggle = (sceneId, checked) => {
+  const handleSceneToggle = (sceneAddress, checked) => {
     const newScenesList = checked
-      ? [...scenesList, sceneId]
-      : scenesList.filter((id) => id !== sceneId);
+      ? [...scenesList, parseInt(sceneAddress)]
+      : scenesList.filter((addr) => addr !== parseInt(sceneAddress));
     handleUpdate("scenesList", newScenesList);
   };
 
@@ -179,9 +179,9 @@ export function RoomStateConfiguration({
                 {availableScenes.map((scene) => (
                   <CheckboxPrimitive.Root
                     key={scene.id}
-                    checked={scenesList.includes(scene.id)}
+                    checked={scenesList.includes(parseInt(scene.address))}
                     onCheckedChange={(checked) =>
-                      handleSceneToggle(scene.id, checked)
+                      handleSceneToggle(scene.address, checked)
                     }
                     className="relative ring-[1px] ring-border rounded-lg px-3 py-2 text-start text-muted-foreground data-[state=checked]:ring-2 data-[state=checked]:ring-primary data-[state=checked]:text-primary flex flex-row items-center gap-2 cursor-pointer"
                   >
