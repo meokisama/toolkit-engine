@@ -27,7 +27,10 @@ import { useMultipleGroups } from "./input-config-dialog/hooks/use-multiple-grou
 import { useInputType } from "./input-config-dialog/hooks/use-input-type";
 
 // Import utilities
-import { getGroupTypeLabel, getGroupTypeFromFunction } from "./input-config-dialog/utils/group-helpers";
+import {
+  getGroupTypeLabel,
+  getGroupTypeFromFunction,
+} from "./input-config-dialog/utils/group-helpers";
 
 import { useProjectDetail } from "@/contexts/project-detail-context";
 import { getRlcOptionsConfig, getInputFunctionByValue } from "@/constants";
@@ -44,7 +47,7 @@ export function MultiGroupConfigDialog({
   initialGroups = [],
   initialRlcOptions = {},
   isLoading = false,
-  onSave = () => { },
+  onSave = () => {},
 }) {
   const { projectItems, selectedProject, loadedTabs, loadTabData, createItem } =
     useProjectDetail();
@@ -122,7 +125,7 @@ export function MultiGroupConfigDialog({
     handleClearAllGroups,
     handleTogglePercentage,
     resetMultipleGroups,
-    initializeGroups,
+    initializeDaliGroups,
   } = useMultipleGroups(
     initialGroupsFormatted,
     currentInputType,
@@ -135,8 +138,8 @@ export function MultiGroupConfigDialog({
   const [createEditDialog, setCreateEditDialog] = useState({
     open: false,
     type: null, // 'lighting' or 'aircon' or other types based on currentInputType
-    mode: 'create', // 'create' or 'edit'
-    item: null
+    mode: "create", // 'create' or 'edit'
+    item: null,
   });
 
   // Memoized custom events for better performance
@@ -231,14 +234,14 @@ export function MultiGroupConfigDialog({
       initialGroups !== undefined &&
       (hasInitialGroupsChanged || initialGroupsRef.current === null)
     ) {
-      initializeGroups(initialGroups);
+      initializeDaliGroups(initialGroups);
     }
   }, [
     open,
     isLoading,
     isInputTypeChanging,
     hasInitialGroupsChanged,
-    initializeGroups,
+    initializeDaliGroups,
   ]);
 
   // Handle dialog close
@@ -255,35 +258,35 @@ export function MultiGroupConfigDialog({
 
     const groups = isMultipleGroupFunction
       ? selectedGroups
-        .map((group) => {
-          // For network units, convert back to groupId/presetBrightness format
-          if (group.groupAddress) {
-            return {
-              groupId: group.groupAddress,
-              presetBrightness: group.preset ?? 255,
-            };
-          } else if (group.lightingId) {
-            // Group in database - find address from lightingId
-            let groupItem = availableItems.find(
-              (item) => item.id === group.lightingId
-            );
-
-            // Fallback to lighting items if not found in current type
-            if (!groupItem) {
-              groupItem = lightingItems.find(
+          .map((group) => {
+            // For network units, convert back to groupId/presetBrightness format
+            if (group.groupAddress) {
+              return {
+                groupId: group.groupAddress,
+                presetBrightness: group.preset ?? 255,
+              };
+            } else if (group.lightingId) {
+              // Group in database - find address from lightingId
+              let groupItem = availableItems.find(
                 (item) => item.id === group.lightingId
               );
-            }
 
-            const result = {
-              groupId: groupItem ? parseInt(groupItem.address) : null,
-              presetBrightness: group.preset ?? 255,
-            };
-            return result;
-          }
-          return null;
-        })
-        .filter(Boolean)
+              // Fallback to lighting items if not found in current type
+              if (!groupItem) {
+                groupItem = lightingItems.find(
+                  (item) => item.id === group.lightingId
+                );
+              }
+
+              const result = {
+                groupId: groupItem ? parseInt(groupItem.address) : null,
+                presetBrightness: group.preset ?? 255,
+              };
+              return result;
+            }
+            return null;
+          })
+          .filter(Boolean)
       : [];
 
     const result = {
@@ -326,35 +329,41 @@ export function MultiGroupConfigDialog({
     setCreateEditDialog({
       open: true,
       type: deviceType,
-      mode: 'create',
-      item: null
+      mode: "create",
+      item: null,
     });
   }, [currentInputType, getDeviceTypeFromInputType]);
 
   // Handle edit item
-  const handleEditItem = useCallback((item) => {
-    const deviceType = getDeviceTypeFromInputType(currentInputType);
+  const handleEditItem = useCallback(
+    (item) => {
+      const deviceType = getDeviceTypeFromInputType(currentInputType);
 
-    setCreateEditDialog({
-      open: true,
-      type: deviceType,
-      mode: 'edit',
-      item: item
-    });
-  }, [currentInputType, getDeviceTypeFromInputType]);
+      setCreateEditDialog({
+        open: true,
+        type: deviceType,
+        mode: "edit",
+        item: item,
+      });
+    },
+    [currentInputType, getDeviceTypeFromInputType]
+  );
 
   // Handle dialog close and refresh data
-  const handleCreateEditDialogClose = useCallback(async (open) => {
-    setCreateEditDialog(prev => ({ ...prev, open }));
+  const handleCreateEditDialogClose = useCallback(
+    async (open) => {
+      setCreateEditDialog((prev) => ({ ...prev, open }));
 
-    // If dialog is closing and we have a project, refresh the data
-    if (!open && selectedProject) {
-      const { type } = createEditDialog;
-      if (type && loadedTabs.has(type)) {
-        await loadTabData(selectedProject.id, type);
+      // If dialog is closing and we have a project, refresh the data
+      if (!open && selectedProject) {
+        const { type } = createEditDialog;
+        if (type && loadedTabs.has(type)) {
+          await loadTabData(selectedProject.id, type);
+        }
       }
-    }
-  }, [selectedProject, loadTabData, createEditDialog, loadedTabs]);
+    },
+    [selectedProject, loadTabData, createEditDialog, loadedTabs]
+  );
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange} modal={true}>
@@ -441,7 +450,7 @@ export function MultiGroupConfigDialog({
       </DialogContent>
 
       {/* Create/Edit Lighting Dialog */}
-      {createEditDialog.type === 'lighting' && (
+      {createEditDialog.type === "lighting" && (
         <ProjectItemDialog
           open={createEditDialog.open}
           onOpenChange={handleCreateEditDialogClose}
@@ -452,7 +461,7 @@ export function MultiGroupConfigDialog({
       )}
 
       {/* Create/Edit Aircon Dialog */}
-      {createEditDialog.type === 'aircon' && (
+      {createEditDialog.type === "aircon" && (
         <AirconCardDialog
           open={createEditDialog.open}
           onOpenChange={handleCreateEditDialogClose}
@@ -462,7 +471,7 @@ export function MultiGroupConfigDialog({
       )}
 
       {/* Create/Edit Curtain Dialog */}
-      {createEditDialog.type === 'curtain' && (
+      {createEditDialog.type === "curtain" && (
         <ProjectItemDialog
           open={createEditDialog.open}
           onOpenChange={handleCreateEditDialogClose}
@@ -473,7 +482,7 @@ export function MultiGroupConfigDialog({
       )}
 
       {/* Create/Edit Scene Dialog */}
-      {createEditDialog.type === 'scene' && (
+      {createEditDialog.type === "scene" && (
         <SceneDialog
           open={createEditDialog.open}
           onOpenChange={handleCreateEditDialogClose}
@@ -483,7 +492,7 @@ export function MultiGroupConfigDialog({
       )}
 
       {/* Create/Edit Multi-Scene Dialog */}
-      {createEditDialog.type === 'multi-scene' && (
+      {createEditDialog.type === "multi-scene" && (
         <MultiSceneDialog
           open={createEditDialog.open}
           onOpenChange={handleCreateEditDialogClose}
@@ -493,7 +502,7 @@ export function MultiGroupConfigDialog({
       )}
 
       {/* Create/Edit Sequence Dialog */}
-      {createEditDialog.type === 'sequence' && (
+      {createEditDialog.type === "sequence" && (
         <SequenceDialog
           open={createEditDialog.open}
           onOpenChange={handleCreateEditDialogClose}

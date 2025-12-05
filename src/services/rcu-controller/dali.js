@@ -145,9 +145,7 @@ async function daliCommissioning(unitIp, canId, extend = false) {
           const deviceAddress = msg[11];
 
           if (byte0 === 0xff && byte1 === 0xff && byte2 === 0xff) {
-            console.log(
-              `Address conflict detected: address ${deviceAddress}`
-            );
+            console.log(`Address conflict detected: address ${deviceAddress}`);
             conflictAddresses.push(deviceAddress);
           }
         }
@@ -188,7 +186,9 @@ async function daliCommissioning(unitIp, canId, extend = false) {
     // Emit address conflict event if conflicts were detected
     if (conflictAddresses.length > 0) {
       console.log(
-        `Found ${conflictAddresses.length} address conflict(s): ${conflictAddresses.join(", ")}`
+        `Found ${
+          conflictAddresses.length
+        } address conflict(s): ${conflictAddresses.join(", ")}`
       );
       daliEvents.emit("addressConflict", {
         unitIp,
@@ -249,9 +249,7 @@ async function daliScan(unitIp, canId) {
           const deviceAddress = msg[11];
 
           if (byte0 === 0xff && byte1 === 0xff && byte2 === 0xff) {
-            console.log(
-              `Address conflict detected: address ${deviceAddress}`
-            );
+            console.log(`Address conflict detected: address ${deviceAddress}`);
             conflictAddresses.push(deviceAddress);
           }
         }
@@ -287,7 +285,9 @@ async function daliScan(unitIp, canId) {
     // Emit address conflict event if conflicts were detected
     if (conflictAddresses.length > 0) {
       console.log(
-        `Found ${conflictAddresses.length} address conflict(s): ${conflictAddresses.join(", ")}`
+        `Found ${
+          conflictAddresses.length
+        } address conflict(s): ${conflictAddresses.join(", ")}`
       );
       daliEvents.emit("addressConflict", {
         unitIp,
@@ -841,10 +841,10 @@ async function sendGroupSceneConfig(unitIp, canId, projectId, database) {
     }
 
     // Get all scene device configurations
-    const sceneDevices = await database.getAllSceneDevices(projectId);
+    const sceneDevices = await database.getAllDaliSceneDevices(projectId);
 
     // Get all group device relationships
-    const groupDevices = await database.getAllGroupDevices(projectId);
+    const groupDevices = await database.getAllDaliGroupDevices(projectId);
 
     // Filter to only include devices that are in at least one group or scene
     const devicesInGroups = new Set(

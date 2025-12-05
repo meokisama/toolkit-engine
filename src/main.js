@@ -2076,17 +2076,14 @@ function setupIpcHandlers() {
     }
   );
 
-  ipcMain.handle(
-    "rcu:getRoomConfiguration",
-    async (event, unitIp, canId) => {
-      try {
-        return await rcu.getRoomConfiguration(unitIp, canId);
-      } catch (error) {
-        console.error("Error getting room configuration:", error);
-        throw error;
-      }
+  ipcMain.handle("rcu:getRoomConfiguration", async (event, unitIp, canId) => {
+    try {
+      return await rcu.getRoomConfiguration(unitIp, canId);
+    } catch (error) {
+      console.error("Error getting room configuration:", error);
+      throw error;
     }
-  );
+  });
 
   ipcMain.handle("rcu:getRoomStatus", async (event, unitIp, canId) => {
     try {
@@ -2122,20 +2119,14 @@ function setupIpcHandlers() {
   });
 
   // Create or update room general config
-  ipcMain.handle(
-    "room:setGeneralConfig",
-    async (event, projectId, config) => {
-      try {
-        return await dbService.createOrUpdateRoomGeneralConfig(
-          projectId,
-          config
-        );
-      } catch (error) {
-        console.error("Error setting room general config:", error);
-        throw error;
-      }
+  ipcMain.handle("room:setGeneralConfig", async (event, projectId, config) => {
+    try {
+      return await dbService.createOrUpdateRoomGeneralConfig(projectId, config);
+    } catch (error) {
+      console.error("Error setting room general config:", error);
+      throw error;
     }
-  );
+  });
 
   // Get room config for specific address
   ipcMain.handle(
@@ -2525,7 +2516,15 @@ function setupIpcHandlers() {
     "rcu:triggerDaliType8Device",
     async (
       event,
-      { unitIp, canId, deviceIndex, deviceAddress, colorFeature, brightness, colorData }
+      {
+        unitIp,
+        canId,
+        deviceIndex,
+        deviceAddress,
+        colorFeature,
+        brightness,
+        colorData,
+      }
     ) => {
       try {
         return await rcu.triggerDaliType8Device(
@@ -2586,7 +2585,7 @@ function setupIpcHandlers() {
   );
 
   // DALI Devices - Database Operations
-  ipcMain.handle("dali:getAllDevices", async (event, projectId) => {
+  ipcMain.handle("dali:getAllDaliDevices", async (event, projectId) => {
     try {
       return await dbService.getAllDaliDevices(projectId);
     } catch (error) {
@@ -2605,7 +2604,7 @@ function setupIpcHandlers() {
   });
 
   ipcMain.handle(
-    "dali:upsertDevice",
+    "dali:upsertDaliDevice",
     async (event, projectId, address, deviceData) => {
       try {
         return await dbService.upsertDaliDevice(projectId, address, deviceData);
@@ -2617,7 +2616,7 @@ function setupIpcHandlers() {
   );
 
   ipcMain.handle(
-    "dali:updateDeviceName",
+    "dali:updateDaliDeviceName",
     async (event, projectId, address, name) => {
       try {
         return await dbService.updateDaliDeviceName(projectId, address, name);
@@ -2629,7 +2628,7 @@ function setupIpcHandlers() {
   );
 
   ipcMain.handle(
-    "dali:clearDeviceMapping",
+    "dali:clearDaliDeviceMapping",
     async (event, projectId, address) => {
       try {
         return await dbService.clearDaliDeviceMapping(projectId, address);
@@ -2650,18 +2649,18 @@ function setupIpcHandlers() {
   });
 
   // DALI Group Metadata - Database Operations
-  ipcMain.handle("dali:getGroupName", async (event, projectId, groupId) => {
+  ipcMain.handle("dali:getDaliGroupName", async (event, projectId, groupId) => {
     try {
-      return await dbService.getGroupName(projectId, groupId);
+      return await dbService.getDaliGroupName(projectId, groupId);
     } catch (error) {
       console.error("Error getting group name:", error);
       throw error;
     }
   });
 
-  ipcMain.handle("dali:getAllGroupNames", async (event, projectId) => {
+  ipcMain.handle("dali:getAllDaliGroupNames", async (event, projectId) => {
     try {
-      return await dbService.getAllGroupNames(projectId);
+      return await dbService.getAllDaliGroupNames(projectId);
     } catch (error) {
       console.error("Error getting all group names:", error);
       throw error;
@@ -2669,10 +2668,10 @@ function setupIpcHandlers() {
   });
 
   ipcMain.handle(
-    "dali:updateGroupName",
+    "dali:updateDaliGroupName",
     async (event, projectId, groupId, name) => {
       try {
-        return await dbService.updateGroupName(projectId, groupId, name);
+        return await dbService.updateDaliGroupName(projectId, groupId, name);
       } catch (error) {
         console.error("Error updating group name:", error);
         throw error;
@@ -2681,9 +2680,9 @@ function setupIpcHandlers() {
   );
 
   // Initialize 16 DALI groups for a project
-  ipcMain.handle("dali:initializeGroups", async (event, projectId) => {
+  ipcMain.handle("dali:initializeDaliGroups", async (event, projectId) => {
     try {
-      return await dbService.initializeGroups(projectId);
+      return await dbService.initializeDaliGroups(projectId);
     } catch (error) {
       console.error("Error initializing groups:", error);
       throw error;
@@ -2692,10 +2691,10 @@ function setupIpcHandlers() {
 
   // Update group's lighting_group_address
   ipcMain.handle(
-    "dali:updateGroupLightingAddress",
+    "dali:updateDaliGroupLightingAddress",
     async (event, projectId, groupId, lightingGroupAddress) => {
       try {
-        return await dbService.updateGroupLightingAddress(
+        return await dbService.updateDaliGroupLightingAddress(
           projectId,
           groupId,
           lightingGroupAddress
@@ -2709,10 +2708,10 @@ function setupIpcHandlers() {
 
   // Update device's lighting_group_address
   ipcMain.handle(
-    "dali:updateDeviceLightingAddress",
+    "dali:updateDaliDeviceLightingAddress",
     async (event, projectId, address, lightingGroupAddress) => {
       try {
-        return await dbService.updateDeviceLightingAddress(
+        return await dbService.updateDaliDeviceLightingAddress(
           projectId,
           address,
           lightingGroupAddress
@@ -2725,18 +2724,21 @@ function setupIpcHandlers() {
   );
 
   // DALI Groups - Database Operations
-  ipcMain.handle("dali:getGroupDevices", async (event, projectId, groupId) => {
-    try {
-      return await dbService.getGroupDevices(projectId, groupId);
-    } catch (error) {
-      console.error("Error getting group devices:", error);
-      throw error;
+  ipcMain.handle(
+    "dali:getDaliGroupDevices",
+    async (event, projectId, groupId) => {
+      try {
+        return await dbService.getDaliGroupDevices(projectId, groupId);
+      } catch (error) {
+        console.error("Error getting group devices:", error);
+        throw error;
+      }
     }
-  });
+  );
 
-  ipcMain.handle("dali:getAllGroupDevices", async (event, projectId) => {
+  ipcMain.handle("dali:getAllDaliGroupDevices", async (event, projectId) => {
     try {
-      return await dbService.getAllGroupDevices(projectId);
+      return await dbService.getAllDaliGroupDevices(projectId);
     } catch (error) {
       console.error("Error getting all group devices:", error);
       throw error;
@@ -2744,10 +2746,10 @@ function setupIpcHandlers() {
   });
 
   ipcMain.handle(
-    "dali:addDeviceToGroup",
+    "dali:addDaliDeviceToGroup",
     async (event, projectId, groupId, deviceAddress) => {
       try {
-        return await dbService.addDeviceToGroup(
+        return await dbService.addDaliDeviceToGroup(
           projectId,
           groupId,
           deviceAddress
@@ -2760,10 +2762,10 @@ function setupIpcHandlers() {
   );
 
   ipcMain.handle(
-    "dali:removeDeviceFromGroup",
+    "dali:removeDaliDeviceFromGroup",
     async (event, projectId, groupId, deviceAddress) => {
       try {
-        return await dbService.removeDeviceFromGroup(
+        return await dbService.removeDaliDeviceFromGroup(
           projectId,
           groupId,
           deviceAddress
@@ -2776,10 +2778,10 @@ function setupIpcHandlers() {
   );
 
   ipcMain.handle(
-    "dali:getDeviceGroups",
+    "dali:getDaliDeviceGroups",
     async (event, projectId, deviceAddress) => {
       try {
-        return await dbService.getDeviceGroups(projectId, deviceAddress);
+        return await dbService.getDaliDeviceGroups(projectId, deviceAddress);
       } catch (error) {
         console.error("Error getting device groups:", error);
         throw error;
@@ -2788,18 +2790,18 @@ function setupIpcHandlers() {
   );
 
   // DALI Scene Metadata - Database Operations
-  ipcMain.handle("dali:getSceneName", async (event, projectId, sceneId) => {
+  ipcMain.handle("dali:getDaliSceneName", async (event, projectId, sceneId) => {
     try {
-      return await dbService.getSceneName(projectId, sceneId);
+      return await dbService.getDaliSceneName(projectId, sceneId);
     } catch (error) {
       console.error("Error getting scene name:", error);
       throw error;
     }
   });
 
-  ipcMain.handle("dali:getAllSceneNames", async (event, projectId) => {
+  ipcMain.handle("dali:getAllDaliSceneNames", async (event, projectId) => {
     try {
-      return await dbService.getAllSceneNames(projectId);
+      return await dbService.getAllDaliSceneNames(projectId);
     } catch (error) {
       console.error("Error getting all scene names:", error);
       throw error;
@@ -2807,10 +2809,10 @@ function setupIpcHandlers() {
   });
 
   ipcMain.handle(
-    "dali:updateSceneName",
+    "dali:updateDaliSceneName",
     async (event, projectId, sceneId, name) => {
       try {
-        return await dbService.updateSceneName(projectId, sceneId, name);
+        return await dbService.updateDaliSceneName(projectId, sceneId, name);
       } catch (error) {
         console.error("Error updating scene name:", error);
         throw error;
@@ -2819,18 +2821,21 @@ function setupIpcHandlers() {
   );
 
   // DALI Scenes - Database Operations
-  ipcMain.handle("dali:getSceneDevices", async (event, projectId, sceneId) => {
-    try {
-      return await dbService.getSceneDevices(projectId, sceneId);
-    } catch (error) {
-      console.error("Error getting scene devices:", error);
-      throw error;
+  ipcMain.handle(
+    "dali:getDaliSceneDevices",
+    async (event, projectId, sceneId) => {
+      try {
+        return await dbService.getDaliSceneDevices(projectId, sceneId);
+      } catch (error) {
+        console.error("Error getting scene devices:", error);
+        throw error;
+      }
     }
-  });
+  );
 
-  ipcMain.handle("dali:getAllSceneDevices", async (event, projectId) => {
+  ipcMain.handle("dali:getAllDaliSceneDevices", async (event, projectId) => {
     try {
-      return await dbService.getAllSceneDevices(projectId);
+      return await dbService.getAllDaliSceneDevices(projectId);
     } catch (error) {
       console.error("Error getting all scene devices:", error);
       throw error;
@@ -2838,10 +2843,22 @@ function setupIpcHandlers() {
   });
 
   ipcMain.handle(
-    "dali:upsertSceneDevice",
-    async (event, projectId, sceneId, deviceAddress, active, brightness, colorTemp, r, g, b, w) => {
+    "dali:upsertDaliSceneDevice",
+    async (
+      event,
+      projectId,
+      sceneId,
+      deviceAddress,
+      active,
+      brightness,
+      colorTemp,
+      r,
+      g,
+      b,
+      w
+    ) => {
       try {
-        return await dbService.upsertSceneDevice(
+        return await dbService.upsertDaliSceneDevice(
           projectId,
           sceneId,
           deviceAddress,
@@ -2861,10 +2878,10 @@ function setupIpcHandlers() {
   );
 
   ipcMain.handle(
-    "dali:deleteSceneDevice",
+    "dali:deleteDaliSceneDevice",
     async (event, projectId, sceneId, deviceAddress) => {
       try {
-        return await dbService.deleteSceneDevice(
+        return await dbService.deleteDaliSceneDevice(
           projectId,
           sceneId,
           deviceAddress
@@ -2877,16 +2894,19 @@ function setupIpcHandlers() {
   );
 
   // DALI Clear All Configurations - Database Operations
-  ipcMain.handle("dali:clearAllDeviceMappings", async (event, projectId) => {
-    try {
-      return await dbService.clearAllDaliDeviceMappings(projectId);
-    } catch (error) {
-      console.error("Error clearing all DALI device mappings:", error);
-      throw error;
+  ipcMain.handle(
+    "dali:clearAllDaliDeviceMappings",
+    async (event, projectId) => {
+      try {
+        return await dbService.clearAllDaliDeviceMappings(projectId);
+      } catch (error) {
+        console.error("Error clearing all DALI device mappings:", error);
+        throw error;
+      }
     }
-  });
+  );
 
-  ipcMain.handle("dali:clearAllGroups", async (event, projectId) => {
+  ipcMain.handle("dali:clearAllDaliGroups", async (event, projectId) => {
     try {
       return await dbService.clearAllDaliGroups(projectId);
     } catch (error) {
@@ -2895,7 +2915,7 @@ function setupIpcHandlers() {
     }
   });
 
-  ipcMain.handle("dali:clearAllScenes", async (event, projectId) => {
+  ipcMain.handle("dali:clearAllDaliScenes", async (event, projectId) => {
     try {
       return await dbService.clearAllDaliScenes(projectId);
     } catch (error) {
@@ -2904,14 +2924,17 @@ function setupIpcHandlers() {
     }
   });
 
-  ipcMain.handle("dali:clearAllConfigurations", async (event, projectId) => {
-    try {
-      return await dbService.clearAllDaliConfigurations(projectId);
-    } catch (error) {
-      console.error("Error clearing all DALI configurations:", error);
-      throw error;
+  ipcMain.handle(
+    "dali:clearAllDaliConfigurations",
+    async (event, projectId) => {
+      try {
+        return await dbService.clearAllDaliConfigurations(projectId);
+      } catch (error) {
+        console.error("Error clearing all DALI configurations:", error);
+        throw error;
+      }
     }
-  });
+  );
 }
 
 /**

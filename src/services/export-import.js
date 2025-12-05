@@ -2,7 +2,7 @@
 // This file now acts as a proxy to the modular export-import folder
 // Maintains backward compatibility while using the new modular structure
 
-import { exportImportService as modularService } from './export-import/index.js';
+import { exportImportService as modularService } from "./export-import/index.js";
 
 class ExportImportService {
   // Export project to JSON
@@ -42,7 +42,11 @@ class ExportImportService {
 
   // Parse CSV content to items array
   parseCSVToItems(csvContent, category, sceneImportType = null) {
-    return modularService.parseCSVToItems(csvContent, category, sceneImportType);
+    return modularService.parseCSVToItems(
+      csvContent,
+      category,
+      sceneImportType
+    );
   }
 
   // Parse aircon cards CSV content
@@ -62,12 +66,17 @@ class ExportImportService {
 
   // Get item value for export
   getItemValueForExport(itemType, itemValue, command, objectType) {
-    return modularService.getItemValueForExport(itemType, itemValue, command, objectType);
+    return modularService.getItemValueForExport(
+      itemType,
+      itemValue,
+      command,
+      objectType
+    );
   }
 
   // Update scene names to add part numbers when needed
-  updateSceneNamesForParts(scenes) {
-    return modularService.updateSceneNamesForParts(scenes);
+  updateDaliSceneNamesForParts(scenes) {
+    return modularService.updateDaliSceneNamesForParts(scenes);
   }
 
   // Parse item type from CSV
@@ -124,7 +133,6 @@ class ExportImportService {
   downloadBothSceneTemplates() {
     return modularService.downloadBothSceneTemplates();
   }
-
 }
 
 export const exportImportService = new ExportImportService();

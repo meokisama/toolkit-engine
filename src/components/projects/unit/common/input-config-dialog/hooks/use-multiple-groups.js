@@ -1,6 +1,9 @@
 import { useState, useCallback, useMemo } from "react";
 import { updateGroupValue } from "../utils/validation-helpers";
-import { createGroupByType, getAvailableItemsForFunction } from "../utils/group-helpers";
+import {
+  createGroupByType,
+  getAvailableItemsForFunction,
+} from "../utils/group-helpers";
 
 export const useMultipleGroups = (
   initialGroups = [],
@@ -55,7 +58,9 @@ export const useMultipleGroups = (
         const lowerSearchTerm = searchTerm.toLowerCase();
         const name = (item.name || "").toLowerCase();
         const address = (item.address || "").toString().toLowerCase();
-        return name.includes(lowerSearchTerm) || address.includes(lowerSearchTerm);
+        return (
+          name.includes(lowerSearchTerm) || address.includes(lowerSearchTerm)
+        );
       })
       .sort((a, b) => {
         const addressA = parseInt(a.address) || 0;
@@ -67,7 +72,12 @@ export const useMultipleGroups = (
   // Auto-create missing groups in database based on input type
   const autoCreateGroupByType = useCallback(
     async (address) => {
-      return await createGroupByType(address, currentInputType, selectedProject, createItem);
+      return await createGroupByType(
+        address,
+        currentInputType,
+        selectedProject,
+        createItem
+      );
     },
     [currentInputType, selectedProject, createItem]
   );
@@ -98,14 +108,19 @@ export const useMultipleGroups = (
           // Use setTimeout to avoid blocking the state update
           setTimeout(async () => {
             try {
-              const newItem = await autoCreateGroupByType(groupToRemove.groupAddress);
+              const newItem = await autoCreateGroupByType(
+                groupToRemove.groupAddress
+              );
               if (newItem) {
                 console.log(
                   `Auto-created group ${groupToRemove.groupAddress} when removed from selected groups`
                 );
               }
             } catch (error) {
-              console.error(`Failed to auto-create group when removing:`, error);
+              console.error(
+                `Failed to auto-create group when removing:`,
+                error
+              );
             }
           }, 0);
         }
@@ -189,66 +204,72 @@ export const useMultipleGroups = (
   }, []);
 
   // Initialize groups from initial data
-  const initializeGroups = useCallback(async (initialGroups) => {
-    if (!initialGroups || !Array.isArray(initialGroups)) {
-      setSelectedGroups([]);
-      return;
-    }
-
-    // Check if initialGroups is array format (network units with groupId/presetBrightness)
-    if (
-      initialGroups.length > 0 &&
-      initialGroups[0].hasOwnProperty("groupId")
-    ) {
-      // Handle network unit format with auto-mapping
-      const enhancedGroups = [];
-
-      for (const group of initialGroups) {
-        const groupAddress = group.groupId;
-        if (groupAddress) {
-          // Find existing group in database (based on current input type)
-          // Get current availableItems without dependency
-          const currentAvailableItems = getAvailableItemsForFunction(currentInputType, projectItems);
-          const existingGroup = currentAvailableItems.find(
-            (item) => parseInt(item.address) === groupAddress
-          );
-
-          if (existingGroup) {
-            // Group exists in database - add to selected groups
-            enhancedGroups.push({
-              lightingId: existingGroup.id,
-              value: group.presetBrightness?.toString() ?? "255",
-              preset: group.presetBrightness ?? 255,
-              presetPercent:
-                Math.round((group.presetBrightness / 255) * 100) || 100,
-            });
-          } else {
-            // Group doesn't exist in database - show as "Group {address}" without combobox
-            enhancedGroups.push({
-              lightingId: null,
-              groupAddress: groupAddress,
-              value: group.presetBrightness?.toString() ?? "255",
-              preset: group.presetBrightness ?? 255,
-              presetPercent:
-                Math.round((group.presetBrightness / 255) * 100) || 100,
-            });
-          }
-        }
+  const initializeDaliGroups = useCallback(
+    async (initialGroups) => {
+      if (!initialGroups || !Array.isArray(initialGroups)) {
+        setSelectedGroups([]);
+        return;
       }
 
-      setSelectedGroups(enhancedGroups);
-    } else {
-      // Handle database unit format or empty array
-      const enhancedGroups = initialGroups.map((group) => ({
-        lightingId: group.lightingId,
-        value: group.value ?? "100",
-        preset: group.preset ?? 255,
-        presetPercent: group.presetPercent ?? 100,
-      }));
+      // Check if initialGroups is array format (network units with groupId/presetBrightness)
+      if (
+        initialGroups.length > 0 &&
+        initialGroups[0].hasOwnProperty("groupId")
+      ) {
+        // Handle network unit format with auto-mapping
+        const enhancedGroups = [];
 
-      setSelectedGroups(enhancedGroups);
-    }
-  }, [currentInputType, projectItems]);
+        for (const group of initialGroups) {
+          const groupAddress = group.groupId;
+          if (groupAddress) {
+            // Find existing group in database (based on current input type)
+            // Get current availableItems without dependency
+            const currentAvailableItems = getAvailableItemsForFunction(
+              currentInputType,
+              projectItems
+            );
+            const existingGroup = currentAvailableItems.find(
+              (item) => parseInt(item.address) === groupAddress
+            );
+
+            if (existingGroup) {
+              // Group exists in database - add to selected groups
+              enhancedGroups.push({
+                lightingId: existingGroup.id,
+                value: group.presetBrightness?.toString() ?? "255",
+                preset: group.presetBrightness ?? 255,
+                presetPercent:
+                  Math.round((group.presetBrightness / 255) * 100) || 100,
+              });
+            } else {
+              // Group doesn't exist in database - show as "Group {address}" without combobox
+              enhancedGroups.push({
+                lightingId: null,
+                groupAddress: groupAddress,
+                value: group.presetBrightness?.toString() ?? "255",
+                preset: group.presetBrightness ?? 255,
+                presetPercent:
+                  Math.round((group.presetBrightness / 255) * 100) || 100,
+              });
+            }
+          }
+        }
+
+        setSelectedGroups(enhancedGroups);
+      } else {
+        // Handle database unit format or empty array
+        const enhancedGroups = initialGroups.map((group) => ({
+          lightingId: group.lightingId,
+          value: group.value ?? "100",
+          preset: group.preset ?? 255,
+          presetPercent: group.presetPercent ?? 100,
+        }));
+
+        setSelectedGroups(enhancedGroups);
+      }
+    },
+    [currentInputType, projectItems]
+  );
 
   return {
     selectedGroups,
@@ -270,6 +291,6 @@ export const useMultipleGroups = (
     handleClearAllGroups,
     handleTogglePercentage,
     resetMultipleGroups,
-    initializeGroups,
+    initializeDaliGroups,
   };
 };

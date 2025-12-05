@@ -43,14 +43,15 @@ export function Scene({ isActive }) {
         setLoading(true);
 
         // Load scene names
-        const sceneNames = await window.electronAPI.dali.getAllSceneNames(
+        const sceneNames = await window.electronAPI.dali.getAllDaliSceneNames(
           selectedProject.id
         );
 
         // Load scene devices
-        const sceneDevices = await window.electronAPI.dali.getAllSceneDevices(
-          selectedProject.id
-        );
+        const sceneDevices =
+          await window.electronAPI.dali.getAllDaliSceneDevices(
+            selectedProject.id
+          );
 
         setScenes((prev) =>
           prev.map((scene) => {
@@ -95,7 +96,7 @@ export function Scene({ isActive }) {
       if (!selectedProject || !newName.trim()) return;
 
       try {
-        await window.electronAPI.dali.updateSceneName(
+        await window.electronAPI.dali.updateDaliSceneName(
           selectedProject.id,
           sceneId,
           newName.trim()
@@ -139,7 +140,11 @@ export function Scene({ isActive }) {
         if (isCurrentlyActive) {
           // Delete from database when unchecking
           window.electronAPI.dali
-            .deleteSceneDevice(selectedProject.id, selectedSceneId, deviceAddress)
+            .deleteDaliSceneDevice(
+              selectedProject.id,
+              selectedSceneId,
+              deviceAddress
+            )
             .catch((error) => {
               console.error("Failed to remove device from scene:", error);
               toast.error("Failed to remove device from scene");
@@ -147,7 +152,7 @@ export function Scene({ isActive }) {
         } else {
           // Insert/update when checking
           window.electronAPI.dali
-            .upsertSceneDevice(
+            .upsertDaliSceneDevice(
               selectedProject.id,
               selectedSceneId,
               deviceAddress,
@@ -170,7 +175,8 @@ export function Scene({ isActive }) {
           if (scene.id === selectedSceneId) {
             if (isCurrentlyActive) {
               // Remove device from scene
-              const { [deviceAddress]: removed, ...remainingDevices } = scene.devices;
+              const { [deviceAddress]: removed, ...remainingDevices } =
+                scene.devices;
               return {
                 ...scene,
                 devices: remainingDevices,
@@ -209,7 +215,7 @@ export function Scene({ isActive }) {
 
       // Save to database
       window.electronAPI.dali
-        .upsertSceneDevice(
+        .upsertDaliSceneDevice(
           selectedProject.id,
           selectedSceneId,
           deviceAddress,

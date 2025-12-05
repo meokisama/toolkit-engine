@@ -3,6 +3,7 @@
  * Exports all database modules and their table schemas
  */
 
+export { projectTableSchemas, projectMethods } from "./project.js";
 export { sceneTableSchemas, sceneMethods } from "./scene.js";
 export { scheduleTableSchemas, scheduleMethods } from "./schedule.js";
 export { multisceneTableSchemas, multisceneMethods } from "./multiscene.js";
@@ -10,3 +11,8 @@ export { sequenceTableSchemas, sequenceMethods } from "./sequence.js";
 export { knxTableSchemas, knxMethods } from "./knx.js";
 export { daliTableSchemas, daliMethods } from "./dali.js";
 export { roomTableSchemas, roomMethods } from "./room.js";
+export { zigbeeTableSchemas, zigbeeMethods } from "./zigbee.js";
+export { curtainTableSchemas, curtainMethods } from "./curtain.js";
+export { airconTableSchemas, airconMethods } from "./aircon.js";
+export { lightingTableSchemas, lightingMethods } from "./lighting.js";
+export { unitTableSchemas, unitMethods } from "./unit.js";

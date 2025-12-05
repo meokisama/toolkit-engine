@@ -7,9 +7,9 @@ export class CSVImporter {
   // Import items from CSV file
   static async importItemsFromCSV(category, sceneImportType = null) {
     return new Promise((resolve, reject) => {
-      const input = document.createElement('input');
-      input.type = 'file';
-      input.accept = '.csv';
+      const input = document.createElement("input");
+      input.type = "file";
+      input.accept = ".csv";
 
       input.onchange = async (event) => {
         const file = event.target.files[0];
@@ -23,15 +23,15 @@ export class CSVImporter {
           const items = this.parseCSVToItems(text, category, sceneImportType);
 
           if (!items || items.length === 0) {
-            toast.error('No valid items found in CSV file');
-            reject(new Error('No valid items'));
+            toast.error("No valid items found in CSV file");
+            reject(new Error("No valid items"));
             return;
           }
 
           resolve(items);
         } catch (error) {
-          console.error('Import items failed:', error);
-          toast.error('Failed to read CSV file');
+          console.error("Import items failed:", error);
+          toast.error("Failed to read CSV file");
           reject(error);
         }
       };
@@ -42,19 +42,21 @@ export class CSVImporter {
 
   // Parse CSV content to items array
   static parseCSVToItems(csvContent, category, sceneImportType = null) {
-    const lines = csvContent.split('\n').filter(line => line.trim());
+    const lines = csvContent.split("\n").filter((line) => line.trim());
     if (lines.length < 2) return [];
 
     // Detect delimiter from first line
     const delimiter = CSVParser.detectDelimiter(lines[0]);
-    const headers = lines[0].split(delimiter).map(h => h.trim().replace(/"/g, ''));
+    const headers = lines[0]
+      .split(delimiter)
+      .map((h) => h.trim().replace(/"/g, ""));
     const items = [];
 
     // Special handling for scene category - expect scene format
-    if (category === 'scene') {
-      if (sceneImportType === 'template2') {
+    if (category === "scene") {
+      if (sceneImportType === "template2") {
         return this.parseScenesTemplate2CSV(csvContent);
-      } else if (sceneImportType === 'template1') {
+      } else if (sceneImportType === "template1") {
         return this.parseScenesTemplate1CSV(csvContent);
       } else {
         // Auto-detect format
@@ -63,7 +65,7 @@ export class CSVImporter {
     }
 
     // Special handling for aircon category - expect card format
-    if (category === 'aircon') {
+    if (category === "aircon") {
       return this.parseAirconCardsCSV(csvContent);
     }
 
@@ -78,7 +80,7 @@ export class CSVImporter {
 
       const item = {};
       headers.forEach((header, index) => {
-        item[header] = values[index] || '';
+        item[header] = values[index] || "";
       });
 
       // Validate required fields based on category
@@ -92,19 +94,25 @@ export class CSVImporter {
 
   // Parse aircon cards CSV content
   static parseAirconCardsCSV(csvContent) {
-    const lines = csvContent.split('\n').filter(line => line.trim());
+    const lines = csvContent.split("\n").filter((line) => line.trim());
     if (lines.length < 2) return [];
 
     // Detect delimiter from first line
     const delimiter = CSVParser.detectDelimiter(lines[0]);
-    const headers = lines[0].split(delimiter).map(h => h.trim().replace(/"/g, ''));
+    const headers = lines[0]
+      .split(delimiter)
+      .map((h) => h.trim().replace(/"/g, ""));
     const cards = [];
 
     // Validate headers for aircon cards
-    const expectedHeaders = ['name', 'address', 'description'];
-    const hasValidHeaders = expectedHeaders.every(header => headers.includes(header));
+    const expectedHeaders = ["name", "address", "description"];
+    const hasValidHeaders = expectedHeaders.every((header) =>
+      headers.includes(header)
+    );
     if (!hasValidHeaders) {
-      throw new Error('Invalid CSV headers for aircon cards. Expected: name, address, description');
+      throw new Error(
+        "Invalid CSV headers for aircon cards. Expected: name, address, description"
+      );
     }
 
     for (let i = 1; i < lines.length; i++) {
@@ -113,7 +121,7 @@ export class CSVImporter {
 
       const card = {};
       headers.forEach((header, index) => {
-        card[header] = values[index] || '';
+        card[header] = values[index] || "";
       });
 
       // Validate required fields
@@ -124,7 +132,7 @@ export class CSVImporter {
           cards.push({
             name: card.name.trim(),
             address: card.address.trim(),
-            description: card.description.trim()
+            description: card.description.trim(),
           });
         }
       }
@@ -135,21 +143,33 @@ export class CSVImporter {
 
   // Parse scenes CSV format - Template 1 (vertical list format)
   static parseScenesTemplate1CSV(csvContent) {
-    const lines = csvContent.split('\n').filter(line => line.trim());
+    const lines = csvContent.split("\n").filter((line) => line.trim());
     if (lines.length < 2) return [];
 
     // Detect delimiter from first line
     const delimiter = CSVParser.detectDelimiter(lines[0]);
-    const headers = lines[0].split(delimiter).map(h => h.trim().replace(/"/g, ''));
+    const headers = lines[0]
+      .split(delimiter)
+      .map((h) => h.trim().replace(/"/g, ""));
 
     // Validate headers
-    const expectedHeaders = ['SCENE NAME', 'ITEM NAME', 'TYPE', 'ADDRESS', 'VALUE'];
-    const hasValidHeaders = expectedHeaders.every(header =>
-      headers.some(h => h.toUpperCase() === header)
+    const expectedHeaders = [
+      "SCENE NAME",
+      "ITEM NAME",
+      "TYPE",
+      "ADDRESS",
+      "VALUE",
+    ];
+    const hasValidHeaders = expectedHeaders.every((header) =>
+      headers.some((h) => h.toUpperCase() === header)
     );
 
     if (!hasValidHeaders) {
-      throw new Error(`Invalid CSV headers for scenes. Expected: ${expectedHeaders.join(', ')}`);
+      throw new Error(
+        `Invalid CSV headers for scenes. Expected: ${expectedHeaders.join(
+          ", "
+        )}`
+      );
     }
 
     const MAX_ITEMS_PER_SCENE = 60;
@@ -163,7 +183,7 @@ export class CSVImporter {
 
       const row = {};
       headers.forEach((header, index) => {
-        row[header.toUpperCase().replace(/\s+/g, '_')] = values[index] || '';
+        row[header.toUpperCase().replace(/\s+/g, "_")] = values[index] || "";
       });
 
       const sceneName = row.SCENE_NAME?.trim();
@@ -177,13 +197,13 @@ export class CSVImporter {
         isFirstDataRow = false;
 
         // If first row has empty scene name, create a default scene
-        if (!sceneName && (itemType && address)) {
+        if (!sceneName && itemType && address) {
           currentScene = {
-            name: 'Scene 1',
-            originalName: 'Scene 1',
-            description: 'Imported scene: Scene 1',
+            name: "Scene 1",
+            originalName: "Scene 1",
+            description: "Imported scene: Scene 1",
             items: [],
-            partNumber: 1
+            partNumber: 1,
           };
           scenes.push(currentScene);
         }
@@ -197,7 +217,7 @@ export class CSVImporter {
           // Don't set address here - database service will find available address
           description: `Imported scene: ${sceneName}`,
           items: [],
-          partNumber: 1 // Track part number for splitting
+          partNumber: 1, // Track part number for splitting
         };
         scenes.push(currentScene);
       }
@@ -215,7 +235,7 @@ export class CSVImporter {
             originalName: currentScene.originalName,
             description: `Imported scene: ${newSceneName}`,
             items: [],
-            partNumber: newPartNumber
+            partNumber: newPartNumber,
           };
           scenes.push(currentScene);
         }
@@ -226,23 +246,23 @@ export class CSVImporter {
           address: address,
           value: CSVParser.parseItemValueFromCSV(itemType, value),
           command: CSVParser.getCommandFromType(itemType),
-          objectType: CSVParser.getObjectTypeFromType(itemType)
+          objectType: CSVParser.getObjectTypeFromType(itemType),
         };
         currentScene.items.push(sceneItem);
       }
     }
 
     // Update scene names for parts (only if there are multiple parts)
-    this.updateSceneNamesForParts(scenes);
+    this.updateDaliSceneNamesForParts(scenes);
 
     return scenes;
   }
 
   // Update scene names to add part numbers when needed
-  static updateSceneNamesForParts(scenes) {
+  static updateDaliSceneNamesForParts(scenes) {
     // Group scenes by original name
     const sceneGroups = {};
-    scenes.forEach(scene => {
+    scenes.forEach((scene) => {
       const originalName = scene.originalName || scene.name;
       if (!sceneGroups[originalName]) {
         sceneGroups[originalName] = [];
@@ -251,7 +271,7 @@ export class CSVImporter {
     });
 
     // Update names for scenes that have multiple parts
-    Object.keys(sceneGroups).forEach(originalName => {
+    Object.keys(sceneGroups).forEach((originalName) => {
       const sceneParts = sceneGroups[originalName];
       if (sceneParts.length > 1) {
         // Multiple parts - add part numbers to all
@@ -268,7 +288,7 @@ export class CSVImporter {
       }
 
       // Clean up temporary properties
-      sceneParts.forEach(scene => {
+      sceneParts.forEach((scene) => {
         delete scene.originalName;
         delete scene.partNumber;
       });
@@ -277,18 +297,21 @@ export class CSVImporter {
 
   // Auto-detect and parse scenes CSV format
   static detectAndParseScenesCSV(csvContent) {
-    const lines = csvContent.split('\n').filter(line => line.trim());
+    const lines = csvContent.split("\n").filter((line) => line.trim());
     if (lines.length < 2) return [];
 
     // Detect delimiter from first line
     const delimiter = CSVParser.detectDelimiter(lines[0]);
-    const headers = lines[0].split(delimiter).map(h => h.trim().replace(/"/g, ''));
+    const headers = lines[0]
+      .split(delimiter)
+      .map((h) => h.trim().replace(/"/g, ""));
 
     // Check if it's template2 format (ITEM NAME, TYPE, ADDRESS, Scene1, Scene2, ...)
-    const isTemplate2Format = headers.length >= 4 &&
-      headers[0].toUpperCase().includes('ITEM') &&
-      headers[1].toUpperCase().includes('TYPE') &&
-      headers[2].toUpperCase().includes('ADDRESS');
+    const isTemplate2Format =
+      headers.length >= 4 &&
+      headers[0].toUpperCase().includes("ITEM") &&
+      headers[1].toUpperCase().includes("TYPE") &&
+      headers[2].toUpperCase().includes("ADDRESS");
 
     if (isTemplate2Format) {
       return this.parseScenesTemplate2CSV(csvContent);
@@ -299,38 +322,48 @@ export class CSVImporter {
 
   // Parse scenes CSV in template format - Template 2 (horizontal layout)
   static parseScenesTemplate2CSV(csvContent) {
-    const lines = csvContent.split('\n').filter(line => line.trim());
+    const lines = csvContent.split("\n").filter((line) => line.trim());
     if (lines.length < 2) return [];
 
     // Detect delimiter from first line
     const delimiter = CSVParser.detectDelimiter(lines[0]);
-    const headers = lines[0].split(delimiter).map(h => h.trim().replace(/"/g, ''));
+    const headers = lines[0]
+      .split(delimiter)
+      .map((h) => h.trim().replace(/"/g, ""));
 
     // Validate template format headers
     if (headers.length < 4) {
-      throw new Error('Invalid template format. Expected at least 4 columns: ITEM NAME, TYPE, ADDRESS, Scene1, ...');
+      throw new Error(
+        "Invalid template format. Expected at least 4 columns: ITEM NAME, TYPE, ADDRESS, Scene1, ..."
+      );
     }
 
-    const itemNameCol = headers.findIndex(h => h.toUpperCase().includes('ITEM'));
-    const typeCol = headers.findIndex(h => h.toUpperCase().includes('TYPE'));
-    const addressCol = headers.findIndex(h => h.toUpperCase().includes('ADDRESS'));
+    const itemNameCol = headers.findIndex((h) =>
+      h.toUpperCase().includes("ITEM")
+    );
+    const typeCol = headers.findIndex((h) => h.toUpperCase().includes("TYPE"));
+    const addressCol = headers.findIndex((h) =>
+      h.toUpperCase().includes("ADDRESS")
+    );
 
     if (itemNameCol === -1 || typeCol === -1 || addressCol === -1) {
-      throw new Error('Invalid template format. Required columns: ITEM NAME, TYPE, ADDRESS');
+      throw new Error(
+        "Invalid template format. Required columns: ITEM NAME, TYPE, ADDRESS"
+      );
     }
 
     // Scene columns start from index 3 (or after ADDRESS column)
     const sceneColumns = headers.slice(Math.max(3, addressCol + 1));
 
     if (sceneColumns.length === 0) {
-      throw new Error('No scene columns found in template format');
+      throw new Error("No scene columns found in template format");
     }
 
     const MAX_ITEMS_PER_SCENE = 60;
     const sceneGroups = {}; // Group scenes by original name
 
     // Initialize scene groups from column headers
-    sceneColumns.forEach(sceneName => {
+    sceneColumns.forEach((sceneName) => {
       if (sceneName.trim()) {
         sceneGroups[sceneName.trim()] = [];
       }
@@ -360,19 +393,24 @@ export class CSVImporter {
         if (!sceneGroups[sceneKey]) return;
 
         // Find the current scene part (might be split into parts)
-        let targetScene = sceneGroups[sceneKey].find(s => s.items.length < MAX_ITEMS_PER_SCENE);
+        let targetScene = sceneGroups[sceneKey].find(
+          (s) => s.items.length < MAX_ITEMS_PER_SCENE
+        );
 
         // If no available scene part or all are full, create a new part
         if (!targetScene) {
           const newPartNumber = sceneGroups[sceneKey].length + 1;
-          const newSceneName = newPartNumber === 1 ? sceneKey : `${sceneKey} (Part ${newPartNumber})`;
+          const newSceneName =
+            newPartNumber === 1
+              ? sceneKey
+              : `${sceneKey} (Part ${newPartNumber})`;
 
           targetScene = {
             name: newSceneName,
             originalName: sceneKey,
             description: `Imported scene: ${newSceneName}`,
             items: [],
-            partNumber: newPartNumber
+            partNumber: newPartNumber,
           };
           sceneGroups[sceneKey].push(targetScene);
         }
@@ -383,7 +421,7 @@ export class CSVImporter {
           address: address,
           value: CSVParser.parseItemValueFromCSV(itemType, itemValue),
           command: CSVParser.getCommandFromType(itemType),
-          objectType: CSVParser.getObjectTypeFromType(itemType)
+          objectType: CSVParser.getObjectTypeFromType(itemType),
         };
 
         targetScene.items.push(sceneItem);
@@ -392,7 +430,7 @@ export class CSVImporter {
 
     // Flatten scene groups into a single array, maintaining scene grouping
     const scenes = [];
-    sceneColumns.forEach(sceneName => {
+    sceneColumns.forEach((sceneName) => {
       const sceneKey = sceneName.trim();
       if (sceneGroups[sceneKey]) {
         scenes.push(...sceneGroups[sceneKey]);
@@ -400,11 +438,9 @@ export class CSVImporter {
     });
 
     // Filter out empty scenes and update names for parts
-    const nonEmptyScenes = scenes.filter(scene => scene.items.length > 0);
-    this.updateSceneNamesForParts(nonEmptyScenes);
+    const nonEmptyScenes = scenes.filter((scene) => scene.items.length > 0);
+    this.updateDaliSceneNamesForParts(nonEmptyScenes);
 
     return nonEmptyScenes;
   }
-
-
 }

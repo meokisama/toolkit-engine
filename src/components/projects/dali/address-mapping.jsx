@@ -144,7 +144,7 @@ export function AddressMapping({ isActive }) {
 
     const loadDevices = async () => {
       try {
-        const dbDevices = await window.electronAPI.dali.getAllDevices(
+        const dbDevices = await window.electronAPI.dali.getAllDaliDevices(
           selectedProject.id
         );
 
@@ -222,7 +222,7 @@ export function AddressMapping({ isActive }) {
           if (scannedDevice) {
             // Save to database with device index, address, RCU group and color feature
             window.electronAPI.dali
-              .upsertDevice(selectedProject.id, address, {
+              .upsertDaliDevice(selectedProject.id, address, {
                 mapped_device_name: scannedDevice.name,
                 mapped_device_type: scannedDevice.type,
                 mapped_device_index: scannedDevice.index,
@@ -272,7 +272,7 @@ export function AddressMapping({ isActive }) {
         if (device?.mappedDevice) {
           // Clear mapping in database
           window.electronAPI.dali
-            .clearDeviceMapping(selectedProject.id, address)
+            .clearDaliDeviceMapping(selectedProject.id, address)
             .then(() => {
               toast.success("Device unmapped successfully");
             })
@@ -348,7 +348,7 @@ export function AddressMapping({ isActive }) {
         // If Reset Commissioning, clear all configurations first
         if (!extend && selectedProject) {
           toast.info("Clearing all DALI configurations...");
-          await window.electronAPI.dali.clearAllConfigurations(
+          await window.electronAPI.dali.clearAllDaliConfigurations(
             selectedProject.id
           );
           // Clear local storage for scanned devices
@@ -703,8 +703,8 @@ export function AddressMapping({ isActive }) {
           <AlertDialogHeader>
             <AlertDialogTitle>Address Conflict Detected</AlertDialogTitle>
             <AlertDialogDescription className="flex flex-col gap-2">
-              The following DALI device addresses have conflicts and were excluded
-              from the scan results:
+              The following DALI device addresses have conflicts and were
+              excluded from the scan results:
               <div className="mt-2 p-3 bg-rose-50 rounded-md border border-rose-200">
                 <div className="font-semibold text-rose-900 mb-2">
                   Conflicting Addresses:
@@ -776,7 +776,7 @@ const FixedDeviceSlot = memo(function FixedDeviceSlot({ device, onUnmap }) {
     if (!selectedProject || !device.mappedDevice) return;
 
     try {
-      await window.electronAPI.dali.updateDeviceLightingAddress(
+      await window.electronAPI.dali.updateDaliDeviceLightingAddress(
         selectedProject.id,
         device.address,
         lightingAddress === "" ? null : parseInt(lightingAddress)
