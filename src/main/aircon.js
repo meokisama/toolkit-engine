@@ -1,9 +1,180 @@
 /**
  * Aircon IPC Handlers
- * Xử lý các tương tác với aircon items và cards
+ * Xử lý các tương tác với aircon items và cards (RCU Controller và Database)
  */
 
-export function registerAirconHandlers(ipcMain, dbService) {
+export function registerAirconHandlers(ipcMain, dbService, rcu) {
+  // ==================== RCU Controller - Air Conditioner Operations ====================
+
+  // Get AC Status
+  ipcMain.handle("rcu:getACStatus", async (event, { canId, unitIp, group }) => {
+    try {
+      return await rcu.getACStatus(unitIp, canId, group);
+    } catch (error) {
+      console.error("Error getting AC status:", error);
+      throw error;
+    }
+  });
+
+  // Get Room Temperature
+  ipcMain.handle("rcu:getRoomTemp", async (event, { canId, unitIp, group }) => {
+    try {
+      return await rcu.getRoomTemp(unitIp, canId, group);
+    } catch (error) {
+      console.error("Error getting room temperature:", error);
+      throw error;
+    }
+  });
+
+  // Set Setting Room Temperature
+  ipcMain.handle(
+    "rcu:setSettingRoomTemp",
+    async (event, { canId, unitIp, group, temperature }) => {
+      try {
+        return await rcu.setSettingRoomTemp(unitIp, canId, group, temperature);
+      } catch (error) {
+        console.error("Error setting room temperature:", error);
+        throw error;
+      }
+    }
+  );
+
+  // Get Setting Room Temperature
+  ipcMain.handle(
+    "rcu:getSettingRoomTemp",
+    async (event, { canId, unitIp, group }) => {
+      try {
+        return await rcu.getSettingRoomTemp(unitIp, canId, group);
+      } catch (error) {
+        console.error("Error getting setting room temperature:", error);
+        throw error;
+      }
+    }
+  );
+
+  // Set Fan Mode
+  ipcMain.handle(
+    "rcu:setFanMode",
+    async (event, { canId, unitIp, group, fanSpeed }) => {
+      try {
+        return await rcu.setFanMode(unitIp, canId, group, fanSpeed);
+      } catch (error) {
+        console.error("Error setting fan mode:", error);
+        throw error;
+      }
+    }
+  );
+
+  // Get Fan Mode
+  ipcMain.handle("rcu:getFanMode", async (event, { canId, unitIp, group }) => {
+    try {
+      return await rcu.getFanMode(unitIp, canId, group);
+    } catch (error) {
+      console.error("Error getting fan mode:", error);
+      throw error;
+    }
+  });
+
+  // Set Power Mode
+  ipcMain.handle(
+    "rcu:setPowerMode",
+    async (event, { canId, unitIp, group, power }) => {
+      try {
+        return await rcu.setPowerMode(unitIp, canId, group, power);
+      } catch (error) {
+        console.error("Error setting power mode:", error);
+        throw error;
+      }
+    }
+  );
+
+  // Get Power Mode
+  ipcMain.handle(
+    "rcu:getPowerMode",
+    async (event, { canId, unitIp, group }) => {
+      try {
+        return await rcu.getPowerMode(unitIp, canId, group);
+      } catch (error) {
+        console.error("Error getting power mode:", error);
+        throw error;
+      }
+    }
+  );
+
+  // Set Operate Mode
+  ipcMain.handle(
+    "rcu:setOperateMode",
+    async (event, { canId, unitIp, group, mode }) => {
+      try {
+        return await rcu.setOperateMode(unitIp, canId, group, mode);
+      } catch (error) {
+        console.error("Error setting operate mode:", error);
+        throw error;
+      }
+    }
+  );
+
+  // Get Operate Mode
+  ipcMain.handle(
+    "rcu:getOperateMode",
+    async (event, { canId, unitIp, group }) => {
+      try {
+        return await rcu.getOperateMode(unitIp, canId, group);
+      } catch (error) {
+        console.error("Error getting operate mode:", error);
+        throw error;
+      }
+    }
+  );
+
+  // Set Eco Mode
+  ipcMain.handle(
+    "rcu:setEcoMode",
+    async (event, { canId, unitIp, group, eco }) => {
+      try {
+        return await rcu.setEcoMode(unitIp, canId, group, eco);
+      } catch (error) {
+        console.error("Error setting eco mode:", error);
+        throw error;
+      }
+    }
+  );
+
+  // Get Eco Mode
+  ipcMain.handle("rcu:getEcoMode", async (event, { canId, unitIp, group }) => {
+    try {
+      return await rcu.getEcoMode(unitIp, canId, group);
+    } catch (error) {
+      console.error("Error getting eco mode:", error);
+      throw error;
+    }
+  });
+
+  // Get Local AC Config
+  ipcMain.handle("rcu:getLocalACConfig", async (event, unitIp, canId) => {
+    try {
+      return await rcu.getLocalACConfig(unitIp, canId);
+    } catch (error) {
+      console.error("Error getting local AC config:", error);
+      throw error;
+    }
+  });
+
+  // Set Local AC Config
+  ipcMain.handle(
+    "rcu:setLocalACConfig",
+    async (event, unitIp, canId, acConfigs) => {
+      try {
+        return await rcu.setLocalACConfig(unitIp, canId, acConfigs);
+      } catch (error) {
+        console.error("Error setting local AC config:", error);
+        throw error;
+      }
+    }
+  );
+
+  // ==================== Database - Aircon Operations ====================
+
   // Aircon items CRUD operations
   ipcMain.handle("aircon:getAll", async (event, projectId) => {
     try {

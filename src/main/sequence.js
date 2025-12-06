@@ -1,9 +1,88 @@
 /**
  * Sequence IPC Handlers
- * Xử lý các tương tác với sequence items
+ * Xử lý các tương tác với sequence items (RCU Controller và Database)
  */
 
-export function registerSequenceHandlers(ipcMain, dbService) {
+export function registerSequenceHandlers(ipcMain, dbService, rcu) {
+  // ==================== RCU Controller - Sequence Operations ====================
+
+  // Setup Sequence
+  ipcMain.handle(
+    "rcu:setupSequence",
+    async (event, unitIp, canId, sequenceConfig) => {
+      try {
+        return await rcu.setupSequence(unitIp, canId, sequenceConfig);
+      } catch (error) {
+        console.error("Error setting up sequence:", error);
+        throw error;
+      }
+    }
+  );
+
+  // Get Sequence Information
+  ipcMain.handle(
+    "rcu:getSequenceInformation",
+    async (event, { unitIp, canId, sequenceIndex }) => {
+      try {
+        return await rcu.getSequenceInformation(unitIp, canId, sequenceIndex);
+      } catch (error) {
+        console.error("Error getting sequence information:", error);
+        throw error;
+      }
+    }
+  );
+
+  // Get All Sequences Information
+  ipcMain.handle(
+    "rcu:getAllSequencesInformation",
+    async (event, { unitIp, canId }) => {
+      try {
+        return await rcu.getAllSequencesInformation(unitIp, canId);
+      } catch (error) {
+        console.error("Error getting all sequences information:", error);
+        throw error;
+      }
+    }
+  );
+
+  // Trigger Sequence
+  ipcMain.handle(
+    "rcu:triggerSequence",
+    async (event, { unitIp, canId, sequenceAddress }) => {
+      try {
+        return await rcu.triggerSequence(unitIp, canId, sequenceAddress);
+      } catch (error) {
+        console.error("Error triggering sequence:", error);
+        throw error;
+      }
+    }
+  );
+
+  // Delete Sequence
+  ipcMain.handle(
+    "rcu:deleteSequence",
+    async (event, unitIp, canId, sequenceIndex) => {
+      try {
+        return await rcu.deleteSequence(unitIp, canId, sequenceIndex);
+      } catch (error) {
+        console.error("Error deleting sequence:", error);
+        throw error;
+      }
+    }
+  );
+
+  // Delete All Sequences
+  ipcMain.handle("rcu:deleteAllSequences", async (event, unitIp, canId) => {
+    try {
+      return await rcu.deleteAllSequences(unitIp, canId);
+    } catch (error) {
+      console.error("Error deleting all sequences:", error);
+      throw error;
+    }
+  });
+
+  // ==================== Database - Sequence Operations ====================
+
   // Sequence CRUD operations
   ipcMain.handle("sequences:getAll", async (event, projectId) => {
     try {

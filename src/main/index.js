@@ -3,6 +3,7 @@
  * Tập hợp tất cả các handlers cho các module khác nhau
  */
 
+import { registerProjectHandlers } from "./project.js";
 import { registerSceneHandlers } from "./scene.js";
 import { registerSequenceHandlers } from "./sequence.js";
 import { registerDaliHandlers } from "./dali.js";
@@ -13,22 +14,43 @@ import { registerScheduleHandlers } from "./schedule.js";
 import { registerMultiSceneHandlers } from "./multi-scene.js";
 import { registerKnxHandlers } from "./knx.js";
 import { registerUnitHandlers } from "./unit.js";
+import { registerRoomHandlers } from "./room.js";
+import { registerZigbeeHandlers } from "./zigbee.js";
+import { registerNetworkHandlers } from "./network.js";
+import { registerFirmwareHandlers } from "./firmware.js";
+import { registerIOConfigHandlers } from "./io-config.js";
+import { registerDeviceConfigHandlers } from "./device-config.js";
 
 /**
  * Đăng ký tất cả IPC handlers
  * @param {Electron.IpcMain} ipcMain - Electron IPC Main instance
  * @param {DatabaseService} dbService - Database service instance
  * @param {Object} rcu - RCU controller service
+ * @param {Object} loggerService - Logger service instance
+ * @param {Object} networkInterfaceService - Network interface service instance
  */
-export function registerAllHandlers(ipcMain, dbService, rcu) {
+export function registerAllHandlers(
+  ipcMain,
+  dbService,
+  rcu,
+  loggerService,
+  networkInterfaceService
+) {
+  registerProjectHandlers(ipcMain, dbService);
   registerLightingHandlers(ipcMain, dbService);
-  registerAirconHandlers(ipcMain, dbService);
-  registerCurtainHandlers(ipcMain, dbService);
+  registerAirconHandlers(ipcMain, dbService, rcu);
+  registerCurtainHandlers(ipcMain, dbService, rcu);
   registerUnitHandlers(ipcMain, dbService);
-  registerKnxHandlers(ipcMain, dbService);
-  registerSceneHandlers(ipcMain, dbService);
-  registerSequenceHandlers(ipcMain, dbService);
+  registerKnxHandlers(ipcMain, dbService, rcu, loggerService);
+  registerSceneHandlers(ipcMain, dbService, rcu);
+  registerSequenceHandlers(ipcMain, dbService, rcu);
   registerScheduleHandlers(ipcMain, dbService, rcu);
-  registerMultiSceneHandlers(ipcMain, dbService);
-  registerDaliHandlers(ipcMain, dbService);
+  registerMultiSceneHandlers(ipcMain, dbService, rcu);
+  registerDaliHandlers(ipcMain, dbService, rcu);
+  registerRoomHandlers(ipcMain, dbService, rcu);
+  registerZigbeeHandlers(ipcMain, dbService, rcu);
+  registerNetworkHandlers(ipcMain, networkInterfaceService);
+  registerFirmwareHandlers(ipcMain, rcu);
+  registerIOConfigHandlers(ipcMain, rcu);
+  registerDeviceConfigHandlers(ipcMain, rcu);
 }

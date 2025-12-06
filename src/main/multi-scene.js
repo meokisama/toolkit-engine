@@ -1,9 +1,92 @@
 /**
  * Multi-Scene IPC Handlers
- * Xử lý các tương tác với multi-scene items
+ * Xử lý các tương tác với multi-scene items (RCU Controller và Database)
  */
 
-export function registerMultiSceneHandlers(ipcMain, dbService) {
+export function registerMultiSceneHandlers(ipcMain, dbService, rcu) {
+  // ==================== RCU Controller - Multi-Scene Operations ====================
+
+  // Setup Multi-Scene
+  ipcMain.handle(
+    "rcu:setupMultiScene",
+    async (event, unitIp, canId, multiSceneConfig) => {
+      try {
+        return await rcu.setupMultiScene(unitIp, canId, multiSceneConfig);
+      } catch (error) {
+        console.error("Error setting up multi-scene:", error);
+        throw error;
+      }
+    }
+  );
+
+  // Get Multi-Scene Information
+  ipcMain.handle(
+    "rcu:getMultiSceneInformation",
+    async (event, { unitIp, canId, multiSceneIndex }) => {
+      try {
+        return await rcu.getMultiSceneInformation(
+          unitIp,
+          canId,
+          multiSceneIndex
+        );
+      } catch (error) {
+        console.error("Error getting multi-scene information:", error);
+        throw error;
+      }
+    }
+  );
+
+  // Get All Multi-Scenes Information
+  ipcMain.handle(
+    "rcu:getAllMultiScenesInformation",
+    async (event, { unitIp, canId }) => {
+      try {
+        return await rcu.getAllMultiScenesInformation(unitIp, canId);
+      } catch (error) {
+        console.error("Error getting all multi-scenes information:", error);
+        throw error;
+      }
+    }
+  );
+
+  // Trigger Multi-Scene
+  ipcMain.handle(
+    "rcu:triggerMultiScene",
+    async (event, { unitIp, canId, multiSceneAddress }) => {
+      try {
+        return await rcu.triggerMultiScene(unitIp, canId, multiSceneAddress);
+      } catch (error) {
+        console.error("Error triggering multi-scene:", error);
+        throw error;
+      }
+    }
+  );
+
+  // Delete Multi-Scene
+  ipcMain.handle(
+    "rcu:deleteMultiScene",
+    async (event, unitIp, canId, multiSceneIndex) => {
+      try {
+        return await rcu.deleteMultiScene(unitIp, canId, multiSceneIndex);
+      } catch (error) {
+        console.error("Error deleting multi-scene:", error);
+        throw error;
+      }
+    }
+  );
+
+  // Delete All Multi-Scenes
+  ipcMain.handle("rcu:deleteAllMultiScenes", async (event, unitIp, canId) => {
+    try {
+      return await rcu.deleteAllMultiScenes(unitIp, canId);
+    } catch (error) {
+      console.error("Error deleting all multi-scenes:", error);
+      throw error;
+    }
+  });
+
+  // ==================== Database - Multi-Scene Operations ====================
+
   // Multi-Scene CRUD operations
   ipcMain.handle("multiScenes:getAll", async (event, projectId) => {
     try {

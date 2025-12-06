@@ -1,9 +1,211 @@
 /**
  * DALI IPC Handlers
- * Xử lý các tương tác với DALI devices, groups và scenes
+ * Xử lý các tương tác với DALI devices, groups và scenes (RCU Controller và Database)
  */
 
-export function registerDaliHandlers(ipcMain, dbService) {
+export function registerDaliHandlers(ipcMain, dbService, rcu) {
+  // ==================== RCU Controller - DALI Operations ====================
+
+  // DALI Commissioning
+  ipcMain.handle(
+    "rcu:daliCommissioning",
+    async (event, { unitIp, canId, extend }) => {
+      try {
+        return await rcu.daliCommissioning(unitIp, canId, extend);
+      } catch (error) {
+        console.error("Error in DALI commissioning:", error);
+        throw error;
+      }
+    }
+  );
+
+  // DALI Scan
+  ipcMain.handle("rcu:daliScan", async (event, { unitIp, canId }) => {
+    try {
+      return await rcu.daliScan(unitIp, canId);
+    } catch (error) {
+      console.error("Error in DALI scan:", error);
+      throw error;
+    }
+  });
+
+  // DALI Conflict Address Commissioning
+  ipcMain.handle(
+    "rcu:daliConflictAddressCommissioning",
+    async (event, { unitIp, canId, conflictAddresses }) => {
+      try {
+        return await rcu.daliConflictAddressCommissioning(
+          unitIp,
+          canId,
+          conflictAddresses
+        );
+      } catch (error) {
+        console.error("Error in DALI conflict address commissioning:", error);
+        throw error;
+      }
+    }
+  );
+
+  // Send Address Mapping
+  ipcMain.handle(
+    "rcu:sendAddressMapping",
+    async (event, { unitIp, canId, addressMapping }) => {
+      try {
+        return await rcu.sendAddressMapping(unitIp, canId, addressMapping);
+      } catch (error) {
+        console.error("Error sending DALI address mapping:", error);
+        throw error;
+      }
+    }
+  );
+
+  // Send Mapping RCU
+  ipcMain.handle(
+    "rcu:sendMappingRCU",
+    async (event, { unitIp, canId, rcuMapping }) => {
+      try {
+        return await rcu.sendMappingRCU(unitIp, canId, rcuMapping);
+      } catch (error) {
+        console.error("Error sending DALI RCU mapping:", error);
+        throw error;
+      }
+    }
+  );
+
+  // Reset All Config
+  ipcMain.handle("rcu:resetAllConfig", async (event, { unitIp, canId }) => {
+    try {
+      return await rcu.resetAllConfig(unitIp, canId);
+    } catch (error) {
+      console.error("Error resetting DALI configuration:", error);
+      throw error;
+    }
+  });
+
+  // Send Delete Address
+  ipcMain.handle(
+    "rcu:sendDeleteAddress",
+    async (event, { unitIp, canId, address }) => {
+      try {
+        return await rcu.sendDeleteAddress(unitIp, canId, address);
+      } catch (error) {
+        console.error("Error deleting DALI address:", error);
+        throw error;
+      }
+    }
+  );
+
+  // DALI Broadcast On
+  ipcMain.handle("rcu:daliBroadcastOn", async (event, { unitIp, canId }) => {
+    try {
+      return await rcu.daliBroadcastOn(unitIp, canId);
+    } catch (error) {
+      console.error("Error in DALI broadcast ON:", error);
+      throw error;
+    }
+  });
+
+  // DALI Broadcast Off
+  ipcMain.handle("rcu:daliBroadcastOff", async (event, { unitIp, canId }) => {
+    try {
+      return await rcu.daliBroadcastOff(unitIp, canId);
+    } catch (error) {
+      console.error("Error in DALI broadcast OFF:", error);
+      throw error;
+    }
+  });
+
+  // Trigger DALI Device
+  ipcMain.handle(
+    "rcu:triggerDaliDevice",
+    async (event, { unitIp, canId, deviceAddress, level }) => {
+      try {
+        return await rcu.triggerDaliDevice(unitIp, canId, deviceAddress, level);
+      } catch (error) {
+        console.error("Error triggering DALI device:", error);
+        throw error;
+      }
+    }
+  );
+
+  // Trigger DALI Type 8 Device
+  ipcMain.handle(
+    "rcu:triggerDaliType8Device",
+    async (
+      event,
+      {
+        unitIp,
+        canId,
+        deviceIndex,
+        deviceAddress,
+        colorFeature,
+        brightness,
+        colorData,
+      }
+    ) => {
+      try {
+        return await rcu.triggerDaliType8Device(
+          unitIp,
+          canId,
+          deviceIndex,
+          deviceAddress,
+          colorFeature,
+          brightness,
+          colorData
+        );
+      } catch (error) {
+        console.error("Error triggering DALI Type 8 device:", error);
+        throw error;
+      }
+    }
+  );
+
+  // Trigger DALI Group
+  ipcMain.handle(
+    "rcu:triggerDaliGroup",
+    async (event, { unitIp, canId, groupId, level }) => {
+      try {
+        return await rcu.triggerDaliGroup(unitIp, canId, groupId, level);
+      } catch (error) {
+        console.error("Error triggering DALI group:", error);
+        throw error;
+      }
+    }
+  );
+
+  // Trigger DALI Scene
+  ipcMain.handle(
+    "rcu:triggerDaliScene",
+    async (event, { unitIp, canId, sceneId }) => {
+      try {
+        return await rcu.triggerDaliScene(unitIp, canId, sceneId);
+      } catch (error) {
+        console.error("Error triggering DALI scene:", error);
+        throw error;
+      }
+    }
+  );
+
+  // Send Group & Scene Config
+  ipcMain.handle(
+    "rcu:sendGroupSceneConfig",
+    async (event, { unitIp, canId, projectId }) => {
+      try {
+        return await rcu.sendGroupSceneConfig(
+          unitIp,
+          canId,
+          projectId,
+          dbService
+        );
+      } catch (error) {
+        console.error("Error sending Group & Scene config:", error);
+        throw error;
+      }
+    }
+  );
+
+  // ==================== Database - DALI Operations ====================
+
   // DALI Devices - Database Operations
   ipcMain.handle("dali:getAllDaliDevices", async (event, projectId) => {
     try {
