@@ -47,7 +47,7 @@ export function DaliCore() {
 
   // Helper: Load project DALI data
   const loadProjectData = async () => {
-    const dbDevices = await window.electronAPI.dali.getAllDevices(
+    const dbDevices = await window.electronAPI.dali.getAllDaliDevices(
       selectedProject.id
     );
     const scannedDevices = getScannedDevices();
@@ -150,7 +150,7 @@ export function DaliCore() {
         const device = dbDevices.find((d) => d.mapped_device_index === index);
 
         if (device) {
-          await window.electronAPI.dali.upsertDevice(
+          await window.electronAPI.dali.upsertDaliDevice(
             selectedProject.id,
             device.address,
             {
@@ -214,8 +214,8 @@ export function DaliCore() {
       const { dbDevices, scannedDevices } = await loadProjectData();
 
       // Get all groups from database
-      await window.electronAPI.dali.initializeGroups(selectedProject.id);
-      const groupNames = await window.electronAPI.dali.getAllGroupNames(
+      await window.electronAPI.dali.initializeDaliGroups(selectedProject.id);
+      const groupNames = await window.electronAPI.dali.getAllDaliGroupNames(
         selectedProject.id
       );
 
@@ -343,7 +343,7 @@ export function DaliCore() {
       setClearing(true);
       toast.info("Clearing address mappings...");
 
-      const result = await window.electronAPI.dali.clearAllDeviceMappings(
+      const result = await window.electronAPI.dali.clearAllDaliDeviceMappings(
         selectedProject.id
       );
 
@@ -367,7 +367,7 @@ export function DaliCore() {
       setClearing(true);
       toast.info("Clearing groups...");
 
-      const result = await window.electronAPI.dali.clearAllGroups(
+      const result = await window.electronAPI.dali.clearAllDaliGroups(
         selectedProject.id
       );
 
@@ -393,7 +393,7 @@ export function DaliCore() {
       setClearing(true);
       toast.info("Clearing scenes...");
 
-      const result = await window.electronAPI.dali.clearAllScenes(
+      const result = await window.electronAPI.dali.clearAllDaliScenes(
         selectedProject.id
       );
 
@@ -443,7 +443,7 @@ export function DaliCore() {
       toast.info("Clearing all DALI configurations...");
 
       // Clear all configurations (mapping, groups, scenes)
-      const result = await window.electronAPI.dali.clearAllConfigurations(
+      const result = await window.electronAPI.dali.clearAllDaliConfigurations(
         selectedProject.id
       );
 
@@ -636,7 +636,9 @@ export function DaliCore() {
               <DropdownMenuItem onClick={handleSendGroupAndScene}>
                 Group & Scene
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setShowDeleteAddressDialog(true)}>
+              <DropdownMenuItem
+                onClick={() => setShowDeleteAddressDialog(true)}
+              >
                 Delete Address
               </DropdownMenuItem>
               <DropdownMenuItem onClick={handleResetAllConfig}>

@@ -984,11 +984,6 @@ export const getInputFunctionByValue = (value) => {
   return null;
 };
 
-export const isMultipleGroupFunction = (functionName) => {
-  // Simplified check - most functions support multiple groups
-  return functionName && functionName !== "IP_UNUSED";
-};
-
 // RLC Options Constants (simplified versions)
 export const RAMP_OPTIONS = [
   { value: 0, label: "Instant" },

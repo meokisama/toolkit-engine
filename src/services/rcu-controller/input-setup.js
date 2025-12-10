@@ -2,11 +2,30 @@ import { UDP_PORT, PROTOCOL } from "./constants.js";
 import { convertCanIdToInt } from "./utils.js";
 import { sendCommand } from "./command-sender.js";
 
-// Setup Input Configuration function
-async function setupInputConfig(unitIp, canId, inputConfig) {
-  const idAddress = convertCanIdToInt(canId);
+/**
+ * Calculate the data size for a single input configuration
+ * @param {Object} inputConfig - Input configuration object
+ * @returns {number} Size in bytes
+ */
+function calculateInputConfigSize(inputConfig) {
+  const isKeyCard = inputConfig.inputType === 4;
+  const groups = inputConfig.groups || [];
 
-  // Build data array according to SETUP_INPUT command structure
+  // Fixed fields: 39 bytes (input number, type, ramp, preset, LED, auto mode, auto time, delays, group count)
+  const fixedSize = 39;
+
+  // Group data: 2 bytes per group (groupId + presetBrightness)
+  const groupSize = isKeyCard ? 40 : groups.length * 2; // Key Card always has 20 groups = 40 bytes
+
+  return fixedSize + groupSize;
+}
+
+/**
+ * Build data array for a single input configuration
+ * @param {Object} inputConfig - Input configuration object
+ * @returns {Array<number>} Data array
+ */
+function buildInputConfigData(inputConfig) {
   const data = [];
 
   // Convert all input values to integers to ensure proper data types
@@ -75,18 +94,49 @@ async function setupInputConfig(unitIp, canId, inputConfig) {
     }
   }
 
-  // console.log(`Setting up input ${inputConfig.inputNumber} config:`, {
-  //   inputType: inputConfig.inputType,
-  //   ramp: inputConfig.ramp,
-  //   preset: inputConfig.preset,
-  //   ledStatus: inputConfig.ledStatus,
-  //   autoMode: inputConfig.autoMode,
-  //   delayOff: inputConfig.delayOff,
-  //   groupCount: groupCount,
-  //   actualGroups: groups.length,
-  //   isKeyCard: isKeyCard,
-  //   dataLength: data.length,
-  // });
+  return data;
+}
+
+/**
+ * Group input configs into batches that don't exceed maxBytes
+ * @param {Array<Object>} inputConfigs - Array of input configuration objects
+ * @param {number} maxBytes - Maximum bytes per batch (default: 900)
+ * @returns {Array<Array<Object>>} Array of batches
+ */
+function groupInputConfigsIntoBatches(inputConfigs, maxBytes = 900) {
+  const batches = [];
+  let currentBatch = [];
+  let currentBatchSize = 0;
+
+  for (const config of inputConfigs) {
+    const configSize = calculateInputConfigSize(config);
+
+    // If adding this config would exceed the limit, start a new batch
+    if (currentBatchSize + configSize > maxBytes && currentBatch.length > 0) {
+      batches.push(currentBatch);
+      currentBatch = [];
+      currentBatchSize = 0;
+    }
+
+    // Add config to current batch
+    currentBatch.push(config);
+    currentBatchSize += configSize;
+  }
+
+  // Add the last batch if not empty
+  if (currentBatch.length > 0) {
+    batches.push(currentBatch);
+  }
+
+  return batches;
+}
+
+// Setup Input Configuration function (single input)
+async function setupInputConfig(unitIp, canId, inputConfig) {
+  const idAddress = convertCanIdToInt(canId);
+
+  // Build data array using the helper function
+  const data = buildInputConfigData(inputConfig);
 
   try {
     const response = await sendCommand(
@@ -112,4 +162,77 @@ async function setupInputConfig(unitIp, canId, inputConfig) {
   }
 }
 
-export { setupInputConfig };
+/**
+ * Setup multiple input configurations in batches (optimized for speed)
+ * Groups configs into batches that don't exceed maxBytes and sends them together
+ * @param {string} unitIp - Unit IP address
+ * @param {string} canId - CAN ID
+ * @param {Array<Object>} inputConfigs - Array of input configuration objects
+ * @param {number} maxBytes - Maximum bytes per batch (default: 900)
+ * @returns {Promise<Object>} Result with success/fail counts
+ */
+async function setupBatchInputConfigs(unitIp, canId, inputConfigs, maxBytes = 900) {
+  const idAddress = convertCanIdToInt(canId);
+
+  // Group configs into batches
+  const batches = groupInputConfigsIntoBatches(inputConfigs, maxBytes);
+
+  console.log(
+    `Sending ${inputConfigs.length} input configs in ${batches.length} batch(es)`
+  );
+
+  let successCount = 0;
+  let failCount = 0;
+  const errors = [];
+
+  // Send each batch
+  for (let batchIndex = 0; batchIndex < batches.length; batchIndex++) {
+    const batch = batches[batchIndex];
+    const batchData = [];
+
+    // Concatenate all input config data in this batch: [input0][input1][input2]...
+    for (const config of batch) {
+      const configData = buildInputConfigData(config);
+      batchData.push(...configData);
+    }
+
+    try {
+      await sendCommand(
+        unitIp,
+        UDP_PORT,
+        idAddress,
+        PROTOCOL.LIGHTING.CMD1,
+        PROTOCOL.LIGHTING.CMD2.SETUP_INPUT,
+        batchData,
+        false
+      );
+
+      successCount += batch.length;
+      console.log(
+        `Batch ${batchIndex + 1}/${batches.length}: Sent ${batch.length} input config(s) successfully (${batchData.length} bytes)`
+      );
+    } catch (error) {
+      failCount += batch.length;
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      errors.push({
+        batchIndex: batchIndex,
+        inputIndices: batch.map((c) => c.inputNumber),
+        error: errorMessage,
+      });
+      console.error(
+        `Batch ${batchIndex + 1}/${batches.length} failed:`,
+        errorMessage
+      );
+    }
+  }
+
+  return {
+    success: failCount === 0,
+    successCount,
+    failCount,
+    totalBatches: batches.length,
+    errors,
+  };
+}
+
+export { setupInputConfig, setupBatchInputConfigs };

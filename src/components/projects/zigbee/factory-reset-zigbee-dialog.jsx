@@ -64,10 +64,11 @@ export function FactoryResetZigbeeDialog({
     setLoading(true);
     try {
       // Step 1: Send factory reset command to the unit
-      const result = await window.electronAPI.rcuController.factoryResetZigbee({
-        unitIp,
-        canId,
-      });
+      const result =
+        await window.electronAPI.zigbeeController.factoryResetZigbee({
+          unitIp,
+          canId,
+        });
 
       if (result.success) {
         // Step 2: Delete all devices for this unit from database
@@ -153,7 +154,9 @@ export function FactoryResetZigbeeDialog({
           <div className="rounded-lg bg-destructive/10 p-4 text-sm">
             <p className="font-semibold text-destructive mb-2">Warning:</p>
             <ul className="list-disc list-inside space-y-1 text-muted-foreground">
-              <li>All paired Zigbee devices will be removed from coordinator</li>
+              <li>
+                All paired Zigbee devices will be removed from coordinator
+              </li>
               <li>The Zigbee network will be reset</li>
               <li>All device configurations in database will be deleted</li>
               <li>You will need to re-pair all devices</li>

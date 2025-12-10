@@ -68,7 +68,7 @@ export function ExploreZigbeeDeviceDialog({
   }, []);
 
   const handleStopExploring = async () => {
-    await window.electronAPI.rcuController.closeZigbeeNetwork({
+    await window.electronAPI.zigbeeController.closeZigbeeNetwork({
       unitIp: currentUnit.ip_address,
       canId: currentUnit.id_can,
     });
@@ -141,7 +141,7 @@ export function ExploreZigbeeDeviceDialog({
     try {
       // Start exploring - this will open the network and listen for devices
       const response =
-        await window.electronAPI.rcuController.exploreZigbeeNetwork({
+        await window.electronAPI.zigbeeController.exploreZigbeeNetwork({
           unitIp: unit.ip_address,
           canId: unit.id_can,
           timeoutMs: EXPLORE_TIMEOUT_MS,

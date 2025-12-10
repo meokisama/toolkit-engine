@@ -378,6 +378,310 @@ async function setOutputConfig(unitIp, canId, outputIndex, config) {
   return result;
 }
 
+/**
+ * Set multiple output delay off values in batch
+ * @param {string} unitIp - Unit IP address
+ * @param {string} canId - CAN ID
+ * @param {Array<{outputIndex: number, delayOff: number}>} delayOffConfigs - Array of delay off configs
+ * @param {number} maxBytes - Maximum bytes per batch (default: 900)
+ * @returns {Promise<Object>} Result with success/fail counts
+ */
+async function setBatchOutputDelayOff(unitIp, canId, delayOffConfigs, maxBytes = 900) {
+  const idAddress = convertCanIdToInt(canId);
+
+  // Each delay off config is 3 bytes: outputIndex (1) + delayOff (2 bytes little endian)
+  const bytesPerConfig = 3;
+  const maxConfigsPerBatch = Math.floor(maxBytes / bytesPerConfig);
+
+  // Split into batches
+  const batches = [];
+  for (let i = 0; i < delayOffConfigs.length; i += maxConfigsPerBatch) {
+    batches.push(delayOffConfigs.slice(i, i + maxConfigsPerBatch));
+  }
+
+  console.log(`Sending ${delayOffConfigs.length} delay off configs in ${batches.length} batch(es)`);
+
+  let successCount = 0;
+  let failCount = 0;
+  const errors = [];
+
+  for (let batchIndex = 0; batchIndex < batches.length; batchIndex++) {
+    const batch = batches[batchIndex];
+    const data = [];
+
+    // Build data: [index1, delayOff1_low, delayOff1_high, index2, delayOff2_low, delayOff2_high, ...]
+    for (const config of batch) {
+      data.push(config.outputIndex);
+      data.push(config.delayOff & 0xFF); // Low byte
+      data.push((config.delayOff >> 8) & 0xFF); // High byte
+    }
+
+    try {
+      await sendCommand(
+        unitIp,
+        UDP_PORT,
+        idAddress,
+        PROTOCOL.LIGHTING.CMD1,
+        PROTOCOL.LIGHTING.CMD2.SET_OUTPUT_DELAY_OFF,
+        data
+      );
+
+      successCount += batch.length;
+      console.log(`Batch ${batchIndex + 1}/${batches.length}: Sent ${batch.length} delay off config(s) successfully`);
+    } catch (error) {
+      failCount += batch.length;
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      errors.push({
+        batchIndex: batchIndex,
+        outputIndices: batch.map((c) => c.outputIndex),
+        error: errorMessage,
+      });
+      console.error(`Batch ${batchIndex + 1}/${batches.length} failed:`, errorMessage);
+    }
+  }
+
+  return {
+    success: failCount === 0,
+    successCount,
+    failCount,
+    totalBatches: batches.length,
+    errors,
+  };
+}
+
+/**
+ * Set multiple output delay on values in batch
+ * @param {string} unitIp - Unit IP address
+ * @param {string} canId - CAN ID
+ * @param {Array<{outputIndex: number, delayOn: number}>} delayOnConfigs - Array of delay on configs
+ * @param {number} maxBytes - Maximum bytes per batch (default: 900)
+ * @returns {Promise<Object>} Result with success/fail counts
+ */
+async function setBatchOutputDelayOn(unitIp, canId, delayOnConfigs, maxBytes = 900) {
+  const idAddress = convertCanIdToInt(canId);
+
+  // Each delay on config is 3 bytes: outputIndex (1) + delayOn (2 bytes little endian)
+  const bytesPerConfig = 3;
+  const maxConfigsPerBatch = Math.floor(maxBytes / bytesPerConfig);
+
+  // Split into batches
+  const batches = [];
+  for (let i = 0; i < delayOnConfigs.length; i += maxConfigsPerBatch) {
+    batches.push(delayOnConfigs.slice(i, i + maxConfigsPerBatch));
+  }
+
+  console.log(`Sending ${delayOnConfigs.length} delay on configs in ${batches.length} batch(es)`);
+
+  let successCount = 0;
+  let failCount = 0;
+  const errors = [];
+
+  for (let batchIndex = 0; batchIndex < batches.length; batchIndex++) {
+    const batch = batches[batchIndex];
+    const data = [];
+
+    // Build data: [index1, delayOn1_low, delayOn1_high, index2, delayOn2_low, delayOn2_high, ...]
+    for (const config of batch) {
+      data.push(config.outputIndex);
+      data.push(config.delayOn & 0xFF); // Low byte
+      data.push((config.delayOn >> 8) & 0xFF); // High byte
+    }
+
+    try {
+      await sendCommand(
+        unitIp,
+        UDP_PORT,
+        idAddress,
+        PROTOCOL.LIGHTING.CMD1,
+        PROTOCOL.LIGHTING.CMD2.SET_OUTPUT_DELAY_ON,
+        data
+      );
+
+      successCount += batch.length;
+      console.log(`Batch ${batchIndex + 1}/${batches.length}: Sent ${batch.length} delay on config(s) successfully`);
+    } catch (error) {
+      failCount += batch.length;
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      errors.push({
+        batchIndex: batchIndex,
+        outputIndices: batch.map((c) => c.outputIndex),
+        error: errorMessage,
+      });
+      console.error(`Batch ${batchIndex + 1}/${batches.length} failed:`, errorMessage);
+    }
+  }
+
+  return {
+    success: failCount === 0,
+    successCount,
+    failCount,
+    totalBatches: batches.length,
+    errors,
+  };
+}
+
+/**
+ * Set multiple output configs in batch
+ * @param {string} unitIp - Unit IP address
+ * @param {string} canId - CAN ID
+ * @param {Array<Object>} outputConfigs - Array of output config objects
+ * @param {number} maxBytes - Maximum bytes per batch (default: 900)
+ * @returns {Promise<Object>} Result with success/fail counts
+ */
+async function setBatchOutputConfigs(unitIp, canId, outputConfigs, maxBytes = 900) {
+  const idAddress = convertCanIdToInt(canId);
+
+  // Each output config is 8 bytes
+  const bytesPerConfig = 8;
+  const maxConfigsPerBatch = Math.floor(maxBytes / bytesPerConfig);
+
+  // Split into batches
+  const batches = [];
+  for (let i = 0; i < outputConfigs.length; i += maxConfigsPerBatch) {
+    batches.push(outputConfigs.slice(i, i + maxConfigsPerBatch));
+  }
+
+  console.log(`Sending ${outputConfigs.length} output configs in ${batches.length} batch(es)`);
+
+  let successCount = 0;
+  let failCount = 0;
+  const errors = [];
+
+  for (let batchIndex = 0; batchIndex < batches.length; batchIndex++) {
+    const batch = batches[batchIndex];
+    const data = [];
+
+    // Build data: [config1_8bytes][config2_8bytes]...
+    for (const config of batch) {
+      data.push(config.outputIndex);
+      data.push(config.minDimmingLevel);
+      data.push(config.maxDimmingLevel);
+      data.push(config.autoTriggerFlag);
+      data.push(config.scheduleOnHour);
+      data.push(config.scheduleOnMinute);
+      data.push(config.scheduleOffHour);
+      data.push(config.scheduleOffMinute);
+    }
+
+    try {
+      await sendCommand(
+        unitIp,
+        UDP_PORT,
+        idAddress,
+        PROTOCOL.LIGHTING.CMD1,
+        PROTOCOL.LIGHTING.CMD2.SET_OUTPUT_CONFIG,
+        data
+      );
+
+      successCount += batch.length;
+      console.log(`Batch ${batchIndex + 1}/${batches.length}: Sent ${batch.length} output config(s) successfully (${data.length} bytes)`);
+    } catch (error) {
+      failCount += batch.length;
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      errors.push({
+        batchIndex: batchIndex,
+        outputIndices: batch.map((c) => c.outputIndex),
+        error: errorMessage,
+      });
+      console.error(`Batch ${batchIndex + 1}/${batches.length} failed:`, errorMessage);
+    }
+  }
+
+  return {
+    success: failCount === 0,
+    successCount,
+    failCount,
+    totalBatches: batches.length,
+    errors,
+  };
+}
+
+/**
+ * Set all output configurations in batches (comprehensive function)
+ * Handles assignments, delays, and configs in optimized batches
+ * @param {string} unitIp - Unit IP address
+ * @param {string} canId - CAN ID
+ * @param {Array<Object>} lightingOutputs - Array of output objects with all config data
+ * @param {number} maxBytes - Maximum bytes per batch (default: 900)
+ * @returns {Promise<Object>} Comprehensive result
+ */
+async function setupBatchLightingOutputs(unitIp, canId, lightingOutputs, maxBytes = 900) {
+  console.log(`Setting up ${lightingOutputs.length} lighting outputs in batch mode`);
+
+  const results = {
+    assignments: null,
+    delayOff: null,
+    delayOn: null,
+    configs: null,
+    overallSuccess: true,
+  };
+
+  // 1. Set all output assignments (addresses) in one batch
+  try {
+    const assignments = lightingOutputs.map((output) => output.lightingAddress || 0);
+    await setAllOutputAssignments(unitIp, canId, assignments);
+    results.assignments = { success: true, count: assignments.length };
+    console.log(`✓ Set ${assignments.length} output assignments successfully`);
+  } catch (error) {
+    results.assignments = { success: false, error: error.message };
+    results.overallSuccess = false;
+    console.error("✗ Failed to set output assignments:", error);
+  }
+
+  // 2. Set delay off values in batches
+  try {
+    const delayOffConfigs = lightingOutputs.map((output) => ({
+      outputIndex: output.index,
+      delayOff: output.delayOff ?? 0,
+    }));
+    results.delayOff = await setBatchOutputDelayOff(unitIp, canId, delayOffConfigs, maxBytes);
+    if (!results.delayOff.success) results.overallSuccess = false;
+    console.log(`✓ Set ${results.delayOff.successCount}/${delayOffConfigs.length} delay off values`);
+  } catch (error) {
+    results.delayOff = { success: false, error: error.message };
+    results.overallSuccess = false;
+    console.error("✗ Failed to set delay off values:", error);
+  }
+
+  // 3. Set delay on values in batches
+  try {
+    const delayOnConfigs = lightingOutputs.map((output) => ({
+      outputIndex: output.index,
+      delayOn: output.delayOn ?? 0,
+    }));
+    results.delayOn = await setBatchOutputDelayOn(unitIp, canId, delayOnConfigs, maxBytes);
+    if (!results.delayOn.success) results.overallSuccess = false;
+    console.log(`✓ Set ${results.delayOn.successCount}/${delayOnConfigs.length} delay on values`);
+  } catch (error) {
+    results.delayOn = { success: false, error: error.message };
+    results.overallSuccess = false;
+    console.error("✗ Failed to set delay on values:", error);
+  }
+
+  // 4. Set output configs (minDim, maxDim, autoTrigger, schedule) in batches
+  try {
+    const outputConfigs = lightingOutputs.map((output) => ({
+      outputIndex: output.index,
+      minDimmingLevel: output.minDim ?? 1,
+      maxDimmingLevel: output.maxDim ?? 100,
+      autoTriggerFlag: output.autoTrigger ? 1 : 0,
+      scheduleOnHour: output.scheduleOnHour ?? 0,
+      scheduleOnMinute: output.scheduleOnMinute ?? 0,
+      scheduleOffHour: output.scheduleOffHour ?? 0,
+      scheduleOffMinute: output.scheduleOffMinute ?? 0,
+    }));
+    results.configs = await setBatchOutputConfigs(unitIp, canId, outputConfigs, maxBytes);
+    if (!results.configs.success) results.overallSuccess = false;
+    console.log(`✓ Set ${results.configs.successCount}/${outputConfigs.length} output configs`);
+  } catch (error) {
+    results.configs = { success: false, error: error.message };
+    results.overallSuccess = false;
+    console.error("✗ Failed to set output configs:", error);
+  }
+
+  return results;
+}
+
 export {
   getOutputAssign,
   setOutputAssign,
@@ -386,4 +690,8 @@ export {
   setOutputDelayOn,
   getOutputConfig,
   setOutputConfig,
+  setBatchOutputDelayOff,
+  setBatchOutputDelayOn,
+  setBatchOutputConfigs,
+  setupBatchLightingOutputs,
 };

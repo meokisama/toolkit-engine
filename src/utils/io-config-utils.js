@@ -174,8 +174,6 @@ export const createDefaultOutputConfigs = (unitType) => {
   return { outputs };
 };
 
-
-
 /**
  * Get the number of inputs for a unit type
  * @param {string} unitType - The type of unit
@@ -290,22 +288,27 @@ export const hasInputConfigChanged = (originalInput, currentInput) => {
   if (!originalInput || !currentInput) return true;
 
   // Compare the key properties that indicate a change
-  if (originalInput.functionValue !== currentInput.functionValue ||
-    originalInput.lightingId !== currentInput.lightingId) {
+  if (
+    originalInput.functionValue !== currentInput.functionValue ||
+    originalInput.lightingId !== currentInput.lightingId
+  ) {
     return true;
   }
 
   // Compare multi group config (array comparison)
-  const originalMultiGroup = originalInput.multiGroupConfig || [];
-  const currentMultiGroup = currentInput.multiGroupConfig || [];
+  const originalInputDetail = originalInput.multiGroupConfig || [];
+  const currentInputDetail = currentInput.multiGroupConfig || [];
 
-  if (originalMultiGroup.length !== currentMultiGroup.length) {
+  if (originalInputDetail.length !== currentInputDetail.length) {
     return true;
   }
 
   // Deep compare multi group config array
-  for (let i = 0; i < originalMultiGroup.length; i++) {
-    if (JSON.stringify(originalMultiGroup[i]) !== JSON.stringify(currentMultiGroup[i])) {
+  for (let i = 0; i < originalInputDetail.length; i++) {
+    if (
+      JSON.stringify(originalInputDetail[i]) !==
+      JSON.stringify(currentInputDetail[i])
+    ) {
       return true;
     }
   }
@@ -318,10 +321,22 @@ export const hasInputConfigChanged = (originalInput, currentInput) => {
   const rlcComparisons = [
     { orig: originalRlc.ramp || 0, curr: currentRlc.ramp || 0 },
     { orig: originalRlc.preset || 100, curr: currentRlc.preset || 100 },
-    { orig: originalRlc.ledStatus || originalRlc.led_status || 0, curr: currentRlc.ledStatus || currentRlc.led_status || 0 },
-    { orig: originalRlc.autoMode || originalRlc.auto_mode || 0, curr: currentRlc.autoMode || currentRlc.auto_mode || 0 },
-    { orig: originalRlc.delayOff || originalRlc.delay_off || 0, curr: currentRlc.delayOff || currentRlc.delay_off || 0 },
-    { orig: originalRlc.delayOn || originalRlc.delay_on || 0, curr: currentRlc.delayOn || currentRlc.delay_on || 0 },
+    {
+      orig: originalRlc.ledStatus || originalRlc.led_status || 0,
+      curr: currentRlc.ledStatus || currentRlc.led_status || 0,
+    },
+    {
+      orig: originalRlc.autoMode || originalRlc.auto_mode || 0,
+      curr: currentRlc.autoMode || currentRlc.auto_mode || 0,
+    },
+    {
+      orig: originalRlc.delayOff || originalRlc.delay_off || 0,
+      curr: currentRlc.delayOff || currentRlc.delay_off || 0,
+    },
+    {
+      orig: originalRlc.delayOn || originalRlc.delay_on || 0,
+      curr: currentRlc.delayOn || currentRlc.delay_on || 0,
+    },
   ];
 
   for (const comparison of rlcComparisons) {
@@ -345,11 +360,15 @@ export const getChangedInputIndices = (originalInputs, currentInputs) => {
   if (!originalInputs || !currentInputs) return changedIndices;
 
   // Create maps for easier lookup
-  const originalMap = new Map(originalInputs.map(input => [input.index, input]));
-  const currentMap = new Map(currentInputs.map(input => [input.index, input]));
+  const originalMap = new Map(
+    originalInputs.map((input) => [input.index, input])
+  );
+  const currentMap = new Map(
+    currentInputs.map((input) => [input.index, input])
+  );
 
   // Check each current input against its original
-  currentInputs.forEach(currentInput => {
+  currentInputs.forEach((currentInput) => {
     const originalInput = originalMap.get(currentInput.index);
     if (hasInputConfigChanged(originalInput, currentInput)) {
       changedIndices.add(currentInput.index);

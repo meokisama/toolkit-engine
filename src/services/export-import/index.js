@@ -65,12 +65,17 @@ class ExportImportService {
 
   // Get item value for export
   getItemValueForExport(itemType, itemValue, command, objectType) {
-    return CSVExporter.getItemValueForExport(itemType, itemValue, command, objectType);
+    return CSVExporter.getItemValueForExport(
+      itemType,
+      itemValue,
+      command,
+      objectType
+    );
   }
 
   // Update scene names to add part numbers when needed
-  updateSceneNamesForParts(scenes) {
-    return CSVImporter.updateSceneNamesForParts(scenes);
+  updateDaliSceneNamesForParts(scenes) {
+    return CSVImporter.updateDaliSceneNamesForParts(scenes);
   }
 
   // Parse item type from CSV
@@ -127,7 +132,6 @@ class ExportImportService {
   downloadBothSceneTemplates() {
     return CSVTemplateGenerator.downloadBothTemplates();
   }
-
 }
 
 export const exportImportService = new ExportImportService();

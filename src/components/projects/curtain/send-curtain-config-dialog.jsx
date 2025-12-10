@@ -73,25 +73,27 @@ export function SendCurtainConfigDialog({ open, onOpenChange, items = [] }) {
           stopGroup: stopGroup ? parseInt(stopGroup.address) : 0,
         });
 
-        const success = await window.electronAPI.rcuController.setCurtainConfig(
-          unit.ip_address,
-          unit.id_can,
-          {
-            index: curtain.calculatedIndex ?? 0,
-            address: parseInt(curtain.address),
-            curtainType: curtainTypeValue,
-            pausePeriod: curtain.pause_period || 0,
-            transitionPeriod: curtain.transition_period || 0,
-            openGroup: parseInt(openGroup.address),
-            closeGroup: parseInt(closeGroup.address),
-            stopGroup: stopGroup ? parseInt(stopGroup.address) : 0,
-          }
-        );
+        const success =
+          await window.electronAPI.curtainController.setCurtainConfig(
+            unit.ip_address,
+            unit.id_can,
+            {
+              index: curtain.calculatedIndex ?? 0,
+              address: parseInt(curtain.address),
+              curtainType: curtainTypeValue,
+              pausePeriod: curtain.pause_period || 0,
+              transitionPeriod: curtain.transition_period || 0,
+              openGroup: parseInt(openGroup.address),
+              closeGroup: parseInt(closeGroup.address),
+              stopGroup: stopGroup ? parseInt(stopGroup.address) : 0,
+            }
+          );
 
         if (success) {
           successCount++;
           toast.success(
-            `Curtain config sent successfully to ${unit.type || "Unknown Unit"
+            `Curtain config sent successfully to ${
+              unit.type || "Unknown Unit"
             } (${unit.ip_address})`
           );
         } else {
@@ -104,7 +106,8 @@ export function SendCurtainConfigDialog({ open, onOpenChange, items = [] }) {
           error
         );
         toast.error(
-          `Failed to send curtain config to ${unit.type || "Unknown Unit"} (${unit.ip_address
+          `Failed to send curtain config to ${unit.type || "Unknown Unit"} (${
+            unit.ip_address
           }): ${error.message}`
         );
       }
@@ -127,7 +130,8 @@ export function SendCurtainConfigDialog({ open, onOpenChange, items = [] }) {
     onProgress
   ) => {
     // Add delete operations to total count (one delete per unit)
-    const totalOperations = curtains.length * selectedUnits.length + selectedUnits.length;
+    const totalOperations =
+      curtains.length * selectedUnits.length + selectedUnits.length;
     let completedOperations = 0;
     const operationResults = [];
 
@@ -140,7 +144,7 @@ export function SendCurtainConfigDialog({ open, onOpenChange, items = [] }) {
           canId: unit.id_can,
         });
 
-        await window.electronAPI.rcuController.deleteAllCurtains(
+        await window.electronAPI.curtainController.deleteAllCurtains(
           unit.ip_address,
           unit.id_can
         );
@@ -153,7 +157,10 @@ export function SendCurtainConfigDialog({ open, onOpenChange, items = [] }) {
         });
 
         completedOperations++;
-        onProgress((completedOperations / totalOperations) * 100, "Deleting existing configs...");
+        onProgress(
+          (completedOperations / totalOperations) * 100,
+          "Deleting existing configs..."
+        );
       } catch (error) {
         console.error(
           `Failed to delete existing curtain configs from unit ${unit.ip_address}:`,
@@ -167,7 +174,10 @@ export function SendCurtainConfigDialog({ open, onOpenChange, items = [] }) {
         });
 
         completedOperations++;
-        onProgress((completedOperations / totalOperations) * 100, "Deleting existing configs...");
+        onProgress(
+          (completedOperations / totalOperations) * 100,
+          "Deleting existing configs..."
+        );
       }
     }
 
@@ -180,7 +190,9 @@ export function SendCurtainConfigDialog({ open, onOpenChange, items = [] }) {
       const currentCurtain = curtains[curtainIndex];
       onProgress(
         (completedOperations / totalOperations) * 100,
-        `Sending ${currentCurtain.name} (${curtainIndex + 1}/${curtains.length})`
+        `Sending ${currentCurtain.name} (${curtainIndex + 1}/${
+          curtains.length
+        })`
       );
 
       // Validate curtain config
@@ -229,7 +241,7 @@ export function SendCurtainConfigDialog({ open, onOpenChange, items = [] }) {
           });
 
           const success =
-            await window.electronAPI.rcuController.setCurtainConfig(
+            await window.electronAPI.curtainController.setCurtainConfig(
               unit.ip_address,
               unit.id_can,
               {

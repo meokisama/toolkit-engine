@@ -73,10 +73,11 @@ export function AddZigbeeDeviceDialog({ open, onOpenChange, onDevicesAdded }) {
 
         try {
           // Get Zigbee devices from the unit
-          const response = await window.electronAPI.rcuController.getZigbeeDevices({
-            unitIp: unit.ip_address,
-            canId: unit.id_can,
-          });
+          const response =
+            await window.electronAPI.zigbeeController.getZigbeeDevices({
+              unitIp: unit.ip_address,
+              canId: unit.id_can,
+            });
 
           if (response.success && response.devices) {
             // Save devices to database
@@ -88,10 +89,11 @@ export function AddZigbeeDeviceDialog({ open, onOpenChange, onDevicesAdded }) {
               };
 
               try {
-                const savedDevice = await window.electronAPI.zigbee.createDevice(
-                  selectedProject.id,
-                  deviceData
-                );
+                const savedDevice =
+                  await window.electronAPI.zigbee.createDevice(
+                    selectedProject.id,
+                    deviceData
+                  );
                 allDevices.push({
                   ...savedDevice,
                   unitName: unit.type || "Unit",
@@ -109,14 +111,20 @@ export function AddZigbeeDeviceDialog({ open, onOpenChange, onDevicesAdded }) {
             }
 
             toast.success(
-              `Found ${response.devices.length} device(s) on ${unit.type || "Unit"} (${unit.ip_address})`
+              `Found ${response.devices.length} device(s) on ${
+                unit.type || "Unit"
+              } (${unit.ip_address})`
             );
           } else {
-            toast.info(`No devices found on ${unit.type || "Unit"} (${unit.ip_address})`);
+            toast.info(
+              `No devices found on ${unit.type || "Unit"} (${unit.ip_address})`
+            );
           }
         } catch (error) {
           console.error(`Failed to scan unit ${unit.ip_address}:`, error);
-          toast.error(`Failed to scan ${unit.type || "Unit"} (${unit.ip_address})`);
+          toast.error(
+            `Failed to scan ${unit.type || "Unit"} (${unit.ip_address})`
+          );
         }
 
         setProgress(((i + 1) / totalUnits) * 100);
@@ -128,7 +136,9 @@ export function AddZigbeeDeviceDialog({ open, onOpenChange, onDevicesAdded }) {
 
       if (allDevices.length > 0) {
         toast.success(
-          `Successfully added ${allDevices.filter((d) => d.success).length} device(s)`
+          `Successfully added ${
+            allDevices.filter((d) => d.success).length
+          } device(s)`
         );
         if (onDevicesAdded) {
           onDevicesAdded();
@@ -151,7 +161,8 @@ export function AddZigbeeDeviceDialog({ open, onOpenChange, onDevicesAdded }) {
             Add Zigbee Devices
           </DialogTitle>
           <DialogDescription>
-            Select units to scan for Zigbee devices and add them to your project.
+            Select units to scan for Zigbee devices and add them to your
+            project.
           </DialogDescription>
         </DialogHeader>
 
@@ -246,7 +257,9 @@ export function AddZigbeeDeviceDialog({ open, onOpenChange, onDevicesAdded }) {
                           </div>
                           <div className="text-right">
                             <Badge
-                              variant={device.success ? "default" : "destructive"}
+                              variant={
+                                device.success ? "default" : "destructive"
+                              }
                             >
                               {device.success ? "Added" : "Failed"}
                             </Badge>

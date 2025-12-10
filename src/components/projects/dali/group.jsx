@@ -50,17 +50,18 @@ export function Group({ isActive }) {
         setLoading(true);
 
         // Initialize 16 groups in database if not exists
-        await window.electronAPI.dali.initializeGroups(selectedProject.id);
+        await window.electronAPI.dali.initializeDaliGroups(selectedProject.id);
 
         // Load group names and lighting_group_address
-        const groupNames = await window.electronAPI.dali.getAllGroupNames(
+        const groupNames = await window.electronAPI.dali.getAllDaliGroupNames(
           selectedProject.id
         );
 
         // Load group relationships
-        const groupDevices = await window.electronAPI.dali.getAllGroupDevices(
-          selectedProject.id
-        );
+        const groupDevices =
+          await window.electronAPI.dali.getAllDaliGroupDevices(
+            selectedProject.id
+          );
 
         setGroups((prev) =>
           prev.map((group) => {
@@ -91,7 +92,7 @@ export function Group({ isActive }) {
       if (!selectedProject || !newName.trim()) return;
 
       try {
-        await window.electronAPI.dali.updateGroupName(
+        await window.electronAPI.dali.updateDaliGroupName(
           selectedProject.id,
           groupId,
           newName.trim()
@@ -117,7 +118,7 @@ export function Group({ isActive }) {
       if (!selectedProject) return;
 
       try {
-        await window.electronAPI.dali.updateGroupLightingAddress(
+        await window.electronAPI.dali.updateDaliGroupLightingAddress(
           selectedProject.id,
           groupId,
           lightingGroupAddress === "" ? null : parseInt(lightingGroupAddress)
@@ -179,7 +180,7 @@ export function Group({ isActive }) {
 
           // Add to database
           window.electronAPI.dali
-            .addDeviceToGroup(selectedProject.id, groupId, deviceId)
+            .addDaliDeviceToGroup(selectedProject.id, groupId, deviceId)
             .then(() => {
               toast.success("Device added to group");
             })
@@ -214,7 +215,7 @@ export function Group({ isActive }) {
 
       // Remove from database
       window.electronAPI.dali
-        .removeDeviceFromGroup(selectedProject.id, groupId, deviceId)
+        .removeDaliDeviceFromGroup(selectedProject.id, groupId, deviceId)
         .then(() => {
           toast.success("Device removed from group");
         })

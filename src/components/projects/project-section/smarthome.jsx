@@ -120,10 +120,11 @@ export function Smarthome() {
 
           let response;
           try {
-            response = await window.electronAPI.rcuController.getZigbeeDevices({
-              unitIp: unitData.unit_ip,
-              canId: unitData.unit_can_id,
-            });
+            response =
+              await window.electronAPI.zigbeeController.getZigbeeDevices({
+                unitIp: unitData.unit_ip,
+                canId: unitData.unit_can_id,
+              });
           } catch (connectionError) {
             console.error(
               `Connection error to unit ${unitData.unit_ip}:`,
@@ -320,12 +321,13 @@ export function Smarthome() {
   const handleRemoveDevice = async (device) => {
     try {
       // 1. Send remove command to the device's unit
-      const result = await window.electronAPI.rcuController.removeZigbeeDevice({
-        unitIp: device.unit_ip,
-        canId: device.unit_can_id,
-        ieeeAddress: device.ieee_address,
-        deviceType: device.device_type,
-      });
+      const result =
+        await window.electronAPI.zigbeeController.removeZigbeeDevice({
+          unitIp: device.unit_ip,
+          canId: device.unit_can_id,
+          ieeeAddress: device.ieee_address,
+          deviceType: device.device_type,
+        });
 
       if (!result.success) {
         throw new Error("Failed to remove device from network");

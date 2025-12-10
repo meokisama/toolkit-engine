@@ -101,15 +101,16 @@ export function ZigbeeSwitchCard({ device, onRemove }) {
       // Toggle: if current value is 0 (OFF), send ON (1), otherwise send OFF (0)
       const command = endpoint.value === 0 ? 1 : 0; // 0: OFF, 1: ON
 
-      const result = await window.electronAPI.rcuController.sendZigbeeCommand({
-        unitIp: device.unit_ip,
-        canId: device.unit_can_id,
-        ieeeAddress: device.ieee_address,
-        deviceType: device.device_type,
-        endpointId: endpoint.id,
-        command: command,
-        deviceId: device.id, // Pass device ID for database update
-      });
+      const result =
+        await window.electronAPI.zigbeeController.sendZigbeeCommand({
+          unitIp: device.unit_ip,
+          canId: device.unit_can_id,
+          ieeeAddress: device.ieee_address,
+          deviceType: device.device_type,
+          endpointId: endpoint.id,
+          command: command,
+          deviceId: device.id, // Pass device ID for database update
+        });
 
       if (result.success) {
         toast.success(
@@ -208,21 +209,21 @@ export function ZigbeeSwitchCard({ device, onRemove }) {
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="h-5 w-5 flex-shrink-0 opacity-0 group-hover:opacity-60 hover:opacity-100 transition-opacity"
+                    className="h-5 w-5 shrink-0 opacity-0 group-hover:opacity-60 hover:opacity-100 transition-opacity"
                     onClick={() => handleEditEndpointName(endpoint.index)}
                   >
                     <Pencil className="h-3 w-3" />
                   </Button>
                 </div>
                 {isLoading && (
-                  <Loader2 className="h-4 w-4 animate-spin text-primary flex-shrink-0" />
+                  <Loader2 className="h-4 w-4 animate-spin text-primary shrink-0" />
                 )}
               </div>
               <Switch
                 checked={isOn}
                 onCheckedChange={() => handleToggle(endpoint)}
                 disabled={isLoading || device.status !== 1}
-                className="flex-shrink-0 data-[state=checked]:bg-orange-500"
+                className="shrink-0 data-[state=checked]:bg-orange-500"
               />
             </div>
           );

@@ -182,7 +182,7 @@ export function AssignEndpointAddressDialog({
             );
 
             const result =
-              await window.electronAPI.rcuController.setupZigbeeDevice({
+              await window.electronAPI.zigbeeController.setupZigbeeDevice({
                 unitIp: unitData.unitIp,
                 canId: unitData.canId,
                 devices: batch,

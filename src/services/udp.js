@@ -12,6 +12,7 @@ class UDPNetworkScanner {
     this.isScanning = false;
     this.scanResults = [];
     this.lastScanTime = null;
+    this.useSimulatedScan = false; // Set to true to use simulated scan instead of real UDP scan
     // Cache persists until next scan - no timeout
   }
 
@@ -159,8 +160,9 @@ class UDPNetworkScanner {
       const fwVersionPos2 = posData + 88;
 
       if (hwVersionPos2 < data.length) {
-        hwVersion = `${data[hwVersionPos2]}.${data[hwVersionPos1] >> 4}.${data[hwVersionPos1] & 0x0f
-          }`;
+        hwVersion = `${data[hwVersionPos2]}.${data[hwVersionPos1] >> 4}.${
+          data[hwVersionPos1] & 0x0f
+        }`;
       }
 
       if (fwVersionPos2 < data.length) {
@@ -243,17 +245,28 @@ class UDPNetworkScanner {
     console.log("Starting multi-interface network scan...");
 
     try {
+      // Check if simulate mode is enabled (takes priority)
+      if (this.useSimulatedScan) {
+        console.log("Using simulated scan mode (forced by flag)");
+        await this.simulateScan();
+        this.scanResults = sortByIpAddress(this.scanResults);
+      }
       // Check if we're in Electron environment
-      if (
+      else if (
         typeof window !== "undefined" &&
         window.electronAPI &&
         window.electronAPI.scanUDPNetwork
       ) {
         // Get network interface information from main process
-        const interfaces = await window.electronAPI.networkInterfaces.getAll(true); // Force refresh
-        const broadcastAddresses = interfaces.map(iface => iface.broadcast);
+        const interfaces = await window.electronAPI.networkInterfaces.getAll(
+          true
+        ); // Force refresh
+        const broadcastAddresses = interfaces.map((iface) => iface.broadcast);
 
-        console.log(`Scanning on ${broadcastAddresses.length} network interfaces:`, broadcastAddresses);
+        console.log(
+          `Scanning on ${broadcastAddresses.length} network interfaces:`,
+          broadcastAddresses
+        );
 
         // Use Electron IPC for UDP operations with multi-interface support
         const results = await window.electronAPI.scanUDPNetwork({
@@ -279,13 +292,16 @@ class UDPNetworkScanner {
           if (!seenUnits.has(unitKey)) {
             seenUnits.add(unitKey);
             // Add interface information to the unit using main process
-            const sourceInterface = await window.electronAPI.networkInterfaces.findInterfaceForTarget(unit.ip_address);
+            const sourceInterface =
+              await window.electronAPI.networkInterfaces.findInterfaceForTarget(
+                unit.ip_address
+              );
             if (sourceInterface) {
               unit.source_interface = {
                 name: sourceInterface.name,
                 address: sourceInterface.address,
                 network: sourceInterface.network,
-                broadcast: sourceInterface.broadcast
+                broadcast: sourceInterface.broadcast,
               };
             }
             uniqueResults.push(unit);
@@ -330,7 +346,7 @@ class UDPNetworkScanner {
 
     // Group units by IP to identify master-slave relationships
     const unitsByIP = {};
-    allResults.forEach(unit => {
+    allResults.forEach((unit) => {
       if (!unitsByIP[unit.ip_address]) {
         unitsByIP[unit.ip_address] = [];
       }
@@ -340,17 +356,21 @@ class UDPNetworkScanner {
     // Log master-slave relationships for debugging
     Object.entries(unitsByIP).forEach(([ip, units]) => {
       if (units.length > 1) {
-        const masters = units.filter(u => u.mode === "Master");
-        const slaves = units.filter(u => u.mode === "Slave");
-        console.log(`IP ${ip}: ${masters.length} master(s), ${slaves.length} slave(s)`);
+        const masters = units.filter((u) => u.mode === "Master");
+        const slaves = units.filter((u) => u.mode === "Slave");
+        console.log(
+          `IP ${ip}: ${masters.length} master(s), ${slaves.length} slave(s)`
+        );
 
-        slaves.forEach(slave => {
+        slaves.forEach((slave) => {
           console.log(`  - Slave: ${slave.type} (CAN ID: ${slave.id_can})`);
         });
       }
     });
 
-    console.log(`Enhanced scan completed. Found ${allResults.length} total units`);
+    console.log(
+      `Enhanced scan completed. Found ${allResults.length} total units`
+    );
 
     return allResults;
   }
@@ -366,47 +386,17 @@ class UDPNetworkScanner {
     this.scanResults = [
       {
         id: `unit_${Date.now()}_1`,
-        type: "Room Logic Controller",
-        serial_no: "8930000000019",
-        ip_address: "192.168.1.23",
-        id_can: "12.43.3.3",
+        type: "RCU-48IN-16RL",
+        serial_no: "8930000210043",
+        ip_address: "192.168.2.10",
+        id_can: "0.0.1.1",
         mode: "Master",
         firmware_version: "1.0.4",
         hardware_version: "3.2.5",
         manufacture_date: "06072015",
         can_load: true,
         recovery_mode: false,
-        description: "Room Logic Controller discovered on network",
-        discovered_at: new Date().toISOString(),
-      },
-      {
-        id: `unit_${Date.now()}_2`,
-        type: "Bedside-17T",
-        serial_no: "8930000000200",
-        ip_address: "192.168.1.23", // Same IP as master
-        id_can: "12.43.3.5", // Different CAN ID
-        mode: "Slave",
-        firmware_version: "1.0.4",
-        hardware_version: "3.2.5",
-        manufacture_date: "09032015",
-        can_load: true,
-        recovery_mode: false,
-        description: "Bedside-17T discovered on network",
-        discovered_at: new Date().toISOString(),
-      },
-      {
-        id: `unit_${Date.now()}_3`,
-        type: "Bedside-12T",
-        serial_no: "8930000100214",
-        ip_address: "192.168.1.23", // Same IP as master
-        id_can: "12.43.3.6", // Different CAN ID
-        mode: "Slave",
-        firmware_version: "1.0.4",
-        hardware_version: "3.2.5",
-        manufacture_date: "10032015",
-        can_load: true,
-        recovery_mode: false,
-        description: "Bedside-12T discovered on network",
+        description: "RCU-48IN-16RL discovered on network",
         discovered_at: new Date().toISOString(),
       },
     ];

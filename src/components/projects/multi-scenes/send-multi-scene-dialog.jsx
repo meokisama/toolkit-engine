@@ -49,17 +49,18 @@ export function SendMultiSceneDialog({ open, onOpenChange, items = [] }) {
           sceneAddresses: sceneAddresses,
         });
 
-        const response = await window.electronAPI.rcuController.setupMultiScene(
-          unit.ip_address,
-          unit.id_can,
-          {
-            multiSceneIndex: multiScene.calculatedIndex ?? 0,
-            multiSceneName: multiScene.name,
-            multiSceneAddress: multiScene.address,
-            multiSceneType: multiScene.type,
-            sceneAddresses: sceneAddresses,
-          }
-        );
+        const response =
+          await window.electronAPI.multiScenesController.setupMultiScene(
+            unit.ip_address,
+            unit.id_can,
+            {
+              multiSceneIndex: multiScene.calculatedIndex ?? 0,
+              multiSceneName: multiScene.name,
+              multiSceneAddress: multiScene.address,
+              multiSceneType: multiScene.type,
+              sceneAddresses: sceneAddresses,
+            }
+          );
 
         console.log(`Multi-scene sent successfully to ${unit.ip_address}:`, {
           responseLength: response?.msg?.length,
@@ -68,7 +69,8 @@ export function SendMultiSceneDialog({ open, onOpenChange, items = [] }) {
 
         successCount++;
         toast.success(
-          `Multi-scene sent successfully to ${unit.type || "Unknown Unit"} (${unit.ip_address
+          `Multi-scene sent successfully to ${unit.type || "Unknown Unit"} (${
+            unit.ip_address
           })`
         );
       } catch (error) {
@@ -78,7 +80,8 @@ export function SendMultiSceneDialog({ open, onOpenChange, items = [] }) {
           error
         );
         toast.error(
-          `Failed to send multi-scene to ${unit.type || "Unknown Unit"} (${unit.ip_address
+          `Failed to send multi-scene to ${unit.type || "Unknown Unit"} (${
+            unit.ip_address
           }): ${error.message}`
         );
       }
@@ -99,7 +102,8 @@ export function SendMultiSceneDialog({ open, onOpenChange, items = [] }) {
     onProgress
   ) => {
     // Add delete operations to total count (one delete per unit)
-    const totalOperations = multiScenes.length * selectedUnits.length + selectedUnits.length;
+    const totalOperations =
+      multiScenes.length * selectedUnits.length + selectedUnits.length;
     let completedOperations = 0;
     const operationResults = [];
 
@@ -112,7 +116,7 @@ export function SendMultiSceneDialog({ open, onOpenChange, items = [] }) {
           canId: unit.id_can,
         });
 
-        await window.electronAPI.rcuController.deleteAllMultiScenes(
+        await window.electronAPI.multiScenesController.deleteAllMultiScenes(
           unit.ip_address,
           unit.id_can
         );
@@ -125,7 +129,10 @@ export function SendMultiSceneDialog({ open, onOpenChange, items = [] }) {
         });
 
         completedOperations++;
-        onProgress((completedOperations / totalOperations) * 100, "Deleting existing multi-scenes...");
+        onProgress(
+          (completedOperations / totalOperations) * 100,
+          "Deleting existing multi-scenes..."
+        );
       } catch (error) {
         console.error(
           `Failed to delete existing multi-scenes from unit ${unit.ip_address}:`,
@@ -139,7 +146,10 @@ export function SendMultiSceneDialog({ open, onOpenChange, items = [] }) {
         });
 
         completedOperations++;
-        onProgress((completedOperations / totalOperations) * 100, "Deleting existing multi-scenes...");
+        onProgress(
+          (completedOperations / totalOperations) * 100,
+          "Deleting existing multi-scenes..."
+        );
       }
     }
 
@@ -218,7 +228,7 @@ export function SendMultiSceneDialog({ open, onOpenChange, items = [] }) {
           });
 
           const response =
-            await window.electronAPI.rcuController.setupMultiScene(
+            await window.electronAPI.multiScenesController.setupMultiScene(
               unit.ip_address,
               unit.id_can,
               {

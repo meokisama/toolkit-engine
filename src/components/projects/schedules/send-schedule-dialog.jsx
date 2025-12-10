@@ -16,7 +16,11 @@ export function SendScheduleDialog({ open, onOpenChange, items = [] }) {
     return true;
   };
 
-  const handleSendSingleSchedule = async (schedule, scheduleData, selectedUnits) => {
+  const handleSendSingleSchedule = async (
+    schedule,
+    scheduleData,
+    selectedUnits
+  ) => {
     let successCount = 0;
     let errorCount = 0;
 
@@ -47,17 +51,16 @@ export function SendScheduleDialog({ open, onOpenChange, items = [] }) {
 
         successCount++;
         toast.success(
-          `Schedule sent successfully to ${unit.type || unit.unit_type} (${unit.ip_address
+          `Schedule sent successfully to ${unit.type || unit.unit_type} (${
+            unit.ip_address
           })`
         );
       } catch (error) {
         errorCount++;
-        console.error(
-          `Failed to send schedule to ${unit.ip_address}:`,
-          error
-        );
+        console.error(`Failed to send schedule to ${unit.ip_address}:`, error);
         toast.error(
-          `Failed to send schedule to ${unit.type || unit.unit_type} (${unit.ip_address
+          `Failed to send schedule to ${unit.type || unit.unit_type} (${
+            unit.ip_address
           }): ${error.message}`
         );
       }
@@ -72,9 +75,14 @@ export function SendScheduleDialog({ open, onOpenChange, items = [] }) {
     }
   };
 
-  const handleSendBulkSchedules = async (schedules, selectedUnits, onProgress) => {
+  const handleSendBulkSchedules = async (
+    schedules,
+    selectedUnits,
+    onProgress
+  ) => {
     // Add delete operations to total count (one delete per unit)
-    const totalOperations = schedules.length * selectedUnits.length + selectedUnits.length;
+    const totalOperations =
+      schedules.length * selectedUnits.length + selectedUnits.length;
     let completedOperations = 0;
     const operationResults = [];
 
@@ -87,7 +95,7 @@ export function SendScheduleDialog({ open, onOpenChange, items = [] }) {
           canId: unit.id_can,
         });
 
-        await window.electronAPI.rcuController.deleteAllSchedules(
+        await window.electronAPI.scheduleController.deleteAllSchedules(
           unit.ip_address,
           unit.id_can
         );
@@ -100,7 +108,10 @@ export function SendScheduleDialog({ open, onOpenChange, items = [] }) {
         });
 
         completedOperations++;
-        onProgress((completedOperations / totalOperations) * 100, "Deleting existing schedules...");
+        onProgress(
+          (completedOperations / totalOperations) * 100,
+          "Deleting existing schedules..."
+        );
       } catch (error) {
         console.error(
           `Failed to delete existing schedules from unit ${unit.ip_address}:`,
@@ -114,15 +125,24 @@ export function SendScheduleDialog({ open, onOpenChange, items = [] }) {
         });
 
         completedOperations++;
-        onProgress((completedOperations / totalOperations) * 100, "Deleting existing schedules...");
+        onProgress(
+          (completedOperations / totalOperations) * 100,
+          "Deleting existing schedules..."
+        );
       }
     }
 
-    for (let scheduleIndex = 0; scheduleIndex < schedules.length; scheduleIndex++) {
+    for (
+      let scheduleIndex = 0;
+      scheduleIndex < schedules.length;
+      scheduleIndex++
+    ) {
       const currentScheduleData = schedules[scheduleIndex];
       onProgress(
         (completedOperations / totalOperations) * 100,
-        `Sending ${currentScheduleData.name} (${scheduleIndex + 1}/${schedules.length})`
+        `Sending ${currentScheduleData.name} (${scheduleIndex + 1}/${
+          schedules.length
+        })`
       );
 
       // Get schedule data
@@ -184,8 +204,9 @@ export function SendScheduleDialog({ open, onOpenChange, items = [] }) {
 
           operationResults.push({
             schedule: currentScheduleData.name,
-            unit: `${unit.type || unit.unit_type || "Unknown Unit"} (${unit.ip_address
-              })`,
+            unit: `${unit.type || unit.unit_type || "Unknown Unit"} (${
+              unit.ip_address
+            })`,
             success: true,
             message: "Sent successfully",
           });
@@ -198,8 +219,9 @@ export function SendScheduleDialog({ open, onOpenChange, items = [] }) {
           );
           operationResults.push({
             schedule: currentScheduleData.name,
-            unit: `${unit.type || unit.unit_type || "Unknown Unit"} (${unit.ip_address
-              })`,
+            unit: `${unit.type || unit.unit_type || "Unknown Unit"} (${
+              unit.ip_address
+            })`,
             success: false,
             message: error.message || "Failed to send",
           });

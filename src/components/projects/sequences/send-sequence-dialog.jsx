@@ -43,15 +43,16 @@ export function SendSequenceDialog({ open, onOpenChange, items = [] }) {
           multiSceneAddresses: multiSceneAddresses,
         });
 
-        const response = await window.electronAPI.rcuController.setupSequence(
-          unit.ip_address,
-          unit.id_can,
-          {
-            sequenceIndex: sequence.calculatedIndex ?? 0,
-            sequenceAddress: sequence.address,
-            multiSceneAddresses: multiSceneAddresses,
-          }
-        );
+        const response =
+          await window.electronAPI.sequenceController.setupSequence(
+            unit.ip_address,
+            unit.id_can,
+            {
+              sequenceIndex: sequence.calculatedIndex ?? 0,
+              sequenceAddress: sequence.address,
+              multiSceneAddresses: multiSceneAddresses,
+            }
+          );
 
         console.log(`Sequence sent successfully to ${unit.ip_address}:`, {
           responseLength: response?.msg?.length,
@@ -60,7 +61,8 @@ export function SendSequenceDialog({ open, onOpenChange, items = [] }) {
 
         successCount++;
         toast.success(
-          `Sequence sent successfully to ${unit.type || "Unknown Unit"} (${unit.ip_address
+          `Sequence sent successfully to ${unit.type || "Unknown Unit"} (${
+            unit.ip_address
           })`
         );
       } catch (error) {
@@ -70,7 +72,8 @@ export function SendSequenceDialog({ open, onOpenChange, items = [] }) {
           error
         );
         toast.error(
-          `Failed to send sequence to ${unit.type || "Unknown Unit"} (${unit.ip_address
+          `Failed to send sequence to ${unit.type || "Unknown Unit"} (${
+            unit.ip_address
           }): ${error.message}`
         );
       }
@@ -91,7 +94,8 @@ export function SendSequenceDialog({ open, onOpenChange, items = [] }) {
     onProgress
   ) => {
     // Add delete operations to total count (one delete per unit)
-    const totalOperations = sequences.length * selectedUnits.length + selectedUnits.length;
+    const totalOperations =
+      sequences.length * selectedUnits.length + selectedUnits.length;
     let completedOperations = 0;
     const operationResults = [];
 
@@ -104,7 +108,7 @@ export function SendSequenceDialog({ open, onOpenChange, items = [] }) {
           canId: unit.id_can,
         });
 
-        await window.electronAPI.rcuController.deleteAllSequences(
+        await window.electronAPI.sequenceController.deleteAllSequences(
           unit.ip_address,
           unit.id_can
         );
@@ -117,7 +121,10 @@ export function SendSequenceDialog({ open, onOpenChange, items = [] }) {
         });
 
         completedOperations++;
-        onProgress((completedOperations / totalOperations) * 100, "Deleting existing sequences...");
+        onProgress(
+          (completedOperations / totalOperations) * 100,
+          "Deleting existing sequences..."
+        );
       } catch (error) {
         console.error(
           `Failed to delete existing sequences from unit ${unit.ip_address}:`,
@@ -131,15 +138,24 @@ export function SendSequenceDialog({ open, onOpenChange, items = [] }) {
         });
 
         completedOperations++;
-        onProgress((completedOperations / totalOperations) * 100, "Deleting existing sequences...");
+        onProgress(
+          (completedOperations / totalOperations) * 100,
+          "Deleting existing sequences..."
+        );
       }
     }
 
-    for (let sequenceIndex = 0; sequenceIndex < sequences.length; sequenceIndex++) {
+    for (
+      let sequenceIndex = 0;
+      sequenceIndex < sequences.length;
+      sequenceIndex++
+    ) {
       const currentSequence = sequences[sequenceIndex];
       onProgress(
         (completedOperations / totalOperations) * 100,
-        `Sending ${currentSequence.name} (${sequenceIndex + 1}/${sequences.length})`
+        `Sending ${currentSequence.name} (${sequenceIndex + 1}/${
+          sequences.length
+        })`
       );
 
       // Get sequence data for this sequence
@@ -181,15 +197,16 @@ export function SendSequenceDialog({ open, onOpenChange, items = [] }) {
             multiSceneAddresses: multiSceneAddresses,
           });
 
-          const response = await window.electronAPI.rcuController.setupSequence(
-            unit.ip_address,
-            unit.id_can,
-            {
-              sequenceIndex: currentSequence.calculatedIndex ?? 0,
-              sequenceAddress: currentSequence.address,
-              multiSceneAddresses: multiSceneAddresses,
-            }
-          );
+          const response =
+            await window.electronAPI.sequenceController.setupSequence(
+              unit.ip_address,
+              unit.id_can,
+              {
+                sequenceIndex: currentSequence.calculatedIndex ?? 0,
+                sequenceAddress: currentSequence.address,
+                multiSceneAddresses: multiSceneAddresses,
+              }
+            );
 
           console.log(`Sequence sent successfully to ${unit.ip_address}:`, {
             responseLength: response?.msg?.length,

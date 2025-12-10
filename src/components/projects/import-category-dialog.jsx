@@ -13,7 +13,14 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { Upload, FileText, AlertCircle, CheckCircle, Download, Info } from "lucide-react";
+import {
+  Upload,
+  FileText,
+  AlertCircle,
+  CheckCircle,
+  Download,
+  Info,
+} from "lucide-react";
 import { toast } from "sonner";
 import { exportImportService } from "@/services/export-import";
 
@@ -90,15 +97,15 @@ export function ImportItemsDialog({
     const expectedHeaders =
       category === "unit"
         ? [
-          "name",
-          "type",
-          "serial_no",
-          "ip_address",
-          "id_can",
-          "mode",
-          "firmware_version",
-          "description",
-        ]
+            "name",
+            "type",
+            "serial_no",
+            "ip_address",
+            "id_can",
+            "mode",
+            "firmware_version",
+            "description",
+          ]
         : ["name", "address", "description"];
 
     const hasValidHeaders = expectedHeaders.every((header) =>
@@ -243,15 +250,15 @@ export function ImportItemsDialog({
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="sm:!max-w-[600px]">
+      <DialogContent className="sm:max-w-[600px]!">
         <DialogHeader>
           <DialogTitle>Import {categoryDisplayName} Items</DialogTitle>
           <DialogDescription>
             {category === "aircon"
               ? "Import aircon cards from a CSV file. Each row will create a card with 5 items (Power, Mode, Fan Speed, Temperature, Swing)."
               : category === "scene"
-                ? "Import scenes from a CSV file. Each scene can contain multiple items with their settings."
-                : `Import ${category} items from a CSV file. The CSV file should have the correct headers.`}
+              ? "Import scenes from a CSV file. Each scene can contain multiple items with their settings."
+              : `Import ${category} items from a CSV file. The CSV file should have the correct headers.`}
           </DialogDescription>
         </DialogHeader>
 
@@ -338,7 +345,8 @@ export function ImportItemsDialog({
                   </Popover>
                   <div className="text-sm text-muted-foreground mb-3">
                     <p>
-                      Download CSV templates to get started with the correct format:
+                      Download CSV templates to get started with the correct
+                      format:
                     </p>
                   </div>
                   <div className="flex gap-2">
@@ -409,10 +417,12 @@ export function ImportItemsDialog({
                         className="font-mono text-xs bg-background rounded px-2 py-1"
                       >
                         {category === "scene"
-                          ? `${item.name} (${item.items?.length || 0} items)${item.name.includes("(Part") ? " - Auto-split" : ""
-                          }`
-                          : `${item.name} ${item.address && `- ${item.address}`
-                          } ${item.type && `(${item.type})`}`}
+                          ? `${item.name} (${item.items?.length || 0} items)${
+                              item.name.includes("(Part") ? " - Auto-split" : ""
+                            }`
+                          : `${item.name} ${
+                              item.address && `- ${item.address}`
+                            } ${item.type && `(${item.type})`}`}
                       </div>
                     ))}
                     {importData.length > 3 && (
@@ -449,10 +459,10 @@ export function ImportItemsDialog({
                 {loading
                   ? "Importing..."
                   : category === "aircon"
-                    ? `Import ${importData.length} Cards`
-                    : category === "scene"
-                      ? `Import ${importData.length} Scenes`
-                      : `Import ${importData.length} Items`}
+                  ? `Import ${importData.length} Cards`
+                  : category === "scene"
+                  ? `Import ${importData.length} Scenes`
+                  : `Import ${importData.length} Items`}
               </Button>
             </>
           )}

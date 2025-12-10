@@ -127,7 +127,7 @@ export function SendKnxDialog({ open, onOpenChange, items = [] }) {
           knxValueGroup: knxData.knx_value_group || "",
         });
 
-        const success = await window.electronAPI.rcuController.setKnxConfig(
+        const success = await window.electronAPI.knxController.setKnxConfig(
           unit.ip_address,
           unit.id_can,
           {
@@ -146,7 +146,8 @@ export function SendKnxDialog({ open, onOpenChange, items = [] }) {
         if (success) {
           successCount++;
           toast.success(
-            `KNX config sent successfully to ${unit.type || "Unknown Unit"} (${unit.ip_address
+            `KNX config sent successfully to ${unit.type || "Unknown Unit"} (${
+              unit.ip_address
             })`
           );
         } else {
@@ -159,7 +160,8 @@ export function SendKnxDialog({ open, onOpenChange, items = [] }) {
           error
         );
         toast.error(
-          `Failed to send KNX config to ${unit.type || "Unknown Unit"} (${unit.ip_address
+          `Failed to send KNX config to ${unit.type || "Unknown Unit"} (${
+            unit.ip_address
           }): ${error.message}`
         );
       }
@@ -176,7 +178,8 @@ export function SendKnxDialog({ open, onOpenChange, items = [] }) {
 
   const handleSendBulkKnx = async (knxConfigs, selectedUnits, onProgress) => {
     // Add delete operations to total count (one delete per unit)
-    const totalOperations = knxConfigs.length * selectedUnits.length + selectedUnits.length;
+    const totalOperations =
+      knxConfigs.length * selectedUnits.length + selectedUnits.length;
     let completedOperations = 0;
     const operationResults = [];
 
@@ -189,7 +192,7 @@ export function SendKnxDialog({ open, onOpenChange, items = [] }) {
           canId: unit.id_can,
         });
 
-        await window.electronAPI.rcuController.deleteAllKnxConfigs(
+        await window.electronAPI.knxController.deleteAllKnxConfigs(
           unit.ip_address,
           unit.id_can
         );
@@ -202,7 +205,10 @@ export function SendKnxDialog({ open, onOpenChange, items = [] }) {
         });
 
         completedOperations++;
-        onProgress((completedOperations / totalOperations) * 100, "Deleting existing KNX configs...");
+        onProgress(
+          (completedOperations / totalOperations) * 100,
+          "Deleting existing KNX configs..."
+        );
       } catch (error) {
         console.error(
           `Failed to delete existing KNX configs from unit ${unit.ip_address}:`,
@@ -216,7 +222,10 @@ export function SendKnxDialog({ open, onOpenChange, items = [] }) {
         });
 
         completedOperations++;
-        onProgress((completedOperations / totalOperations) * 100, "Deleting existing KNX configs...");
+        onProgress(
+          (completedOperations / totalOperations) * 100,
+          "Deleting existing KNX configs..."
+        );
       }
     }
 
@@ -225,8 +234,9 @@ export function SendKnxDialog({ open, onOpenChange, items = [] }) {
     const lightingItems = await window.electronAPI.lighting.getAll(projectId);
     const curtainItems = await window.electronAPI.curtain.getAll(projectId);
     const sceneItems = await window.electronAPI.scene.getAll(projectId);
-    const multiSceneItems =
-      await window.electronAPI.multiScenes.getAll(projectId);
+    const multiSceneItems = await window.electronAPI.multiScenes.getAll(
+      projectId
+    );
     const sequenceItems = await window.electronAPI.sequences.getAll(projectId);
     const airconItems = await window.electronAPI.aircon.getAll(projectId);
 
@@ -330,7 +340,7 @@ export function SendKnxDialog({ open, onOpenChange, items = [] }) {
             knxValueGroup: knxData.knx_value_group || "",
           });
 
-          const success = await window.electronAPI.rcuController.setKnxConfig(
+          const success = await window.electronAPI.knxController.setKnxConfig(
             unit.ip_address,
             unit.id_can,
             {

@@ -41,7 +41,7 @@ export function SendSceneDialog({ open, onOpenChange, items = [] }) {
           sceneItems: sceneItemsData,
         });
 
-        const response = await window.electronAPI.rcuController.setupScene(
+        const response = await window.electronAPI.sceneController.setupScene(
           unit.ip_address,
           unit.id_can,
           {
@@ -59,7 +59,8 @@ export function SendSceneDialog({ open, onOpenChange, items = [] }) {
 
         successCount++;
         toast.success(
-          `Scene sent successfully to ${unit.type || "Unknown Unit"} (${unit.ip_address
+          `Scene sent successfully to ${unit.type || "Unknown Unit"} (${
+            unit.ip_address
           })`
         );
       } catch (error) {
@@ -69,7 +70,8 @@ export function SendSceneDialog({ open, onOpenChange, items = [] }) {
           error
         );
         toast.error(
-          `Failed to send scene to ${unit.type || "Unknown Unit"} (${unit.ip_address
+          `Failed to send scene to ${unit.type || "Unknown Unit"} (${
+            unit.ip_address
           }): ${error.message}`
         );
       }
@@ -86,7 +88,8 @@ export function SendSceneDialog({ open, onOpenChange, items = [] }) {
 
   const handleSendBulkScenes = async (scenes, selectedUnits, onProgress) => {
     // Add delete operations to total count (one delete per unit)
-    const totalOperations = scenes.length * selectedUnits.length + selectedUnits.length;
+    const totalOperations =
+      scenes.length * selectedUnits.length + selectedUnits.length;
     let completedOperations = 0;
     const operationResults = [];
 
@@ -99,7 +102,7 @@ export function SendSceneDialog({ open, onOpenChange, items = [] }) {
           canId: unit.id_can,
         });
 
-        await window.electronAPI.rcuController.deleteAllScenes(
+        await window.electronAPI.sceneController.deleteAllScenes(
           unit.ip_address,
           unit.id_can
         );
@@ -112,7 +115,10 @@ export function SendSceneDialog({ open, onOpenChange, items = [] }) {
         });
 
         completedOperations++;
-        onProgress((completedOperations / totalOperations) * 100, "Deleting existing scenes...");
+        onProgress(
+          (completedOperations / totalOperations) * 100,
+          "Deleting existing scenes..."
+        );
       } catch (error) {
         console.error(
           `Failed to delete existing scenes from unit ${unit.ip_address}:`,
@@ -126,7 +132,10 @@ export function SendSceneDialog({ open, onOpenChange, items = [] }) {
         });
 
         completedOperations++;
-        onProgress((completedOperations / totalOperations) * 100, "Deleting existing scenes...");
+        onProgress(
+          (completedOperations / totalOperations) * 100,
+          "Deleting existing scenes..."
+        );
       }
     }
 
@@ -180,7 +189,7 @@ export function SendSceneDialog({ open, onOpenChange, items = [] }) {
             sceneItems: sceneItemsData,
           });
 
-          const response = await window.electronAPI.rcuController.setupScene(
+          const response = await window.electronAPI.sceneController.setupScene(
             unit.ip_address,
             unit.id_can,
             {

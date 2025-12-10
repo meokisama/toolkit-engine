@@ -13,7 +13,7 @@ export {
 export { getAllInputConfigs } from "./rcu-controller/input-config.js";
 
 // Export input setup functions
-export { setupInputConfig } from "./rcu-controller/input-setup.js";
+export { setupInputConfig, setupBatchInputConfigs } from "./rcu-controller/input-setup.js";
 
 // Export output configuration functions
 export {
@@ -24,6 +24,10 @@ export {
   setOutputConfig,
   setOutputDelayOff,
   setOutputDelayOn,
+  setBatchOutputDelayOff,
+  setBatchOutputDelayOn,
+  setBatchOutputConfigs,
+  setupBatchLightingOutputs,
 } from "./rcu-controller/output.js";
 
 // Export air conditioner functions

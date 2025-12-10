@@ -260,7 +260,7 @@ export function RoomSettings() {
             roomConfigs: roomConfigsToSend,
           });
 
-          await window.electronAPI.rcuController.setRoomConfiguration(
+          await window.electronAPI.roomController.setRoomConfiguration(
             unit.ip_address,
             unit.id_can,
             generalConfig,
