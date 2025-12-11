@@ -230,90 +230,77 @@ function SendAllConfigDialogComponent({ open, onOpenChange }) {
     }
 
     try {
-      // Write input configurations
+      // Write all input configurations at once
       if (ioConfig.inputs && Array.isArray(ioConfig.inputs)) {
-        for (let inputIndex = 0; inputIndex < ioConfig.inputs.length; inputIndex++) {
-          const input = ioConfig.inputs[inputIndex];
-          if (input && input.functionValue !== undefined) {
-            const inputConfigData = {
-              inputNumber: inputIndex,
-              inputType: parseInt(input.functionValue) || 0,
-              ramp: parseInt(input.ramp) ?? 0,
-              preset: parseInt(input.preset) ?? 255,
-              ledStatus: parseInt(input.ledStatus) || 0,
-              autoMode: input.autoMode || false,
-              delayOff: parseInt(input.delayOff) ?? 0,
-              groups: input.groups || [],
-            };
+        const inputConfigsData = ioConfig.inputs
+          .filter((input) => input && input.functionValue !== undefined)
+          .map((input, index) => ({
+            inputNumber: index,
+            inputType: parseInt(input.functionValue) || 0,
+            ramp: parseInt(input.ramp) ?? 0,
+            preset: parseInt(input.preset) ?? 255,
+            ledStatus: parseInt(input.ledStatus) || 0,
+            autoMode: input.autoMode || false,
+            delayOff: parseInt(input.delayOff) ?? 0,
+            groups: input.groups || [],
+          }));
 
-            await window.electronAPI.ioController.setupInputConfig({
-              unitIp: unitIp,
-              canId: canId,
-              inputConfig: inputConfigData,
-            });
+        if (inputConfigsData.length > 0) {
+          console.log(`Sending ${inputConfigsData.length} input configurations in batch mode to ${unitIp}`);
+          const result = await window.electronAPI.ioController.setupBatchInputConfigs({
+            unitIp: unitIp,
+            canId: canId,
+            inputConfigs: inputConfigsData,
+            maxBytes: 900, // Auto-split into multiple batches if needed
+          });
 
-            // Small delay between input configurations
-            await new Promise((resolve) => setTimeout(resolve, 100));
+          if (result.success) {
+            console.log(`✓ Successfully sent ${result.successCount} input configs in batch mode`);
+          } else {
+            console.warn(`⚠ Batch input config send partially failed: ${result.successCount}/${inputConfigsData.length} succeeded`);
           }
         }
       }
 
-      // Write output configurations
+      // Write lighting output configurations using batch mode
       if (ioConfig.outputs && Array.isArray(ioConfig.outputs)) {
-        // Note: Output assignments will be collected after detailed configurations are processed
-        // This is moved to after the detailed config processing to ensure lightingAddress is available
+        // Filter lighting outputs (exclude aircon)
+        const lightingOutputs = ioConfig.outputs.filter((output) => output && output.deviceType !== "aircon");
 
-        // Process individual output configurations (delays, dimming, etc.)
-        for (let outputIndex = 0; outputIndex < ioConfig.outputs.length; outputIndex++) {
-          const output = ioConfig.outputs[outputIndex];
-          if (output) {
-            // Set output delays if specified
-            if (output.delayOff !== undefined && output.delayOff > 0) {
-              console.log(`Setting delay off for output ${outputIndex}: ${output.delayOff} seconds`);
-              await window.electronAPI.ioController.setOutputDelayOff(unitIp, canId, outputIndex, parseInt(output.delayOff) || 0);
+        if (lightingOutputs.length > 0) {
+          console.log(`Sending ${lightingOutputs.length} lighting output configurations in batch mode to ${unitIp}`);
+          const result = await window.electronAPI.ioController.setupBatchLightingOutputs({
+            unitIp: unitIp,
+            canId: canId,
+            lightingOutputs: lightingOutputs,
+            maxBytes: 900, // Auto-split into multiple batches if needed
+          });
 
-              await new Promise((resolve) => setTimeout(resolve, 100));
+          if (result.overallSuccess) {
+            console.log(`✓ Successfully sent lighting output configs in batch mode`);
+          } else {
+            console.warn(`Batch lighting output config send partially failed`);
+            if (result.assignments && !result.assignments.success) {
+              console.error(`  - Assignments error: ${result.assignments.error}`);
             }
-
-            if (output.delayOn !== undefined && output.delayOn > 0) {
-              console.log(`Setting delay on for output ${outputIndex}: ${output.delayOn} seconds`);
-              await window.electronAPI.ioController.setOutputDelayOn(unitIp, canId, outputIndex, parseInt(output.delayOn) || 0);
-
-              await new Promise((resolve) => setTimeout(resolve, 100));
+            if (result.delayOff && !result.delayOff.success) {
+              console.error(`  - Delay off errors:`, result.delayOff.errors);
             }
-
-            // Set output configuration (dimming levels, auto trigger, schedule) for lighting outputs
-            if (
-              output.deviceType !== "aircon" &&
-              (output.minDim !== undefined ||
-                output.maxDim !== undefined ||
-                output.autoTrigger !== undefined ||
-                output.scheduleOnHour !== undefined ||
-                output.scheduleOnMinute !== undefined ||
-                output.scheduleOffHour !== undefined ||
-                output.scheduleOffMinute !== undefined)
-            ) {
-              await window.electronAPI.ioController.setOutputConfig(unitIp, canId, outputIndex, {
-                minDimmingLevel: parseInt(output.minDim) || 1,
-                maxDimmingLevel: parseInt(output.maxDim) || 100,
-                autoTriggerFlag: output.autoTrigger ? 1 : 0,
-                scheduleOnHour: parseInt(output.scheduleOnHour) || 0,
-                scheduleOnMinute: parseInt(output.scheduleOnMinute) || 0,
-                scheduleOffHour: parseInt(output.scheduleOffHour) || 0,
-                scheduleOffMinute: parseInt(output.scheduleOffMinute) || 0,
-              });
-
-              await new Promise((resolve) => setTimeout(resolve, 100));
+            if (result.delayOn && !result.delayOn.success) {
+              console.error(`  - Delay on errors:`, result.delayOn.errors);
+            }
+            if (result.configs && !result.configs.success) {
+              console.error(`  - Config errors:`, result.configs.errors);
             }
           }
         }
       }
 
-      // Write AC configurations if present
+      // Write AC configurations
       if (ioConfig.acConfigs && Array.isArray(ioConfig.acConfigs)) {
         console.log(`Sending AC configurations to ${unitIp}:`, ioConfig.acConfigs);
         await window.electronAPI.ioController.setLocalACConfig(unitIp, canId, ioConfig.acConfigs);
-        console.log(`AC configurations sent successfully to ${unitIp}`);
+        console.log(`✓ AC configurations sent successfully to ${unitIp}`);
       }
     } catch (error) {
       console.error("Failed to write I/O configuration:", error);
@@ -623,68 +610,11 @@ function SendAllConfigDialogComponent({ open, onOpenChange }) {
                   delayOff: delayOff, // Convert to seconds for UDP command
                   delayOn: delayOn, // Convert to seconds for UDP command
                 };
-
-                // Debug logging for delay values
-                if (delayOff > 0 || delayOn > 0) {
-                  console.log(`Output ${i} delay values:`, {
-                    delayOff: delayOff,
-                    delayOn: delayOn,
-                    originalConfig: {
-                      delayOffHours: configData.delayOffHours,
-                      delayOffMinutes: configData.delayOffMinutes,
-                      delayOffSeconds: configData.delayOffSeconds,
-                      delayOnHours: configData.delayOnHours,
-                      delayOnMinutes: configData.delayOnMinutes,
-                      delayOnSeconds: configData.delayOnSeconds,
-                    },
-                  });
-                }
               }
             }
 
             // Add AC configs to detailed I/O config
             detailedIOConfig.acConfigs = acConfigs;
-
-            console.log("About to process output assignments...", {
-              totalOutputs: detailedIOConfig.outputs.length,
-              outputTypes: detailedIOConfig.outputs.map((o) => ({
-                index: o.index,
-                deviceType: o.deviceType,
-                hasLightingAddress: o.lightingAddress !== undefined,
-              })),
-            });
-
-            // Now collect output assignments after detailed configurations are processed
-            // Only collect assignments for non-aircon outputs
-            const outputAssignments = [];
-            const nonAirconOutputs = detailedIOConfig.outputs.filter((output) => output.deviceType !== "aircon");
-
-            console.log(
-              "Setting output assignments for non-aircon outputs:",
-              nonAirconOutputs.map((o) => ({
-                index: o.index,
-                deviceType: o.deviceType,
-                lightingAddress: o.lightingAddress || 0,
-              }))
-            );
-
-            for (const output of nonAirconOutputs) {
-              if (output && output.lightingAddress !== undefined) {
-                outputAssignments.push(parseInt(output.lightingAddress) || 0);
-              } else {
-                // Add 0 for outputs without assignment
-                outputAssignments.push(0);
-              }
-            }
-
-            // Send all output assignments in one packet if we have any non-aircon outputs
-            if (outputAssignments.length > 0) {
-              console.log("Sending bulk output assignments for non-aircon outputs:", outputAssignments);
-              await window.electronAPI.ioController.setAllOutputAssignments(currentIp, currentCanId, outputAssignments);
-
-              // Small delay after bulk assignment
-              await new Promise((resolve) => setTimeout(resolve, 200));
-            }
           } catch (error) {
             console.warn("Failed to load detailed output configurations:", error);
           }
