@@ -339,7 +339,7 @@ export const useNetworkIOConfig = (item, open, childDialogOpen = false) => {
 
   // Use simplified auto refresh hook
   const autoRefresh = useAutoRefresh(readStatesSequentially, {
-    interval: 3000,
+    interval: 1000,
     enabled: autoRefreshEnabled,
     dialogOpen: open,
     childDialogOpen: childDialogOpen,
