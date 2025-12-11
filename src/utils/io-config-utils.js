@@ -73,6 +73,13 @@ const createDefaultACConfig = () => ({
   windowBypass: 0,
   setPointOffset: 0,
 
+  // Window open configuration
+  windowOpenAction: 0,
+  windowOpenCoolSetPoint: 0,
+  windowOpenHeatSetPoint: 0,
+  windowDelay: 0,
+  roomAddress: 0,
+
   // Group assignments
   lowFCU_Group: 0,
   medFCU_Group: 0,
@@ -522,6 +529,16 @@ const AIRCON_CONFIG_FIELDS = [
   "windowBypass",
   "acSetPointOffset",
   "setPointOffset",
+  "acWindowOpenAction",
+  "windowOpenAction",
+  "acWindowOpenCoolSetPoint",
+  "windowOpenCoolSetPoint",
+  "acWindowOpenHeatSetPoint",
+  "windowOpenHeatSetPoint",
+  "acWindowDelay",
+  "windowDelay",
+  "acRoomAddress",
+  "roomAddress",
   "acUnoccupyPower",
   "unoccupyPower",
   "acOccupyPower",

@@ -248,7 +248,13 @@ async function getLocalACConfig(unitIp, canId) {
           valveHeatCloseGroup: configData[18],
           windowBypass: configData[19],
           setPointOffset: configData[20],
-          // Bytes 21-30: reserved (skip)
+          // Window open configuration (Bytes 21-26)
+          windowOpenAction: configData[21], // 0: free thermostat, 1: lock thermostat
+          windowOpenCoolSetPoint: configData[22],
+          windowOpenHeatSetPoint: configData[23],
+          windowDelay: configData[24] | (configData[25] << 8), // 2 bytes little endian (seconds)
+          roomAddress: configData[26],
+          // Bytes 27-30: reserved (skip)
           unoccupyPower: configData[31],
           occupyPower: configData[32],
           standbyPower: configData[33],
@@ -339,7 +345,19 @@ async function setLocalACConfig(unitIp, canId, acConfigs) {
     // Byte 20: setPointOffset
     configBytes[20] = config.setPointOffset || 0;
 
-    // Bytes 21-30: reserved (already filled with 0)
+    // Bytes 21-26: Window open configuration
+    configBytes[21] = config.windowOpenAction || 0; // 0: free thermostat, 1: lock thermostat
+    configBytes[22] = config.windowOpenCoolSetPoint || 0;
+    configBytes[23] = config.windowOpenHeatSetPoint || 0;
+
+    // Bytes 24-25: windowDelay (2 bytes, little endian, seconds)
+    const windowDelay = config.windowDelay || 0;
+    configBytes[24] = windowDelay & 0xff;
+    configBytes[25] = (windowDelay >> 8) & 0xff;
+
+    configBytes[26] = config.roomAddress || 0;
+
+    // Bytes 27-30: reserved (already filled with 0)
 
     // Byte 31-39: Power and mode settings
     configBytes[31] = config.unoccupyPower || 0;

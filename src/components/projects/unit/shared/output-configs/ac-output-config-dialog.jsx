@@ -68,6 +68,11 @@ const WINDOWS_OPTIONS = [
   { value: "1", label: "Bypass" },
 ];
 
+const WINDOW_OPEN_ACTION_OPTIONS = [
+  { value: "0", label: "Free thermostat" },
+  { value: "1", label: "Lock thermostat" },
+];
+
 const ACOutputConfigDialogComponent = ({
   open,
   onOpenChange,
@@ -91,6 +96,13 @@ const ACOutputConfigDialogComponent = ({
       deadband: 0,
       windowBypass: "0",
       setPointOffset: 0,
+
+      // Window open configuration
+      windowOpenAction: "0",
+      windowOpenCoolSetPoint: 0,
+      windowOpenHeatSetPoint: 0,
+      windowDelay: 0,
+      roomAddress: 0,
 
       // Group assignments
       lowFCU_Group: 0,
@@ -147,6 +159,13 @@ const ACOutputConfigDialogComponent = ({
       deadband: initialConfig.deadband || 0,
       windowBypass: initialConfig.windowBypass?.toString() || "0",
       setPointOffset: initialConfig.setPointOffset || 0,
+
+      // Window open configuration
+      windowOpenAction: initialConfig.windowOpenAction?.toString() || "0",
+      windowOpenCoolSetPoint: initialConfig.windowOpenCoolSetPoint || 0,
+      windowOpenHeatSetPoint: initialConfig.windowOpenHeatSetPoint || 0,
+      windowDelay: initialConfig.windowDelay || 0,
+      roomAddress: initialConfig.roomAddress || 0,
 
       // Group assignments
       lowFCU_Group: initialConfig.lowFCU_Group || 0,
@@ -206,7 +225,7 @@ const ACOutputConfigDialogComponent = ({
 
   // Memoize config transformation for better performance
   const configToSave = useMemo(() => {
-    const stringFields = ["windowMode", "fanType", "tempType", "tempUnit", "valveContact", "valveType", "windowBypass"];
+    const stringFields = ["windowMode", "fanType", "tempType", "tempUnit", "valveContact", "valveType", "windowBypass", "windowOpenAction"];
 
     const result = { ...config };
 
@@ -619,6 +638,111 @@ const ACOutputConfigDialogComponent = ({
                           {Array.from({ length: 21 }, (_, i) => i - 10).map((offset) => (
                             <SelectItem key={offset} value={offset.toString()}>
                               {offset > 0 ? `+${offset}` : offset.toString()}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Window Open Configuration */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2 text-base">
+                    <Settings className="h-4 w-4" />
+                    Window Open Configuration
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="grid grid-cols-4 gap-4">
+                    <div className="space-y-2">
+                      <Label className="text-sm font-medium">Window Open Action</Label>
+                      <Select value={config.windowOpenAction} onValueChange={(value) => updateConfig("windowOpenAction", value)}>
+                        <SelectTrigger className="w-full">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {WINDOW_OPEN_ACTION_OPTIONS.map((option) => (
+                            <SelectItem key={option.value} value={option.value}>
+                              {option.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label className="text-sm font-medium">Cool SetPoint</Label>
+                      <Select
+                        value={config.windowOpenCoolSetPoint?.toString() || "0"}
+                        onValueChange={(value) => updateConfig("windowOpenCoolSetPoint", parseInt(value) || 0)}
+                      >
+                        <SelectTrigger className="w-full">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {Array.from({ length: 31 }, (_, i) => i + 10).map((temp) => (
+                            <SelectItem key={temp} value={temp.toString()}>
+                              {temp}°
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label className="text-sm font-medium">Heat SetPoint</Label>
+                      <Select
+                        value={config.windowOpenHeatSetPoint?.toString() || "0"}
+                        onValueChange={(value) => updateConfig("windowOpenHeatSetPoint", parseInt(value) || 0)}
+                      >
+                        <SelectTrigger className="w-full">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {Array.from({ length: 31 }, (_, i) => i + 10).map((temp) => (
+                            <SelectItem key={temp} value={temp.toString()}>
+                              {temp}°
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label className="text-sm font-medium">Window Delay (seconds)</Label>
+                      <Select
+                        value={config.windowDelay?.toString() || "0"}
+                        onValueChange={(value) => updateConfig("windowDelay", parseInt(value) || 0)}
+                      >
+                        <SelectTrigger className="w-full">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {Array.from({ length: 61 }, (_, i) => i * 5).map((seconds) => (
+                            <SelectItem key={seconds} value={seconds.toString()}>
+                              {seconds}s
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label className="text-sm font-medium">Room Address</Label>
+                      <Select
+                        value={config.roomAddress?.toString() || "0"}
+                        onValueChange={(value) => updateConfig("roomAddress", parseInt(value) || 0)}
+                      >
+                        <SelectTrigger className="w-full">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {Array.from({ length: 256 }, (_, i) => i).map((address) => (
+                            <SelectItem key={address} value={address.toString()}>
+                              {address}
                             </SelectItem>
                           ))}
                         </SelectContent>
