@@ -41,7 +41,7 @@ const SequenceTable = memo(function SequenceTable({ items = [], loading = false 
   });
   const [saveLoading, setSaveLoading] = useState(false);
 
-  // ✅ Use ref instead of state to avoid re-renders when pendingChanges update
+  // Use ref instead of state to avoid re-renders when pendingChanges update
   const pendingChangesRef = useRef(new Map());
   const [pendingChangesCount, setPendingChangesCount] = useState(0);
 
@@ -213,7 +213,7 @@ const SequenceTable = memo(function SequenceTable({ items = [], loading = false 
     [loadSequenceCounts]
   );
 
-  // ✅ Stable function that doesn't change reference
+  // Stable function that doesn't change reference
   const handleCellEdit = useCallback((itemId, field, value) => {
     const existingChanges = pendingChangesRef.current.get(itemId) || {};
     pendingChangesRef.current.set(itemId, {
@@ -225,7 +225,7 @@ const SequenceTable = memo(function SequenceTable({ items = [], loading = false 
     setPendingChangesCount(pendingChangesRef.current.size);
   }, []);
 
-  // ✅ Stable function that doesn't depend on state
+  // Stable function that doesn't depend on state
   const getEffectiveValue = useCallback((item, field) => {
     const pendingChange = pendingChangesRef.current.get(item.id);
     return pendingChange && pendingChange[field] !== undefined ? pendingChange[field] : item[field];
@@ -237,7 +237,7 @@ const SequenceTable = memo(function SequenceTable({ items = [], loading = false 
     multiSceneCount: sequenceCounts[item.id] || 0,
   }));
 
-  // ✅ Now columns will be truly stable because all dependencies are stable!
+  // Now columns will be truly stable because all dependencies are stable!
   const columns = useMemo(
     () => createSequenceColumns(handleEditItem, handleDuplicateItem, handleDeleteItem, handleCellEdit, getEffectiveValue, handleSendToUnit),
     [

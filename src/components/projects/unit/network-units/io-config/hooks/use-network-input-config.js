@@ -208,7 +208,7 @@ export const useNetworkInputConfig = (item, projectItems, refreshInputConfigs = 
 
         return true;
       } catch (error) {
-        console.error("❌ Failed to save multi-group configuration:", error);
+        console.error(" Failed to save multi-group configuration:", error);
         toast.error(`Failed to save configuration: ${error.message}`);
         return false;
       }

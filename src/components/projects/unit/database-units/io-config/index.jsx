@@ -208,8 +208,8 @@ const IOConfigDialogComponent = ({ open, onOpenChange, item = null }) => {
         // No need to duplicate the logic here
         return success;
       } catch (error) {
-        console.error("❌ IOConfigDialog - Failed to save multi-group configuration:", error);
-        console.error("❌ IOConfigDialog - Error stack:", error.stack);
+        console.error(" IOConfigDialog - Failed to save multi-group configuration:", error);
+        console.error(" IOConfigDialog - Error stack:", error.stack);
         toast.error("Failed to save configuration: " + error.message);
         return false;
       }

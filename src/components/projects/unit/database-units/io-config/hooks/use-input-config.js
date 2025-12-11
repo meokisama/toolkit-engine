@@ -294,16 +294,12 @@ export const useInputConfig = (item, setInputConfigs = null, open = true) => {
               )
             );
           }
-
-          // Note: Multi-group config is already stored in multiGroupConfigs state
-          // and will be saved when main Save button is clicked
-
-          toast.success(`Input ${currentInputDetailInput.index + 1} configuration updated (will be saved when you click Save)`);
+          toast.success(`Input ${currentInputDetailInput.index + 1} configuration updated`);
         }
 
         return true;
       } catch (error) {
-        console.error("❌ Failed to save input config:", error);
+        console.error(" Failed to save input config:", error);
         console.error("Error details:", {
           message: error.message,
           stack: error.stack,

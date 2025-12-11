@@ -37,7 +37,7 @@ async function getAllInputConfigs(unitIp, canId) {
         const isSuccessPacket = packetLength === 5 && dataSection.length === 1 && dataSection[0] === 0x00;
 
         if (isSuccessPacket) {
-          console.log("✅ Input config success packet received - all data transmitted successfully");
+          console.log("Input config success packet received - all data transmitted successfully");
           successPacketReceived = true;
           clearTimeout(timeout);
           client.close();

@@ -31,11 +31,11 @@ function ProjectItemsTableComponent({ category, items, loading }) {
   const [pagination, setPagination] = useState({ pageIndex: 0, pageSize: 10 });
   const [saveLoading, setSaveLoading] = useState(false);
 
-  // ✅ Use ref instead of state to avoid re-renders when pendingChanges update
+  // Use ref instead of state to avoid re-renders when pendingChanges update
   const pendingChangesRef = useRef(new Map());
   const [pendingChangesCount, setPendingChangesCount] = useState(0);
 
-  // ✅ Stable function that doesn't change reference
+  // Stable function that doesn't change reference
   const handleCellEdit = useCallback((itemId, field, newValue) => {
     const itemChanges = pendingChangesRef.current.get(itemId) || {};
     itemChanges[field] = newValue;
@@ -45,7 +45,7 @@ function ProjectItemsTableComponent({ category, items, loading }) {
     setPendingChangesCount(pendingChangesRef.current.size);
   }, []);
 
-  // ✅ Stable function that doesn't depend on state
+  // Stable function that doesn't depend on state
   const getEffectiveValue = useCallback((itemId, field, originalValue) => {
     const itemChanges = pendingChangesRef.current.get(itemId);
     return itemChanges && itemChanges.hasOwnProperty(field) ? itemChanges[field] : originalValue;
@@ -181,7 +181,7 @@ function ProjectItemsTableComponent({ category, items, loading }) {
     [importItems, category]
   );
 
-  // ✅ Now columns will be truly stable because all dependencies are stable!
+  // Now columns will be truly stable because all dependencies are stable!
   const columns = useMemo(
     () => createProjectItemsColumns(handleEditItem, handleDuplicateItem, handleDeleteItem, handleCellEdit, getEffectiveValue),
     [

@@ -31,7 +31,7 @@ export const createProjectItemsColumns = (onEdit, onDuplicate, onDelete, onCellE
       const name = row.getValue("name");
       const effectiveValue = getEffectiveValue(row.original.id, "name", name);
 
-      // ✅ Memoize onSave function với dependencies cụ thể
+      // Memoize onSave function với dependencies cụ thể
       const handleNameSave = useCallback(
         (newValue) => {
           onCellEdit(row.original.id, "name", newValue);
@@ -63,7 +63,7 @@ export const createProjectItemsColumns = (onEdit, onDuplicate, onDelete, onCellE
       const address = row.getValue("address");
       const effectiveValue = getEffectiveValue(row.original.id, "address", address);
 
-      // ✅ Memoize onSave function
+      // Memoize onSave function
       const handleAddressSave = useCallback(
         (newValue) => {
           onCellEdit(row.original.id, "address", newValue);
@@ -95,7 +95,7 @@ export const createProjectItemsColumns = (onEdit, onDuplicate, onDelete, onCellE
       const description = row.getValue("description");
       const effectiveValue = getEffectiveValue(row.original.id, "description", description);
 
-      // ✅ Memoize onSave function
+      // Memoize onSave function
       const handleDescriptionSave = useCallback(
         (newValue) => {
           onCellEdit(row.original.id, "description", newValue);
@@ -118,7 +118,7 @@ export const createProjectItemsColumns = (onEdit, onDuplicate, onDelete, onCellE
     cell: ({ row }) => {
       const item = row.original;
 
-      // ✅ Memoize action handlers
+      // Memoize action handlers
       const handleEdit = useCallback(() => onEdit(item), [item, onEdit]);
       const handleDuplicate = useCallback(() => onDuplicate(item), [item, onDuplicate]);
       const handleDelete = useCallback(() => onDelete(item), [item, onDelete]);

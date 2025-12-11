@@ -68,7 +68,7 @@ export const useNetworkIOConfig = (item, open, childDialogOpen = false) => {
         }
       }
     } catch (error) {
-      console.error("❌ Background input state read failed:", error.message);
+      console.error(" Background input state read failed:", error.message);
     }
   }, [item?.ip_address, item?.id_can]);
 
@@ -192,7 +192,7 @@ export const useNetworkIOConfig = (item, open, childDialogOpen = false) => {
         }
       }
     } catch (error) {
-      console.error("❌ Background output state read failed:", error.message);
+      console.error(" Background output state read failed:", error.message);
     }
   }, [item?.ip_address, item?.id_can]);
 
@@ -333,7 +333,7 @@ export const useNetworkIOConfig = (item, open, childDialogOpen = false) => {
       // Step 2: Read output states
       await readOutputStatesBackground();
     } catch (error) {
-      console.warn("❌ Sequential state read failed:", error.message);
+      console.warn(" Sequential state read failed:", error.message);
     }
   }, [readInputStatesBackground, readOutputStatesBackground]);
 

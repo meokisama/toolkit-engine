@@ -56,7 +56,7 @@ const NetworkIOConfigDialog = ({ open, onOpenChange, item = null }) => {
     pauseAutoRefresh,
     resumeAutoRefresh,
     readStatesInitial,
-  } = useNetworkIOConfig(item, open, false); // We'll update this after getting multiGroupDialogOpen
+  } = useNetworkIOConfig(item, open, false);
 
   const {
     multiGroupDialogOpen,
