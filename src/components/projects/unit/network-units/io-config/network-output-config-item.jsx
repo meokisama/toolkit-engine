@@ -1,12 +1,11 @@
 import React, { useCallback, memo, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
-import { Badge } from "@/components/ui/badge";
 import { Combobox } from "@/components/custom/combobox";
 import { Settings, Plus, Edit } from "lucide-react";
 import lightOn from "@/assets/light-on.png";
 import lightOff from "@/assets/light-off.png";
-import { hasOutputConfigChanged } from "../utils/io-config-utils";
+import { hasOutputConfigChanged } from "@/utils/io-config-utils";
 
 const NetworkOutputConfigItem = memo(
   ({

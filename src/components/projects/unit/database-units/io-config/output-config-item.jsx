@@ -1,11 +1,25 @@
-import React, { useCallback, memo } from "react";
+import React, { useCallback, memo, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Combobox } from "@/components/custom/combobox";
 import { Settings, Zap, Lightbulb, Fan, Thermometer, Edit } from "lucide-react";
+import { hasOutputConfigChanged } from "@/utils/io-config-utils";
 
-const OutputConfigItem = memo(({ config, deviceOptions, onOutputDeviceChange, onOpenOutputConfig, onCreateEditDevice, isLoadingConfig }) => {
+const OutputConfigItem = memo(({ config, originalConfig, outputConfiguration, deviceOptions, onOutputDeviceChange, onOpenOutputConfig, onCreateEditDevice, isLoadingConfig }) => {
   const isAircon = config.type === "ac";
+
+  // Merge current config with detailed configuration for comparison
+  const fullConfig = useMemo(() => {
+    return {
+      ...config,
+      ...(outputConfiguration || {}),
+    };
+  }, [config, outputConfiguration]);
+
+  // Check if this output has changed from original configuration
+  const hasChanged = useMemo(() => {
+    return hasOutputConfigChanged(fullConfig, originalConfig);
+  }, [fullConfig, originalConfig]);
 
   const getOutputIcon = useCallback((type) => {
     switch (type) {
@@ -40,7 +54,11 @@ const OutputConfigItem = memo(({ config, deviceOptions, onOutputDeviceChange, on
   }, [config.index, config.type, config.deviceId, onCreateEditDevice]);
 
   return (
-    <div className="p-4 border rounded-lg flex gap-4 justify-between items-center w-full shadow">
+    <div
+      className={`p-4 border rounded-lg flex gap-4 justify-between items-center w-full shadow ${
+        hasChanged ? "border-orange-500 border-2" : "border-gray-200"
+      }`}
+    >
       <Label className="text-sm font-medium">
         {getOutputIcon(config.type)}
         {config.name}

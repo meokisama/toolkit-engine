@@ -7,6 +7,7 @@ export const useIOConfig = (item, open) => {
   const [outputConfigs, setOutputConfigs] = useState([]);
   const [originalIOConfig, setOriginalIOConfig] = useState(null);
   const [originalInputConfigs, setOriginalInputConfigs] = useState([]);
+  const [originalOutputConfigs, setOriginalOutputConfigs] = useState([]);
   const [loading, setLoading] = useState(false);
   const [isInitialLoading, setIsInitialLoading] = useState(false);
 
@@ -74,6 +75,7 @@ export const useIOConfig = (item, open) => {
   useEffect(() => {
     if (!open) {
       setOriginalInputConfigs([]);
+      setOriginalOutputConfigs([]);
       setOriginalIOConfig(null);
     }
   }, [open]);
@@ -163,6 +165,21 @@ export const useIOConfig = (item, open) => {
           return defaultConfig;
         });
         setOutputConfigs(mergedOutputConfigs);
+
+        // Store original output configs for change detection with full config data
+        const originalOutputs = mergedOutputConfigs.map((config) => {
+          const savedConfig = outputConfigs.outputs?.find((output) => output.index === config.index);
+
+          return {
+            index: config.index,
+            name: config.name,
+            type: config.type,
+            deviceId: config.deviceId,
+            // Include all config fields from saved data
+            ...(savedConfig?.config || {}),
+          };
+        });
+        setOriginalOutputConfigs(originalOutputs);
       } catch (error) {
         console.error("Failed to initialize I/O config:", error);
       } finally {
@@ -280,6 +297,7 @@ export const useIOConfig = (item, open) => {
     setInputConfigs,
     setOutputConfigs,
     originalInputConfigs,
+    originalOutputConfigs,
     ioSpec,
     outputTypes,
     loading,

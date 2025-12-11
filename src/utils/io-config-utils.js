@@ -446,3 +446,163 @@ export const updateOutputConfig = (ioConfig, outputIndex, outputData) => {
 
   return newConfig;
 };
+
+// ============================================================================
+// Output Configuration Change Detection
+// ============================================================================
+
+/**
+ * Configuration fields to compare for lighting outputs
+ * Used by both network units and database units
+ */
+const LIGHTING_CONFIG_FIELDS = [
+  "lightingAddress", // For network units
+  "deviceId", // For database units
+  "delayOff",
+  "delayOn",
+  "delayOffHours", // For database units (time split into components)
+  "delayOffMinutes",
+  "delayOffSeconds",
+  "delayOnHours",
+  "delayOnMinutes",
+  "delayOnSeconds",
+  "minDim",
+  "maxDim",
+  "autoTrigger",
+  "scheduleOnHour",
+  "scheduleOnMinute",
+  "scheduleOffHour",
+  "scheduleOffMinute",
+];
+
+/**
+ * Configuration fields to compare for aircon outputs
+ * Used by both network units and database units
+ */
+const AIRCON_CONFIG_FIELDS = [
+  "airconAddress", // For network units
+  "deviceId", // For database units
+  "acEnable",
+  "enable", // Database units use 'enable' instead of 'acEnable'
+  "acWindowMode",
+  "windowMode",
+  "acFanType",
+  "fanType",
+  "acTempType",
+  "tempType",
+  "acTempUnit",
+  "tempUnit",
+  "acValveContact",
+  "valveContact",
+  "acValveType",
+  "valveType",
+  "acDeadband",
+  "deadband",
+  "acLowFCU_Group",
+  "lowFCU_Group",
+  "acMedFCU_Group",
+  "medFCU_Group",
+  "acHighFCU_Group",
+  "highFCU_Group",
+  "acFanAnalogGroup",
+  "fanAnalogGroup",
+  "acAnalogCoolGroup",
+  "analogCoolGroup",
+  "acAnalogHeatGroup",
+  "analogHeatGroup",
+  "acValveCoolOpenGroup",
+  "valveCoolOpenGroup",
+  "acValveCoolCloseGroup",
+  "valveCoolCloseGroup",
+  "acValveHeatOpenGroup",
+  "valveHeatOpenGroup",
+  "acValveHeatCloseGroup",
+  "valveHeatCloseGroup",
+  "acWindowBypass",
+  "windowBypass",
+  "acSetPointOffset",
+  "setPointOffset",
+  "acUnoccupyPower",
+  "unoccupyPower",
+  "acOccupyPower",
+  "occupyPower",
+  "acStandbyPower",
+  "standbyPower",
+  "acUnoccupyMode",
+  "unoccupyMode",
+  "acOccupyMode",
+  "occupyMode",
+  "acStandbyMode",
+  "standbyMode",
+  "acUnoccupyFanSpeed",
+  "unoccupyFanSpeed",
+  "acOccupyFanSpeed",
+  "occupyFanSpeed",
+  "acStandbyFanSpeed",
+  "standbyFanSpeed",
+  "acUnoccupyCoolSetPoint",
+  "unoccupyCoolSetPoint",
+  "acOccupyCoolSetPoint",
+  "occupyCoolSetPoint",
+  "acStandbyCoolSetPoint",
+  "standbyCoolSetPoint",
+  "acUnoccupyHeatSetPoint",
+  "unoccupyHeatSetPoint",
+  "acOccupyHeatSetPoint",
+  "occupyHeatSetPoint",
+  "acStandbyHeatSetPoint",
+  "standbyHeatSetPoint",
+];
+
+/**
+ * Generic function to compare configuration fields
+ * @param {Object} config - Current configuration
+ * @param {Object} originalConfig - Original configuration
+ * @param {Array<string>} fields - Array of field names to compare
+ * @returns {boolean} True if any field has changed
+ */
+function hasConfigFieldsChanged(config, originalConfig, fields) {
+  if (!originalConfig) return false;
+  return fields.some((field) => config[field] !== originalConfig[field]);
+}
+
+/**
+ * Compare lighting output configuration with original configuration
+ * Works for both network units and database units
+ * @param {Object} config - Current configuration
+ * @param {Object} originalConfig - Original configuration
+ * @returns {boolean} True if configuration has changed
+ */
+export const hasLightingConfigChanged = (config, originalConfig) => {
+  return hasConfigFieldsChanged(config, originalConfig, LIGHTING_CONFIG_FIELDS);
+};
+
+/**
+ * Compare aircon output configuration with original configuration
+ * Works for both network units and database units
+ * @param {Object} config - Current configuration
+ * @param {Object} originalConfig - Original configuration
+ * @returns {boolean} True if configuration has changed
+ */
+export const hasAirconConfigChanged = (config, originalConfig) => {
+  return hasConfigFieldsChanged(config, originalConfig, AIRCON_CONFIG_FIELDS);
+};
+
+/**
+ * Check if output configuration has changed from original
+ * Automatically detects type and uses appropriate comparison
+ * Works for both network units and database units
+ * @param {Object} config - Current configuration with type field
+ * @param {Object} originalConfig - Original configuration
+ * @returns {boolean} True if configuration has changed
+ */
+export const hasOutputConfigChanged = (config, originalConfig) => {
+  if (!originalConfig) return false;
+
+  // Use type-specific comparison based on config type
+  if (config.type === "ac") {
+    return hasAirconConfigChanged(config, originalConfig);
+  } else {
+    return hasLightingConfigChanged(config, originalConfig);
+  }
+};

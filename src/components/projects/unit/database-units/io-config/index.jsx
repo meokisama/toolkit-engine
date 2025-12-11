@@ -27,7 +27,7 @@ const IOConfigDialogComponent = ({ open, onOpenChange, item = null }) => {
   const { projectItems, updateItem, selectedProject, loadTabData, loadedTabs } = useProjectDetail();
 
   // Use custom hooks for better organization
-  const { inputConfigs, outputConfigs, setInputConfigs, setOutputConfigs, originalInputConfigs, ioSpec, loading, isInitialLoading, saveConfig } =
+  const { inputConfigs, outputConfigs, setInputConfigs, setOutputConfigs, originalInputConfigs, originalOutputConfigs, ioSpec, loading, isInitialLoading, saveConfig } =
     useIOConfig(item, open);
 
   const {
@@ -321,17 +321,24 @@ const IOConfigDialogComponent = ({ open, onOpenChange, item = null }) => {
                     <ScrollArea className="h-full">
                       {outputConfigs.length > 0 ? (
                         <div className="space-y-3 pr-4">
-                          {outputConfigs.map((config) => (
-                            <OutputConfigItem
-                              key={config.index}
-                              config={config}
-                              deviceOptions={outputDeviceOptionsMap.get(config.index) || []}
-                              onOutputDeviceChange={handleOutputDeviceChangeWithState}
-                              onOpenOutputConfig={handleOpenOutputConfigWithState}
-                              onCreateEditDevice={handleCreateEditDevice}
-                              isLoadingConfig={false}
-                            />
-                          ))}
+                          {outputConfigs.map((config) => {
+                            // Find the original config for this output
+                            const originalConfig = originalOutputConfigs.find((orig) => orig.index === config.index);
+
+                            return (
+                              <OutputConfigItem
+                                key={config.index}
+                                config={config}
+                                originalConfig={originalConfig}
+                                outputConfiguration={outputConfigurations[config.index]}
+                                deviceOptions={outputDeviceOptionsMap.get(config.index) || []}
+                                onOutputDeviceChange={handleOutputDeviceChangeWithState}
+                                onOpenOutputConfig={handleOpenOutputConfigWithState}
+                                onCreateEditDevice={handleCreateEditDevice}
+                                isLoadingConfig={false}
+                              />
+                            );
+                          })}
                         </div>
                       ) : (
                         <div className="text-center text-muted-foreground py-8">
