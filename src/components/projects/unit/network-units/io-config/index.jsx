@@ -27,6 +27,10 @@ import { useNetworkInputConfig } from "./hooks/use-network-input-config";
 import { useNetworkOutputConfig } from "./hooks/use-network-output-config";
 import { useProjectDetail } from "@/contexts/project-detail-context";
 
+// Import utility functions
+import { hasOutputConfigChanged } from "../utils/io-config-utils";
+import { hasInputConfigChanged } from "@/utils/io-config-utils";
+
 const NetworkIOConfigDialog = ({ open, onOpenChange, item = null }) => {
   const { projectItems, selectedProject, loadTabData, loadedTabs } = useProjectDetail();
 
@@ -73,22 +77,7 @@ const NetworkIOConfigDialog = ({ open, onOpenChange, item = null }) => {
 
     return inputConfigs.some((config) => {
       const original = originalInputConfigs.find((orig) => orig.index === config.index);
-      if (!original) return false;
-
-      // Check if function changed
-      if (config.functionValue !== original.functionValue) return true;
-
-      // Check if multiGroupConfig changed
-      const configGroups = JSON.stringify(config.multiGroupConfig || []);
-      const originalGroups = JSON.stringify(original.multiGroupConfig || []);
-      if (configGroups !== originalGroups) return true;
-
-      // Check if rlcConfig changed
-      const configRlc = JSON.stringify(config.rlcConfig || {});
-      const originalRlc = JSON.stringify(original.rlcConfig || {});
-      if (configRlc !== originalRlc) return true;
-
-      return false;
+      return hasInputConfigChanged(original, config);
     });
   }, [inputConfigs, originalInputConfigs, configsLoaded]);
 
@@ -100,63 +89,7 @@ const NetworkIOConfigDialog = ({ open, onOpenChange, item = null }) => {
 
     return outputConfigs.some((config) => {
       const original = originalOutputConfigs.find((orig) => orig.index === config.index);
-      if (!original) return false;
-
-      // For lighting outputs
-      if (config.type !== "ac") {
-        if (config.lightingAddress !== original.lightingAddress) return true;
-        if (config.delayOff !== original.delayOff) return true;
-        if (config.delayOn !== original.delayOn) return true;
-        if (config.minDim !== original.minDim) return true;
-        if (config.maxDim !== original.maxDim) return true;
-        if (config.autoTrigger !== original.autoTrigger) return true;
-        if (config.scheduleOnHour !== original.scheduleOnHour) return true;
-        if (config.scheduleOnMinute !== original.scheduleOnMinute) return true;
-        if (config.scheduleOffHour !== original.scheduleOffHour) return true;
-        if (config.scheduleOffMinute !== original.scheduleOffMinute) return true;
-      }
-
-      // For AC outputs
-      if (config.type === "ac") {
-        if (config.airconAddress !== original.airconAddress) return true;
-        if (config.acEnable !== original.acEnable) return true;
-        if (config.acWindowMode !== original.acWindowMode) return true;
-        if (config.acFanType !== original.acFanType) return true;
-        if (config.acTempType !== original.acTempType) return true;
-        if (config.acTempUnit !== original.acTempUnit) return true;
-        if (config.acValveContact !== original.acValveContact) return true;
-        if (config.acValveType !== original.acValveType) return true;
-        if (config.acDeadband !== original.acDeadband) return true;
-        if (config.acLowFCU_Group !== original.acLowFCU_Group) return true;
-        if (config.acMedFCU_Group !== original.acMedFCU_Group) return true;
-        if (config.acHighFCU_Group !== original.acHighFCU_Group) return true;
-        if (config.acFanAnalogGroup !== original.acFanAnalogGroup) return true;
-        if (config.acAnalogCoolGroup !== original.acAnalogCoolGroup) return true;
-        if (config.acAnalogHeatGroup !== original.acAnalogHeatGroup) return true;
-        if (config.acValveCoolOpenGroup !== original.acValveCoolOpenGroup) return true;
-        if (config.acValveCoolCloseGroup !== original.acValveCoolCloseGroup) return true;
-        if (config.acValveHeatOpenGroup !== original.acValveHeatOpenGroup) return true;
-        if (config.acValveHeatCloseGroup !== original.acValveHeatCloseGroup) return true;
-        if (config.acWindowBypass !== original.acWindowBypass) return true;
-        if (config.acSetPointOffset !== original.acSetPointOffset) return true;
-        if (config.acUnoccupyPower !== original.acUnoccupyPower) return true;
-        if (config.acOccupyPower !== original.acOccupyPower) return true;
-        if (config.acStandbyPower !== original.acStandbyPower) return true;
-        if (config.acUnoccupyMode !== original.acUnoccupyMode) return true;
-        if (config.acOccupyMode !== original.acOccupyMode) return true;
-        if (config.acStandbyMode !== original.acStandbyMode) return true;
-        if (config.acUnoccupyFanSpeed !== original.acUnoccupyFanSpeed) return true;
-        if (config.acOccupyFanSpeed !== original.acOccupyFanSpeed) return true;
-        if (config.acStandbyFanSpeed !== original.acStandbyFanSpeed) return true;
-        if (config.acUnoccupyCoolSetPoint !== original.acUnoccupyCoolSetPoint) return true;
-        if (config.acOccupyCoolSetPoint !== original.acOccupyCoolSetPoint) return true;
-        if (config.acStandbyCoolSetPoint !== original.acStandbyCoolSetPoint) return true;
-        if (config.acUnoccupyHeatSetPoint !== original.acUnoccupyHeatSetPoint) return true;
-        if (config.acOccupyHeatSetPoint !== original.acOccupyHeatSetPoint) return true;
-        if (config.acStandbyHeatSetPoint !== original.acStandbyHeatSetPoint) return true;
-      }
-
-      return false;
+      return hasOutputConfigChanged(config, original);
     });
   }, [outputConfigs, originalOutputConfigs, configsLoaded]);
 

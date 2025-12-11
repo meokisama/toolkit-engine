@@ -319,3 +319,105 @@ export async function readIOConfigurations(networkUnit, selectedProject, project
 
   return result;
 }
+
+// Define configuration fields for each output type
+const LIGHTING_CONFIG_FIELDS = [
+  "lightingAddress",
+  "delayOff",
+  "delayOn",
+  "minDim",
+  "maxDim",
+  "autoTrigger",
+  "scheduleOnHour",
+  "scheduleOnMinute",
+  "scheduleOffHour",
+  "scheduleOffMinute",
+];
+
+const AIRCON_CONFIG_FIELDS = [
+  "airconAddress",
+  "acEnable",
+  "acWindowMode",
+  "acFanType",
+  "acTempType",
+  "acTempUnit",
+  "acValveContact",
+  "acValveType",
+  "acDeadband",
+  "acLowFCU_Group",
+  "acMedFCU_Group",
+  "acHighFCU_Group",
+  "acFanAnalogGroup",
+  "acAnalogCoolGroup",
+  "acAnalogHeatGroup",
+  "acValveCoolOpenGroup",
+  "acValveCoolCloseGroup",
+  "acValveHeatOpenGroup",
+  "acValveHeatCloseGroup",
+  "acWindowBypass",
+  "acSetPointOffset",
+  "acUnoccupyPower",
+  "acOccupyPower",
+  "acStandbyPower",
+  "acUnoccupyMode",
+  "acOccupyMode",
+  "acStandbyMode",
+  "acUnoccupyFanSpeed",
+  "acOccupyFanSpeed",
+  "acStandbyFanSpeed",
+  "acUnoccupyCoolSetPoint",
+  "acOccupyCoolSetPoint",
+  "acStandbyCoolSetPoint",
+  "acUnoccupyHeatSetPoint",
+  "acOccupyHeatSetPoint",
+  "acStandbyHeatSetPoint",
+];
+
+/**
+ * Generic function to compare configuration fields
+ * @param {Object} config - Current configuration
+ * @param {Object} originalConfig - Original configuration
+ * @param {Array<string>} fields - Array of field names to compare
+ * @returns {boolean} True if any field has changed
+ */
+function hasConfigFieldsChanged(config, originalConfig, fields) {
+  if (!originalConfig) return false;
+  return fields.some((field) => config[field] !== originalConfig[field]);
+}
+
+/**
+ * Compare lighting output configuration with original configuration
+ * @param {Object} config - Current configuration
+ * @param {Object} originalConfig - Original configuration
+ * @returns {boolean} True if configuration has changed
+ */
+export function hasLightingConfigChanged(config, originalConfig) {
+  return hasConfigFieldsChanged(config, originalConfig, LIGHTING_CONFIG_FIELDS);
+}
+
+/**
+ * Compare aircon output configuration with original configuration
+ * @param {Object} config - Current configuration
+ * @param {Object} originalConfig - Original configuration
+ * @returns {boolean} True if configuration has changed
+ */
+export function hasAirconConfigChanged(config, originalConfig) {
+  return hasConfigFieldsChanged(config, originalConfig, AIRCON_CONFIG_FIELDS);
+}
+
+/**
+ * Compare output configuration with original configuration (automatically detects type)
+ * @param {Object} config - Current configuration with type field
+ * @param {Object} originalConfig - Original configuration
+ * @returns {boolean} True if configuration has changed
+ */
+export function hasOutputConfigChanged(config, originalConfig) {
+  if (!originalConfig) return false;
+
+  // Use type-specific comparison based on config type
+  if (config.type === "ac") {
+    return hasAirconConfigChanged(config, originalConfig);
+  } else {
+    return hasLightingConfigChanged(config, originalConfig);
+  }
+}

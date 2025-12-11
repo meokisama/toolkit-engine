@@ -6,6 +6,7 @@ import { Combobox } from "@/components/custom/combobox";
 import { Settings, Plus, Edit } from "lucide-react";
 import lightOn from "@/assets/light-on.png";
 import lightOff from "@/assets/light-off.png";
+import { hasOutputConfigChanged } from "../utils/io-config-utils";
 
 const NetworkOutputConfigItem = memo(
   ({
@@ -24,63 +25,7 @@ const NetworkOutputConfigItem = memo(
 
     // Check if this output has changed from original configuration
     const hasChanged = useMemo(() => {
-      if (!originalConfig) return false;
-
-      // For lighting outputs
-      if (config.type !== "ac") {
-        if (config.lightingAddress !== originalConfig.lightingAddress) return true;
-        if (config.delayOff !== originalConfig.delayOff) return true;
-        if (config.delayOn !== originalConfig.delayOn) return true;
-        if (config.minDim !== originalConfig.minDim) return true;
-        if (config.maxDim !== originalConfig.maxDim) return true;
-        if (config.autoTrigger !== originalConfig.autoTrigger) return true;
-        if (config.scheduleOnHour !== originalConfig.scheduleOnHour) return true;
-        if (config.scheduleOnMinute !== originalConfig.scheduleOnMinute) return true;
-        if (config.scheduleOffHour !== originalConfig.scheduleOffHour) return true;
-        if (config.scheduleOffMinute !== originalConfig.scheduleOffMinute) return true;
-      }
-
-      // For AC outputs
-      if (config.type === "ac") {
-        if (config.airconAddress !== originalConfig.airconAddress) return true;
-        if (config.acEnable !== originalConfig.acEnable) return true;
-        if (config.acWindowMode !== originalConfig.acWindowMode) return true;
-        if (config.acFanType !== originalConfig.acFanType) return true;
-        if (config.acTempType !== originalConfig.acTempType) return true;
-        if (config.acTempUnit !== originalConfig.acTempUnit) return true;
-        if (config.acValveContact !== originalConfig.acValveContact) return true;
-        if (config.acValveType !== originalConfig.acValveType) return true;
-        if (config.acDeadband !== originalConfig.acDeadband) return true;
-        if (config.acLowFCU_Group !== originalConfig.acLowFCU_Group) return true;
-        if (config.acMedFCU_Group !== originalConfig.acMedFCU_Group) return true;
-        if (config.acHighFCU_Group !== originalConfig.acHighFCU_Group) return true;
-        if (config.acFanAnalogGroup !== originalConfig.acFanAnalogGroup) return true;
-        if (config.acAnalogCoolGroup !== originalConfig.acAnalogCoolGroup) return true;
-        if (config.acAnalogHeatGroup !== originalConfig.acAnalogHeatGroup) return true;
-        if (config.acValveCoolOpenGroup !== originalConfig.acValveCoolOpenGroup) return true;
-        if (config.acValveCoolCloseGroup !== originalConfig.acValveCoolCloseGroup) return true;
-        if (config.acValveHeatOpenGroup !== originalConfig.acValveHeatOpenGroup) return true;
-        if (config.acValveHeatCloseGroup !== originalConfig.acValveHeatCloseGroup) return true;
-        if (config.acWindowBypass !== originalConfig.acWindowBypass) return true;
-        if (config.acSetPointOffset !== originalConfig.acSetPointOffset) return true;
-        if (config.acUnoccupyPower !== originalConfig.acUnoccupyPower) return true;
-        if (config.acOccupyPower !== originalConfig.acOccupyPower) return true;
-        if (config.acStandbyPower !== originalConfig.acStandbyPower) return true;
-        if (config.acUnoccupyMode !== originalConfig.acUnoccupyMode) return true;
-        if (config.acOccupyMode !== originalConfig.acOccupyMode) return true;
-        if (config.acStandbyMode !== originalConfig.acStandbyMode) return true;
-        if (config.acUnoccupyFanSpeed !== originalConfig.acUnoccupyFanSpeed) return true;
-        if (config.acOccupyFanSpeed !== originalConfig.acOccupyFanSpeed) return true;
-        if (config.acStandbyFanSpeed !== originalConfig.acStandbyFanSpeed) return true;
-        if (config.acUnoccupyCoolSetPoint !== originalConfig.acUnoccupyCoolSetPoint) return true;
-        if (config.acOccupyCoolSetPoint !== originalConfig.acOccupyCoolSetPoint) return true;
-        if (config.acStandbyCoolSetPoint !== originalConfig.acStandbyCoolSetPoint) return true;
-        if (config.acUnoccupyHeatSetPoint !== originalConfig.acUnoccupyHeatSetPoint) return true;
-        if (config.acOccupyHeatSetPoint !== originalConfig.acOccupyHeatSetPoint) return true;
-        if (config.acStandbyHeatSetPoint !== originalConfig.acStandbyHeatSetPoint) return true;
-      }
-
-      return false;
+      return hasOutputConfigChanged(config, originalConfig);
     }, [originalConfig, config]);
 
     // Check if output has address but no matching database entry
