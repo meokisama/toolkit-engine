@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback, memo, useMemo } from "react";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Combobox } from "@/components/custom/combobox";
@@ -674,60 +675,48 @@ const ACOutputConfigDialogComponent = ({
                     </div>
 
                     <div className="space-y-2">
-                      <Label className="text-sm font-medium">Cool SetPoint</Label>
-                      <Select
-                        value={config.windowOpenCoolSetPoint?.toString() || "0"}
-                        onValueChange={(value) => updateConfig("windowOpenCoolSetPoint", parseInt(value) || 0)}
-                      >
-                        <SelectTrigger className="w-full">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {Array.from({ length: 31 }, (_, i) => i + 10).map((temp) => (
-                            <SelectItem key={temp} value={temp.toString()}>
-                              {temp}°
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
+                      <Label className="text-sm font-medium">Cool SetPoint (°C)</Label>
+                      <Input
+                        type="number"
+                        min="0"
+                        max="50"
+                        value={config.windowOpenCoolSetPoint || 0}
+                        onChange={(e) => {
+                          const value = parseInt(e.target.value) || 0;
+                          updateConfig("windowOpenCoolSetPoint", Math.min(Math.max(value, 0), 50));
+                        }}
+                        className="w-full"
+                      />
                     </div>
 
                     <div className="space-y-2">
-                      <Label className="text-sm font-medium">Heat SetPoint</Label>
-                      <Select
-                        value={config.windowOpenHeatSetPoint?.toString() || "0"}
-                        onValueChange={(value) => updateConfig("windowOpenHeatSetPoint", parseInt(value) || 0)}
-                      >
-                        <SelectTrigger className="w-full">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {Array.from({ length: 31 }, (_, i) => i + 10).map((temp) => (
-                            <SelectItem key={temp} value={temp.toString()}>
-                              {temp}°
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
+                      <Label className="text-sm font-medium">Heat SetPoint (°C)</Label>
+                      <Input
+                        type="number"
+                        min="0"
+                        max="50"
+                        value={config.windowOpenHeatSetPoint || 0}
+                        onChange={(e) => {
+                          const value = parseInt(e.target.value) || 0;
+                          updateConfig("windowOpenHeatSetPoint", Math.min(Math.max(value, 0), 50));
+                        }}
+                        className="w-full"
+                      />
                     </div>
 
                     <div className="space-y-2">
                       <Label className="text-sm font-medium">Window Delay (seconds)</Label>
-                      <Select
-                        value={config.windowDelay?.toString() || "0"}
-                        onValueChange={(value) => updateConfig("windowDelay", parseInt(value) || 0)}
-                      >
-                        <SelectTrigger className="w-full">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {Array.from({ length: 61 }, (_, i) => i * 5).map((seconds) => (
-                            <SelectItem key={seconds} value={seconds.toString()}>
-                              {seconds}s
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
+                      <Input
+                        type="number"
+                        min="0"
+                        max="65535"
+                        value={config.windowDelay || 0}
+                        onChange={(e) => {
+                          const value = parseInt(e.target.value) || 0;
+                          updateConfig("windowDelay", Math.min(Math.max(value, 0), 65535));
+                        }}
+                        className="w-full"
+                      />
                     </div>
 
                     <div className="space-y-2">
@@ -740,7 +729,8 @@ const ACOutputConfigDialogComponent = ({
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
-                          {Array.from({ length: 256 }, (_, i) => i).map((address) => (
+                          <SelectItem value="0">0 (None)</SelectItem>
+                          {Array.from({ length: 5 }, (_, i) => i + 1).map((address) => (
                             <SelectItem key={address} value={address.toString()}>
                               {address}
                             </SelectItem>
