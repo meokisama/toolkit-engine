@@ -278,7 +278,7 @@ export const CONSTANTS = {
         barcode: "8930000210074",
         inputs: 48,
         outputs: {
-          relay: 20,
+          relay: 16,
           dimmer: 0,
           ao: 0,
           ac: 10,
@@ -296,7 +296,7 @@ export const CONSTANTS = {
         barcode: "8930000210081",
         inputs: 48,
         outputs: {
-          relay: 20,
+          relay: 16,
           dimmer: 0,
           ao: 0,
           ac: 10,
