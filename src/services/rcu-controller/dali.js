@@ -99,11 +99,7 @@ async function daliCommissioning(unitIp, canId, extend = false) {
   // Extend: 1 byte 0xFF + 3 bytes 0x00
   const data = extend ? [0xff, 0x00, 0x00, 0x00] : [0x00, 0x00, 0x00, 0x00];
 
-  console.log(
-    `Starting DALI ${
-      extend ? "Extend" : "Reset"
-    } Commissioning for ${unitIp} (${canId})`
-  );
+  console.log(`Starting DALI ${extend ? "Extend" : "Reset"} Commissioning for ${unitIp} (${canId})`);
 
   // Track address conflicts
   const conflictAddresses = [];
@@ -128,9 +124,7 @@ async function daliCommissioning(unitIp, canId, extend = false) {
           // Device count notification
           const oldDeviceCount = msg[8];
           const newDeviceCount = msg[9];
-          console.log(
-            `Device count notification: old=${oldDeviceCount}, new=${newDeviceCount}`
-          );
+          console.log(`Device count notification: old=${oldDeviceCount}, new=${newDeviceCount}`);
           daliEvents.emit("deviceCountChanged", {
             unitIp,
             canId,
@@ -152,9 +146,7 @@ async function daliCommissioning(unitIp, canId, extend = false) {
       }
     );
 
-    console.log(
-      `Commissioning completed: received ${result.responses.length} packet(s), success: ${result.successPacketReceived}`
-    );
+    console.log(`Commissioning completed: received ${result.responses.length} packet(s), success: ${result.successPacketReceived}`);
 
     // Filter out device count notification packets (2 bytes data) and conflict packets (4 bytes: FF FF FF XX) before parsing
     const deviceDataResponses = result.responses.filter((response) => {
@@ -185,11 +177,7 @@ async function daliCommissioning(unitIp, canId, extend = false) {
 
     // Emit address conflict event if conflicts were detected
     if (conflictAddresses.length > 0) {
-      console.log(
-        `Found ${
-          conflictAddresses.length
-        } address conflict(s): ${conflictAddresses.join(", ")}`
-      );
+      console.log(`Found ${conflictAddresses.length} address conflict(s): ${conflictAddresses.join(", ")}`);
       daliEvents.emit("addressConflict", {
         unitIp,
         canId,
@@ -256,9 +244,7 @@ async function daliScan(unitIp, canId) {
       }
     );
 
-    console.log(
-      `Scan completed: received ${result.responses.length} packet(s), success: ${result.successPacketReceived}`
-    );
+    console.log(`Scan completed: received ${result.responses.length} packet(s), success: ${result.successPacketReceived}`);
 
     // Filter out address conflict packets (4 bytes: FF FF FF XX) before parsing
     const deviceDataResponses = result.responses.filter((response) => {
@@ -284,11 +270,7 @@ async function daliScan(unitIp, canId) {
 
     // Emit address conflict event if conflicts were detected
     if (conflictAddresses.length > 0) {
-      console.log(
-        `Found ${
-          conflictAddresses.length
-        } address conflict(s): ${conflictAddresses.join(", ")}`
-      );
+      console.log(`Found ${conflictAddresses.length} address conflict(s): ${conflictAddresses.join(", ")}`);
       daliEvents.emit("addressConflict", {
         unitIp,
         canId,
@@ -316,20 +298,14 @@ async function daliScan(unitIp, canId) {
  * @param {Array<number>} conflictAddresses - Array of conflict addresses to fix
  * @returns {Promise<Object>} - Result with success status and fixed addresses
  */
-async function daliConflictAddressCommissioning(
-  unitIp,
-  canId,
-  conflictAddresses
-) {
+async function daliConflictAddressCommissioning(unitIp, canId, conflictAddresses) {
   const idAddress = convertCanIdToInt(canId);
 
   if (!Array.isArray(conflictAddresses) || conflictAddresses.length === 0) {
     throw new Error("Conflict addresses array is required and cannot be empty");
   }
 
-  console.log(
-    `Starting DALI Conflict Address Commissioning for ${unitIp} (${canId})`
-  );
+  console.log(`Starting DALI Conflict Address Commissioning for ${unitIp} (${canId})`);
   console.log(`Fixing ${conflictAddresses.length} conflict address(es)`);
 
   const results = [];
@@ -360,16 +336,9 @@ async function daliConflictAddressCommissioning(
           success: result.success,
         });
 
-        console.log(
-          `Commissioning for address ${address}: ${
-            result.success ? "success" : "failed"
-          }`
-        );
+        console.log(`Commissioning for address ${address}: ${result.success ? "success" : "failed"}`);
       } catch (error) {
-        console.error(
-          `Failed to send commissioning command for address ${address}:`,
-          error
-        );
+        console.error(`Failed to send commissioning command for address ${address}:`, error);
         results.push({
           address,
           success: false,
@@ -381,9 +350,7 @@ async function daliConflictAddressCommissioning(
     const successCount = results.filter((r) => r.success).length;
     const allSuccess = successCount === conflictAddresses.length;
 
-    console.log(
-      `Conflict address commissioning completed: ${successCount}/${conflictAddresses.length} succeeded`
-    );
+    console.log(`Conflict address commissioning completed: ${successCount}/${conflictAddresses.length} succeeded`);
 
     return {
       success: allSuccess,
@@ -404,14 +371,7 @@ async function daliBroadcastOn(unitIp, canId) {
   const idAddress = convertCanIdToInt(canId);
 
   try {
-    const result = await sendCommand(
-      unitIp,
-      UDP_PORT,
-      idAddress,
-      CMD1,
-      CMD2.BROADCAST_ON,
-      [0x00, 0x00]
-    );
+    const result = await sendCommand(unitIp, UDP_PORT, idAddress, CMD1, CMD2.BROADCAST_ON, [0x00, 0x00]);
 
     return result;
   } catch (error) {
@@ -427,14 +387,7 @@ async function daliBroadcastOff(unitIp, canId) {
   const idAddress = convertCanIdToInt(canId);
 
   try {
-    const result = await sendCommand(
-      unitIp,
-      UDP_PORT,
-      idAddress,
-      CMD1,
-      CMD2.BROADCAST_OFF,
-      [0x00, 0x00]
-    );
+    const result = await sendCommand(unitIp, UDP_PORT, idAddress, CMD1, CMD2.BROADCAST_OFF, [0x00, 0x00]);
 
     return result;
   } catch (error) {
@@ -455,14 +408,7 @@ async function triggerDaliDevice(unitIp, canId, deviceAddress, level) {
 
   try {
     const data = [deviceAddress, level, 0x00, 0x00];
-    const result = await sendCommand(
-      unitIp,
-      UDP_PORT,
-      idAddress,
-      CMD1,
-      CMD2.TRIGGER_DALI_DEVICE,
-      data
-    );
+    const result = await sendCommand(unitIp, UDP_PORT, idAddress, CMD1, CMD2.TRIGGER_DALI_DEVICE, data);
 
     return result;
   } catch (error) {
@@ -481,20 +427,11 @@ async function triggerDaliDevice(unitIp, canId, deviceAddress, level) {
 async function triggerDaliGroup(unitIp, canId, groupId, level) {
   const idAddress = convertCanIdToInt(canId);
 
-  console.log(
-    `Triggering DALI group ${groupId} to level ${level} for ${unitIp} (${canId})`
-  );
+  console.log(`Triggering DALI group ${groupId} to level ${level} for ${unitIp} (${canId})`);
 
   try {
     const data = [groupId, level, 0x00, 0x00];
-    const result = await sendCommand(
-      unitIp,
-      UDP_PORT,
-      idAddress,
-      CMD1,
-      CMD2.TRIGGER_DALI_GROUP,
-      data
-    );
+    const result = await sendCommand(unitIp, UDP_PORT, idAddress, CMD1, CMD2.TRIGGER_DALI_GROUP, data);
 
     return result;
   } catch (error) {
@@ -516,14 +453,7 @@ async function triggerDaliScene(unitIp, canId, sceneId) {
 
   try {
     const data = [sceneId, 0x00, 0x00, 0x00];
-    const result = await sendCommand(
-      unitIp,
-      UDP_PORT,
-      idAddress,
-      CMD1,
-      CMD2.TRIGGER_DALI_SCENE,
-      data
-    );
+    const result = await sendCommand(unitIp, UDP_PORT, idAddress, CMD1, CMD2.TRIGGER_DALI_SCENE, data);
 
     return result;
   } catch (error) {
@@ -545,15 +475,7 @@ async function triggerDaliScene(unitIp, canId, sceneId) {
  *   - colorFeature 3: { r: number, g: number, b: number }
  *   - colorFeature 4: { r: number, g: number, b: number, w: number }
  */
-async function triggerDaliType8Device(
-  unitIp,
-  canId,
-  deviceIndex,
-  deviceAddress,
-  colorFeature,
-  brightness,
-  colorData
-) {
+async function triggerDaliType8Device(unitIp, canId, deviceIndex, deviceAddress, colorFeature, brightness, colorData) {
   const idAddress = convertCanIdToInt(canId);
 
   try {
@@ -595,14 +517,7 @@ async function triggerDaliType8Device(
 
     console.log("Type 8 trigger data:", data);
 
-    const result = await sendCommand(
-      unitIp,
-      UDP_PORT,
-      idAddress,
-      CMD1,
-      CMD2.TRIGGER_DALI_TYPE8,
-      data
-    );
+    const result = await sendCommand(unitIp, UDP_PORT, idAddress, CMD1, CMD2.TRIGGER_DALI_TYPE8, data);
 
     return result;
   } catch (error) {
@@ -629,9 +544,7 @@ async function sendAddressMapping(unitIp, canId, addressMapping) {
   // Validate each address is in range 0-63
   for (let i = 0; i < addressMapping.length; i++) {
     if (addressMapping[i] < 0 || addressMapping[i] > 63) {
-      throw new Error(
-        `Invalid address at index ${i}: ${addressMapping[i]}. Must be between 0-63`
-      );
+      throw new Error(`Invalid address at index ${i}: ${addressMapping[i]}. Must be between 0-63`);
     }
   }
 
@@ -639,17 +552,7 @@ async function sendAddressMapping(unitIp, canId, addressMapping) {
   console.log("Address mapping:", addressMapping.join(","));
 
   try {
-    const result = await sendCommand(
-      unitIp,
-      UDP_PORT,
-      idAddress,
-      CMD1,
-      CMD2.MAPPING_ADDRESS,
-      addressMapping,
-      false,
-      false,
-      60000
-    );
+    const result = await sendCommand(unitIp, UDP_PORT, idAddress, CMD1, CMD2.MAPPING_ADDRESS, addressMapping, false, false, 60000);
 
     return result;
   } catch (error) {
@@ -679,17 +582,7 @@ async function sendMappingRCU(unitIp, canId, rcuMapping) {
   console.log("Group RCU mapping (0-15):", rcuMapping.slice(64, 80).join(","));
 
   try {
-    const result = await sendCommand(
-      unitIp,
-      UDP_PORT,
-      idAddress,
-      CMD1,
-      CMD2.MAPPING_RCU,
-      rcuMapping,
-      false,
-      false,
-      60000
-    );
+    const result = await sendCommand(unitIp, UDP_PORT, idAddress, CMD1, CMD2.MAPPING_RCU, rcuMapping, false, false, 60000);
 
     return result;
   } catch (error) {
@@ -741,27 +634,13 @@ async function resetAllConfig(unitIp, canId) {
 async function sendDeleteAddress(unitIp, canId, address) {
   const idAddress = convertCanIdToInt(canId);
 
-  console.log(
-    `Sending DELETE_ADDRESS for ${unitIp} (${canId}), address: ${
-      address === 0xff ? "ALL (0xFF)" : address
-    }`
-  );
+  console.log(`Sending DELETE_ADDRESS for ${unitIp} (${canId}), address: ${address === 0xff ? "ALL (0xFF)" : address}`);
 
   try {
     // Data format: [address_byte, 0x00, 0x00, 0x00]
     const data = [address, 0x00, 0x00, 0x00];
 
-    const result = await sendCommand(
-      unitIp,
-      UDP_PORT,
-      idAddress,
-      CMD1,
-      CMD2.DELETE_ADDRESS,
-      data,
-      false,
-      false,
-      60000
-    );
+    const result = await sendCommand(unitIp, UDP_PORT, idAddress, CMD1, CMD2.DELETE_ADDRESS, data, false, false, 60000);
 
     return result;
   } catch (error) {
@@ -788,12 +667,7 @@ function buildDeviceConfig(device, sceneDevices, groupDevices) {
 
   // Bytes 2-17: 16 scene levels (0-255, or 0xFF if device not in scene)
   for (let sceneId = 0; sceneId < 16; sceneId++) {
-    const sceneDevice = sceneDevices.find(
-      (sd) =>
-        sd.scene_id === sceneId &&
-        sd.device_address === device.address &&
-        sd.active
-    );
+    const sceneDevice = sceneDevices.find((sd) => sd.scene_id === sceneId && sd.device_address === device.address && sd.active);
     if (sceneDevice) {
       config.push(sceneDevice.brightness);
     } else {
@@ -832,9 +706,7 @@ async function sendGroupSceneConfig(unitIp, canId, projectId, database) {
   try {
     // Get all devices with mappings from database
     const allDevices = await database.getAllDaliDevices(projectId);
-    const mappedDevices = allDevices.filter(
-      (d) => d.mapped_device_index !== null && d.mapped_device_address !== null
-    );
+    const mappedDevices = allDevices.filter((d) => d.mapped_device_index !== null && d.mapped_device_address !== null);
 
     if (mappedDevices.length === 0) {
       throw new Error("No mapped devices found. Please map devices first.");
@@ -847,29 +719,17 @@ async function sendGroupSceneConfig(unitIp, canId, projectId, database) {
     const groupDevices = await database.getAllDaliGroupDevices(projectId);
 
     // Filter to only include devices that are in at least one group or scene
-    const devicesInGroups = new Set(
-      groupDevices.map((gd) => gd.device_address)
-    );
-    const devicesInScenes = new Set(
-      sceneDevices.filter((sd) => sd.active).map((sd) => sd.device_address)
-    );
+    const devicesInGroups = new Set(groupDevices.map((gd) => gd.device_address));
+    const devicesInScenes = new Set(sceneDevices.filter((sd) => sd.active).map((sd) => sd.device_address));
 
-    const filteredDevices = mappedDevices.filter(
-      (device) =>
-        devicesInGroups.has(device.address) ||
-        devicesInScenes.has(device.address)
-    );
+    const filteredDevices = mappedDevices.filter((device) => devicesInGroups.has(device.address) || devicesInScenes.has(device.address));
 
     if (filteredDevices.length === 0) {
-      throw new Error(
-        "No devices found in any group or scene. Please assign devices to groups or scenes first."
-      );
+      throw new Error("No devices found in any group or scene. Please assign devices to groups or scenes first.");
     }
 
     console.log(`Found ${mappedDevices.length} mapped device(s)`);
-    console.log(
-      `Found ${filteredDevices.length} device(s) in groups or scenes`
-    );
+    console.log(`Found ${filteredDevices.length} device(s) in groups or scenes`);
 
     // Build configuration data
     // Split devices into batches of 16
@@ -889,18 +749,12 @@ async function sendGroupSceneConfig(unitIp, canId, projectId, database) {
       const configData = [];
 
       for (const device of batch) {
-        const deviceConfig = buildDeviceConfig(
-          device,
-          sceneDevices,
-          groupDevices
-        );
+        const deviceConfig = buildDeviceConfig(device, sceneDevices, groupDevices);
         configData.push(...deviceConfig);
       }
 
       if (configData.length === 0) {
-        console.warn(
-          `Batch ${batchIndex + 1} has no configuration data, skipping`
-        );
+        console.warn(`Batch ${batchIndex + 1} has no configuration data, skipping`);
         continue;
       }
 
@@ -920,9 +774,7 @@ async function sendGroupSceneConfig(unitIp, canId, projectId, database) {
       allConfigResults.push(configResult);
       totalBytesSent += configData.length;
 
-      console.log(
-        `Batch ${batchIndex + 1}/${batches.length} sent successfully`
-      );
+      console.log(`Batch ${batchIndex + 1}/${batches.length} sent successfully`);
     }
 
     console.log(`All ${batches.length} batch(es) sent successfully`);
@@ -944,14 +796,10 @@ async function sendGroupSceneConfig(unitIp, canId, projectId, database) {
     console.log("APPLY_CONFIG command sent successfully");
 
     // ===== Process Device Type 8 Scene Configuration =====
-    const type8Devices = mappedDevices.filter(
-      (d) => d.mapped_device_type === 8
-    );
+    const type8Devices = mappedDevices.filter((d) => d.mapped_device_type === 8);
 
     if (type8Devices.length > 0) {
-      console.log(
-        `Found ${type8Devices.length} device(s) of type 8, building DT8 scene config...`
-      );
+      console.log(`Found ${type8Devices.length} device(s) of type 8, building DT8 scene config...`);
 
       // Build array of device scene configurations (9 bytes each)
       const dt8SceneConfigs = [];
@@ -960,12 +808,7 @@ async function sendGroupSceneConfig(unitIp, canId, projectId, database) {
       for (let sceneId = 0; sceneId < 16; sceneId++) {
         for (const device of type8Devices) {
           // Find scene device configuration for this device and scene
-          const sceneDevice = sceneDevices.find(
-            (sd) =>
-              sd.scene_id === sceneId &&
-              sd.device_address === device.address &&
-              sd.active
-          );
+          const sceneDevice = sceneDevices.find((sd) => sd.scene_id === sceneId && sd.device_address === device.address && sd.active);
 
           if (sceneDevice) {
             // Build 9-byte configuration
@@ -1019,9 +862,7 @@ async function sendGroupSceneConfig(unitIp, canId, projectId, database) {
       }
 
       if (dt8SceneConfigs.length > 0) {
-        console.log(
-          `Built ${dt8SceneConfigs.length} DT8 scene configuration(s)`
-        );
+        console.log(`Built ${dt8SceneConfigs.length} DT8 scene configuration(s)`);
 
         // Split into batches of 16 device scenes (144 bytes per batch)
         const DT8_SCENES_PER_BATCH = 16;
@@ -1042,11 +883,7 @@ async function sendGroupSceneConfig(unitIp, canId, projectId, database) {
             dt8Data.push(...config);
           }
 
-          console.log(
-            `Sending DT8 batch ${batchIndex + 1}/${dt8Batches.length} (${
-              batch.length
-            } device scene(s), ${dt8Data.length} bytes)...`
-          );
+          console.log(`Sending DT8 batch ${batchIndex + 1}/${dt8Batches.length} (${batch.length} device scene(s), ${dt8Data.length} bytes)...`);
 
           const dt8Result = await sendCommand(
             unitIp,
@@ -1062,28 +899,19 @@ async function sendGroupSceneConfig(unitIp, canId, projectId, database) {
 
           dt8BatchResults.push(dt8Result);
 
-          console.log(
-            `DT8 batch ${batchIndex + 1}/${dt8Batches.length} sent successfully`
-          );
+          console.log(`DT8 batch ${batchIndex + 1}/${dt8Batches.length} sent successfully`);
         }
 
         console.log(`All ${dt8Batches.length} DT8 batch(es) sent successfully`);
 
         // Check if all DT8 batches were successful
-        const allDt8BatchesSuccessful = dt8BatchResults.every(
-          (result) => result.success
-        );
+        const allDt8BatchesSuccessful = dt8BatchResults.every((result) => result.success);
 
         // Check if all batches (both DT6 and DT8) were successful
-        const allBatchesSuccessful = allConfigResults.every(
-          (result) => result.success
-        );
+        const allBatchesSuccessful = allConfigResults.every((result) => result.success);
 
         return {
-          success:
-            allBatchesSuccessful &&
-            applyResult.success &&
-            allDt8BatchesSuccessful,
+          success: allBatchesSuccessful && applyResult.success && allDt8BatchesSuccessful,
           deviceCount: filteredDevices.length,
           batchCount: batches.length,
           totalBytes: totalBytesSent,
@@ -1099,9 +927,7 @@ async function sendGroupSceneConfig(unitIp, canId, projectId, database) {
     }
 
     // Check if all batches were successful
-    const allBatchesSuccessful = allConfigResults.every(
-      (result) => result.success
-    );
+    const allBatchesSuccessful = allConfigResults.every((result) => result.success);
 
     return {
       success: allBatchesSuccessful && applyResult.success,

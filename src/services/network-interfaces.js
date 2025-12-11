@@ -1,4 +1,4 @@
-import os from 'os';
+import os from "os";
 
 /**
  * Network Interface Detection and Management Service
@@ -18,10 +18,9 @@ class NetworkInterfaceService {
    */
   getNetworkInterfaces(forceRefresh = false) {
     const now = Date.now();
-    
+
     // Return cached data if still valid
-    if (!forceRefresh && this.cachedInterfaces && 
-        this.cacheTimestamp && (now - this.cacheTimestamp) < this.cacheTimeout) {
+    if (!forceRefresh && this.cachedInterfaces && this.cacheTimestamp && now - this.cacheTimestamp < this.cacheTimeout) {
       return this.cachedInterfaces;
     }
 
@@ -30,9 +29,7 @@ class NetworkInterfaceService {
 
     for (const [name, addresses] of Object.entries(interfaces)) {
       // Skip loopback and non-IPv4 interfaces
-      const ipv4Addresses = addresses.filter(addr => 
-        addr.family === 'IPv4' && !addr.internal
-      );
+      const ipv4Addresses = addresses.filter((addr) => addr.family === "IPv4" && !addr.internal);
 
       for (const addr of ipv4Addresses) {
         const interfaceInfo = {
@@ -44,7 +41,7 @@ class NetworkInterfaceService {
           broadcast: this.calculateBroadcastAddress(addr.address, addr.netmask),
           network: this.calculateNetworkAddress(addr.address, addr.netmask),
           isUp: !addr.internal,
-          family: addr.family
+          family: addr.family,
         };
 
         result.push(interfaceInfo);
@@ -55,8 +52,10 @@ class NetworkInterfaceService {
     this.cachedInterfaces = result;
     this.cacheTimestamp = now;
 
-    console.log(`Found ${result.length} active IPv4 network interfaces:`, 
-      result.map(iface => `${iface.name}: ${iface.address}/${this.cidrFromNetmask(iface.netmask)} -> ${iface.broadcast}`));
+    console.log(
+      `Found ${result.length} active IPv4 network interfaces:`,
+      result.map((iface) => `${iface.name}: ${iface.address}/${this.cidrFromNetmask(iface.netmask)} -> ${iface.broadcast}`)
+    );
 
     return result;
   }
@@ -68,15 +67,15 @@ class NetworkInterfaceService {
    * @returns {string} Broadcast address
    */
   calculateBroadcastAddress(ip, netmask) {
-    const ipParts = ip.split('.').map(Number);
-    const maskParts = netmask.split('.').map(Number);
-    
+    const ipParts = ip.split(".").map(Number);
+    const maskParts = netmask.split(".").map(Number);
+
     const broadcastParts = ipParts.map((ipPart, index) => {
       const maskPart = maskParts[index];
       return ipPart | (255 - maskPart);
     });
-    
-    return broadcastParts.join('.');
+
+    return broadcastParts.join(".");
   }
 
   /**
@@ -86,15 +85,15 @@ class NetworkInterfaceService {
    * @returns {string} Network address
    */
   calculateNetworkAddress(ip, netmask) {
-    const ipParts = ip.split('.').map(Number);
-    const maskParts = netmask.split('.').map(Number);
-    
+    const ipParts = ip.split(".").map(Number);
+    const maskParts = netmask.split(".").map(Number);
+
     const networkParts = ipParts.map((ipPart, index) => {
       const maskPart = maskParts[index];
       return ipPart & maskPart;
     });
-    
-    return networkParts.join('.');
+
+    return networkParts.join(".");
   }
 
   /**
@@ -103,9 +102,9 @@ class NetworkInterfaceService {
    * @returns {number} CIDR prefix length (e.g., 24)
    */
   cidrFromNetmask(netmask) {
-    const maskParts = netmask.split('.').map(Number);
+    const maskParts = netmask.split(".").map(Number);
     let cidr = 0;
-    
+
     for (const part of maskParts) {
       let temp = part;
       while (temp > 0) {
@@ -113,7 +112,7 @@ class NetworkInterfaceService {
         temp = temp >> 1;
       }
     }
-    
+
     return cidr;
   }
 
@@ -124,7 +123,7 @@ class NetworkInterfaceService {
    */
   getBroadcastAddresses(forceRefresh = false) {
     const interfaces = this.getNetworkInterfaces(forceRefresh);
-    return interfaces.map(iface => iface.broadcast);
+    return interfaces.map((iface) => iface.broadcast);
   }
 
   /**
@@ -135,7 +134,7 @@ class NetworkInterfaceService {
   getInterfacesBySubnet(forceRefresh = false) {
     const interfaces = this.getNetworkInterfaces(forceRefresh);
     const subnets = {};
-    
+
     for (const iface of interfaces) {
       const subnetKey = `${iface.network}/${this.cidrFromNetmask(iface.netmask)}`;
       if (!subnets[subnetKey]) {
@@ -143,7 +142,7 @@ class NetworkInterfaceService {
       }
       subnets[subnetKey].push(iface);
     }
-    
+
     return subnets;
   }
 
@@ -154,12 +153,12 @@ class NetworkInterfaceService {
    */
   findInterfaceForTarget(targetIp) {
     const interfaces = this.getNetworkInterfaces();
-    const targetParts = targetIp.split('.').map(Number);
-    
+    const targetParts = targetIp.split(".").map(Number);
+
     for (const iface of interfaces) {
-      const ifaceParts = iface.address.split('.').map(Number);
-      const maskParts = iface.netmask.split('.').map(Number);
-      
+      const ifaceParts = iface.address.split(".").map(Number);
+      const maskParts = iface.netmask.split(".").map(Number);
+
       // Check if target IP is in the same subnet
       let sameSubnet = true;
       for (let i = 0; i < 4; i++) {
@@ -168,12 +167,12 @@ class NetworkInterfaceService {
           break;
         }
       }
-      
+
       if (sameSubnet) {
         return iface;
       }
     }
-    
+
     return null;
   }
 
@@ -188,7 +187,7 @@ class NetworkInterfaceService {
     if (sameSubnetInterface) {
       return sameSubnetInterface;
     }
-    
+
     // If no same-subnet interface found, return the first available interface
     const interfaces = this.getNetworkInterfaces();
     return interfaces.length > 0 ? interfaces[0] : null;
@@ -209,18 +208,18 @@ class NetworkInterfaceService {
   getSummary() {
     const interfaces = this.getNetworkInterfaces();
     const subnets = this.getInterfacesBySubnet();
-    
+
     return {
       totalInterfaces: interfaces.length,
       totalSubnets: Object.keys(subnets).length,
-      interfaces: interfaces.map(iface => ({
+      interfaces: interfaces.map((iface) => ({
         name: iface.name,
         address: iface.address,
         cidr: `${iface.address}/${this.cidrFromNetmask(iface.netmask)}`,
         broadcast: iface.broadcast,
-        network: iface.network
+        network: iface.network,
       })),
-      subnets: Object.keys(subnets)
+      subnets: Object.keys(subnets),
     };
   }
 }

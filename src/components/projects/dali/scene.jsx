@@ -28,10 +28,7 @@ export function Scene({ isActive }) {
   const [selectedSceneId, setSelectedSceneId] = useState(0);
 
   // Load devices using custom hook
-  const { devices, loading: devicesLoading } = useDaliDevices(
-    selectedProject,
-    isActive
-  );
+  const { devices, loading: devicesLoading } = useDaliDevices(selectedProject, isActive);
   const [loading, setLoading] = useState(true);
 
   // Load scene data from database - reload when tab becomes active
@@ -43,22 +40,15 @@ export function Scene({ isActive }) {
         setLoading(true);
 
         // Load scene names
-        const sceneNames = await window.electronAPI.dali.getAllDaliSceneNames(
-          selectedProject.id
-        );
+        const sceneNames = await window.electronAPI.dali.getAllDaliSceneNames(selectedProject.id);
 
         // Load scene devices
-        const sceneDevices =
-          await window.electronAPI.dali.getAllDaliSceneDevices(
-            selectedProject.id
-          );
+        const sceneDevices = await window.electronAPI.dali.getAllDaliSceneDevices(selectedProject.id);
 
         setScenes((prev) =>
           prev.map((scene) => {
             const nameData = sceneNames.find((sn) => sn.scene_id === scene.id);
-            const devicesForScene = sceneDevices.filter(
-              (sd) => sd.scene_id === scene.id
-            );
+            const devicesForScene = sceneDevices.filter((sd) => sd.scene_id === scene.id);
 
             const devicesMap = {};
             devicesForScene.forEach((sd) => {
@@ -96,17 +86,9 @@ export function Scene({ isActive }) {
       if (!selectedProject || !newName.trim()) return;
 
       try {
-        await window.electronAPI.dali.updateDaliSceneName(
-          selectedProject.id,
-          sceneId,
-          newName.trim()
-        );
+        await window.electronAPI.dali.updateDaliSceneName(selectedProject.id, sceneId, newName.trim());
 
-        setScenes((prev) =>
-          prev.map((scene) =>
-            scene.id === sceneId ? { ...scene, name: newName.trim() } : scene
-          )
-        );
+        setScenes((prev) => prev.map((scene) => (scene.id === sceneId ? { ...scene, name: newName.trim() } : scene)));
 
         toast.success("Scene name updated");
       } catch (error) {
@@ -117,10 +99,7 @@ export function Scene({ isActive }) {
     [selectedProject]
   );
 
-  const selectedScene = useMemo(
-    () => scenes.find((s) => s.id === selectedSceneId),
-    [scenes, selectedSceneId]
-  );
+  const selectedScene = useMemo(() => scenes.find((s) => s.id === selectedSceneId), [scenes, selectedSceneId]);
 
   const handleToggleDevice = useCallback(
     async (deviceAddress) => {
@@ -139,31 +118,14 @@ export function Scene({ isActive }) {
 
         if (isCurrentlyActive) {
           // Delete from database when unchecking
-          window.electronAPI.dali
-            .deleteDaliSceneDevice(
-              selectedProject.id,
-              selectedSceneId,
-              deviceAddress
-            )
-            .catch((error) => {
-              console.error("Failed to remove device from scene:", error);
-              toast.error("Failed to remove device from scene");
-            });
+          window.electronAPI.dali.deleteDaliSceneDevice(selectedProject.id, selectedSceneId, deviceAddress).catch((error) => {
+            console.error("Failed to remove device from scene:", error);
+            toast.error("Failed to remove device from scene");
+          });
         } else {
           // Insert/update when checking
           window.electronAPI.dali
-            .upsertDaliSceneDevice(
-              selectedProject.id,
-              selectedSceneId,
-              deviceAddress,
-              true,
-              brightness,
-              colorTemp,
-              r,
-              g,
-              b,
-              w
-            )
+            .upsertDaliSceneDevice(selectedProject.id, selectedSceneId, deviceAddress, true, brightness, colorTemp, r, g, b, w)
             .catch((error) => {
               console.error("Failed to add device to scene:", error);
               toast.error("Failed to add device to scene");
@@ -175,8 +137,7 @@ export function Scene({ isActive }) {
           if (scene.id === selectedSceneId) {
             if (isCurrentlyActive) {
               // Remove device from scene
-              const { [deviceAddress]: removed, ...remainingDevices } =
-                scene.devices;
+              const { [deviceAddress]: removed, ...remainingDevices } = scene.devices;
               return {
                 ...scene,
                 devices: remainingDevices,
@@ -322,16 +283,8 @@ export function Scene({ isActive }) {
   );
 }
 
-const SceneItem = memo(function SceneItem({
-  scene,
-  selected,
-  onClick,
-  onUpdateName,
-}) {
-  const activeDeviceCount = useMemo(
-    () => Object.values(scene.devices).filter((d) => d.active).length,
-    [scene.devices]
-  );
+const SceneItem = memo(function SceneItem({ scene, selected, onClick, onUpdateName }) {
+  const activeDeviceCount = useMemo(() => Object.values(scene.devices).filter((d) => d.active).length, [scene.devices]);
 
   const handleSaveName = useCallback(
     (newName) => {
@@ -340,26 +293,19 @@ const SceneItem = memo(function SceneItem({
     [onUpdateName, scene.id]
   );
 
-  const { isEditing, editName, handlers } = useEditableName(
-    scene.name,
-    handleSaveName
-  );
+  const { isEditing, editName, handlers } = useEditableName(scene.name, handleSaveName);
 
   return (
     <div
       onClick={onClick}
       className={cn(
         "border rounded-md p-3 cursor-pointer transition-colors",
-        selected
-          ? "bg-primary text-primary-foreground border-primary"
-          : "bg-card hover:bg-accent"
+        selected ? "bg-primary text-primary-foreground border-primary" : "bg-card hover:bg-accent"
       )}
     >
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <Lightbulb
-            className={cn("h-4 w-4", selected ? "" : "text-muted-foreground")}
-          />
+          <Lightbulb className={cn("h-4 w-4", selected ? "" : "text-muted-foreground")} />
           <div>
             {isEditing ? (
               <Input
@@ -369,41 +315,18 @@ const SceneItem = memo(function SceneItem({
                 onKeyDown={handlers.onKeyDown}
                 onClick={(e) => e.stopPropagation()}
                 autoFocus
-                className={cn(
-                  "h-7 w-40",
-                  selected && "text-primary-foreground"
-                )}
+                className={cn("h-7 w-40", selected && "text-primary-foreground")}
               />
             ) : (
-              <div
-                className={cn(
-                  "font-medium",
-                  selected ? "hover:opacity-80" : "hover:text-primary"
-                )}
-                onClick={handlers.onClick}
-              >
+              <div className={cn("font-medium", selected ? "hover:opacity-80" : "hover:text-primary")} onClick={handlers.onClick}>
                 {scene.name}
               </div>
             )}
-            <div
-              className={cn(
-                "text-xs",
-                selected ? "opacity-80" : "text-muted-foreground"
-              )}
-            >
-              {activeDeviceCount} device(s)
-            </div>
+            <div className={cn("text-xs", selected ? "opacity-80" : "text-muted-foreground")}>{activeDeviceCount} device(s)</div>
           </div>
         </div>
         <div className="flex items-center gap-1">
-          <div
-            className={cn(
-              "font-mono text-sm",
-              selected ? "" : "text-muted-foreground"
-            )}
-          >
-            {scene.id}
-          </div>
+          <div className={cn("font-mono text-sm", selected ? "" : "text-muted-foreground")}>{scene.id}</div>
           <TriggerSceneButton sceneId={scene.id} disabled={false} />
         </div>
       </div>
@@ -411,13 +334,7 @@ const SceneItem = memo(function SceneItem({
   );
 });
 
-const DeviceSceneItem = memo(function DeviceSceneItem({
-  device,
-  active,
-  values,
-  onToggle,
-  onValuesChange,
-}) {
+const DeviceSceneItem = memo(function DeviceSceneItem({ device, active, values, onToggle, onValuesChange }) {
   const handleToggle = useCallback(() => {
     onToggle(device.id);
   }, [onToggle, device.id]);
@@ -430,12 +347,7 @@ const DeviceSceneItem = memo(function DeviceSceneItem({
   );
 
   return (
-    <div
-      className={cn(
-        "border rounded-md p-3 transition-colors",
-        active ? "bg-card border-muted-foreground/80 shadow" : "bg-muted/50"
-      )}
-    >
+    <div className={cn("border rounded-md p-3 transition-colors", active ? "bg-card border-muted-foreground/80 shadow" : "bg-muted/50")}>
       <div className="flex items-center gap-3">
         {/* Checkbox */}
         <Checkbox checked={active} onCheckedChange={handleToggle} />
@@ -443,20 +355,14 @@ const DeviceSceneItem = memo(function DeviceSceneItem({
         {/* Device Info */}
         <div className="flex-1 flex">
           <div className="flex items-center gap-4 w-2/5">
-            <span className="font-mono text-sm font-medium text-muted-foreground">
-              {device.address.toString().padStart(2, "0")}
-            </span>
+            <span className="font-mono text-sm font-medium text-muted-foreground">{device.address.toString().padStart(2, "0")}</span>
             <span className="font-medium">{device.name || "Unmapped"}</span>
           </div>
 
           {/* Device Control Inputs - Only show when active */}
           {active && (
             <div className="w-3/5">
-              <DeviceSceneControl
-                device={device}
-                values={values}
-                onChange={handleValuesChange}
-              />
+              <DeviceSceneControl device={device} values={values} onChange={handleValuesChange} />
             </div>
           )}
         </div>

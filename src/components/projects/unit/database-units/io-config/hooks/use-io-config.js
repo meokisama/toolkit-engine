@@ -1,11 +1,6 @@
 import { useState, useEffect, useMemo, useCallback } from "react";
 import { getUnitIOSpec, getOutputTypes } from "@/constants";
-import {
-  createDefaultInputConfigs,
-  createDefaultOutputConfigs,
-  cloneIOConfig,
-  hasIOConfigChanges,
-} from "@/utils/io-config-utils";
+import { cloneIOConfig } from "@/utils/io-config-utils";
 
 export const useIOConfig = (item, open) => {
   const [inputConfigs, setInputConfigs] = useState([]);
@@ -100,12 +95,12 @@ export const useIOConfig = (item, open) => {
 
         // Create original config for comparison
         const originalConfig = {
-          inputs: (inputConfigs.inputs || []).map(input => ({
+          inputs: (inputConfigs.inputs || []).map((input) => ({
             index: input.index,
             function: input.function_value || 0,
             lightingId: input.lighting_id || null,
           })),
-          outputs: (outputConfigs.outputs || []).map(output => ({
+          outputs: (outputConfigs.outputs || []).map((output) => ({
             index: output.index,
             name: output.name,
             type: output.type,
@@ -118,9 +113,7 @@ export const useIOConfig = (item, open) => {
 
         // Initialize input configs from JSON structure
         const mergedInputConfigs = initialInputConfigs.map((defaultConfig) => {
-          const savedConfig = inputConfigs.inputs?.find(
-            (input) => input.index === defaultConfig.index
-          );
+          const savedConfig = inputConfigs.inputs?.find((input) => input.index === defaultConfig.index);
 
           if (savedConfig) {
             return {
@@ -135,10 +128,8 @@ export const useIOConfig = (item, open) => {
         setInputConfigs(mergedInputConfigs);
 
         // Store original input configs for change detection with database data
-        const originalConfigs = mergedInputConfigs.map(config => {
-          const savedConfig = inputConfigs.inputs?.find(
-            (input) => input.index === config.index
-          );
+        const originalConfigs = mergedInputConfigs.map((config) => {
+          const savedConfig = inputConfigs.inputs?.find((input) => input.index === config.index);
 
           return {
             index: config.index,
@@ -152,7 +143,7 @@ export const useIOConfig = (item, open) => {
               autoMode: savedConfig?.rlc_config?.autoMode || 0,
               delayOff: savedConfig?.rlc_config?.delayOff || 0,
               delayOn: savedConfig?.rlc_config?.delayOn || 0,
-            }
+            },
           };
         });
 
@@ -160,9 +151,7 @@ export const useIOConfig = (item, open) => {
 
         // Initialize output configs from JSON structure
         const mergedOutputConfigs = initialOutputConfigs.map((defaultConfig) => {
-          const savedConfig = outputConfigs.outputs?.find(
-            (output) => output.index === defaultConfig.index
-          );
+          const savedConfig = outputConfigs.outputs?.find((output) => output.index === defaultConfig.index);
 
           if (savedConfig) {
             return {
@@ -197,9 +186,7 @@ export const useIOConfig = (item, open) => {
 
       setInputConfigs((prevInputConfigs) => {
         const updatedInputConfigs = prevInputConfigs.map((config) => {
-          const savedConfig = inputConfigs.inputs?.find(
-            (input) => input.index === config.index
-          );
+          const savedConfig = inputConfigs.inputs?.find((input) => input.index === config.index);
 
           if (savedConfig) {
             return {

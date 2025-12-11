@@ -25,29 +25,17 @@ export function SendCurtainConfigDialog({ open, onOpenChange, items = [] }) {
     return true;
   };
 
-  const handleSendSingleCurtain = async (
-    curtain,
-    curtainData,
-    selectedUnits
-  ) => {
+  const handleSendSingleCurtain = async (curtain, curtainData, selectedUnits) => {
     let successCount = 0;
     let errorCount = 0;
 
     // Get lighting items to resolve group IDs to addresses
-    const lightingItems = await window.electronAPI.lighting.getAll(
-      curtain.project_id
-    );
+    const lightingItems = await window.electronAPI.lighting.getAll(curtain.project_id);
 
     // Resolve group IDs to addresses
-    const openGroup = lightingItems.find(
-      (item) => item.id === curtain.open_group_id
-    );
-    const closeGroup = lightingItems.find(
-      (item) => item.id === curtain.close_group_id
-    );
-    const stopGroup = curtain.stop_group_id
-      ? lightingItems.find((item) => item.id === curtain.stop_group_id)
-      : null;
+    const openGroup = lightingItems.find((item) => item.id === curtain.open_group_id);
+    const closeGroup = lightingItems.find((item) => item.id === curtain.close_group_id);
+    const stopGroup = curtain.stop_group_id ? lightingItems.find((item) => item.id === curtain.stop_group_id) : null;
 
     if (!openGroup || !closeGroup) {
       toast.error("Could not resolve lighting groups");
@@ -73,50 +61,32 @@ export function SendCurtainConfigDialog({ open, onOpenChange, items = [] }) {
           stopGroup: stopGroup ? parseInt(stopGroup.address) : 0,
         });
 
-        const success =
-          await window.electronAPI.curtainController.setCurtainConfig(
-            unit.ip_address,
-            unit.id_can,
-            {
-              index: curtain.calculatedIndex ?? 0,
-              address: parseInt(curtain.address),
-              curtainType: curtainTypeValue,
-              pausePeriod: curtain.pause_period || 0,
-              transitionPeriod: curtain.transition_period || 0,
-              openGroup: parseInt(openGroup.address),
-              closeGroup: parseInt(closeGroup.address),
-              stopGroup: stopGroup ? parseInt(stopGroup.address) : 0,
-            }
-          );
+        const success = await window.electronAPI.curtainController.setCurtainConfig(unit.ip_address, unit.id_can, {
+          index: curtain.calculatedIndex ?? 0,
+          address: parseInt(curtain.address),
+          curtainType: curtainTypeValue,
+          pausePeriod: curtain.pause_period || 0,
+          transitionPeriod: curtain.transition_period || 0,
+          openGroup: parseInt(openGroup.address),
+          closeGroup: parseInt(closeGroup.address),
+          stopGroup: stopGroup ? parseInt(stopGroup.address) : 0,
+        });
 
         if (success) {
           successCount++;
-          toast.success(
-            `Curtain config sent successfully to ${
-              unit.type || "Unknown Unit"
-            } (${unit.ip_address})`
-          );
+          toast.success(`Curtain config sent successfully to ${unit.type || "Unknown Unit"} (${unit.ip_address})`);
         } else {
           throw new Error("Unit returned failure response");
         }
       } catch (error) {
         errorCount++;
-        console.error(
-          `Failed to send curtain config to unit ${unit.ip_address}:`,
-          error
-        );
-        toast.error(
-          `Failed to send curtain config to ${unit.type || "Unknown Unit"} (${
-            unit.ip_address
-          }): ${error.message}`
-        );
+        console.error(`Failed to send curtain config to unit ${unit.ip_address}:`, error);
+        toast.error(`Failed to send curtain config to ${unit.type || "Unknown Unit"} (${unit.ip_address}): ${error.message}`);
       }
     }
 
     if (successCount > 0) {
-      toast.success(
-        `Curtain config sent successfully to ${successCount} unit(s)`
-      );
+      toast.success(`Curtain config sent successfully to ${successCount} unit(s)`);
     }
 
     if (errorCount > 0) {
@@ -124,14 +94,9 @@ export function SendCurtainConfigDialog({ open, onOpenChange, items = [] }) {
     }
   };
 
-  const handleSendBulkCurtains = async (
-    curtains,
-    selectedUnits,
-    onProgress
-  ) => {
+  const handleSendBulkCurtains = async (curtains, selectedUnits, onProgress) => {
     // Add delete operations to total count (one delete per unit)
-    const totalOperations =
-      curtains.length * selectedUnits.length + selectedUnits.length;
+    const totalOperations = curtains.length * selectedUnits.length + selectedUnits.length;
     let completedOperations = 0;
     const operationResults = [];
 
@@ -144,10 +109,7 @@ export function SendCurtainConfigDialog({ open, onOpenChange, items = [] }) {
           canId: unit.id_can,
         });
 
-        await window.electronAPI.curtainController.deleteAllCurtains(
-          unit.ip_address,
-          unit.id_can
-        );
+        await window.electronAPI.curtainController.deleteAllCurtains(unit.ip_address, unit.id_can);
 
         operationResults.push({
           scene: "Delete All Configs",
@@ -157,15 +119,9 @@ export function SendCurtainConfigDialog({ open, onOpenChange, items = [] }) {
         });
 
         completedOperations++;
-        onProgress(
-          (completedOperations / totalOperations) * 100,
-          "Deleting existing configs..."
-        );
+        onProgress((completedOperations / totalOperations) * 100, "Deleting existing configs...");
       } catch (error) {
-        console.error(
-          `Failed to delete existing curtain configs from unit ${unit.ip_address}:`,
-          error
-        );
+        console.error(`Failed to delete existing curtain configs from unit ${unit.ip_address}:`, error);
         operationResults.push({
           scene: "Delete All Configs",
           unit: `${unit.type || "Unknown Unit"} (${unit.ip_address})`,
@@ -174,26 +130,16 @@ export function SendCurtainConfigDialog({ open, onOpenChange, items = [] }) {
         });
 
         completedOperations++;
-        onProgress(
-          (completedOperations / totalOperations) * 100,
-          "Deleting existing configs..."
-        );
+        onProgress((completedOperations / totalOperations) * 100, "Deleting existing configs...");
       }
     }
 
     // Get lighting items for all curtains (do this once)
-    const lightingItems = await window.electronAPI.lighting.getAll(
-      curtains[0].project_id
-    );
+    const lightingItems = await window.electronAPI.lighting.getAll(curtains[0].project_id);
 
     for (let curtainIndex = 0; curtainIndex < curtains.length; curtainIndex++) {
       const currentCurtain = curtains[curtainIndex];
-      onProgress(
-        (completedOperations / totalOperations) * 100,
-        `Sending ${currentCurtain.name} (${curtainIndex + 1}/${
-          curtains.length
-        })`
-      );
+      onProgress((completedOperations / totalOperations) * 100, `Sending ${currentCurtain.name} (${curtainIndex + 1}/${curtains.length})`);
 
       // Validate curtain config
       if (!handleValidateSingleCurtain(currentCurtain)) {
@@ -204,15 +150,9 @@ export function SendCurtainConfigDialog({ open, onOpenChange, items = [] }) {
       }
 
       // Resolve group IDs to addresses
-      const openGroup = lightingItems.find(
-        (item) => item.id === currentCurtain.open_group_id
-      );
-      const closeGroup = lightingItems.find(
-        (item) => item.id === currentCurtain.close_group_id
-      );
-      const stopGroup = currentCurtain.stop_group_id
-        ? lightingItems.find((item) => item.id === currentCurtain.stop_group_id)
-        : null;
+      const openGroup = lightingItems.find((item) => item.id === currentCurtain.open_group_id);
+      const closeGroup = lightingItems.find((item) => item.id === currentCurtain.close_group_id);
+      const stopGroup = currentCurtain.stop_group_id ? lightingItems.find((item) => item.id === currentCurtain.stop_group_id) : null;
 
       if (!openGroup || !closeGroup) {
         // Skip curtains with unresolved groups
@@ -240,21 +180,16 @@ export function SendCurtainConfigDialog({ open, onOpenChange, items = [] }) {
             stopGroup: stopGroup ? parseInt(stopGroup.address) : 0,
           });
 
-          const success =
-            await window.electronAPI.curtainController.setCurtainConfig(
-              unit.ip_address,
-              unit.id_can,
-              {
-                index: curtainIndex,
-                address: parseInt(currentCurtain.address),
-                curtainType: curtainTypeValue,
-                pausePeriod: currentCurtain.pause_period || 0,
-                transitionPeriod: currentCurtain.transition_period || 0,
-                openGroup: parseInt(openGroup.address),
-                closeGroup: parseInt(closeGroup.address),
-                stopGroup: stopGroup ? parseInt(stopGroup.address) : 0,
-              }
-            );
+          const success = await window.electronAPI.curtainController.setCurtainConfig(unit.ip_address, unit.id_can, {
+            index: curtainIndex,
+            address: parseInt(currentCurtain.address),
+            curtainType: curtainTypeValue,
+            pausePeriod: currentCurtain.pause_period || 0,
+            transitionPeriod: currentCurtain.transition_period || 0,
+            openGroup: parseInt(openGroup.address),
+            closeGroup: parseInt(closeGroup.address),
+            stopGroup: stopGroup ? parseInt(stopGroup.address) : 0,
+          });
 
           if (success) {
             operationResults.push({
@@ -267,10 +202,7 @@ export function SendCurtainConfigDialog({ open, onOpenChange, items = [] }) {
             throw new Error("Unit returned failure response");
           }
         } catch (error) {
-          console.error(
-            `Failed to send curtain config ${currentCurtain.name} to unit ${unit.ip_address}:`,
-            error
-          );
+          console.error(`Failed to send curtain config ${currentCurtain.name} to unit ${unit.ip_address}:`, error);
           operationResults.push({
             scene: currentCurtain.name,
             unit: `${unit.type || "Unknown Unit"} (${unit.ip_address})`,

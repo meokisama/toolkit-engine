@@ -1,24 +1,8 @@
 import { useEffect, memo } from "react";
-import {
-  Network,
-  Search,
-  Layers2,
-  Layers,
-  Upload,
-  Clock,
-  MoreHorizontal,
-  ChevronDown,
-  Send,
-} from "lucide-react";
+import { Network, Search, Layers2, Layers, Upload, Clock, MoreHorizontal, ChevronDown, Send } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-  DropdownMenuSeparator,
-} from "@/components/ui/dropdown-menu";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
 import { DataTable } from "@/components/projects/data-table/data-table";
 import { DataTablePagination } from "@/components/projects/data-table/data-table-pagination";
 import { createNetworkUnitColumns } from "../database-units/database-unit-columns";
@@ -32,12 +16,7 @@ import { useNetworkUnitState } from "./hooks/use-network-unit-state";
 import { useNetworkUnitHandlers } from "./hooks/use-network-unit-handlers";
 import { LazyDialogRenderer } from "./lazy-dialog-renderer";
 
-function NetworkUnitTableComponent({
-  onTransferToDatabase,
-  existingUnits = [],
-  onNetworkUnitsChange,
-  getRowClassName,
-}) {
+function NetworkUnitTableComponent({ onTransferToDatabase, existingUnits = [], onNetworkUnitsChange, getRowClassName }) {
   const { selectedProject, projectItems, createItem } = useProjectDetail();
 
   // Use custom hooks for state management
@@ -60,9 +39,7 @@ function NetworkUnitTableComponent({
       // Sort by IP address before setting
       const sortedUnits = sortByIpAddress(cachedUnits);
       state.setNetworkUnits(sortedUnits);
-      console.log(
-        `Auto-loaded ${sortedUnits.length} cached network units (sorted by IP)`
-      );
+      console.log(`Auto-loaded ${sortedUnits.length} cached network units (sorted by IP)`);
     }
   }, []);
 
@@ -91,10 +68,7 @@ function NetworkUnitTableComponent({
               {state.networkUnits.length > 0 && (
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <Button
-                      variant="outline"
-                      className="flex items-center gap-2"
-                    >
+                    <Button variant="outline" className="flex items-center gap-2">
                       <MoreHorizontal className="h-4 w-4" />
                       <span className="hidden lg:inline">Actions</span>
                       <ChevronDown className="h-3 w-3" />
@@ -102,17 +76,13 @@ function NetworkUnitTableComponent({
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end" className="w-56">
                     {/* Transfer Actions */}
-                    <DropdownMenuItem
-                      onClick={handlers.handleTransferAllToDatabase}
-                    >
+                    <DropdownMenuItem onClick={handlers.handleTransferAllToDatabase}>
                       <Layers className="h-4 w-4 mr-2" />
                       Transfer All to Database
                     </DropdownMenuItem>
 
                     {state.selectedNetworkUnits.length > 0 && (
-                      <DropdownMenuItem
-                        onClick={handlers.handleTransferSelectedToDatabase}
-                      >
+                      <DropdownMenuItem onClick={handlers.handleTransferSelectedToDatabase}>
                         <Layers2 className="h-4 w-4 mr-2" />
                         Transfer Selected ({state.selectedNetworkUnits.length})
                       </DropdownMenuItem>
@@ -143,11 +113,7 @@ function NetworkUnitTableComponent({
               )}
 
               {/* Scan Network Button - Always visible */}
-              <Button
-                onClick={handlers.handleScanNetwork}
-                disabled={state.scanLoading}
-                className="flex items-center gap-2"
-              >
+              <Button onClick={handlers.handleScanNetwork} disabled={state.scanLoading} className="flex items-center gap-2">
                 <Search className="h-4 w-4" />
                 {state.scanLoading ? "Scanning..." : "Scan Network"}
               </Button>
@@ -159,9 +125,7 @@ function NetworkUnitTableComponent({
             <div className="text-center text-muted-foreground py-8 flex flex-col justify-center items-center h-full -mt-8">
               <Network className="h-12 w-12 mx-auto mb-4 opacity-50" />
               <p>No network units found.</p>
-              <p className="text-sm mb-4">
-                Click "Scan Network" to discover units on your network.
-              </p>
+              <p className="text-sm mb-4">Click "Scan Network" to discover units on your network.</p>
             </div>
           ) : (
             <div className="space-y-4 flex flex-col h-full justify-between">
@@ -204,9 +168,7 @@ function NetworkUnitTableComponent({
                 enableRowSelection={true}
                 getRowClassName={getRowClassName}
               />
-              {state.networkTable && (
-                <DataTablePagination table={state.networkTable} />
-              )}
+              {state.networkTable && <DataTablePagination table={state.networkTable} />}
             </div>
           )}
         </CardContent>
@@ -219,11 +181,7 @@ function NetworkUnitTableComponent({
           handlers={handlers}
           onUnitUpdated={(updatedUnit) => {
             // Update the unit in the network units list
-            state.setNetworkUnits((prev) =>
-              prev.map((unit) =>
-                unit.id === updatedUnit.id ? { ...unit, ...updatedUnit } : unit
-              )
-            );
+            state.setNetworkUnits((prev) => prev.map((unit) => (unit.id === updatedUnit.id ? { ...unit, ...updatedUnit } : unit)));
           }}
         />
       </Card>
@@ -232,15 +190,12 @@ function NetworkUnitTableComponent({
 }
 
 // Improved memoization with comprehensive prop comparison
-export const NetworkUnitTable = memo(
-  NetworkUnitTableComponent,
-  (prevProps, nextProps) => {
-    // Compare all props for accurate memoization
-    return (
-      prevProps.existingUnits === nextProps.existingUnits && // Shallow compare (ref equality)
-      prevProps.onTransferToDatabase === nextProps.onTransferToDatabase &&
-      prevProps.onNetworkUnitsChange === nextProps.onNetworkUnitsChange &&
-      prevProps.getRowClassName === nextProps.getRowClassName
-    );
-  }
-);
+export const NetworkUnitTable = memo(NetworkUnitTableComponent, (prevProps, nextProps) => {
+  // Compare all props for accurate memoization
+  return (
+    prevProps.existingUnits === nextProps.existingUnits && // Shallow compare (ref equality)
+    prevProps.onTransferToDatabase === nextProps.onTransferToDatabase &&
+    prevProps.onNetworkUnitsChange === nextProps.onNetworkUnitsChange &&
+    prevProps.getRowClassName === nextProps.getRowClassName
+  );
+});

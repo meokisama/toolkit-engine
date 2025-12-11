@@ -21,18 +21,14 @@ async function getACStatus(unitIp, canId, group = 1) {
 
     // Check minimum length for basic response (header + 10 bytes data)
     if (msgLength < 18) {
-      throw new Error(
-        `Response too short: ${msgLength} bytes (minimum 18 required)`
-      );
+      throw new Error(`Response too short: ${msgLength} bytes (minimum 18 required)`);
     }
 
     const data = response.msg.slice(8); // Skip header
 
     // Check if we have at least 10 bytes of AC status data
     if (data.length < 10) {
-      throw new Error(
-        `Insufficient AC status data: ${data.length} bytes (expected 10)`
-      );
+      throw new Error(`Insufficient AC status data: ${data.length} bytes (expected 10)`);
     }
 
     // Parse the 10-byte AC status data structure:
@@ -66,8 +62,7 @@ async function getACStatus(unitIp, canId, group = 1) {
       roomTemperature: roomTemperature / 10, // Convert to celsius (250 -> 25.0)
       // Add human-readable descriptions
       powerText: power === 1 ? "On" : "Off",
-      fanSpeedText:
-        ["Low", "Med", "High", "Auto", "Off"][fanSpeed] || "Unknown",
+      fanSpeedText: ["Low", "Med", "High", "Auto", "Off"][fanSpeed] || "Unknown",
       modeText: ["Cool", "Heat", "Ventilation", "Dry"][mode] || "Unknown",
     };
   }
@@ -89,23 +84,12 @@ async function getRoomTemp(unitIp, canId, group = 1) {
   );
 }
 
-async function setSettingRoomTemp(
-  unitIp,
-  canId,
-  group = 1,
-  temperature = 25.0
-) {
+async function setSettingRoomTemp(unitIp, canId, group = 1, temperature = 25.0) {
   const tempValue = Math.round(temperature * 10);
   const lowByte = tempValue & 0xff;
   const highByte = (tempValue >> 8) & 0xff;
 
-  return sendACCommand(
-    unitIp,
-    canId,
-    PROTOCOL.AC.CMD2.SET_SETTING_ROOM_TEMP,
-    [group, lowByte, highByte],
-    "Failed to set room temperature"
-  );
+  return sendACCommand(unitIp, canId, PROTOCOL.AC.CMD2.SET_SETTING_ROOM_TEMP, [group, lowByte, highByte], "Failed to set room temperature");
 }
 
 async function getSettingRoomTemp(unitIp, canId, group = 1) {
@@ -125,14 +109,7 @@ async function getSettingRoomTemp(unitIp, canId, group = 1) {
 // Generic AC command helper
 async function sendACCommand(unitIp, canId, cmd2, data, errorMsg) {
   const idAddress = convertCanIdToInt(canId);
-  const response = await sendCommand(
-    unitIp,
-    UDP_PORT,
-    idAddress,
-    PROTOCOL.AC.CMD1,
-    cmd2,
-    data
-  );
+  const response = await sendCommand(unitIp, UDP_PORT, idAddress, PROTOCOL.AC.CMD1, cmd2, data);
 
   if (!parseResponse.success(response)) {
     throw new Error(errorMsg);
@@ -142,14 +119,7 @@ async function sendACCommand(unitIp, canId, cmd2, data, errorMsg) {
 
 async function getACData(unitIp, canId, cmd2, data, parser, errorMsg) {
   const idAddress = convertCanIdToInt(canId);
-  const response = await sendCommand(
-    unitIp,
-    UDP_PORT,
-    idAddress,
-    PROTOCOL.AC.CMD1,
-    cmd2,
-    data
-  );
+  const response = await sendCommand(unitIp, UDP_PORT, idAddress, PROTOCOL.AC.CMD1, cmd2, data);
 
   if (response?.msg?.length >= 11) {
     const responseData = parseResponse.data(response);
@@ -160,13 +130,7 @@ async function getACData(unitIp, canId, cmd2, data, parser, errorMsg) {
 }
 
 async function setFanMode(unitIp, canId, group = 1, fanSpeed = 0) {
-  return sendACCommand(
-    unitIp,
-    canId,
-    PROTOCOL.AC.CMD2.SET_FAN_MODE,
-    [group, fanSpeed, 0],
-    "Failed to set fan mode"
-  );
+  return sendACCommand(unitIp, canId, PROTOCOL.AC.CMD2.SET_FAN_MODE, [group, fanSpeed, 0], "Failed to set fan mode");
 }
 
 async function getFanMode(unitIp, canId, group = 1) {
@@ -183,13 +147,7 @@ async function getFanMode(unitIp, canId, group = 1) {
 async function setPowerMode(unitIp, canId, group = 1, power = true) {
   const powerValue = power ? 1 : 0;
   try {
-    await sendACCommand(
-      unitIp,
-      canId,
-      PROTOCOL.AC.CMD2.SET_POWER_MODE,
-      [group, powerValue, 0],
-      "Failed to set power mode"
-    );
+    await sendACCommand(unitIp, canId, PROTOCOL.AC.CMD2.SET_POWER_MODE, [group, powerValue, 0], "Failed to set power mode");
     return true;
   } catch {
     return false;
@@ -208,13 +166,7 @@ async function getPowerMode(unitIp, canId, group = 1) {
 }
 
 async function setOperateMode(unitIp, canId, group = 1, mode = 1) {
-  return sendACCommand(
-    unitIp,
-    canId,
-    PROTOCOL.AC.CMD2.SET_OPERATE_MODE,
-    [group, mode, 0],
-    "Failed to set operate mode"
-  );
+  return sendACCommand(unitIp, canId, PROTOCOL.AC.CMD2.SET_OPERATE_MODE, [group, mode, 0], "Failed to set operate mode");
 }
 
 async function getOperateMode(unitIp, canId, group = 1) {
@@ -230,13 +182,7 @@ async function getOperateMode(unitIp, canId, group = 1) {
 
 async function setEcoMode(unitIp, canId, group = 1, eco = false) {
   const ecoValue = eco ? 1 : 0;
-  return sendACCommand(
-    unitIp,
-    canId,
-    PROTOCOL.AC.CMD2.SET_ECO_MODE,
-    [group, ecoValue, 0],
-    "Failed to set eco mode"
-  );
+  return sendACCommand(unitIp, canId, PROTOCOL.AC.CMD2.SET_ECO_MODE, [group, ecoValue, 0], "Failed to set eco mode");
 }
 
 async function getEcoMode(unitIp, canId, group = 1) {
@@ -265,7 +211,7 @@ async function getLocalACConfig(unitIp, canId) {
   );
 
   // Add delay after GET command to prevent auto refresh conflicts
-  await new Promise(resolve => setTimeout(resolve, 300));
+  await new Promise((resolve) => setTimeout(resolve, 300));
 
   if (response?.msg?.length >= 11) {
     const responseData = parseResponse.data(response);
@@ -408,28 +354,28 @@ async function setLocalACConfig(unitIp, canId, acConfigs) {
 
     // Bytes 40-51: Set point values (2 bytes each, little endian)
     const unoccupyCool = config.unoccupyCoolSetPoint || 0;
-    configBytes[40] = unoccupyCool & 0xFF;
-    configBytes[41] = (unoccupyCool >> 8) & 0xFF;
+    configBytes[40] = unoccupyCool & 0xff;
+    configBytes[41] = (unoccupyCool >> 8) & 0xff;
 
     const occupyCool = config.occupyCoolSetPoint || 0;
-    configBytes[42] = occupyCool & 0xFF;
-    configBytes[43] = (occupyCool >> 8) & 0xFF;
+    configBytes[42] = occupyCool & 0xff;
+    configBytes[43] = (occupyCool >> 8) & 0xff;
 
     const standbyCool = config.standbyCoolSetPoint || 0;
-    configBytes[44] = standbyCool & 0xFF;
-    configBytes[45] = (standbyCool >> 8) & 0xFF;
+    configBytes[44] = standbyCool & 0xff;
+    configBytes[45] = (standbyCool >> 8) & 0xff;
 
     const unoccupyHeat = config.unoccupyHeatSetPoint || 0;
-    configBytes[46] = unoccupyHeat & 0xFF;
-    configBytes[47] = (unoccupyHeat >> 8) & 0xFF;
+    configBytes[46] = unoccupyHeat & 0xff;
+    configBytes[47] = (unoccupyHeat >> 8) & 0xff;
 
     const occupyHeat = config.occupyHeatSetPoint || 0;
-    configBytes[48] = occupyHeat & 0xFF;
-    configBytes[49] = (occupyHeat >> 8) & 0xFF;
+    configBytes[48] = occupyHeat & 0xff;
+    configBytes[49] = (occupyHeat >> 8) & 0xff;
 
     const standbyHeat = config.standbyHeatSetPoint || 0;
-    configBytes[50] = standbyHeat & 0xFF;
-    configBytes[51] = (standbyHeat >> 8) & 0xFF;
+    configBytes[50] = standbyHeat & 0xff;
+    configBytes[51] = (standbyHeat >> 8) & 0xff;
 
     // Bytes 52-63: reserved (already filled with 0)
 
@@ -437,17 +383,10 @@ async function setLocalACConfig(unitIp, canId, acConfigs) {
     data.push(...configBytes);
   }
 
-  const result = await sendCommand(
-    unitIp,
-    UDP_PORT,
-    idAddress,
-    PROTOCOL.AC.CMD1,
-    PROTOCOL.AC.CMD2.SET_LOCAL_AC_CONFIG,
-    data
-  );
+  const result = await sendCommand(unitIp, UDP_PORT, idAddress, PROTOCOL.AC.CMD1, PROTOCOL.AC.CMD2.SET_LOCAL_AC_CONFIG, data);
 
   // Add delay after SET command to allow unit to process
-  await new Promise(resolve => setTimeout(resolve, 500));
+  await new Promise((resolve) => setTimeout(resolve, 500));
 
   return result;
 }

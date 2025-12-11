@@ -65,12 +65,7 @@ class ExportImportService {
 
   // Get item value for export
   getItemValueForExport(itemType, itemValue, command, objectType) {
-    return CSVExporter.getItemValueForExport(
-      itemType,
-      itemValue,
-      command,
-      objectType
-    );
+    return CSVExporter.getItemValueForExport(itemType, itemValue, command, objectType);
   }
 
   // Update scene names to add part numbers when needed

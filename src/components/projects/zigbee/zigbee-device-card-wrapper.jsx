@@ -2,31 +2,9 @@ import React, { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import {
-  MoreVertical,
-  Trash2,
-  Loader2,
-  Pencil,
-  Wifi,
-  WifiOff,
-  Signal,
-  MonitorCog,
-  BookUser,
-} from "lucide-react";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { MoreVertical, Trash2, Loader2, Pencil, Wifi, WifiOff, Signal, MonitorCog, BookUser } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
@@ -35,15 +13,7 @@ import { toast } from "sonner";
  * Shared wrapper component for all Zigbee device cards
  * Handles common functionality: header, dropdown menu, remove device dialog, edit name dialog
  */
-export function ZigbeeDeviceCardWrapper({
-  device,
-  onRemove,
-  icon: Icon,
-  title,
-  showStatus = true,
-  className = "",
-  children,
-}) {
+export function ZigbeeDeviceCardWrapper({ device, onRemove, icon: Icon, title, showStatus = true, className = "", children }) {
   // Remove dialog states
   const [removeDialogOpen, setRemoveDialogOpen] = useState(false);
   const [isRemoving, setIsRemoving] = useState(false);
@@ -107,42 +77,19 @@ export function ZigbeeDeviceCardWrapper({
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2 flex-1 min-w-0">
-            <div
-              className={`p-1.5 rounded-lg ${
-                device.status === 1 ? "bg-primary/10" : "bg-muted"
-              }`}
-            >
-              {Icon && (
-                <Icon
-                  className={`h-4 w-4 ${
-                    device.status === 1
-                      ? "text-primary"
-                      : "text-muted-foreground"
-                  }`}
-                />
-              )}
+            <div className={`p-1.5 rounded-lg ${device.status === 1 ? "bg-primary/10" : "bg-muted"}`}>
+              {Icon && <Icon className={`h-4 w-4 ${device.status === 1 ? "text-primary" : "text-muted-foreground"}`} />}
             </div>
             <CardTitle className="text-base flex items-center gap-2 truncate">
               <span className="truncate">{title}</span>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-6 w-6 shrink-0 opacity-60 hover:opacity-100"
-                onClick={handleEditName}
-              >
+              <Button variant="ghost" size="icon" className="h-6 w-6 shrink-0 opacity-60 hover:opacity-100" onClick={handleEditName}>
                 <Pencil className="h-3 w-3" />
               </Button>
             </CardTitle>
           </div>
           <div className="flex items-center gap-2 shrink-0">
             {showStatus && (
-              <Badge
-                className={
-                  device.status === 1
-                    ? "bg-green-700 gap-1 font-medium"
-                    : "bg-red-700 gap-1 font-medium"
-                }
-              >
+              <Badge className={device.status === 1 ? "bg-green-700 gap-1 font-medium" : "bg-red-700 gap-1 font-medium"}>
                 {device.status === 1 ? (
                   <>
                     <Wifi className="h-3 w-3" />
@@ -163,10 +110,7 @@ export function ZigbeeDeviceCardWrapper({
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
-                <DropdownMenuItem
-                  variant="destructive"
-                  onClick={() => setRemoveDialogOpen(true)}
-                >
+                <DropdownMenuItem variant="destructive" onClick={() => setRemoveDialogOpen(true)}>
                   <Trash2 className="h-4 w-4 mr-2" />
                   Remove Device
                 </DropdownMenuItem>
@@ -181,13 +125,9 @@ export function ZigbeeDeviceCardWrapper({
           <div className="flex items-center justify-between gap-2">
             <div className="flex items-center gap-1.5">
               <BookUser className="h-3.5 w-3.5 text-muted-foreground" />
-              <span className="text-muted-foreground font-medium">
-                IEEE Address
-              </span>
+              <span className="text-muted-foreground font-medium">IEEE Address</span>
             </div>
-            <span className="font-mono text-xs truncate">
-              {device.ieee_address}
-            </span>
+            <span className="font-mono text-xs truncate">{device.ieee_address}</span>
           </div>
           <div className="flex items-center justify-between gap-2">
             <div className="flex items-center gap-1.5">
@@ -202,12 +142,8 @@ export function ZigbeeDeviceCardWrapper({
               <span className="text-muted-foreground font-medium">Signal</span>
             </div>
             <div className="flex items-center gap-2">
-              <span className={`text-xs font-semibold ${rssiStrength.color}`}>
-                {rssiStrength.label}
-              </span>
-              <span className="font-mono text-xs text-muted-foreground">
-                {rssiValue} dBm
-              </span>
+              <span className={`text-xs font-semibold ${rssiStrength.color}`}>{rssiStrength.label}</span>
+              <span className="font-mono text-xs text-muted-foreground">{rssiValue} dBm</span>
             </div>
           </div>
         </div>
@@ -220,19 +156,12 @@ export function ZigbeeDeviceCardWrapper({
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Edit Device Name</DialogTitle>
-            <DialogDescription>
-              Enter a custom name for this device
-            </DialogDescription>
+            <DialogDescription>Enter a custom name for this device</DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">
             <div className="space-y-2">
               <Label htmlFor="device-name">Name</Label>
-              <Input
-                id="device-name"
-                value={editNameValue}
-                onChange={(e) => setEditNameValue(e.target.value)}
-                placeholder={title}
-              />
+              <Input id="device-name" value={editNameValue} onChange={(e) => setEditNameValue(e.target.value)} placeholder={title} />
             </div>
           </div>
           <DialogFooter>
@@ -251,23 +180,14 @@ export function ZigbeeDeviceCardWrapper({
             <DialogTitle>Remove Device</DialogTitle>
             <DialogDescription>
               Are you sure you want to remove this device? This action will
-              <b>remove the device from the network</b> and{" "}
-              <b>delete from the database</b>. This action cannot be undone.
+              <b>remove the device from the network</b> and <b>delete from the database</b>. This action cannot be undone.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={() => setRemoveDialogOpen(false)}
-              disabled={isRemoving}
-            >
+            <Button variant="outline" onClick={() => setRemoveDialogOpen(false)} disabled={isRemoving}>
               Cancel
             </Button>
-            <Button
-              variant="destructive"
-              onClick={handleRemoveDevice}
-              disabled={isRemoving}
-            >
+            <Button variant="destructive" onClick={handleRemoveDevice} disabled={isRemoving}>
               {isRemoving ? (
                 <>
                   <Loader2 className="h-4 w-4 mr-2 animate-spin" />

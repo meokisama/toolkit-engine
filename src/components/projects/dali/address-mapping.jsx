@@ -1,25 +1,12 @@
 import { useState, useEffect, useCallback, useMemo, memo } from "react";
-import {
-  DndContext,
-  DragOverlay,
-  PointerSensor,
-  useSensor,
-  useSensors,
-  useDraggable,
-  useDroppable,
-} from "@dnd-kit/core";
+import { DndContext, DragOverlay, PointerSensor, useSensor, useSensors, useDraggable, useDroppable } from "@dnd-kit/core";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
 import { GripVertical, X, Loader2, ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -53,9 +40,7 @@ export function AddressMapping({ isActive }) {
   // Load from localStorage on mount to persist across tab switches
   const [scannedDevices, setScannedDevices] = useState(() => {
     try {
-      const stored = localStorage.getItem(
-        `dali-scanned-devices-${selectedProject?.id}`
-      );
+      const stored = localStorage.getItem(`dali-scanned-devices-${selectedProject?.id}`);
       if (stored) {
         const devices = JSON.parse(stored);
         // Restore with default currentLevel
@@ -102,38 +87,31 @@ export function AddressMapping({ isActive }) {
         lightingGroupAddress: d.lightingGroupAddress,
         colorFeature: d.colorFeature,
       }));
-      localStorage.setItem(
-        `dali-scanned-devices-${selectedProject.id}`,
-        JSON.stringify(dataToStore)
-      );
+      localStorage.setItem(`dali-scanned-devices-${selectedProject.id}`, JSON.stringify(dataToStore));
     }
   }, [scannedDevices, selectedProject]);
 
   // Listen for device count changed events during commissioning
   useEffect(() => {
-    const unsubscribe = window.electronAPI.daliController.onDeviceCountChanged(
-      ({ oldDeviceCount, newDeviceCount }) => {
-        setDeviceCountDialog({
-          open: true,
-          oldCount: oldDeviceCount,
-          newCount: newDeviceCount,
-        });
-      }
-    );
+    const unsubscribe = window.electronAPI.daliController.onDeviceCountChanged(({ oldDeviceCount, newDeviceCount }) => {
+      setDeviceCountDialog({
+        open: true,
+        oldCount: oldDeviceCount,
+        newCount: newDeviceCount,
+      });
+    });
 
     return () => unsubscribe();
   }, []);
 
   // Listen for address conflict events during commissioning/scan
   useEffect(() => {
-    const unsubscribe = window.electronAPI.daliController.onAddressConflict(
-      ({ conflictAddresses }) => {
-        setAddressConflictDialog({
-          open: true,
-          conflictAddresses,
-        });
-      }
-    );
+    const unsubscribe = window.electronAPI.daliController.onAddressConflict(({ conflictAddresses }) => {
+      setAddressConflictDialog({
+        open: true,
+        conflictAddresses,
+      });
+    });
 
     return () => unsubscribe();
   }, []);
@@ -144,16 +122,12 @@ export function AddressMapping({ isActive }) {
 
     const loadDevices = async () => {
       try {
-        const dbDevices = await window.electronAPI.dali.getAllDaliDevices(
-          selectedProject.id
-        );
+        const dbDevices = await window.electronAPI.dali.getAllDaliDevices(selectedProject.id);
 
         // Update fixed devices with database data
         setFixedDevices((prev) =>
           prev.map((device) => {
-            const dbDevice = dbDevices.find(
-              (d) => d.address === device.address
-            );
+            const dbDevice = dbDevices.find((d) => d.address === device.address);
             if (dbDevice && dbDevice.mapped_device_name) {
               return {
                 ...device,
@@ -174,14 +148,7 @@ export function AddressMapping({ isActive }) {
 
         // Remove already mapped devices from scanned list based on index
         setScannedDevices((prev) =>
-          prev.filter(
-            (scanned) =>
-              !dbDevices.some(
-                (db) =>
-                  db.mapped_device_index !== null &&
-                  db.mapped_device_index === scanned.index
-              )
-          )
+          prev.filter((scanned) => !dbDevices.some((db) => db.mapped_device_index !== null && db.mapped_device_index === scanned.index))
         );
       } catch (error) {
         console.error("Failed to load DALI devices:", error);
@@ -239,13 +206,7 @@ export function AddressMapping({ isActive }) {
               });
 
             // Map the scanned device to the fixed address optimistically
-            setFixedDevices((prev) =>
-              prev.map((device) =>
-                device.address === address
-                  ? { ...device, mappedDevice: scannedDevice }
-                  : device
-              )
-            );
+            setFixedDevices((prev) => prev.map((device) => (device.address === address ? { ...device, mappedDevice: scannedDevice } : device)));
 
             // Remove from scanned devices (by index)
             return prevScanned.filter((d) => d.index !== active.id);
@@ -284,9 +245,7 @@ export function AddressMapping({ isActive }) {
           // Add back to scanned devices (check duplicate by index)
           setScannedDevices((prev) => {
             // Check if device already exists by index
-            const exists = prev.some(
-              (d) => d.index === device.mappedDevice.index
-            );
+            const exists = prev.some((d) => d.index === device.mappedDevice.index);
             if (exists) {
               return prev; // Don't add duplicate
             }
@@ -307,9 +266,7 @@ export function AddressMapping({ isActive }) {
           });
 
           // Clear mapping optimistically
-          return prevFixed.map((d) =>
-            d.address === address ? { ...d, mappedDevice: null } : d
-          );
+          return prevFixed.map((d) => (d.address === address ? { ...d, mappedDevice: null } : d));
         }
 
         return prevFixed;
@@ -318,10 +275,7 @@ export function AddressMapping({ isActive }) {
     [selectedProject]
   );
 
-  const activeDevice = useMemo(
-    () => scannedDevices.find((d) => d.index === activeId),
-    [scannedDevices, activeId]
-  );
+  const activeDevice = useMemo(() => scannedDevices.find((d) => d.index === activeId), [scannedDevices, activeId]);
 
   const sortedScannedDevices = useMemo(() => {
     return [...scannedDevices].sort((a, b) => {
@@ -348,9 +302,7 @@ export function AddressMapping({ isActive }) {
         // If Reset Commissioning, clear all configurations first
         if (!extend && selectedProject) {
           toast.info("Clearing all DALI configurations...");
-          await window.electronAPI.dali.clearAllDaliConfigurations(
-            selectedProject.id
-          );
+          await window.electronAPI.dali.clearAllDaliConfigurations(selectedProject.id);
           // Clear local storage for scanned devices
           localStorage.removeItem(`dali-scanned-devices-${selectedProject.id}`);
           toast.success("All configurations cleared");
@@ -363,9 +315,7 @@ export function AddressMapping({ isActive }) {
         });
 
         if (result.success) {
-          toast.success(
-            `${commissioningType} Commissioning completed! Found ${result.devices.length} device(s)`
-          );
+          toast.success(`${commissioningType} Commissioning completed! Found ${result.devices.length} device(s)`);
 
           // Update scanned devices with index, address, current level, RCU group and color feature
           const newDevices = result.devices
@@ -382,9 +332,7 @@ export function AddressMapping({ isActive }) {
 
           setScannedDevices(newDevices);
         } else {
-          toast.warning(
-            `${commissioningType} Commissioning completed but no success packet received`
-          );
+          toast.warning(`${commissioningType} Commissioning completed but no success packet received`);
         }
       } catch (error) {
         console.error("Commissioning failed:", error);
@@ -412,9 +360,7 @@ export function AddressMapping({ isActive }) {
       });
 
       if (result.success) {
-        toast.success(
-          `Scan completed! Found ${result.devices.length} device(s)`
-        );
+        toast.success(`Scan completed! Found ${result.devices.length} device(s)`);
 
         // Update scanned devices with index, address, current level, RCU group and color feature
         const newDevices = result.devices
@@ -454,27 +400,20 @@ export function AddressMapping({ isActive }) {
 
     try {
       setFixingConflicts(true);
-      toast.info(
-        `Fixing ${addressConflictDialog.conflictAddresses.length} conflict address(es)...`
-      );
+      toast.info(`Fixing ${addressConflictDialog.conflictAddresses.length} conflict address(es)...`);
 
-      const result =
-        await window.electronAPI.daliController.conflictAddressCommissioning({
-          unitIp: selectedGateway.ip_address,
-          canId: selectedGateway.id_can,
-          conflictAddresses: addressConflictDialog.conflictAddresses,
-        });
+      const result = await window.electronAPI.daliController.conflictAddressCommissioning({
+        unitIp: selectedGateway.ip_address,
+        canId: selectedGateway.id_can,
+        conflictAddresses: addressConflictDialog.conflictAddresses,
+      });
 
       if (result.success) {
-        toast.success(
-          `Successfully fixed ${result.successCount}/${result.totalAddresses} conflict address(es)`
-        );
+        toast.success(`Successfully fixed ${result.successCount}/${result.totalAddresses} conflict address(es)`);
         // Close the dialog
         setAddressConflictDialog({ open: false, conflictAddresses: [] });
       } else {
-        toast.warning(
-          `Fixed ${result.successCount}/${result.totalAddresses} conflict address(es). Some addresses failed.`
-        );
+        toast.warning(`Fixed ${result.successCount}/${result.totalAddresses} conflict address(es). Some addresses failed.`);
       }
     } catch (error) {
       console.error("Fix conflicts failed:", error);
@@ -523,12 +462,7 @@ export function AddressMapping({ isActive }) {
   }, [selectedGateway]);
 
   return (
-    <DndContext
-      sensors={sensors}
-      onDragStart={handleDragStart}
-      onDragEnd={handleDragEnd}
-      onDragCancel={handleDragCancel}
-    >
+    <DndContext sensors={sensors} onDragStart={handleDragStart} onDragEnd={handleDragEnd} onDragCancel={handleDragCancel}>
       <div className="grid grid-cols-2 gap-4 h-full">
         {/* Left: Fixed 64 DALI Devices */}
         <Card>
@@ -536,18 +470,10 @@ export function AddressMapping({ isActive }) {
             <div className="flex items-center justify-between">
               <CardTitle>DALI Addresses (0-63)</CardTitle>
               <div className="flex items-center gap-2">
-                <Button
-                  variant="outline"
-                  onClick={handleBroadcastOn}
-                  disabled={!selectedGateway}
-                >
+                <Button variant="outline" onClick={handleBroadcastOn} disabled={!selectedGateway}>
                   Broadcast ON
                 </Button>
-                <Button
-                  variant="outline"
-                  onClick={handleBroadcastOff}
-                  disabled={!selectedGateway}
-                >
+                <Button variant="outline" onClick={handleBroadcastOff} disabled={!selectedGateway}>
                   Broadcast OFF
                 </Button>
               </div>
@@ -557,11 +483,7 @@ export function AddressMapping({ isActive }) {
             <ScrollArea className="h-[calc(100vh-360px)]">
               <div className="space-y-2 pr-4">
                 {fixedDevices.map((device) => (
-                  <FixedDeviceSlot
-                    key={device.address}
-                    device={device}
-                    onUnmap={handleUnmap}
-                  />
+                  <FixedDeviceSlot key={device.address} device={device} onUnmap={handleUnmap} />
                 ))}
               </div>
             </ScrollArea>
@@ -582,20 +504,13 @@ export function AddressMapping({ isActive }) {
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end">
-                    <DropdownMenuItem onClick={() => setSortBy("address")}>
-                      Sort by Address
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => setSortBy("index")}>
-                      Sort by Index
-                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => setSortBy("address")}>Sort by Address</DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => setSortBy("index")}>Sort by Index</DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <Button
-                      variant="outline"
-                      disabled={scanning || !selectedGateway}
-                    >
+                    <Button variant="outline" disabled={scanning || !selectedGateway}>
                       {scanning ? (
                         <>
                           <Loader2 className="h-4 w-4 animate-spin" />
@@ -610,24 +525,12 @@ export function AddressMapping({ isActive }) {
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end">
-                    <DropdownMenuItem
-                      onClick={() => handleCommissioning(false)}
-                    >
-                      Reset Commissioning
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => handleCommissioning(true)}>
-                      Extend Commissioning
-                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => handleCommissioning(false)}>Reset Commissioning</DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => handleCommissioning(true)}>Extend Commissioning</DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
-                <Button
-                  variant="outline"
-                  onClick={handleScan}
-                  disabled={scanning || !selectedGateway}
-                >
-                  {scanning ? (
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                  ) : null}
+                <Button variant="outline" onClick={handleScan} disabled={scanning || !selectedGateway}>
+                  {scanning ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
                   Scan
                 </Button>
               </div>
@@ -639,11 +542,7 @@ export function AddressMapping({ isActive }) {
                 {sortedScannedDevices.map((device) => (
                   <ScannedDeviceItem key={device.index} device={device} />
                 ))}
-                {sortedScannedDevices.length === 0 && (
-                  <div className="text-center text-muted-foreground py-8">
-                    No scanned devices available
-                  </div>
-                )}
+                {sortedScannedDevices.length === 0 && <div className="text-center text-muted-foreground py-8">No scanned devices available</div>}
               </div>
             </ScrollArea>
           </CardContent>
@@ -662,28 +561,17 @@ export function AddressMapping({ isActive }) {
         ) : null}
       </DragOverlay>
 
-      <AlertDialog
-        open={deviceCountDialog.open}
-        onOpenChange={(open) =>
-          setDeviceCountDialog((prev) => ({ ...prev, open }))
-        }
-      >
+      <AlertDialog open={deviceCountDialog.open} onOpenChange={(open) => setDeviceCountDialog((prev) => ({ ...prev, open }))}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Device Count Changed</AlertDialogTitle>
             <AlertDialogDescription className="flex flex-col gap-2">
               The number of DALI devices has changed during commissioning.
               <span>
-                - Old device count:{" "}
-                <span className="font-bold text-rose-900">
-                  {deviceCountDialog.oldCount}
-                </span>
+                - Old device count: <span className="font-bold text-rose-900">{deviceCountDialog.oldCount}</span>
               </span>
               <span>
-                - New device count:{" "}
-                <span className="font-bold text-rose-900">
-                  {deviceCountDialog.newCount}
-                </span>
+                - New device count: <span className="font-bold text-rose-900">{deviceCountDialog.newCount}</span>
               </span>
             </AlertDialogDescription>
           </AlertDialogHeader>
@@ -693,28 +581,17 @@ export function AddressMapping({ isActive }) {
         </AlertDialogContent>
       </AlertDialog>
 
-      <AlertDialog
-        open={addressConflictDialog.open}
-        onOpenChange={(open) =>
-          setAddressConflictDialog((prev) => ({ ...prev, open }))
-        }
-      >
+      <AlertDialog open={addressConflictDialog.open} onOpenChange={(open) => setAddressConflictDialog((prev) => ({ ...prev, open }))}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Address Conflict Detected</AlertDialogTitle>
             <AlertDialogDescription className="flex flex-col gap-2">
-              The following DALI device addresses have conflicts and were
-              excluded from the scan results:
+              The following DALI device addresses have conflicts and were excluded from the scan results:
               <div className="mt-2 p-3 bg-rose-50 rounded-md border border-rose-200">
-                <div className="font-semibold text-rose-900 mb-2">
-                  Conflicting Addresses:
-                </div>
+                <div className="font-semibold text-rose-900 mb-2">Conflicting Addresses:</div>
                 <div className="flex flex-wrap gap-2">
                   {addressConflictDialog.conflictAddresses.map((address) => (
-                    <span
-                      key={address}
-                      className="px-2 py-1 bg-rose-900 text-white rounded text-sm font-mono"
-                    >
+                    <span key={address} className="px-2 py-1 bg-rose-900 text-white rounded text-sm font-mono">
                       {address}
                     </span>
                   ))}
@@ -723,9 +600,7 @@ export function AddressMapping({ isActive }) {
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel disabled={fixingConflicts}>
-              Cancel
-            </AlertDialogCancel>
+            <AlertDialogCancel disabled={fixingConflicts}>Cancel</AlertDialogCancel>
             <AlertDialogAction
               onClick={(e) => {
                 e.preventDefault();
@@ -756,9 +631,7 @@ const FixedDeviceSlot = memo(function FixedDeviceSlot({ device, onUnmap }) {
     id: `fixed-${device.address}`,
   });
 
-  const [lightingAddress, setLightingAddress] = useState(
-    device.mappedDevice?.lightingGroupAddress ?? ""
-  );
+  const [lightingAddress, setLightingAddress] = useState(device.mappedDevice?.lightingGroupAddress ?? "");
 
   useEffect(() => {
     setLightingAddress(device.mappedDevice?.lightingGroupAddress ?? "");
@@ -799,17 +672,13 @@ const FixedDeviceSlot = memo(function FixedDeviceSlot({ device, onUnmap }) {
       ref={setNodeRef}
       className={cn(
         "border rounded-md p-3 transition-colors",
-        device.mappedDevice
-          ? "bg-secondary border-primary"
-          : "bg-muted/50 border-dashed",
+        device.mappedDevice ? "bg-secondary border-primary" : "bg-muted/50 border-dashed",
         isOver && "border-primary border-2 bg-accent"
       )}
     >
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <div className="font-mono text-sm font-medium w-12">
-            {device.address.toString().padStart(2, "0")}
-          </div>
+          <div className="font-mono text-sm font-medium w-12">{device.address.toString().padStart(2, "0")}</div>
           {device.mappedDevice ? (
             <div className="flex-1">
               <div className="font-medium">{device.mappedDevice.name}</div>
@@ -833,18 +702,14 @@ const FixedDeviceSlot = memo(function FixedDeviceSlot({ device, onUnmap }) {
                 <span>|</span>
                 <span>
                   Color:
-                  {device.mappedDevice.colorFeature !== undefined
-                    ? device.mappedDevice.colorFeature
-                    : "N/A"}
+                  {device.mappedDevice.colorFeature !== undefined ? device.mappedDevice.colorFeature : "N/A"}
                 </span>
                 <span>|</span>
                 <span>Type:{device.mappedDevice.type}</span>
               </div>
             </div>
           ) : (
-            <div className="text-sm text-muted-foreground">
-              Drop device here to map
-            </div>
+            <div className="text-sm text-muted-foreground">Drop device here to map</div>
           )}
         </div>
         <div className="flex items-center gap-1">
@@ -856,12 +721,7 @@ const FixedDeviceSlot = memo(function FixedDeviceSlot({ device, onUnmap }) {
             colorFeature={device.mappedDevice?.colorFeature}
           />
           {device.mappedDevice && (
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-8 w-8"
-              onClick={handleUnmap}
-            >
+            <Button variant="ghost" size="icon" className="h-8 w-8" onClick={handleUnmap}>
               <X className="h-4 w-4" />
             </Button>
           )}
@@ -877,35 +737,17 @@ const ScannedDeviceItem = memo(function ScannedDeviceItem({ device }) {
   });
 
   return (
-    <div
-      ref={setNodeRef}
-      className={cn(
-        "bg-card border rounded-md p-3 transition-colors",
-        isDragging && "opacity-50"
-      )}
-    >
+    <div ref={setNodeRef} className={cn("bg-card border rounded-md p-3 transition-colors", isDragging && "opacity-50")}>
       <div className="flex items-center justify-between gap-2">
-        <div
-          className="flex items-center gap-2 flex-1 cursor-move"
-          {...attributes}
-          {...listeners}
-        >
+        <div className="flex items-center gap-2 flex-1 cursor-move" {...attributes} {...listeners}>
           <GripVertical className="h-4 w-4 text-muted-foreground" />
           <div>
-            <div className="font-medium">
-              {device.name || `Device ${device.address}`}
-            </div>
+            <div className="font-medium">{device.name || `Device ${device.address}`}</div>
             {device.currentLevel !== undefined && (
               <div className="text-xs font-mono text-muted-foreground">
                 Index:{device.index} | Address:{device.address} | RCU Group:
-                {device.lightingGroupAddress !== undefined
-                  ? device.lightingGroupAddress
-                  : "N/A"}{" "}
-                | Color:
-                {device.colorFeature !== undefined
-                  ? device.colorFeature
-                  : "N/A"}{" "}
-                | Type:{device.type}
+                {device.lightingGroupAddress !== undefined ? device.lightingGroupAddress : "N/A"} | Color:
+                {device.colorFeature !== undefined ? device.colorFeature : "N/A"} | Type:{device.type}
               </div>
             )}
           </div>

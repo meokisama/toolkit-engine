@@ -1,11 +1,4 @@
-import React, {
-  memo,
-  useState,
-  useCallback,
-  useEffect,
-  useRef,
-  useMemo,
-} from "react";
+import React, { memo, useState, useCallback, useEffect, useRef, useMemo } from "react";
 import { DataTable } from "@/components/projects/data-table/data-table";
 import { DataTableSkeleton } from "@/components/projects/table-skeleton";
 import { DataTablePagination } from "@/components/projects/data-table/data-table-pagination";
@@ -20,10 +13,7 @@ import { SendSequenceDialog } from "@/components/projects/sequences/send-sequenc
 import { ListOrdered } from "lucide-react";
 import { toast } from "sonner";
 
-const SequenceTable = memo(function SequenceTable({
-  items = [],
-  loading = false,
-}) {
+const SequenceTable = memo(function SequenceTable({ items = [], loading = false }) {
   const category = "sequences";
   const { deleteItem, duplicateItem, updateItem } = useProjectDetail();
   const [sequenceCounts, setSequenceCounts] = useState({});
@@ -61,15 +51,10 @@ const SequenceTable = memo(function SequenceTable({
       const counts = {};
       for (const sequence of items) {
         try {
-          const multiScenes = await window.electronAPI.sequences.getMultiScenes(
-            sequence.id
-          );
+          const multiScenes = await window.electronAPI.sequences.getMultiScenes(sequence.id);
           counts[sequence.id] = multiScenes.length;
         } catch (error) {
-          console.error(
-            `Failed to load multi-scene count for sequence ${sequence.id}:`,
-            error
-          );
+          console.error(`Failed to load multi-scene count for sequence ${sequence.id}:`, error);
           counts[sequence.id] = 0;
         }
       }
@@ -134,9 +119,7 @@ const SequenceTable = memo(function SequenceTable({
   const handleSendToUnit = useCallback(
     (item) => {
       // Calculate index based on array position instead of database ID
-      const sequenceIndex = items.findIndex(
-        (sequence) => sequence.id === item.id
-      );
+      const sequenceIndex = items.findIndex((sequence) => sequence.id === item.id);
       setSendSequenceDialog({
         open: true,
         items: [{ ...item, calculatedIndex: sequenceIndex }], // Single sequence as array
@@ -182,9 +165,7 @@ const SequenceTable = memo(function SequenceTable({
             for (const item of selectedItems) {
               await deleteItem(category, item.id);
             }
-            toast.success(
-              `Successfully deleted ${selectedItems.length} sequence(s)`
-            );
+            toast.success(`Successfully deleted ${selectedItems.length} sequence(s)`);
             setConfirmDialog({ ...confirmDialog, open: false });
           } catch (error) {
             console.error("Failed to delete sequences:", error);
@@ -247,9 +228,7 @@ const SequenceTable = memo(function SequenceTable({
   // ✅ Stable function that doesn't depend on state
   const getEffectiveValue = useCallback((item, field) => {
     const pendingChange = pendingChangesRef.current.get(item.id);
-    return pendingChange && pendingChange[field] !== undefined
-      ? pendingChange[field]
-      : item[field];
+    return pendingChange && pendingChange[field] !== undefined ? pendingChange[field] : item[field];
   }, []); // No dependencies = stable function!
 
   // Add multi-scene counts to items data
@@ -260,15 +239,7 @@ const SequenceTable = memo(function SequenceTable({
 
   // ✅ Now columns will be truly stable because all dependencies are stable!
   const columns = useMemo(
-    () =>
-      createSequenceColumns(
-        handleEditItem,
-        handleDuplicateItem,
-        handleDeleteItem,
-        handleCellEdit,
-        getEffectiveValue,
-        handleSendToUnit
-      ),
+    () => createSequenceColumns(handleEditItem, handleDuplicateItem, handleDeleteItem, handleCellEdit, getEffectiveValue, handleSendToUnit),
     [
       handleEditItem,
       handleDuplicateItem,
@@ -290,9 +261,7 @@ const SequenceTable = memo(function SequenceTable({
           <div className="text-center text-muted-foreground flex flex-col justify-center items-center h-full -mt-8">
             <ListOrdered className="h-12 w-12 mx-auto mb-4 opacity-50" />
             <p>No sequences found.</p>
-            <p className="text-sm mb-8">
-              Click "Add Sequence" to create your first sequence.
-            </p>
+            <p className="text-sm mb-8">Click "Add Sequence" to create your first sequence.</p>
             <Button onClick={handleCreateItem}>
               <Plus className="h-4 w-4" />
               Add Sequence
@@ -334,25 +303,16 @@ const SequenceTable = memo(function SequenceTable({
                 enableRowSelection={true}
               />
             </div>
-            {table && (
-              <DataTablePagination table={table} pagination={pagination} />
-            )}
+            {table && <DataTablePagination table={table} pagination={pagination} />}
           </div>
         )}
       </div>
 
-      <SequenceDialog
-        open={dialogOpen}
-        onOpenChange={handleDialogClose}
-        sequence={editingItem}
-        mode={dialogMode}
-      />
+      <SequenceDialog open={dialogOpen} onOpenChange={handleDialogClose} sequence={editingItem} mode={dialogMode} />
 
       <SendSequenceDialog
         open={sendSequenceDialog.open}
-        onOpenChange={(open) =>
-          setSendSequenceDialog((prev) => ({ ...prev, open }))
-        }
+        onOpenChange={(open) => setSendSequenceDialog((prev) => ({ ...prev, open }))}
         items={sendSequenceDialog.items}
       />
 

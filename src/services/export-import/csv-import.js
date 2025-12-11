@@ -47,9 +47,7 @@ export class CSVImporter {
 
     // Detect delimiter from first line
     const delimiter = CSVParser.detectDelimiter(lines[0]);
-    const headers = lines[0]
-      .split(delimiter)
-      .map((h) => h.trim().replace(/"/g, ""));
+    const headers = lines[0].split(delimiter).map((h) => h.trim().replace(/"/g, ""));
     const items = [];
 
     // Special handling for scene category - expect scene format
@@ -99,20 +97,14 @@ export class CSVImporter {
 
     // Detect delimiter from first line
     const delimiter = CSVParser.detectDelimiter(lines[0]);
-    const headers = lines[0]
-      .split(delimiter)
-      .map((h) => h.trim().replace(/"/g, ""));
+    const headers = lines[0].split(delimiter).map((h) => h.trim().replace(/"/g, ""));
     const cards = [];
 
     // Validate headers for aircon cards
     const expectedHeaders = ["name", "address", "description"];
-    const hasValidHeaders = expectedHeaders.every((header) =>
-      headers.includes(header)
-    );
+    const hasValidHeaders = expectedHeaders.every((header) => headers.includes(header));
     if (!hasValidHeaders) {
-      throw new Error(
-        "Invalid CSV headers for aircon cards. Expected: name, address, description"
-      );
+      throw new Error("Invalid CSV headers for aircon cards. Expected: name, address, description");
     }
 
     for (let i = 1; i < lines.length; i++) {
@@ -148,28 +140,14 @@ export class CSVImporter {
 
     // Detect delimiter from first line
     const delimiter = CSVParser.detectDelimiter(lines[0]);
-    const headers = lines[0]
-      .split(delimiter)
-      .map((h) => h.trim().replace(/"/g, ""));
+    const headers = lines[0].split(delimiter).map((h) => h.trim().replace(/"/g, ""));
 
     // Validate headers
-    const expectedHeaders = [
-      "SCENE NAME",
-      "ITEM NAME",
-      "TYPE",
-      "ADDRESS",
-      "VALUE",
-    ];
-    const hasValidHeaders = expectedHeaders.every((header) =>
-      headers.some((h) => h.toUpperCase() === header)
-    );
+    const expectedHeaders = ["SCENE NAME", "ITEM NAME", "TYPE", "ADDRESS", "VALUE"];
+    const hasValidHeaders = expectedHeaders.every((header) => headers.some((h) => h.toUpperCase() === header));
 
     if (!hasValidHeaders) {
-      throw new Error(
-        `Invalid CSV headers for scenes. Expected: ${expectedHeaders.join(
-          ", "
-        )}`
-      );
+      throw new Error(`Invalid CSV headers for scenes. Expected: ${expectedHeaders.join(", ")}`);
     }
 
     const MAX_ITEMS_PER_SCENE = 60;
@@ -302,9 +280,7 @@ export class CSVImporter {
 
     // Detect delimiter from first line
     const delimiter = CSVParser.detectDelimiter(lines[0]);
-    const headers = lines[0]
-      .split(delimiter)
-      .map((h) => h.trim().replace(/"/g, ""));
+    const headers = lines[0].split(delimiter).map((h) => h.trim().replace(/"/g, ""));
 
     // Check if it's template2 format (ITEM NAME, TYPE, ADDRESS, Scene1, Scene2, ...)
     const isTemplate2Format =
@@ -327,29 +303,19 @@ export class CSVImporter {
 
     // Detect delimiter from first line
     const delimiter = CSVParser.detectDelimiter(lines[0]);
-    const headers = lines[0]
-      .split(delimiter)
-      .map((h) => h.trim().replace(/"/g, ""));
+    const headers = lines[0].split(delimiter).map((h) => h.trim().replace(/"/g, ""));
 
     // Validate template format headers
     if (headers.length < 4) {
-      throw new Error(
-        "Invalid template format. Expected at least 4 columns: ITEM NAME, TYPE, ADDRESS, Scene1, ..."
-      );
+      throw new Error("Invalid template format. Expected at least 4 columns: ITEM NAME, TYPE, ADDRESS, Scene1, ...");
     }
 
-    const itemNameCol = headers.findIndex((h) =>
-      h.toUpperCase().includes("ITEM")
-    );
+    const itemNameCol = headers.findIndex((h) => h.toUpperCase().includes("ITEM"));
     const typeCol = headers.findIndex((h) => h.toUpperCase().includes("TYPE"));
-    const addressCol = headers.findIndex((h) =>
-      h.toUpperCase().includes("ADDRESS")
-    );
+    const addressCol = headers.findIndex((h) => h.toUpperCase().includes("ADDRESS"));
 
     if (itemNameCol === -1 || typeCol === -1 || addressCol === -1) {
-      throw new Error(
-        "Invalid template format. Required columns: ITEM NAME, TYPE, ADDRESS"
-      );
+      throw new Error("Invalid template format. Required columns: ITEM NAME, TYPE, ADDRESS");
     }
 
     // Scene columns start from index 3 (or after ADDRESS column)
@@ -393,17 +359,12 @@ export class CSVImporter {
         if (!sceneGroups[sceneKey]) return;
 
         // Find the current scene part (might be split into parts)
-        let targetScene = sceneGroups[sceneKey].find(
-          (s) => s.items.length < MAX_ITEMS_PER_SCENE
-        );
+        let targetScene = sceneGroups[sceneKey].find((s) => s.items.length < MAX_ITEMS_PER_SCENE);
 
         // If no available scene part or all are full, create a new part
         if (!targetScene) {
           const newPartNumber = sceneGroups[sceneKey].length + 1;
-          const newSceneName =
-            newPartNumber === 1
-              ? sceneKey
-              : `${sceneKey} (Part ${newPartNumber})`;
+          const newSceneName = newPartNumber === 1 ? sceneKey : `${sceneKey} (Part ${newPartNumber})`;
 
           targetScene = {
             name: newSceneName,

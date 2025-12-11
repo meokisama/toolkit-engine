@@ -1,19 +1,5 @@
-import React, {
-  useState,
-  useEffect,
-  useCallback,
-  memo,
-  useMemo,
-  useRef,
-} from "react";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import React, { useState, useEffect, useCallback, memo, useMemo, useRef } from "react";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
@@ -34,94 +20,77 @@ const VALIDATION_RANGES = {
 };
 
 // Optimized Input component with debounced validation
-const ValidatedInput = memo(
-  ({
-    value,
-    onChange,
-    validationRange,
-    className = "w-20",
-    placeholder = "0",
-  }) => {
-    const [localValue, setLocalValue] = useState(value.toString());
-    const [isValid, setIsValid] = useState(true);
-    const timeoutRef = useRef(null);
+const ValidatedInput = memo(({ value, onChange, validationRange, className = "w-20", placeholder = "0" }) => {
+  const [localValue, setLocalValue] = useState(value.toString());
+  const [isValid, setIsValid] = useState(true);
+  const timeoutRef = useRef(null);
 
-    // Update local value when prop changes
-    useEffect(() => {
-      setLocalValue(value.toString());
-    }, [value]);
+  // Update local value when prop changes
+  useEffect(() => {
+    setLocalValue(value.toString());
+  }, [value]);
 
-    // Debounced validation and onChange
-    const debouncedOnChange = useCallback(
-      (inputValue) => {
-        clearTimeout(timeoutRef.current);
-        timeoutRef.current = setTimeout(() => {
-          if (inputValue === "") {
-            setIsValid(true);
-            return;
-          }
-
-          const numValue = parseInt(inputValue);
-          const isValidNumber =
-            !isNaN(numValue) &&
-            numValue >= validationRange.min &&
-            numValue <= validationRange.max;
-
-          setIsValid(isValidNumber);
-
-          if (isValidNumber) {
-            onChange(numValue);
-          }
-        }, 300);
-      },
-      [onChange, validationRange]
-    );
-
-    const handleChange = useCallback(
-      (e) => {
-        const inputValue = e.target.value;
-        setLocalValue(inputValue);
-        debouncedOnChange(inputValue);
-      },
-      [debouncedOnChange]
-    );
-
-    const handleBlur = useCallback(() => {
+  // Debounced validation and onChange
+  const debouncedOnChange = useCallback(
+    (inputValue) => {
       clearTimeout(timeoutRef.current);
+      timeoutRef.current = setTimeout(() => {
+        if (inputValue === "") {
+          setIsValid(true);
+          return;
+        }
 
-      if (!isValid) {
-        const clampedValue = Math.max(
-          validationRange.min,
-          Math.min(
-            validationRange.max,
-            parseInt(localValue) || validationRange.min
-          )
-        );
-        setLocalValue(clampedValue.toString());
-        setIsValid(true);
-        onChange(clampedValue);
-      }
-    }, [isValid, localValue, onChange, validationRange]);
+        const numValue = parseInt(inputValue);
+        const isValidNumber = !isNaN(numValue) && numValue >= validationRange.min && numValue <= validationRange.max;
 
-    // Cleanup timeout on unmount
-    useEffect(() => {
-      return () => clearTimeout(timeoutRef.current);
-    }, []);
+        setIsValid(isValidNumber);
 
-    return (
-      <Input
-        type="number"
-        value={localValue}
-        onChange={handleChange}
-        onBlur={handleBlur}
-        className={`${className} ${!isValid ? "border-red-500" : ""}`}
-        placeholder={placeholder}
-        min={validationRange.min}
-        max={validationRange.max}
-      />
-    );
-  }
-);
+        if (isValidNumber) {
+          onChange(numValue);
+        }
+      }, 300);
+    },
+    [onChange, validationRange]
+  );
+
+  const handleChange = useCallback(
+    (e) => {
+      const inputValue = e.target.value;
+      setLocalValue(inputValue);
+      debouncedOnChange(inputValue);
+    },
+    [debouncedOnChange]
+  );
+
+  const handleBlur = useCallback(() => {
+    clearTimeout(timeoutRef.current);
+
+    if (!isValid) {
+      const clampedValue = Math.max(validationRange.min, Math.min(validationRange.max, parseInt(localValue) || validationRange.min));
+      setLocalValue(clampedValue.toString());
+      setIsValid(true);
+      onChange(clampedValue);
+    }
+  }, [isValid, localValue, onChange, validationRange]);
+
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => clearTimeout(timeoutRef.current);
+  }, []);
+
+  return (
+    <Input
+      type="number"
+      value={localValue}
+      onChange={handleChange}
+      onBlur={handleBlur}
+      className={`${className} ${!isValid ? "border-red-500" : ""}`}
+      placeholder={placeholder}
+      min={validationRange.min}
+      max={validationRange.max}
+    />
+  );
+});
 
 const LightingOutputConfigDialogComponent = ({
   open,
@@ -153,22 +122,10 @@ const LightingOutputConfigDialogComponent = ({
   );
 
   // Default time picker states
-  const defaultDelayOffTime = useMemo(
-    () => new Date(new Date().setHours(0, 0, 0, 0)),
-    []
-  );
-  const defaultDelayOnTime = useMemo(
-    () => new Date(new Date().setHours(0, 0, 0, 0)),
-    []
-  );
-  const defaultScheduleOnTime = useMemo(
-    () => new Date(new Date().setHours(0, 0, 0, 0)),
-    []
-  );
-  const defaultScheduleOffTime = useMemo(
-    () => new Date(new Date().setHours(0, 0, 0, 0)),
-    []
-  );
+  const defaultDelayOffTime = useMemo(() => new Date(new Date().setHours(0, 0, 0, 0)), []);
+  const defaultDelayOnTime = useMemo(() => new Date(new Date().setHours(0, 0, 0, 0)), []);
+  const defaultScheduleOnTime = useMemo(() => new Date(new Date().setHours(0, 0, 0, 0)), []);
+  const defaultScheduleOffTime = useMemo(() => new Date(new Date().setHours(0, 0, 0, 0)), []);
 
   // State for all configuration options
   const [config, setConfig] = useState(defaultConfig);
@@ -177,9 +134,7 @@ const LightingOutputConfigDialogComponent = ({
   const [delayOffTime, setDelayOffTime] = useState(defaultDelayOffTime);
   const [delayOnTime, setDelayOnTime] = useState(defaultDelayOnTime);
   const [scheduleOnTime, setScheduleOnTime] = useState(defaultScheduleOnTime);
-  const [scheduleOffTime, setScheduleOffTime] = useState(
-    defaultScheduleOffTime
-  );
+  const [scheduleOffTime, setScheduleOffTime] = useState(defaultScheduleOffTime);
 
   const [loading, setLoading] = useState(false);
 
@@ -211,12 +166,7 @@ const LightingOutputConfigDialogComponent = ({
 
   // Initialize config from props
   useEffect(() => {
-    if (
-      open &&
-      !isLoading &&
-      initialConfig !== null &&
-      initialConfig !== undefined
-    ) {
+    if (open && !isLoading && initialConfig !== null && initialConfig !== undefined) {
       const newConfig = {
         delayOffHours: initialConfig.delayOffHours || 0,
         delayOffMinutes: initialConfig.delayOffMinutes || 0,
@@ -235,26 +185,10 @@ const LightingOutputConfigDialogComponent = ({
       setConfig(newConfig);
 
       // Set time picker states
-      setDelayOffTime(
-        timeToDate(
-          newConfig.delayOffHours,
-          newConfig.delayOffMinutes,
-          newConfig.delayOffSeconds
-        )
-      );
-      setDelayOnTime(
-        timeToDate(
-          newConfig.delayOnHours,
-          newConfig.delayOnMinutes,
-          newConfig.delayOnSeconds
-        )
-      );
-      setScheduleOnTime(
-        timeToDate(newConfig.scheduleOnHour, newConfig.scheduleOnMinute)
-      );
-      setScheduleOffTime(
-        timeToDate(newConfig.scheduleOffHour, newConfig.scheduleOffMinute)
-      );
+      setDelayOffTime(timeToDate(newConfig.delayOffHours, newConfig.delayOffMinutes, newConfig.delayOffSeconds));
+      setDelayOnTime(timeToDate(newConfig.delayOnHours, newConfig.delayOnMinutes, newConfig.delayOnSeconds));
+      setScheduleOnTime(timeToDate(newConfig.scheduleOnHour, newConfig.scheduleOnMinute));
+      setScheduleOffTime(timeToDate(newConfig.scheduleOffHour, newConfig.scheduleOffMinute));
     } else if (open && isLoading) {
       // Reset to default config when loading new output
       setConfig(defaultConfig);
@@ -263,16 +197,7 @@ const LightingOutputConfigDialogComponent = ({
       setScheduleOnTime(defaultScheduleOnTime);
       setScheduleOffTime(defaultScheduleOffTime);
     }
-  }, [
-    open,
-    initialConfig,
-    isLoading,
-    defaultConfig,
-    defaultDelayOffTime,
-    defaultDelayOnTime,
-    defaultScheduleOnTime,
-    defaultScheduleOffTime,
-  ]);
+  }, [open, initialConfig, isLoading, defaultConfig, defaultDelayOffTime, defaultDelayOnTime, defaultScheduleOnTime, defaultScheduleOffTime]);
 
   // Reset config when dialog closes
   useEffect(() => {
@@ -284,14 +209,7 @@ const LightingOutputConfigDialogComponent = ({
       setScheduleOffTime(defaultScheduleOffTime);
       setLoading(false);
     }
-  }, [
-    open,
-    defaultConfig,
-    defaultDelayOffTime,
-    defaultDelayOnTime,
-    defaultScheduleOnTime,
-    defaultScheduleOffTime,
-  ]);
+  }, [open, defaultConfig, defaultDelayOffTime, defaultDelayOnTime, defaultScheduleOnTime, defaultScheduleOffTime]);
 
   // Handlers
   const handleClose = useCallback(() => {
@@ -332,39 +250,19 @@ const LightingOutputConfigDialogComponent = ({
   );
 
   // Time picker handlers using factory - use useCallback for functions
-  const handleDelayOffTimeChange = useCallback(
-    createTimeHandler(setDelayOffTime, [
-      "delayOffHours",
-      "delayOffMinutes",
-      "delayOffSeconds",
-    ]),
-    [createTimeHandler]
-  );
+  const handleDelayOffTimeChange = useCallback(createTimeHandler(setDelayOffTime, ["delayOffHours", "delayOffMinutes", "delayOffSeconds"]), [
+    createTimeHandler,
+  ]);
 
-  const handleDelayOnTimeChange = useCallback(
-    createTimeHandler(setDelayOnTime, [
-      "delayOnHours",
-      "delayOnMinutes",
-      "delayOnSeconds",
-    ]),
-    [createTimeHandler]
-  );
+  const handleDelayOnTimeChange = useCallback(createTimeHandler(setDelayOnTime, ["delayOnHours", "delayOnMinutes", "delayOnSeconds"]), [
+    createTimeHandler,
+  ]);
 
-  const handleScheduleOnTimeChange = useCallback(
-    createTimeHandler(setScheduleOnTime, [
-      "scheduleOnHour",
-      "scheduleOnMinute",
-    ]),
-    [createTimeHandler]
-  );
+  const handleScheduleOnTimeChange = useCallback(createTimeHandler(setScheduleOnTime, ["scheduleOnHour", "scheduleOnMinute"]), [createTimeHandler]);
 
-  const handleScheduleOffTimeChange = useCallback(
-    createTimeHandler(setScheduleOffTime, [
-      "scheduleOffHour",
-      "scheduleOffMinute",
-    ]),
-    [createTimeHandler]
-  );
+  const handleScheduleOffTimeChange = useCallback(createTimeHandler(setScheduleOffTime, ["scheduleOffHour", "scheduleOffMinute"]), [
+    createTimeHandler,
+  ]);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -374,9 +272,7 @@ const LightingOutputConfigDialogComponent = ({
             <Lightbulb className="h-5 w-5" />
             Lighting Output Configuration
           </DialogTitle>
-          <DialogDescription>
-            Configure timing and dimming settings for {outputName}
-          </DialogDescription>
+          <DialogDescription>Configure timing and dimming settings for {outputName}</DialogDescription>
         </DialogHeader>
 
         <div className="space-y-6">
@@ -474,26 +370,14 @@ const LightingOutputConfigDialogComponent = ({
                 <CardContent className="flex justify-around">
                   {/* Delay Off Output */}
                   <div className="space-y-2 flex flex-col justify-center items-center">
-                    <Label className="text-sm font-medium">
-                      Delay Off Output
-                    </Label>
-                    <TimePicker
-                      date={delayOffTime}
-                      setDate={handleDelayOffTimeChange}
-                      showSeconds={true}
-                    />
+                    <Label className="text-sm font-medium">Delay Off Output</Label>
+                    <TimePicker date={delayOffTime} setDate={handleDelayOffTimeChange} showSeconds={true} />
                   </div>
 
                   {/* Delay On Output */}
                   <div className="space-y-2 flex flex-col justify-center items-center">
-                    <Label className="text-sm font-medium">
-                      Delay On Output
-                    </Label>
-                    <TimePicker
-                      date={delayOnTime}
-                      setDate={handleDelayOnTimeChange}
-                      showSeconds={true}
-                    />
+                    <Label className="text-sm font-medium">Delay On Output</Label>
+                    <TimePicker date={delayOnTime} setDate={handleDelayOnTimeChange} showSeconds={true} />
                   </div>
                 </CardContent>
               </Card>
@@ -510,9 +394,7 @@ const LightingOutputConfigDialogComponent = ({
                   <CardContent className="space-y-4">
                     <div className="grid grid-cols-2 gap-4">
                       <div className="space-y-2">
-                        <Label className="text-sm font-medium">
-                          Min Dim (%)
-                        </Label>
+                        <Label className="text-sm font-medium">Min Dim (%)</Label>
                         <ValidatedInput
                           value={config.minDim}
                           onChange={(value) => updateConfig("minDim", value)}
@@ -522,9 +404,7 @@ const LightingOutputConfigDialogComponent = ({
                       </div>
 
                       <div className="space-y-2">
-                        <Label className="text-sm font-medium">
-                          Max Dim (%)
-                        </Label>
+                        <Label className="text-sm font-medium">Max Dim (%)</Label>
                         <ValidatedInput
                           value={config.maxDim}
                           onChange={(value) => updateConfig("maxDim", value)}
@@ -535,17 +415,8 @@ const LightingOutputConfigDialogComponent = ({
                     </div>
 
                     <div className="flex items-center space-x-2">
-                      <Checkbox
-                        id="autoTrigger"
-                        checked={config.autoTrigger}
-                        onCheckedChange={(checked) =>
-                          updateConfig("autoTrigger", checked)
-                        }
-                      />
-                      <Label
-                        htmlFor="autoTrigger"
-                        className="text-sm font-medium"
-                      >
+                      <Checkbox id="autoTrigger" checked={config.autoTrigger} onCheckedChange={(checked) => updateConfig("autoTrigger", checked)} />
+                      <Label htmlFor="autoTrigger" className="text-sm font-medium">
                         Auto trigger
                       </Label>
                     </div>
@@ -565,21 +436,13 @@ const LightingOutputConfigDialogComponent = ({
                   {/* Schedule On */}
                   <div className="space-y-2 flex flex-col justify-center items-center">
                     <Label className="text-sm font-medium">Schedule On</Label>
-                    <TimePicker
-                      date={scheduleOnTime}
-                      setDate={handleScheduleOnTimeChange}
-                      showSeconds={false}
-                    />
+                    <TimePicker date={scheduleOnTime} setDate={handleScheduleOnTimeChange} showSeconds={false} />
                   </div>
 
                   {/* Schedule Off */}
                   <div className="space-y-2 flex flex-col justify-center items-center">
                     <Label className="text-sm font-medium">Schedule Off</Label>
-                    <TimePicker
-                      date={scheduleOffTime}
-                      setDate={handleScheduleOffTimeChange}
-                      showSeconds={false}
-                    />
+                    <TimePicker date={scheduleOffTime} setDate={handleScheduleOffTimeChange} showSeconds={false} />
                   </div>
                 </CardContent>
               </Card>
@@ -588,11 +451,7 @@ const LightingOutputConfigDialogComponent = ({
         </div>
 
         <DialogFooter>
-          <Button
-            variant="outline"
-            onClick={handleClose}
-            disabled={loading || isLoading}
-          >
+          <Button variant="outline" onClick={handleClose} disabled={loading || isLoading}>
             Cancel
           </Button>
           <Button onClick={handleSave} disabled={loading || isLoading}>
@@ -622,16 +481,13 @@ const shallowEqual = (obj1, obj2) => {
 };
 
 // Export memoized component for optimal performance
-export const LightingOutputConfigDialog = memo(
-  LightingOutputConfigDialogComponent,
-  (prevProps, nextProps) => {
-    // Optimized comparison function without expensive JSON.stringify
-    return (
-      prevProps.open === nextProps.open &&
-      prevProps.onOpenChange === nextProps.onOpenChange &&
-      prevProps.outputName === nextProps.outputName &&
-      prevProps.outputType === nextProps.outputType &&
-      shallowEqual(prevProps.initialConfig, nextProps.initialConfig)
-    );
-  }
-);
+export const LightingOutputConfigDialog = memo(LightingOutputConfigDialogComponent, (prevProps, nextProps) => {
+  // Optimized comparison function without expensive JSON.stringify
+  return (
+    prevProps.open === nextProps.open &&
+    prevProps.onOpenChange === nextProps.onOpenChange &&
+    prevProps.outputName === nextProps.outputName &&
+    prevProps.outputType === nextProps.outputType &&
+    shallowEqual(prevProps.initialConfig, nextProps.initialConfig)
+  );
+});

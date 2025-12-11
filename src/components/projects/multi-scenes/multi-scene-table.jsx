@@ -1,11 +1,4 @@
-import React, {
-  memo,
-  useState,
-  useCallback,
-  useEffect,
-  useRef,
-  useMemo,
-} from "react";
+import React, { memo, useState, useCallback, useEffect, useRef, useMemo } from "react";
 import { DataTable } from "@/components/projects/data-table/data-table";
 import { DataTableSkeleton } from "@/components/projects/table-skeleton";
 import { DataTablePagination } from "@/components/projects/data-table/data-table-pagination";
@@ -20,10 +13,7 @@ import { SendMultiSceneDialog } from "@/components/projects/multi-scenes/send-mu
 import { Layers } from "lucide-react";
 import { toast } from "sonner";
 
-const MultiSceneTable = memo(function MultiSceneTable({
-  items = [],
-  loading = false,
-}) {
+const MultiSceneTable = memo(function MultiSceneTable({ items = [], loading = false }) {
   const category = "multi_scenes";
   const { deleteItem, duplicateItem, updateItem } = useProjectDetail();
   const [multiSceneCounts, setMultiSceneCounts] = useState({});
@@ -61,15 +51,10 @@ const MultiSceneTable = memo(function MultiSceneTable({
       const counts = {};
       for (const multiScene of items) {
         try {
-          const scenes = await window.electronAPI.multiScenes.getScenes(
-            multiScene.id
-          );
+          const scenes = await window.electronAPI.multiScenes.getScenes(multiScene.id);
           counts[multiScene.id] = scenes.length;
         } catch (error) {
-          console.error(
-            `Failed to load scene count for multi-scene ${multiScene.id}:`,
-            error
-          );
+          console.error(`Failed to load scene count for multi-scene ${multiScene.id}:`, error);
           counts[multiScene.id] = 0;
         }
       }
@@ -134,9 +119,7 @@ const MultiSceneTable = memo(function MultiSceneTable({
   const handleSendToUnit = useCallback(
     (item) => {
       // Calculate index based on array position instead of database ID
-      const multiSceneIndex = items.findIndex(
-        (multiScene) => multiScene.id === item.id
-      );
+      const multiSceneIndex = items.findIndex((multiScene) => multiScene.id === item.id);
       setSendMultiSceneDialog({
         open: true,
         items: [{ ...item, calculatedIndex: multiSceneIndex }], // Single multi-scene as array
@@ -182,9 +165,7 @@ const MultiSceneTable = memo(function MultiSceneTable({
             for (const item of selectedItems) {
               await deleteItem(category, item.id);
             }
-            toast.success(
-              `Successfully deleted ${selectedItems.length} multi-scene(s)`
-            );
+            toast.success(`Successfully deleted ${selectedItems.length} multi-scene(s)`);
             setConfirmDialog({ ...confirmDialog, open: false });
           } catch (error) {
             console.error("Failed to delete multi-scenes:", error);
@@ -247,9 +228,7 @@ const MultiSceneTable = memo(function MultiSceneTable({
   // ✅ Stable function that doesn't depend on state
   const getEffectiveValue = useCallback((item, field) => {
     const pendingChange = pendingChangesRef.current.get(item.id);
-    return pendingChange && pendingChange[field] !== undefined
-      ? pendingChange[field]
-      : item[field];
+    return pendingChange && pendingChange[field] !== undefined ? pendingChange[field] : item[field];
   }, []); // No dependencies = stable function!
 
   // Add scene counts to items data
@@ -260,15 +239,7 @@ const MultiSceneTable = memo(function MultiSceneTable({
 
   // ✅ Now columns will be truly stable because all dependencies are stable!
   const columns = useMemo(
-    () =>
-      createMultiSceneColumns(
-        handleEditItem,
-        handleDuplicateItem,
-        handleDeleteItem,
-        handleCellEdit,
-        getEffectiveValue,
-        handleSendToUnit
-      ),
+    () => createMultiSceneColumns(handleEditItem, handleDuplicateItem, handleDeleteItem, handleCellEdit, getEffectiveValue, handleSendToUnit),
     [
       handleEditItem,
       handleDuplicateItem,
@@ -290,9 +261,7 @@ const MultiSceneTable = memo(function MultiSceneTable({
           <div className="text-center text-muted-foreground flex flex-col justify-center items-center h-full -mt-8">
             <Layers className="h-12 w-12 mx-auto mb-4 opacity-50" />
             <p>No multi-scenes found.</p>
-            <p className="text-sm mb-8">
-              Click "Add Multi-Scene" to create your first multi-scene.
-            </p>
+            <p className="text-sm mb-8">Click "Add Multi-Scene" to create your first multi-scene.</p>
             <Button onClick={handleCreateItem}>
               <Plus className="h-4 w-4" />
               Add Multi-Scene
@@ -334,25 +303,16 @@ const MultiSceneTable = memo(function MultiSceneTable({
                 enableRowSelection={true}
               />
             </div>
-            {table && (
-              <DataTablePagination table={table} pagination={pagination} />
-            )}
+            {table && <DataTablePagination table={table} pagination={pagination} />}
           </div>
         )}
       </div>
 
-      <MultiSceneDialog
-        open={dialogOpen}
-        onOpenChange={handleDialogClose}
-        multiScene={editingItem}
-        mode={dialogMode}
-      />
+      <MultiSceneDialog open={dialogOpen} onOpenChange={handleDialogClose} multiScene={editingItem} mode={dialogMode} />
 
       <SendMultiSceneDialog
         open={sendMultiSceneDialog.open}
-        onOpenChange={(open) =>
-          setSendMultiSceneDialog((prev) => ({ ...prev, open }))
-        }
+        onOpenChange={(open) => setSendMultiSceneDialog((prev) => ({ ...prev, open }))}
         items={sendMultiSceneDialog.items}
       />
 

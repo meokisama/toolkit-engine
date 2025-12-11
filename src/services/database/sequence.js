@@ -53,20 +53,14 @@ export const sequenceMethods = {
   addMultiSceneToSequence(sequenceId, multiSceneId, multiSceneOrder = 0) {
     try {
       // Check if sequence already has 20 multi-scenes
-      const multiSceneCount = this.db
-        .prepare(
-          "SELECT COUNT(*) as count FROM sequence_multi_scenes WHERE sequence_id = ?"
-        )
-        .get(sequenceId);
+      const multiSceneCount = this.db.prepare("SELECT COUNT(*) as count FROM sequence_multi_scenes WHERE sequence_id = ?").get(sequenceId);
       if (multiSceneCount.count >= 20) {
         throw new Error("Maximum 20 multi-scenes allowed per sequence.");
       }
 
       // Check if multi-scene is already in this sequence
       const existingMultiScene = this.db
-        .prepare(
-          "SELECT COUNT(*) as count FROM sequence_multi_scenes WHERE sequence_id = ? AND multi_scene_id = ?"
-        )
+        .prepare("SELECT COUNT(*) as count FROM sequence_multi_scenes WHERE sequence_id = ? AND multi_scene_id = ?")
         .get(sequenceId, multiSceneId);
       if (existingMultiScene.count > 0) {
         throw new Error("Multi-scene is already in this sequence.");
@@ -113,9 +107,7 @@ export const sequenceMethods = {
       // Start transaction for atomic operation
       const transaction = this.db.transaction(() => {
         // Remove all existing multi-scenes from sequence
-        this.db
-          .prepare("DELETE FROM sequence_multi_scenes WHERE sequence_id = ?")
-          .run(sequenceId);
+        this.db.prepare("DELETE FROM sequence_multi_scenes WHERE sequence_id = ?").run(sequenceId);
 
         // Add new multi-scenes with order
         multiSceneIds.forEach((multiSceneId, index) => {
@@ -141,10 +133,7 @@ export const sequenceMethods = {
       const result = stmt.get(projectId, address);
       return result ? result.id : null;
     } catch (error) {
-      console.error(
-        `Failed to find sequence ID for address ${address}:`,
-        error
-      );
+      console.error(`Failed to find sequence ID for address ${address}:`, error);
       return null;
     }
   },

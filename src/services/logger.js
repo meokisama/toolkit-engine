@@ -31,7 +31,7 @@ class LoggerService {
    */
   getLogFilePath() {
     const today = new Date();
-    const dateString = today.toISOString().split('T')[0]; // YYYY-MM-DD format
+    const dateString = today.toISOString().split("T")[0]; // YYYY-MM-DD format
     const fileName = `${dateString}.txt`;
     return path.join(this.logsPath, fileName);
   }
@@ -54,10 +54,10 @@ class LoggerService {
         logEntry += ` | Data: ${JSON.stringify(data)}`;
       }
 
-      logEntry += '\n';
+      logEntry += "\n";
 
       // Append to file
-      fs.appendFileSync(logFilePath, logEntry, 'utf8');
+      fs.appendFileSync(logFilePath, logEntry, "utf8");
     } catch (error) {
       console.error("Failed to write log:", error);
     }
@@ -72,8 +72,8 @@ class LoggerService {
    * @param {string} error - Error message if failed
    */
   logKnxSend(operation, knxData, unitInfo, success, error = null) {
-    const level = success ? 'INFO' : 'ERROR';
-    const message = `KNX ${operation} ${success ? 'SUCCESS' : 'FAILED'}`;
+    const level = success ? "INFO" : "ERROR";
+    const message = `KNX ${operation} ${success ? "SUCCESS" : "FAILED"}`;
 
     const logData = {
       operation,
@@ -85,18 +85,18 @@ class LoggerService {
         rcuGroup: knxData.rcuGroup,
         knxSwitchGroup: knxData.knxSwitchGroup,
         knxDimmingGroup: knxData.knxDimmingGroup,
-        knxValueGroup: knxData.knxValueGroup
+        knxValueGroup: knxData.knxValueGroup,
       },
       unit: {
         ip: unitInfo.ip_address,
         canId: unitInfo.id_can,
-        type: unitInfo.type
+        type: unitInfo.type,
       },
       success,
-      error
+      error,
     };
 
-    this.writeLog(level, 'KNX', message, logData);
+    this.writeLog(level, "KNX", message, logData);
   }
 
   /**
@@ -106,7 +106,7 @@ class LoggerService {
    * @param {Object} data - Additional data
    */
   info(category, message, data = null) {
-    this.writeLog('INFO', category, message, data);
+    this.writeLog("INFO", category, message, data);
   }
 
   /**
@@ -116,7 +116,7 @@ class LoggerService {
    * @param {Object} data - Additional data
    */
   error(category, message, data = null) {
-    this.writeLog('ERROR', category, message, data);
+    this.writeLog("ERROR", category, message, data);
   }
 
   /**
@@ -126,7 +126,7 @@ class LoggerService {
    * @param {Object} data - Additional data
    */
   warning(category, message, data = null) {
-    this.writeLog('WARNING', category, message, data);
+    this.writeLog("WARNING", category, message, data);
   }
 }
 

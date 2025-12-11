@@ -60,10 +60,7 @@ export function useDialogState() {
   const [state, dispatch] = useReducer(dialogReducer, initialState);
 
   // Helper to check if a specific dialog is open
-  const isDialogOpen = useCallback(
-    (dialogType) => state.activeDialog === dialogType,
-    [state.activeDialog]
-  );
+  const isDialogOpen = useCallback((dialogType) => state.activeDialog === dialogType, [state.activeDialog]);
 
   // Open a dialog with optional data
   const openDialog = useCallback((dialogType, data = null) => {

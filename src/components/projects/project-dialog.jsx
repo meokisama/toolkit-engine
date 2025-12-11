@@ -1,23 +1,11 @@
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useProjects } from "@/contexts/project-context";
 
-export function ProjectDialog({
-  open,
-  onOpenChange,
-  project = null,
-  mode = "create",
-}) {
+export function ProjectDialog({ open, onOpenChange, project = null, mode = "create" }) {
   const { createProject, updateProject } = useProjects();
   const [formData, setFormData] = useState({
     name: "",
@@ -75,14 +63,8 @@ export function ProjectDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>
-            {mode === "edit" ? "Edit Project" : "Create New Project"}
-          </DialogTitle>
-          <DialogDescription>
-            {mode === "edit"
-              ? "Update your project details below."
-              : "Add a new project to your workspace."}
-          </DialogDescription>
+          <DialogTitle>{mode === "edit" ? "Edit Project" : "Create New Project"}</DialogTitle>
+          <DialogDescription>{mode === "edit" ? "Update your project details below." : "Add a new project to your workspace."}</DialogDescription>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -108,12 +90,7 @@ export function ProjectDialog({
           </div>
 
           <DialogFooter>
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => onOpenChange(false)}
-              disabled={loading}
-            >
+            <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={loading}>
               Cancel
             </Button>
             <Button type="submit" disabled={loading || !formData.name.trim()}>

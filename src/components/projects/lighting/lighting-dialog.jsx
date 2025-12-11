@@ -1,12 +1,5 @@
 import React, { useState, useEffect } from "react";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -21,13 +14,7 @@ const categoryLabels = {
   scene: "Scene",
 };
 
-export function ProjectItemDialog({
-  open,
-  onOpenChange,
-  category,
-  item = null,
-  mode = "create",
-}) {
+export function ProjectItemDialog({ open, onOpenChange, category, item = null, mode = "create" }) {
   const { createItem, updateItem } = useProjectDetail();
   const [formData, setFormData] = useState({
     name: "",
@@ -170,19 +157,11 @@ export function ProjectItemDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>
-            {mode === "edit"
-              ? `Edit ${categoryLabel} Item`
-              : `Create New ${categoryLabel} Item`}
-          </DialogTitle>
+          <DialogTitle>{mode === "edit" ? `Edit ${categoryLabel} Item` : `Create New ${categoryLabel} Item`}</DialogTitle>
           <DialogDescription>
             {mode === "edit"
-              ? `Update the ${
-                  categoryLabel?.toLowerCase() || "item"
-                } item details below.`
-              : `Add a new ${
-                  categoryLabel?.toLowerCase() || "item"
-                } item to your project.`}
+              ? `Update the ${categoryLabel?.toLowerCase() || "item"} item details below.`
+              : `Add a new ${categoryLabel?.toLowerCase() || "item"} item to your project.`}
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit}>
@@ -208,18 +187,10 @@ export function ProjectItemDialog({
                   id="address"
                   value={formData.address}
                   onChange={(e) => handleInputChange("address", e.target.value)}
-                  className={
-                    errors.address ? "border-red-500 focus:border-red-500" : ""
-                  }
-                  placeholder={
-                    category === "lighting"
-                      ? "Enter integer 1-255 (e.g., 1, 2, 255)"
-                      : "Enter integer greater than 0 (e.g., 1, 2, 100)"
-                  }
+                  className={errors.address ? "border-red-500 focus:border-red-500" : ""}
+                  placeholder={category === "lighting" ? "Enter integer 1-255 (e.g., 1, 2, 255)" : "Enter integer greater than 0 (e.g., 1, 2, 100)"}
                 />
-                {errors.address && (
-                  <p className="text-sm text-red-500 mt-1">{errors.address}</p>
-                )}
+                {errors.address && <p className="text-sm text-red-500 mt-1">{errors.address}</p>}
               </div>
             </div>
             <div className="grid grid-cols-4 items-center gap-4">
@@ -229,38 +200,20 @@ export function ProjectItemDialog({
               <Input
                 id="description"
                 value={formData.description}
-                onChange={(e) =>
-                  handleInputChange("description", e.target.value)
-                }
+                onChange={(e) => handleInputChange("description", e.target.value)}
                 className="col-span-3"
                 placeholder="Enter description"
               />
             </div>
           </div>
 
-          {errors.general && (
-            <div className="text-sm text-red-500 text-center mt-4">
-              {errors.general}
-            </div>
-          )}
+          {errors.general && <div className="text-sm text-red-500 text-center mt-4">{errors.general}</div>}
 
           <DialogFooter>
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => onOpenChange(false)}
-              disabled={loading}
-            >
+            <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={loading}>
               Cancel
             </Button>
-            <Button
-              type="submit"
-              disabled={
-                loading ||
-                (category === "lighting" && !formData.address.trim()) ||
-                errors.address
-              }
-            >
+            <Button type="submit" disabled={loading || (category === "lighting" && !formData.address.trim()) || errors.address}>
               {loading ? "Saving..." : mode === "edit" ? "Update" : "Create"}
             </Button>
           </DialogFooter>

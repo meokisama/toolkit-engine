@@ -94,13 +94,7 @@ const NetworkUnitEditDialog = lazy(() =>
  * Lazy dialog renderer - only mounts the currently active dialog
  * This significantly reduces initial render cost and memory usage
  */
-export function LazyDialogRenderer({
-  activeDialog,
-  dialogData,
-  dialogState,
-  handlers,
-  onUnitUpdated,
-}) {
+export function LazyDialogRenderer({ activeDialog, dialogData, dialogState, handlers, onUnitUpdated }) {
   if (!activeDialog) return null;
 
   // Fallback loading component
@@ -130,82 +124,43 @@ export function LazyDialogRenderer({
       )}
 
       {activeDialog === DIALOG_TYPES.RGB_CONTROL && (
-        <RGBControlDialog
-          open={true}
-          onOpenChange={dialogState.createDialogHandler(DIALOG_TYPES.RGB_CONTROL)}
-          unit={dialogData}
-        />
+        <RGBControlDialog open={true} onOpenChange={dialogState.createDialogHandler(DIALOG_TYPES.RGB_CONTROL)} unit={dialogData} />
       )}
 
       {activeDialog === DIALOG_TYPES.TRIGGER_SCENE && (
-        <TriggerSceneDialog
-          open={true}
-          onOpenChange={dialogState.createDialogHandler(DIALOG_TYPES.TRIGGER_SCENE)}
-          unit={dialogData}
-        />
+        <TriggerSceneDialog open={true} onOpenChange={dialogState.createDialogHandler(DIALOG_TYPES.TRIGGER_SCENE)} unit={dialogData} />
       )}
 
       {activeDialog === DIALOG_TYPES.TRIGGER_SCHEDULE && (
-        <TriggerScheduleDialog
-          open={true}
-          onOpenChange={dialogState.createDialogHandler(DIALOG_TYPES.TRIGGER_SCHEDULE)}
-          unit={dialogData}
-        />
+        <TriggerScheduleDialog open={true} onOpenChange={dialogState.createDialogHandler(DIALOG_TYPES.TRIGGER_SCHEDULE)} unit={dialogData} />
       )}
 
       {activeDialog === DIALOG_TYPES.CLOCK_CONTROL && (
-        <ClockControlDialog
-          open={true}
-          onOpenChange={dialogState.createDialogHandler(DIALOG_TYPES.CLOCK_CONTROL)}
-          unit={dialogData}
-        />
+        <ClockControlDialog open={true} onOpenChange={dialogState.createDialogHandler(DIALOG_TYPES.CLOCK_CONTROL)} unit={dialogData} />
       )}
 
       {activeDialog === DIALOG_TYPES.BULK_CLOCK_SYNC && (
-        <BulkClockSyncDialog
-          open={true}
-          onOpenChange={dialogState.createDialogHandler(DIALOG_TYPES.BULK_CLOCK_SYNC)}
-        />
+        <BulkClockSyncDialog open={true} onOpenChange={dialogState.createDialogHandler(DIALOG_TYPES.BULK_CLOCK_SYNC)} />
       )}
 
       {activeDialog === DIALOG_TYPES.TRIGGER_CURTAIN && (
-        <TriggerCurtainDialog
-          open={true}
-          onOpenChange={dialogState.createDialogHandler(DIALOG_TYPES.TRIGGER_CURTAIN)}
-          unit={dialogData}
-        />
+        <TriggerCurtainDialog open={true} onOpenChange={dialogState.createDialogHandler(DIALOG_TYPES.TRIGGER_CURTAIN)} unit={dialogData} />
       )}
 
       {activeDialog === DIALOG_TYPES.TRIGGER_KNX && (
-        <TriggerKnxDialog
-          open={true}
-          onOpenChange={dialogState.createDialogHandler(DIALOG_TYPES.TRIGGER_KNX)}
-          unit={dialogData}
-        />
+        <TriggerKnxDialog open={true} onOpenChange={dialogState.createDialogHandler(DIALOG_TYPES.TRIGGER_KNX)} unit={dialogData} />
       )}
 
       {activeDialog === DIALOG_TYPES.ROOM_CONFIG_CONTROL && (
-        <RoomConfigControlDialog
-          open={true}
-          onOpenChange={dialogState.createDialogHandler(DIALOG_TYPES.ROOM_CONFIG_CONTROL)}
-          unit={dialogData}
-        />
+        <RoomConfigControlDialog open={true} onOpenChange={dialogState.createDialogHandler(DIALOG_TYPES.ROOM_CONFIG_CONTROL)} unit={dialogData} />
       )}
 
       {activeDialog === DIALOG_TYPES.TRIGGER_MULTI_SCENE && (
-        <TriggerMultiSceneDialog
-          open={true}
-          onOpenChange={dialogState.createDialogHandler(DIALOG_TYPES.TRIGGER_MULTI_SCENE)}
-          unit={dialogData}
-        />
+        <TriggerMultiSceneDialog open={true} onOpenChange={dialogState.createDialogHandler(DIALOG_TYPES.TRIGGER_MULTI_SCENE)} unit={dialogData} />
       )}
 
       {activeDialog === DIALOG_TYPES.TRIGGER_SEQUENCE && (
-        <TriggerSequenceDialog
-          open={true}
-          onOpenChange={dialogState.createDialogHandler(DIALOG_TYPES.TRIGGER_SEQUENCE)}
-          unit={dialogData}
-        />
+        <TriggerSequenceDialog open={true} onOpenChange={dialogState.createDialogHandler(DIALOG_TYPES.TRIGGER_SEQUENCE)} unit={dialogData} />
       )}
 
       {activeDialog === DIALOG_TYPES.FIRMWARE_UPDATE && (
@@ -218,18 +173,11 @@ export function LazyDialogRenderer({
       )}
 
       {activeDialog === DIALOG_TYPES.SEND_ALL_CONFIG && (
-        <SendAllConfigDialog
-          open={true}
-          onOpenChange={dialogState.createDialogHandler(DIALOG_TYPES.SEND_ALL_CONFIG)}
-        />
+        <SendAllConfigDialog open={true} onOpenChange={dialogState.createDialogHandler(DIALOG_TYPES.SEND_ALL_CONFIG)} />
       )}
 
       {activeDialog === DIALOG_TYPES.IO_CONFIG && (
-        <NetworkIOConfigDialog
-          open={true}
-          onOpenChange={dialogState.createDialogHandler(DIALOG_TYPES.IO_CONFIG)}
-          item={dialogData}
-        />
+        <NetworkIOConfigDialog open={true} onOpenChange={dialogState.createDialogHandler(DIALOG_TYPES.IO_CONFIG)} item={dialogData} />
       )}
 
       {activeDialog === DIALOG_TYPES.EDIT && (

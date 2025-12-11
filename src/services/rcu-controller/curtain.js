@@ -89,10 +89,7 @@ async function getCurtainConfig(unitIp, canId, curtainIndex = null) {
               console.log(`Failed to parse curtain config ${i + 1}`);
             }
           } else {
-            console.log(
-              `Invalid response ${i + 1}:`,
-              response ? `msg length: ${response.msg?.length}` : "null response"
-            );
+            console.log(`Invalid response ${i + 1}:`, response ? `msg length: ${response.msg?.length}` : "null response");
           }
         } catch (error) {
           console.error(`Error parsing curtain response ${i + 1}:`, error);
@@ -108,9 +105,7 @@ async function getCurtainConfig(unitIp, canId, curtainIndex = null) {
       };
     }
 
-    throw new Error(
-      "No valid responses received from get curtain configuration command"
-    );
+    throw new Error("No valid responses received from get curtain configuration command");
   }
 }
 
@@ -168,14 +163,7 @@ async function setCurtain(unitIp, canId, curtainAddress, value) {
   //   valueLabel: ["Stop", "Open", "Close"][value],
   // });
 
-  const response = await sendCommand(
-    unitIp,
-    UDP_PORT,
-    idAddress,
-    PROTOCOL.CURTAIN.CMD1,
-    PROTOCOL.CURTAIN.CMD2.SET_CURTAIN,
-    data
-  );
+  const response = await sendCommand(unitIp, UDP_PORT, idAddress, PROTOCOL.CURTAIN.CMD1, PROTOCOL.CURTAIN.CMD2.SET_CURTAIN, data);
 
   if (response && response.msg && response.msg.length >= 9) {
     const responseData = response.msg.slice(8); // Skip header
@@ -187,16 +175,7 @@ async function setCurtain(unitIp, canId, curtainAddress, value) {
 
 // Set Curtain Configuration function
 async function setCurtainConfig(unitIp, canId, curtainConfig) {
-  const {
-    index,
-    address,
-    curtainType,
-    pausePeriod,
-    transitionPeriod,
-    openGroup,
-    closeGroup,
-    stopGroup,
-  } = curtainConfig;
+  const { index, address, curtainType, pausePeriod, transitionPeriod, openGroup, closeGroup, stopGroup } = curtainConfig;
 
   const idAddress = convertCanIdToInt(canId);
   const transitionLow = transitionPeriod & 0xff;
@@ -222,14 +201,7 @@ async function setCurtainConfig(unitIp, canId, curtainConfig) {
   //   dataLength: data.length,
   // });
 
-  const response = await sendCommand(
-    unitIp,
-    UDP_PORT,
-    idAddress,
-    PROTOCOL.CURTAIN.CMD1,
-    PROTOCOL.CURTAIN.CMD2.SET_CURTAIN_CONFIG,
-    data
-  );
+  const response = await sendCommand(unitIp, UDP_PORT, idAddress, PROTOCOL.CURTAIN.CMD1, PROTOCOL.CURTAIN.CMD2.SET_CURTAIN_CONFIG, data);
 
   if (!parseResponse.success(response)) {
     throw new Error("Failed to set curtain configuration");
@@ -238,9 +210,4 @@ async function setCurtainConfig(unitIp, canId, curtainConfig) {
   return true;
 }
 
-export {
-  getCurtainConfig,
-  setCurtain,
-  setCurtainConfig,
-  parseCurtainConfigResponse,
-};
+export { getCurtainConfig, setCurtain, setCurtainConfig, parseCurtainConfigResponse };

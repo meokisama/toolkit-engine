@@ -4,43 +4,20 @@ import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { DataTableColumnHeader } from "@/components/projects/data-table/data-table-column-header";
 import { EditableCell } from "@/components/projects/data-table/editable-cell";
-import {
-  Settings,
-  Copy,
-  Trash2,
-  SlidersHorizontal,
-  Layers,
-  FilePen,
-  Send,
-} from "lucide-react";
+import { Settings, Copy, Trash2, SlidersHorizontal, Layers, FilePen, Send } from "lucide-react";
 
-export const createSceneColumns = (
-  onEdit,
-  onDuplicate,
-  onDelete,
-  onCellEdit,
-  getEffectiveValue,
-  onSendToUnit
-) => [
+export const createSceneColumns = (onEdit, onDuplicate, onDelete, onCellEdit, getEffectiveValue, onSendToUnit) => [
   {
     id: "select",
     header: ({ table }) => (
       <Checkbox
-        checked={
-          table.getIsAllPageRowsSelected() ||
-          (table.getIsSomePageRowsSelected() && "indeterminate")
-        }
+        checked={table.getIsAllPageRowsSelected() || (table.getIsSomePageRowsSelected() && "indeterminate")}
         onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
         aria-label="Select all"
       />
     ),
     cell: ({ row }) => (
-      <Checkbox
-        checked={row.getIsSelected()}
-        onCheckedChange={(value) => row.toggleSelected(!!value)}
-        aria-label="Select row"
-        className="mx-1.5"
-      />
+      <Checkbox checked={row.getIsSelected()} onCheckedChange={(value) => row.toggleSelected(!!value)} aria-label="Select row" className="mx-1.5" />
     ),
     enableSorting: false,
     enableHiding: false,
@@ -50,9 +27,7 @@ export const createSceneColumns = (
   },
   {
     accessorKey: "name",
-    header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Name" className="pl-1" />
-    ),
+    header: ({ column }) => <DataTableColumnHeader column={column} title="Name" className="pl-1" />,
     cell: ({ row }) => {
       const name = row.getValue("name");
       const effectiveValue = getEffectiveValue(row.original.id, "name", name);
@@ -76,27 +51,15 @@ export const createSceneColumns = (
 
   {
     accessorKey: "address",
-    header: ({ column }) => (
-      <DataTableColumnHeader
-        column={column}
-        title="Address"
-        className="flex items-center justify-center"
-      />
-    ),
+    header: ({ column }) => <DataTableColumnHeader column={column} title="Address" className="flex items-center justify-center" />,
     cell: ({ row }) => {
       const address = row.getValue("address");
-      const effectiveValue = getEffectiveValue(
-        row.original.id,
-        "address",
-        address
-      );
+      const effectiveValue = getEffectiveValue(row.original.id, "address", address);
       return (
         <EditableCell
           value={effectiveValue}
           type="number"
-          onSave={(newValue) =>
-            onCellEdit(row.original.id, "address", newValue)
-          }
+          onSave={(newValue) => onCellEdit(row.original.id, "address", newValue)}
           className="text-center font-bold"
           icon={Layers}
         />
@@ -111,27 +74,15 @@ export const createSceneColumns = (
 
   {
     accessorKey: "description",
-    header: ({ column }) => (
-      <DataTableColumnHeader
-        column={column}
-        title="Description"
-        className="pl-1"
-      />
-    ),
+    header: ({ column }) => <DataTableColumnHeader column={column} title="Description" className="pl-1" />,
     cell: ({ row }) => {
       const description = row.getValue("description");
-      const effectiveValue = getEffectiveValue(
-        row.original.id,
-        "description",
-        description
-      );
+      const effectiveValue = getEffectiveValue(row.original.id, "description", description);
       return (
         <EditableCell
           value={effectiveValue}
           type="text"
-          onSave={(newValue) =>
-            onCellEdit(row.original.id, "description", newValue)
-          }
+          onSave={(newValue) => onCellEdit(row.original.id, "description", newValue)}
           placeholder="Enter description"
           icon={FilePen}
         />
@@ -145,13 +96,7 @@ export const createSceneColumns = (
   },
   {
     id: "itemCount",
-    header: ({ column }) => (
-      <DataTableColumnHeader
-        column={column}
-        title="Items"
-        className="text-center"
-      />
-    ),
+    header: ({ column }) => <DataTableColumnHeader column={column} title="Items" className="text-center" />,
     cell: ({ row }) => {
       // This will be populated by the parent component with scene item count
       const itemCount = row.original.itemCount || 0;
@@ -177,31 +122,13 @@ export const createSceneColumns = (
 
       return (
         <div className="flex justify-end gap-1">
-          <Button
-            variant="outline"
-            size="icon"
-            onClick={() => onEdit(item)}
-            className="cursor-pointer"
-            title="Manage scene items"
-          >
+          <Button variant="outline" size="icon" onClick={() => onEdit(item)} className="cursor-pointer" title="Manage scene items">
             <Settings className="h-4 w-4" />
           </Button>
-          <Button
-            variant="outline"
-            size="icon"
-            onClick={() => onSendToUnit(item)}
-            className="cursor-pointer"
-            title="Send scene to network unit"
-          >
+          <Button variant="outline" size="icon" onClick={() => onSendToUnit(item)} className="cursor-pointer" title="Send scene to network unit">
             <Send className="h-4 w-4" />
           </Button>
-          <Button
-            variant="outline"
-            size="icon"
-            onClick={() => onDuplicate(item)}
-            className="cursor-pointer"
-            title="Duplicate scene"
-          >
+          <Button variant="outline" size="icon" onClick={() => onDuplicate(item)} className="cursor-pointer" title="Duplicate scene">
             <Copy className="h-4 w-4" />
           </Button>
           <Button

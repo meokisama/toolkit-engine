@@ -7,69 +7,54 @@ export function registerSceneHandlers(ipcMain, dbService, rcu) {
   // ==================== RCU Controller - Scene Operations ====================
 
   // Setup Scene
-  ipcMain.handle(
-    "rcu:setupScene",
-    async (event, unitIp, canId, sceneConfig) => {
-      try {
-        return await rcu.setupScene(unitIp, canId, sceneConfig);
-      } catch (error) {
-        console.error("Error setting up scene:", error);
-        throw error;
-      }
+  ipcMain.handle("rcu:setupScene", async (event, unitIp, canId, sceneConfig) => {
+    try {
+      return await rcu.setupScene(unitIp, canId, sceneConfig);
+    } catch (error) {
+      console.error("Error setting up scene:", error);
+      throw error;
     }
-  );
+  });
 
   // Get Scene Information
-  ipcMain.handle(
-    "rcu:getSceneInformation",
-    async (event, { unitIp, canId, sceneIndex }) => {
-      try {
-        return await rcu.getSceneInformation(unitIp, canId, sceneIndex);
-      } catch (error) {
-        console.error("Error getting scene information:", error);
-        throw error;
-      }
+  ipcMain.handle("rcu:getSceneInformation", async (event, { unitIp, canId, sceneIndex }) => {
+    try {
+      return await rcu.getSceneInformation(unitIp, canId, sceneIndex);
+    } catch (error) {
+      console.error("Error getting scene information:", error);
+      throw error;
     }
-  );
+  });
 
   // Get All Scenes Information
-  ipcMain.handle(
-    "rcu:getAllScenesInformation",
-    async (event, { unitIp, canId }) => {
-      try {
-        return await rcu.getAllScenesInformation(unitIp, canId);
-      } catch (error) {
-        console.error("Error getting all scenes information:", error);
-        throw error;
-      }
+  ipcMain.handle("rcu:getAllScenesInformation", async (event, { unitIp, canId }) => {
+    try {
+      return await rcu.getAllScenesInformation(unitIp, canId);
+    } catch (error) {
+      console.error("Error getting all scenes information:", error);
+      throw error;
     }
-  );
+  });
 
   // Trigger Scene
-  ipcMain.handle(
-    "rcu:triggerScene",
-    async (event, { unitIp, canId, sceneIndex, sceneAddress }) => {
-      try {
-        return await rcu.triggerScene(unitIp, canId, sceneAddress);
-      } catch (error) {
-        console.error("Error triggering scene:", error);
-        throw error;
-      }
+  ipcMain.handle("rcu:triggerScene", async (event, { unitIp, canId, sceneIndex, sceneAddress }) => {
+    try {
+      return await rcu.triggerScene(unitIp, canId, sceneAddress);
+    } catch (error) {
+      console.error("Error triggering scene:", error);
+      throw error;
     }
-  );
+  });
 
   // Delete Scene
-  ipcMain.handle(
-    "rcu:deleteScene",
-    async (event, unitIp, canId, sceneIndex) => {
-      try {
-        return await rcu.deleteScene(unitIp, canId, sceneIndex);
-      } catch (error) {
-        console.error("Error deleting scene:", error);
-        throw error;
-      }
+  ipcMain.handle("rcu:deleteScene", async (event, unitIp, canId, sceneIndex) => {
+    try {
+      return await rcu.deleteScene(unitIp, canId, sceneIndex);
+    } catch (error) {
+      console.error("Error deleting scene:", error);
+      throw error;
     }
-  );
+  });
 
   // Delete All Scenes
   ipcMain.handle("rcu:deleteAllScenes", async (event, unitIp, canId) => {
@@ -139,32 +124,14 @@ export function registerSceneHandlers(ipcMain, dbService, rcu) {
     }
   });
 
-  ipcMain.handle(
-    "scene:addItem",
-    async (
-      event,
-      sceneId,
-      itemType,
-      itemId,
-      itemValue,
-      command,
-      objectType
-    ) => {
-      try {
-        return await dbService.addItemToScene(
-          sceneId,
-          itemType,
-          itemId,
-          itemValue,
-          command,
-          objectType
-        );
-      } catch (error) {
-        console.error("Error adding item to scene:", error);
-        throw error;
-      }
+  ipcMain.handle("scene:addItem", async (event, sceneId, itemType, itemId, itemValue, command, objectType) => {
+    try {
+      return await dbService.addItemToScene(sceneId, itemType, itemId, itemValue, command, objectType);
+    } catch (error) {
+      console.error("Error adding item to scene:", error);
+      throw error;
     }
-  );
+  });
 
   ipcMain.handle("scene:removeItem", async (event, sceneItemId) => {
     try {
@@ -175,48 +142,23 @@ export function registerSceneHandlers(ipcMain, dbService, rcu) {
     }
   });
 
-  ipcMain.handle(
-    "scene:updateItemValue",
-    async (event, sceneItemId, itemValue, command) => {
-      try {
-        return await dbService.updateSceneItemValue(
-          sceneItemId,
-          itemValue,
-          command
-        );
-      } catch (error) {
-        console.error("Error updating scene item value:", error);
-        throw error;
-      }
+  ipcMain.handle("scene:updateItemValue", async (event, sceneItemId, itemValue, command) => {
+    try {
+      return await dbService.updateSceneItemValue(sceneItemId, itemValue, command);
+    } catch (error) {
+      console.error("Error updating scene item value:", error);
+      throw error;
     }
-  );
+  });
 
-  ipcMain.handle(
-    "scene:canAddItemToScene",
-    async (
-      event,
-      projectId,
-      address,
-      itemType,
-      itemId,
-      objectType,
-      excludeSceneId
-    ) => {
-      try {
-        return await dbService.canAddItemToScene(
-          projectId,
-          address,
-          itemType,
-          itemId,
-          objectType,
-          excludeSceneId
-        );
-      } catch (error) {
-        console.error("Error checking if item can be added to scene:", error);
-        throw error;
-      }
+  ipcMain.handle("scene:canAddItemToScene", async (event, projectId, address, itemType, itemId, objectType, excludeSceneId) => {
+    try {
+      return await dbService.canAddItemToScene(projectId, address, itemType, itemId, objectType, excludeSceneId);
+    } catch (error) {
+      console.error("Error checking if item can be added to scene:", error);
+      throw error;
     }
-  );
+  });
 
   ipcMain.handle("scene:getAddressItems", async (event, projectId, address) => {
     try {

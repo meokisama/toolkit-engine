@@ -21,9 +21,7 @@ export const projectMethods = {
   // Get all projects
   getAllProjects() {
     try {
-      const stmt = this.db.prepare(
-        "SELECT * FROM projects ORDER BY created_at DESC"
-      );
+      const stmt = this.db.prepare("SELECT * FROM projects ORDER BY created_at DESC");
       return stmt.all();
     } catch (error) {
       console.error("Failed to get all projects:", error);
@@ -138,17 +136,7 @@ export const projectMethods = {
 
   // Helper method to copy all project items to a new project
   copyProjectItems(originalItems, newProjectId) {
-    const categories = [
-      "lighting",
-      "aircon",
-      "unit",
-      "scene",
-      "schedule",
-      "multi_scenes",
-      "sequences",
-      "curtain",
-      "knx",
-    ];
+    const categories = ["lighting", "aircon", "unit", "scene", "schedule", "multi_scenes", "sequences", "curtain", "knx"];
 
     // Create mapping from old IDs to new IDs for relationships
     const idMappings = {
@@ -241,9 +229,7 @@ export const projectMethods = {
         }
 
         // Store ID mapping for relationships
-        if (
-          ["scene", "schedule", "multi_scenes", "sequences"].includes(category)
-        ) {
+        if (["scene", "schedule", "multi_scenes", "sequences"].includes(category)) {
           idMappings[category][item.id] = newItem.id;
         }
       });
@@ -285,14 +271,7 @@ export const projectMethods = {
           INSERT INTO scene_address_items (project_id, address, item_type, item_id, object_type, object_value)
           VALUES (?, ?, ?, ?, ?, ?)
         `);
-        stmt.run(
-          newProjectId,
-          addressItem.address,
-          addressItem.item_type,
-          addressItem.item_id,
-          addressItem.object_type,
-          addressItem.object_value
-        );
+        stmt.run(newProjectId, addressItem.address, addressItem.item_type, addressItem.item_id, addressItem.object_type, addressItem.object_value);
       });
 
       // Copy schedule_scenes
@@ -312,8 +291,7 @@ export const projectMethods = {
       // Copy multi_scene_scenes
       const multiSceneScenes = originalItems.multi_scene_scenes || [];
       multiSceneScenes.forEach((multiSceneScene) => {
-        const newMultiSceneId =
-          idMappings.multi_scenes[multiSceneScene.multi_scene_id];
+        const newMultiSceneId = idMappings.multi_scenes[multiSceneScene.multi_scene_id];
         const newSceneId = idMappings.scene[multiSceneScene.scene_id];
         if (newMultiSceneId && newSceneId) {
           const stmt = this.db.prepare(`
@@ -327,20 +305,14 @@ export const projectMethods = {
       // Copy sequence_multi_scenes
       const sequenceMultiScenes = originalItems.sequence_multi_scenes || [];
       sequenceMultiScenes.forEach((sequenceMultiScene) => {
-        const newSequenceId =
-          idMappings.sequences[sequenceMultiScene.sequence_id];
-        const newMultiSceneId =
-          idMappings.multi_scenes[sequenceMultiScene.multi_scene_id];
+        const newSequenceId = idMappings.sequences[sequenceMultiScene.sequence_id];
+        const newMultiSceneId = idMappings.multi_scenes[sequenceMultiScene.multi_scene_id];
         if (newSequenceId && newMultiSceneId) {
           const stmt = this.db.prepare(`
             INSERT INTO sequence_multi_scenes (sequence_id, multi_scene_id, multi_scene_order)
             VALUES (?, ?, ?)
           `);
-          stmt.run(
-            newSequenceId,
-            newMultiSceneId,
-            sequenceMultiScene.multi_scene_order
-          );
+          stmt.run(newSequenceId, newMultiSceneId, sequenceMultiScene.multi_scene_order);
         }
       });
     } catch (error) {
@@ -352,35 +324,17 @@ export const projectMethods = {
   // Get all project items in one optimized call
   getAllProjectItems(projectId) {
     try {
-      const lighting = this.db
-        .prepare(
-          "SELECT * FROM lighting WHERE project_id = ? ORDER BY CAST(address AS INTEGER) ASC"
-        )
-        .all(projectId);
-      const aircon = this.db
-        .prepare(
-          "SELECT * FROM aircon WHERE project_id = ? ORDER BY CAST(address AS INTEGER) ASC"
-        )
-        .all(projectId);
-      const unitRaw = this.db
-        .prepare(
-          "SELECT * FROM unit WHERE project_id = ? ORDER BY created_at DESC"
-        )
-        .all(projectId);
+      const lighting = this.db.prepare("SELECT * FROM lighting WHERE project_id = ? ORDER BY CAST(address AS INTEGER) ASC").all(projectId);
+      const aircon = this.db.prepare("SELECT * FROM aircon WHERE project_id = ? ORDER BY CAST(address AS INTEGER) ASC").all(projectId);
+      const unitRaw = this.db.prepare("SELECT * FROM unit WHERE project_id = ? ORDER BY created_at DESC").all(projectId);
 
       // Parse RS485 and I/O config from JSON for unit items
       const unit = unitRaw.map((item) => {
         const parsedItem = {
           ...item,
-          rs485_config: item.rs485_config
-            ? JSON.parse(item.rs485_config)
-            : null,
-          input_configs: item.input_configs
-            ? JSON.parse(item.input_configs)
-            : null,
-          output_configs: item.output_configs
-            ? JSON.parse(item.output_configs)
-            : null,
+          rs485_config: item.rs485_config ? JSON.parse(item.rs485_config) : null,
+          input_configs: item.input_configs ? JSON.parse(item.input_configs) : null,
+          output_configs: item.output_configs ? JSON.parse(item.output_configs) : null,
         };
 
         // Debug logging for output configs
@@ -395,36 +349,12 @@ export const projectMethods = {
 
         return parsedItem;
       });
-      const curtain = this.db
-        .prepare(
-          "SELECT * FROM curtain WHERE project_id = ? ORDER BY CAST(address AS INTEGER) ASC"
-        )
-        .all(projectId);
-      const knx = this.db
-        .prepare(
-          "SELECT * FROM knx WHERE project_id = ? ORDER BY CAST(address AS INTEGER) ASC"
-        )
-        .all(projectId);
-      const scene = this.db
-        .prepare(
-          "SELECT * FROM scene WHERE project_id = ? ORDER BY CAST(address AS INTEGER) ASC"
-        )
-        .all(projectId);
-      const schedule = this.db
-        .prepare(
-          "SELECT * FROM schedule WHERE project_id = ? ORDER BY name ASC"
-        )
-        .all(projectId);
-      const multi_scenes = this.db
-        .prepare(
-          "SELECT * FROM multi_scenes WHERE project_id = ? ORDER BY name ASC"
-        )
-        .all(projectId);
-      const sequences = this.db
-        .prepare(
-          "SELECT * FROM sequences WHERE project_id = ? ORDER BY name ASC"
-        )
-        .all(projectId);
+      const curtain = this.db.prepare("SELECT * FROM curtain WHERE project_id = ? ORDER BY CAST(address AS INTEGER) ASC").all(projectId);
+      const knx = this.db.prepare("SELECT * FROM knx WHERE project_id = ? ORDER BY CAST(address AS INTEGER) ASC").all(projectId);
+      const scene = this.db.prepare("SELECT * FROM scene WHERE project_id = ? ORDER BY CAST(address AS INTEGER) ASC").all(projectId);
+      const schedule = this.db.prepare("SELECT * FROM schedule WHERE project_id = ? ORDER BY name ASC").all(projectId);
+      const multi_scenes = this.db.prepare("SELECT * FROM multi_scenes WHERE project_id = ? ORDER BY name ASC").all(projectId);
+      const sequences = this.db.prepare("SELECT * FROM sequences WHERE project_id = ? ORDER BY name ASC").all(projectId);
 
       // Get all relationship tables for complete export
       const scene_items = this.db
@@ -439,9 +369,7 @@ export const projectMethods = {
         .all(projectId);
 
       const scene_address_items = this.db
-        .prepare(
-          "SELECT * FROM scene_address_items WHERE project_id = ? ORDER BY address, created_at"
-        )
+        .prepare("SELECT * FROM scene_address_items WHERE project_id = ? ORDER BY address, created_at")
         .all(projectId);
 
       const schedule_scenes = this.db

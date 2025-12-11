@@ -1,5 +1,3 @@
-"use client";
-
 import { flexRender } from "@tanstack/react-table";
 import {
   Copy,
@@ -63,15 +61,9 @@ export function DataTableRow({
   return (
     <ContextMenu>
       <ContextMenuTrigger asChild>
-        <TableRow
-          key={row.id}
-          data-state={row.getIsSelected() && "selected"}
-          className={customRowClass}
-        >
+        <TableRow key={row.id} data-state={row.getIsSelected() && "selected"} className={customRowClass}>
           {row.getVisibleCells().map((cell) => (
-            <TableCell key={cell.id}>
-              {flexRender(cell.column.columnDef.cell, cell.getContext())}
-            </TableCell>
+            <TableCell key={cell.id}>{flexRender(cell.column.columnDef.cell, cell.getContext())}</TableCell>
           ))}
         </TableRow>
       </ContextMenuTrigger>
@@ -162,37 +154,25 @@ export function DataTableRow({
             </ContextMenuSubTrigger>
             <ContextMenuSubContent>
               {onSceneControl && (
-                <ContextMenuItem
-                  onClick={() => onSceneControl.onTriggerScene(item)}
-                >
+                <ContextMenuItem onClick={() => onSceneControl.onTriggerScene(item)}>
                   <Play className="text-muted-foreground" />
                   <span>Scene Control</span>
                 </ContextMenuItem>
               )}
               {onScheduleControl && (
-                <ContextMenuItem
-                  onClick={() => onScheduleControl.onTriggerSchedule(item)}
-                >
+                <ContextMenuItem onClick={() => onScheduleControl.onTriggerSchedule(item)}>
                   <Calendar className="text-muted-foreground" />
                   <span>Schedule Control</span>
                 </ContextMenuItem>
               )}
               {onMultiSceneControl && (
-                <ContextMenuItem
-                  onClick={() =>
-                    onMultiSceneControl.onTriggerMultiScene(item)
-                  }
-                >
+                <ContextMenuItem onClick={() => onMultiSceneControl.onTriggerMultiScene(item)}>
                   <GitCompare className="text-muted-foreground" />
                   <span>Multi-Scene Control</span>
                 </ContextMenuItem>
               )}
               {onSequenceControl && (
-                <ContextMenuItem
-                  onClick={() =>
-                    onSequenceControl.onTriggerSequence(item)
-                  }
-                >
+                <ContextMenuItem onClick={() => onSequenceControl.onTriggerSequence(item)}>
                   <ListOrdered className="text-muted-foreground" />
                   <span>Sequence Control</span>
                 </ContextMenuItem>
@@ -228,9 +208,7 @@ export function DataTableRow({
         )}
         {onCurtainControl && (
           <>
-            <ContextMenuItem
-              onClick={() => onCurtainControl.onTriggerCurtain(item)}
-            >
+            <ContextMenuItem onClick={() => onCurtainControl.onTriggerCurtain(item)}>
               <ChevronsUpDown className="text-muted-foreground" />
               <span>Curtain Control</span>
             </ContextMenuItem>
@@ -286,6 +264,6 @@ export function DataTableRow({
           </>
         )}
       </ContextMenuContent>
-    </ContextMenu >
+    </ContextMenu>
   );
 }

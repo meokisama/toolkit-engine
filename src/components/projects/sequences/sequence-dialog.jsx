@@ -1,37 +1,17 @@
 import React, { useState, useEffect, useCallback } from "react";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Badge } from "@/components/ui/badge";
 import { CircleCheck, Layers } from "lucide-react";
 import * as CheckboxPrimitive from "@radix-ui/react-checkbox";
 import { useProjectDetail } from "@/contexts/project-detail-context";
 import { toast } from "sonner";
 
-export function SequenceDialog({
-  open,
-  onOpenChange,
-  sequence = null,
-  mode = "create",
-}) {
-  const {
-    projectItems,
-    createItem,
-    updateItem,
-    setActiveTab,
-    loadTabData,
-    selectedProject,
-  } = useProjectDetail();
+export function SequenceDialog({ open, onOpenChange, sequence = null, mode = "create" }) {
+  const { projectItems, createItem, updateItem, setActiveTab, loadTabData, selectedProject } = useProjectDetail();
 
   const [formData, setFormData] = useState({
     name: "",
@@ -51,8 +31,8 @@ export function SequenceDialog({
 
     // Get all existing addresses and sort them
     const existingAddresses = projectItems.sequences
-      .map(item => parseInt(item.address))
-      .filter(addr => !isNaN(addr) && addr >= 1 && addr <= 255)
+      .map((item) => parseInt(item.address))
+      .filter((addr) => !isNaN(addr) && addr >= 1 && addr <= 255)
       .sort((a, b) => a - b);
 
     // Find the first gap in the sequence
@@ -71,9 +51,7 @@ export function SequenceDialog({
   // Load existing sequence multi-scenes when editing
   const loadSequenceMultiScenes = useCallback(async (sequenceId) => {
     try {
-      const multiScenes = await window.electronAPI.sequences.getMultiScenes(
-        sequenceId
-      );
+      const multiScenes = await window.electronAPI.sequences.getMultiScenes(sequenceId);
       const multiSceneIds = multiScenes.map((ms) => ms.multi_scene_id);
       setSelectedMultiSceneIds(multiSceneIds);
     } catch (error) {
@@ -134,9 +112,7 @@ export function SequenceDialog({
     if (checked) {
       setSelectedMultiSceneIds((prev) => [...prev, multiSceneId]);
     } else {
-      setSelectedMultiSceneIds((prev) =>
-        prev.filter((id) => id !== multiSceneId)
-      );
+      setSelectedMultiSceneIds((prev) => prev.filter((id) => id !== multiSceneId));
     }
   };
 
@@ -156,9 +132,7 @@ export function SequenceDialog({
       } else {
         // Check for duplicate addresses
         const existingSequences = projectItems?.sequences || [];
-        const duplicateSequence = existingSequences.find(
-          (seq) => seq.address === formData.address.trim() && seq.id !== sequence?.id
-        );
+        const duplicateSequence = existingSequences.find((seq) => seq.address === formData.address.trim() && seq.id !== sequence?.id);
         if (duplicateSequence) {
           newErrors.address = `Address ${formData.address.trim()} is already used by another sequence`;
         }
@@ -185,21 +159,14 @@ export function SequenceDialog({
         await updateItem("sequences", sequence.id, formData);
 
         // Update sequence multi-scenes
-        await window.electronAPI.sequences.updateMultiScenes(
-          sequence.id,
-          selectedMultiSceneIds
-        );
+        await window.electronAPI.sequences.updateMultiScenes(sequence.id, selectedMultiSceneIds);
       } else {
         // Create new sequence
         const newSequence = await createItem("sequences", formData);
 
         // Add all selected multi-scenes
         for (let i = 0; i < selectedMultiSceneIds.length; i++) {
-          await window.electronAPI.sequences.addMultiScene(
-            newSequence.id,
-            selectedMultiSceneIds[i],
-            i
-          );
+          await window.electronAPI.sequences.addMultiScene(newSequence.id, selectedMultiSceneIds[i], i);
         }
 
         // Switch to sequences tab to show the newly created sequence
@@ -227,15 +194,11 @@ export function SequenceDialog({
 
   return (
     <Dialog open={open} onOpenChange={() => onOpenChange(false)}>
-      <DialogContent className="!max-w-4xl max-h-[90vh] overflow-hidden">
+      <DialogContent className="max-w-4xl! max-h-[90vh] overflow-hidden">
         <DialogHeader>
-          <DialogTitle>
-            {mode === "edit" ? "Edit Sequence" : "Create Sequence"}
-          </DialogTitle>
+          <DialogTitle>{mode === "edit" ? "Edit Sequence" : "Create Sequence"}</DialogTitle>
           <DialogDescription>
-            {mode === "edit"
-              ? "Update the sequence details and selected multi-scenes."
-              : "Create a new sequence with selected multi-scenes."}
+            {mode === "edit" ? "Update the sequence details and selected multi-scenes." : "Create a new sequence with selected multi-scenes."}
           </DialogDescription>
         </DialogHeader>
 
@@ -260,9 +223,7 @@ export function SequenceDialog({
                   placeholder="Sequence name"
                   className={errors.name ? "border-red-500" : ""}
                 />
-                {errors.name && (
-                  <p className="text-sm text-red-500">{errors.name}</p>
-                )}
+                {errors.name && <p className="text-sm text-red-500">{errors.name}</p>}
               </div>
 
               <div className="space-y-2">
@@ -279,9 +240,7 @@ export function SequenceDialog({
                   placeholder="1-255"
                   className={errors.address ? "border-red-500" : ""}
                 />
-                {errors.address && (
-                  <p className="text-sm text-red-500">{errors.address}</p>
-                )}
+                {errors.address && <p className="text-sm text-red-500">{errors.address}</p>}
               </div>
 
               <div className="space-y-2">
@@ -289,9 +248,7 @@ export function SequenceDialog({
                 <Input
                   id="description"
                   value={formData.description}
-                  onChange={(e) =>
-                    handleInputChange("description", e.target.value)
-                  }
+                  onChange={(e) => handleInputChange("description", e.target.value)}
                   placeholder="Enter description (optional)"
                 />
               </div>
@@ -300,15 +257,9 @@ export function SequenceDialog({
             {/* Multi-Scene Selection */}
             <Card>
               <CardHeader>
-                <CardTitle className="text-sm">
-                  Select Multi-Scenes ({selectedMultiSceneIds.length})
-                </CardTitle>
-                <p className="text-sm text-muted-foreground">
-                  Select the multi-scenes you want to include in this sequence.
-                </p>
-                {errors.multiScenes && (
-                  <p className="text-sm text-red-500">{errors.multiScenes}</p>
-                )}
+                <CardTitle className="text-sm">Select Multi-Scenes ({selectedMultiSceneIds.length})</CardTitle>
+                <p className="text-sm text-muted-foreground">Select the multi-scenes you want to include in this sequence.</p>
+                {errors.multiScenes && <p className="text-sm text-red-500">{errors.multiScenes}</p>}
               </CardHeader>
               <CardContent>
                 <ScrollArea className="h-60">
@@ -319,38 +270,22 @@ export function SequenceDialog({
                   ) : availableMultiScenes.length === 0 ? (
                     <div className="text-center text-muted-foreground py-8">
                       <p>No multi-scenes available.</p>
-                      <p className="text-sm">
-                        Create multi-scenes first to add them to sequences.
-                      </p>
+                      <p className="text-sm">Create multi-scenes first to add them to sequences.</p>
                     </div>
                   ) : (
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 p-2">
                       {availableMultiScenes.map((multiScene) => (
                         <CheckboxPrimitive.Root
                           key={multiScene.id}
-                          checked={selectedMultiSceneIds.includes(
-                            multiScene.id
-                          )}
-                          onCheckedChange={(checked) =>
-                            handleMultiSceneToggle(multiScene.id, checked)
-                          }
+                          checked={selectedMultiSceneIds.includes(multiScene.id)}
+                          onCheckedChange={(checked) => handleMultiSceneToggle(multiScene.id, checked)}
                           className="relative ring-[1px] ring-border rounded-lg px-4 py-3 text-start text-muted-foreground data-[state=checked]:ring-2 data-[state=checked]:ring-primary data-[state=checked]:text-primary flex flex-row items-center gap-3 cursor-pointer"
                         >
                           <Layers className="h-6 w-6" />
                           <div className="space-y-1">
-                            <span className="font-medium tracking-tight text-sm">
-                              {multiScene.name}
-                            </span>
-                            {multiScene.address && (
-                              <p className="text-xs text-muted-foreground">
-                                Address: {multiScene.address}
-                              </p>
-                            )}
-                            {multiScene.description && (
-                              <p className="text-xs text-muted-foreground line-clamp-2">
-                                {multiScene.description}
-                              </p>
-                            )}
+                            <span className="font-medium tracking-tight text-sm">{multiScene.name}</span>
+                            {multiScene.address && <p className="text-xs text-muted-foreground">Address: {multiScene.address}</p>}
+                            {multiScene.description && <p className="text-xs text-muted-foreground line-clamp-2">{multiScene.description}</p>}
                           </div>
 
                           <CheckboxPrimitive.Indicator className="absolute top-2 right-2">
@@ -366,11 +301,7 @@ export function SequenceDialog({
           </div>
 
           <DialogFooter>
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => onOpenChange(false)}
-            >
+            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
               Cancel
             </Button>
             <Button type="submit" disabled={loading}>

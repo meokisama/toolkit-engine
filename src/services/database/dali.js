@@ -93,9 +93,7 @@ export const daliTableSchemas = {
 export const daliMethods = {
   getAllDaliDevices(projectId) {
     try {
-      const stmt = this.db.prepare(
-        "SELECT * FROM dali_devices WHERE project_id = ? ORDER BY address"
-      );
+      const stmt = this.db.prepare("SELECT * FROM dali_devices WHERE project_id = ? ORDER BY address");
       return stmt.all(projectId);
     } catch (error) {
       console.error("Failed to get all DALI devices:", error);
@@ -105,9 +103,7 @@ export const daliMethods = {
 
   getDaliDevice(projectId, address) {
     try {
-      const stmt = this.db.prepare(
-        "SELECT * FROM dali_devices WHERE project_id = ? AND address = ?"
-      );
+      const stmt = this.db.prepare("SELECT * FROM dali_devices WHERE project_id = ? AND address = ?");
       return stmt.get(projectId, address);
     } catch (error) {
       console.error("Failed to get DALI device:", error);
@@ -117,15 +113,8 @@ export const daliMethods = {
 
   upsertDaliDevice(projectId, address, deviceData) {
     try {
-      const {
-        name,
-        mapped_device_name,
-        mapped_device_type,
-        mapped_device_index,
-        mapped_device_address,
-        lighting_group_address,
-        color_feature,
-      } = deviceData;
+      const { name, mapped_device_name, mapped_device_type, mapped_device_index, mapped_device_address, lighting_group_address, color_feature } =
+        deviceData;
 
       const stmt = this.db.prepare(`
         INSERT INTO dali_devices (
@@ -182,9 +171,7 @@ export const daliMethods = {
 
   clearDaliDeviceMapping(projectId, address) {
     try {
-      const stmt = this.db.prepare(
-        "DELETE FROM dali_devices WHERE project_id = ? AND address = ?"
-      );
+      const stmt = this.db.prepare("DELETE FROM dali_devices WHERE project_id = ? AND address = ?");
       const result = stmt.run(projectId, address);
 
       return { success: true, deleted: result.changes > 0 };
@@ -196,9 +183,7 @@ export const daliMethods = {
 
   deleteDaliDevice(projectId, address) {
     try {
-      const stmt = this.db.prepare(
-        "DELETE FROM dali_devices WHERE project_id = ? AND address = ?"
-      );
+      const stmt = this.db.prepare("DELETE FROM dali_devices WHERE project_id = ? AND address = ?");
       const result = stmt.run(projectId, address);
 
       return { success: true, deleted: result.changes > 0 };
@@ -479,18 +464,7 @@ export const daliMethods = {
     }
   },
 
-  upsertDaliSceneDevice(
-    projectId,
-    sceneId,
-    deviceAddress,
-    active,
-    brightness,
-    colorTemp = null,
-    r = null,
-    g = null,
-    b = null,
-    w = null
-  ) {
+  upsertDaliSceneDevice(projectId, sceneId, deviceAddress, active, brightness, colorTemp = null, r = null, g = null, b = null, w = null) {
     try {
       const stmt = this.db.prepare(`
         INSERT INTO dali_scene_devices (
@@ -508,18 +482,7 @@ export const daliMethods = {
           updated_at = CURRENT_TIMESTAMP
       `);
 
-      stmt.run(
-        projectId,
-        sceneId,
-        deviceAddress,
-        active ? 1 : 0,
-        brightness,
-        colorTemp,
-        r,
-        g,
-        b,
-        w
-      );
+      stmt.run(projectId, sceneId, deviceAddress, active ? 1 : 0, brightness, colorTemp, r, g, b, w);
       return { success: true };
     } catch (error) {
       console.error("Failed to upsert DALI scene device:", error);

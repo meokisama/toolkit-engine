@@ -1,23 +1,6 @@
-"use client";
-
 import * as React from "react";
-import {
-  flexRender,
-  getCoreRowModel,
-  getFilteredRowModel,
-  getPaginationRowModel,
-  getSortedRowModel,
-  useReactTable,
-} from "@tanstack/react-table";
-
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+import { flexRender, getCoreRowModel, getFilteredRowModel, getPaginationRowModel, getSortedRowModel, useReactTable } from "@tanstack/react-table";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { DataTableRow } from "./data-table-row";
 
 export function DataTable({
@@ -54,9 +37,7 @@ export function DataTable({
 }) {
   const [sorting, setSorting] = React.useState(initialSorting);
   const [columnFilters, setColumnFilters] = React.useState([]);
-  const [columnVisibility, setColumnVisibility] = React.useState(
-    initialColumnVisibility || {}
-  );
+  const [columnVisibility, setColumnVisibility] = React.useState(initialColumnVisibility || {});
   const [rowSelection, setRowSelection] = React.useState({});
   const [pagination, setPagination] = React.useState(
     initialPagination || {
@@ -100,9 +81,7 @@ export function DataTable({
   // Notify parent component when row selection changes
   React.useEffect(() => {
     if (onRowSelectionChange) {
-      const selectedCount = Object.keys(rowSelection).filter(
-        (id) => rowSelection[id]
-      ).length;
+      const selectedCount = Object.keys(rowSelection).filter((id) => rowSelection[id]).length;
       onRowSelectionChange(selectedCount, rowSelection);
     }
   }, [rowSelection, onRowSelectionChange]);
@@ -150,17 +129,7 @@ export function DataTable({
         pagination,
       },
     }),
-    [
-      data,
-      columns,
-      sorting,
-      columnFilters,
-      columnVisibility,
-      rowSelection,
-      pagination,
-      enableRowSelection,
-      onIOConfig,
-    ]
+    [data, columns, sorting, columnFilters, columnVisibility, rowSelection, pagination, enableRowSelection, onIOConfig]
   );
 
   const table = useReactTable(tableConfig);
@@ -184,16 +153,8 @@ export function DataTable({
             <TableRow key={headerGroup.id} className="bg-muted/50">
               {headerGroup.headers.map((header) => {
                 return (
-                  <TableHead
-                    key={header.id}
-                    className={header.column.columnDef.meta?.className}
-                  >
-                    {header.isPlaceholder
-                      ? null
-                      : flexRender(
-                        header.column.columnDef.header,
-                        header.getContext()
-                      )}
+                  <TableHead key={header.id} className={header.column.columnDef.meta?.className}>
+                    {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
                   </TableHead>
                 );
               })}

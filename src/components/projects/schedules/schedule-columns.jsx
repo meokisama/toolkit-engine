@@ -6,13 +6,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Switch } from "@/components/ui/switch";
 import { TimePicker } from "@/components/custom/time-picker";
 import { MoreHorizontal, Edit, Copy, Trash2, Send } from "lucide-react";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { DataTableColumnHeader } from "@/components/projects/data-table/data-table-column-header";
 
 const DAYS_OF_WEEK = [
@@ -62,13 +56,7 @@ const DebouncedInput = ({ value, onChange, placeholder, debounceMs = 500 }) => {
     [onChange, debounceMs]
   );
 
-  return (
-    <Input
-      value={localValue}
-      onChange={handleChange}
-      placeholder={placeholder}
-    />
-  );
+  return <Input value={localValue} onChange={handleChange} placeholder={placeholder} />;
 };
 
 // Compact time picker component for table cells with debounce
@@ -128,43 +116,24 @@ const CompactTimePicker = ({ value, onChange, debounceMs = 300 }) => {
 
   return (
     <div className="w-fit">
-      <TimePicker
-        date={timeDate}
-        setDate={handleTimeChange}
-        showSeconds={false}
-      />
+      <TimePicker date={timeDate} setDate={handleTimeChange} showSeconds={false} />
     </div>
   );
 };
 
-export function createScheduleColumns(
-  onEdit,
-  onDuplicate,
-  onDelete,
-  onCellEdit,
-  getEffectiveValue,
-  onSendSchedule
-) {
+export function createScheduleColumns(onEdit, onDuplicate, onDelete, onCellEdit, getEffectiveValue, onSendSchedule) {
   return [
     {
       id: "select",
       header: ({ table }) => (
         <Checkbox
-          checked={
-            table.getIsAllPageRowsSelected() ||
-            (table.getIsSomePageRowsSelected() && "indeterminate")
-          }
+          checked={table.getIsAllPageRowsSelected() || (table.getIsSomePageRowsSelected() && "indeterminate")}
           onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
           aria-label="Select all"
         />
       ),
       cell: ({ row }) => (
-        <Checkbox
-          checked={row.getIsSelected()}
-          onCheckedChange={(value) => row.toggleSelected(!!value)}
-          aria-label="Select row"
-          className="mx-1.5"
-        />
+        <Checkbox checked={row.getIsSelected()} onCheckedChange={(value) => row.toggleSelected(!!value)} aria-label="Select row" className="mx-1.5" />
       ),
       enableSorting: false,
       enableHiding: false,
@@ -174,19 +143,11 @@ export function createScheduleColumns(
     },
     {
       accessorKey: "name",
-      header: ({ column }) => (
-        <DataTableColumnHeader column={column} title="Name" />
-      ),
+      header: ({ column }) => <DataTableColumnHeader column={column} title="Name" />,
       cell: ({ row }) => {
         const value = getEffectiveValue(row.original, "name");
         return (
-          <DebouncedInput
-            value={value}
-            onChange={(newValue) =>
-              onCellEdit(row.original.id, "name", newValue)
-            }
-            placeholder="Enter schedule name"
-          />
+          <DebouncedInput value={value} onChange={(newValue) => onCellEdit(row.original.id, "name", newValue)} placeholder="Enter schedule name" />
         );
       },
       enableSorting: true,
@@ -197,17 +158,13 @@ export function createScheduleColumns(
     },
     {
       accessorKey: "description",
-      header: ({ column }) => (
-        <DataTableColumnHeader column={column} title="Description" />
-      ),
+      header: ({ column }) => <DataTableColumnHeader column={column} title="Description" />,
       cell: ({ row }) => {
         const value = getEffectiveValue(row.original, "description");
         return (
           <DebouncedInput
             value={value}
-            onChange={(newValue) =>
-              onCellEdit(row.original.id, "description", newValue)
-            }
+            onChange={(newValue) => onCellEdit(row.original.id, "description", newValue)}
             placeholder="Enter description"
           />
         );
@@ -215,46 +172,25 @@ export function createScheduleColumns(
     },
     {
       accessorKey: "time",
-      header: ({ column }) => (
-        <DataTableColumnHeader
-          column={column}
-          title="Time"
-          className="flex items-center justify-center"
-        />
-      ),
+      header: ({ column }) => <DataTableColumnHeader column={column} title="Time" className="flex items-center justify-center" />,
       cell: ({ row }) => {
         const value = getEffectiveValue(row.original, "time");
         return (
           <div className="flex items-center justify-center">
-            <CompactTimePicker
-              value={value}
-              onChange={(timeString) =>
-                onCellEdit(row.original.id, "time", timeString)
-              }
-              debounceMs={300}
-            />
+            <CompactTimePicker value={value} onChange={(timeString) => onCellEdit(row.original.id, "time", timeString)} debounceMs={300} />
           </div>
         );
       },
     },
     {
       accessorKey: "days",
-      header: ({ column }) => (
-        <DataTableColumnHeader
-          column={column}
-          title="Days"
-          className="text-center"
-        />
-      ),
+      header: ({ column }) => <DataTableColumnHeader column={column} title="Days" className="text-center" />,
       cell: ({ row }) => {
         const daysValue = getEffectiveValue(row.original, "days");
         let activeDays = [];
 
         try {
-          activeDays =
-            typeof daysValue === "string"
-              ? JSON.parse(daysValue)
-              : daysValue || [];
+          activeDays = typeof daysValue === "string" ? JSON.parse(daysValue) : daysValue || [];
         } catch (e) {
           activeDays = [];
         }
@@ -262,11 +198,7 @@ export function createScheduleColumns(
         return (
           <div className="flex flex-wrap gap-1 justify-center">
             {DAYS_OF_WEEK.map((day) => (
-              <Badge
-                key={day.key}
-                variant={activeDays.includes(day.key) ? "default" : "outline"}
-                className="text-xs"
-              >
+              <Badge key={day.key} variant={activeDays.includes(day.key) ? "default" : "outline"} className="text-xs">
                 {day.label}
               </Badge>
             ))}
@@ -278,24 +210,13 @@ export function createScheduleColumns(
     },
     {
       accessorKey: "enabled",
-      header: ({ column }) => (
-        <DataTableColumnHeader
-          column={column}
-          title="Enable"
-          className="flex items-center justify-center"
-        />
-      ),
+      header: ({ column }) => <DataTableColumnHeader column={column} title="Enable" className="flex items-center justify-center" />,
       cell: ({ row }) => {
         const value = getEffectiveValue(row.original, "enabled");
         const isEnabled = Boolean(value);
         return (
           <div className="flex items-center justify-center -ml-4">
-            <Switch
-              checked={isEnabled}
-              onCheckedChange={(checked) =>
-                onCellEdit(row.original.id, "enabled", checked)
-              }
-            />
+            <Switch checked={isEnabled} onCheckedChange={(checked) => onCellEdit(row.original.id, "enabled", checked)} />
           </div>
         );
       },
@@ -304,9 +225,7 @@ export function createScheduleColumns(
     },
     {
       accessorKey: "sceneCount",
-      header: ({ column }) => (
-        <DataTableColumnHeader column={column} title="Scenes" />
-      ),
+      header: ({ column }) => <DataTableColumnHeader column={column} title="Scenes" />,
       cell: ({ row }) => {
         const count = row.original.sceneCount || 0;
         return (
@@ -346,10 +265,7 @@ export function createScheduleColumns(
                 Send Schedule
               </DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem
-                onClick={() => onDelete(schedule)}
-                className="text-destructive"
-              >
+              <DropdownMenuItem onClick={() => onDelete(schedule)} className="text-destructive">
                 <Trash2 className="mr-2 h-4 w-4" />
                 Delete
               </DropdownMenuItem>

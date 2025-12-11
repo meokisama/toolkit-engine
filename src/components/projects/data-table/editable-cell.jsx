@@ -1,20 +1,9 @@
-"use client";
-
 import React, { useState, useRef, useEffect, useCallback, memo } from "react";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 
 export const EditableCell = memo(
-  function EditableCell({
-    value,
-    type = "text",
-    onSave,
-    className,
-    placeholder,
-    displayValue,
-    icon: Icon,
-    ...props
-  }) {
+  function EditableCell({ value, type = "text", onSave, className, placeholder, displayValue, icon: Icon, ...props }) {
     const [editValue, setEditValue] = useState(value || "");
     const inputRef = useRef(null);
     const timeoutRef = useRef(null);
@@ -91,32 +80,13 @@ export const EditableCell = memo(
         placeholder: placeholder || "-",
         ...props,
       }),
-      [
-        editValue,
-        handleChange,
-        handleKeyDown,
-        handleBlur,
-        Icon,
-        className,
-        placeholder,
-        props,
-      ]
+      [editValue, handleChange, handleKeyDown, handleBlur, Icon, className, placeholder, props]
     );
 
     const currentInputProps = inputProps();
 
     const inputElement =
-      type === "number" ? (
-        <Input
-          {...currentInputProps}
-          type="number"
-          min="1"
-          max="255"
-          step="1"
-        />
-      ) : (
-        <Input {...currentInputProps} type="text" />
-      );
+      type === "number" ? <Input {...currentInputProps} type="number" min="1" max="255" step="1" /> : <Input {...currentInputProps} type="text" />;
 
     if (Icon) {
       return (

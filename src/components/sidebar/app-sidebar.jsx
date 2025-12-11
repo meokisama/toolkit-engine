@@ -1,17 +1,8 @@
 import * as React from "react";
 import { Command } from "lucide-react";
-
 import { NavProjects } from "@/components/sidebar/nav-projects";
 import { SidebarOptInForm } from "@/components/sidebar/nav-user";
-import {
-  Sidebar,
-  SidebarContent,
-  SidebarFooter,
-  SidebarHeader,
-  SidebarMenu,
-  SidebarMenuButton,
-  SidebarMenuItem,
-} from "@/components/ui/sidebar";
+import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem } from "@/components/ui/sidebar";
 
 export function AppSidebar({ ...props }) {
   return (

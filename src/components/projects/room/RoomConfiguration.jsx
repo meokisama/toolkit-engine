@@ -1,33 +1,14 @@
 import React from "react";
 import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { RoomStateConfiguration } from "./RoomStateConfiguration";
 import { LibraryBig, Settings2, SlidersVertical, Timer } from "lucide-react";
 
-const ROOM_STATES = [
-  "Unrent",
-  "Unoccupy",
-  "Checkin",
-  "Welcome",
-  "WelcomeNight",
-  "Staff",
-  "OutOfService",
-];
+const ROOM_STATES = ["Unrent", "Unoccupy", "Checkin", "Welcome", "WelcomeNight", "Staff", "OutOfService"];
 
-export function RoomConfiguration({
-  roomIndex,
-  config,
-  updateConfig,
-  availableScenes = [],
-}) {
+export function RoomConfiguration({ roomIndex, config, updateConfig, availableScenes = [] }) {
   const {
     roomAddress = roomIndex + 1,
     occupancyType = 0, // 0: None, 1: Keycard, 2: Keyless
@@ -68,23 +49,12 @@ export function RoomConfiguration({
           <div className="grid grid-cols-4 gap-2">
             {/* Room Address */}
             <div className="flex flex-col gap-2">
-              <Label
-                htmlFor={`room-${roomIndex}-address`}
-                className="text-right gap-1"
-              >
+              <Label htmlFor={`room-${roomIndex}-address`} className="text-right gap-1">
                 <LibraryBig className="size-4" />
                 Room Address
               </Label>
-              <Select
-                value={roomAddress.toString()}
-                onValueChange={(value) =>
-                  handleFieldUpdate("roomAddress", parseInt(value))
-                }
-              >
-                <SelectTrigger
-                  id={`room-${roomIndex}-address`}
-                  className="w-full"
-                >
+              <Select value={roomAddress.toString()} onValueChange={(value) => handleFieldUpdate("roomAddress", parseInt(value))}>
+                <SelectTrigger id={`room-${roomIndex}-address`} className="w-full">
                   <SelectValue placeholder="Select room address" />
                 </SelectTrigger>
                 <SelectContent>
@@ -99,23 +69,12 @@ export function RoomConfiguration({
 
             {/* Occupancy Type */}
             <div className="flex flex-col gap-2">
-              <Label
-                htmlFor={`room-${roomIndex}-occupancy`}
-                className="text-right gap-1"
-              >
+              <Label htmlFor={`room-${roomIndex}-occupancy`} className="text-right gap-1">
                 <Settings2 className="size-4" />
                 Occupancy Type
               </Label>
-              <Select
-                value={occupancyType.toString()}
-                onValueChange={(value) =>
-                  handleFieldUpdate("occupancyType", parseInt(value))
-                }
-              >
-                <SelectTrigger
-                  id={`room-${roomIndex}-occupancy`}
-                  className="w-full"
-                >
+              <Select value={occupancyType.toString()} onValueChange={(value) => handleFieldUpdate("occupancyType", parseInt(value))}>
+                <SelectTrigger id={`room-${roomIndex}-occupancy`} className="w-full">
                   <SelectValue placeholder="Select occupancy type" />
                 </SelectTrigger>
                 <SelectContent>
@@ -129,23 +88,12 @@ export function RoomConfiguration({
             {/* Occupancy Scene Type - Show for Keycard and Keyless */}
             {showKeycardFields && (
               <div className="flex flex-col gap-2">
-                <Label
-                  htmlFor={`room-${roomIndex}-scene-type`}
-                  className="text-right gap-1"
-                >
+                <Label htmlFor={`room-${roomIndex}-scene-type`} className="text-right gap-1">
                   <SlidersVertical className="size-4" />
                   Occupancy Scene Type
                 </Label>
-                <Select
-                  value={occupancySceneType.toString()}
-                  onValueChange={(value) =>
-                    handleFieldUpdate("occupancySceneType", parseInt(value))
-                  }
-                >
-                  <SelectTrigger
-                    id={`room-${roomIndex}-scene-type`}
-                    className="w-full"
-                  >
+                <Select value={occupancySceneType.toString()} onValueChange={(value) => handleFieldUpdate("occupancySceneType", parseInt(value))}>
+                  <SelectTrigger id={`room-${roomIndex}-scene-type`} className="w-full">
                     <SelectValue placeholder="Select scene type" />
                   </SelectTrigger>
                   <SelectContent>
@@ -159,10 +107,7 @@ export function RoomConfiguration({
             {/* Period - Show for Keycard only */}
             {showKeycardFields && (
               <div className="flex flex-col gap-2">
-                <Label
-                  htmlFor={`room-${roomIndex}-period`}
-                  className="text-right gap-1"
-                >
+                <Label htmlFor={`room-${roomIndex}-period`} className="text-right gap-1">
                   <Timer className="size-4" />
                   Period (s)
                 </Label>
@@ -171,9 +116,7 @@ export function RoomConfiguration({
                   type="number"
                   min="0"
                   value={period}
-                  onChange={(e) =>
-                    handleFieldUpdate("period", parseInt(e.target.value) || 0)
-                  }
+                  onChange={(e) => handleFieldUpdate("period", parseInt(e.target.value) || 0)}
                   className="col-span-3"
                 />
               </div>
@@ -184,23 +127,12 @@ export function RoomConfiguration({
           {showAllFields && (
             <div className="grid grid-cols-4 gap-2">
               <div className="flex flex-col gap-2">
-                <Label
-                  htmlFor={`room-${roomIndex}-enable-welcome-night`}
-                  className="text-right gap-1"
-                >
+                <Label htmlFor={`room-${roomIndex}-enable-welcome-night`} className="text-right gap-1">
                   <SlidersVertical className="size-4" />
                   Enable Welcome Night
                 </Label>
-                <Select
-                  value={enableWelcomeNight.toString()}
-                  onValueChange={(value) =>
-                    handleFieldUpdate("enableWelcomeNight", parseInt(value))
-                  }
-                >
-                  <SelectTrigger
-                    id={`room-${roomIndex}-enable-welcome-night`}
-                    className="w-full"
-                  >
+                <Select value={enableWelcomeNight.toString()} onValueChange={(value) => handleFieldUpdate("enableWelcomeNight", parseInt(value))}>
+                  <SelectTrigger id={`room-${roomIndex}-enable-welcome-night`} className="w-full">
                     <SelectValue placeholder="Select welcome night mode" />
                   </SelectTrigger>
                   <SelectContent>
@@ -211,10 +143,7 @@ export function RoomConfiguration({
               </div>
               <div className="grid grid-cols-2 gap-2">
                 <div className="flex flex-col gap-2">
-                  <Label
-                    htmlFor={`room-${roomIndex}-pir-init`}
-                    className="text-right gap-1"
-                  >
+                  <Label htmlFor={`room-${roomIndex}-pir-init`} className="text-right gap-1">
                     <Timer className="size-4" />
                     PIR Init (s)
                   </Label>
@@ -223,21 +152,13 @@ export function RoomConfiguration({
                     type="number"
                     min="0"
                     value={pirInitTime}
-                    onChange={(e) =>
-                      handleFieldUpdate(
-                        "pirInitTime",
-                        parseInt(e.target.value) || 0
-                      )
-                    }
+                    onChange={(e) => handleFieldUpdate("pirInitTime", parseInt(e.target.value) || 0)}
                     className="col-span-3"
                   />
                 </div>
 
                 <div className="flex flex-col gap-2">
-                  <Label
-                    htmlFor={`room-${roomIndex}-pir-verify`}
-                    className="text-right gap-1"
-                  >
+                  <Label htmlFor={`room-${roomIndex}-pir-verify`} className="text-right gap-1">
                     <Timer className="size-4" />
                     PIR Verify (s)
                   </Label>
@@ -246,22 +167,14 @@ export function RoomConfiguration({
                     type="number"
                     min="0"
                     value={pirVerifyTime}
-                    onChange={(e) =>
-                      handleFieldUpdate(
-                        "pirVerifyTime",
-                        parseInt(e.target.value) || 0
-                      )
-                    }
+                    onChange={(e) => handleFieldUpdate("pirVerifyTime", parseInt(e.target.value) || 0)}
                     className="col-span-3"
                   />
                 </div>
               </div>
 
               <div className="flex flex-col gap-2">
-                <Label
-                  htmlFor={`room-${roomIndex}-unrent`}
-                  className="text-right gap-1"
-                >
+                <Label htmlFor={`room-${roomIndex}-unrent`} className="text-right gap-1">
                   <Timer className="size-4" />
                   Unrent Period (s)
                 </Label>
@@ -270,21 +183,13 @@ export function RoomConfiguration({
                   type="number"
                   min="0"
                   value={unrentPeriod}
-                  onChange={(e) =>
-                    handleFieldUpdate(
-                      "unrentPeriod",
-                      parseInt(e.target.value) || 0
-                    )
-                  }
+                  onChange={(e) => handleFieldUpdate("unrentPeriod", parseInt(e.target.value) || 0)}
                   className="col-span-3"
                 />
               </div>
 
               <div className="flex flex-col gap-2">
-                <Label
-                  htmlFor={`room-${roomIndex}-standby`}
-                  className="text-right gap-1"
-                >
+                <Label htmlFor={`room-${roomIndex}-standby`} className="text-right gap-1">
                   <Timer className="size-4" />
                   Standby Time (s)
                 </Label>
@@ -293,12 +198,7 @@ export function RoomConfiguration({
                   type="number"
                   min="0"
                   value={standbyTime}
-                  onChange={(e) =>
-                    handleFieldUpdate(
-                      "standbyTime",
-                      parseInt(e.target.value) || 15
-                    )
-                  }
+                  onChange={(e) => handleFieldUpdate("standbyTime", parseInt(e.target.value) || 15)}
                   className="col-span-3"
                 />
               </div>
@@ -310,9 +210,7 @@ export function RoomConfiguration({
         <div className="space-y-4">
           <div>
             <h3 className="font-semibold text-sm">State Configurations</h3>
-            <p className="text-xs text-muted-foreground">
-              Aircon configuration and scenes for 7 states.
-            </p>
+            <p className="text-xs text-muted-foreground">Aircon configuration and scenes for 7 states.</p>
           </div>
           <Tabs defaultValue={ROOM_STATES[0]} className="w-full">
             <TabsList className="grid w-full grid-cols-7">

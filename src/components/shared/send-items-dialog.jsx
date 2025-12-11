@@ -1,22 +1,12 @@
 import React, { useState, useEffect, useRef } from "react";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { toast } from "sonner";
 import { Send, Loader2, CheckCircle, XCircle } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
-import {
-  NetworkUnitSelector,
-  useNetworkUnitSelector,
-} from "@/components/shared/network-unit-selector";
+import { NetworkUnitSelector, useNetworkUnitSelector } from "@/components/shared/network-unit-selector";
 
 export function SendItemsDialog({
   open,
@@ -28,8 +18,7 @@ export function SendItemsDialog({
   onSendBulk,
   validateSingleItem,
 }) {
-  const { selectedUnitIds, handleSelectionChange, clearSelection } =
-    useNetworkUnitSelector();
+  const { selectedUnitIds, handleSelectionChange, clearSelection } = useNetworkUnitSelector();
   const networkUnitSelectorRef = useRef(null);
   const [loading, setLoading] = useState(false);
   const [singleItemData, setSingleItemData] = useState(null);
@@ -78,17 +67,12 @@ export function SendItemsDialog({
     }
 
     // Validate single item mode
-    if (
-      !isBulkMode &&
-      validateSingleItem &&
-      !validateSingleItem(singleItemData)
-    ) {
+    if (!isBulkMode && validateSingleItem && !validateSingleItem(singleItemData)) {
       return;
     }
 
     // Get selected units from NetworkUnitSelector
-    const selectedUnits =
-      networkUnitSelectorRef.current?.getSelectedUnits() || [];
+    const selectedUnits = networkUnitSelectorRef.current?.getSelectedUnits() || [];
 
     setLoading(true);
     setProgress(0);
@@ -125,14 +109,10 @@ export function SendItemsDialog({
     if (!onSendBulk) return;
 
     try {
-      const operationResults = await onSendBulk(
-        items,
-        selectedUnits,
-        (progress, currentItemName) => {
-          setProgress(progress);
-          setCurrentItem(currentItemName);
-        }
-      );
+      const operationResults = await onSendBulk(items, selectedUnits, (progress, currentItemName) => {
+        setProgress(progress);
+        setCurrentItem(currentItemName);
+      });
 
       setResults(operationResults);
       setShowResults(true);
@@ -141,13 +121,9 @@ export function SendItemsDialog({
       const failCount = operationResults.filter((r) => !r.success).length;
 
       if (failCount === 0) {
-        toast.success(
-          `All ${itemType}s sent successfully! (${successCount} operations completed)`
-        );
+        toast.success(`All ${itemType}s sent successfully! (${successCount} operations completed)`);
       } else {
-        toast.warning(
-          `Bulk send completed with ${successCount} successes and ${failCount} failures`
-        );
+        toast.warning(`Bulk send completed with ${successCount} successes and ${failCount} failures`);
       }
     } catch (error) {
       console.error(`Bulk send failed:`, error);
@@ -167,8 +143,7 @@ export function SendItemsDialog({
   if (items.length === 0) return null;
 
   const itemTypePlural = itemType + "s";
-  const ItemTypeCapitalized =
-    itemType.charAt(0).toUpperCase() + itemType.slice(1);
+  const ItemTypeCapitalized = itemType.charAt(0).toUpperCase() + itemType.slice(1);
   const ItemTypePluralCapitalized = ItemTypeCapitalized + "s";
 
   return (
@@ -177,9 +152,7 @@ export function SendItemsDialog({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Send className="h-5 w-5" />
-            {isBulkMode
-              ? `Send All ${ItemTypePluralCapitalized} to Network Units`
-              : `Send ${items[0].name} to Network Unit`}
+            {isBulkMode ? `Send All ${ItemTypePluralCapitalized} to Network Units` : `Send ${items[0].name} to Network Unit`}
           </DialogTitle>
           <DialogDescription>
             {isBulkMode
@@ -220,12 +193,8 @@ export function SendItemsDialog({
                 <CardTitle className="text-sm flex items-center justify-between">
                   <span>Send Results</span>
                   <div className="flex items-center space-x-4 text-sm">
-                    <span className="text-green-600">
-                      ✓ {results.filter((r) => r.success).length} Success
-                    </span>
-                    <span className="text-red-600">
-                      ✗ {results.filter((r) => !r.success).length} Failed
-                    </span>
+                    <span className="text-green-600">✓ {results.filter((r) => r.success).length} Success</span>
+                    <span className="text-red-600">✗ {results.filter((r) => !r.success).length} Failed</span>
                   </div>
                 </CardTitle>
               </CardHeader>
@@ -237,25 +206,15 @@ export function SendItemsDialog({
                         key={index}
                         className="flex items-center justify-between p-2 rounded border-l-4"
                         style={{
-                          borderLeftColor: result.success
-                            ? "#22c55e"
-                            : "#ef4444",
+                          borderLeftColor: result.success ? "#22c55e" : "#ef4444",
                         }}
                       >
                         <div className="flex-1">
-                          <div className="text-sm font-medium">
-                            {result.item || result.scene || result.schedule}
-                          </div>
-                          <div className="text-xs text-muted-foreground">
-                            {result.unit}
-                          </div>
+                          <div className="text-sm font-medium">{result.item || result.scene || result.schedule}</div>
+                          <div className="text-xs text-muted-foreground">{result.unit}</div>
                         </div>
                         <div className="flex items-center space-x-2">
-                          {result.success ? (
-                            <CheckCircle className="h-4 w-4 text-green-600" />
-                          ) : (
-                            <XCircle className="h-4 w-4 text-red-600" />
-                          )}
+                          {result.success ? <CheckCircle className="h-4 w-4 text-green-600" /> : <XCircle className="h-4 w-4 text-red-600" />}
                           <span className="text-xs">{result.message}</span>
                         </div>
                       </div>
@@ -268,27 +227,19 @@ export function SendItemsDialog({
         </div>
 
         <DialogFooter>
-          <Button
-            variant="outline"
-            onClick={() => onOpenChange(false)}
-            disabled={loading}
-          >
+          <Button variant="outline" onClick={() => onOpenChange(false)} disabled={loading}>
             Cancel
           </Button>
           {!showResults ? (
-            <Button
-              onClick={handleSendItems}
-              disabled={loading || selectedUnitIds.length === 0}
-            >
+            <Button onClick={handleSendItems} disabled={loading || selectedUnitIds.length === 0}>
               {loading && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
               {isBulkMode
                 ? loading
                   ? "Sending..."
                   : `Send All (${items.length} ${itemTypePlural})`
                 : selectedUnitIds.length === 0
-                  ? `Send ${ItemTypeCapitalized}`
-                  : `Send ${ItemTypeCapitalized} to ${selectedUnitIds.length
-                  } Unit${selectedUnitIds.length !== 1 ? "s" : ""}`}
+                ? `Send ${ItemTypeCapitalized}`
+                : `Send ${ItemTypeCapitalized} to ${selectedUnitIds.length} Unit${selectedUnitIds.length !== 1 ? "s" : ""}`}
             </Button>
           ) : (
             <Button onClick={() => onOpenChange(false)}>Close</Button>

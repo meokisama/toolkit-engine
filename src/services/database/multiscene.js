@@ -54,9 +54,7 @@ export const multisceneMethods = {
   addSceneToMultiScene(multiSceneId, sceneId, sceneOrder = 0) {
     try {
       // Get the address of the scene being added
-      const sceneToAdd = this.db
-        .prepare("SELECT address FROM scene WHERE id = ?")
-        .get(sceneId);
+      const sceneToAdd = this.db.prepare("SELECT address FROM scene WHERE id = ?").get(sceneId);
 
       if (!sceneToAdd) {
         throw new Error("Scene not found.");
@@ -93,9 +91,7 @@ export const multisceneMethods = {
 
       // Check if scene is already in this multi-scene
       const existingScene = this.db
-        .prepare(
-          "SELECT COUNT(*) as count FROM multi_scene_scenes WHERE multi_scene_id = ? AND scene_id = ?"
-        )
+        .prepare("SELECT COUNT(*) as count FROM multi_scene_scenes WHERE multi_scene_id = ? AND scene_id = ?")
         .get(multiSceneId, sceneId);
       if (existingScene.count > 0) {
         throw new Error("Scene is already in this multi-scene.");
@@ -142,9 +138,7 @@ export const multisceneMethods = {
       // Start transaction for atomic operation
       const transaction = this.db.transaction(() => {
         // Remove all existing scenes from multi-scene
-        this.db
-          .prepare("DELETE FROM multi_scene_scenes WHERE multi_scene_id = ?")
-          .run(multiSceneId);
+        this.db.prepare("DELETE FROM multi_scene_scenes WHERE multi_scene_id = ?").run(multiSceneId);
 
         // Add new scenes with order
         sceneIds.forEach((sceneId, index) => {
@@ -170,10 +164,7 @@ export const multisceneMethods = {
       const result = stmt.get(projectId, address);
       return result ? result.id : null;
     } catch (error) {
-      console.error(
-        `Failed to find multi_scene ID for address ${address}:`,
-        error
-      );
+      console.error(`Failed to find multi_scene ID for address ${address}:`, error);
       return null;
     }
   },

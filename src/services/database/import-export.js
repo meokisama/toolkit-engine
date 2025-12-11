@@ -10,17 +10,7 @@ export const importExportOperations = {
         const project = this.createProject(projectData);
 
         // Import items for each category
-        const categories = [
-          "lighting",
-          "aircon",
-          "unit",
-          "curtain",
-          "knx",
-          "scene",
-          "schedule",
-          "multi_scenes",
-          "sequences",
-        ];
+        const categories = ["lighting", "aircon", "unit", "curtain", "knx", "scene", "schedule", "multi_scenes", "sequences"];
         const importedCounts = {};
         const idMappings = {
           scene: {},
@@ -57,11 +47,7 @@ export const importExportOperations = {
             }
 
             // Store ID mapping for relationships
-            if (
-              ["scene", "schedule", "multi_scenes", "sequences"].includes(
-                category
-              )
-            ) {
+            if (["scene", "schedule", "multi_scenes", "sequences"].includes(category)) {
               idMappings[category][itemData.id] = newItem.id;
             }
 
@@ -96,21 +82,14 @@ export const importExportOperations = {
 
         // Handle both old format (scene_id) and new format (scene_address)
         if (sceneItem.scene_address) {
-          newSceneId = this.findSceneIdByAddress(
-            newProjectId,
-            sceneItem.scene_address
-          );
+          newSceneId = this.findSceneIdByAddress(newProjectId, sceneItem.scene_address);
         } else if (sceneItem.scene_id) {
           newSceneId = idMappings.scene[sceneItem.scene_id]; // Backward compatibility
         }
 
         // Handle both old format (item_id) and new format (item_address)
         if (sceneItem.item_address && sceneItem.item_type) {
-          newItemId = this.findItemIdByAddress(
-            newProjectId,
-            sceneItem.item_address,
-            sceneItem.item_type
-          );
+          newItemId = this.findItemIdByAddress(newProjectId, sceneItem.item_address, sceneItem.item_type);
         } else if (sceneItem.item_id) {
           newItemId = sceneItem.item_id; // Backward compatibility - may not work cross-machine
         }
@@ -140,14 +119,7 @@ export const importExportOperations = {
           INSERT INTO scene_address_items (project_id, address, item_type, item_id, object_type, object_value)
           VALUES (?, ?, ?, ?, ?, ?)
         `);
-        stmt.run(
-          newProjectId,
-          addressItem.address,
-          addressItem.item_type,
-          addressItem.item_id,
-          addressItem.object_type,
-          addressItem.object_value
-        );
+        stmt.run(newProjectId, addressItem.address, addressItem.item_type, addressItem.item_id, addressItem.object_type, addressItem.object_value);
       });
 
       // Import schedule_scenes
@@ -158,20 +130,14 @@ export const importExportOperations = {
 
         // Handle both old format (schedule_id) and new format (schedule_identifier)
         if (scheduleScene.schedule_identifier) {
-          newScheduleId = this.findScheduleIdByIdentifier(
-            newProjectId,
-            scheduleScene.schedule_identifier
-          );
+          newScheduleId = this.findScheduleIdByIdentifier(newProjectId, scheduleScene.schedule_identifier);
         } else if (scheduleScene.schedule_id) {
           newScheduleId = idMappings.schedule[scheduleScene.schedule_id]; // Backward compatibility
         }
 
         // Handle both old format (scene_id) and new format (scene_address)
         if (scheduleScene.scene_address) {
-          newSceneId = this.findSceneIdByAddress(
-            newProjectId,
-            scheduleScene.scene_address
-          );
+          newSceneId = this.findSceneIdByAddress(newProjectId, scheduleScene.scene_address);
         } else if (scheduleScene.scene_id) {
           newSceneId = idMappings.scene[scheduleScene.scene_id]; // Backward compatibility
         }
@@ -193,21 +159,14 @@ export const importExportOperations = {
 
         // Handle both old format (multi_scene_id) and new format (multi_scene_address)
         if (multiSceneScene.multi_scene_address) {
-          newMultiSceneId = this.findMultiSceneIdByAddress(
-            newProjectId,
-            multiSceneScene.multi_scene_address
-          );
+          newMultiSceneId = this.findMultiSceneIdByAddress(newProjectId, multiSceneScene.multi_scene_address);
         } else if (multiSceneScene.multi_scene_id) {
-          newMultiSceneId =
-            idMappings.multi_scenes[multiSceneScene.multi_scene_id]; // Backward compatibility
+          newMultiSceneId = idMappings.multi_scenes[multiSceneScene.multi_scene_id]; // Backward compatibility
         }
 
         // Handle both old format (scene_id) and new format (scene_address)
         if (multiSceneScene.scene_address) {
-          newSceneId = this.findSceneIdByAddress(
-            newProjectId,
-            multiSceneScene.scene_address
-          );
+          newSceneId = this.findSceneIdByAddress(newProjectId, multiSceneScene.scene_address);
         } else if (multiSceneScene.scene_id) {
           newSceneId = idMappings.scene[multiSceneScene.scene_id]; // Backward compatibility
         }
@@ -229,23 +188,16 @@ export const importExportOperations = {
 
         // Handle both old format (sequence_id) and new format (sequence_address)
         if (sequenceMultiScene.sequence_address) {
-          newSequenceId = this.findSequenceIdByAddress(
-            newProjectId,
-            sequenceMultiScene.sequence_address
-          );
+          newSequenceId = this.findSequenceIdByAddress(newProjectId, sequenceMultiScene.sequence_address);
         } else if (sequenceMultiScene.sequence_id) {
           newSequenceId = idMappings.sequences[sequenceMultiScene.sequence_id]; // Backward compatibility
         }
 
         // Handle both old format (multi_scene_id) and new format (multi_scene_address)
         if (sequenceMultiScene.multi_scene_address) {
-          newMultiSceneId = this.findMultiSceneIdByAddress(
-            newProjectId,
-            sequenceMultiScene.multi_scene_address
-          );
+          newMultiSceneId = this.findMultiSceneIdByAddress(newProjectId, sequenceMultiScene.multi_scene_address);
         } else if (sequenceMultiScene.multi_scene_id) {
-          newMultiSceneId =
-            idMappings.multi_scenes[sequenceMultiScene.multi_scene_id]; // Backward compatibility
+          newMultiSceneId = idMappings.multi_scenes[sequenceMultiScene.multi_scene_id]; // Backward compatibility
         }
 
         if (newSequenceId && newMultiSceneId) {
@@ -253,11 +205,7 @@ export const importExportOperations = {
             INSERT INTO sequence_multi_scenes (sequence_id, multi_scene_id, multi_scene_order)
             VALUES (?, ?, ?)
           `);
-          stmt.run(
-            newSequenceId,
-            newMultiSceneId,
-            sequenceMultiScene.multi_scene_order
-          );
+          stmt.run(newSequenceId, newMultiSceneId, sequenceMultiScene.multi_scene_order);
         }
       });
     } catch (error) {
@@ -276,10 +224,7 @@ export const importExportOperations = {
       const result = stmt.get(projectId, address);
       return result ? result.id : null;
     } catch (error) {
-      console.error(
-        `Failed to find ${itemType} ID for address ${address}:`,
-        error
-      );
+      console.error(`Failed to find ${itemType} ID for address ${address}:`, error);
       return null;
     }
   },

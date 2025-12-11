@@ -288,10 +288,7 @@ export const hasInputConfigChanged = (originalInput, currentInput) => {
   if (!originalInput || !currentInput) return true;
 
   // Compare the key properties that indicate a change
-  if (
-    originalInput.functionValue !== currentInput.functionValue ||
-    originalInput.lightingId !== currentInput.lightingId
-  ) {
+  if (originalInput.functionValue !== currentInput.functionValue || originalInput.lightingId !== currentInput.lightingId) {
     return true;
   }
 
@@ -305,10 +302,7 @@ export const hasInputConfigChanged = (originalInput, currentInput) => {
 
   // Deep compare multi group config array
   for (let i = 0; i < originalInputDetail.length; i++) {
-    if (
-      JSON.stringify(originalInputDetail[i]) !==
-      JSON.stringify(currentInputDetail[i])
-    ) {
+    if (JSON.stringify(originalInputDetail[i]) !== JSON.stringify(currentInputDetail[i])) {
       return true;
     }
   }
@@ -360,12 +354,8 @@ export const getChangedInputIndices = (originalInputs, currentInputs) => {
   if (!originalInputs || !currentInputs) return changedIndices;
 
   // Create maps for easier lookup
-  const originalMap = new Map(
-    originalInputs.map((input) => [input.index, input])
-  );
-  const currentMap = new Map(
-    currentInputs.map((input) => [input.index, input])
-  );
+  const originalMap = new Map(originalInputs.map((input) => [input.index, input]));
+  const currentMap = new Map(currentInputs.map((input) => [input.index, input]));
 
   // Check each current input against its original
   currentInputs.forEach((currentInput) => {
@@ -399,9 +389,7 @@ export const getInputConfig = (ioConfig, inputIndex) => {
 export const updateInputConfig = (ioConfig, inputIndex, inputData) => {
   const newConfig = cloneIOConfig(ioConfig);
 
-  const inputConfigIndex = newConfig.inputs.findIndex(
-    (input) => input.index === inputIndex
-  );
+  const inputConfigIndex = newConfig.inputs.findIndex((input) => input.index === inputIndex);
   if (inputConfigIndex >= 0) {
     newConfig.inputs[inputConfigIndex] = {
       ...newConfig.inputs[inputConfigIndex],
@@ -422,9 +410,7 @@ export const updateInputConfig = (ioConfig, inputIndex, inputData) => {
  */
 export const getOutputConfig = (ioConfig, outputIndex) => {
   if (!ioConfig?.outputs) return null;
-  return (
-    ioConfig.outputs.find((output) => output.index === outputIndex) || null
-  );
+  return ioConfig.outputs.find((output) => output.index === outputIndex) || null;
 };
 
 /**
@@ -448,9 +434,7 @@ export const getOutputDetailedConfig = (ioConfig, outputIndex) => {
 export const updateOutputConfig = (ioConfig, outputIndex, outputData) => {
   const newConfig = cloneIOConfig(ioConfig);
 
-  const outputConfigIndex = newConfig.outputs.findIndex(
-    (output) => output.index === outputIndex
-  );
+  const outputConfigIndex = newConfig.outputs.findIndex((output) => output.index === outputIndex);
   if (outputConfigIndex >= 0) {
     newConfig.outputs[outputConfigIndex] = {
       ...newConfig.outputs[outputConfigIndex],

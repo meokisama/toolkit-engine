@@ -1,14 +1,4 @@
-"use client";
-
-import { useMemo } from "react";
-import {
-  Copy,
-  SquarePen,
-  Trash2,
-  MoreHorizontal,
-  Settings,
-} from "lucide-react";
-
+import { Copy, SquarePen, Trash2, MoreHorizontal, Settings } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
@@ -17,13 +7,7 @@ import { EditableCell } from "@/components/projects/data-table/editable-cell";
 import { EditableSelectCell } from "@/components/projects/data-table/editable-select-cell";
 import { EditableComboboxCell } from "@/components/projects/data-table/editable-combobox-cell";
 import { EditableCheckboxCell } from "@/components/projects/data-table/editable-checkbox-cell";
-import {
-  DropdownMenu,
-  DropdownMenuTrigger,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-} from "@/components/ui/dropdown-menu";
+import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
 import { UNIT_TYPES, UNIT_MODES } from "@/constants";
 import { compareIpAddresses } from "@/utils/ip-utils";
 
@@ -37,33 +21,18 @@ const UNIT_MODE_OPTIONS = UNIT_MODES.map((mode) => ({
   label: mode,
 }));
 
-export const createUnitColumns = (
-  onEdit,
-  onDuplicate,
-  onDelete,
-  onCellEdit,
-  getEffectiveValue,
-  onIOConfig
-) => [
+export const createUnitColumns = (onEdit, onDuplicate, onDelete, onCellEdit, getEffectiveValue, onIOConfig) => [
   {
     id: "select",
     header: ({ table }) => (
       <Checkbox
-        checked={
-          table.getIsAllPageRowsSelected() ||
-          (table.getIsSomePageRowsSelected() && "indeterminate")
-        }
+        checked={table.getIsAllPageRowsSelected() || (table.getIsSomePageRowsSelected() && "indeterminate")}
         onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
         aria-label="Select all"
       />
     ),
     cell: ({ row }) => (
-      <Checkbox
-        checked={row.getIsSelected()}
-        onCheckedChange={(value) => row.toggleSelected(!!value)}
-        aria-label="Select row"
-        className="mx-1.5"
-      />
+      <Checkbox checked={row.getIsSelected()} onCheckedChange={(value) => row.toggleSelected(!!value)} aria-label="Select row" className="mx-1.5" />
     ),
     enableSorting: false,
     enableHiding: false,
@@ -74,9 +43,7 @@ export const createUnitColumns = (
 
   {
     accessorKey: "type",
-    header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Type" />
-    ),
+    header: ({ column }) => <DataTableColumnHeader column={column} title="Type" />,
     cell: ({ row }) => {
       const type = row.getValue("type");
       const effectiveValue = getEffectiveValue(row.original.id, "type", type);
@@ -101,27 +68,15 @@ export const createUnitColumns = (
   },
   {
     accessorKey: "serial_no",
-    header: ({ column }) => (
-      <DataTableColumnHeader
-        column={column}
-        title="Serial No."
-        className="flex items-center justify-center"
-      />
-    ),
+    header: ({ column }) => <DataTableColumnHeader column={column} title="Serial No." className="flex items-center justify-center" />,
     cell: ({ row }) => {
       const serialNo = row.getValue("serial_no");
-      const effectiveValue = getEffectiveValue(
-        row.original.id,
-        "serial_no",
-        serialNo
-      );
+      const effectiveValue = getEffectiveValue(row.original.id, "serial_no", serialNo);
       return (
         <EditableCell
           value={effectiveValue}
           type="text"
-          onSave={(newValue) =>
-            onCellEdit(row.original.id, "serial_no", newValue)
-          }
+          onSave={(newValue) => onCellEdit(row.original.id, "serial_no", newValue)}
           className="text-sm w-full text-center"
           placeholder="-"
         />
@@ -135,27 +90,15 @@ export const createUnitColumns = (
   },
   {
     accessorKey: "ip_address",
-    header: ({ column }) => (
-      <DataTableColumnHeader
-        column={column}
-        title="IP Address"
-        className="flex items-center justify-center"
-      />
-    ),
+    header: ({ column }) => <DataTableColumnHeader column={column} title="IP Address" className="flex items-center justify-center" />,
     cell: ({ row }) => {
       const ipAddress = row.getValue("ip_address");
-      const effectiveValue = getEffectiveValue(
-        row.original.id,
-        "ip_address",
-        ipAddress
-      );
+      const effectiveValue = getEffectiveValue(row.original.id, "ip_address", ipAddress);
       return (
         <EditableCell
           value={effectiveValue}
           type="text"
-          onSave={(newValue) =>
-            onCellEdit(row.original.id, "ip_address", newValue)
-          }
+          onSave={(newValue) => onCellEdit(row.original.id, "ip_address", newValue)}
           className="text-sm w-full text-center"
           placeholder="-"
         />
@@ -169,20 +112,10 @@ export const createUnitColumns = (
   },
   {
     accessorKey: "id_can",
-    header: ({ column }) => (
-      <DataTableColumnHeader
-        column={column}
-        title="ID CAN"
-        className="text-center"
-      />
-    ),
+    header: ({ column }) => <DataTableColumnHeader column={column} title="ID CAN" className="text-center" />,
     cell: ({ row }) => {
       const idCan = row.getValue("id_can");
-      const effectiveValue = getEffectiveValue(
-        row.original.id,
-        "id_can",
-        idCan
-      );
+      const effectiveValue = getEffectiveValue(row.original.id, "id_can", idCan);
       return (
         <EditableCell
           value={effectiveValue}
@@ -201,13 +134,7 @@ export const createUnitColumns = (
   },
   {
     accessorKey: "mode",
-    header: ({ column }) => (
-      <DataTableColumnHeader
-        column={column}
-        title="Mode"
-        className="flex items-center justify-center"
-      />
-    ),
+    header: ({ column }) => <DataTableColumnHeader column={column} title="Mode" className="flex items-center justify-center" />,
     cell: ({ row }) => {
       const mode = row.getValue("mode");
       const effectiveValue = getEffectiveValue(row.original.id, "mode", mode);
@@ -245,27 +172,15 @@ export const createUnitColumns = (
   },
   {
     accessorKey: "firmware_version",
-    header: ({ column }) => (
-      <DataTableColumnHeader
-        column={column}
-        title="Firmware"
-        className="text-center"
-      />
-    ),
+    header: ({ column }) => <DataTableColumnHeader column={column} title="Firmware" className="text-center" />,
     cell: ({ row }) => {
       const firmwareVersion = row.getValue("firmware_version");
-      const effectiveValue = getEffectiveValue(
-        row.original.id,
-        "firmware_version",
-        firmwareVersion
-      );
+      const effectiveValue = getEffectiveValue(row.original.id, "firmware_version", firmwareVersion);
       return (
         <EditableCell
           value={effectiveValue}
           type="text"
-          onSave={(newValue) =>
-            onCellEdit(row.original.id, "firmware_version", newValue)
-          }
+          onSave={(newValue) => onCellEdit(row.original.id, "firmware_version", newValue)}
           className="text-sm w-full text-center"
           placeholder="-"
         />
@@ -279,27 +194,15 @@ export const createUnitColumns = (
   },
   {
     accessorKey: "hardware_version",
-    header: ({ column }) => (
-      <DataTableColumnHeader
-        column={column}
-        title="Hardware"
-        className="text-center"
-      />
-    ),
+    header: ({ column }) => <DataTableColumnHeader column={column} title="Hardware" className="text-center" />,
     cell: ({ row }) => {
       const hardwareVersion = row.getValue("hardware_version");
-      const effectiveValue = getEffectiveValue(
-        row.original.id,
-        "hardware_version",
-        hardwareVersion
-      );
+      const effectiveValue = getEffectiveValue(row.original.id, "hardware_version", hardwareVersion);
       return (
         <EditableCell
           value={effectiveValue}
           type="text"
-          onSave={(newValue) =>
-            onCellEdit(row.original.id, "hardware_version", newValue)
-          }
+          onSave={(newValue) => onCellEdit(row.original.id, "hardware_version", newValue)}
           className="text-sm w-full text-center"
           placeholder="-"
         />
@@ -313,26 +216,14 @@ export const createUnitColumns = (
   },
   {
     accessorKey: "can_load",
-    header: ({ column }) => (
-      <DataTableColumnHeader
-        column={column}
-        title="CAN Load"
-        className="text-center"
-      />
-    ),
+    header: ({ column }) => <DataTableColumnHeader column={column} title="CAN Load" className="text-center" />,
     cell: ({ row }) => {
       const canLoad = row.getValue("can_load");
-      const effectiveValue = getEffectiveValue(
-        row.original.id,
-        "can_load",
-        canLoad
-      );
+      const effectiveValue = getEffectiveValue(row.original.id, "can_load", canLoad);
       return (
         <EditableCheckboxCell
           value={effectiveValue}
-          onSave={(newValue) =>
-            onCellEdit(row.original.id, "can_load", newValue)
-          }
+          onSave={(newValue) => onCellEdit(row.original.id, "can_load", newValue)}
           trueColor="bg-green-100 text-green-800"
           falseColor="bg-gray-100 text-gray-800"
           showBadge={false}
@@ -347,26 +238,14 @@ export const createUnitColumns = (
   },
   {
     accessorKey: "recovery_mode",
-    header: ({ column }) => (
-      <DataTableColumnHeader
-        column={column}
-        title="Recovery"
-        className="text-center"
-      />
-    ),
+    header: ({ column }) => <DataTableColumnHeader column={column} title="Recovery" className="text-center" />,
     cell: ({ row }) => {
       const recoveryMode = row.getValue("recovery_mode");
-      const effectiveValue = getEffectiveValue(
-        row.original.id,
-        "recovery_mode",
-        recoveryMode
-      );
+      const effectiveValue = getEffectiveValue(row.original.id, "recovery_mode", recoveryMode);
       return (
         <EditableCheckboxCell
           value={effectiveValue}
-          onSave={(newValue) =>
-            onCellEdit(row.original.id, "recovery_mode", newValue)
-          }
+          onSave={(newValue) => onCellEdit(row.original.id, "recovery_mode", newValue)}
           trueColor="bg-red-100 text-red-800"
           falseColor="bg-gray-100 text-gray-800"
           showBadge={false}
@@ -381,23 +260,15 @@ export const createUnitColumns = (
   },
   {
     accessorKey: "description",
-    header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Description" />
-    ),
+    header: ({ column }) => <DataTableColumnHeader column={column} title="Description" />,
     cell: ({ row }) => {
       const description = row.getValue("description");
-      const effectiveValue = getEffectiveValue(
-        row.original.id,
-        "description",
-        description
-      );
+      const effectiveValue = getEffectiveValue(row.original.id, "description", description);
       return (
         <EditableCell
           value={effectiveValue}
           type="text"
-          onSave={(newValue) =>
-            onCellEdit(row.original.id, "description", newValue)
-          }
+          onSave={(newValue) => onCellEdit(row.original.id, "description", newValue)}
           placeholder="-"
         />
       );
@@ -418,44 +289,27 @@ export const createUnitColumns = (
         <div className="flex items-center justify-end">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-8 w-8 p-0"
-                title="More actions"
-              >
+              <Button variant="ghost" size="icon" className="h-8 w-8 p-0" title="More actions">
                 <MoreHorizontal className="h-4 w-4" />
                 <span className="sr-only">More</span>
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent className="w-48" align="end">
-              <DropdownMenuItem
-                onClick={() => onEdit(item)}
-                className="cursor-pointer"
-              >
+              <DropdownMenuItem onClick={() => onEdit(item)} className="cursor-pointer">
                 <SquarePen className="text-muted-foreground" />
                 <span>Edit</span>
               </DropdownMenuItem>
-              <DropdownMenuItem
-                onClick={() => onDuplicate(item)}
-                className="cursor-pointer"
-              >
+              <DropdownMenuItem onClick={() => onDuplicate(item)} className="cursor-pointer">
                 <Copy className="text-muted-foreground" />
                 <span>Duplicate</span>
               </DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem
-                onClick={() => onIOConfig(item)}
-                className="cursor-pointer"
-              >
+              <DropdownMenuItem onClick={() => onIOConfig(item)} className="cursor-pointer">
                 <Settings className="text-muted-foreground" />
                 <span>I/O Config</span>
               </DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem
-                onClick={() => onDelete(item)}
-                className="cursor-pointer text-red-600 focus:text-red-600"
-              >
+              <DropdownMenuItem onClick={() => onDelete(item)} className="cursor-pointer text-red-600 focus:text-red-600">
                 <Trash2 className="text-red-600" />
                 <span>Delete</span>
               </DropdownMenuItem>
@@ -478,21 +332,13 @@ export const createNetworkUnitColumns = () => [
     id: "select",
     header: ({ table }) => (
       <Checkbox
-        checked={
-          table.getIsAllPageRowsSelected() ||
-          (table.getIsSomePageRowsSelected() && "indeterminate")
-        }
+        checked={table.getIsAllPageRowsSelected() || (table.getIsSomePageRowsSelected() && "indeterminate")}
         onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
         aria-label="Select all"
       />
     ),
     cell: ({ row }) => (
-      <Checkbox
-        checked={row.getIsSelected()}
-        onCheckedChange={(value) => row.toggleSelected(!!value)}
-        aria-label="Select row"
-        className="mx-1.5"
-      />
+      <Checkbox checked={row.getIsSelected()} onCheckedChange={(value) => row.toggleSelected(!!value)} aria-label="Select row" className="mx-1.5" />
     ),
     enableSorting: false,
     enableHiding: false,
@@ -502,19 +348,10 @@ export const createNetworkUnitColumns = () => [
   },
   {
     accessorKey: "type",
-    header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Type" />
-    ),
+    header: ({ column }) => <DataTableColumnHeader column={column} title="Type" />,
     cell: ({ row }) => {
       const type = row.getValue("type");
-      return (
-        <Input
-          value={type || ""}
-          readOnly
-          className="font-medium "
-          placeholder="-"
-        />
-      );
+      return <Input value={type || ""} readOnly className="font-medium " placeholder="-" />;
     },
     enableSorting: true,
     enableHiding: true,
@@ -524,23 +361,10 @@ export const createNetworkUnitColumns = () => [
   },
   {
     accessorKey: "serial_no",
-    header: ({ column }) => (
-      <DataTableColumnHeader
-        column={column}
-        title="Serial No."
-        className="flex items-center justify-center"
-      />
-    ),
+    header: ({ column }) => <DataTableColumnHeader column={column} title="Serial No." className="flex items-center justify-center" />,
     cell: ({ row }) => {
       const serialNo = row.getValue("serial_no");
-      return (
-        <Input
-          value={serialNo || ""}
-          readOnly
-          className="text-sm text-center"
-          placeholder="-"
-        />
-      );
+      return <Input value={serialNo || ""} readOnly className="text-sm text-center" placeholder="-" />;
     },
     enableSorting: true,
     enableHiding: true,
@@ -550,23 +374,10 @@ export const createNetworkUnitColumns = () => [
   },
   {
     accessorKey: "ip_address",
-    header: ({ column }) => (
-      <DataTableColumnHeader
-        column={column}
-        title="IP Address"
-        className="justify-center"
-      />
-    ),
+    header: ({ column }) => <DataTableColumnHeader column={column} title="IP Address" className="justify-center" />,
     cell: ({ row }) => {
       const ipAddress = row.getValue("ip_address");
-      return (
-        <Input
-          value={ipAddress || ""}
-          readOnly
-          className="text-sm text-center"
-          placeholder="-"
-        />
-      );
+      return <Input value={ipAddress || ""} readOnly className="text-sm text-center" placeholder="-" />;
     },
     enableSorting: true,
     sortingFn: (rowA, rowB) => {
@@ -581,23 +392,10 @@ export const createNetworkUnitColumns = () => [
   },
   {
     accessorKey: "id_can",
-    header: ({ column }) => (
-      <DataTableColumnHeader
-        column={column}
-        title="ID CAN"
-        className="text-center"
-      />
-    ),
+    header: ({ column }) => <DataTableColumnHeader column={column} title="ID CAN" className="text-center" />,
     cell: ({ row }) => {
       const idCan = row.getValue("id_can");
-      return (
-        <Input
-          value={idCan || ""}
-          readOnly
-          className="text-sm text-center"
-          placeholder="-"
-        />
-      );
+      return <Input value={idCan || ""} readOnly className="text-sm text-center" placeholder="-" />;
     },
     enableSorting: false,
     enableHiding: true,
@@ -607,13 +405,7 @@ export const createNetworkUnitColumns = () => [
   },
   {
     accessorKey: "mode",
-    header: ({ column }) => (
-      <DataTableColumnHeader
-        column={column}
-        title="Mode"
-        className="flex items-center justify-center"
-      />
-    ),
+    header: ({ column }) => <DataTableColumnHeader column={column} title="Mode" className="flex items-center justify-center" />,
     cell: ({ row }) => {
       const mode = row.getValue("mode");
       const getTextColor = (mode) => {
@@ -629,14 +421,7 @@ export const createNetworkUnitColumns = () => [
         }
       };
 
-      return (
-        <Input
-          value={mode || ""}
-          readOnly
-          className={`text-center  text-xs font-medium ${getTextColor(mode)}`}
-          placeholder="-"
-        />
-      );
+      return <Input value={mode || ""} readOnly className={`text-center  text-xs font-medium ${getTextColor(mode)}`} placeholder="-" />;
     },
     enableSorting: true,
     enableHiding: true,
@@ -646,23 +431,10 @@ export const createNetworkUnitColumns = () => [
   },
   {
     accessorKey: "firmware_version",
-    header: ({ column }) => (
-      <DataTableColumnHeader
-        column={column}
-        title="Firmware"
-        className="text-center"
-      />
-    ),
+    header: ({ column }) => <DataTableColumnHeader column={column} title="Firmware" className="text-center" />,
     cell: ({ row }) => {
       const firmwareVersion = row.getValue("firmware_version");
-      return (
-        <Input
-          value={firmwareVersion || ""}
-          readOnly
-          className="text-sm text-center"
-          placeholder="-"
-        />
-      );
+      return <Input value={firmwareVersion || ""} readOnly className="text-sm text-center" placeholder="-" />;
     },
     enableSorting: false,
     enableHiding: true,
@@ -672,23 +444,10 @@ export const createNetworkUnitColumns = () => [
   },
   {
     accessorKey: "hardware_version",
-    header: ({ column }) => (
-      <DataTableColumnHeader
-        column={column}
-        title="Hardware"
-        className="text-center"
-      />
-    ),
+    header: ({ column }) => <DataTableColumnHeader column={column} title="Hardware" className="text-center" />,
     cell: ({ row }) => {
       const hardwareVersion = row.getValue("hardware_version");
-      return (
-        <Input
-          value={hardwareVersion || ""}
-          readOnly
-          className="text-sm text-center"
-          placeholder="-"
-        />
-      );
+      return <Input value={hardwareVersion || ""} readOnly className="text-sm text-center" placeholder="-" />;
     },
     enableSorting: false,
     enableHiding: true,
@@ -698,9 +457,7 @@ export const createNetworkUnitColumns = () => [
   },
   {
     accessorKey: "can_load",
-    header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="CAN Load" />
-    ),
+    header: ({ column }) => <DataTableColumnHeader column={column} title="CAN Load" />,
     cell: ({ row }) => {
       const canLoad = row.getValue("can_load");
       return (
@@ -717,9 +474,7 @@ export const createNetworkUnitColumns = () => [
   },
   {
     accessorKey: "recovery_mode",
-    header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Recovery" />
-    ),
+    header: ({ column }) => <DataTableColumnHeader column={column} title="Recovery" />,
     cell: ({ row }) => {
       const recoveryMode = row.getValue("recovery_mode");
       return (

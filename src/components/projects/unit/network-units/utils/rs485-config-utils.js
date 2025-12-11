@@ -26,28 +26,23 @@ export async function readRS485Configurations(networkUnit) {
 
     // Read CH1 configuration first
     console.log("Reading RS485 CH1 configuration...");
-    const ch1Config =
-      await window.electronAPI.deviceController.getRS485CH1Config({
-        unitIp: networkUnit.ip_address,
-        canId: networkUnit.id_can,
-      });
+    const ch1Config = await window.electronAPI.deviceController.getRS485CH1Config({
+      unitIp: networkUnit.ip_address,
+      canId: networkUnit.id_can,
+    });
 
     // Add delay between RS485 channel reads
     await new Promise((resolve) => setTimeout(resolve, 300));
 
     // Read CH2 configuration second
     console.log("Reading RS485 CH2 configuration...");
-    const ch2Config =
-      await window.electronAPI.deviceController.getRS485CH2Config({
-        unitIp: networkUnit.ip_address,
-        canId: networkUnit.id_can,
-      });
+    const ch2Config = await window.electronAPI.deviceController.getRS485CH2Config({
+      unitIp: networkUnit.ip_address,
+      canId: networkUnit.id_can,
+    });
 
     // Convert to database format
-    const rs485Config = [
-      convertNetworkToDialogFormat(ch1Config),
-      convertNetworkToDialogFormat(ch2Config),
-    ];
+    const rs485Config = [convertNetworkToDialogFormat(ch1Config), convertNetworkToDialogFormat(ch2Config)];
 
     // Add delay after RS485 config read
     await new Promise((resolve) => setTimeout(resolve, 500));

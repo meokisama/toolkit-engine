@@ -1,32 +1,10 @@
-"use client";
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-} from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {
-  Download,
-  Loader2,
-  Upload,
-  Building2,
-  Thermometer,
-  Hotel,
-  Star,
-} from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Download, Loader2, Upload, Building2, Thermometer, Hotel, Star } from "lucide-react";
 import { toast } from "sonner";
 
 const RENT_STATUS_LABELS = {
@@ -52,10 +30,7 @@ export function RoomStatusControl({ unit }) {
 
     setLoading(true);
     try {
-      const status = await window.electronAPI.roomController.getRoomStatus(
-        unit.ip_address,
-        unit.id_can
-      );
+      const status = await window.electronAPI.roomController.getRoomStatus(unit.ip_address, unit.id_can);
 
       setRoomStatus(status);
       toast.success("Room status read successfully");
@@ -81,12 +56,7 @@ export function RoomStatusControl({ unit }) {
 
     setSending(true);
     try {
-      await window.electronAPI.roomController.setRoomStatus(
-        unit.ip_address,
-        unit.id_can,
-        roomStatus.aircon_mode,
-        roomStatus.rooms
-      );
+      await window.electronAPI.roomController.setRoomStatus(unit.ip_address, unit.id_can, roomStatus.aircon_mode, roomStatus.rooms);
 
       toast.success("Room status sent successfully");
     } catch (error) {
@@ -120,24 +90,12 @@ export function RoomStatusControl({ unit }) {
     <div className="space-y-4">
       <div className="flex justify-end gap-2">
         <Button onClick={handleReadStatus} disabled={loading || sending}>
-          {loading ? (
-            <Loader2 className="h-4 w-4 animate-spin" />
-          ) : (
-            <Download className="h-4 w-4" />
-          )}
+          {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
           {loading ? "Reading..." : "Read Status"}
         </Button>
 
-        <Button
-          onClick={handleSendStatus}
-          disabled={!roomStatus || loading || sending}
-          variant="default"
-        >
-          {sending ? (
-            <Loader2 className="h-4 w-4 animate-spin" />
-          ) : (
-            <Upload className="h-4 w-4" />
-          )}
+        <Button onClick={handleSendStatus} disabled={!roomStatus || loading || sending} variant="default">
+          {sending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
           {sending ? "Sending..." : "Send Status"}
         </Button>
       </div>
@@ -151,17 +109,12 @@ export function RoomStatusControl({ unit }) {
                 <Thermometer className="h-5 w-5" />
                 General Aircon Mode
               </CardTitle>
-              <CardDescription>
-                Global air conditioning mode setting
-              </CardDescription>
+              <CardDescription>Global air conditioning mode setting</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="flex items-center gap-4">
                 <Label htmlFor="aircon-mode">Aircon Mode</Label>
-                <Select
-                  value={(roomStatus.aircon_mode ?? 0).toString()}
-                  onValueChange={handleAirconModeChange}
-                >
+                <Select value={(roomStatus.aircon_mode ?? 0).toString()} onValueChange={handleAirconModeChange}>
                   <SelectTrigger id="aircon-mode" className="w-48">
                     <SelectValue />
                   </SelectTrigger>
@@ -181,9 +134,7 @@ export function RoomStatusControl({ unit }) {
                 <Building2 className="h-5 w-5" />
                 Room Status
               </CardTitle>
-              <CardDescription>
-                Rent and guest status for each room
-              </CardDescription>
+              <CardDescription>Rent and guest status for each room</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
@@ -198,28 +149,16 @@ export function RoomStatusControl({ unit }) {
                     <CardContent>
                       <div className="grid grid-cols-2 gap-4">
                         <div className="space-y-2">
-                          <Label
-                            htmlFor={`rent-status-${index}`}
-                            className="flex items-center gap-1"
-                          >
+                          <Label htmlFor={`rent-status-${index}`} className="flex items-center gap-1">
                             <Hotel className="h-4 w-4" />
                             Rent Status
                           </Label>
                           <div className="flex items-center gap-2">
                             <Select
                               value={(room.rent_status ?? 0).toString()}
-                              onValueChange={(value) =>
-                                handleRoomStatusChange(
-                                  index,
-                                  "rent_status",
-                                  value
-                                )
-                              }
+                              onValueChange={(value) => handleRoomStatusChange(index, "rent_status", value)}
                             >
-                              <SelectTrigger
-                                id={`rent-status-${index}`}
-                                className="w-full"
-                              >
+                              <SelectTrigger id={`rent-status-${index}`} className="w-full">
                                 <SelectValue />
                               </SelectTrigger>
                               <SelectContent>
@@ -227,39 +166,21 @@ export function RoomStatusControl({ unit }) {
                                 <SelectItem value="1">Rent</SelectItem>
                               </SelectContent>
                             </Select>
-                            <Badge
-                              variant={
-                                room.rent_status === 1 ? "default" : "secondary"
-                              }
-                            >
-                              {RENT_STATUS_LABELS[room.rent_status ?? 0]}
-                            </Badge>
+                            <Badge variant={room.rent_status === 1 ? "default" : "secondary"}>{RENT_STATUS_LABELS[room.rent_status ?? 0]}</Badge>
                           </div>
                         </div>
 
                         <div className="space-y-2">
-                          <Label
-                            htmlFor={`guest-status-${index}`}
-                            className="flex items-center gap-1"
-                          >
+                          <Label htmlFor={`guest-status-${index}`} className="flex items-center gap-1">
                             <Star className="h-4 w-4" />
                             Guest Status
                           </Label>
                           <div className="flex items-center gap-2">
                             <Select
                               value={(room.guest_status ?? 0).toString()}
-                              onValueChange={(value) =>
-                                handleRoomStatusChange(
-                                  index,
-                                  "guest_status",
-                                  value
-                                )
-                              }
+                              onValueChange={(value) => handleRoomStatusChange(index, "guest_status", value)}
                             >
-                              <SelectTrigger
-                                id={`guest-status-${index}`}
-                                className="w-full"
-                              >
+                              <SelectTrigger id={`guest-status-${index}`} className="w-full">
                                 <SelectValue />
                               </SelectTrigger>
                               <SelectContent>
@@ -267,13 +188,7 @@ export function RoomStatusControl({ unit }) {
                                 <SelectItem value="1">VIP</SelectItem>
                               </SelectContent>
                             </Select>
-                            <Badge
-                              variant={
-                                room.guest_status === 1 ? "default" : "outline"
-                              }
-                            >
-                              {GUEST_STATUS_LABELS[room.guest_status ?? 0]}
-                            </Badge>
+                            <Badge variant={room.guest_status === 1 ? "default" : "outline"}>{GUEST_STATUS_LABELS[room.guest_status ?? 0]}</Badge>
                           </div>
                         </div>
                       </div>

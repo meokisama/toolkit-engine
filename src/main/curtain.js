@@ -7,56 +7,44 @@ export function registerCurtainHandlers(ipcMain, dbService, rcu) {
   // ==================== RCU Controller - Curtain Operations ====================
 
   // Get Curtain Config
-  ipcMain.handle(
-    "rcu:getCurtainConfig",
-    async (event, { unitIp, canId, curtainIndex }) => {
-      try {
-        return await rcu.getCurtainConfig(unitIp, canId, curtainIndex);
-      } catch (error) {
-        console.error("Error getting curtain configuration:", error);
-        throw error;
-      }
+  ipcMain.handle("rcu:getCurtainConfig", async (event, { unitIp, canId, curtainIndex }) => {
+    try {
+      return await rcu.getCurtainConfig(unitIp, canId, curtainIndex);
+    } catch (error) {
+      console.error("Error getting curtain configuration:", error);
+      throw error;
     }
-  );
+  });
 
   // Set Curtain
-  ipcMain.handle(
-    "rcu:setCurtain",
-    async (event, { unitIp, canId, curtainAddress, value }) => {
-      try {
-        return await rcu.setCurtain(unitIp, canId, curtainAddress, value);
-      } catch (error) {
-        console.error("Error setting curtain:", error);
-        throw error;
-      }
+  ipcMain.handle("rcu:setCurtain", async (event, { unitIp, canId, curtainAddress, value }) => {
+    try {
+      return await rcu.setCurtain(unitIp, canId, curtainAddress, value);
+    } catch (error) {
+      console.error("Error setting curtain:", error);
+      throw error;
     }
-  );
+  });
 
   // Set Curtain Config
-  ipcMain.handle(
-    "rcu:setCurtainConfig",
-    async (event, unitIp, canId, curtainConfig) => {
-      try {
-        return await rcu.setCurtainConfig(unitIp, canId, curtainConfig);
-      } catch (error) {
-        console.error("Error setting curtain configuration:", error);
-        throw error;
-      }
+  ipcMain.handle("rcu:setCurtainConfig", async (event, unitIp, canId, curtainConfig) => {
+    try {
+      return await rcu.setCurtainConfig(unitIp, canId, curtainConfig);
+    } catch (error) {
+      console.error("Error setting curtain configuration:", error);
+      throw error;
     }
-  );
+  });
 
   // Delete Curtain
-  ipcMain.handle(
-    "rcu:deleteCurtain",
-    async (event, { unitIp, canId, curtainIndex }) => {
-      try {
-        return await rcu.deleteCurtain(unitIp, canId, curtainIndex);
-      } catch (error) {
-        console.error("Error deleting curtain:", error);
-        throw error;
-      }
+  ipcMain.handle("rcu:deleteCurtain", async (event, { unitIp, canId, curtainIndex }) => {
+    try {
+      return await rcu.deleteCurtain(unitIp, canId, curtainIndex);
+    } catch (error) {
+      console.error("Error deleting curtain:", error);
+      throw error;
     }
-  );
+  });
 
   // Delete All Curtains
   ipcMain.handle("rcu:deleteAllCurtains", async (event, unitIp, canId) => {

@@ -1,21 +1,12 @@
 import React, { useState, useRef, useEffect } from "react";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Loader2, Radio, CheckCircle, AlertCircle } from "lucide-react";
 import { toast } from "sonner";
 import { useProjectDetail } from "@/contexts/project-detail-context";
-import {
-  NetworkUnitSelector,
-  useNetworkUnitSelector,
-} from "@/components/shared/network-unit-selector";
+import { NetworkUnitSelector, useNetworkUnitSelector } from "@/components/shared/network-unit-selector";
 import { CONSTANTS } from "@/constants";
 
 const EXPLORE_TIMEOUT_MS = 200000; // 200 seconds
@@ -24,14 +15,9 @@ const DEVICE_TYPE_LABELS = CONSTANTS.ZIGBEE.DEVICE_TYPE.reduce((acc, item) => {
   return acc;
 }, {});
 
-export function ExploreZigbeeDeviceDialog({
-  open,
-  onOpenChange,
-  onDevicesAdded,
-}) {
+export function ExploreZigbeeDeviceDialog({ open, onOpenChange, onDevicesAdded }) {
   const { selectedProject } = useProjectDetail();
-  const { selectedUnitIds, handleSelectionChange, clearSelection } =
-    useNetworkUnitSelector();
+  const { selectedUnitIds, handleSelectionChange, clearSelection } = useNetworkUnitSelector();
   const networkUnitSelectorRef = useRef(null);
   const [exploring, setExploring] = useState(false);
   const [completed, setCompleted] = useState(false); // Track if exploration completed
@@ -95,8 +81,7 @@ export function ExploreZigbeeDeviceDialog({
       }
 
       // Get selected units from NetworkUnitSelector
-      const selectedUnits =
-        networkUnitSelectorRef.current?.getSelectedUnits() || [];
+      const selectedUnits = networkUnitSelectorRef.current?.getSelectedUnits() || [];
 
       if (selectedUnits.length === 0) {
         toast.error("Please select a unit");
@@ -122,10 +107,7 @@ export function ExploreZigbeeDeviceDialog({
     // Start countdown timer
     timerIntervalRef.current = setInterval(() => {
       const elapsed = Date.now() - startTimeRef.current;
-      const remaining = Math.max(
-        0,
-        Math.floor((EXPLORE_TIMEOUT_MS - elapsed) / 1000)
-      );
+      const remaining = Math.max(0, Math.floor((EXPLORE_TIMEOUT_MS - elapsed) / 1000));
       setTimeRemaining(remaining);
 
       if (remaining === 0) {
@@ -134,18 +116,15 @@ export function ExploreZigbeeDeviceDialog({
       }
     }, 1000);
 
-    toast.info(
-      "Zigbee network opened for pairing. Press the pairing button on your Zigbee device."
-    );
+    toast.info("Zigbee network opened for pairing. Press the pairing button on your Zigbee device.");
 
     try {
       // Start exploring - this will open the network and listen for devices
-      const response =
-        await window.electronAPI.zigbeeController.exploreZigbeeNetwork({
-          unitIp: unit.ip_address,
-          canId: unit.id_can,
-          timeoutMs: EXPLORE_TIMEOUT_MS,
-        });
+      const response = await window.electronAPI.zigbeeController.exploreZigbeeNetwork({
+        unitIp: unit.ip_address,
+        canId: unit.id_can,
+        timeoutMs: EXPLORE_TIMEOUT_MS,
+      });
 
       // Store cleanup function if provided
       if (response.cleanup) {
@@ -172,10 +151,7 @@ export function ExploreZigbeeDeviceDialog({
           };
 
           try {
-            const savedDevice = await window.electronAPI.zigbee.createDevice(
-              selectedProject.id,
-              deviceData
-            );
+            const savedDevice = await window.electronAPI.zigbee.createDevice(selectedProject.id, deviceData);
             savedDevices.push({
               ...savedDevice,
               success: true,
@@ -250,10 +226,7 @@ export function ExploreZigbeeDeviceDialog({
             <Radio className="h-5 w-5" />
             Explore Zigbee Devices
           </DialogTitle>
-          <DialogDescription>
-            Open the Zigbee network for pairing. Press the pairing button on
-            your device to add it.
-          </DialogDescription>
+          <DialogDescription>Open the Zigbee network for pairing. Press the pairing button on your device to add it.</DialogDescription>
         </DialogHeader>
 
         <div className="space-y-6">
@@ -291,8 +264,7 @@ export function ExploreZigbeeDeviceDialog({
                     <div className="flex items-center gap-2">
                       <Loader2 className="h-4 w-4 animate-spin text-primary" />
                       <span className="font-medium">
-                        Listening for new devices on{" "}
-                        {currentUnit.type || "Unit"} ({currentUnit.ip_address})
+                        Listening for new devices on {currentUnit.type || "Unit"} ({currentUnit.ip_address})
                       </span>
                     </div>
                     <Badge variant="outline" className="text-lg font-mono">
@@ -316,8 +288,7 @@ export function ExploreZigbeeDeviceDialog({
                     </div>
                   </div>
                   <div className="text-sm text-muted-foreground">
-                    Press the pairing button on your Zigbee device. The network
-                    will remain open for {formatTime(timeRemaining)}.
+                    Press the pairing button on your Zigbee device. The network will remain open for {formatTime(timeRemaining)}.
                   </div>
                 </div>
               </CardContent>
@@ -336,37 +307,18 @@ export function ExploreZigbeeDeviceDialog({
               <CardContent>
                 <div className="space-y-2">
                   {discoveredDevices.map((device, index) => (
-                    <div
-                      key={index}
-                      className="flex items-center justify-between p-3 border rounded-lg"
-                    >
+                    <div key={index} className="flex items-center justify-between p-3 border rounded-lg">
                       <div className="flex items-center gap-3">
-                        {device.success ? (
-                          <CheckCircle className="h-4 w-4 text-green-500" />
-                        ) : (
-                          <AlertCircle className="h-4 w-4 text-red-500" />
-                        )}
+                        {device.success ? <CheckCircle className="h-4 w-4 text-green-500" /> : <AlertCircle className="h-4 w-4 text-red-500" />}
                         <div>
-                          <div className="font-medium text-sm font-mono">
-                            {device.ieee_address}
-                          </div>
+                          <div className="font-medium text-sm font-mono">{device.ieee_address}</div>
                           <div className="text-xs text-muted-foreground">
-                            {DEVICE_TYPE_LABELS[device.device_type] ||
-                              `Type ${device.device_type}`}{" "}
-                            - {device.num_endpoints} endpoint(s)
+                            {DEVICE_TYPE_LABELS[device.device_type] || `Type ${device.device_type}`} - {device.num_endpoints} endpoint(s)
                           </div>
-                          {device.error && (
-                            <div className="text-xs text-red-500 mt-1">
-                              Error: {device.error}
-                            </div>
-                          )}
+                          {device.error && <div className="text-xs text-red-500 mt-1">Error: {device.error}</div>}
                         </div>
                       </div>
-                      <Badge
-                        variant={device.success ? "default" : "destructive"}
-                      >
-                        {device.success ? "Added" : "Failed"}
-                      </Badge>
+                      <Badge variant={device.success ? "default" : "destructive"}>{device.success ? "Added" : "Failed"}</Badge>
                     </div>
                   ))}
                 </div>
@@ -380,13 +332,7 @@ export function ExploreZigbeeDeviceDialog({
               {exploring ? "Stop & Close" : "Close"}
             </Button>
             {!exploring && (
-              <Button
-                onClick={handleStartExploring}
-                disabled={
-                  exploring ||
-                  (!completed && !currentUnit && selectedUnitIds.length === 0)
-                }
-              >
+              <Button onClick={handleStartExploring} disabled={exploring || (!completed && !currentUnit && selectedUnitIds.length === 0)}>
                 <Radio className="h-4 w-4" />
                 {completed ? "Scan Again" : "Start Exploring"}
               </Button>

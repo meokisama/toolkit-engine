@@ -16,9 +16,7 @@ export function getObjectValue(objectType) {
 // Helper method to find next available address in range 1-255
 export function findNextAvailableAddress(db, projectId, tableName) {
   try {
-    const existingAddresses = db
-      .prepare(`SELECT DISTINCT address FROM ${tableName} WHERE project_id = ?`)
-      .all(projectId);
+    const existingAddresses = db.prepare(`SELECT DISTINCT address FROM ${tableName} WHERE project_id = ?`).all(projectId);
     const addressNumbers = existingAddresses
       .map((item) => parseInt(item.address))
       .filter((num) => !isNaN(num) && num >= 1 && num <= 255)
@@ -44,9 +42,7 @@ export function findNextAvailableAddress(db, projectId, tableName) {
       }
 
       if (newAddress === null) {
-        throw new Error(
-          `No available addresses in range 1-255 for ${tableName} duplication`
-        );
+        throw new Error(`No available addresses in range 1-255 for ${tableName} duplication`);
       }
     }
 
@@ -73,37 +69,23 @@ export const crudOperations = {
     try {
       // Sort by address ASC for tables with address field, except unit and schedule tables
       if (tableName === "unit") {
-        const stmt = this.db.prepare(
-          `SELECT * FROM ${tableName} WHERE project_id = ? ORDER BY created_at DESC`
-        );
+        const stmt = this.db.prepare(`SELECT * FROM ${tableName} WHERE project_id = ? ORDER BY created_at DESC`);
         const items = stmt.all(projectId);
         // Parse RS485 and I/O config from JSON for unit items
         return items.map((item) => ({
           ...item,
-          rs485_config: item.rs485_config
-            ? JSON.parse(item.rs485_config)
-            : null,
-          input_configs: item.input_configs
-            ? JSON.parse(item.input_configs)
-            : null,
-          output_configs: item.output_configs
-            ? JSON.parse(item.output_configs)
-            : null,
+          rs485_config: item.rs485_config ? JSON.parse(item.rs485_config) : null,
+          input_configs: item.input_configs ? JSON.parse(item.input_configs) : null,
+          output_configs: item.output_configs ? JSON.parse(item.output_configs) : null,
         }));
       } else if (tableName === "schedule") {
-        const stmt = this.db.prepare(
-          `SELECT * FROM ${tableName} WHERE project_id = ? ORDER BY name ASC`
-        );
+        const stmt = this.db.prepare(`SELECT * FROM ${tableName} WHERE project_id = ? ORDER BY name ASC`);
         return stmt.all(projectId);
       } else if (tableName === "multi_scenes") {
-        const stmt = this.db.prepare(
-          `SELECT * FROM ${tableName} WHERE project_id = ? ORDER BY CAST(address AS INTEGER) ASC`
-        );
+        const stmt = this.db.prepare(`SELECT * FROM ${tableName} WHERE project_id = ? ORDER BY CAST(address AS INTEGER) ASC`);
         return stmt.all(projectId);
       } else {
-        const stmt = this.db.prepare(
-          `SELECT * FROM ${tableName} WHERE project_id = ? ORDER BY CAST(address AS INTEGER) ASC`
-        );
+        const stmt = this.db.prepare(`SELECT * FROM ${tableName} WHERE project_id = ? ORDER BY CAST(address AS INTEGER) ASC`);
         return stmt.all(projectId);
       }
     } catch (error) {
@@ -154,11 +136,7 @@ export const crudOperations = {
 
       // Special validation for lighting to prevent duplicate addresses
       if (tableName === "lighting" && address) {
-        const existingItems = this.db
-          .prepare(
-            "SELECT COUNT(*) as count FROM lighting WHERE project_id = ? AND address = ?"
-          )
-          .get(projectId, address);
+        const existingItems = this.db.prepare("SELECT COUNT(*) as count FROM lighting WHERE project_id = ? AND address = ?").get(projectId, address);
         if (existingItems.count > 0) {
           throw new Error(`Address ${address} already exists.`);
         }
@@ -175,11 +153,7 @@ export const crudOperations = {
 
       // Special validation for curtain to prevent duplicate addresses
       if (tableName === "curtain" && address) {
-        const existingItems = this.db
-          .prepare(
-            "SELECT COUNT(*) as count FROM curtain WHERE project_id = ? AND address = ?"
-          )
-          .get(projectId, address);
+        const existingItems = this.db.prepare("SELECT COUNT(*) as count FROM curtain WHERE project_id = ? AND address = ?").get(projectId, address);
         if (existingItems.count > 0) {
           throw new Error(`Address ${address} already exists.`);
         }
@@ -195,9 +169,7 @@ export const crudOperations = {
         }
 
         // Check maximum scene limit (100 scenes)
-        const sceneCount = this.db
-          .prepare("SELECT COUNT(*) as count FROM scene WHERE project_id = ?")
-          .get(projectId);
+        const sceneCount = this.db.prepare("SELECT COUNT(*) as count FROM scene WHERE project_id = ?").get(projectId);
         if (sceneCount.count >= 100) {
           throw new Error("Maximum 100 scenes allowed per project.");
         }
@@ -215,22 +187,14 @@ export const crudOperations = {
 
         // Check for duplicate addresses
         const existingMultiScene = this.db
-          .prepare(
-            "SELECT COUNT(*) as count FROM multi_scenes WHERE project_id = ? AND address = ?"
-          )
+          .prepare("SELECT COUNT(*) as count FROM multi_scenes WHERE project_id = ? AND address = ?")
           .get(projectId, address.trim());
         if (existingMultiScene.count > 0) {
-          throw new Error(
-            `Multi-scene address ${address.trim()} already exists.`
-          );
+          throw new Error(`Multi-scene address ${address.trim()} already exists.`);
         }
 
         // Check maximum multi-scene limit (40 multi-scenes)
-        const multiSceneCount = this.db
-          .prepare(
-            "SELECT COUNT(*) as count FROM multi_scenes WHERE project_id = ?"
-          )
-          .get(projectId);
+        const multiSceneCount = this.db.prepare("SELECT COUNT(*) as count FROM multi_scenes WHERE project_id = ?").get(projectId);
         if (multiSceneCount.count >= 40) {
           throw new Error("Maximum 40 multi-scenes allowed per project.");
         }
@@ -248,20 +212,14 @@ export const crudOperations = {
 
         // Check for duplicate addresses
         const existingSequence = this.db
-          .prepare(
-            "SELECT COUNT(*) as count FROM sequences WHERE project_id = ? AND address = ?"
-          )
+          .prepare("SELECT COUNT(*) as count FROM sequences WHERE project_id = ? AND address = ?")
           .get(projectId, address.trim());
         if (existingSequence.count > 0) {
           throw new Error(`Sequence address ${address.trim()} already exists.`);
         }
 
         // Check maximum sequence limit (20 sequences)
-        const sequenceCount = this.db
-          .prepare(
-            "SELECT COUNT(*) as count FROM sequences WHERE project_id = ?"
-          )
-          .get(projectId);
+        const sequenceCount = this.db.prepare("SELECT COUNT(*) as count FROM sequences WHERE project_id = ?").get(projectId);
         if (sequenceCount.count >= 20) {
           throw new Error("Maximum 20 sequences allowed per project.");
         }
@@ -295,13 +253,7 @@ export const crudOperations = {
           INSERT INTO ${tableName} (project_id, name, address, type, description)
           VALUES (?, ?, ?, ?, ?)
         `);
-        const result = stmt.run(
-          projectId,
-          name,
-          address,
-          type || 0,
-          description
-        );
+        const result = stmt.run(projectId, name, address, type || 0, description);
         return this.getProjectItemById(result.lastInsertRowid, tableName);
       } else if (tableName === "sequences") {
         // For sequences table, use address field
@@ -319,14 +271,7 @@ export const crudOperations = {
           INSERT INTO ${tableName} (project_id, name, address, description, object_type, object_value)
           VALUES (?, ?, ?, ?, ?, ?)
         `);
-        const result = stmt.run(
-          projectId,
-          name,
-          address,
-          description,
-          object_type,
-          object_value
-        );
+        const result = stmt.run(projectId, name, address, description, object_type, object_value);
         return this.getProjectItemById(result.lastInsertRowid, tableName);
       }
     } catch (error) {
@@ -358,9 +303,7 @@ export const crudOperations = {
         if (currentItem && currentItem.address !== address) {
           // Check if new address already exists for this project (excluding current item's address)
           const existingItems = this.db
-            .prepare(
-              "SELECT COUNT(*) as count FROM aircon WHERE project_id = ? AND address = ? AND address != ?"
-            )
+            .prepare("SELECT COUNT(*) as count FROM aircon WHERE project_id = ? AND address = ? AND address != ?")
             .get(currentItem.project_id, address, currentItem.address);
           if (existingItems.count > 0) {
             throw new Error(`Address ${address} already exists.`);
@@ -374,9 +317,7 @@ export const crudOperations = {
         if (currentItem && currentItem.address !== address) {
           // Check if new address already exists for this project (excluding current item's address)
           const existingItems = this.db
-            .prepare(
-              "SELECT COUNT(*) as count FROM lighting WHERE project_id = ? AND address = ? AND id != ?"
-            )
+            .prepare("SELECT COUNT(*) as count FROM lighting WHERE project_id = ? AND address = ? AND id != ?")
             .get(currentItem.project_id, address, id);
           if (existingItems.count > 0) {
             throw new Error(`Address ${address} already exists.`);
@@ -390,9 +331,7 @@ export const crudOperations = {
         if (currentItem && currentItem.address !== address) {
           // Check if new address already exists for this project (excluding current item's address)
           const existingItems = this.db
-            .prepare(
-              "SELECT COUNT(*) as count FROM curtain WHERE project_id = ? AND address = ? AND id != ?"
-            )
+            .prepare("SELECT COUNT(*) as count FROM curtain WHERE project_id = ? AND address = ? AND id != ?")
             .get(currentItem.project_id, address, id);
           if (existingItems.count > 0) {
             throw new Error(`Address ${address} already exists.`);
@@ -441,9 +380,7 @@ export const crudOperations = {
 
         // If address changed, update scene items that reference this aircon item
         if (currentItem && currentItem.address !== address) {
-          console.log(
-            `Updating scene items for aircon ${id}: ${currentItem.address} -> ${address}`
-          );
+          console.log(`Updating scene items for aircon ${id}: ${currentItem.address} -> ${address}`);
           this.updateSceneItemsAddress(id, "aircon", address);
         }
       } else if (tableName === "curtain") {
@@ -485,9 +422,7 @@ export const crudOperations = {
 
         // If address changed, update scene items that reference this curtain item
         if (currentItem && currentItem.address !== address) {
-          console.log(
-            `Updating scene items for curtain ${id}: ${currentItem.address} -> ${address}`
-          );
+          console.log(`Updating scene items for curtain ${id}: ${currentItem.address} -> ${address}`);
           this.updateSceneItemsAddress(id, "curtain", address);
         }
       } else if (tableName === "knx") {
@@ -520,14 +455,10 @@ export const crudOperations = {
         const currentItem = this.getProjectItemById(id, tableName);
         if (currentItem && currentItem.address !== address.trim()) {
           const existingMultiScene = this.db
-            .prepare(
-              "SELECT COUNT(*) as count FROM multi_scenes WHERE project_id = ? AND address = ? AND id != ?"
-            )
+            .prepare("SELECT COUNT(*) as count FROM multi_scenes WHERE project_id = ? AND address = ? AND id != ?")
             .get(currentItem.project_id, address.trim(), id);
           if (existingMultiScene.count > 0) {
-            throw new Error(
-              `Multi-scene address ${address.trim()} already exists.`
-            );
+            throw new Error(`Multi-scene address ${address.trim()} already exists.`);
           }
         }
 
@@ -557,14 +488,10 @@ export const crudOperations = {
         const currentItem = this.getProjectItemById(id, tableName);
         if (currentItem && currentItem.address !== address.trim()) {
           const existingSequence = this.db
-            .prepare(
-              "SELECT COUNT(*) as count FROM sequences WHERE project_id = ? AND address = ? AND id != ?"
-            )
+            .prepare("SELECT COUNT(*) as count FROM sequences WHERE project_id = ? AND address = ? AND id != ?")
             .get(currentItem.project_id, address.trim(), id);
           if (existingSequence.count > 0) {
-            throw new Error(
-              `Sequence address ${address.trim()} already exists.`
-            );
+            throw new Error(`Sequence address ${address.trim()} already exists.`);
           }
         }
 
@@ -589,28 +516,15 @@ export const crudOperations = {
           SET name = ?, address = ?, description = ?, object_type = ?, object_value = ?, updated_at = CURRENT_TIMESTAMP
           WHERE id = ?
         `);
-        const result = stmt.run(
-          name,
-          address,
-          description,
-          object_type,
-          object_value,
-          id
-        );
+        const result = stmt.run(name, address, description, object_type, object_value, id);
 
         if (result.changes === 0) {
           throw new Error(`${tableName} item not found`);
         }
 
         // If address changed and this is a table that can be used in scenes, update scene items
-        if (
-          currentItem &&
-          currentItem.address !== address &&
-          tableName === "lighting"
-        ) {
-          console.log(
-            `Updating scene items for ${tableName} ${id}: ${currentItem.address} -> ${address}`
-          );
+        if (currentItem && currentItem.address !== address && tableName === "lighting") {
+          console.log(`Updating scene items for ${tableName} ${id}: ${currentItem.address} -> ${address}`);
           this.updateSceneItemsAddress(id, tableName, address);
         }
       }
@@ -627,11 +541,7 @@ export const crudOperations = {
       // Start transaction to ensure data consistency
       const transaction = this.db.transaction(() => {
         // For lighting, curtain, and aircon items, also remove from scene_items and scene_address_items
-        if (
-          tableName === "lighting" ||
-          tableName === "curtain" ||
-          tableName === "aircon"
-        ) {
+        if (tableName === "lighting" || tableName === "curtain" || tableName === "aircon") {
           // Get all scene items that reference this item
           const sceneItems = this.db
             .prepare(
@@ -651,12 +561,7 @@ export const crudOperations = {
           `);
 
           for (const sceneItem of sceneItems) {
-            deleteAddressItemStmt.run(
-              sceneItem.project_id,
-              sceneItem.address,
-              sceneItem.item_type,
-              sceneItem.item_id
-            );
+            deleteAddressItemStmt.run(sceneItem.project_id, sceneItem.address, sceneItem.item_type, sceneItem.item_id);
           }
 
           // Remove from scene_items
@@ -705,22 +610,13 @@ export const crudOperations = {
       };
 
       // Add object_type only for tables that use it (not aircon, knx, scene, multi_scenes)
-      if (
-        tableName !== "aircon" &&
-        tableName !== "knx" &&
-        tableName !== "scene" &&
-        tableName !== "multi_scenes"
-      ) {
+      if (tableName !== "aircon" && tableName !== "knx" && tableName !== "scene" && tableName !== "multi_scenes") {
         duplicatedItem.object_type = originalItem.object_type;
       }
 
       // For lighting, find a unique address in range 1-255
       if (tableName === "lighting" && originalItem.address) {
-        duplicatedItem.address = findNextAvailableAddress(
-          this.db,
-          originalItem.project_id,
-          "lighting"
-        );
+        duplicatedItem.address = findNextAvailableAddress(this.db, originalItem.project_id, "lighting");
       }
 
       // For aircon, include label and find unique address in range 1-255
@@ -728,23 +624,14 @@ export const crudOperations = {
         duplicatedItem.label = originalItem.label;
 
         if (originalItem.address) {
-          duplicatedItem.address = findNextAvailableAddress(
-            this.db,
-            originalItem.project_id,
-            "aircon"
-          );
+          duplicatedItem.address = findNextAvailableAddress(this.db, originalItem.project_id, "aircon");
         }
       }
 
       // For curtain, find a unique address in range 1-255 and include curtain-specific fields
       if (tableName === "curtain" && originalItem.address) {
-        duplicatedItem.address = findNextAvailableAddress(
-          this.db,
-          originalItem.project_id,
-          "curtain"
-        );
-        duplicatedItem.curtain_type =
-          originalItem.curtain_type || "CURTAIN_PULSE_2P";
+        duplicatedItem.address = findNextAvailableAddress(this.db, originalItem.project_id, "curtain");
+        duplicatedItem.curtain_type = originalItem.curtain_type || "CURTAIN_PULSE_2P";
         duplicatedItem.curtain_value = originalItem.curtain_value || 3;
         duplicatedItem.open_group_id = originalItem.open_group_id || null;
         duplicatedItem.close_group_id = originalItem.close_group_id || null;
@@ -755,11 +642,7 @@ export const crudOperations = {
 
       // For scene, find a unique address in range 1-255 if address exists
       if (tableName === "scene" && originalItem.address) {
-        duplicatedItem.address = findNextAvailableAddress(
-          this.db,
-          originalItem.project_id,
-          "scene"
-        );
+        duplicatedItem.address = findNextAvailableAddress(this.db, originalItem.project_id, "scene");
       }
 
       // For KNX, use duplicateKnxItem method
@@ -773,11 +656,7 @@ export const crudOperations = {
         duplicatedItem.address = originalItem.address || "";
       }
 
-      return this.createProjectItem(
-        originalItem.project_id,
-        duplicatedItem,
-        tableName
-      );
+      return this.createProjectItem(originalItem.project_id, duplicatedItem, tableName);
     } catch (error) {
       console.error(`Failed to duplicate ${tableName} item:`, error);
       throw error;

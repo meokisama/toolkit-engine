@@ -1,102 +1,49 @@
-import React, {
-  useState,
-  useEffect,
-  useMemo,
-  useCallback,
-  useRef,
-} from "react";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import React, { useState, useEffect, useMemo, useCallback, useRef } from "react";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { useProjectDetail } from "@/contexts/project-detail-context";
 import { OBJECT_TYPES, CONSTANTS } from "@/constants";
 
 // Create label mappings directly from CONSTANTS.AIRCON
 const AC_POWER_LABELS =
-  CONSTANTS.AIRCON.find(
-    (item) => item.obj_type === "OBJ_AC_POWER"
-  )?.values.reduce((acc, item) => {
+  CONSTANTS.AIRCON.find((item) => item.obj_type === "OBJ_AC_POWER")?.values.reduce((acc, item) => {
     acc[item.value] = item.label;
     return acc;
   }, {}) || {};
 
 const AC_MODE_LABELS =
-  CONSTANTS.AIRCON.find(
-    (item) => item.obj_type === "OBJ_AC_MODE"
-  )?.values.reduce((acc, item) => {
+  CONSTANTS.AIRCON.find((item) => item.obj_type === "OBJ_AC_MODE")?.values.reduce((acc, item) => {
     acc[item.value] = item.label;
     return acc;
   }, {}) || {};
 
 const AC_FAN_SPEED_LABELS =
-  CONSTANTS.AIRCON.find(
-    (item) => item.obj_type === "OBJ_AC_FAN_SPEED"
-  )?.values.reduce((acc, item) => {
+  CONSTANTS.AIRCON.find((item) => item.obj_type === "OBJ_AC_FAN_SPEED")?.values.reduce((acc, item) => {
     acc[item.value] = item.label;
     return acc;
   }, {}) || {};
 
 const AC_SWING_LABELS =
-  CONSTANTS.AIRCON.find(
-    (item) => item.obj_type === "OBJ_AC_SWING"
-  )?.values.reduce((acc, item) => {
+  CONSTANTS.AIRCON.find((item) => item.obj_type === "OBJ_AC_SWING")?.values.reduce((acc, item) => {
     acc[item.value] = item.label;
     return acc;
   }, {}) || {};
 
-import {
-  Plus,
-  Trash2,
-  Lightbulb,
-  Wind,
-  Blinds,
-  Sun,
-  Edit,
-  Percent,
-} from "lucide-react";
+import { Plus, Trash2, Lightbulb, Wind, Blinds, Sun, Edit, Percent } from "lucide-react";
 import { AirconPropertiesDialog } from "./aircon-properties-dialog";
 import { ProjectItemDialog } from "../lighting/lighting-dialog";
 import { CurtainDialog } from "../curtain/curtain-dialog";
 import { toast } from "sonner";
 
-export function SceneDialog({
-  open,
-  onOpenChange,
-  scene = null,
-  mode = "create",
-}) {
-  const {
-    selectedProject,
-    projectItems,
-    createItem,
-    updateItem,
-    setActiveTab,
-    loadTabData,
-    loadedTabs,
-  } = useProjectDetail();
+export function SceneDialog({ open, onOpenChange, scene = null, mode = "create" }) {
+  const { selectedProject, projectItems, createItem, updateItem, setActiveTab, loadTabData, loadedTabs } = useProjectDetail();
   const [formData, setFormData] = useState({
     name: "",
     address: "",
@@ -192,10 +139,7 @@ export function SceneDialog({
       }
 
       try {
-        const usedItems = await window.electronAPI.scene.getAddressItems(
-          selectedProject.id,
-          address
-        );
+        const usedItems = await window.electronAPI.scene.getAddressItems(selectedProject.id, address);
         setUsedItemsByAddress(usedItems);
       } catch (error) {
         console.error("Failed to load used items by address:", error);
@@ -246,16 +190,7 @@ export function SceneDialog({
         }
       }
     }
-  }, [
-    open,
-    mode,
-    scene,
-    selectedProject,
-    loadedTabs,
-    loadTabData,
-    loadSceneItems,
-    loadUsedItemsByAddress,
-  ]);
+  }, [open, mode, scene, selectedProject, loadedTabs, loadTabData, loadSceneItems, loadUsedItemsByAddress]);
 
   // Reload scene items when project data changes (to reflect address updates or item deletions)
   useEffect(() => {
@@ -263,15 +198,7 @@ export function SceneDialog({
       // Reload scene items when project data changes to reflect any address updates or item deletions
       loadSceneItems(scene.id);
     }
-  }, [
-    open,
-    mode,
-    scene,
-    projectItems.aircon,
-    projectItems.lighting,
-    projectItems.curtain,
-    loadSceneItems,
-  ]);
+  }, [open, mode, scene, projectItems.aircon, projectItems.lighting, projectItems.curtain, loadSceneItems]);
 
   // Cleanup timeout on unmount
   useEffect(() => {
@@ -336,31 +263,22 @@ export function SceneDialog({
     switch (objectType) {
       case OBJECT_TYPES.AC_POWER.obj_name:
         return (
-          CONSTANTS.AIRCON.find(
-            (item) => item.obj_type === "OBJ_AC_POWER"
-          ).values.find((item) => item.value.toString() === itemValue)
-            ?.command || null
+          CONSTANTS.AIRCON.find((item) => item.obj_type === "OBJ_AC_POWER").values.find((item) => item.value.toString() === itemValue)?.command ||
+          null
         );
       case OBJECT_TYPES.AC_FAN_SPEED.obj_name:
         return (
-          CONSTANTS.AIRCON.find(
-            (item) => item.obj_type === "OBJ_AC_FAN_SPEED"
-          ).values.find((item) => item.value.toString() === itemValue)
-            ?.command || null
+          CONSTANTS.AIRCON.find((item) => item.obj_type === "OBJ_AC_FAN_SPEED").values.find((item) => item.value.toString() === itemValue)?.command ||
+          null
         );
       case OBJECT_TYPES.AC_MODE.obj_name:
         return (
-          CONSTANTS.AIRCON.find(
-            (item) => item.obj_type === "OBJ_AC_MODE"
-          ).values.find((item) => item.value.toString() === itemValue)
-            ?.command || null
+          CONSTANTS.AIRCON.find((item) => item.obj_type === "OBJ_AC_MODE").values.find((item) => item.value.toString() === itemValue)?.command || null
         );
       case OBJECT_TYPES.AC_SWING.obj_name:
         return (
-          CONSTANTS.AIRCON.find(
-            (item) => item.obj_type === "OBJ_AC_SWING"
-          ).values.find((item) => item.value.toString() === itemValue)
-            ?.command || null
+          CONSTANTS.AIRCON.find((item) => item.obj_type === "OBJ_AC_SWING").values.find((item) => item.value.toString() === itemValue)?.command ||
+          null
         );
       case OBJECT_TYPES.AC_TEMPERATURE.obj_name:
         return null; // Temperature doesn't use commands, just direct value
@@ -402,9 +320,7 @@ export function SceneDialog({
           );
 
           if (!canAdd) {
-            toast.error(
-              `This item is already used by another scene with address ${formData.address}`
-            );
+            toast.error(`This item is already used by another scene with address ${formData.address}`);
             return;
           }
         } catch (error) {
@@ -428,15 +344,7 @@ export function SceneDialog({
       };
       setSceneItems((prev) => [...prev, newSceneItem]);
     },
-    [
-      sceneItems.length,
-      getItemDetails,
-      getCommandForAirconItem,
-      mode,
-      formData.address,
-      selectedProject,
-      scene,
-    ]
+    [sceneItems.length, getItemDetails, getCommandForAirconItem, mode, formData.address, selectedProject, scene]
   );
 
   // Add multiple aircon items to scene from a card
@@ -444,16 +352,12 @@ export function SceneDialog({
     async (address, selectedProperties) => {
       // Check scene items limit (60 items maximum)
       if (sceneItems.length + selectedProperties.length > 60) {
-        toast.error(
-          `Cannot add ${selectedProperties.length} items. Maximum 60 items allowed per scene (current: ${sceneItems.length})`
-        );
+        toast.error(`Cannot add ${selectedProperties.length} items. Maximum 60 items allowed per scene (current: ${sceneItems.length})`);
         return;
       }
 
       // Find the single aircon item for this address
-      const airconItem = projectItems.aircon?.find(
-        (item) => item.address === address
-      );
+      const airconItem = projectItems.aircon?.find((item) => item.address === address);
 
       if (!airconItem) return;
 
@@ -473,20 +377,13 @@ export function SceneDialog({
             if (!canAdd) {
               toast.error(
                 `Aircon ${
-                  CONSTANTS.AIRCON.find(
-                    (item) => item.obj_type === property.objectType
-                  )?.label || property.objectType
-                } is already used by another scene with address ${
-                  formData.address
-                }`
+                  CONSTANTS.AIRCON.find((item) => item.obj_type === property.objectType)?.label || property.objectType
+                } is already used by another scene with address ${formData.address}`
               );
               return;
             }
           } catch (error) {
-            console.error(
-              "Failed to check if aircon item can be added:",
-              error
-            );
+            console.error("Failed to check if aircon item can be added:", error);
             // Continue with adding if check fails
           }
         }
@@ -495,10 +392,7 @@ export function SceneDialog({
       selectedProperties.forEach((property) => {
         // Create scene item with the aircon item ID but specific object_type and value
         const newSceneItem = {
-          id:
-            mode === "edit"
-              ? `temp_${Date.now()}_${property.objectType}`
-              : `${Date.now()}_${property.objectType}`,
+          id: mode === "edit" ? `temp_${Date.now()}_${property.objectType}` : `${Date.now()}_${property.objectType}`,
           item_type: "aircon",
           item_id: airconItem.id,
           item_value: property.value,
@@ -507,23 +401,12 @@ export function SceneDialog({
           item_name: airconItem.name,
           item_address: airconItem.address,
           item_description: airconItem.description,
-          label:
-            CONSTANTS.AIRCON.find(
-              (item) => item.obj_type === property.objectType
-            )?.label || property.objectType,
+          label: CONSTANTS.AIRCON.find((item) => item.obj_type === property.objectType)?.label || property.objectType,
         };
         setSceneItems((prev) => [...prev, newSceneItem]);
       });
     },
-    [
-      sceneItems.length,
-      projectItems.aircon,
-      getCommandForAirconItem,
-      mode,
-      formData.address,
-      selectedProject,
-      scene,
-    ]
+    [sceneItems.length, projectItems.aircon, getCommandForAirconItem, mode, formData.address, selectedProject, scene]
   );
 
   // Handle opening aircon properties dialog
@@ -604,12 +487,7 @@ export function SceneDialog({
       default:
         break;
     }
-  }, [
-    currentTab,
-    handleOpenLightingDialog,
-    handleOpenAirconDialog,
-    handleOpenCurtainDialog,
-  ]);
+  }, [currentTab, handleOpenLightingDialog, handleOpenAirconDialog, handleOpenCurtainDialog]);
 
   // Handle opening edit dialogs
   const handleEditLightingItem = useCallback((item) => {
@@ -660,12 +538,7 @@ export function SceneDialog({
 
   // Remove all aircon items from a specific address
   const removeAirconGroupFromScene = useCallback((address) => {
-    setSceneItems((prev) =>
-      prev.filter(
-        (item) =>
-          !(item.item_type === "aircon" && item.item_address === address)
-      )
-    );
+    setSceneItems((prev) => prev.filter((item) => !(item.item_type === "aircon" && item.item_address === address)));
   }, []);
 
   // Handle opening edit aircon properties dialog
@@ -680,9 +553,7 @@ export function SceneDialog({
   const handleEditAirconPropertiesConfirm = useCallback(
     async (address, selectedProperties) => {
       // Find the single aircon item for this address
-      const airconItem = projectItems.aircon?.find(
-        (item) => item.address === address
-      );
+      const airconItem = projectItems.aircon?.find((item) => item.address === address);
 
       if (!airconItem) return;
 
@@ -702,20 +573,13 @@ export function SceneDialog({
             if (!canAdd) {
               toast.error(
                 `Aircon ${
-                  CONSTANTS.AIRCON.find(
-                    (item) => item.obj_type === property.objectType
-                  )?.label || property.objectType
-                } is already used by another scene with address ${
-                  formData.address
-                }`
+                  CONSTANTS.AIRCON.find((item) => item.obj_type === property.objectType)?.label || property.objectType
+                } is already used by another scene with address ${formData.address}`
               );
               return;
             }
           } catch (error) {
-            console.error(
-              "Failed to check if aircon item can be added:",
-              error
-            );
+            console.error("Failed to check if aircon item can be added:", error);
             // Continue with adding if check fails
           }
         }
@@ -724,17 +588,11 @@ export function SceneDialog({
       // Update scene items directly to avoid UI flicker
       setSceneItems((prev) => {
         // Remove existing aircon items for this address
-        const filteredItems = prev.filter(
-          (item) =>
-            !(item.item_type === "aircon" && item.item_address === address)
-        );
+        const filteredItems = prev.filter((item) => !(item.item_type === "aircon" && item.item_address === address));
 
         // Add new selected properties
         const newAirconItems = selectedProperties.map((property) => ({
-          id:
-            mode === "edit"
-              ? `temp_${Date.now()}_${property.objectType}`
-              : `${Date.now()}_${property.objectType}`,
+          id: mode === "edit" ? `temp_${Date.now()}_${property.objectType}` : `${Date.now()}_${property.objectType}`,
           item_type: "aircon",
           item_id: airconItem.id,
           item_value: property.value,
@@ -743,23 +601,13 @@ export function SceneDialog({
           item_name: airconItem.name,
           item_address: airconItem.address,
           item_description: airconItem.description,
-          label:
-            CONSTANTS.AIRCON.find(
-              (item) => item.obj_type === property.objectType
-            )?.label || property.objectType,
+          label: CONSTANTS.AIRCON.find((item) => item.obj_type === property.objectType)?.label || property.objectType,
         }));
 
         return [...filteredItems, ...newAirconItems];
       });
     },
-    [
-      projectItems.aircon,
-      getCommandForAirconItem,
-      mode,
-      formData.address,
-      selectedProject,
-      scene,
-    ]
+    [projectItems.aircon, getCommandForAirconItem, mode, formData.address, selectedProject, scene]
   );
 
   // Get aircon cards from aircon items - memoized
@@ -821,25 +669,16 @@ export function SceneDialog({
     return (
       projectItems.lighting?.filter((item) => {
         // Filter out items already in current scene
-        const isInCurrentScene = sceneItems.some(
-          (si) => si.item_type === "lighting" && si.item_id === item.id
-        );
+        const isInCurrentScene = sceneItems.some((si) => si.item_type === "lighting" && si.item_id === item.id);
 
         // Filter out items used by other scenes with same address
         // When editing, we need to check if the item is ONLY used by the current scene
         const isUsedByOtherScene = usedItemsByAddress.some((usedItem) => {
-          if (
-            usedItem.item_type === "lighting" &&
-            usedItem.item_id === item.id
-          ) {
+          if (usedItem.item_type === "lighting" && usedItem.item_id === item.id) {
             // If we're editing a scene, check if this item is only used by the current scene
             if (mode === "edit" && scene) {
               // Check if this item exists in the original scene items
-              const isInOriginalScene = originalSceneItems.some(
-                (origItem) =>
-                  origItem.item_type === "lighting" &&
-                  origItem.item_id === item.id
-              );
+              const isInOriginalScene = originalSceneItems.some((origItem) => origItem.item_type === "lighting" && origItem.item_id === item.id);
               // If it's in the original scene, it means it's used by the current scene
               // So we should allow it to be available when removed from current scene
               return !isInOriginalScene;
@@ -852,36 +691,22 @@ export function SceneDialog({
         return !isInCurrentScene && !isUsedByOtherScene;
       }) || []
     );
-  }, [
-    projectItems.lighting,
-    sceneItems,
-    usedItemsByAddress,
-    mode,
-    scene,
-    originalSceneItems,
-  ]);
+  }, [projectItems.lighting, sceneItems, usedItemsByAddress, mode, scene, originalSceneItems]);
 
   const filteredAirconCards = useMemo(() => {
     return availableAirconCards.filter((card) => {
       // Filter out cards already in current scene
-      const isInCurrentScene = sceneItems.some(
-        (si) => si.item_type === "aircon" && si.item_address === card.address
-      );
+      const isInCurrentScene = sceneItems.some((si) => si.item_type === "aircon" && si.item_address === card.address);
 
       // Filter out cards where any aircon item is used by other scenes with same address
       // When editing, we need to check if the item is ONLY used by the current scene
       const isUsedByOtherScene = usedItemsByAddress.some((usedItem) => {
-        if (
-          usedItem.item_type === "aircon" &&
-          usedItem.item_id === card.item.id
-        ) {
+        if (usedItem.item_type === "aircon" && usedItem.item_id === card.item.id) {
           // If we're editing a scene, check if this item is only used by the current scene
           if (mode === "edit" && scene) {
             // Check if this aircon address exists in the original scene items
             const isInOriginalScene = originalSceneItems.some(
-              (origItem) =>
-                origItem.item_type === "aircon" &&
-                origItem.item_address === card.address
+              (origItem) => origItem.item_type === "aircon" && origItem.item_address === card.address
             );
             // If it's in the original scene, it means it's used by the current scene
             // So we should allow it to be available when removed from current scene
@@ -894,38 +719,22 @@ export function SceneDialog({
 
       return !isInCurrentScene && !isUsedByOtherScene;
     });
-  }, [
-    availableAirconCards,
-    sceneItems,
-    usedItemsByAddress,
-    mode,
-    scene,
-    originalSceneItems,
-  ]);
+  }, [availableAirconCards, sceneItems, usedItemsByAddress, mode, scene, originalSceneItems]);
 
   const filteredCurtainItems = useMemo(() => {
     return (
       projectItems.curtain?.filter((item) => {
         // Filter out items already in current scene
-        const isInCurrentScene = sceneItems.some(
-          (si) => si.item_type === "curtain" && si.item_id === item.id
-        );
+        const isInCurrentScene = sceneItems.some((si) => si.item_type === "curtain" && si.item_id === item.id);
 
         // Filter out items used by other scenes with same address
         // When editing, we need to check if the item is ONLY used by the current scene
         const isUsedByOtherScene = usedItemsByAddress.some((usedItem) => {
-          if (
-            usedItem.item_type === "curtain" &&
-            usedItem.item_id === item.id
-          ) {
+          if (usedItem.item_type === "curtain" && usedItem.item_id === item.id) {
             // If we're editing a scene, check if this item is only used by the current scene
             if (mode === "edit" && scene) {
               // Check if this item exists in the original scene items
-              const isInOriginalScene = originalSceneItems.some(
-                (origItem) =>
-                  origItem.item_type === "curtain" &&
-                  origItem.item_id === item.id
-              );
+              const isInOriginalScene = originalSceneItems.some((origItem) => origItem.item_type === "curtain" && origItem.item_id === item.id);
               // If it's in the original scene, it means it's used by the current scene
               // So we should allow it to be available when removed from current scene
               return !isInOriginalScene;
@@ -938,14 +747,7 @@ export function SceneDialog({
         return !isInCurrentScene && !isUsedByOtherScene;
       }) || []
     );
-  }, [
-    projectItems.curtain,
-    sceneItems,
-    usedItemsByAddress,
-    mode,
-    scene,
-    originalSceneItems,
-  ]);
+  }, [projectItems.curtain, sceneItems, usedItemsByAddress, mode, scene, originalSceneItems]);
 
   const removeItemFromScene = useCallback((sceneItemId) => {
     // Always remove from local state only - changes will be saved when user clicks Save
@@ -1021,37 +823,24 @@ export function SceneDialog({
       brightness: 50,
       brightness255: 128,
     });
-    toast.success(
-      `Set all lighting to ${percentValue}% (${value255}/255) brightness`
-    );
+    toast.success(`Set all lighting to ${percentValue}% (${value255}/255) brightness`);
   }, [customBrightnessDialog]);
 
   const applySceneItemsChanges = async (sceneId) => {
     // Compare current sceneItems with originalSceneItems to determine changes
 
     // Find items to remove (in original but not in current)
-    const itemsToRemove = originalSceneItems.filter(
-      (item) => !sceneItems.some((currentItem) => currentItem.id === item.id)
-    );
+    const itemsToRemove = originalSceneItems.filter((item) => !sceneItems.some((currentItem) => currentItem.id === item.id));
 
     // Find items to add (in current but not in original, or have temp IDs)
     const itemsToAdd = sceneItems.filter(
-      (item) =>
-        !originalSceneItems.some(
-          (originalItem) => originalItem.id === item.id
-        ) || item.id.toString().startsWith("temp_")
+      (item) => !originalSceneItems.some((originalItem) => originalItem.id === item.id) || item.id.toString().startsWith("temp_")
     );
 
     // Find items to update (same ID but different values)
     const itemsToUpdate = sceneItems.filter((item) => {
-      const originalItem = originalSceneItems.find(
-        (orig) => orig.id === item.id
-      );
-      return (
-        originalItem &&
-        (originalItem.item_value !== item.item_value ||
-          originalItem.command !== item.command)
-      );
+      const originalItem = originalSceneItems.find((orig) => orig.id === item.id);
+      return originalItem && (originalItem.item_value !== item.item_value || originalItem.command !== item.command);
     });
 
     // Remove items
@@ -1061,23 +850,12 @@ export function SceneDialog({
 
     // Add new items
     for (const item of itemsToAdd) {
-      await window.electronAPI.scene.addItem(
-        sceneId,
-        item.item_type,
-        item.item_id,
-        item.item_value,
-        item.command,
-        item.object_type
-      );
+      await window.electronAPI.scene.addItem(sceneId, item.item_type, item.item_id, item.item_value, item.command, item.object_type);
     }
 
     // Update existing items
     for (const item of itemsToUpdate) {
-      await window.electronAPI.scene.updateItemValue(
-        item.id,
-        item.item_value,
-        item.command
-      );
+      await window.electronAPI.scene.updateItemValue(item.id, item.item_value, item.command);
     }
   };
 
@@ -1140,24 +918,15 @@ export function SceneDialog({
       console.error("Failed to save scene:", error);
 
       // Handle specific error messages
-      if (
-        error.message &&
-        error.message.includes("already used by another scene")
-      ) {
+      if (error.message && error.message.includes("already used by another scene")) {
         setErrors({ general: error.message });
       } else if (error.message && error.message.includes("already exists")) {
         // Extract the clean error message after the last colon
         const cleanMessage = error.message.split(": ").pop();
         setErrors({ address: cleanMessage });
-      } else if (
-        error.message &&
-        error.message.includes("Address is required")
-      ) {
+      } else if (error.message && error.message.includes("Address is required")) {
         setErrors({ address: "Address is required for scenes" });
-      } else if (
-        error.message &&
-        error.message.includes("Maximum 100 scenes allowed")
-      ) {
+      } else if (error.message && error.message.includes("Maximum 100 scenes allowed")) {
         setErrors({
           general: "Maximum 100 scenes allowed per project (indexed 0-99)",
         });
@@ -1202,30 +971,22 @@ export function SceneDialog({
   // Memoize value options to prevent recalculation on every render
   const getValueOptions = useMemo(() => {
     const optionsCache = {
-      [OBJECT_TYPES.AC_POWER.obj_name]: Object.entries(AC_POWER_LABELS).map(
-        ([value, label]) => ({
-          value,
-          label,
-        })
-      ),
-      [OBJECT_TYPES.AC_FAN_SPEED.obj_name]: Object.entries(
-        AC_FAN_SPEED_LABELS
-      ).map(([value, label]) => ({
+      [OBJECT_TYPES.AC_POWER.obj_name]: Object.entries(AC_POWER_LABELS).map(([value, label]) => ({
         value,
         label,
       })),
-      [OBJECT_TYPES.AC_MODE.obj_name]: Object.entries(AC_MODE_LABELS).map(
-        ([value, label]) => ({
-          value,
-          label,
-        })
-      ),
-      [OBJECT_TYPES.AC_SWING.obj_name]: Object.entries(AC_SWING_LABELS).map(
-        ([value, label]) => ({
-          value,
-          label,
-        })
-      ),
+      [OBJECT_TYPES.AC_FAN_SPEED.obj_name]: Object.entries(AC_FAN_SPEED_LABELS).map(([value, label]) => ({
+        value,
+        label,
+      })),
+      [OBJECT_TYPES.AC_MODE.obj_name]: Object.entries(AC_MODE_LABELS).map(([value, label]) => ({
+        value,
+        label,
+      })),
+      [OBJECT_TYPES.AC_SWING.obj_name]: Object.entries(AC_SWING_LABELS).map(([value, label]) => ({
+        value,
+        label,
+      })),
       [OBJECT_TYPES.AC_TEMPERATURE.obj_name]: [],
       [OBJECT_TYPES.CURTAIN.obj_name]: CONSTANTS.CURTAIN.VALUES.map((item) => ({
         value: item.value.toString(),
@@ -1251,10 +1012,7 @@ export function SceneDialog({
 
   const renderValueControl = useCallback(
     (sceneItem) => {
-      const options = getValueOptions(
-        sceneItem.object_type,
-        sceneItem.item_type
-      );
+      const options = getValueOptions(sceneItem.object_type, sceneItem.item_type);
 
       // For lighting items, always use number input for brightness (stored as 0-255)
       if (sceneItem.item_type === "lighting") {
@@ -1267,10 +1025,7 @@ export function SceneDialog({
           if (inputValue === "") {
             updateSceneItemValue(sceneItem.id, "255");
           } else {
-            const percentValue = Math.min(
-              100,
-              Math.max(0, parseInt(inputValue) || 0)
-            );
+            const percentValue = Math.min(100, Math.max(0, parseInt(inputValue) || 0));
             // Convert from percent to 0-255 for storage
             const value255 = Math.round((percentValue * 255) / 100);
             updateSceneItemValue(sceneItem.id, value255.toString());
@@ -1292,25 +1047,11 @@ export function SceneDialog({
           <div className="flex items-center gap-2">
             <div className="relative">
               <Percent className="h-4 w-4 absolute left-2 top-1/2 -translate-y-1/2 text-muted-foreground" />
-              <Input
-                type="number"
-                min="0"
-                max="100"
-                value={currentPercentValue}
-                onChange={handlePercentChange}
-                className="w-23 pl-8 font-semibold"
-              />
+              <Input type="number" min="0" max="100" value={currentPercentValue} onChange={handlePercentChange} className="w-23 pl-8 font-semibold" />
             </div>
             <div className="relative">
               <Sun className="h-4 w-4 absolute left-2 top-1/2 -translate-y-1/2 text-muted-foreground" />
-              <Input
-                type="number"
-                min="0"
-                max="255"
-                value={current255Value}
-                onChange={handle255Change}
-                className="w-23 pl-8 font-semibold"
-              />
+              <Input type="number" min="0" max="255" value={current255Value} onChange={handle255Change} className="w-23 pl-8 font-semibold" />
             </div>
           </div>
         );
@@ -1318,14 +1059,10 @@ export function SceneDialog({
 
       // For curtain items, use select dropdown with Open/Close/Stop options
       if (sceneItem.item_type === "curtain") {
-        const handleCurtainChange = (value) =>
-          updateSceneItemValue(sceneItem.id, value);
+        const handleCurtainChange = (value) => updateSceneItemValue(sceneItem.id, value);
 
         return (
-          <Select
-            value={sceneItem.item_value || "1"}
-            onValueChange={handleCurtainChange}
-          >
+          <Select value={sceneItem.item_value || "1"} onValueChange={handleCurtainChange}>
             <SelectTrigger className="w-30">
               <SelectValue placeholder="Select action" />
             </SelectTrigger>
@@ -1369,14 +1106,10 @@ export function SceneDialog({
 
       // For other aircon items, use select dropdown
       if (options.length > 0) {
-        const handleSelectChange = (value) =>
-          updateSceneItemValue(sceneItem.id, value);
+        const handleSelectChange = (value) => updateSceneItemValue(sceneItem.id, value);
 
         return (
-          <Select
-            value={sceneItem.item_value || ""}
-            onValueChange={handleSelectChange}
-          >
+          <Select value={sceneItem.item_value || ""} onValueChange={handleSelectChange}>
             <SelectTrigger className="w-40">
               <SelectValue placeholder="Select value" />
             </SelectTrigger>
@@ -1392,18 +1125,9 @@ export function SceneDialog({
       }
 
       // Fallback for other items
-      const handleFallbackChange = (e) =>
-        updateSceneItemValue(sceneItem.id, e.target.value);
+      const handleFallbackChange = (e) => updateSceneItemValue(sceneItem.id, e.target.value);
 
-      return (
-        <Input
-          type="number"
-          value={sceneItem.item_value || ""}
-          onChange={handleFallbackChange}
-          placeholder="Value"
-          className="w-40"
-        />
-      );
+      return <Input type="number" value={sceneItem.item_value || ""} onChange={handleFallbackChange} placeholder="Value" className="w-40" />;
     },
     [getValueOptions, updateSceneItemValue]
   );
@@ -1412,9 +1136,7 @@ export function SceneDialog({
     <Dialog open={open} onOpenChange={handleDialogOpenChange}>
       <DialogContent className="sm:max-w-6xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>
-            {mode === "edit" ? "Edit Scene" : "Create New Scene"}
-          </DialogTitle>
+          <DialogTitle>{mode === "edit" ? "Edit Scene" : "Create New Scene"}</DialogTitle>
           <DialogDescription>
             {mode === "edit"
               ? "Update the scene details and manage scene items."
@@ -1440,9 +1162,7 @@ export function SceneDialog({
                     maxLength={15}
                     required
                   />
-                  {errors.name && (
-                    <p className="text-sm text-red-500 mt-1">{errors.name}</p>
-                  )}
+                  {errors.name && <p className="text-sm text-red-500 mt-1">{errors.name}</p>}
                 </div>
               </div>
 
@@ -1454,22 +1174,12 @@ export function SceneDialog({
                   <Input
                     id="address"
                     value={formData.address}
-                    onChange={(e) =>
-                      handleInputChange("address", e.target.value)
-                    }
-                    className={
-                      errors.address
-                        ? "border-red-500 focus:border-red-500"
-                        : ""
-                    }
+                    onChange={(e) => handleInputChange("address", e.target.value)}
+                    className={errors.address ? "border-red-500 focus:border-red-500" : ""}
                     placeholder="Enter integer 1-255 (e.g., 1, 2, 255)"
                     required
                   />
-                  {errors.address && (
-                    <p className="text-sm text-red-500 mt-1">
-                      {errors.address}
-                    </p>
-                  )}
+                  {errors.address && <p className="text-sm text-red-500 mt-1">{errors.address}</p>}
                 </div>
               </div>
 
@@ -1480,9 +1190,7 @@ export function SceneDialog({
                 <Input
                   id="description"
                   value={formData.description}
-                  onChange={(e) =>
-                    handleInputChange("description", e.target.value)
-                  }
+                  onChange={(e) => handleInputChange("description", e.target.value)}
                   className="col-span-5"
                   placeholder="Enter description"
                 />
@@ -1493,10 +1201,7 @@ export function SceneDialog({
             <div className="space-y-4">
               <div className="mt-4">
                 <h3 className="text-lg font-semibold">Scene Items</h3>
-                <p className="text-sm text-muted-foreground">
-                  Add items from the right panel. You can set values for each
-                  item if applicable.
-                </p>
+                <p className="text-sm text-muted-foreground">Add items from the right panel. You can set values for each item if applicable.</p>
               </div>
 
               {/* Two-column layout for Current Items and Add Items */}
@@ -1506,36 +1211,16 @@ export function SceneDialog({
                   <CardHeader className="flex items-center justify-between">
                     <CardTitle className="text-sm flex items-center gap-2">
                       Current Items
-                      <Badge
-                        variant={
-                          sceneItems.length >= 60 ? "destructive" : "secondary"
-                        }
-                      >
-                        {sceneItems.length}/60 items
-                      </Badge>
+                      <Badge variant={sceneItems.length >= 60 ? "destructive" : "secondary"}>{sceneItems.length}/60 items</Badge>
                     </CardTitle>
                     <div className="flex items-center gap-2">
                       {/* All On/Off buttons for lighting items */}
-                      {sceneItems.some(
-                        (item) => item.item_type === "lighting"
-                      ) && (
+                      {sceneItems.some((item) => item.item_type === "lighting") && (
                         <>
-                          <Button
-                            type="button"
-                            variant="outline"
-                            size="sm"
-                            onClick={handleAllLightingOn}
-                            className="text-xs"
-                          >
+                          <Button type="button" variant="outline" size="sm" onClick={handleAllLightingOn} className="text-xs">
                             All On
                           </Button>
-                          <Button
-                            type="button"
-                            variant="outline"
-                            size="sm"
-                            onClick={handleAllLightingOff}
-                            className="text-xs"
-                          >
+                          <Button type="button" variant="outline" size="sm" onClick={handleAllLightingOff} className="text-xs">
                             All Off
                           </Button>
                           <Popover
@@ -1548,12 +1233,7 @@ export function SceneDialog({
                             }
                           >
                             <PopoverTrigger asChild>
-                              <Button
-                                type="button"
-                                variant="outline"
-                                size="sm"
-                                className="text-xs"
-                              >
+                              <Button type="button" variant="outline" size="sm" className="text-xs">
                                 Custom
                               </Button>
                             </PopoverTrigger>
@@ -1561,9 +1241,7 @@ export function SceneDialog({
                               <div className="space-y-4">
                                 <div className="grid grid-cols-2 gap-3">
                                   <div className="space-y-2">
-                                    <Label htmlFor="brightness-percent">
-                                      Brightness (%)
-                                    </Label>
+                                    <Label htmlFor="brightness-percent">Brightness (%)</Label>
                                     <Input
                                       id="brightness-percent"
                                       type="number"
@@ -1582,13 +1260,8 @@ export function SceneDialog({
                                         }
                                         const numValue = parseInt(value);
                                         if (!isNaN(numValue)) {
-                                          const clampedValue = Math.min(
-                                            100,
-                                            Math.max(0, numValue)
-                                          );
-                                          const value255 = Math.round(
-                                            (clampedValue * 255) / 100
-                                          );
+                                          const clampedValue = Math.min(100, Math.max(0, numValue));
+                                          const value255 = Math.round((clampedValue * 255) / 100);
                                           setCustomBrightnessDialog((prev) => ({
                                             ...prev,
                                             brightness: clampedValue,
@@ -1598,10 +1271,7 @@ export function SceneDialog({
                                       }}
                                       onBlur={(e) => {
                                         const value = e.target.value;
-                                        if (
-                                          value === "" ||
-                                          isNaN(parseInt(value))
-                                        ) {
+                                        if (value === "" || isNaN(parseInt(value))) {
                                           setCustomBrightnessDialog((prev) => ({
                                             ...prev,
                                             brightness: 50,
@@ -1614,17 +1284,13 @@ export function SceneDialog({
                                     />
                                   </div>
                                   <div className="space-y-2">
-                                    <Label htmlFor="brightness-255">
-                                      Brightness (0-255)
-                                    </Label>
+                                    <Label htmlFor="brightness-255">Brightness (0-255)</Label>
                                     <Input
                                       id="brightness-255"
                                       type="number"
                                       min={0}
                                       max={255}
-                                      value={
-                                        customBrightnessDialog.brightness255
-                                      }
+                                      value={customBrightnessDialog.brightness255}
                                       onChange={(e) => {
                                         const value = e.target.value;
                                         if (value === "") {
@@ -1637,13 +1303,8 @@ export function SceneDialog({
                                         }
                                         const numValue = parseInt(value);
                                         if (!isNaN(numValue)) {
-                                          const clampedValue = Math.min(
-                                            255,
-                                            Math.max(0, numValue)
-                                          );
-                                          const percentValue = Math.round(
-                                            (clampedValue * 100) / 255
-                                          );
+                                          const clampedValue = Math.min(255, Math.max(0, numValue));
+                                          const percentValue = Math.round((clampedValue * 100) / 255);
                                           setCustomBrightnessDialog((prev) => ({
                                             ...prev,
                                             brightness: percentValue,
@@ -1653,10 +1314,7 @@ export function SceneDialog({
                                       }}
                                       onBlur={(e) => {
                                         const value = e.target.value;
-                                        if (
-                                          value === "" ||
-                                          isNaN(parseInt(value))
-                                        ) {
+                                        if (value === "" || isNaN(parseInt(value))) {
                                           setCustomBrightnessDialog((prev) => ({
                                             ...prev,
                                             brightness: 50,
@@ -1669,10 +1327,7 @@ export function SceneDialog({
                                     />
                                   </div>
                                 </div>
-                                <p className="text-xs text-muted-foreground">
-                                  Enter in either format. Values will sync
-                                  automatically.
-                                </p>
+                                <p className="text-xs text-muted-foreground">Enter in either format. Values will sync automatically.</p>
                                 <div className="flex justify-end gap-2">
                                   <Button
                                     type="button"
@@ -1693,19 +1348,10 @@ export function SceneDialog({
                                     size="sm"
                                     onClick={handleCustomBrightness}
                                     disabled={
-                                      customBrightnessDialog.brightness255 ===
-                                        "" ||
-                                      isNaN(
-                                        parseInt(
-                                          customBrightnessDialog.brightness255
-                                        )
-                                      ) ||
-                                      parseInt(
-                                        customBrightnessDialog.brightness255
-                                      ) < 0 ||
-                                      parseInt(
-                                        customBrightnessDialog.brightness255
-                                      ) > 255
+                                      customBrightnessDialog.brightness255 === "" ||
+                                      isNaN(parseInt(customBrightnessDialog.brightness255)) ||
+                                      parseInt(customBrightnessDialog.brightness255) < 0 ||
+                                      parseInt(customBrightnessDialog.brightness255) > 255
                                     }
                                   >
                                     Apply
@@ -1725,42 +1371,22 @@ export function SceneDialog({
                           // Render aircon group
                           if (item.type === "aircon-group") {
                             return (
-                              <div
-                                key={`aircon-group-${item.address}`}
-                                className="border rounded-lg p-2"
-                              >
+                              <div key={`aircon-group-${item.address}`} className="border rounded-lg p-2">
                                 <div className="flex items-center justify-between mb-2">
                                   <div className="flex items-center gap-2">
                                     <Wind className="h-4 w-4 text-blue-500" />
                                     <div>
-                                      <div className="font-medium text-sm">
-                                        {item.name || `Aircon ${item.address}`}
-                                      </div>
+                                      <div className="font-medium text-sm">{item.name || `Aircon ${item.address}`}</div>
                                       <div className="text-xs text-muted-foreground">
-                                        Address: {item.address} |{" "}
-                                        {item.items.length} properties
+                                        Address: {item.address} | {item.items.length} properties
                                       </div>
                                     </div>
                                   </div>
                                   <div className="flex items-center gap-1">
-                                    <Button
-                                      type="button"
-                                      variant="outline"
-                                      size="icon"
-                                      onClick={() =>
-                                        handleEditAirconGroup(item)
-                                      }
-                                    >
+                                    <Button type="button" variant="outline" size="icon" onClick={() => handleEditAirconGroup(item)}>
                                       <Edit className="h-4 w-4" />
                                     </Button>
-                                    <Button
-                                      type="button"
-                                      variant="outline"
-                                      size="icon"
-                                      onClick={() =>
-                                        removeAirconGroupFromScene(item.address)
-                                      }
-                                    >
+                                    <Button type="button" variant="outline" size="icon" onClick={() => removeAirconGroupFromScene(item.address)}>
                                       <Trash2 className="h-4 w-4" />
                                     </Button>
                                   </div>
@@ -1768,27 +1394,13 @@ export function SceneDialog({
                                 {/* Show individual aircon properties */}
                                 <div className="space-y-1 ml-6">
                                   {item.items.map((airconItem) => (
-                                    <div
-                                      key={airconItem.id}
-                                      className="flex items-center justify-between text-sm"
-                                    >
+                                    <div key={airconItem.id} className="flex items-center justify-between text-sm">
                                       <span className="text-muted-foreground">
-                                        {CONSTANTS.AIRCON.find(
-                                          (item) =>
-                                            item.obj_type ===
-                                            airconItem.object_type
-                                        )?.label || airconItem.object_type}
+                                        {CONSTANTS.AIRCON.find((item) => item.obj_type === airconItem.object_type)?.label || airconItem.object_type}
                                       </span>
                                       <div className="flex items-center gap-2">
                                         {renderValueControl(airconItem)}
-                                        <Button
-                                          type="button"
-                                          variant="ghost"
-                                          size="sm"
-                                          onClick={() =>
-                                            removeItemFromScene(airconItem.id)
-                                          }
-                                        >
+                                        <Button type="button" variant="ghost" size="sm" onClick={() => removeItemFromScene(airconItem.id)}>
                                           <Trash2 className="h-3 w-3" />
                                         </Button>
                                       </div>
@@ -1801,39 +1413,21 @@ export function SceneDialog({
 
                           // Render regular items (lighting, curtain)
                           return (
-                            <div
-                              key={item.id}
-                              className="flex items-center justify-between p-2 border rounded-lg"
-                            >
+                            <div key={item.id} className="flex items-center justify-between p-2 border rounded-lg">
                               <div className="flex items-center gap-2 min-w-0 flex-1">
-                                {item.item_type === "lighting" && (
-                                  <Lightbulb className="h-4 w-4 text-yellow-500 shrink-0" />
-                                )}
-                                {item.item_type === "curtain" && (
-                                  <Blinds className="h-4 w-4 text-green-500 shrink-0" />
-                                )}
+                                {item.item_type === "lighting" && <Lightbulb className="h-4 w-4 text-yellow-500 shrink-0" />}
+                                {item.item_type === "curtain" && <Blinds className="h-4 w-4 text-green-500 shrink-0" />}
                                 <div className="min-w-0 flex-1">
-                                  <div className="font-medium text-sm truncate">
-                                    {item.item_name ||
-                                      `${item.item_type} ${item.item_address}`}
-                                  </div>
+                                  <div className="font-medium text-sm truncate">{item.item_name || `${item.item_type} ${item.item_address}`}</div>
                                   <div className="text-xs text-muted-foreground truncate">
                                     Address: {item.item_address}
-                                    {item.item_description &&
-                                      ` | ${item.item_description}`}
+                                    {item.item_description && ` | ${item.item_description}`}
                                   </div>
                                 </div>
                               </div>
                               <div className="flex items-center gap-2 shrink-0">
-                                {(item.object_type ||
-                                  item.item_type === "lighting") &&
-                                  renderValueControl(item)}
-                                <Button
-                                  type="button"
-                                  variant="outline"
-                                  size="icon"
-                                  onClick={() => removeItemFromScene(item.id)}
-                                >
+                                {(item.object_type || item.item_type === "lighting") && renderValueControl(item)}
+                                <Button type="button" variant="outline" size="icon" onClick={() => removeItemFromScene(item.id)}>
                                   <Trash2 className="h-4 w-4" />
                                 </Button>
                               </div>
@@ -1844,9 +1438,7 @@ export function SceneDialog({
                     ) : (
                       <div className="text-center text-muted-foreground py-8">
                         <p className="text-sm">No items in scene yet</p>
-                        <p className="text-xs">
-                          Add items from the right panel
-                        </p>
+                        <p className="text-xs">Add items from the right panel</p>
                       </div>
                     )}
                   </CardContent>
@@ -1857,24 +1449,14 @@ export function SceneDialog({
                   <CardHeader>
                     <div className="flex items-center justify-between">
                       <CardTitle className="text-sm">Available Items</CardTitle>
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        onClick={handleAddNewItem}
-                        className="text-xs"
-                      >
+                      <Button type="button" variant="outline" size="sm" onClick={handleAddNewItem} className="text-xs">
                         <Plus className="h-3 w-3" />
                         Add new
                       </Button>
                     </div>
                   </CardHeader>
                   <CardContent>
-                    <Tabs
-                      defaultValue="lighting"
-                      className="w-full"
-                      onValueChange={setCurrentTab}
-                    >
+                    <Tabs defaultValue="lighting" className="w-full" onValueChange={setCurrentTab}>
                       <TabsList className="grid w-full grid-cols-3">
                         <TabsTrigger value="lighting">
                           <Lightbulb className="h-4 w-4 mr-2" />
@@ -1894,18 +1476,12 @@ export function SceneDialog({
                         <div className="max-h-80 overflow-y-auto space-y-2 pr-2">
                           {filteredLightingItems.length > 0 ? (
                             filteredLightingItems.map((item) => (
-                              <div
-                                key={item.id}
-                                className="flex items-center justify-between p-2 border rounded-lg"
-                              >
+                              <div key={item.id} className="flex items-center justify-between p-2 border rounded-lg">
                                 <div>
-                                  <div className="font-medium text-sm">
-                                    {item.name || `Group ${item.address}`}
-                                  </div>
+                                  <div className="font-medium text-sm">{item.name || `Group ${item.address}`}</div>
                                   <div className="text-xs text-muted-foreground">
                                     Address: {item.address}
-                                    {item.description &&
-                                      ` | ${item.description}`}
+                                    {item.description && ` | ${item.description}`}
                                   </div>
                                 </div>
                                 <div className="flex items-center gap-1">
@@ -1922,9 +1498,7 @@ export function SceneDialog({
                                     type="button"
                                     variant="outline"
                                     size="icon"
-                                    onClick={() =>
-                                      addItemToScene("lighting", item.id, "255")
-                                    }
+                                    onClick={() => addItemToScene("lighting", item.id, "255")}
                                     className="h-8 w-8"
                                   >
                                     <Plus className="h-4 w-4" />
@@ -1933,9 +1507,7 @@ export function SceneDialog({
                               </div>
                             ))
                           ) : (
-                            <p className="text-sm text-muted-foreground text-center py-4">
-                              No lighting items available
-                            </p>
+                            <p className="text-sm text-muted-foreground text-center py-4">No lighting items available</p>
                           )}
                         </div>
                       </TabsContent>
@@ -1944,18 +1516,12 @@ export function SceneDialog({
                         <div className="max-h-80 overflow-y-auto space-y-2 pr-2">
                           {filteredAirconCards.length > 0 ? (
                             filteredAirconCards.map((card) => (
-                              <div
-                                key={card.address}
-                                className="flex items-center justify-between p-2 border rounded-lg"
-                              >
+                              <div key={card.address} className="flex items-center justify-between p-2 border rounded-lg">
                                 <div>
-                                  <div className="font-medium text-sm">
-                                    {card.name || `Aircon ${card.address}`}
-                                  </div>
+                                  <div className="font-medium text-sm">{card.name || `Aircon ${card.address}`}</div>
                                   <div className="text-xs text-muted-foreground">
                                     Address: {card.address}
-                                    {card.description &&
-                                      ` | ${card.description}`}
+                                    {card.description && ` | ${card.description}`}
                                   </div>
                                 </div>
                                 <div className="flex items-center gap-1">
@@ -1963,29 +1529,19 @@ export function SceneDialog({
                                     type="button"
                                     variant="outline"
                                     size="icon"
-                                    onClick={() =>
-                                      handleEditAirconItem(card.item)
-                                    }
+                                    onClick={() => handleEditAirconItem(card.item)}
                                     className="h-8 w-8"
                                   >
                                     <Edit className="h-3 w-3" />
                                   </Button>
-                                  <Button
-                                    type="button"
-                                    variant="outline"
-                                    size="icon"
-                                    onClick={() => handleAddAirconCard(card)}
-                                    className="h-8 w-8"
-                                  >
+                                  <Button type="button" variant="outline" size="icon" onClick={() => handleAddAirconCard(card)} className="h-8 w-8">
                                     <Plus className="h-4 w-4" />
                                   </Button>
                                 </div>
                               </div>
                             ))
                           ) : (
-                            <p className="text-sm text-muted-foreground text-center py-4">
-                              No aircon cards available
-                            </p>
+                            <p className="text-sm text-muted-foreground text-center py-4">No aircon cards available</p>
                           )}
                         </div>
                       </TabsContent>
@@ -1994,37 +1550,23 @@ export function SceneDialog({
                         <div className="max-h-80 overflow-y-auto space-y-2 pr-2">
                           {filteredCurtainItems.length > 0 ? (
                             filteredCurtainItems.map((item) => (
-                              <div
-                                key={item.id}
-                                className="flex items-center justify-between p-2 border rounded-lg"
-                              >
+                              <div key={item.id} className="flex items-center justify-between p-2 border rounded-lg">
                                 <div>
-                                  <div className="font-medium text-sm">
-                                    {item.name}
-                                  </div>
+                                  <div className="font-medium text-sm">{item.name}</div>
                                   <div className="text-xs text-muted-foreground">
                                     Address: {item.address}
-                                    {item.description &&
-                                      ` | ${item.description}`}
+                                    {item.description && ` | ${item.description}`}
                                   </div>
                                 </div>
                                 <div className="flex items-center gap-1">
-                                  <Button
-                                    type="button"
-                                    variant="outline"
-                                    size="icon"
-                                    onClick={() => handleEditCurtainItem(item)}
-                                    className="h-8 w-8"
-                                  >
+                                  <Button type="button" variant="outline" size="icon" onClick={() => handleEditCurtainItem(item)} className="h-8 w-8">
                                     <Edit className="h-3 w-3" />
                                   </Button>
                                   <Button
                                     type="button"
                                     variant="outline"
                                     size="icon"
-                                    onClick={() =>
-                                      addItemToScene("curtain", item.id, "1")
-                                    }
+                                    onClick={() => addItemToScene("curtain", item.id, "1")}
                                     className="h-8 w-8"
                                   >
                                     <Plus className="h-4 w-4" />
@@ -2033,9 +1575,7 @@ export function SceneDialog({
                               </div>
                             ))
                           ) : (
-                            <p className="text-sm text-muted-foreground text-center py-4">
-                              No curtain items available
-                            </p>
+                            <p className="text-sm text-muted-foreground text-center py-4">No curtain items available</p>
                           )}
                         </div>
                       </TabsContent>
@@ -2047,31 +1587,13 @@ export function SceneDialog({
           </div>
 
           {/* General Error Display */}
-          {errors.general && (
-            <div className="text-sm text-red-500 text-center mt-4">
-              {errors.general}
-            </div>
-          )}
+          {errors.general && <div className="text-sm text-red-500 text-center mt-4">{errors.general}</div>}
 
           <DialogFooter>
-            <Button
-              type="button"
-              variant="outline"
-              onClick={handleCancel}
-              disabled={loading}
-            >
+            <Button type="button" variant="outline" onClick={handleCancel} disabled={loading}>
               Cancel
             </Button>
-            <Button
-              type="submit"
-              disabled={
-                loading ||
-                !formData.name.trim() ||
-                !formData.address.trim() ||
-                errors.name ||
-                errors.address
-              }
-            >
+            <Button type="submit" disabled={loading || !formData.name.trim() || !formData.address.trim() || errors.name || errors.address}>
               {loading ? "Saving..." : mode === "edit" ? "Update" : "Create"}
             </Button>
           </DialogFooter>
@@ -2081,9 +1603,7 @@ export function SceneDialog({
       {/* Aircon Properties Dialog */}
       <AirconPropertiesDialog
         open={airconPropertiesDialog.open}
-        onOpenChange={(open) =>
-          setAirconPropertiesDialog((prev) => ({ ...prev, open }))
-        }
+        onOpenChange={(open) => setAirconPropertiesDialog((prev) => ({ ...prev, open }))}
         airconCard={airconPropertiesDialog.airconCard}
         onConfirm={handleAirconPropertiesConfirm}
       />
@@ -2091,36 +1611,20 @@ export function SceneDialog({
       {/* Edit Aircon Properties Dialog */}
       <AirconPropertiesDialog
         open={editAirconPropertiesDialog.open}
-        onOpenChange={(open) =>
-          setEditAirconPropertiesDialog((prev) => ({ ...prev, open }))
-        }
+        onOpenChange={(open) => setEditAirconPropertiesDialog((prev) => ({ ...prev, open }))}
         airconGroup={editAirconPropertiesDialog.airconGroup}
         mode="edit"
         onConfirm={handleEditAirconPropertiesConfirm}
       />
 
       {/* Add New Lighting Dialog */}
-      <ProjectItemDialog
-        open={lightingDialog.open}
-        onOpenChange={handleCloseLightingDialog}
-        category="lighting"
-        mode="create"
-      />
+      <ProjectItemDialog open={lightingDialog.open} onOpenChange={handleCloseLightingDialog} category="lighting" mode="create" />
 
       {/* Add New Aircon Dialog */}
-      <ProjectItemDialog
-        open={airconDialog.open}
-        onOpenChange={handleCloseAirconDialog}
-        category="aircon"
-        mode="create"
-      />
+      <ProjectItemDialog open={airconDialog.open} onOpenChange={handleCloseAirconDialog} category="aircon" mode="create" />
 
       {/* Add New Curtain Dialog */}
-      <CurtainDialog
-        open={curtainDialog.open}
-        onOpenChange={handleCloseCurtainDialog}
-        mode="create"
-      />
+      <CurtainDialog open={curtainDialog.open} onOpenChange={handleCloseCurtainDialog} mode="create" />
 
       {/* Edit Lighting Dialog */}
       <ProjectItemDialog
@@ -2141,12 +1645,7 @@ export function SceneDialog({
       />
 
       {/* Edit Curtain Dialog */}
-      <CurtainDialog
-        open={editCurtainDialog.open}
-        onOpenChange={handleCloseEditCurtainDialog}
-        item={editCurtainDialog.item}
-        mode="edit"
-      />
+      <CurtainDialog open={editCurtainDialog.open} onOpenChange={handleCloseEditCurtainDialog} item={editCurtainDialog.item} mode="edit" />
     </Dialog>
   );
 }

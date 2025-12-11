@@ -1,13 +1,7 @@
 import React from "react";
 import { BaseDeleteDialog } from "../base/base-delete-dialog";
 
-export function DeleteKnxDialog({
-  open,
-  onOpenChange,
-  unit,
-  asPopover = false,
-  trigger = null,
-}) {
+export function DeleteKnxDialog({ open, onOpenChange, unit, asPopover = false, trigger = null }) {
   const config = {
     entityName: "KNX Configurations",
     entityNameSingular: "KNX Configuration",
@@ -26,22 +20,10 @@ export function DeleteKnxDialog({
         });
       },
       deleteAll: async (unitIp, canId) => {
-        return await window.electronAPI.knxController.deleteAllKnxConfigs(
-          unitIp,
-          canId
-        );
+        return await window.electronAPI.knxController.deleteAllKnxConfigs(unitIp, canId);
       },
     },
   };
 
-  return (
-    <BaseDeleteDialog
-      open={open}
-      onOpenChange={onOpenChange}
-      unit={unit}
-      asPopover={asPopover}
-      trigger={trigger}
-      config={config}
-    />
-  );
+  return <BaseDeleteDialog open={open} onOpenChange={onOpenChange} unit={unit} asPopover={asPopover} trigger={trigger} config={config} />;
 }

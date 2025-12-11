@@ -39,7 +39,7 @@ export const rawToPercentage = (rawValue) => {
  */
 export const updateGroupValue = (group, value, usePercentage) => {
   const numValue = parseInt(value) || 0;
-  
+
   if (usePercentage) {
     // Update percentage and calculate raw value
     const clampedPercent = validatePercentage(numValue);

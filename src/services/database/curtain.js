@@ -84,28 +84,19 @@ export const curtainMethods = {
 
       // Handle both old format (group_id) and new format (group_address)
       if (open_group_address) {
-        finalOpenGroupId = this.findLightingIdByAddress(
-          projectId,
-          open_group_address
-        );
+        finalOpenGroupId = this.findLightingIdByAddress(projectId, open_group_address);
       } else if (open_group_id) {
         finalOpenGroupId = open_group_id; // Backward compatibility
       }
 
       if (close_group_address) {
-        finalCloseGroupId = this.findLightingIdByAddress(
-          projectId,
-          close_group_address
-        );
+        finalCloseGroupId = this.findLightingIdByAddress(projectId, close_group_address);
       } else if (close_group_id) {
         finalCloseGroupId = close_group_id; // Backward compatibility
       }
 
       if (stop_group_address) {
-        finalStopGroupId = this.findLightingIdByAddress(
-          projectId,
-          stop_group_address
-        );
+        finalStopGroupId = this.findLightingIdByAddress(projectId, stop_group_address);
       } else if (stop_group_id) {
         finalStopGroupId = stop_group_id; // Backward compatibility
       }
@@ -149,10 +140,7 @@ export const curtainMethods = {
       const result = stmt.get(projectId, address);
       return result ? result.id : null;
     } catch (error) {
-      console.error(
-        `Failed to find lighting ID for address ${address}:`,
-        error
-      );
+      console.error(`Failed to find lighting ID for address ${address}:`, error);
       return null;
     }
   },

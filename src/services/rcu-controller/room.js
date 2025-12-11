@@ -75,15 +75,7 @@ function encodeRoomConfig(roomConfig) {
   data.push(...Array(8).fill(0x00));
 
   // 7 states aircon configuration (35 bytes total, 5 bytes each)
-  const stateNames = [
-    "Unrent",
-    "Unoccupy",
-    "Checkin",
-    "Welcome",
-    "WelcomeNight",
-    "Staff",
-    "OutOfService",
-  ];
+  const stateNames = ["Unrent", "Unoccupy", "Checkin", "Welcome", "WelcomeNight", "Staff", "OutOfService"];
 
   for (const stateName of stateNames) {
     const state = states[stateName] || {};
@@ -144,8 +136,7 @@ function encodeIpConfig(generalConfig) {
   // ip[MAX_SLAVE]: array of IP addresses (4 bytes each)
   const slaveIPs = generalConfig.slaveIPs || [];
   for (let i = 0; i < MAX_SLAVE; i++) {
-    const ipBytes =
-      i < slaveIPs.length ? parseIpAddress(slaveIPs[i]) : [0, 0, 0, 0];
+    const ipBytes = i < slaveIPs.length ? parseIpAddress(slaveIPs[i]) : [0, 0, 0, 0];
     data.push(...ipBytes);
   }
 
@@ -218,14 +209,7 @@ async function setRoomConfiguration(unitIp, canId, generalConfig, roomConfigs) {
     }
   }
 
-  return sendCommand(
-    unitIp,
-    UDP_PORT,
-    idAddress,
-    PROTOCOL.GENERAL.CMD1,
-    PROTOCOL.GENERAL.CMD2.SET_ROOM_CONFIG,
-    data
-  );
+  return sendCommand(unitIp, UDP_PORT, idAddress, PROTOCOL.GENERAL.CMD1, PROTOCOL.GENERAL.CMD2.SET_ROOM_CONFIG, data);
 }
 
 /**
@@ -235,15 +219,7 @@ async function setRoomConfiguration(unitIp, canId, generalConfig, roomConfigs) {
  * @returns {Object} - Decoded room configuration object
  */
 function decodeRoomConfig(data, offset = 0) {
-  const stateNames = [
-    "Unrent",
-    "Unoccupy",
-    "Checkin",
-    "Welcome",
-    "WelcomeNight",
-    "Staff",
-    "OutOfService",
-  ];
+  const stateNames = ["Unrent", "Unoccupy", "Checkin", "Welcome", "WelcomeNight", "Staff", "OutOfService"];
 
   let pos = offset;
 
@@ -578,19 +554,7 @@ async function setRoomStatus(unitIp, canId, airconMode, roomStatuses) {
     }
   }
 
-  return sendCommand(
-    unitIp,
-    UDP_PORT,
-    idAddress,
-    PROTOCOL.GENERAL.CMD1,
-    PROTOCOL.GENERAL.CMD2.SET_ROOM_STATUS,
-    data
-  );
+  return sendCommand(unitIp, UDP_PORT, idAddress, PROTOCOL.GENERAL.CMD1, PROTOCOL.GENERAL.CMD2.SET_ROOM_STATUS, data);
 }
 
-export {
-  setRoomConfiguration,
-  getRoomConfiguration,
-  getRoomStatus,
-  setRoomStatus,
-};
+export { setRoomConfiguration, getRoomConfiguration, getRoomStatus, setRoomStatus };

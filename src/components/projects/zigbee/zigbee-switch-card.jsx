@@ -1,14 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Columns2, Loader2, Pencil } from "lucide-react";
@@ -62,14 +55,11 @@ export function ZigbeeSwitchCard({ device, onRemove }) {
   }, [device]);
 
   // Get device type info
-  const deviceTypeInfo = CONSTANTS.ZIGBEE.DEVICE_TYPE.find(
-    (type) => type.value === device.device_type
-  );
+  const deviceTypeInfo = CONSTANTS.ZIGBEE.DEVICE_TYPE.find((type) => type.value === device.device_type);
 
   // Get number of gangs (endpoints)
   const numGangs = device.num_endpoints;
-  const deviceName =
-    device.device_name || deviceTypeInfo?.label || `Switch ${numGangs}-Gang`;
+  const deviceName = device.device_name || deviceTypeInfo?.label || `Switch ${numGangs}-Gang`;
 
   // Get endpoints data with local state values
   const endpoints = [];
@@ -101,21 +91,18 @@ export function ZigbeeSwitchCard({ device, onRemove }) {
       // Toggle: if current value is 0 (OFF), send ON (1), otherwise send OFF (0)
       const command = endpoint.value === 0 ? 1 : 0; // 0: OFF, 1: ON
 
-      const result =
-        await window.electronAPI.zigbeeController.sendZigbeeCommand({
-          unitIp: device.unit_ip,
-          canId: device.unit_can_id,
-          ieeeAddress: device.ieee_address,
-          deviceType: device.device_type,
-          endpointId: endpoint.id,
-          command: command,
-          deviceId: device.id, // Pass device ID for database update
-        });
+      const result = await window.electronAPI.zigbeeController.sendZigbeeCommand({
+        unitIp: device.unit_ip,
+        canId: device.unit_can_id,
+        ieeeAddress: device.ieee_address,
+        deviceType: device.device_type,
+        endpointId: endpoint.id,
+        command: command,
+        deviceId: device.id, // Pass device ID for database update
+      });
 
       if (result.success) {
-        toast.success(
-          `Switch ${endpoint.index} turned ${command === 1 ? "ON" : "OFF"}`
-        );
+        toast.success(`Switch ${endpoint.index} turned ${command === 1 ? "ON" : "OFF"}`);
 
         // Update local state with response data
         if (result.statusUpdate) {
@@ -144,8 +131,7 @@ export function ZigbeeSwitchCard({ device, onRemove }) {
   const handleSaveEndpointName = async () => {
     try {
       await window.electronAPI.zigbee.updateDevice(device.id, {
-        [`endpoint${editEndpointIndex}_name`]:
-          editEndpointNameValue.trim() || null,
+        [`endpoint${editEndpointIndex}_name`]: editEndpointNameValue.trim() || null,
       });
 
       setEndpointNames((prev) => ({
@@ -162,13 +148,7 @@ export function ZigbeeSwitchCard({ device, onRemove }) {
   };
 
   return (
-    <ZigbeeDeviceCardWrapper
-      device={device}
-      onRemove={onRemove}
-      icon={Columns2}
-      title={deviceName}
-      showStatus={true}
-    >
+    <ZigbeeDeviceCardWrapper device={device} onRemove={onRemove} icon={Columns2} title={deviceName} showStatus={true}>
       {/* Switch Controls */}
       <div className="space-y-2.5">
         {endpoints.map((endpoint) => {
@@ -180,31 +160,16 @@ export function ZigbeeSwitchCard({ device, onRemove }) {
             <div
               key={endpoint.id}
               className={`flex items-center justify-between p-3.5 rounded-lg border-2 transition-all duration-200 group ${
-                isOn
-                  ? "bg-orange-50 border-orange-200 shadow-sm"
-                  : "bg-background border-border hover:border-primary/30"
+                isOn ? "bg-orange-50 border-orange-200 shadow-sm" : "bg-background border-border hover:border-primary/30"
               }`}
             >
               <div className="flex items-center gap-3 flex-1 min-w-0">
-                <div
-                  className={`p-2 rounded-lg transition-all duration-200 ${
-                    isOn ? "bg-yellow-500/20" : "bg-muted"
-                  }`}
-                >
-                  <img
-                    src={isOn ? lightOn : lightOff}
-                    alt="Lighting State"
-                    className="w-5 h-5 object-contain"
-                  />
+                <div className={`p-2 rounded-lg transition-all duration-200 ${isOn ? "bg-yellow-500/20" : "bg-muted"}`}>
+                  <img src={isOn ? lightOn : lightOff} alt="Lighting State" className="w-5 h-5 object-contain" />
                 </div>
                 <div className="flex items-center gap-2 flex-1 min-w-0">
-                  <span
-                    className={`font-medium truncate ${
-                      isOn ? "text-foreground" : "text-muted-foreground"
-                    }`}
-                  >
-                    {endpointNames[endpoint.index] ||
-                      `Switch ${endpoint.index}`}
+                  <span className={`font-medium truncate ${isOn ? "text-foreground" : "text-muted-foreground"}`}>
+                    {endpointNames[endpoint.index] || `Switch ${endpoint.index}`}
                   </span>
                   <Button
                     variant="ghost"
@@ -215,9 +180,7 @@ export function ZigbeeSwitchCard({ device, onRemove }) {
                     <Pencil className="h-3 w-3" />
                   </Button>
                 </div>
-                {isLoading && (
-                  <Loader2 className="h-4 w-4 animate-spin text-primary shrink-0" />
-                )}
+                {isLoading && <Loader2 className="h-4 w-4 animate-spin text-primary shrink-0" />}
               </div>
               <Switch
                 checked={isOn}
@@ -231,16 +194,11 @@ export function ZigbeeSwitchCard({ device, onRemove }) {
       </div>
 
       {/* Edit Endpoint Name Dialog */}
-      <Dialog
-        open={editEndpointDialogOpen}
-        onOpenChange={setEditEndpointDialogOpen}
-      >
+      <Dialog open={editEndpointDialogOpen} onOpenChange={setEditEndpointDialogOpen}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Edit Switch Name</DialogTitle>
-            <DialogDescription>
-              Enter a custom name for switch {editEndpointIndex}
-            </DialogDescription>
+            <DialogDescription>Enter a custom name for switch {editEndpointIndex}</DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">
             <div className="space-y-2">
@@ -254,10 +212,7 @@ export function ZigbeeSwitchCard({ device, onRemove }) {
             </div>
           </div>
           <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={() => setEditEndpointDialogOpen(false)}
-            >
+            <Button variant="outline" onClick={() => setEditEndpointDialogOpen(false)}>
               Cancel
             </Button>
             <Button onClick={handleSaveEndpointName}>Save</Button>

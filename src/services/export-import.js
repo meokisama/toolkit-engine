@@ -42,11 +42,7 @@ class ExportImportService {
 
   // Parse CSV content to items array
   parseCSVToItems(csvContent, category, sceneImportType = null) {
-    return modularService.parseCSVToItems(
-      csvContent,
-      category,
-      sceneImportType
-    );
+    return modularService.parseCSVToItems(csvContent, category, sceneImportType);
   }
 
   // Parse aircon cards CSV content
@@ -66,12 +62,7 @@ class ExportImportService {
 
   // Get item value for export
   getItemValueForExport(itemType, itemValue, command, objectType) {
-    return modularService.getItemValueForExport(
-      itemType,
-      itemValue,
-      command,
-      objectType
-    );
+    return modularService.getItemValueForExport(itemType, itemValue, command, objectType);
   }
 
   // Update scene names to add part numbers when needed

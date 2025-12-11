@@ -1,11 +1,4 @@
-import React, {
-  createContext,
-  useContext,
-  useState,
-  useEffect,
-  useCallback,
-  useMemo,
-} from "react";
+import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from "react";
 import { toast } from "sonner";
 import { exportImportService } from "@/services/export-import";
 
@@ -59,13 +52,8 @@ export function ProjectProvider({ children }) {
   // Update project - memoized to prevent recreating on every render
   const updateProject = useCallback(async (id, projectData) => {
     try {
-      const updatedProject = await window.electronAPI.projects.update(
-        id,
-        projectData
-      );
-      setProjects((prev) =>
-        prev.map((project) => (project.id === id ? updatedProject : project))
-      );
+      const updatedProject = await window.electronAPI.projects.update(id, projectData);
+      setProjects((prev) => prev.map((project) => (project.id === id ? updatedProject : project)));
       toast.success("Project updated successfully");
       return updatedProject;
     } catch (err) {
@@ -130,16 +118,10 @@ export function ProjectProvider({ children }) {
   // Import project - memoized to prevent recreating on every render
   const importProject = useCallback(async (projectData, itemsData) => {
     try {
-      const result = await window.electronAPI.projects.import(
-        projectData,
-        itemsData
-      );
+      const result = await window.electronAPI.projects.import(projectData, itemsData);
       setProjects((prev) => [result.project, ...prev]);
 
-      const totalItems = Object.values(result.importedCounts).reduce(
-        (sum, count) => sum + count,
-        0
-      );
+      const totalItems = Object.values(result.importedCounts).reduce((sum, count) => sum + count, 0);
       toast.success(`Project imported successfully with ${totalItems} items`);
       return result.project;
     } catch (err) {
@@ -193,7 +175,5 @@ export function ProjectProvider({ children }) {
     ]
   );
 
-  return (
-    <ProjectContext.Provider value={value}>{children}</ProjectContext.Provider>
-  );
+  return <ProjectContext.Provider value={value}>{children}</ProjectContext.Provider>;
 }

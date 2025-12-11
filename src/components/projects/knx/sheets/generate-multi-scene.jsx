@@ -1,23 +1,10 @@
 import React, { useState, useEffect, useCallback } from "react";
-import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetHeader,
-  SheetTitle,
-  SheetFooter,
-} from "@/components/ui/sheet";
+import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetFooter } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useProjectDetail } from "@/contexts/project-detail-context";
 import { KNXAddressInput } from "@/components/custom/knx-input";
@@ -32,36 +19,37 @@ export function GenerateFromMultiSceneSheet({ open, onOpenChange }) {
   const [knxData, setKnxData] = useState({});
 
   // Find next available KNX addresses for multiple items
-  const findAvailableKnxAddresses = useCallback((count) => {
-    if (!projectItems.knx || projectItems.knx.length === 0) {
-      // If no existing KNX items, return sequential addresses starting from 0
-      return Array.from({ length: count }, (_, i) => i);
-    }
-
-    const existingAddresses = new Set(
-      projectItems.knx
-        .map((item) => parseInt(item.address))
-        .filter((addr) => !isNaN(addr) && addr >= 0 && addr <= 511)
-    );
-
-    const availableAddresses = [];
-    let currentAddress = 0;
-
-    // Find available addresses
-    while (availableAddresses.length < count && currentAddress <= 511) {
-      if (!existingAddresses.has(currentAddress)) {
-        availableAddresses.push(currentAddress);
+  const findAvailableKnxAddresses = useCallback(
+    (count) => {
+      if (!projectItems.knx || projectItems.knx.length === 0) {
+        // If no existing KNX items, return sequential addresses starting from 0
+        return Array.from({ length: count }, (_, i) => i);
       }
-      currentAddress++;
-    }
 
-    // Check if we found enough addresses
-    if (availableAddresses.length < count) {
-      throw new Error(`Only ${availableAddresses.length} addresses available, but ${count} requested`);
-    }
+      const existingAddresses = new Set(
+        projectItems.knx.map((item) => parseInt(item.address)).filter((addr) => !isNaN(addr) && addr >= 0 && addr <= 511)
+      );
 
-    return availableAddresses;
-  }, [projectItems.knx]);
+      const availableAddresses = [];
+      let currentAddress = 0;
+
+      // Find available addresses
+      while (availableAddresses.length < count && currentAddress <= 511) {
+        if (!existingAddresses.has(currentAddress)) {
+          availableAddresses.push(currentAddress);
+        }
+        currentAddress++;
+      }
+
+      // Check if we found enough addresses
+      if (availableAddresses.length < count) {
+        throw new Error(`Only ${availableAddresses.length} addresses available, but ${count} requested`);
+      }
+
+      return availableAddresses;
+    },
+    [projectItems.knx]
+  );
 
   // Initialize multi scene items and KNX data when sheet opens
   useEffect(() => {
@@ -159,23 +147,18 @@ export function GenerateFromMultiSceneSheet({ open, onOpenChange }) {
       }
 
       // Create all items in parallel
-      const results = await Promise.allSettled(
-        itemsToCreate.map(itemData => createItem("knx", itemData))
-      );
+      const results = await Promise.allSettled(itemsToCreate.map((itemData) => createItem("knx", itemData)));
 
       // Count results
       let successCount = 0;
       let errorCount = 0;
 
       results.forEach((result, index) => {
-        if (result.status === 'fulfilled') {
+        if (result.status === "fulfilled") {
           successCount++;
         } else {
           errorCount++;
-          console.error(
-            `Failed to create KNX item for multi scene ${selectedItemsList[index]}:`,
-            result.reason
-          );
+          console.error(`Failed to create KNX item for multi scene ${selectedItemsList[index]}:`, result.reason);
         }
       });
 
@@ -202,36 +185,24 @@ export function GenerateFromMultiSceneSheet({ open, onOpenChange }) {
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent
-        side="left"
-        className="sm:max-w-[800px] w-full max-w-[90vw] p-4 pb-0"
-      >
+      <SheetContent side="left" className="sm:max-w-[800px] w-full max-w-[90vw] p-4 pb-0">
         <SheetHeader>
           <SheetTitle className="flex items-center gap-2">
             <Layers className="h-5 w-5" />
             Generate KNX from Multi Scene
           </SheetTitle>
-          <SheetDescription>
-            Select multi scene items to generate corresponding KNX devices.
-          </SheetDescription>
+          <SheetDescription>Select multi scene items to generate corresponding KNX devices.</SheetDescription>
         </SheetHeader>
 
         <div className="space-y-4">
           {/* Header row */}
           <div className="flex gap-2 p-3 bg-muted/50 rounded-lg font-medium text-sm">
             <div className="w-[8%] flex items-center justify-center">
-              <Checkbox
-                checked={selectedCount === totalCount && totalCount > 0}
-                onCheckedChange={handleSelectAll}
-              />
+              <Checkbox checked={selectedCount === totalCount && totalCount > 0} onCheckedChange={handleSelectAll} />
             </div>
             <div className="w-[30%]">Multi Scene</div>
-            <div className="w-[12%] flex items-center justify-center">
-              Factor
-            </div>
-            <div className="w-[15%] flex items-center justify-center">
-              Feedback
-            </div>
+            <div className="w-[12%] flex items-center justify-center">Factor</div>
+            <div className="w-[15%] flex items-center justify-center">Feedback</div>
             <div className="w-[35%] flex items-center justify-center gap-1">
               KNX Trigger <span className="font-light">(Address)</span>
             </div>
@@ -247,27 +218,18 @@ export function GenerateFromMultiSceneSheet({ open, onOpenChange }) {
                 return (
                   <div
                     key={item.id}
-                    className={`flex gap-2 p-3 border rounded-lg items-center ${isSelected
-                      ? "border-gray-600/30 bg-gray-100/50"
-                      : "border-border"
-                      }`}
+                    className={`flex gap-2 p-3 border rounded-lg items-center ${isSelected ? "border-gray-600/30 bg-gray-100/50" : "border-border"}`}
                   >
                     {/* Select checkbox */}
                     <div className="w-[8%] flex items-center justify-center">
-                      <Checkbox
-                        checked={isSelected}
-                        onCheckedChange={(checked) =>
-                          handleItemSelect(item.id, checked)
-                        }
-                      />
+                      <Checkbox checked={isSelected} onCheckedChange={(checked) => handleItemSelect(item.id, checked)} />
                     </div>
 
                     {/* Multi Scene item info */}
                     <div className="w-[30%]">
                       <div className="flex items-center gap-2">
                         <span className="truncate">
-                          {item.name || `Multi Scene ${item.address}`}{" "}
-                          <span className="font-light">({item.address})</span>
+                          {item.name || `Multi Scene ${item.address}`} <span className="font-light">({item.address})</span>
                         </span>
                       </div>
                     </div>
@@ -278,13 +240,7 @@ export function GenerateFromMultiSceneSheet({ open, onOpenChange }) {
                         type="number"
                         min="1"
                         value={itemKnxData.factor || 1}
-                        onChange={(e) =>
-                          handleKnxDataChange(
-                            item.id,
-                            "factor",
-                            parseInt(e.target.value) || 1
-                          )
-                        }
+                        onChange={(e) => handleKnxDataChange(item.id, "factor", parseInt(e.target.value) || 1)}
                         className="h-8 w-full"
                         disabled={!isSelected}
                       />
@@ -294,13 +250,7 @@ export function GenerateFromMultiSceneSheet({ open, onOpenChange }) {
                     <div className="w-[15%]">
                       <Select
                         value={itemKnxData.feedback?.toString() || "0"}
-                        onValueChange={(value) =>
-                          handleKnxDataChange(
-                            item.id,
-                            "feedback",
-                            parseInt(value)
-                          )
-                        }
+                        onValueChange={(value) => handleKnxDataChange(item.id, "feedback", parseInt(value))}
                         disabled={!isSelected}
                       >
                         <SelectTrigger className="h-8 w-full">
@@ -317,13 +267,7 @@ export function GenerateFromMultiSceneSheet({ open, onOpenChange }) {
                     <div className="w-[35%] flex items-center justify-center">
                       <KNXAddressInput
                         value={itemKnxData.knx_switch_group || ""}
-                        onChange={(value) =>
-                          handleKnxDataChange(
-                            item.id,
-                            "knx_switch_group",
-                            value
-                          )
-                        }
+                        onChange={(value) => handleKnxDataChange(item.id, "knx_switch_group", value)}
                         placeholder="0/0/1"
                         className="h-8"
                         disabled={!isSelected}
@@ -341,17 +285,10 @@ export function GenerateFromMultiSceneSheet({ open, onOpenChange }) {
               {selectedCount} of {totalCount} items selected
             </div>
             <div className="flex gap-2">
-              <Button
-                variant="outline"
-                onClick={() => onOpenChange(false)}
-                disabled={loading}
-              >
+              <Button variant="outline" onClick={() => onOpenChange(false)} disabled={loading}>
                 Cancel
               </Button>
-              <Button
-                onClick={handleCreate}
-                disabled={loading || selectedCount === 0}
-              >
+              <Button onClick={handleCreate} disabled={loading || selectedCount === 0}>
                 {loading ? "Creating..." : `Create ${selectedCount} KNX Items`}
               </Button>
             </div>

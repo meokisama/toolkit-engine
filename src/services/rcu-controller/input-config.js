@@ -15,17 +15,11 @@ async function getAllInputConfigs(unitIp, canId) {
 
     const timeout = setTimeout(() => {
       client.close();
-      reject(
-        new Error(
-          `GET_INPUT_CONFIG timeout after 10s for ${unitIp}:${UDP_PORT}`
-        )
-      );
+      reject(new Error(`GET_INPUT_CONFIG timeout after 10s for ${unitIp}:${UDP_PORT}`));
     }, 10000); // 10 second timeout for input config
 
     client.on("message", (msg, rinfo) => {
-      console.log(
-        `Input config response ${responseCount + 1} from ${rinfo.address}`
-      );
+      console.log(`Input config response ${responseCount + 1} from ${rinfo.address}`);
       console.log(
         "Raw packet:",
         Array.from(msg)
@@ -35,25 +29,15 @@ async function getAllInputConfigs(unitIp, canId) {
       );
 
       try {
-        const result = processResponse(
-          msg,
-          PROTOCOL.LIGHTING.CMD1,
-          PROTOCOL.LIGHTING.CMD2.GET_INPUT_CONFIG,
-          true
-        );
+        const result = processResponse(msg, PROTOCOL.LIGHTING.CMD1, PROTOCOL.LIGHTING.CMD2.GET_INPUT_CONFIG, true);
 
         // Check if this is a success packet
         const packetLength = msg[4] | (msg[5] << 8);
         const dataSection = Array.from(msg.slice(8, 8 + packetLength - 4));
-        const isSuccessPacket =
-          packetLength === 5 &&
-          dataSection.length === 1 &&
-          dataSection[0] === 0x00;
+        const isSuccessPacket = packetLength === 5 && dataSection.length === 1 && dataSection[0] === 0x00;
 
         if (isSuccessPacket) {
-          console.log(
-            "✅ Input config success packet received - all data transmitted successfully"
-          );
+          console.log("✅ Input config success packet received - all data transmitted successfully");
           successPacketReceived = true;
           clearTimeout(timeout);
           client.close();
@@ -71,10 +55,7 @@ async function getAllInputConfigs(unitIp, canId) {
           console.log(`- Input config data packet ${responseCount} collected`);
         }
       } catch (error) {
-        console.error(
-          `Error processing input config response ${responseCount + 1}:`,
-          error
-        );
+        console.error(`Error processing input config response ${responseCount + 1}:`, error);
         console.error(
           "Packet data:",
           Array.from(msg)
@@ -153,9 +134,7 @@ function parseInputConfigResponse(msg, inputIndex) {
   const dataLength = length - 4; // Exclude cmd1, cmd2, and CRC
 
   if (dataLength < 39) {
-    throw new Error(
-      `Input config data too short: ${dataLength} bytes, expected at least 39`
-    );
+    throw new Error(`Input config data too short: ${dataLength} bytes, expected at least 39`);
   }
 
   // Parse according to the specified structure

@@ -9,8 +9,7 @@ export const useNetworkOutputConfig = (
   airconItems = [],
   readAirconConfigsFromUnit = null
 ) => {
-  const [lightingOutputDialogOpen, setLightingOutputDialogOpen] =
-    useState(false);
+  const [lightingOutputDialogOpen, setLightingOutputDialogOpen] = useState(false);
   const [acOutputDialogOpen, setACOutputDialogOpen] = useState(false);
   const [currentOutputConfig, setCurrentOutputConfig] = useState(null);
 
@@ -39,12 +38,8 @@ export const useNetworkOutputConfig = (
 
   // Helper function to calculate index within the same type
   const getTypeIndex = useCallback((globalIndex, outputType, allConfigs) => {
-    const sameTypeConfigs = allConfigs.filter(
-      (config) => config.type === outputType
-    );
-    const typeIndex = sameTypeConfigs.findIndex(
-      (config) => config.index === globalIndex
-    );
+    const sameTypeConfigs = allConfigs.filter((config) => config.type === outputType);
+    const typeIndex = sameTypeConfigs.findIndex((config) => config.index === globalIndex);
     return typeIndex + 1;
   }, []);
 
@@ -53,9 +48,7 @@ export const useNetworkOutputConfig = (
     async (outputIndex, deviceId) => {
       try {
         // Determine output type from outputConfigs
-        const outputConfig = outputConfigs.find(
-          (config) => config.index === outputIndex
-        );
+        const outputConfig = outputConfigs.find((config) => config.index === outputIndex);
         const outputType = outputConfig?.type;
 
         if (outputType === "ac") {
@@ -64,9 +57,7 @@ export const useNetworkOutputConfig = (
 
           if (deviceId) {
             // Find the aircon item by ID to get its address
-            const airconItem = airconItems?.find(
-              (item) => item.id === parseInt(deviceId)
-            );
+            const airconItem = airconItems?.find((item) => item.id === parseInt(deviceId));
             if (airconItem) {
               airconAddress = parseInt(airconItem.address) || 0;
             } else {
@@ -94,9 +85,7 @@ export const useNetworkOutputConfig = (
 
           if (deviceId) {
             // Find the lighting item by ID to get its address
-            const lightingItem = lightingItems?.find(
-              (item) => item.id === parseInt(deviceId)
-            );
+            const lightingItem = lightingItems?.find((item) => item.id === parseInt(deviceId));
             if (lightingItem) {
               lightingAddress = parseInt(lightingItem.address) || 0;
             } else {
@@ -275,14 +264,8 @@ export const useNetworkOutputConfig = (
           }
         } else {
           // Handle lighting/relay/dimmer configuration saving - update local state only
-          const delayOffSeconds =
-            config.delayOffHours * 3600 +
-            config.delayOffMinutes * 60 +
-            config.delayOffSeconds;
-          const delayOnSeconds =
-            config.delayOnHours * 3600 +
-            config.delayOnMinutes * 60 +
-            config.delayOnSeconds;
+          const delayOffSeconds = config.delayOffHours * 3600 + config.delayOffMinutes * 60 + config.delayOffSeconds;
+          const delayOnSeconds = config.delayOnHours * 3600 + config.delayOnMinutes * 60 + config.delayOnSeconds;
 
           if (setOutputConfigs) {
             setOutputConfigs((prev) =>
@@ -309,10 +292,7 @@ export const useNetworkOutputConfig = (
         return true;
       } catch (error) {
         console.error("Failed to save output configuration:", error);
-        const errorMessage =
-          error instanceof Error
-            ? error.message
-            : "Failed to save output configuration";
+        const errorMessage = error instanceof Error ? error.message : "Failed to save output configuration";
         toast.error(errorMessage);
         return false;
       }
@@ -340,14 +320,8 @@ export const useNetworkOutputConfig = (
 
         if (response) {
           // Calculate the correct index within the type for toast message
-          const outputConfig = outputConfigs.find(
-            (config) => config.index === outputIndex
-          );
-          const typeIndex = getTypeIndex(
-            outputIndex,
-            outputConfig?.type,
-            outputConfigs
-          );
+          const outputConfig = outputConfigs.find((config) => config.index === outputIndex);
+          const typeIndex = getTypeIndex(outputIndex, outputConfig?.type, outputConfigs);
           const typeLabel =
             outputConfig?.type === "ac"
               ? "AC"
@@ -359,25 +333,15 @@ export const useNetworkOutputConfig = (
               ? "AO"
               : "Output";
 
-          toast.success(
-            `${typeLabel} ${typeIndex} ${
-              currentState ? "turned off" : "turned on"
-            }`
-          );
+          toast.success(`${typeLabel} ${typeIndex} ${currentState ? "turned off" : "turned on"}`);
           return true;
         }
       } catch (error) {
         console.error("Failed to toggle output state:", error);
 
         // Calculate the correct index within the type for error toast message
-        const outputConfig = outputConfigs.find(
-          (config) => config.index === outputIndex
-        );
-        const typeIndex = getTypeIndex(
-          outputIndex,
-          outputConfig?.type,
-          outputConfigs
-        );
+        const outputConfig = outputConfigs.find((config) => config.index === outputIndex);
+        const typeIndex = getTypeIndex(outputIndex, outputConfig?.type, outputConfigs);
         const typeLabel =
           outputConfig?.type === "ac"
             ? "AC"
@@ -389,9 +353,7 @@ export const useNetworkOutputConfig = (
             ? "AO"
             : "Output";
 
-        toast.error(
-          `Failed to toggle ${typeLabel} ${typeIndex}: ${error.message}`
-        );
+        toast.error(`Failed to toggle ${typeLabel} ${typeIndex}: ${error.message}`);
         return false;
       }
     },

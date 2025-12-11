@@ -1,5 +1,3 @@
-"use client";
-
 import * as React from "react";
 import { TimePickerInput } from "@/components/custom/time-picker-input";
 
@@ -10,13 +8,7 @@ export function TimePicker({ date, setDate, showSeconds = true }) {
 
   return (
     <div className="flex items-end gap-2">
-      <TimePickerInput
-        picker="hours"
-        date={date}
-        setDate={setDate}
-        ref={hourRef}
-        onRightFocus={() => minuteRef.current?.focus()}
-      />
+      <TimePickerInput picker="hours" date={date} setDate={setDate} ref={hourRef} onRightFocus={() => minuteRef.current?.focus()} />
       <div className="flex h-10 items-center">:</div>
       <TimePickerInput
         picker="minutes"
@@ -24,20 +16,12 @@ export function TimePicker({ date, setDate, showSeconds = true }) {
         setDate={setDate}
         ref={minuteRef}
         onLeftFocus={() => hourRef.current?.focus()}
-        onRightFocus={() =>
-          showSeconds ? secondRef.current?.focus() : undefined
-        }
+        onRightFocus={() => (showSeconds ? secondRef.current?.focus() : undefined)}
       />
       {showSeconds && (
         <>
           <div className="flex h-10 items-center">:</div>
-          <TimePickerInput
-            picker="seconds"
-            date={date}
-            setDate={setDate}
-            ref={secondRef}
-            onLeftFocus={() => minuteRef.current?.focus()}
-          />
+          <TimePickerInput picker="seconds" date={date} setDate={setDate} ref={secondRef} onLeftFocus={() => minuteRef.current?.focus()} />
         </>
       )}
     </div>

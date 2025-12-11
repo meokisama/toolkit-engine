@@ -104,16 +104,7 @@ export function useTriggerType8({ address, index, colorFeature, open }) {
       console.error("Failed to trigger Type 8 device:", error);
       toast.error(`Failed to trigger Type 8 device: ${error.message}`);
     }
-  }, [
-    selectedGateway,
-    index,
-    address,
-    colorFeature,
-    brightness,
-    colorTemperature,
-    rgbColor,
-    whiteValue,
-  ]);
+  }, [selectedGateway, index, address, colorFeature, brightness, colorTemperature, rgbColor, whiteValue]);
 
   /**
    * Debounced trigger - auto-trigger when values change and popover is open

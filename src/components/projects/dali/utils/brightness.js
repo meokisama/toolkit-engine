@@ -1,9 +1,4 @@
-import {
-  BRIGHTNESS_MAX,
-  BRIGHTNESS_MIN,
-  BRIGHTNESS_PERCENT_MAX,
-  BRIGHTNESS_PERCENT_MIN,
-} from "./constants";
+import { BRIGHTNESS_MAX, BRIGHTNESS_MIN, BRIGHTNESS_PERCENT_MAX, BRIGHTNESS_PERCENT_MIN } from "./constants";
 
 /**
  * Convert brightness from 0-100% to 0-255
@@ -11,10 +6,7 @@ import {
  * @returns {number} Brightness value (0-255)
  */
 export function percentToBrightness(percent) {
-  const clampedPercent = Math.max(
-    BRIGHTNESS_PERCENT_MIN,
-    Math.min(BRIGHTNESS_PERCENT_MAX, parseInt(percent) || 0)
-  );
+  const clampedPercent = Math.max(BRIGHTNESS_PERCENT_MIN, Math.min(BRIGHTNESS_PERCENT_MAX, parseInt(percent) || 0));
   return Math.round(clampedPercent * 2.55);
 }
 
@@ -24,10 +16,7 @@ export function percentToBrightness(percent) {
  * @returns {number} Brightness percentage (0-100)
  */
 export function brightnessToPercent(brightness) {
-  const clampedBrightness = Math.max(
-    BRIGHTNESS_MIN,
-    Math.min(BRIGHTNESS_MAX, parseInt(brightness) || 0)
-  );
+  const clampedBrightness = Math.max(BRIGHTNESS_MIN, Math.min(BRIGHTNESS_MAX, parseInt(brightness) || 0));
   return Math.round(clampedBrightness / 2.55);
 }
 

@@ -1,15 +1,7 @@
-"use client";
-
 import { useState } from "react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Building2, Settings, ActivitySquare } from "lucide-react";
 import { RoomConfigDisplay } from "./room-config-display";
 import { RoomStatusControl } from "./room-status-control";
@@ -29,11 +21,7 @@ export function RoomConfigControlDialog({ open, onOpenChange, unit }) {
 
     setLoading(true);
     try {
-      const config =
-        await window.electronAPI.roomController.getRoomConfiguration(
-          unit.ip_address,
-          unit.id_can
-        );
+      const config = await window.electronAPI.roomController.getRoomConfiguration(unit.ip_address, unit.id_can);
 
       setRoomConfig(config);
       toast.success("Room configuration read successfully");
@@ -61,18 +49,12 @@ export function RoomConfigControlDialog({ open, onOpenChange, unit }) {
             <Building2 className="h-5 w-5" />
             Room Configuration & Status Control
           </DialogTitle>
-          <DialogDescription>
-            Manage room configuration and status for network unit{" "}
-            {unit && `${unit.type} (${unit.ip_address})`}
-          </DialogDescription>
+          <DialogDescription>Manage room configuration and status for network unit {unit && `${unit.type} (${unit.ip_address})`}</DialogDescription>
         </DialogHeader>
 
         <Tabs defaultValue="configuration" className="w-full">
           <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger
-              value="configuration"
-              className="flex items-center gap-2"
-            >
+            <TabsTrigger value="configuration" className="flex items-center gap-2">
               <Settings className="h-4 w-4" />
               Configuration
             </TabsTrigger>
@@ -86,11 +68,7 @@ export function RoomConfigControlDialog({ open, onOpenChange, unit }) {
             <div className="space-y-4">
               <div className="flex justify-end">
                 <Button onClick={handleReadConfig} disabled={loading}>
-                  {loading ? (
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                  ) : (
-                    <Download className="h-4 w-4" />
-                  )}
+                  {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
                   {loading ? "Reading..." : "Read Configuration"}
                 </Button>
               </div>
@@ -104,10 +82,7 @@ export function RoomConfigControlDialog({ open, onOpenChange, unit }) {
               {!roomConfig && !loading && (
                 <div className="text-center text-muted-foreground py-8">
                   <Building2 className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                  <p>
-                    Click "Read Configuration" to load room settings from the
-                    unit
-                  </p>
+                  <p>Click "Read Configuration" to load room settings from the unit</p>
                 </div>
               )}
             </div>

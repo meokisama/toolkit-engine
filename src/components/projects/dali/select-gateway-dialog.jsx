@@ -1,22 +1,11 @@
 import { useState, useRef, useCallback } from "react";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import {
-  NetworkUnitSelector,
-  useNetworkUnitSelector,
-} from "@/components/shared/network-unit-selector";
+import { NetworkUnitSelector, useNetworkUnitSelector } from "@/components/shared/network-unit-selector";
 import { toast } from "sonner";
 
 export function SelectGatewayDialog({ open, onOpenChange, onSelect }) {
-  const { selectedUnitIds, handleSelectionChange, clearSelection } =
-    useNetworkUnitSelector();
+  const { selectedUnitIds, handleSelectionChange, clearSelection } = useNetworkUnitSelector();
   const networkUnitSelectorRef = useRef(null);
 
   const handleSelect = useCallback(() => {
@@ -25,8 +14,7 @@ export function SelectGatewayDialog({ open, onOpenChange, onSelect }) {
       return;
     }
 
-    const selectedUnits =
-      networkUnitSelectorRef.current?.getSelectedUnits() || [];
+    const selectedUnits = networkUnitSelectorRef.current?.getSelectedUnits() || [];
     if (selectedUnits.length > 0) {
       onSelect(selectedUnits[0]);
       onOpenChange(false);
@@ -41,12 +29,10 @@ export function SelectGatewayDialog({ open, onOpenChange, onSelect }) {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="!max-w-3xl">
+      <DialogContent className="max-w-3xl!">
         <DialogHeader>
           <DialogTitle>Select DALI Gateway</DialogTitle>
-          <DialogDescription>
-            Choose a network unit to use as DALI gateway.
-          </DialogDescription>
+          <DialogDescription>Choose a network unit to use as DALI gateway.</DialogDescription>
         </DialogHeader>
 
         <NetworkUnitSelector
@@ -62,10 +48,7 @@ export function SelectGatewayDialog({ open, onOpenChange, onSelect }) {
           <Button variant="outline" onClick={handleCancel}>
             Cancel
           </Button>
-          <Button
-            onClick={handleSelect}
-            disabled={selectedUnitIds.length === 0}
-          >
+          <Button onClick={handleSelect} disabled={selectedUnitIds.length === 0}>
             Select Gateway
           </Button>
         </DialogFooter>

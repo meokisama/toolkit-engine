@@ -35,10 +35,7 @@ export const LoadingSkeleton = () => {
           <CardContent>
             <div className="space-y-3">
               {Array.from({ length: 3 }).map((_, i) => (
-                <div
-                  key={i}
-                  className="flex items-center gap-3 p-3 border rounded-lg"
-                >
+                <div key={i} className="flex items-center gap-3 p-3 border rounded-lg">
                   <div className="flex-1 space-y-2">
                     <Skeleton className="h-4 w-24" />
                     <Skeleton className="h-10 w-full" />
@@ -61,10 +58,7 @@ export const LoadingSkeleton = () => {
           <CardContent>
             <div className="space-y-2">
               {Array.from({ length: 4 }).map((_, i) => (
-                <div
-                  key={i}
-                  className="flex items-center justify-between p-3 border rounded-lg"
-                >
+                <div key={i} className="flex items-center justify-between p-3 border rounded-lg">
                   <div className="space-y-1">
                     <Skeleton className="h-4 w-24" />
                     <Skeleton className="h-3 w-16" />

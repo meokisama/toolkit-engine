@@ -1,13 +1,6 @@
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -62,8 +55,7 @@ export function ImportDialog({ open, onOpenChange, onImport }) {
   const validateImportData = (data) => {
     if (!data || typeof data !== "object") return false;
     if (!data.project || typeof data.project !== "object") return false;
-    if (!data.project.name || typeof data.project.name !== "string")
-      return false;
+    if (!data.project.name || typeof data.project.name !== "string") return false;
     if (!data.items || typeof data.items !== "object") return false;
 
     // Check if items has valid categories
@@ -139,19 +131,14 @@ export function ImportDialog({ open, onOpenChange, onImport }) {
       <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
           <DialogTitle>Import Project</DialogTitle>
-          <DialogDescription>
-            Import a project from a JSON file. You can modify the project name
-            and description before importing.
-          </DialogDescription>
+          <DialogDescription>Import a project from a JSON file. You can modify the project name and description before importing.</DialogDescription>
         </DialogHeader>
 
         <div className="space-y-4">
           {!importData ? (
             <div className="border-2 border-dashed border-muted-foreground/25 rounded-lg p-8 text-center">
               <FileText className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
-              <p className="text-sm text-muted-foreground mb-4">
-                Select a project JSON file to import
-              </p>
+              <p className="text-sm text-muted-foreground mb-4">Select a project JSON file to import</p>
               <Button onClick={handleFileSelect} variant="outline">
                 <Upload className="h-4 w-4 mr-2" />
                 Select File
@@ -162,9 +149,7 @@ export function ImportDialog({ open, onOpenChange, onImport }) {
               <div className="bg-muted/50 rounded-lg p-4">
                 <div className="flex items-center gap-2 mb-2">
                   <FileText className="h-4 w-4 text-green-600" />
-                  <span className="text-sm font-medium">
-                    File loaded successfully
-                  </span>
+                  <span className="text-sm font-medium">File loaded successfully</span>
                 </div>
                 <div className="text-sm text-muted-foreground">
                   <p>Total items: {getItemsCount()}</p>
@@ -181,18 +166,11 @@ export function ImportDialog({ open, onOpenChange, onImport }) {
 
               <div className="space-y-2">
                 <Label htmlFor="project-name">Project Name</Label>
-                <Input
-                  id="project-name"
-                  value={projectName}
-                  onChange={(e) => setProjectName(e.target.value)}
-                  placeholder="Enter project name"
-                />
+                <Input id="project-name" value={projectName} onChange={(e) => setProjectName(e.target.value)} placeholder="Enter project name" />
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="project-description">
-                  Description (Optional)
-                </Label>
+                <Label htmlFor="project-description">Description (Optional)</Label>
                 <Textarea
                   id="project-description"
                   value={projectDescription}
@@ -204,9 +182,7 @@ export function ImportDialog({ open, onOpenChange, onImport }) {
 
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
                 <AlertCircle className="h-4 w-4" />
-                <span>
-                  This will create a new project with the imported data.
-                </span>
+                <span>This will create a new project with the imported data.</span>
               </div>
             </div>
           )}
@@ -218,17 +194,10 @@ export function ImportDialog({ open, onOpenChange, onImport }) {
           </Button>
           {importData && (
             <>
-              <Button
-                variant="outline"
-                onClick={handleFileSelect}
-                disabled={loading}
-              >
+              <Button variant="outline" onClick={handleFileSelect} disabled={loading}>
                 Select Different File
               </Button>
-              <Button
-                onClick={handleImport}
-                disabled={loading || !projectName.trim()}
-              >
+              <Button onClick={handleImport} disabled={loading || !projectName.trim()}>
                 {loading ? "Importing..." : "Import Project"}
               </Button>
             </>

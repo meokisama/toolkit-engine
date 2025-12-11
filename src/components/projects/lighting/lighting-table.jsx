@@ -14,8 +14,7 @@ import { Lightbulb } from "lucide-react";
 
 // Memoized component to prevent unnecessary rerenders
 function ProjectItemsTableComponent({ category, items, loading }) {
-  const { deleteItem, duplicateItem, exportItems, importItems, updateItem } =
-    useProjectDetail();
+  const { deleteItem, duplicateItem, exportItems, importItems, updateItem } = useProjectDetail();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingItem, setEditingItem] = useState(null);
   const [dialogMode, setDialogMode] = useState("create");
@@ -49,9 +48,7 @@ function ProjectItemsTableComponent({ category, items, loading }) {
   // ✅ Stable function that doesn't depend on state
   const getEffectiveValue = useCallback((itemId, field, originalValue) => {
     const itemChanges = pendingChangesRef.current.get(itemId);
-    return itemChanges && itemChanges.hasOwnProperty(field)
-      ? itemChanges[field]
-      : originalValue;
+    return itemChanges && itemChanges.hasOwnProperty(field) ? itemChanges[field] : originalValue;
   }, []); // No dependencies = stable function!
 
   // Save all pending changes
@@ -130,9 +127,7 @@ function ProjectItemsTableComponent({ category, items, loading }) {
 
     setBulkDeleteLoading(true);
     try {
-      await Promise.all(
-        itemsToDelete.map((item) => deleteItem(category, item.id))
-      );
+      await Promise.all(itemsToDelete.map((item) => deleteItem(category, item.id)));
 
       setBulkDeleteDialogOpen(false);
       setItemsToDelete([]);
@@ -188,14 +183,7 @@ function ProjectItemsTableComponent({ category, items, loading }) {
 
   // ✅ Now columns will be truly stable because all dependencies are stable!
   const columns = useMemo(
-    () =>
-      createProjectItemsColumns(
-        handleEditItem,
-        handleDuplicateItem,
-        handleDeleteItem,
-        handleCellEdit,
-        getEffectiveValue
-      ),
+    () => createProjectItemsColumns(handleEditItem, handleDuplicateItem, handleDeleteItem, handleCellEdit, getEffectiveValue),
     [
       handleEditItem,
       handleDuplicateItem,
@@ -216,9 +204,7 @@ function ProjectItemsTableComponent({ category, items, loading }) {
           <div className="text-center text-muted-foreground flex flex-col justify-center items-center h-full -mt-8">
             <Lightbulb className="h-12 w-12 mx-auto mb-4 opacity-50" />
             <p>No lighting groups found.</p>
-            <p className="text-sm mb-8">
-              Click "Add Group" to create your first item.
-            </p>
+            <p className="text-sm mb-8">Click "Add Group" to create your first item.</p>
             <Button onClick={handleCreateItem}>
               <Plus className="h-4 w-4" />
               Add Group
@@ -260,20 +246,12 @@ function ProjectItemsTableComponent({ category, items, loading }) {
                 enableRowSelection={true}
               />
             </div>
-            {table && (
-              <DataTablePagination table={table} pagination={pagination} />
-            )}
+            {table && <DataTablePagination table={table} pagination={pagination} />}
           </div>
         )}
       </div>
 
-      <ProjectItemDialog
-        open={dialogOpen}
-        onOpenChange={setDialogOpen}
-        category={category}
-        item={editingItem}
-        mode={dialogMode}
-      />
+      <ProjectItemDialog open={dialogOpen} onOpenChange={setDialogOpen} category={category} item={editingItem} mode={dialogMode} />
 
       <ConfirmDialog
         open={confirmDialogOpen}
@@ -291,38 +269,22 @@ function ProjectItemsTableComponent({ category, items, loading }) {
         open={bulkDeleteDialogOpen}
         onOpenChange={setBulkDeleteDialogOpen}
         title="Delete Multiple Items"
-        description={`Are you sure you want to delete ${
-          itemsToDelete.length
-        } selected item${
+        description={`Are you sure you want to delete ${itemsToDelete.length} selected item${
           itemsToDelete.length !== 1 ? "s" : ""
         }? This action cannot be undone.`}
-        confirmText={`Delete ${itemsToDelete.length} item${
-          itemsToDelete.length !== 1 ? "s" : ""
-        }`}
+        confirmText={`Delete ${itemsToDelete.length} item${itemsToDelete.length !== 1 ? "s" : ""}`}
         cancelText="Cancel"
         variant="destructive"
         onConfirm={confirmBulkDelete}
         loading={bulkDeleteLoading}
       />
 
-      <ImportItemsDialog
-        open={importDialogOpen}
-        onOpenChange={setImportDialogOpen}
-        onImport={handleImportConfirm}
-        category={category}
-      />
+      <ImportItemsDialog open={importDialogOpen} onOpenChange={setImportDialogOpen} onImport={handleImportConfirm} category={category} />
     </>
   );
 }
 
 // Export memoized component with custom comparison function
-export const ProjectItemsTable = memo(
-  ProjectItemsTableComponent,
-  (prevProps, nextProps) => {
-    return (
-      prevProps.category === nextProps.category &&
-      prevProps.items === nextProps.items &&
-      prevProps.loading === nextProps.loading
-    );
-  }
-);
+export const ProjectItemsTable = memo(ProjectItemsTableComponent, (prevProps, nextProps) => {
+  return prevProps.category === nextProps.category && prevProps.items === nextProps.items && prevProps.loading === nextProps.loading;
+});

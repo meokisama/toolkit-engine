@@ -7,47 +7,25 @@ import { sendCommand } from "./command-sender.js";
 // Generic lighting command helper
 async function sendLightingCommand(unitIp, canId, cmd2, data) {
   const idAddress = convertCanIdToInt(canId);
-  return sendCommand(
-    unitIp,
-    UDP_PORT,
-    idAddress,
-    PROTOCOL.LIGHTING.CMD1,
-    cmd2,
-    data
-  );
+  return sendCommand(unitIp, UDP_PORT, idAddress, PROTOCOL.LIGHTING.CMD1, cmd2, data);
 }
 
 async function setGroupState(unitIp, canId, group, value) {
   validators.group(group);
   validators.value(value);
-  return sendLightingCommand(
-    unitIp,
-    canId,
-    PROTOCOL.LIGHTING.CMD2.SET_GROUP_STATE,
-    [group, value]
-  );
+  return sendLightingCommand(unitIp, canId, PROTOCOL.LIGHTING.CMD2.SET_GROUP_STATE, [group, value]);
 }
 
 async function setOutputState(unitIp, canId, outputIndex, value) {
   validators.outputIndex(outputIndex);
   validators.value(value);
-  return sendLightingCommand(
-    unitIp,
-    canId,
-    PROTOCOL.LIGHTING.CMD2.SET_OUTPUT_STATE,
-    [outputIndex, value]
-  );
+  return sendLightingCommand(unitIp, canId, PROTOCOL.LIGHTING.CMD2.SET_OUTPUT_STATE, [outputIndex, value]);
 }
 
 async function setInputState(unitIp, canId, inputIndex, value) {
   validators.outputIndex(inputIndex); // Use same validator for input index
   validators.value(value);
-  return sendLightingCommand(
-    unitIp,
-    canId,
-    PROTOCOL.LIGHTING.CMD2.SET_INPUT_STATE,
-    [inputIndex, value]
-  );
+  return sendLightingCommand(unitIp, canId, PROTOCOL.LIGHTING.CMD2.SET_INPUT_STATE, [inputIndex, value]);
 }
 
 async function setMultipleGroupStates(unitIp, canId, groupSettings) {
@@ -69,12 +47,7 @@ async function setMultipleGroupStates(unitIp, canId, groupSettings) {
     throw new Error("No valid groups to set");
   }
 
-  return sendLightingCommand(
-    unitIp,
-    canId,
-    PROTOCOL.LIGHTING.CMD2.SET_GROUP_STATE,
-    data
-  );
+  return sendLightingCommand(unitIp, canId, PROTOCOL.LIGHTING.CMD2.SET_GROUP_STATE, data);
 }
 
 async function getAllGroupStates(unitIp, canId) {
@@ -188,12 +161,4 @@ async function getAllInputStates(unitIp, canId) {
   throw new Error("Invalid response from get input states command");
 }
 
-export {
-  setGroupState,
-  setOutputState,
-  setInputState,
-  setMultipleGroupStates,
-  getAllGroupStates,
-  getAllOutputStates,
-  getAllInputStates,
-};
+export { setGroupState, setOutputState, setInputState, setMultipleGroupStates, getAllGroupStates, getAllOutputStates, getAllInputStates };

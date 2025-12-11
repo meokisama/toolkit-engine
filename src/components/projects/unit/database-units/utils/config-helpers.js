@@ -6,10 +6,7 @@
  * Find or create database item by network item
  * Maps network object types to database item types and creates items if needed
  */
-export const findOrCreateDatabaseItemByNetworkItem = async (
-  networkItem,
-  projectId
-) => {
+export const findOrCreateDatabaseItemByNetworkItem = async (networkItem, projectId) => {
   try {
     const objectValue = networkItem.objectValue;
     const itemAddress = networkItem.itemAddress;
@@ -37,17 +34,13 @@ export const findOrCreateDatabaseItemByNetworkItem = async (
     // Find item in database by address
     const items = await window.electronAPI[itemType].getAll(projectId);
 
-    let foundItem = items.find(
-      (item) => item.address === itemAddress.toString()
-    );
+    let foundItem = items.find((item) => item.address === itemAddress.toString());
 
     if (foundItem) {
       return { itemType, itemId: foundItem.id };
     } else {
       const newItemData = {
-        name: `${
-          itemType.charAt(0).toUpperCase() + itemType.slice(1)
-        } ${itemAddress}`,
+        name: `${itemType.charAt(0).toUpperCase() + itemType.slice(1)} ${itemAddress}`,
         address: itemAddress.toString(),
         description: `Auto-created from scene transfer`,
       };
@@ -69,10 +62,7 @@ export const findOrCreateDatabaseItemByNetworkItem = async (
         // Note: open_group_id, close_group_id, stop_group_id will be null
       }
 
-      const createdItem = await window.electronAPI[itemType].create(
-        projectId,
-        newItemData
-      );
+      const createdItem = await window.electronAPI[itemType].create(projectId, newItemData);
 
       return { itemType, itemId: createdItem.id };
     }
@@ -93,9 +83,7 @@ export const findOrCreateLightingByAddress = async (address, projectId) => {
     }
 
     const lightingItems = await window.electronAPI.lighting.getAll(projectId);
-    let foundItem = lightingItems.find(
-      (item) => item.address === address.toString()
-    );
+    let foundItem = lightingItems.find((item) => item.address === address.toString());
 
     if (foundItem) {
       return foundItem;
@@ -108,17 +96,11 @@ export const findOrCreateLightingByAddress = async (address, projectId) => {
         object_value: 1,
       };
 
-      const createdItem = await window.electronAPI.lighting.create(
-        projectId,
-        newLightingData
-      );
+      const createdItem = await window.electronAPI.lighting.create(projectId, newLightingData);
       return createdItem;
     }
   } catch (error) {
-    console.error(
-      `Error finding or creating lighting with address ${address}:`,
-      error
-    );
+    console.error(`Error finding or creating lighting with address ${address}:`, error);
     return null;
   }
 };

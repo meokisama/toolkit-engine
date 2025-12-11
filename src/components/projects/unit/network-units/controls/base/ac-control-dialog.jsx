@@ -1,22 +1,7 @@
-"use client";
-
 import { memo, useCallback, useState, useEffect, useRef } from "react";
-import {
-  Dialog,
-  DialogContent,
-  DialogFooter,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogFooter, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import {
-  Thermometer,
-  Power,
-  Sun,
-  Fan,
-  RefreshCw,
-  Droplet,
-  Book,
-} from "lucide-react";
+import { Thermometer, Power, Sun, Fan, RefreshCw, Droplet, Book } from "lucide-react";
 import { cn } from "@/lib/utils";
 import CircularSlider from "@fseehawer/react-circular-slider";
 import { Switch } from "@/components/ui/switch";
@@ -38,11 +23,7 @@ const FanModes = [
   { value: 4, label: "Off" },
 ];
 
-export const RoomControlDialog = memo(function RoomControlDialog({
-  room,
-  open,
-  onOpenChange,
-}) {
+export const RoomControlDialog = memo(function RoomControlDialog({ room, open, onOpenChange }) {
   // State management for AC control
   const [loading, setLoading] = useState(false);
   const [acGroup, setAcGroup] = useState(room?.acGroup || 1);
@@ -166,9 +147,7 @@ export const RoomControlDialog = memo(function RoomControlDialog({
         toast.success(`Đã ${power ? "bật" : "tắt"} điều hòa`);
       } catch (error) {
         console.error("Failed to set power mode:", error);
-        toast.error(
-          `Lỗi khi ${power ? "bật" : "tắt"} điều hòa: ${error.message}`
-        );
+        toast.error(`Lỗi khi ${power ? "bật" : "tắt"} điều hòa: ${error.message}`);
         // Revert the change on error
         setControlSettings((prev) => ({ ...prev, power: !power }));
       } finally {
@@ -222,9 +201,7 @@ export const RoomControlDialog = memo(function RoomControlDialog({
           fanSpeed: fanMode,
         });
         const fanNames = ["Low", "Med", "High", "Auto", "Off"];
-        toast.success(
-          `Đã chuyển tốc độ quạt sang ${fanNames[fanMode] || fanMode}`
-        );
+        toast.success(`Đã chuyển tốc độ quạt sang ${fanNames[fanMode] || fanMode}`);
       } catch (error) {
         console.error("Failed to set fan mode:", error);
         toast.error(`Lỗi khi đổi tốc độ quạt: ${error.message}`);
@@ -272,16 +249,14 @@ export const RoomControlDialog = memo(function RoomControlDialog({
           sendPowerMode(updates.power);
           if (updates.power) {
             // If turning on, use the last active mode or default to cool (0)
-            const activeMode =
-              updates.lastActiveMode || prev.lastActiveMode || 0;
+            const activeMode = updates.lastActiveMode || prev.lastActiveMode || 0;
             newSettings.acMode = activeMode;
             if (activeMode !== prev.acMode) {
               setTimeout(() => sendACMode(activeMode), 500); // Small delay after power on
             }
           } else {
             // If turning off, save the current mode as lastActiveMode
-            newSettings.lastActiveMode =
-              prev.acMode !== undefined ? prev.acMode : prev.lastActiveMode;
+            newSettings.lastActiveMode = prev.acMode !== undefined ? prev.acMode : prev.lastActiveMode;
           }
         }
 
@@ -354,12 +329,7 @@ export const RoomControlDialog = memo(function RoomControlDialog({
     };
 
     const handleResumeAutoRefresh = (event) => {
-      if (
-        open &&
-        room?.unit?.ip_address &&
-        room?.unit?.id_can &&
-        !autoRefreshIntervalRef.current
-      ) {
+      if (open && room?.unit?.ip_address && room?.unit?.id_can && !autoRefreshIntervalRef.current) {
         autoRefreshIntervalRef.current = setInterval(() => {
           autoRefreshStatus();
         }, 1000);
@@ -371,10 +341,7 @@ export const RoomControlDialog = memo(function RoomControlDialog({
 
     return () => {
       window.removeEventListener("pauseAllAutoRefresh", handlePauseAutoRefresh);
-      window.removeEventListener(
-        "resumeAllAutoRefresh",
-        handleResumeAutoRefresh
-      );
+      window.removeEventListener("resumeAllAutoRefresh", handleResumeAutoRefresh);
     };
   }, [open, room?.unit?.ip_address, room?.unit?.id_can, autoRefreshStatus]);
 
@@ -398,11 +365,7 @@ export const RoomControlDialog = memo(function RoomControlDialog({
           {/* Temperature Control Dial */}
           <div className="relative w-full max-w-[280px] sm:w-64 sm:h-64 flex flex-col items-center justify-center">
             <CircularSlider
-              width={
-                window.innerWidth < 640
-                  ? Math.min(window.innerWidth - 80, 240)
-                  : 240
-              }
+              width={window.innerWidth < 640 ? Math.min(window.innerWidth - 80, 240) : 240}
               min={18}
               max={32}
               direction={1}
@@ -416,8 +379,7 @@ export const RoomControlDialog = memo(function RoomControlDialog({
               data={[...Array(29)].map((_, i) => (18 + i * 0.5).toFixed(1))} // Generate array of temperatures from 18 to 32 in 0.5 increments
               onChange={useCallback(
                 (value) => {
-                  const tempValue =
-                    typeof value === "string" ? parseFloat(value) : value;
+                  const tempValue = typeof value === "string" ? parseFloat(value) : value;
                   updateControlSettings({ setpoint: tempValue });
                 },
                 [updateControlSettings]
@@ -433,9 +395,7 @@ export const RoomControlDialog = memo(function RoomControlDialog({
                   >
                     <p className="uppercase text-xs font-light mb-2 text-gray-400 flex items-center justify-center gap-2">
                       Cài đặt nhiệt độ
-                      {loadingStates.temperature && (
-                        <RefreshCw className="h-3 w-3 animate-spin text-blue-500" />
-                      )}
+                      {loadingStates.temperature && <RefreshCw className="h-3 w-3 animate-spin text-blue-500" />}
                     </p>
                     {loading || loadingStates.temperature
                       ? "..."
@@ -445,12 +405,7 @@ export const RoomControlDialog = memo(function RoomControlDialog({
                   </div>
                   <div className="text-lg text-gray-500 mt-2 font-medium ">
                     <span className="text-center bg-gray-50 px-3 py-1 rounded-md shadow-inner">
-                      {loading
-                        ? "..."
-                        : status.roomTemp !== undefined
-                        ? `${status.roomTemp.toFixed(1)}`
-                        : "--"}
-                      °
+                      {loading ? "..." : status.roomTemp !== undefined ? `${status.roomTemp.toFixed(1)}` : "--"}°
                     </span>
                   </div>
                 </div>
@@ -462,12 +417,8 @@ export const RoomControlDialog = memo(function RoomControlDialog({
           <div className="w-full flex items-center justify-between bg-gray-50 dark:bg-card px-6 py-4 rounded-lg shadow-inner">
             <div className="flex items-center gap-2">
               <Power className="h-5 w-5 text-gray-600" />
-              <span className="font-medium text-gray-700 dark:text-gray-300">
-                Power
-              </span>
-              {loadingStates.power && (
-                <RefreshCw className="h-4 w-4 animate-spin text-blue-500" />
-              )}
+              <span className="font-medium text-gray-700 dark:text-gray-300">Power</span>
+              {loadingStates.power && <RefreshCw className="h-4 w-4 animate-spin text-blue-500" />}
             </div>
             <Switch
               checked={controlSettings.power}
@@ -488,16 +439,12 @@ export const RoomControlDialog = memo(function RoomControlDialog({
           <div className="w-full">
             <div className="text-xs uppercase tracking-wider text-gray-500 mb-1 text-center flex items-center justify-center gap-2">
               CHẾ ĐỘ ĐIỀU HÒA
-              {loadingStates.acMode && (
-                <RefreshCw className="h-3 w-3 animate-spin text-blue-500" />
-              )}
+              {loadingStates.acMode && <RefreshCw className="h-3 w-3 animate-spin text-blue-500" />}
             </div>
             <div
               className={cn(
                 "grid grid-cols-4 gap-0.5 border border-blue-200 dark:border-gray-700 bg-card rounded-lg overflow-hidden shadow-sm",
-                !controlSettings.power || loadingStates.acMode
-                  ? "opacity-50 pointer-events-none"
-                  : ""
+                !controlSettings.power || loadingStates.acMode ? "opacity-50 pointer-events-none" : ""
               )}
             >
               {ACModes.map((mode) => (
@@ -524,16 +471,12 @@ export const RoomControlDialog = memo(function RoomControlDialog({
           <div className="w-full">
             <div className="text-xs uppercase tracking-wider text-gray-500 mb-1 text-center flex items-center justify-center gap-2">
               TỐC ĐỘ QUẠT
-              {loadingStates.fanMode && (
-                <RefreshCw className="h-3 w-3 animate-spin text-blue-500" />
-              )}
+              {loadingStates.fanMode && <RefreshCw className="h-3 w-3 animate-spin text-blue-500" />}
             </div>
             <div
               className={cn(
                 "grid grid-cols-5 border border-blue-200 dark:border-gray-700 bg-card rounded-lg overflow-hidden shadow-sm",
-                !controlSettings.power || loadingStates.fanMode
-                  ? "opacity-50 pointer-events-none"
-                  : ""
+                !controlSettings.power || loadingStates.fanMode ? "opacity-50 pointer-events-none" : ""
               )}
             >
               {FanModes.map((mode) => (
@@ -576,11 +519,7 @@ export const RoomControlDialog = memo(function RoomControlDialog({
               disabled={loading}
               className="bg-linear-to-r from-blue-500 to-blue-600 text-white hover:from-blue-600 hover:to-blue-700 transition-all duration-200 shadow-md"
             >
-              {loading ? (
-                <RefreshCw className="h-4 w-4 animate-spin" />
-              ) : (
-                <RefreshCw className="h-4 w-4" />
-              )}
+              {loading ? <RefreshCw className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
               <span>Get State</span>
             </Button>
           </div>

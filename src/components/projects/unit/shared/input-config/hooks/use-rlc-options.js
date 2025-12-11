@@ -1,15 +1,6 @@
 import { useState, useCallback, useRef, useEffect } from "react";
-import {
-  calculateDelaySeconds,
-  parseDelaySeconds,
-  calculateLedStatus,
-  parseLedStatus,
-} from "@/constants";
-import {
-  timeToDate,
-  dateToTimeComponents,
-  validateDelayOffTime,
-} from "../utils/time-helpers";
+import { calculateDelaySeconds, parseDelaySeconds, calculateLedStatus, parseLedStatus } from "@/constants";
+import { timeToDate, dateToTimeComponents, validateDelayOffTime } from "../utils/time-helpers";
 
 export const useRlcOptions = (initialRlcOptions = {}) => {
   // RLC Options state
@@ -28,9 +19,7 @@ export const useRlcOptions = (initialRlcOptions = {}) => {
   });
 
   // Time picker state for delay off - local state for immediate UI updates
-  const [delayOffTime, setDelayOffTime] = useState(
-    new Date(new Date().setHours(0, 0, 0, 0))
-  );
+  const [delayOffTime, setDelayOffTime] = useState(new Date(new Date().setHours(0, 0, 0, 0)));
 
   // Debounce timeout ref for time picker
   const timePickerDebounceRef = useRef(null);
@@ -39,8 +28,7 @@ export const useRlcOptions = (initialRlcOptions = {}) => {
   useEffect(() => {
     if (initialRlcOptions && Object.keys(initialRlcOptions).length > 0) {
       // Parse delay off time - handle both formats
-      const delaySeconds =
-        initialRlcOptions.delayOff || initialRlcOptions.delay_off || 0;
+      const delaySeconds = initialRlcOptions.delayOff || initialRlcOptions.delay_off || 0;
       const delayTime = parseDelaySeconds(delaySeconds);
 
       // Handle ledStatus - it can be a number or an object with raw property
@@ -51,10 +39,7 @@ export const useRlcOptions = (initialRlcOptions = {}) => {
         ledStatusValue = initialRlcOptions.led_status;
       } else if (typeof initialRlcOptions.ledStatus === "number") {
         ledStatusValue = initialRlcOptions.ledStatus;
-      } else if (
-        initialRlcOptions.ledStatus &&
-        typeof initialRlcOptions.ledStatus === "object"
-      ) {
+      } else if (initialRlcOptions.ledStatus && typeof initialRlcOptions.ledStatus === "object") {
         // If it's already parsed object from service, use the raw value
         if (initialRlcOptions.ledStatus.raw !== undefined) {
           ledStatusValue = initialRlcOptions.ledStatus.raw;
@@ -76,15 +61,12 @@ export const useRlcOptions = (initialRlcOptions = {}) => {
         ledDisplay: ledStatusParsed.displayMode,
         nightlight: ledStatusParsed.nightlight,
         backlight: ledStatusParsed.backlight,
-        autoMode:
-          initialRlcOptions.autoMode ?? initialRlcOptions.auto_mode ?? false,
+        autoMode: initialRlcOptions.autoMode ?? initialRlcOptions.auto_mode ?? false,
         delayOff: delayTime,
       });
 
       // Set time picker state
-      setDelayOffTime(
-        timeToDate(delayTime.hours, delayTime.minutes, delayTime.seconds)
-      );
+      setDelayOffTime(timeToDate(delayTime.hours, delayTime.minutes, delayTime.seconds));
     }
   }, [initialRlcOptions]);
 
@@ -143,18 +125,10 @@ export const useRlcOptions = (initialRlcOptions = {}) => {
   // Get final RLC options for saving
   const getFinalRlcOptions = useCallback(() => {
     // Calculate LED status from display mode and flags
-    const ledStatus = calculateLedStatus(
-      rlcOptions.ledDisplay,
-      rlcOptions.nightlight,
-      rlcOptions.backlight
-    );
+    const ledStatus = calculateLedStatus(rlcOptions.ledDisplay, rlcOptions.nightlight, rlcOptions.backlight);
 
     // Calculate delay off in seconds
-    const delayOffSeconds = calculateDelaySeconds(
-      rlcOptions.delayOff.hours,
-      rlcOptions.delayOff.minutes,
-      rlcOptions.delayOff.seconds
-    );
+    const delayOffSeconds = calculateDelaySeconds(rlcOptions.delayOff.hours, rlcOptions.delayOff.minutes, rlcOptions.delayOff.seconds);
 
     return {
       ramp: rlcOptions.ramp,

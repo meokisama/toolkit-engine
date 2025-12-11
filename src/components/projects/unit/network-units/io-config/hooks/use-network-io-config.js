@@ -1,17 +1,5 @@
-import {
-  useState,
-  useEffect,
-  useMemo,
-  useCallback,
-  useRef,
-  startTransition,
-} from "react";
-import {
-  getUnitIOSpec,
-  getOutputTypes,
-  createDefaultInputConfigs,
-  createDefaultOutputConfigs,
-} from "@/utils/io-config-utils";
+import { useState, useEffect, useMemo, useCallback, useRef, startTransition } from "react";
+import { getUnitIOSpec, getOutputTypes, createDefaultInputConfigs, createDefaultOutputConfigs } from "@/utils/io-config-utils";
 import { useAutoRefresh } from "./use-auto-refresh";
 
 export const useNetworkIOConfig = (item, open, childDialogOpen = false) => {
@@ -20,8 +8,7 @@ export const useNetworkIOConfig = (item, open, childDialogOpen = false) => {
   const [originalInputConfigs, setOriginalInputConfigs] = useState([]); // Store original configs for change detection
   const [originalOutputConfigs, setOriginalOutputConfigs] = useState([]); // Store original output configs
   const [originalInputConfigsSet, setOriginalInputConfigsSet] = useState(false); // Flag to track if original input configs have been set
-  const [originalOutputConfigsSet, setOriginalOutputConfigsSet] =
-    useState(false); // Flag to track if original output configs have been set
+  const [originalOutputConfigsSet, setOriginalOutputConfigsSet] = useState(false); // Flag to track if original output configs have been set
   const [loading, setLoading] = useState(false);
   const [isInitialLoading, setIsInitialLoading] = useState(false);
   const [configsLoaded, setConfigsLoaded] = useState(false);
@@ -72,11 +59,7 @@ export const useNetworkIOConfig = (item, open, childDialogOpen = false) => {
         // Only update state if there are actual changes
         const hasChanges = updatedInputs.some((input, index) => {
           const current = inputStatesRef.current[index];
-          return (
-            current &&
-            (current.brightness !== input.brightness ||
-              current.isActive !== input.isActive)
-          );
+          return current && (current.brightness !== input.brightness || current.isActive !== input.isActive);
         });
 
         if (hasChanges) {
@@ -99,10 +82,7 @@ export const useNetworkIOConfig = (item, open, childDialogOpen = false) => {
     }
 
     try {
-      const acConfigs = await window.electronAPI.ioController.getLocalACConfig(
-        item.ip_address,
-        item.id_can
-      );
+      const acConfigs = await window.electronAPI.ioController.getLocalACConfig(item.ip_address, item.id_can);
 
       // Add delay after GET command to prevent conflicts
       await new Promise((resolve) => setTimeout(resolve, 300));
@@ -112,12 +92,8 @@ export const useNetworkIOConfig = (item, open, childDialogOpen = false) => {
         const updatedOutputs = outputStatesRef.current.map((config) => {
           if (config.type === "ac") {
             // Find the AC config index for this output
-            const acOutputs = outputStatesRef.current.filter(
-              (output) => output.type === "ac"
-            );
-            const acConfigIndex = acOutputs.findIndex(
-              (output) => output.index === config.index
-            );
+            const acOutputs = outputStatesRef.current.filter((output) => output.type === "ac");
+            const acConfigIndex = acOutputs.findIndex((output) => output.index === config.index);
 
             if (acConfigIndex >= 0 && acConfigIndex < acConfigs.length) {
               const acConfig = acConfigs[acConfigIndex];
@@ -189,12 +165,10 @@ export const useNetworkIOConfig = (item, open, childDialogOpen = false) => {
     }
 
     try {
-      const response = await window.electronAPI.ioController.getAllOutputStates(
-        {
-          unitIp: item.ip_address,
-          canId: item.id_can,
-        }
-      );
+      const response = await window.electronAPI.ioController.getAllOutputStates({
+        unitIp: item.ip_address,
+        canId: item.id_can,
+      });
 
       // Add small delay after GET command to prevent conflicts
       await new Promise((resolve) => setTimeout(resolve, 200));
@@ -215,11 +189,7 @@ export const useNetworkIOConfig = (item, open, childDialogOpen = false) => {
         // Only update state if there are actual changes
         const hasChanges = updatedOutputs.some((output, index) => {
           const current = outputStatesRef.current[index];
-          return (
-            current &&
-            (current.brightness !== output.brightness ||
-              current.state !== output.state)
-          );
+          return current && (current.brightness !== output.brightness || current.state !== output.state);
         });
 
         if (hasChanges) {
@@ -242,12 +212,10 @@ export const useNetworkIOConfig = (item, open, childDialogOpen = false) => {
     }
 
     try {
-      const response = await window.electronAPI.ioController.getAllInputConfigs(
-        {
-          unitIp: item.ip_address,
-          canId: item.id_can,
-        }
-      );
+      const response = await window.electronAPI.ioController.getAllInputConfigs({
+        unitIp: item.ip_address,
+        canId: item.id_can,
+      });
 
       // Add delay after GET command to prevent conflicts
       await new Promise((resolve) => setTimeout(resolve, 300));
@@ -255,9 +223,7 @@ export const useNetworkIOConfig = (item, open, childDialogOpen = false) => {
       if (response?.configs) {
         // Update input configs with actual function values from unit
         const updatedInputs = inputStatesRef.current.map((input, index) => {
-          const unitConfig = response.configs.find(
-            (config) => config.inputNumber === index
-          );
+          const unitConfig = response.configs.find((config) => config.inputNumber === index);
           return unitConfig
             ? {
                 ...input,
@@ -323,11 +289,10 @@ export const useNetworkIOConfig = (item, open, childDialogOpen = false) => {
 
     try {
       // 1. Get output assignments (address + delays)
-      const assignResponse =
-        await window.electronAPI.ioController.getOutputAssign({
-          unitIp: item.ip_address,
-          canId: item.id_can,
-        });
+      const assignResponse = await window.electronAPI.ioController.getOutputAssign({
+        unitIp: item.ip_address,
+        canId: item.id_can,
+      });
 
       await new Promise((resolve) => setTimeout(resolve, 300));
 
@@ -336,23 +301,15 @@ export const useNetworkIOConfig = (item, open, childDialogOpen = false) => {
       }
 
       // 2. Get full output configs (minDim, maxDim, autoTrigger, schedule)
-      const configResponse =
-        await window.electronAPI.ioController.getOutputConfig(
-          item.ip_address,
-          item.id_can
-        );
+      const configResponse = await window.electronAPI.ioController.getOutputConfig(item.ip_address, item.id_can);
 
       await new Promise((resolve) => setTimeout(resolve, 300));
 
       // Update output configs with FULL data
       const updatedOutputs = outputStatesRef.current.map((output) => {
-        const unitAssignment = assignResponse.outputAssignments.find(
-          (assignment) => assignment.outputIndex === output.index
-        );
+        const unitAssignment = assignResponse.outputAssignments.find((assignment) => assignment.outputIndex === output.index);
 
-        const unitConfig = configResponse?.outputConfigs?.find(
-          (config) => config.outputIndex === output.index
-        );
+        const unitConfig = configResponse?.outputConfigs?.find((config) => config.outputIndex === output.index);
 
         return {
           ...output,
@@ -377,10 +334,7 @@ export const useNetworkIOConfig = (item, open, childDialogOpen = false) => {
 
       return true;
     } catch (error) {
-      console.error(
-        "Failed to read output configurations from unit:",
-        error.message
-      );
+      console.error("Failed to read output configurations from unit:", error.message);
     }
 
     return false;
@@ -588,10 +542,7 @@ export const useNetworkIOConfig = (item, open, childDialogOpen = false) => {
 
     return () => {
       window.removeEventListener("pauseAllAutoRefresh", handlePauseAutoRefresh);
-      window.removeEventListener(
-        "resumeAllAutoRefresh",
-        handleResumeAutoRefresh
-      );
+      window.removeEventListener("resumeAllAutoRefresh", handleResumeAutoRefresh);
     };
   }, [autoRefresh]);
 
@@ -612,9 +563,7 @@ export const useNetworkIOConfig = (item, open, childDialogOpen = false) => {
 
       // Separate AC outputs from lighting outputs
       const acOutputs = outputConfigs.filter((output) => output.type === "ac");
-      const lightingOutputs = outputConfigs.filter(
-        (output) => output.type !== "ac"
-      );
+      const lightingOutputs = outputConfigs.filter((output) => output.type !== "ac");
 
       // 1. Save AC outputs (already optimized - batch mode)
       if (acOutputs.length > 0) {
@@ -624,9 +573,7 @@ export const useNetworkIOConfig = (item, open, childDialogOpen = false) => {
             .fill(null)
             .map((_, idx) => {
               const acOutput = acOutputs.find((output) => {
-                const acOutputIndex = acOutputs.findIndex(
-                  (o) => o.index === output.index
-                );
+                const acOutputIndex = acOutputs.findIndex((o) => o.index === output.index);
                 return acOutputIndex === idx;
               });
 
@@ -712,11 +659,7 @@ export const useNetworkIOConfig = (item, open, childDialogOpen = false) => {
               };
             });
 
-          await window.electronAPI.ioController.setLocalACConfig(
-            item.ip_address,
-            item.id_can,
-            acConfigs
-          );
+          await window.electronAPI.ioController.setLocalACConfig(item.ip_address, item.id_can, acConfigs);
 
           totalSuccessCount += acOutputs.length;
           console.log(`✓ Saved ${acOutputs.length} AC outputs`);
@@ -733,35 +676,27 @@ export const useNetworkIOConfig = (item, open, childDialogOpen = false) => {
       // 2. Save lighting outputs (BATCH MODE - OPTIMIZED)
       if (lightingOutputs.length > 0) {
         try {
-          const result =
-            await window.electronAPI.ioController.setupBatchLightingOutputs({
-              unitIp: item.ip_address,
-              canId: item.id_can,
-              lightingOutputs: lightingOutputs,
-              maxBytes: 900,
-            });
+          const result = await window.electronAPI.ioController.setupBatchLightingOutputs({
+            unitIp: item.ip_address,
+            canId: item.id_can,
+            lightingOutputs: lightingOutputs,
+            maxBytes: 900,
+          });
 
           // Aggregate results from all batch operations
           const lightingSuccess = result.overallSuccess;
           if (lightingSuccess) {
             totalSuccessCount += lightingOutputs.length;
-            console.log(
-              `✓ Saved ${lightingOutputs.length} lighting outputs in batch mode`
-            );
+            console.log(`✓ Saved ${lightingOutputs.length} lighting outputs in batch mode`);
           } else {
             // Count partial successes
-            const successfulOps = [
-              result.assignments?.success,
-              result.delayOff?.success,
-              result.delayOn?.success,
-              result.configs?.success,
-            ].filter(Boolean).length;
+            const successfulOps = [result.assignments?.success, result.delayOff?.success, result.delayOn?.success, result.configs?.success].filter(
+              Boolean
+            ).length;
 
             if (successfulOps > 0) {
               totalSuccessCount += lightingOutputs.length;
-              console.warn(
-                `⚠ Partially saved lighting outputs: ${successfulOps}/4 operations succeeded`
-              );
+              console.warn(`⚠ Partially saved lighting outputs: ${successfulOps}/4 operations succeeded`);
             } else {
               totalFailCount += lightingOutputs.length;
             }
@@ -839,13 +774,12 @@ export const useNetworkIOConfig = (item, open, childDialogOpen = false) => {
       }));
 
       // Send all configs in batches (max 900 bytes per batch)
-      const result =
-        await window.electronAPI.ioController.setupBatchInputConfigs({
-          unitIp: item.ip_address,
-          canId: item.id_can,
-          inputConfigs: inputConfigsData,
-          maxBytes: 900,
-        });
+      const result = await window.electronAPI.ioController.setupBatchInputConfigs({
+        unitIp: item.ip_address,
+        canId: item.id_can,
+        inputConfigs: inputConfigsData,
+        maxBytes: 900,
+      });
 
       // Update original configs after successful save
       if (result.successCount > 0) {

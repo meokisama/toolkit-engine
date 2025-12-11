@@ -1,21 +1,8 @@
 import React, { useState, useEffect, useCallback, memo, useMemo } from "react";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Combobox } from "@/components/custom/combobox";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -219,15 +206,7 @@ const ACOutputConfigDialogComponent = ({
 
   // Memoize config transformation for better performance
   const configToSave = useMemo(() => {
-    const stringFields = [
-      "windowMode",
-      "fanType",
-      "tempType",
-      "tempUnit",
-      "valveContact",
-      "valveType",
-      "windowBypass",
-    ];
+    const stringFields = ["windowMode", "fanType", "tempType", "tempUnit", "valveContact", "valveType", "windowBypass"];
 
     const result = { ...config };
 
@@ -270,9 +249,7 @@ const ACOutputConfigDialogComponent = ({
             <Thermometer className="h-5 w-5" />
             AC Output Configuration
           </DialogTitle>
-          <DialogDescription>
-            Configure air conditioning settings for {outputName}
-          </DialogDescription>
+          <DialogDescription>Configure air conditioning settings for {outputName}</DialogDescription>
         </DialogHeader>
 
         <div className="space-y-6">
@@ -336,11 +313,7 @@ const ACOutputConfigDialogComponent = ({
             <>
               {/* Enable Checkbox */}
               <div className="flex items-center space-x-2">
-                <Checkbox
-                  id="enable"
-                  checked={config.enable}
-                  onCheckedChange={(checked) => updateConfig("enable", checked)}
-                />
+                <Checkbox id="enable" checked={config.enable} onCheckedChange={(checked) => updateConfig("enable", checked)} />
                 <Label htmlFor="enable" className="text-sm font-medium">
                   Enable
                 </Label>
@@ -357,15 +330,8 @@ const ACOutputConfigDialogComponent = ({
                 <CardContent className="space-y-4">
                   <div className="grid grid-cols-4 gap-4">
                     <div className="space-y-2">
-                      <Label className="text-sm font-medium">
-                        Windows mode
-                      </Label>
-                      <Select
-                        value={config.windowMode}
-                        onValueChange={(value) =>
-                          updateConfig("windowMode", value)
-                        }
-                      >
+                      <Label className="text-sm font-medium">Windows mode</Label>
+                      <Select value={config.windowMode} onValueChange={(value) => updateConfig("windowMode", value)}>
                         <SelectTrigger className="w-full">
                           <SelectValue />
                         </SelectTrigger>
@@ -381,12 +347,7 @@ const ACOutputConfigDialogComponent = ({
 
                     <div className="space-y-2">
                       <Label className="text-sm font-medium">Fan type</Label>
-                      <Select
-                        value={config.fanType}
-                        onValueChange={(value) =>
-                          updateConfig("fanType", value)
-                        }
-                      >
+                      <Select value={config.fanType} onValueChange={(value) => updateConfig("fanType", value)}>
                         <SelectTrigger className="w-full">
                           <SelectValue />
                         </SelectTrigger>
@@ -402,12 +363,7 @@ const ACOutputConfigDialogComponent = ({
 
                     <div className="space-y-2">
                       <Label className="text-sm font-medium">Temp type</Label>
-                      <Select
-                        value={config.tempType}
-                        onValueChange={(value) =>
-                          updateConfig("tempType", value)
-                        }
-                      >
+                      <Select value={config.tempType} onValueChange={(value) => updateConfig("tempType", value)}>
                         <SelectTrigger className="w-full">
                           <SelectValue />
                         </SelectTrigger>
@@ -423,12 +379,7 @@ const ACOutputConfigDialogComponent = ({
 
                     <div className="space-y-2">
                       <Label className="text-sm font-medium">Temp Unit</Label>
-                      <Select
-                        value={config.tempUnit}
-                        onValueChange={(value) =>
-                          updateConfig("tempUnit", value)
-                        }
-                      >
+                      <Select value={config.tempUnit} onValueChange={(value) => updateConfig("tempUnit", value)}>
                         <SelectTrigger className="w-full">
                           <SelectValue />
                         </SelectTrigger>
@@ -443,15 +394,8 @@ const ACOutputConfigDialogComponent = ({
                     </div>
 
                     <div className="space-y-2">
-                      <Label className="text-sm font-medium">
-                        Valve contact
-                      </Label>
-                      <Select
-                        value={config.valveContact}
-                        onValueChange={(value) =>
-                          updateConfig("valveContact", value)
-                        }
-                      >
+                      <Label className="text-sm font-medium">Valve contact</Label>
+                      <Select value={config.valveContact} onValueChange={(value) => updateConfig("valveContact", value)}>
                         <SelectTrigger className="w-full">
                           <SelectValue />
                         </SelectTrigger>
@@ -467,12 +411,7 @@ const ACOutputConfigDialogComponent = ({
 
                     <div className="space-y-2">
                       <Label className="text-sm font-medium">Valve type</Label>
-                      <Select
-                        value={config.valveType}
-                        onValueChange={(value) =>
-                          updateConfig("valveType", value)
-                        }
-                      >
+                      <Select value={config.valveType} onValueChange={(value) => updateConfig("valveType", value)}>
                         <SelectTrigger className="w-full">
                           <SelectValue />
                         </SelectTrigger>
@@ -488,12 +427,7 @@ const ACOutputConfigDialogComponent = ({
 
                     <div className="space-y-2">
                       <Label className="text-sm font-medium">Dead band</Label>
-                      <Select
-                        value={config.deadband?.toString() || "0"}
-                        onValueChange={(value) =>
-                          updateConfig("deadband", parseInt(value) || 0)
-                        }
-                      >
+                      <Select value={config.deadband?.toString() || "0"} onValueChange={(value) => updateConfig("deadband", parseInt(value) || 0)}>
                         <SelectTrigger className="w-full">
                           <SelectValue />
                         </SelectTrigger>
@@ -508,15 +442,8 @@ const ACOutputConfigDialogComponent = ({
                     </div>
 
                     <div className="space-y-2">
-                      <Label className="text-sm font-medium">
-                        Window Bypass
-                      </Label>
-                      <Select
-                        value={config.windowBypass}
-                        onValueChange={(value) =>
-                          updateConfig("windowBypass", value)
-                        }
-                      >
+                      <Label className="text-sm font-medium">Window Bypass</Label>
+                      <Select value={config.windowBypass} onValueChange={(value) => updateConfig("windowBypass", value)}>
                         <SelectTrigger className="w-full">
                           <SelectValue />
                         </SelectTrigger>
@@ -548,12 +475,7 @@ const ACOutputConfigDialogComponent = ({
                       <Combobox
                         options={lightingOptions}
                         value={config.lowFCU_Group?.toString() || ""}
-                        onValueChange={(value) =>
-                          updateConfig(
-                            "lowFCU_Group",
-                            value ? parseInt(value) : 0
-                          )
-                        }
+                        onValueChange={(value) => updateConfig("lowFCU_Group", value ? parseInt(value) : 0)}
                         placeholder="Select lighting group..."
                         emptyText="No lighting groups found"
                       />
@@ -564,12 +486,7 @@ const ACOutputConfigDialogComponent = ({
                       <Combobox
                         options={lightingOptions}
                         value={config.medFCU_Group?.toString() || ""}
-                        onValueChange={(value) =>
-                          updateConfig(
-                            "medFCU_Group",
-                            value ? parseInt(value) : 0
-                          )
-                        }
+                        onValueChange={(value) => updateConfig("medFCU_Group", value ? parseInt(value) : 0)}
                         placeholder="Select lighting group..."
                         emptyText="No lighting groups found"
                       />
@@ -580,12 +497,7 @@ const ACOutputConfigDialogComponent = ({
                       <Combobox
                         options={lightingOptions}
                         value={config.highFCU_Group?.toString() || ""}
-                        onValueChange={(value) =>
-                          updateConfig(
-                            "highFCU_Group",
-                            value ? parseInt(value) : 0
-                          )
-                        }
+                        onValueChange={(value) => updateConfig("highFCU_Group", value ? parseInt(value) : 0)}
                         placeholder="Select lighting group..."
                         emptyText="No lighting groups found"
                       />
@@ -596,12 +508,7 @@ const ACOutputConfigDialogComponent = ({
                       <Combobox
                         options={lightingOptions}
                         value={config.fanAnalogGroup?.toString() || ""}
-                        onValueChange={(value) =>
-                          updateConfig(
-                            "fanAnalogGroup",
-                            value ? parseInt(value) : 0
-                          )
-                        }
+                        onValueChange={(value) => updateConfig("fanAnalogGroup", value ? parseInt(value) : 0)}
                         placeholder="Select lighting group..."
                         emptyText="No lighting groups found"
                       />
@@ -612,12 +519,7 @@ const ACOutputConfigDialogComponent = ({
                       <Combobox
                         options={lightingOptions}
                         value={config.analogCoolGroup?.toString() || ""}
-                        onValueChange={(value) =>
-                          updateConfig(
-                            "analogCoolGroup",
-                            value ? parseInt(value) : 0
-                          )
-                        }
+                        onValueChange={(value) => updateConfig("analogCoolGroup", value ? parseInt(value) : 0)}
                         placeholder="Select lighting group..."
                         emptyText="No lighting groups found"
                       />
@@ -628,12 +530,7 @@ const ACOutputConfigDialogComponent = ({
                       <Combobox
                         options={lightingOptions}
                         value={config.analogHeatGroup?.toString() || ""}
-                        onValueChange={(value) =>
-                          updateConfig(
-                            "analogHeatGroup",
-                            value ? parseInt(value) : 0
-                          )
-                        }
+                        onValueChange={(value) => updateConfig("analogHeatGroup", value ? parseInt(value) : 0)}
                         placeholder="Select lighting group..."
                         emptyText="No lighting groups found"
                       />
@@ -657,12 +554,7 @@ const ACOutputConfigDialogComponent = ({
                       <Combobox
                         options={lightingOptions}
                         value={config.valveCoolOpenGroup?.toString() || ""}
-                        onValueChange={(value) =>
-                          updateConfig(
-                            "valveCoolOpenGroup",
-                            value ? parseInt(value) : 0
-                          )
-                        }
+                        onValueChange={(value) => updateConfig("valveCoolOpenGroup", value ? parseInt(value) : 0)}
                         placeholder="Select lighting group..."
                         emptyText="No lighting groups found"
                       />
@@ -673,12 +565,7 @@ const ACOutputConfigDialogComponent = ({
                       <Combobox
                         options={lightingOptions}
                         value={config.valveCoolCloseGroup?.toString() || ""}
-                        onValueChange={(value) =>
-                          updateConfig(
-                            "valveCoolCloseGroup",
-                            value ? parseInt(value) : 0
-                          )
-                        }
+                        onValueChange={(value) => updateConfig("valveCoolCloseGroup", value ? parseInt(value) : 0)}
                         placeholder="Select lighting group..."
                         emptyText="No lighting groups found"
                       />
@@ -689,12 +576,7 @@ const ACOutputConfigDialogComponent = ({
                       <Combobox
                         options={lightingOptions}
                         value={config.valveHeatOpenGroup?.toString() || ""}
-                        onValueChange={(value) =>
-                          updateConfig(
-                            "valveHeatOpenGroup",
-                            value ? parseInt(value) : 0
-                          )
-                        }
+                        onValueChange={(value) => updateConfig("valveHeatOpenGroup", value ? parseInt(value) : 0)}
                         placeholder="Select lighting group..."
                         emptyText="No lighting groups found"
                       />
@@ -705,12 +587,7 @@ const ACOutputConfigDialogComponent = ({
                       <Combobox
                         options={lightingOptions}
                         value={config.valveHeatCloseGroup?.toString() || ""}
-                        onValueChange={(value) =>
-                          updateConfig(
-                            "valveHeatCloseGroup",
-                            value ? parseInt(value) : 0
-                          )
-                        }
+                        onValueChange={(value) => updateConfig("valveHeatCloseGroup", value ? parseInt(value) : 0)}
                         placeholder="Select lighting group..."
                         emptyText="No lighting groups found"
                       />
@@ -730,29 +607,20 @@ const ACOutputConfigDialogComponent = ({
                 <CardContent className="space-y-4">
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <Label className="text-sm font-medium">
-                        Set Point Offset
-                      </Label>
+                      <Label className="text-sm font-medium">Set Point Offset</Label>
                       <Select
                         value={config.setPointOffset?.toString() || "0"}
-                        onValueChange={(value) =>
-                          updateConfig("setPointOffset", parseInt(value) || 0)
-                        }
+                        onValueChange={(value) => updateConfig("setPointOffset", parseInt(value) || 0)}
                       >
                         <SelectTrigger className="w-full">
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
-                          {Array.from({ length: 21 }, (_, i) => i - 10).map(
-                            (offset) => (
-                              <SelectItem
-                                key={offset}
-                                value={offset.toString()}
-                              >
-                                {offset > 0 ? `+${offset}` : offset.toString()}
-                              </SelectItem>
-                            )
-                          )}
+                          {Array.from({ length: 21 }, (_, i) => i - 10).map((offset) => (
+                            <SelectItem key={offset} value={offset.toString()}>
+                              {offset > 0 ? `+${offset}` : offset.toString()}
+                            </SelectItem>
+                          ))}
                         </SelectContent>
                       </Select>
                     </div>
@@ -764,11 +632,7 @@ const ACOutputConfigDialogComponent = ({
         </div>
 
         <DialogFooter>
-          <Button
-            variant="outline"
-            onClick={handleClose}
-            disabled={loading || isLoading}
-          >
+          <Button variant="outline" onClick={handleClose} disabled={loading || isLoading}>
             Cancel
           </Button>
           <Button onClick={handleSave} disabled={loading || isLoading}>
@@ -794,16 +658,13 @@ const shallowEqual = (obj1, obj2) => {
 };
 
 // Export memoized component for optimal performance
-export const ACOutputConfigDialog = memo(
-  ACOutputConfigDialogComponent,
-  (prevProps, nextProps) => {
-    // Optimized comparison function without expensive JSON.stringify
-    return (
-      prevProps.open === nextProps.open &&
-      prevProps.onOpenChange === nextProps.onOpenChange &&
-      prevProps.outputName === nextProps.outputName &&
-      shallowEqual(prevProps.initialConfig, nextProps.initialConfig) &&
-      prevProps.lightingOptions.length === nextProps.lightingOptions.length
-    );
-  }
-);
+export const ACOutputConfigDialog = memo(ACOutputConfigDialogComponent, (prevProps, nextProps) => {
+  // Optimized comparison function without expensive JSON.stringify
+  return (
+    prevProps.open === nextProps.open &&
+    prevProps.onOpenChange === nextProps.onOpenChange &&
+    prevProps.outputName === nextProps.outputName &&
+    shallowEqual(prevProps.initialConfig, nextProps.initialConfig) &&
+    prevProps.lightingOptions.length === nextProps.lightingOptions.length
+  );
+});

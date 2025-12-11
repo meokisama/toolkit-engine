@@ -1,29 +1,13 @@
 import React, { useState, useEffect, useCallback } from "react";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Combobox } from "@/components/custom/combobox";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from "@/components/ui/collapsible";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { ChevronDown, Settings, RefreshCw, Plus } from "lucide-react";
 import { CONSTANTS } from "@/constants";
 import { useProjectDetail } from "@/contexts/project-detail-context";
@@ -33,8 +17,7 @@ import { toast } from "sonner";
 const { RS485 } = CONSTANTS;
 
 export function NetworkRS485ConfigDialog({ open, onOpenChange, unit }) {
-  const { airconCards, selectedProject, loadedTabs, loadTabData } =
-    useProjectDetail();
+  const { airconCards, selectedProject, loadedTabs, loadTabData } = useProjectDetail();
   const [rs485Configs, setRS485Configs] = useState([]);
   const [activeRS485Tab, setActiveRS485Tab] = useState("0");
   const [openSlaves, setOpenSlaves] = useState({});
@@ -44,10 +27,7 @@ export function NetworkRS485ConfigDialog({ open, onOpenChange, unit }) {
   // Create aircon options for combobox
   const airconOptions = (airconCards || []).map((card) => ({
     value: card.address.toString(),
-    label:
-      card.name && card.name.trim()
-        ? `${card.name} (${card.address})`
-        : `Aircon ${card.address}`,
+    label: card.name && card.name.trim() ? `${card.name} (${card.address})` : `Aircon ${card.address}`,
   }));
 
   // Helper function to get mapped combobox value based on address
@@ -71,9 +51,7 @@ export function NetworkRS485ConfigDialog({ open, onOpenChange, unit }) {
     }
 
     // Find the aircon card by the selected value (which is address)
-    const selectedCard = airconCards.find(
-      (card) => card.address.toString() === value
-    );
+    const selectedCard = airconCards.find((card) => card.address.toString() === value);
     return selectedCard ? parseInt(selectedCard.address) : parseInt(value);
   };
 
@@ -103,10 +81,7 @@ export function NetworkRS485ConfigDialog({ open, onOpenChange, unit }) {
         };
 
         // Add to database via electronAPI with projectId
-        const result = await window.electronAPI.aircon.create(
-          selectedProject.id,
-          newAirconItem
-        );
+        const result = await window.electronAPI.aircon.create(selectedProject.id, newAirconItem);
 
         if (result) {
           // Refresh aircon items to update the options
@@ -135,24 +110,19 @@ export function NetworkRS485ConfigDialog({ open, onOpenChange, unit }) {
 
       // Load CH1 and CH2 configurations sequentially to avoid conflicts
       console.log("Loading RS485 CH1 configuration...");
-      const ch1Config =
-        await window.electronAPI.deviceController.getRS485CH1Config({
-          unitIp: unit.ip_address,
-          canId: unit.id_can,
-        });
+      const ch1Config = await window.electronAPI.deviceController.getRS485CH1Config({
+        unitIp: unit.ip_address,
+        canId: unit.id_can,
+      });
 
       console.log("Loading RS485 CH2 configuration...");
-      const ch2Config =
-        await window.electronAPI.deviceController.getRS485CH2Config({
-          unitIp: unit.ip_address,
-          canId: unit.id_can,
-        });
+      const ch2Config = await window.electronAPI.deviceController.getRS485CH2Config({
+        unitIp: unit.ip_address,
+        canId: unit.id_can,
+      });
 
       // Convert network unit format to dialog format
-      const configs = [
-        convertNetworkToDialogFormat(ch1Config),
-        convertNetworkToDialogFormat(ch2Config),
-      ];
+      const configs = [convertNetworkToDialogFormat(ch1Config), convertNetworkToDialogFormat(ch2Config)];
 
       setRS485Configs(configs);
       toast.success("RS485 configurations loaded successfully");
@@ -161,9 +131,7 @@ export function NetworkRS485ConfigDialog({ open, onOpenChange, unit }) {
       toast.error(`Failed to load RS485 configurations: ${error.message}`);
 
       // Set default configurations on error
-      const defaultConfigs = Array.from({ length: 2 }, () =>
-        createDefaultNetworkRS485Config()
-      );
+      const defaultConfigs = Array.from({ length: 2 }, () => createDefaultNetworkRS485Config());
       setRS485Configs(defaultConfigs);
     } finally {
       setLoading(false);
@@ -276,16 +244,10 @@ export function NetworkRS485ConfigDialog({ open, onOpenChange, unit }) {
     });
   };
 
-  const handleIndoorGroupChange = (
-    configIndex,
-    slaveIndex,
-    indoorIndex,
-    value
-  ) => {
+  const handleIndoorGroupChange = (configIndex, slaveIndex, indoorIndex, value) => {
     setRS485Configs((prev) => {
       const newConfigs = [...prev];
-      newConfigs[configIndex].slave_cfg[slaveIndex].indoor_group[indoorIndex] =
-        parseInt(value) || 0;
+      newConfigs[configIndex].slave_cfg[slaveIndex].indoor_group[indoorIndex] = parseInt(value) || 0;
       return newConfigs;
     });
   };
@@ -329,8 +291,7 @@ export function NetworkRS485ConfigDialog({ open, onOpenChange, unit }) {
     }
   };
 
-  const currentConfig =
-    rs485Configs[parseInt(activeRS485Tab)] || createDefaultNetworkRS485Config();
+  const currentConfig = rs485Configs[parseInt(activeRS485Tab)] || createDefaultNetworkRS485Config();
 
   // Check if RS485 type is slave or none
   const isSlaveTypeConfig = isSlaveType(currentConfig.config_type);
@@ -347,18 +308,12 @@ export function NetworkRS485ConfigDialog({ open, onOpenChange, unit }) {
             RS485 Configuration - {unit.ip_address}
           </DialogTitle>
           <DialogDescription>
-            Configure RS485 communication settings for network unit{" "}
-            {unit.ip_address} (CAN ID: {unit.id_can}).
+            Configure RS485 communication settings for network unit {unit.ip_address} (CAN ID: {unit.id_can}).
           </DialogDescription>
         </DialogHeader>
 
         <div className="flex items-center gap-2 mb-4">
-          <Button
-            onClick={loadRS485Configs}
-            disabled={loading}
-            variant="outline"
-            className="flex items-center gap-2"
-          >
+          <Button onClick={loadRS485Configs} disabled={loading} variant="outline" className="flex items-center gap-2">
             <RefreshCw className={`h-4 w-4 ${loading ? "animate-spin" : ""}`} />
             {loading ? "Loading..." : "Reload from Unit"}
           </Button>
@@ -383,23 +338,14 @@ export function NetworkRS485ConfigDialog({ open, onOpenChange, unit }) {
                       <Label>Baudrate</Label>
                       <Select
                         value={config.baudrate.toString()}
-                        onValueChange={(value) =>
-                          handleRS485ConfigChange(
-                            configIndex,
-                            "baudrate",
-                            parseInt(value)
-                          )
-                        }
+                        onValueChange={(value) => handleRS485ConfigChange(configIndex, "baudrate", parseInt(value))}
                       >
                         <SelectTrigger className="w-full cursor-pointer">
                           <SelectValue placeholder="Select baudrate" />
                         </SelectTrigger>
                         <SelectContent>
                           {RS485.BAUDRATES.map((rate) => (
-                            <SelectItem
-                              key={rate.value}
-                              value={rate.value.toString()}
-                            >
+                            <SelectItem key={rate.value} value={rate.value.toString()}>
                               {rate.label}
                             </SelectItem>
                           ))}
@@ -411,23 +357,14 @@ export function NetworkRS485ConfigDialog({ open, onOpenChange, unit }) {
                       <Label>Parity</Label>
                       <Select
                         value={config.parity.toString()}
-                        onValueChange={(value) =>
-                          handleRS485ConfigChange(
-                            configIndex,
-                            "parity",
-                            parseInt(value)
-                          )
-                        }
+                        onValueChange={(value) => handleRS485ConfigChange(configIndex, "parity", parseInt(value))}
                       >
                         <SelectTrigger className="w-full cursor-pointer">
                           <SelectValue placeholder="Select parity" />
                         </SelectTrigger>
                         <SelectContent>
                           {RS485.PARITY.map((parity) => (
-                            <SelectItem
-                              key={parity.value}
-                              value={parity.value.toString()}
-                            >
+                            <SelectItem key={parity.value} value={parity.value.toString()}>
                               {parity.label}
                             </SelectItem>
                           ))}
@@ -439,23 +376,14 @@ export function NetworkRS485ConfigDialog({ open, onOpenChange, unit }) {
                       <Label>Stop Bit</Label>
                       <Select
                         value={config.stop_bit.toString()}
-                        onValueChange={(value) =>
-                          handleRS485ConfigChange(
-                            configIndex,
-                            "stop_bit",
-                            parseInt(value)
-                          )
-                        }
+                        onValueChange={(value) => handleRS485ConfigChange(configIndex, "stop_bit", parseInt(value))}
                       >
                         <SelectTrigger className="w-full cursor-pointer">
                           <SelectValue placeholder="Select stop bit" />
                         </SelectTrigger>
                         <SelectContent>
                           {RS485.STOP_BITS.map((bit) => (
-                            <SelectItem
-                              key={bit.value}
-                              value={bit.value.toString()}
-                            >
+                            <SelectItem key={bit.value} value={bit.value.toString()}>
                               {bit.label}
                             </SelectItem>
                           ))}
@@ -475,13 +403,7 @@ export function NetworkRS485ConfigDialog({ open, onOpenChange, unit }) {
                       <Label>Type</Label>
                       <Combobox
                         value={config.config_type.toString()}
-                        onValueChange={(value) =>
-                          handleRS485ConfigChange(
-                            configIndex,
-                            "config_type",
-                            parseInt(value)
-                          )
-                        }
+                        onValueChange={(value) => handleRS485ConfigChange(configIndex, "config_type", parseInt(value))}
                         options={RS485.TYPES.map((type) => ({
                           value: type.value.toString(),
                           label: type.label,
@@ -499,15 +421,8 @@ export function NetworkRS485ConfigDialog({ open, onOpenChange, unit }) {
                         value={config.board_id}
                         onChange={(e) => {
                           const value = parseInt(e.target.value) || 1;
-                          const clampedValue = Math.max(
-                            1,
-                            Math.min(255, value)
-                          );
-                          handleRS485ConfigChange(
-                            configIndex,
-                            "board_id",
-                            clampedValue
-                          );
+                          const clampedValue = Math.max(1, Math.min(255, value));
+                          handleRS485ConfigChange(configIndex, "board_id", clampedValue);
                         }}
                         disabled={isNoneTypeConfig}
                       />
@@ -522,15 +437,8 @@ export function NetworkRS485ConfigDialog({ open, onOpenChange, unit }) {
                         value={config.num_slave_devs}
                         onChange={(e) => {
                           const value = parseInt(e.target.value) || 0;
-                          const clampedValue = Math.max(
-                            0,
-                            Math.min(RS485.SLAVE_MAX_DEVS, value)
-                          );
-                          handleRS485ConfigChange(
-                            configIndex,
-                            "num_slave_devs",
-                            clampedValue
-                          );
+                          const clampedValue = Math.max(0, Math.min(RS485.SLAVE_MAX_DEVS, value));
+                          handleRS485ConfigChange(configIndex, "num_slave_devs", clampedValue);
                         }}
                         disabled={isNoneTypeConfig || isSlaveTypeConfig}
                         placeholder="Enter number of slaves"
@@ -546,257 +454,147 @@ export function NetworkRS485ConfigDialog({ open, onOpenChange, unit }) {
                       <CardTitle>Slave Config</CardTitle>
                     </CardHeader>
                     <CardContent className="space-y-4">
-                      {Array.from(
-                        { length: config.num_slave_devs },
-                        (_, slaveIndex) => (
-                          <Collapsible
-                            key={slaveIndex}
-                            open={openSlaves[slaveIndex] || false}
-                            onOpenChange={() => toggleSlave(slaveIndex)}
-                          >
-                            <CollapsibleTrigger asChild>
-                              <Button
-                                variant="outline"
-                                className="flex w-full justify-between p-4 h-auto"
-                              >
-                                <span className="font-medium">
-                                  Slave #{slaveIndex + 1}
-                                </span>
-                                <ChevronDown
-                                  className={`h-4 w-4 transition-transform duration-200 ${
-                                    openSlaves[slaveIndex] || false
-                                      ? "rotate-180"
-                                      : ""
-                                  }`}
-                                />
-                              </Button>
-                            </CollapsibleTrigger>
-                            <CollapsibleContent className="p-4 bg-muted/50 rounded-b-lg shadow-sm">
-                              <div className="space-y-4">
-                                {/* Basic Slave Config */}
-                                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                  <div className="space-y-2">
-                                    <Label>Slave ID</Label>
-                                    <Input
-                                      type="number"
-                                      min="1"
-                                      max="255"
-                                      value={
-                                        config.slave_cfg[slaveIndex]
-                                          ?.slave_id || 1
-                                      }
-                                      onChange={(e) => {
-                                        const value =
-                                          parseInt(e.target.value) || 1;
-                                        const clampedValue = Math.max(
-                                          1,
-                                          Math.min(255, value)
-                                        );
-                                        handleSlaveConfigChange(
-                                          configIndex,
-                                          slaveIndex,
-                                          "slave_id",
-                                          clampedValue
-                                        );
-                                      }}
-                                    />
-                                  </div>
+                      {Array.from({ length: config.num_slave_devs }, (_, slaveIndex) => (
+                        <Collapsible key={slaveIndex} open={openSlaves[slaveIndex] || false} onOpenChange={() => toggleSlave(slaveIndex)}>
+                          <CollapsibleTrigger asChild>
+                            <Button variant="outline" className="flex w-full justify-between p-4 h-auto">
+                              <span className="font-medium">Slave #{slaveIndex + 1}</span>
+                              <ChevronDown
+                                className={`h-4 w-4 transition-transform duration-200 ${openSlaves[slaveIndex] || false ? "rotate-180" : ""}`}
+                              />
+                            </Button>
+                          </CollapsibleTrigger>
+                          <CollapsibleContent className="p-4 bg-muted/50 rounded-b-lg shadow-sm">
+                            <div className="space-y-4">
+                              {/* Basic Slave Config */}
+                              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                <div className="space-y-2">
+                                  <Label>Slave ID</Label>
+                                  <Input
+                                    type="number"
+                                    min="1"
+                                    max="255"
+                                    value={config.slave_cfg[slaveIndex]?.slave_id || 1}
+                                    onChange={(e) => {
+                                      const value = parseInt(e.target.value) || 1;
+                                      const clampedValue = Math.max(1, Math.min(255, value));
+                                      handleSlaveConfigChange(configIndex, slaveIndex, "slave_id", clampedValue);
+                                    }}
+                                  />
+                                </div>
 
-                                  <div className="space-y-2">
-                                    <Label>Slave Group</Label>
-                                    <div className="flex items-center gap-2">
-                                      {/* Plus button for adding missing address to database */}
-                                      {hasUnmappedAddress(
-                                        config.slave_cfg[slaveIndex]
-                                          ?.slave_group || 0
-                                      ) && (
-                                        <Button
-                                          variant="outline"
-                                          size="icon"
-                                          onClick={() =>
-                                            handleAddMissingAddress(
-                                              config.slave_cfg[slaveIndex]
-                                                ?.slave_group || 0
-                                            )
-                                          }
-                                          title={`Add aircon address ${
-                                            config.slave_cfg[slaveIndex]
-                                              ?.slave_group || 0
-                                          } to database`}
-                                        >
-                                          <Plus className="h-4 w-4" />
-                                        </Button>
-                                      )}
+                                <div className="space-y-2">
+                                  <Label>Slave Group</Label>
+                                  <div className="flex items-center gap-2">
+                                    {/* Plus button for adding missing address to database */}
+                                    {hasUnmappedAddress(config.slave_cfg[slaveIndex]?.slave_group || 0) && (
+                                      <Button
+                                        variant="outline"
+                                        size="icon"
+                                        onClick={() => handleAddMissingAddress(config.slave_cfg[slaveIndex]?.slave_group || 0)}
+                                        title={`Add aircon address ${config.slave_cfg[slaveIndex]?.slave_group || 0} to database`}
+                                      >
+                                        <Plus className="h-4 w-4" />
+                                      </Button>
+                                    )}
 
-                                      {/* Show combobox only if address is mapped */}
-                                      {!hasUnmappedAddress(
-                                        config.slave_cfg[slaveIndex]
-                                          ?.slave_group || 0
-                                      ) ? (
-                                        <Combobox
-                                          className="flex-1"
-                                          value={getMappedComboboxValue(
-                                            config.slave_cfg[slaveIndex]
-                                              ?.slave_group || 0
-                                          )}
-                                          onValueChange={(value) =>
-                                            handleSlaveConfigChange(
-                                              configIndex,
-                                              slaveIndex,
-                                              "slave_group",
-                                              getAddressFromComboboxValue(value)
-                                            )
-                                          }
-                                          options={airconOptions}
-                                          placeholder="Select aircon..."
-                                          emptyText="No aircon found"
-                                        />
-                                      ) : (
-                                        /* Show address info when not in database */
-                                        <div className="flex-1 px-3 py-2 border rounded-md bg-muted text-muted-foreground text-sm">
-                                          Address{" "}
-                                          {config.slave_cfg[slaveIndex]
-                                            ?.slave_group || 0}
-                                        </div>
-                                      )}
-                                    </div>
-                                  </div>
-
-                                  <div className="space-y-2">
-                                    <Label>Number of Indoors (0-16)</Label>
-                                    <Input
-                                      type="number"
-                                      min="0"
-                                      max={RS485.SLAVE_MAX_INDOORS}
-                                      value={
-                                        config.slave_cfg[slaveIndex]
-                                          ?.num_indoors || 0
-                                      }
-                                      onChange={(e) => {
-                                        const value =
-                                          parseInt(e.target.value) || 0;
-                                        const clampedValue = Math.max(
-                                          0,
-                                          Math.min(
-                                            RS485.SLAVE_MAX_INDOORS,
-                                            value
-                                          )
-                                        );
-                                        handleSlaveConfigChange(
-                                          configIndex,
-                                          slaveIndex,
-                                          "num_indoors",
-                                          clampedValue
-                                        );
-                                      }}
-                                      placeholder="Enter number of indoors"
-                                    />
+                                    {/* Show combobox only if address is mapped */}
+                                    {!hasUnmappedAddress(config.slave_cfg[slaveIndex]?.slave_group || 0) ? (
+                                      <Combobox
+                                        className="flex-1"
+                                        value={getMappedComboboxValue(config.slave_cfg[slaveIndex]?.slave_group || 0)}
+                                        onValueChange={(value) =>
+                                          handleSlaveConfigChange(configIndex, slaveIndex, "slave_group", getAddressFromComboboxValue(value))
+                                        }
+                                        options={airconOptions}
+                                        placeholder="Select aircon..."
+                                        emptyText="No aircon found"
+                                      />
+                                    ) : (
+                                      /* Show address info when not in database */
+                                      <div className="flex-1 px-3 py-2 border rounded-md bg-muted text-muted-foreground text-sm">
+                                        Address {config.slave_cfg[slaveIndex]?.slave_group || 0}
+                                      </div>
+                                    )}
                                   </div>
                                 </div>
 
-                                {/* Indoor Groups */}
-                                {(config.slave_cfg[slaveIndex]?.num_indoors ||
-                                  0) > 0 && (
-                                  <div className="space-y-2">
-                                    <Label>Indoor Groups</Label>
-                                    <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
-                                      {Array.from(
-                                        {
-                                          length:
-                                            config.slave_cfg[slaveIndex]
-                                              ?.num_indoors || 0,
-                                        },
-                                        (_, indoorIndex) => (
-                                          <div
-                                            key={indoorIndex}
-                                            className="space-y-1"
-                                          >
-                                            <Label className="text-xs">
-                                              Indoor {indoorIndex + 1}
-                                            </Label>
-                                            <div className="flex items-center gap-1">
-                                              {/* Plus button for adding missing address to database */}
-                                              {hasUnmappedAddress(
-                                                config.slave_cfg[slaveIndex]
-                                                  ?.indoor_group?.[
-                                                  indoorIndex
-                                                ] || 0
-                                              ) && (
-                                                <Button
-                                                  variant="outline"
-                                                  size="icon"
-                                                  className="h-8 w-8"
-                                                  onClick={() =>
-                                                    handleAddMissingAddress(
-                                                      config.slave_cfg[
-                                                        slaveIndex
-                                                      ]?.indoor_group?.[
-                                                        indoorIndex
-                                                      ] || 0
-                                                    )
-                                                  }
-                                                  title={`Add aircon address ${
-                                                    config.slave_cfg[slaveIndex]
-                                                      ?.indoor_group?.[
-                                                      indoorIndex
-                                                    ] || 0
-                                                  } to database`}
-                                                >
-                                                  <Plus className="h-3 w-3" />
-                                                </Button>
-                                              )}
-
-                                              {/* Show combobox only if address is mapped */}
-                                              {!hasUnmappedAddress(
-                                                config.slave_cfg[slaveIndex]
-                                                  ?.indoor_group?.[
-                                                  indoorIndex
-                                                ] || 0
-                                              ) ? (
-                                                <Combobox
-                                                  className="flex-1"
-                                                  value={getMappedComboboxValue(
-                                                    config.slave_cfg[slaveIndex]
-                                                      ?.indoor_group?.[
-                                                      indoorIndex
-                                                    ] || 0
-                                                  )}
-                                                  onValueChange={(value) =>
-                                                    handleIndoorGroupChange(
-                                                      configIndex,
-                                                      slaveIndex,
-                                                      indoorIndex,
-                                                      getAddressFromComboboxValue(
-                                                        value
-                                                      )
-                                                    )
-                                                  }
-                                                  options={airconOptions}
-                                                  placeholder="Select..."
-                                                  emptyText="No aircon found"
-                                                />
-                                              ) : (
-                                                /* Show address info when not in database */
-                                                <div className="flex-1 px-2 py-1 border rounded-md bg-muted text-muted-foreground text-xs">
-                                                  Address{" "}
-                                                  {config.slave_cfg[slaveIndex]
-                                                    ?.indoor_group?.[
-                                                    indoorIndex
-                                                  ] || 0}
-                                                </div>
-                                              )}
-                                            </div>
-                                          </div>
-                                        )
-                                      )}
-                                    </div>
-                                  </div>
-                                )}
+                                <div className="space-y-2">
+                                  <Label>Number of Indoors (0-16)</Label>
+                                  <Input
+                                    type="number"
+                                    min="0"
+                                    max={RS485.SLAVE_MAX_INDOORS}
+                                    value={config.slave_cfg[slaveIndex]?.num_indoors || 0}
+                                    onChange={(e) => {
+                                      const value = parseInt(e.target.value) || 0;
+                                      const clampedValue = Math.max(0, Math.min(RS485.SLAVE_MAX_INDOORS, value));
+                                      handleSlaveConfigChange(configIndex, slaveIndex, "num_indoors", clampedValue);
+                                    }}
+                                    placeholder="Enter number of indoors"
+                                  />
+                                </div>
                               </div>
-                            </CollapsibleContent>
-                          </Collapsible>
-                        )
-                      )}
+
+                              {/* Indoor Groups */}
+                              {(config.slave_cfg[slaveIndex]?.num_indoors || 0) > 0 && (
+                                <div className="space-y-2">
+                                  <Label>Indoor Groups</Label>
+                                  <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+                                    {Array.from(
+                                      {
+                                        length: config.slave_cfg[slaveIndex]?.num_indoors || 0,
+                                      },
+                                      (_, indoorIndex) => (
+                                        <div key={indoorIndex} className="space-y-1">
+                                          <Label className="text-xs">Indoor {indoorIndex + 1}</Label>
+                                          <div className="flex items-center gap-1">
+                                            {/* Plus button for adding missing address to database */}
+                                            {hasUnmappedAddress(config.slave_cfg[slaveIndex]?.indoor_group?.[indoorIndex] || 0) && (
+                                              <Button
+                                                variant="outline"
+                                                size="icon"
+                                                className="h-8 w-8"
+                                                onClick={() =>
+                                                  handleAddMissingAddress(config.slave_cfg[slaveIndex]?.indoor_group?.[indoorIndex] || 0)
+                                                }
+                                                title={`Add aircon address ${
+                                                  config.slave_cfg[slaveIndex]?.indoor_group?.[indoorIndex] || 0
+                                                } to database`}
+                                              >
+                                                <Plus className="h-3 w-3" />
+                                              </Button>
+                                            )}
+
+                                            {/* Show combobox only if address is mapped */}
+                                            {!hasUnmappedAddress(config.slave_cfg[slaveIndex]?.indoor_group?.[indoorIndex] || 0) ? (
+                                              <Combobox
+                                                className="flex-1"
+                                                value={getMappedComboboxValue(config.slave_cfg[slaveIndex]?.indoor_group?.[indoorIndex] || 0)}
+                                                onValueChange={(value) =>
+                                                  handleIndoorGroupChange(configIndex, slaveIndex, indoorIndex, getAddressFromComboboxValue(value))
+                                                }
+                                                options={airconOptions}
+                                                placeholder="Select..."
+                                                emptyText="No aircon found"
+                                              />
+                                            ) : (
+                                              /* Show address info when not in database */
+                                              <div className="flex-1 px-2 py-1 border rounded-md bg-muted text-muted-foreground text-xs">
+                                                Address {config.slave_cfg[slaveIndex]?.indoor_group?.[indoorIndex] || 0}
+                                              </div>
+                                            )}
+                                          </div>
+                                        </div>
+                                      )
+                                    )}
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+                          </CollapsibleContent>
+                        </Collapsible>
+                      ))}
                     </CardContent>
                   </Card>
                 )}

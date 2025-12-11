@@ -109,11 +109,7 @@ class UDPNetworkScanner {
         }
       } else {
         // Fallback: try to find barcode in different position
-        for (
-          let i = posData + 60;
-          i < Math.min(posData + 80, data.length);
-          i++
-        ) {
+        for (let i = posData + 60; i < Math.min(posData + 80, data.length); i++) {
           if (data[i] >= 48 && data[i] <= 57) {
             // ASCII digits
             barcode += (data[i] - 48).toString();
@@ -160,9 +156,7 @@ class UDPNetworkScanner {
       const fwVersionPos2 = posData + 88;
 
       if (hwVersionPos2 < data.length) {
-        hwVersion = `${data[hwVersionPos2]}.${data[hwVersionPos1] >> 4}.${
-          data[hwVersionPos1] & 0x0f
-        }`;
+        hwVersion = `${data[hwVersionPos2]}.${data[hwVersionPos1] >> 4}.${data[hwVersionPos1] & 0x0f}`;
       }
 
       if (fwVersionPos2 < data.length) {
@@ -252,21 +246,12 @@ class UDPNetworkScanner {
         this.scanResults = sortByIpAddress(this.scanResults);
       }
       // Check if we're in Electron environment
-      else if (
-        typeof window !== "undefined" &&
-        window.electronAPI &&
-        window.electronAPI.scanUDPNetwork
-      ) {
+      else if (typeof window !== "undefined" && window.electronAPI && window.electronAPI.scanUDPNetwork) {
         // Get network interface information from main process
-        const interfaces = await window.electronAPI.networkInterfaces.getAll(
-          true
-        ); // Force refresh
+        const interfaces = await window.electronAPI.networkInterfaces.getAll(true); // Force refresh
         const broadcastAddresses = interfaces.map((iface) => iface.broadcast);
 
-        console.log(
-          `Scanning on ${broadcastAddresses.length} network interfaces:`,
-          broadcastAddresses
-        );
+        console.log(`Scanning on ${broadcastAddresses.length} network interfaces:`, broadcastAddresses);
 
         // Use Electron IPC for UDP operations with multi-interface support
         const results = await window.electronAPI.scanUDPNetwork({
@@ -279,9 +264,7 @@ class UDPNetworkScanner {
         });
 
         // Parse results and remove duplicates based on IP address + CAN ID combination
-        const parsedResults = results
-          .map((result) => this.parseUDPResponse(result.data, result.sourceIP))
-          .filter((unit) => unit !== null);
+        const parsedResults = results.map((result) => this.parseUDPResponse(result.data, result.sourceIP)).filter((unit) => unit !== null);
 
         // Remove duplicates by IP address + CAN ID combination (to support slave units with same IP but different CAN ID)
         const uniqueResults = [];
@@ -292,10 +275,7 @@ class UDPNetworkScanner {
           if (!seenUnits.has(unitKey)) {
             seenUnits.add(unitKey);
             // Add interface information to the unit using main process
-            const sourceInterface =
-              await window.electronAPI.networkInterfaces.findInterfaceForTarget(
-                unit.ip_address
-              );
+            const sourceInterface = await window.electronAPI.networkInterfaces.findInterfaceForTarget(unit.ip_address);
             if (sourceInterface) {
               unit.source_interface = {
                 name: sourceInterface.name,
@@ -319,9 +299,7 @@ class UDPNetworkScanner {
 
       // Update cache timestamp
       this.lastScanTime = Date.now();
-      console.log(
-        `Multi-interface network scan completed. Found ${this.scanResults.length} unique units (sorted by IP)`
-      );
+      console.log(`Multi-interface network scan completed. Found ${this.scanResults.length} unique units (sorted by IP)`);
 
       return this.scanResults;
     } catch (error) {
@@ -358,9 +336,7 @@ class UDPNetworkScanner {
       if (units.length > 1) {
         const masters = units.filter((u) => u.mode === "Master");
         const slaves = units.filter((u) => u.mode === "Slave");
-        console.log(
-          `IP ${ip}: ${masters.length} master(s), ${slaves.length} slave(s)`
-        );
+        console.log(`IP ${ip}: ${masters.length} master(s), ${slaves.length} slave(s)`);
 
         slaves.forEach((slave) => {
           console.log(`  - Slave: ${slave.type} (CAN ID: ${slave.id_can})`);
@@ -368,9 +344,7 @@ class UDPNetworkScanner {
       }
     });
 
-    console.log(
-      `Enhanced scan completed. Found ${allResults.length} total units`
-    );
+    console.log(`Enhanced scan completed. Found ${allResults.length} total units`);
 
     return allResults;
   }

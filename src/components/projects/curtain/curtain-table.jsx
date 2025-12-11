@@ -14,14 +14,7 @@ import { TableSkeleton } from "@/components/projects/table-skeleton";
 
 export function CurtainTable({ items = [], loading = false }) {
   const category = "curtain";
-  const {
-    updateItem,
-    deleteItem,
-    duplicateItem,
-    projectItems,
-    exportItems,
-    importItems,
-  } = useProjectDetail();
+  const { updateItem, deleteItem, duplicateItem, projectItems, exportItems, importItems } = useProjectDetail();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingItem, setEditingItem] = useState(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -34,7 +27,6 @@ export function CurtainTable({ items = [], loading = false }) {
   const [pagination, setPagination] = useState({ pageIndex: 0, pageSize: 10 });
   const [saveLoading, setSaveLoading] = useState(false);
 
-  // ✅ Use ref instead of state to avoid re-renders when pendingChanges update
   const pendingChangesRef = useRef(new Map());
   const [pendingChangesCount, setPendingChangesCount] = useState(0);
 
@@ -52,7 +44,6 @@ export function CurtainTable({ items = [], loading = false }) {
   // Get lighting items for group selection
   const lightingItems = projectItems.lighting || [];
 
-  // ✅ Stable function that doesn't change reference
   const handleCellEdit = useCallback((itemId, field, newValue) => {
     const itemChanges = pendingChangesRef.current.get(itemId) || {};
     itemChanges[field] = newValue;
@@ -62,12 +53,9 @@ export function CurtainTable({ items = [], loading = false }) {
     setPendingChangesCount(pendingChangesRef.current.size);
   }, []);
 
-  // ✅ Stable function that doesn't depend on state
   const getEffectiveValue = useCallback((itemId, field, originalValue) => {
     const itemChanges = pendingChangesRef.current.get(itemId);
-    return itemChanges && itemChanges.hasOwnProperty(field)
-      ? itemChanges[field]
-      : originalValue;
+    return itemChanges && itemChanges.hasOwnProperty(field) ? itemChanges[field] : originalValue;
   }, []); // No dependencies = stable function!
 
   // Save all pending changes
@@ -163,9 +151,7 @@ export function CurtainTable({ items = [], loading = false }) {
     setBulkDeleteLoading(true);
     try {
       // Delete all selected items
-      await Promise.all(
-        itemsToDelete.map((item) => deleteItem(category, item.id))
-      );
+      await Promise.all(itemsToDelete.map((item) => deleteItem(category, item.id)));
 
       // Close dialog and clear state first
       setBulkDeleteDialogOpen(false);
@@ -219,23 +205,8 @@ export function CurtainTable({ items = [], loading = false }) {
 
   // Memoize columns to prevent unnecessary re-renders
   const columns = useMemo(
-    () =>
-      createCurtainColumns(
-        handleEdit,
-        handleDelete,
-        handleDuplicate,
-        handleCellEdit,
-        getEffectiveValue,
-        lightingItems
-      ),
-    [
-      handleEdit,
-      handleDelete,
-      handleDuplicate,
-      handleCellEdit,
-      getEffectiveValue,
-      lightingItems,
-    ]
+    () => createCurtainColumns(handleEdit, handleDelete, handleDuplicate, handleCellEdit, getEffectiveValue, lightingItems),
+    [handleEdit, handleDelete, handleDuplicate, handleCellEdit, getEffectiveValue, lightingItems]
   );
 
   if (loading) {
@@ -249,9 +220,7 @@ export function CurtainTable({ items = [], loading = false }) {
           <div className="text-center text-muted-foreground flex flex-col justify-center items-center h-full -mt-8">
             <Blinds className="h-12 w-12 mx-auto mb-4 opacity-50" />
             <p>No curtain items found.</p>
-            <p className="text-sm mb-8">
-              Click "Add Curtain" to create your first curtain item.
-            </p>
+            <p className="text-sm mb-8">Click "Add Curtain" to create your first curtain item.</p>
             <Button onClick={handleCreateItem}>
               <Plus className="h-4 w-4" />
               Add Curtain
@@ -295,60 +264,38 @@ export function CurtainTable({ items = [], loading = false }) {
                 enableRowSelection={true}
               />
             </div>
-            {table && (
-              <DataTablePagination table={table} pagination={pagination} />
-            )}
+            {table && <DataTablePagination table={table} pagination={pagination} />}
           </div>
         )}
       </div>
 
-      <CurtainDialog
-        open={dialogOpen}
-        onOpenChange={handleDialogClose}
-        item={editingItem}
-        mode={editingItem ? "edit" : "create"}
-      />
+      <CurtainDialog open={dialogOpen} onOpenChange={handleDialogClose} item={editingItem} mode={editingItem ? "edit" : "create"} />
 
       <ConfirmDialog
         open={deleteDialogOpen}
         onOpenChange={setDeleteDialogOpen}
         onConfirm={confirmDelete}
         title="Delete Curtain Item"
-        description={`Are you sure you want to delete "${
-          itemToDelete?.name || "this curtain item"
-        }"? This action cannot be undone.`}
+        description={`Are you sure you want to delete "${itemToDelete?.name || "this curtain item"}"? This action cannot be undone.`}
       />
 
       <ConfirmDialog
         open={bulkDeleteDialogOpen}
         onOpenChange={setBulkDeleteDialogOpen}
         title="Delete Multiple Curtain Items"
-        description={`Are you sure you want to delete ${
-          itemsToDelete.length
-        } selected curtain item${
+        description={`Are you sure you want to delete ${itemsToDelete.length} selected curtain item${
           itemsToDelete.length !== 1 ? "s" : ""
         }? This action cannot be undone.`}
-        confirmText={`Delete ${itemsToDelete.length} item${
-          itemsToDelete.length !== 1 ? "s" : ""
-        }`}
+        confirmText={`Delete ${itemsToDelete.length} item${itemsToDelete.length !== 1 ? "s" : ""}`}
         cancelText="Cancel"
         variant="destructive"
         onConfirm={confirmBulkDelete}
         loading={bulkDeleteLoading}
       />
 
-      <ImportItemsDialog
-        open={importDialogOpen}
-        onOpenChange={setImportDialogOpen}
-        onImport={handleImportConfirm}
-        category={category}
-      />
+      <ImportItemsDialog open={importDialogOpen} onOpenChange={setImportDialogOpen} onImport={handleImportConfirm} category={category} />
 
-      <SendCurtainConfigDialog
-        open={sendConfigDialogOpen}
-        onOpenChange={setSendConfigDialogOpen}
-        items={items}
-      />
+      <SendCurtainConfigDialog open={sendConfigDialogOpen} onOpenChange={setSendConfigDialogOpen} items={items} />
     </>
   );
 }

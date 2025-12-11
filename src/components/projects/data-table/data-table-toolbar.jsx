@@ -1,30 +1,8 @@
 import React, { useState, useCallback } from "react";
-import {
-  Search,
-  X,
-  Trash2,
-  Plus,
-  Download,
-  Upload,
-  FileText,
-  Save,
-  Send,
-  Zap,
-  Lightbulb,
-  Blinds,
-  Play,
-  Layers,
-  Shuffle,
-} from "lucide-react";
-
+import { Search, X, Trash2, Plus, Download, Upload, FileText, Save, Send, Zap, Lightbulb, Blinds, Play, Layers, Shuffle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { DataTableViewOptions } from "./data-table-view-options";
 
 export function DataTableToolbar({
@@ -142,8 +120,7 @@ export function DataTableToolbar({
           <>
             <Button variant="destructive" onClick={handleBulkDelete}>
               <Trash2 className="h-4 w-4" />
-              <span className="hidden lg:inline">Delete </span>(
-              {selectedRowsCount})
+              <span className="hidden lg:inline">Delete </span>({selectedRowsCount})
             </Button>
             {onSendToUnit && category === "knx" && (
               <Button variant="outline" onClick={handleSendToUnit}>
@@ -155,11 +132,7 @@ export function DataTableToolbar({
         )}
 
         {hasPendingChanges && (
-          <Button
-            onClick={handleSave}
-            disabled={saveLoading}
-            className="bg-green-700 hover:bg-green-800"
-          >
+          <Button onClick={handleSave} disabled={saveLoading} className="bg-green-700 hover:bg-green-800">
             <Save className="h-4 w-4" />
             {saveLoading ? "Saving..." : "Save"}
           </Button>
@@ -202,52 +175,50 @@ export function DataTableToolbar({
             </DropdownMenuContent>
           </DropdownMenu>
         )}
-        {category === "knx" && (onGenerateFromLighting || onGenerateFromCurtain || onGenerateFromScene || onGenerateFromMultiScene || onGenerateFromSequence) && (
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="outline" className="text-gray-700">
-                <Zap className="h-4 w-4" />
-                <span className="hidden lg:inline">Generate KNX</span>
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              {onGenerateFromLighting && (
-                <DropdownMenuItem onClick={onGenerateFromLighting}>
-                  <Lightbulb className="h-4 w-4" />
-                  From Lighting
-                </DropdownMenuItem>
-              )}
-              {onGenerateFromCurtain && (
-                <DropdownMenuItem onClick={onGenerateFromCurtain}>
-                  <Blinds className="h-4 w-4" />
-                  From Curtain
-                </DropdownMenuItem>
-              )}
-              {onGenerateFromScene && (
-                <DropdownMenuItem onClick={onGenerateFromScene}>
-                  <Play className="h-4 w-4" />
-                  From Scene
-                </DropdownMenuItem>
-              )}
-              {onGenerateFromMultiScene && (
-                <DropdownMenuItem onClick={onGenerateFromMultiScene}>
-                  <Layers className="h-4 w-4" />
-                  From Multi Scene
-                </DropdownMenuItem>
-              )}
-              {onGenerateFromSequence && (
-                <DropdownMenuItem onClick={onGenerateFromSequence}>
-                  <Shuffle className="h-4 w-4" />
-                  From Sequence
-                </DropdownMenuItem>
-              )}
-            </DropdownMenuContent>
-          </DropdownMenu>
-        )}
-        <DataTableViewOptions
-          table={table}
-          columnVisibility={columnVisibility}
-        />
+        {category === "knx" &&
+          (onGenerateFromLighting || onGenerateFromCurtain || onGenerateFromScene || onGenerateFromMultiScene || onGenerateFromSequence) && (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" className="text-gray-700">
+                  <Zap className="h-4 w-4" />
+                  <span className="hidden lg:inline">Generate KNX</span>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                {onGenerateFromLighting && (
+                  <DropdownMenuItem onClick={onGenerateFromLighting}>
+                    <Lightbulb className="h-4 w-4" />
+                    From Lighting
+                  </DropdownMenuItem>
+                )}
+                {onGenerateFromCurtain && (
+                  <DropdownMenuItem onClick={onGenerateFromCurtain}>
+                    <Blinds className="h-4 w-4" />
+                    From Curtain
+                  </DropdownMenuItem>
+                )}
+                {onGenerateFromScene && (
+                  <DropdownMenuItem onClick={onGenerateFromScene}>
+                    <Play className="h-4 w-4" />
+                    From Scene
+                  </DropdownMenuItem>
+                )}
+                {onGenerateFromMultiScene && (
+                  <DropdownMenuItem onClick={onGenerateFromMultiScene}>
+                    <Layers className="h-4 w-4" />
+                    From Multi Scene
+                  </DropdownMenuItem>
+                )}
+                {onGenerateFromSequence && (
+                  <DropdownMenuItem onClick={onGenerateFromSequence}>
+                    <Shuffle className="h-4 w-4" />
+                    From Sequence
+                  </DropdownMenuItem>
+                )}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          )}
+        <DataTableViewOptions table={table} columnVisibility={columnVisibility} />
         {onAddItem && (
           <Button onClick={onAddItem}>
             <Plus className="h-4 w-4" />

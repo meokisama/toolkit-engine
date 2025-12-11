@@ -44,67 +44,21 @@ export function SendKnxDialog({ open, onOpenChange, items = [] }) {
     let errorCount = 0;
 
     // Get RCU group value from appropriate items based on KNX type
-    let rcuGroup = null;
+    const typeConfig = CONSTANTS.KNX.KNX_OUTPUT_TYPES.find((t) => t.value === knxData.type);
+    const resource = typeConfig?.resource || "lighting";
 
-    switch (knxData.type) {
-      case 1: // Switch
-      case 2: // Dimmer
-        const lightingItems = await window.electronAPI.lighting.getAll(
-          knxData.project_id
-        );
-        rcuGroup = lightingItems.find(
-          (item) => item.id === knxData.rcu_group_id
-        );
-        break;
-      case 3: // Curtain
-        const curtainItems = await window.electronAPI.curtain.getAll(
-          knxData.project_id
-        );
-        rcuGroup = curtainItems.find(
-          (item) => item.id === knxData.rcu_group_id
-        );
-        break;
-      case 4: // Scene
-        const sceneItems = await window.electronAPI.scene.getAll(
-          knxData.project_id
-        );
-        rcuGroup = sceneItems.find((item) => item.id === knxData.rcu_group_id);
-        break;
-      case 5: // Multi Scene
-        const multiSceneItems = await window.electronAPI.multiScenes.getAll(
-          knxData.project_id
-        );
-        rcuGroup = multiSceneItems.find(
-          (item) => item.id === knxData.rcu_group_id
-        );
-        break;
-      case 6: // Sequences
-        const sequenceItems = await window.electronAPI.sequences.getAll(
-          knxData.project_id
-        );
-        rcuGroup = sequenceItems.find(
-          (item) => item.id === knxData.rcu_group_id
-        );
-        break;
-      case 7: // AC Power
-      case 8: // AC Mode
-      case 9: // AC Fan Speed
-      case 10: // AC Swing
-      case 11: // AC Set Point
-        const airconItems = await window.electronAPI.aircon.getAll(
-          knxData.project_id
-        );
-        rcuGroup = airconItems.find((item) => item.id === knxData.rcu_group_id);
-        break;
-      default:
-        const defaultLightingItems = await window.electronAPI.lighting.getAll(
-          knxData.project_id
-        );
-        rcuGroup = defaultLightingItems.find(
-          (item) => item.id === knxData.rcu_group_id
-        );
-        break;
-    }
+    // Map resource to API method
+    const apiMethodMap = {
+      lighting: "lighting",
+      curtain: "curtain",
+      scene: "scene",
+      multi_scenes: "multiScenes",
+      sequences: "sequences",
+      aircon: "aircon",
+    };
+
+    const items = await window.electronAPI[apiMethodMap[resource]].getAll(knxData.project_id);
+    const rcuGroup = items.find((item) => item.id === knxData.rcu_group_id);
 
     if (!rcuGroup) {
       toast.error("RCU group not found");
@@ -145,25 +99,14 @@ export function SendKnxDialog({ open, onOpenChange, items = [] }) {
 
         if (success) {
           successCount++;
-          toast.success(
-            `KNX config sent successfully to ${unit.type || "Unknown Unit"} (${
-              unit.ip_address
-            })`
-          );
+          toast.success(`KNX config sent successfully to ${unit.type || "Unknown Unit"} (${unit.ip_address})`);
         } else {
           throw new Error("Unit returned failure response");
         }
       } catch (error) {
         errorCount++;
-        console.error(
-          `Failed to send KNX config to unit ${unit.ip_address}:`,
-          error
-        );
-        toast.error(
-          `Failed to send KNX config to ${unit.type || "Unknown Unit"} (${
-            unit.ip_address
-          }): ${error.message}`
-        );
+        console.error(`Failed to send KNX config to unit ${unit.ip_address}:`, error);
+        toast.error(`Failed to send KNX config to ${unit.type || "Unknown Unit"} (${unit.ip_address}): ${error.message}`);
       }
     }
 
@@ -178,8 +121,7 @@ export function SendKnxDialog({ open, onOpenChange, items = [] }) {
 
   const handleSendBulkKnx = async (knxConfigs, selectedUnits, onProgress) => {
     // Add delete operations to total count (one delete per unit)
-    const totalOperations =
-      knxConfigs.length * selectedUnits.length + selectedUnits.length;
+    const totalOperations = knxConfigs.length * selectedUnits.length + selectedUnits.length;
     let completedOperations = 0;
     const operationResults = [];
 
@@ -192,10 +134,7 @@ export function SendKnxDialog({ open, onOpenChange, items = [] }) {
           canId: unit.id_can,
         });
 
-        await window.electronAPI.knxController.deleteAllKnxConfigs(
-          unit.ip_address,
-          unit.id_can
-        );
+        await window.electronAPI.knxController.deleteAllKnxConfigs(unit.ip_address, unit.id_can);
 
         operationResults.push({
           scene: "Delete All KNX Configs",
@@ -205,15 +144,9 @@ export function SendKnxDialog({ open, onOpenChange, items = [] }) {
         });
 
         completedOperations++;
-        onProgress(
-          (completedOperations / totalOperations) * 100,
-          "Deleting existing KNX configs..."
-        );
+        onProgress((completedOperations / totalOperations) * 100, "Deleting existing KNX configs...");
       } catch (error) {
-        console.error(
-          `Failed to delete existing KNX configs from unit ${unit.ip_address}:`,
-          error
-        );
+        console.error(`Failed to delete existing KNX configs from unit ${unit.ip_address}:`, error);
         operationResults.push({
           scene: "Delete All KNX Configs",
           unit: `${unit.type || "Unknown Unit"} (${unit.ip_address})`,
@@ -222,10 +155,7 @@ export function SendKnxDialog({ open, onOpenChange, items = [] }) {
         });
 
         completedOperations++;
-        onProgress(
-          (completedOperations / totalOperations) * 100,
-          "Deleting existing KNX configs..."
-        );
+        onProgress((completedOperations / totalOperations) * 100, "Deleting existing KNX configs...");
       }
     }
 
@@ -234,18 +164,13 @@ export function SendKnxDialog({ open, onOpenChange, items = [] }) {
     const lightingItems = await window.electronAPI.lighting.getAll(projectId);
     const curtainItems = await window.electronAPI.curtain.getAll(projectId);
     const sceneItems = await window.electronAPI.scene.getAll(projectId);
-    const multiSceneItems = await window.electronAPI.multiScenes.getAll(
-      projectId
-    );
+    const multiSceneItems = await window.electronAPI.multiScenes.getAll(projectId);
     const sequenceItems = await window.electronAPI.sequences.getAll(projectId);
     const airconItems = await window.electronAPI.aircon.getAll(projectId);
 
     for (let i = 0; i < knxConfigs.length; i++) {
       const currentKnx = knxConfigs[i];
-      onProgress(
-        (completedOperations / totalOperations) * 100,
-        `Sending ${currentKnx.name} (${i + 1}/${knxConfigs.length})`
-      );
+      onProgress((completedOperations / totalOperations) * 100, `Sending ${currentKnx.name} (${i + 1}/${knxConfigs.length})`);
       const knxData = await handleLoadSingleKnx(currentKnx);
 
       if (!handleValidateSingleKnx(knxData)) {
@@ -264,50 +189,20 @@ export function SendKnxDialog({ open, onOpenChange, items = [] }) {
       }
 
       // Get RCU group value based on KNX type
-      let rcuGroup = null;
+      const typeConfig = CONSTANTS.KNX.KNX_OUTPUT_TYPES.find((t) => t.value === knxData.type);
+      const resource = typeConfig?.resource || "lighting";
 
-      switch (knxData.type) {
-        case 1: // Switch
-        case 2: // Dimmer
-          rcuGroup = lightingItems.find(
-            (item) => item.id === knxData.rcu_group_id
-          );
-          break;
-        case 3: // Curtain
-          rcuGroup = curtainItems.find(
-            (item) => item.id === knxData.rcu_group_id
-          );
-          break;
-        case 4: // Scene
-          rcuGroup = sceneItems.find(
-            (item) => item.id === knxData.rcu_group_id
-          );
-          break;
-        case 5: // Multi Scene
-          rcuGroup = multiSceneItems.find(
-            (item) => item.id === knxData.rcu_group_id
-          );
-          break;
-        case 6: // Sequences
-          rcuGroup = sequenceItems.find(
-            (item) => item.id === knxData.rcu_group_id
-          );
-          break;
-        case 7: // AC Power
-        case 8: // AC Mode
-        case 9: // AC Fan Speed
-        case 10: // AC Swing
-        case 11: // AC Set Point
-          rcuGroup = airconItems.find(
-            (item) => item.id === knxData.rcu_group_id
-          );
-          break;
-        default:
-          rcuGroup = lightingItems.find(
-            (item) => item.id === knxData.rcu_group_id
-          );
-          break;
-      }
+      // Map resource to items
+      const itemsMap = {
+        lighting: lightingItems,
+        curtain: curtainItems,
+        scene: sceneItems,
+        multi_scenes: multiSceneItems,
+        sequences: sequenceItems,
+        aircon: airconItems,
+      };
+
+      const rcuGroup = itemsMap[resource].find((item) => item.id === knxData.rcu_group_id);
 
       if (!rcuGroup) {
         // Skip if RCU group not found
@@ -367,10 +262,7 @@ export function SendKnxDialog({ open, onOpenChange, items = [] }) {
             throw new Error("Unit returned failure response");
           }
         } catch (error) {
-          console.error(
-            `Failed to send KNX config ${currentKnx.name} to unit ${unit.ip_address}:`,
-            error
-          );
+          console.error(`Failed to send KNX config ${currentKnx.name} to unit ${unit.ip_address}:`, error);
           operationResults.push({
             scene: currentKnx.name,
             unit: `${unit.type || "Unknown Unit"} (${unit.ip_address})`,

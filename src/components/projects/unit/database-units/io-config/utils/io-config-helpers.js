@@ -6,7 +6,7 @@
 export const getOutputIcon = (type) => {
   const iconMap = {
     relay: "Zap",
-    dimmer: "Lightbulb", 
+    dimmer: "Lightbulb",
     ao: "Fan",
     ac: "Thermometer",
   };
@@ -67,8 +67,6 @@ export const checkPerformanceThreshold = (items, threshold = 50) => {
  */
 export const logPerformanceWarning = (type, count, threshold = 50) => {
   if (process.env.NODE_ENV === "development" && count > threshold) {
-    console.warn(
-      `IOConfigDialog: Large ${type} list detected (${count} items). Consider pagination.`
-    );
+    console.warn(`IOConfigDialog: Large ${type} list detected (${count} items). Consider pagination.`);
   }
 };

@@ -5,8 +5,7 @@ import { sendCommand, sendCommandMultipleResponses } from "./command-sender.js";
 
 // Setup Schedule function
 async function setupSchedule(unitIp, canId, scheduleConfig) {
-  const { scheduleIndex, enabled, weekDays, hour, minute, sceneAddresses } =
-    scheduleConfig;
+  const { scheduleIndex, enabled, weekDays, hour, minute, sceneAddresses } = scheduleConfig;
 
   // Validations
   validators.scheduleIndex(scheduleIndex);
@@ -30,14 +29,7 @@ async function setupSchedule(unitIp, canId, scheduleConfig) {
     ...sceneAddresses.map((addr) => parseInt(addr) || 0),
   ];
 
-  return sendCommand(
-    unitIp,
-    UDP_PORT,
-    idAddress,
-    PROTOCOL.GENERAL.CMD1,
-    PROTOCOL.GENERAL.CMD2.SETUP_SCHEDULE,
-    data
-  );
+  return sendCommand(unitIp, UDP_PORT, idAddress, PROTOCOL.GENERAL.CMD1, PROTOCOL.GENERAL.CMD2.SETUP_SCHEDULE, data);
 }
 
 // Get Schedule Information function
@@ -114,9 +106,7 @@ async function getScheduleInformation(unitIp, canId, scheduleIndex) {
     }
   }
 
-  throw new Error(
-    "No valid response received from get schedule information command"
-  );
+  throw new Error("No valid response received from get schedule information command");
 }
 
 // Get All Schedules Information function
@@ -200,13 +190,7 @@ async function getAllSchedulesInformation(unitIp, canId) {
     };
   }
 
-  throw new Error(
-    "No valid responses received from get all schedules information command"
-  );
+  throw new Error("No valid responses received from get all schedules information command");
 }
 
-export {
-  setupSchedule,
-  getScheduleInformation,
-  getAllSchedulesInformation,
-};
+export { setupSchedule, getScheduleInformation, getAllSchedulesInformation };

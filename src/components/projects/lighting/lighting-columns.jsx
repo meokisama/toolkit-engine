@@ -3,34 +3,20 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { DataTableColumnHeader } from "@/components/projects/data-table/data-table-column-header";
 import { EditableCell } from "@/components/projects/data-table/editable-cell";
-import { useMemo, useCallback } from "react";
+import { useCallback } from "react";
 
-export const createProjectItemsColumns = (
-  onEdit,
-  onDuplicate,
-  onDelete,
-  onCellEdit,
-  getEffectiveValue
-) => [
+export const createProjectItemsColumns = (onEdit, onDuplicate, onDelete, onCellEdit, getEffectiveValue) => [
   {
     id: "select",
     header: ({ table }) => (
       <Checkbox
-        checked={
-          table.getIsAllPageRowsSelected() ||
-          (table.getIsSomePageRowsSelected() && "indeterminate")
-        }
+        checked={table.getIsAllPageRowsSelected() || (table.getIsSomePageRowsSelected() && "indeterminate")}
         onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
         aria-label="Select all"
       />
     ),
     cell: ({ row }) => (
-      <Checkbox
-        checked={row.getIsSelected()}
-        onCheckedChange={(value) => row.toggleSelected(!!value)}
-        aria-label="Select row"
-        className="mx-1.5"
-      />
+      <Checkbox checked={row.getIsSelected()} onCheckedChange={(value) => row.toggleSelected(!!value)} aria-label="Select row" className="mx-1.5" />
     ),
     enableSorting: false,
     enableHiding: false,
@@ -40,9 +26,7 @@ export const createProjectItemsColumns = (
   },
   {
     accessorKey: "name",
-    header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Name" className="pl-1" />
-    ),
+    header: ({ column }) => <DataTableColumnHeader column={column} title="Name" className="pl-1" />,
     cell: ({ row }) => {
       const name = row.getValue("name");
       const effectiveValue = getEffectiveValue(row.original.id, "name", name);
@@ -74,16 +58,10 @@ export const createProjectItemsColumns = (
   },
   {
     accessorKey: "address",
-    header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Address" className="pl-1" />
-    ),
+    header: ({ column }) => <DataTableColumnHeader column={column} title="Address" className="pl-1" />,
     cell: ({ row }) => {
       const address = row.getValue("address");
-      const effectiveValue = getEffectiveValue(
-        row.original.id,
-        "address",
-        address
-      );
+      const effectiveValue = getEffectiveValue(row.original.id, "address", address);
 
       // ✅ Memoize onSave function
       const handleAddressSave = useCallback(
@@ -112,20 +90,10 @@ export const createProjectItemsColumns = (
   },
   {
     accessorKey: "description",
-    header: ({ column }) => (
-      <DataTableColumnHeader
-        column={column}
-        title="Description"
-        className="pl-1"
-      />
-    ),
+    header: ({ column }) => <DataTableColumnHeader column={column} title="Description" className="pl-1" />,
     cell: ({ row }) => {
       const description = row.getValue("description");
-      const effectiveValue = getEffectiveValue(
-        row.original.id,
-        "description",
-        description
-      );
+      const effectiveValue = getEffectiveValue(row.original.id, "description", description);
 
       // ✅ Memoize onSave function
       const handleDescriptionSave = useCallback(
@@ -135,15 +103,7 @@ export const createProjectItemsColumns = (
         [row.original.id, onCellEdit]
       );
 
-      return (
-        <EditableCell
-          value={effectiveValue}
-          type="text"
-          onSave={handleDescriptionSave}
-          placeholder="No description."
-          icon={FilePen}
-        />
-      );
+      return <EditableCell value={effectiveValue} type="text" onSave={handleDescriptionSave} placeholder="No description." icon={FilePen} />;
     },
     enableSorting: false,
     enableHiding: true,
@@ -160,31 +120,16 @@ export const createProjectItemsColumns = (
 
       // ✅ Memoize action handlers
       const handleEdit = useCallback(() => onEdit(item), [item, onEdit]);
-      const handleDuplicate = useCallback(
-        () => onDuplicate(item),
-        [item, onDuplicate]
-      );
+      const handleDuplicate = useCallback(() => onDuplicate(item), [item, onDuplicate]);
       const handleDelete = useCallback(() => onDelete(item), [item, onDelete]);
 
       return (
         <div className="flex items-center justify-end gap-1">
-          <Button
-            variant="outline"
-            size="icon"
-            onClick={handleEdit}
-            className="cursor-pointer"
-            title="Edit"
-          >
+          <Button variant="outline" size="icon" onClick={handleEdit} className="cursor-pointer" title="Edit">
             <SquarePen />
             <span className="sr-only">Edit</span>
           </Button>
-          <Button
-            variant="outline"
-            size="icon"
-            onClick={handleDuplicate}
-            className="cursor-pointer"
-            title="Duplicate"
-          >
+          <Button variant="outline" size="icon" onClick={handleDuplicate} className="cursor-pointer" title="Duplicate">
             <Copy />
             <span className="sr-only">Duplicate</span>
           </Button>

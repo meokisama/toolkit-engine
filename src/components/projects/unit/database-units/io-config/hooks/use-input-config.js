@@ -34,10 +34,7 @@ export const useInputConfig = (item, setInputConfigs = null, open = true) => {
       if (!item?.id || isNetworkUnit(item)) return;
 
       try {
-        const actualConfig = await window.electronAPI.unit.getInputConfig(
-          item.id,
-          inputIndex
-        );
+        const actualConfig = await window.electronAPI.unit.getInputConfig(item.id, inputIndex);
 
         if (actualConfig && setInputConfigs) {
           setInputConfigs((prev) =>
@@ -74,10 +71,7 @@ export const useInputConfig = (item, setInputConfigs = null, open = true) => {
 
       (inputConfigs.inputs || []).forEach((config) => {
         // Load all configs, not just those with multi-group data
-        if (
-          config.rlc_config ||
-          (config.multi_group_config && config.multi_group_config.length > 0)
-        ) {
+        if (config.rlc_config || (config.multi_group_config && config.multi_group_config.length > 0)) {
           // Convert database format to internal format
           newInputDetailConfigs[config.index] = {
             ramp: config.rlc_config?.ramp || 0,
@@ -193,10 +187,7 @@ export const useInputConfig = (item, setInputConfigs = null, open = true) => {
 
         if (!cachedConfig) {
           // Load fresh config from database
-          const result = await window.electronAPI.unit.getInputConfig(
-            item.id,
-            inputIndex
-          );
+          const result = await window.electronAPI.unit.getInputConfig(item.id, inputIndex);
 
           if (result) {
             // Convert database format to network unit format for consistency
@@ -284,9 +275,7 @@ export const useInputConfig = (item, setInputConfigs = null, open = true) => {
         const isNetworkUnitFlag = isNetworkUnit(item);
 
         if (isNetworkUnitFlag) {
-          toast.info(
-            "Network unit - use network-specific configuration dialog"
-          );
+          toast.info("Network unit - use network-specific configuration dialog");
           return false;
         } else {
           // For database units, only update local state - don't save to database yet
@@ -309,11 +298,7 @@ export const useInputConfig = (item, setInputConfigs = null, open = true) => {
           // Note: Multi-group config is already stored in multiGroupConfigs state
           // and will be saved when main Save button is clicked
 
-          toast.success(
-            `Input ${
-              currentInputDetailInput.index + 1
-            } configuration updated (will be saved when you click Save)`
-          );
+          toast.success(`Input ${currentInputDetailInput.index + 1} configuration updated (will be saved when you click Save)`);
         }
 
         return true;

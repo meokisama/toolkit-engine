@@ -1,5 +1,3 @@
-"use client";
-
 import { useState, useCallback, memo, useEffect } from "react";
 import { Play, Trash2, List, ListOrdered } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -7,19 +5,8 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { toast } from "sonner";
 import { DeleteSequenceDialog } from "./delete-sequence-popover";
 import { useProjectDetail } from "@/contexts/project-detail-context";
@@ -44,118 +31,90 @@ const initialLoadingState = {
 };
 
 // Memoized SequenceCard component to prevent unnecessary re-renders
-const SequenceCard = memo(
-  ({ sequence, onTrigger, onDelete, loading, formatSequenceName }) => (
-    <Card key={sequence.sequenceIndex} className="relative">
-      <CardContent>
-        <div className="flex items-center justify-between">
-          <CardTitle className="flex flex-col gap-2">
-            <span className="text-lg font-bold">
-              {formatSequenceName
-                ? formatSequenceName(sequence)
-                : sequence.sequenceName || "No name"}
-            </span>
-            <div className="text-sm text-muted-foreground font-light">
-              <span className="font-bold">Sequence:</span> #
-              {sequence.sequenceIndex}
-              <span className="mx-1"> | </span>
-              <span className="font-bold">Address:</span>{" "}
-              {sequence.sequenceAddress}
-            </div>
-          </CardTitle>
-
-          <div className="flex items-center gap-2">
-            {/* Multi-Scenes Button with Popover */}
-            <Popover modal={true}>
-              <PopoverTrigger asChild>
-                <Button variant="outline">
-                  <span className="font-light">Multi-Scenes:</span>{" "}
-                  {sequence.multiSceneCount}
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-108" align="end">
-                <div className="space-y-3">
-                  <div className="flex justify-between">
-                    <h4 className="font-medium text-sm">
-                      {formatSequenceName
-                        ? formatSequenceName(sequence)
-                        : sequence.sequenceName || "No name"}
-                    </h4>
-                    <div className="text-xs text-muted-foreground">
-                      <strong>Address:</strong> {sequence.sequenceAddress} |{" "}
-                      <strong>Total Multi-Scenes:</strong>{" "}
-                      {sequence.multiSceneCount}
-                    </div>
-                  </div>
-
-                  {sequence.multiSceneAddresses &&
-                  sequence.multiSceneAddresses.length > 0 ? (
-                    <div className="space-y-2">
-                      <ScrollArea className="h-32 w-full rounded border pr-2">
-                        <div className="p-2 space-y-1">
-                          {sequence.multiSceneAddresses.map(
-                            (address, index) => (
-                              <div
-                                key={index}
-                                className="flex items-center justify-between p-2 bg-muted/50 rounded text-xs"
-                              >
-                                <span className="font-medium">
-                                  Multi-Scene Address: {address}
-                                </span>
-                                <Badge variant="secondary" className="text-xs">
-                                  #{index + 1}
-                                </Badge>
-                              </div>
-                            )
-                          )}
-                        </div>
-                      </ScrollArea>
-                    </div>
-                  ) : (
-                    <div className="text-center text-muted-foreground text-sm py-4">
-                      No multi-scenes configured
-                    </div>
-                  )}
-                </div>
-              </PopoverContent>
-            </Popover>
-
-            {/* Action Buttons */}
-            <Button
-              onClick={() => onTrigger(sequence.sequenceAddress)}
-              disabled={loading}
-              variant="outline"
-              size="icon"
-              className="flex items-center gap-2"
-            >
-              <Play className="h-4 w-4" />
-            </Button>
-
-            <Button
-              onClick={() =>
-                onDelete(sequence.sequenceIndex, sequence.sequenceName)
-              }
-              disabled={loading}
-              variant="outline"
-              size="icon"
-              className="flex items-center gap-2 text-red-600 hover:text-red-700"
-            >
-              <Trash2 className="h-4 w-4" />
-            </Button>
+const SequenceCard = memo(({ sequence, onTrigger, onDelete, loading, formatSequenceName }) => (
+  <Card key={sequence.sequenceIndex} className="relative">
+    <CardContent>
+      <div className="flex items-center justify-between">
+        <CardTitle className="flex flex-col gap-2">
+          <span className="text-lg font-bold">{formatSequenceName ? formatSequenceName(sequence) : sequence.sequenceName || "No name"}</span>
+          <div className="text-sm text-muted-foreground font-light">
+            <span className="font-bold">Sequence:</span> #{sequence.sequenceIndex}
+            <span className="mx-1"> | </span>
+            <span className="font-bold">Address:</span> {sequence.sequenceAddress}
           </div>
+        </CardTitle>
+
+        <div className="flex items-center gap-2">
+          {/* Multi-Scenes Button with Popover */}
+          <Popover modal={true}>
+            <PopoverTrigger asChild>
+              <Button variant="outline">
+                <span className="font-light">Multi-Scenes:</span> {sequence.multiSceneCount}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-108" align="end">
+              <div className="space-y-3">
+                <div className="flex justify-between">
+                  <h4 className="font-medium text-sm">{formatSequenceName ? formatSequenceName(sequence) : sequence.sequenceName || "No name"}</h4>
+                  <div className="text-xs text-muted-foreground">
+                    <strong>Address:</strong> {sequence.sequenceAddress} | <strong>Total Multi-Scenes:</strong> {sequence.multiSceneCount}
+                  </div>
+                </div>
+
+                {sequence.multiSceneAddresses && sequence.multiSceneAddresses.length > 0 ? (
+                  <div className="space-y-2">
+                    <ScrollArea className="h-32 w-full rounded border pr-2">
+                      <div className="p-2 space-y-1">
+                        {sequence.multiSceneAddresses.map((address, index) => (
+                          <div key={index} className="flex items-center justify-between p-2 bg-muted/50 rounded text-xs">
+                            <span className="font-medium">Multi-Scene Address: {address}</span>
+                            <Badge variant="secondary" className="text-xs">
+                              #{index + 1}
+                            </Badge>
+                          </div>
+                        ))}
+                      </div>
+                    </ScrollArea>
+                  </div>
+                ) : (
+                  <div className="text-center text-muted-foreground text-sm py-4">No multi-scenes configured</div>
+                )}
+              </div>
+            </PopoverContent>
+          </Popover>
+
+          {/* Action Buttons */}
+          <Button
+            onClick={() => onTrigger(sequence.sequenceAddress)}
+            disabled={loading}
+            variant="outline"
+            size="icon"
+            className="flex items-center gap-2"
+          >
+            <Play className="h-4 w-4" />
+          </Button>
+
+          <Button
+            onClick={() => onDelete(sequence.sequenceIndex, sequence.sequenceName)}
+            disabled={loading}
+            variant="outline"
+            size="icon"
+            className="flex items-center gap-2 text-red-600 hover:text-red-700"
+          >
+            <Trash2 className="h-4 w-4" />
+          </Button>
         </div>
-      </CardContent>
-    </Card>
-  )
-);
+      </div>
+    </CardContent>
+  </Card>
+));
 
 export function TriggerSequenceDialog({ open, onOpenChange, unit }) {
   const [state, setState] = useState(initialState);
   const [loadingState, setLoadingState] = useState(initialLoadingState);
 
   // Access project context to get database sequences
-  const { selectedProject, projectItems, loadTabData, loadedTabs } =
-    useProjectDetail();
+  const { selectedProject, projectItems, loadTabData, loadedTabs } = useProjectDetail();
 
   // Load sequence data when dialog opens if not already loaded
   useEffect(() => {
@@ -169,9 +128,7 @@ export function TriggerSequenceDialog({ open, onOpenChange, unit }) {
     (address) => {
       if (!selectedProject || !projectItems.sequences) return null;
 
-      const databaseSequence = projectItems.sequences.find(
-        (sequence) => parseInt(sequence.address) === parseInt(address)
-      );
+      const databaseSequence = projectItems.sequences.find((sequence) => parseInt(sequence.address) === parseInt(address));
 
       return databaseSequence ? databaseSequence.name : null;
     },
@@ -183,9 +140,7 @@ export function TriggerSequenceDialog({ open, onOpenChange, unit }) {
     (networkSequence) => {
       const defaultName = `Sequence ${networkSequence.sequenceIndex}`;
       const networkName = networkSequence.sequenceName || defaultName;
-      const databaseName = getDatabaseSequenceName(
-        networkSequence.sequenceAddress
-      );
+      const databaseName = getDatabaseSequenceName(networkSequence.sequenceAddress);
 
       if (databaseName && networkName !== databaseName) {
         return `${networkName} - ${databaseName}`;
@@ -245,9 +200,7 @@ export function TriggerSequenceDialog({ open, onOpenChange, unit }) {
           sequenceAddress: addressToTrigger,
         });
 
-        toast.success(
-          `Sequence (address: ${addressToTrigger}) triggered successfully`
-        );
+        toast.success(`Sequence (address: ${addressToTrigger}) triggered successfully`);
       } catch (error) {
         console.error("Failed to trigger sequence:", error);
         toast.error(`Failed to trigger sequence: ${error.message}`);
@@ -284,12 +237,11 @@ export function TriggerSequenceDialog({ open, onOpenChange, unit }) {
         sequenceIndex: protocolIndex,
       });
 
-      const result =
-        await window.electronAPI.sequenceController.getSequenceInformation({
-          unitIp: unit.ip_address,
-          canId: unit.id_can,
-          sequenceIndex: protocolIndex,
-        });
+      const result = await window.electronAPI.sequenceController.getSequenceInformation({
+        unitIp: unit.ip_address,
+        canId: unit.id_can,
+        sequenceIndex: protocolIndex,
+      });
 
       // Convert single sequence result to card format
       if (result && result.sequences && result.sequences.length > 0) {
@@ -307,9 +259,7 @@ export function TriggerSequenceDialog({ open, onOpenChange, unit }) {
           sequences: [sequenceCard],
           showSequences: true,
         }));
-        toast.success(
-          `Sequence ${state.sequenceIndex} information loaded successfully`
-        );
+        toast.success(`Sequence ${state.sequenceIndex} information loaded successfully`);
       } else {
         setState((prev) => ({
           ...prev,
@@ -345,11 +295,10 @@ export function TriggerSequenceDialog({ open, onOpenChange, unit }) {
         canId: unit.id_can,
       });
 
-      const result =
-        await window.electronAPI.sequenceController.getAllSequencesInformation({
-          unitIp: unit.ip_address,
-          canId: unit.id_can,
-        });
+      const result = await window.electronAPI.sequenceController.getAllSequencesInformation({
+        unitIp: unit.ip_address,
+        canId: unit.id_can,
+      });
 
       if (result && result.sequences && result.sequences.length > 0) {
         // Filter sequences with amount > 0 and convert to card format
@@ -370,9 +319,7 @@ export function TriggerSequenceDialog({ open, onOpenChange, unit }) {
         }));
 
         if (sequenceCards.length > 0) {
-          toast.success(
-            `Found ${sequenceCards.length} sequence(s) with multi-scenes configured`
-          );
+          toast.success(`Found ${sequenceCards.length} sequence(s) with multi-scenes configured`);
         } else {
           toast.info("No sequences with multi-scenes found");
         }
@@ -398,19 +345,16 @@ export function TriggerSequenceDialog({ open, onOpenChange, unit }) {
   }, [unit]);
 
   // Handle delete sequence from card
-  const handleDeleteSequenceFromCard = useCallback(
-    (sequenceIndex, sequenceName) => {
-      setState((prev) => ({
-        ...prev,
-        deleteConfirmDialog: {
-          open: true,
-          sequenceIndex,
-          sequenceName,
-        },
-      }));
-    },
-    []
-  );
+  const handleDeleteSequenceFromCard = useCallback((sequenceIndex, sequenceName) => {
+    setState((prev) => ({
+      ...prev,
+      deleteConfirmDialog: {
+        open: true,
+        sequenceIndex,
+        sequenceName,
+      },
+    }));
+  }, []);
 
   // Handle trigger sequence from card
   const handleTriggerSequenceFromCard = useCallback(
@@ -427,12 +371,9 @@ export function TriggerSequenceDialog({ open, onOpenChange, unit }) {
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <ListOrdered className="h-5 w-5" />
-              Sequence Control - {unit?.type || "Network Unit"} (
-              {unit?.ip_address})
+              Sequence Control - {unit?.type || "Network Unit"} ({unit?.ip_address})
             </DialogTitle>
-            <DialogDescription>
-              Control sequences on the selected network unit.
-            </DialogDescription>
+            <DialogDescription>Control sequences on the selected network unit.</DialogDescription>
           </DialogHeader>
 
           <div className="flex-1 overflow-hidden space-y-4">
@@ -464,16 +405,11 @@ export function TriggerSequenceDialog({ open, onOpenChange, unit }) {
               <div className="flex items-center gap-2">
                 <DeleteSequenceDialog
                   open={state.deletePopoverOpen}
-                  onOpenChange={(open) =>
-                    setState((prev) => ({ ...prev, deletePopoverOpen: open }))
-                  }
+                  onOpenChange={(open) => setState((prev) => ({ ...prev, deletePopoverOpen: open }))}
                   unit={unit}
                   asPopover={true}
                   trigger={
-                    <Button
-                      variant="outline"
-                      className="flex items-center gap-2"
-                    >
+                    <Button variant="outline" className="flex items-center gap-2">
                       <Trash2 className="h-4 w-4" />
                       Delete Sequences
                     </Button>
@@ -481,15 +417,11 @@ export function TriggerSequenceDialog({ open, onOpenChange, unit }) {
                 />
                 <Button
                   onClick={handleLoadAllSequences}
-                  disabled={
-                    loadingState.loadingAllSequences || loadingState.loadingInfo
-                  }
+                  disabled={loadingState.loadingAllSequences || loadingState.loadingInfo}
                   className="flex items-center gap-2"
                 >
                   <List className="h-4 w-4" />
-                  {loadingState.loadingAllSequences
-                    ? "Loading..."
-                    : "Load All Sequences"}
+                  {loadingState.loadingAllSequences ? "Loading..." : "Load All Sequences"}
                 </Button>
               </div>
             </div>
@@ -516,8 +448,7 @@ export function TriggerSequenceDialog({ open, onOpenChange, unit }) {
                       <ListOrdered className="h-12 w-12 mx-auto mb-4 opacity-50" />
                       <p className="text-lg font-medium">No sequences loaded</p>
                       <p className="text-sm">
-                        Enter a sequence index and click "Load Sequence" or use
-                        "Load All Sequences" to see configured sequences.
+                        Enter a sequence index and click "Load Sequence" or use "Load All Sequences" to see configured sequences.
                       </p>
                     </div>
                   </div>

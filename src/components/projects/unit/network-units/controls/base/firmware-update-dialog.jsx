@@ -1,13 +1,6 @@
 import React, { useState, useRef, memo } from "react";
 import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Progress } from "@/components/ui/progress";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -15,10 +8,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Upload, AlertTriangle, CheckCircle, X, Monitor } from "lucide-react";
 import { toast } from "sonner";
 import { CONSTANTS } from "@/constants";
-import {
-  NetworkUnitSelector,
-  useNetworkUnitSelector,
-} from "@/components/shared/network-unit-selector";
+import { NetworkUnitSelector, useNetworkUnitSelector } from "@/components/shared/network-unit-selector";
 
 // Helper function to get barcode from unit type
 const getUnitBarcode = (unitType) => {
@@ -26,14 +16,8 @@ const getUnitBarcode = (unitType) => {
   return unitInfo ? unitInfo.barcode : null;
 };
 
-function FirmwareUpdateDialogComponent({
-  open,
-  onOpenChange,
-  onFirmwareUpdate,
-  targetUnit = null,
-}) {
-  const { selectedUnitIds, handleSelectionChange, clearSelection } =
-    useNetworkUnitSelector();
+function FirmwareUpdateDialogComponent({ open, onOpenChange, onFirmwareUpdate, targetUnit = null }) {
+  const { selectedUnitIds, handleSelectionChange, clearSelection } = useNetworkUnitSelector();
   const networkUnitSelectorRef = useRef(null);
   const [selectedFile, setSelectedFile] = useState(null);
   const [isUpdating, setIsUpdating] = useState(false);
@@ -86,9 +70,7 @@ function FirmwareUpdateDialogComponent({
 
   const handleUpdateFirmware = async () => {
     // Get units to update - either target unit or selected units from NetworkUnitSelector
-    const unitsToUpdate = targetUnit
-      ? [targetUnit]
-      : networkUnitSelectorRef.current?.getSelectedUnits() || [];
+    const unitsToUpdate = targetUnit ? [targetUnit] : networkUnitSelectorRef.current?.getSelectedUnits() || [];
 
     if (!selectedFile) {
       toast.error("Please select a HEX file");
@@ -96,11 +78,7 @@ function FirmwareUpdateDialogComponent({
     }
 
     if (unitsToUpdate.length === 0) {
-      toast.error(
-        targetUnit
-          ? "Target unit not available"
-          : "Please select at least one unit"
-      );
+      toast.error(targetUnit ? "Target unit not available" : "Please select at least one unit");
       return;
     }
 
@@ -119,11 +97,7 @@ function FirmwareUpdateDialogComponent({
         const unit = unitsToUpdate[i];
         const unitProgress = (i / totalUnits) * 100;
 
-        setCurrentStatus(
-          `Updating firmware for ${unit.ip_address}/${unit.id_can} (${
-            i + 1
-          }/${totalUnits})`
-        );
+        setCurrentStatus(`Updating firmware for ${unit.ip_address}/${unit.id_can} (${i + 1}/${totalUnits})`);
         setProgress(unitProgress);
 
         try {
@@ -148,14 +122,9 @@ function FirmwareUpdateDialogComponent({
             message: result.message || "Firmware updated successfully",
           });
 
-          toast.success(
-            `Firmware updated successfully for ${unit.ip_address}/${unit.id_can}`
-          );
+          toast.success(`Firmware updated successfully for ${unit.ip_address}/${unit.id_can}`);
         } catch (error) {
-          console.error(
-            `Firmware update failed for ${unit.ip_address}/${unit.id_can}:`,
-            error
-          );
+          console.error(`Firmware update failed for ${unit.ip_address}/${unit.id_can}:`, error);
 
           results.push({
             unit: `${unit.ip_address}/${unit.id_can}`,
@@ -163,9 +132,7 @@ function FirmwareUpdateDialogComponent({
             message: error.message || "Firmware update failed",
           });
 
-          toast.error(
-            `Firmware update failed for ${unit.ip_address}/${unit.id_can}: ${error.message}`
-          );
+          toast.error(`Firmware update failed for ${unit.ip_address}/${unit.id_can}: ${error.message}`);
         }
       }
 
@@ -213,9 +180,7 @@ function FirmwareUpdateDialogComponent({
             Update Firmware
           </DialogTitle>
           <DialogDescription>
-            {targetUnit
-              ? `Update firmware for unit ${targetUnit.ip_address}/${targetUnit.id_can}`
-              : "Update firmware for selected network units"}
+            {targetUnit ? `Update firmware for unit ${targetUnit.ip_address}/${targetUnit.id_can}` : "Update firmware for selected network units"}
           </DialogDescription>
         </DialogHeader>
 
@@ -242,9 +207,7 @@ function FirmwareUpdateDialogComponent({
                 <div>IP Address: {targetUnit.ip_address}</div>
                 <div>CAN ID: {targetUnit.id_can}</div>
                 <div>Type: {targetUnit.type}</div>
-                {targetUnit.firmware_version && (
-                  <div>Current Firmware: v{targetUnit.firmware_version}</div>
-                )}
+                {targetUnit.firmware_version && <div>Current Firmware: v{targetUnit.firmware_version}</div>}
               </div>
             </div>
           )}
@@ -261,32 +224,17 @@ function FirmwareUpdateDialogComponent({
                   className="border-2 border-dashed border-muted-foreground/25 rounded-lg p-6 text-center cursor-pointer hover:border-muted-foreground/50 transition-colors"
                 >
                   <Upload className="h-8 w-8 mx-auto mb-2 text-muted-foreground" />
-                  <p className="text-sm text-muted-foreground">
-                    Click to select HEX file
-                  </p>
+                  <p className="text-sm text-muted-foreground">Click to select HEX file</p>
                 </div>
               ) : (
                 <div className="flex items-center justify-between p-3 border rounded-md bg-muted/50">
-                  <span className="text-sm font-medium">
-                    {selectedFile.name}
-                  </span>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={handleRemoveFile}
-                    disabled={isUpdating}
-                  >
+                  <span className="text-sm font-medium">{selectedFile.name}</span>
+                  <Button variant="ghost" size="sm" onClick={handleRemoveFile} disabled={isUpdating}>
                     <X className="h-4 w-4" />
                   </Button>
                 </div>
               )}
-              <Input
-                ref={fileInputRef}
-                type="file"
-                accept=".hex"
-                onChange={handleFileSelect}
-                className="hidden"
-              />
+              <Input ref={fileInputRef} type="file" accept=".hex" onChange={handleFileSelect} className="hidden" />
             </div>
           </div>
 
@@ -295,9 +243,7 @@ function FirmwareUpdateDialogComponent({
             <div className="space-y-2">
               <div className="flex items-center justify-between">
                 <Label className="text-sm font-medium">Progress:</Label>
-                <span className="text-sm text-muted-foreground">
-                  {Math.round(progress)}%
-                </span>
+                <span className="text-sm text-muted-foreground">{Math.round(progress)}%</span>
               </div>
               <Progress value={progress} className="w-full" />
               <p className="text-sm text-muted-foreground">{currentStatus}</p>
@@ -330,23 +276,10 @@ function FirmwareUpdateDialogComponent({
               </div>
               <div className="max-h-32 overflow-y-auto border rounded-md p-2 bg-muted/50">
                 {updateResults.map((result, index) => (
-                  <div
-                    key={index}
-                    className="flex items-center gap-2 text-sm py-1"
-                  >
-                    {result.success ? (
-                      <CheckCircle className="h-4 w-4 text-green-500" />
-                    ) : (
-                      <AlertTriangle className="h-4 w-4 text-red-500" />
-                    )}
+                  <div key={index} className="flex items-center gap-2 text-sm py-1">
+                    {result.success ? <CheckCircle className="h-4 w-4 text-green-500" /> : <AlertTriangle className="h-4 w-4 text-red-500" />}
                     <span className="font-medium">{result.unit}:</span>
-                    <span
-                      className={
-                        result.success ? "text-green-600" : "text-red-600"
-                      }
-                    >
-                      {result.message}
-                    </span>
+                    <span className={result.success ? "text-green-600" : "text-red-600"}>{result.message}</span>
                   </div>
                 ))}
               </div>
@@ -358,14 +291,7 @@ function FirmwareUpdateDialogComponent({
           <Button variant="outline" onClick={handleClose} disabled={isUpdating}>
             {showResults ? "Close" : "Cancel"}
           </Button>
-          <Button
-            onClick={handleUpdateFirmware}
-            disabled={
-              !selectedFile ||
-              isUpdating ||
-              (!targetUnit && selectedUnitIds.length === 0)
-            }
-          >
+          <Button onClick={handleUpdateFirmware} disabled={!selectedFile || isUpdating || (!targetUnit && selectedUnitIds.length === 0)}>
             {isUpdating ? "Updating..." : "Update Firmware"}
           </Button>
         </DialogFooter>
@@ -375,14 +301,11 @@ function FirmwareUpdateDialogComponent({
 }
 
 // Memoized export for optimal performance
-export const FirmwareUpdateDialog = memo(
-  FirmwareUpdateDialogComponent,
-  (prevProps, nextProps) => {
-    return (
-      prevProps.open === nextProps.open &&
-      prevProps.onOpenChange === nextProps.onOpenChange &&
-      prevProps.onFirmwareUpdate === nextProps.onFirmwareUpdate &&
-      prevProps.targetUnit?.id === nextProps.targetUnit?.id
-    );
-  }
-);
+export const FirmwareUpdateDialog = memo(FirmwareUpdateDialogComponent, (prevProps, nextProps) => {
+  return (
+    prevProps.open === nextProps.open &&
+    prevProps.onOpenChange === nextProps.onOpenChange &&
+    prevProps.onFirmwareUpdate === nextProps.onFirmwareUpdate &&
+    prevProps.targetUnit?.id === nextProps.targetUnit?.id
+  );
+});

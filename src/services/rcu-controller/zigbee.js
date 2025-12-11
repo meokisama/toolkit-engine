@@ -10,25 +10,20 @@ import { UDP_PORT, PROTOCOL } from "./constants.js";
  */
 async function getZigbeeDevices(unitIp, canId) {
   try {
-    console.log(
-      `Getting Zigbee devices from unit ${unitIp} with CAN ID ${canId}`
-    );
+    console.log(`Getting Zigbee devices from unit ${unitIp} with CAN ID ${canId}`);
 
     // Send command and collect multiple responses (one per device)
-    const { responses, successPacketReceived } =
-      await sendCommandMultipleResponses(
-        unitIp,
-        UDP_PORT,
-        convertCanIdToInt(canId),
-        PROTOCOL.ZIGBEE.CMD1,
-        PROTOCOL.ZIGBEE.CMD2.GET_ZIGBEE_DEVICE,
-        [],
-        15000 // 15 seconds timeout
-      );
-
-    console.log(
-      `Received ${responses.length} device(s), success packet: ${successPacketReceived}`
+    const { responses, successPacketReceived } = await sendCommandMultipleResponses(
+      unitIp,
+      UDP_PORT,
+      convertCanIdToInt(canId),
+      PROTOCOL.ZIGBEE.CMD1,
+      PROTOCOL.ZIGBEE.CMD2.GET_ZIGBEE_DEVICE,
+      [],
+      15000 // 15 seconds timeout
     );
+
+    console.log(`Received ${responses.length} device(s), success packet: ${successPacketReceived}`);
 
     // Parse each response into device information
     const devices = responses
@@ -62,8 +57,7 @@ async function getZigbeeDevices(unitIp, canId) {
           const baseIndex = 10 + i * 3; // Each endpoint: ID (1 byte) + value (2 bytes)
           if (baseIndex + 2 < data.length) {
             const endpointId = data[baseIndex];
-            const endpointValue =
-              data[baseIndex + 1] | (data[baseIndex + 2] << 8);
+            const endpointValue = data[baseIndex + 1] | (data[baseIndex + 2] << 8);
 
             endpoints.push({
               id: endpointId,
@@ -130,18 +124,9 @@ async function getZigbeeDevices(unitIp, canId) {
  * @param {number} command - Command type (0: OFF, 1: ON, 2: TOGGLE)
  * @returns {Promise<{success: boolean, statusUpdate: object}>}
  */
-async function sendZigbeeCommand(
-  unitIp,
-  canId,
-  ieeeAddress,
-  deviceType,
-  endpointId,
-  command
-) {
+async function sendZigbeeCommand(unitIp, canId, ieeeAddress, deviceType, endpointId, command) {
   try {
-    console.log(
-      `Sending Zigbee command to device ${ieeeAddress} on unit ${unitIp}`
-    );
+    console.log(`Sending Zigbee command to device ${ieeeAddress} on unit ${unitIp}`);
     // Parse IEEE address from string format "XX:XX:XX:XX:XX:XX:XX:XX" to bytes
     const ieeeBytes = ieeeAddress.split(":").map((byte) => parseInt(byte, 16));
 
@@ -271,9 +256,7 @@ async function removeZigbeeDevice(unitIp, canId, ieeeAddress, deviceType) {
  */
 async function closeZigbeeNetwork(unitIp, canId) {
   try {
-    console.log(
-      `Closing Zigbee network on unit ${unitIp} with CAN ID ${canId}`
-    );
+    console.log(`Closing Zigbee network on unit ${unitIp} with CAN ID ${canId}`);
 
     // Data: 2 bytes 00 00
     const data = [0x00, 0x00];
@@ -309,12 +292,7 @@ async function closeZigbeeNetwork(unitIp, canId) {
  * @param {function} onDeviceFound - Optional callback when a device is discovered
  * @returns {Promise<{devices: Array, success: boolean}>}
  */
-async function exploreZigbeeNetwork(
-  unitIp,
-  canId,
-  timeoutMs = 200000,
-  onDeviceFound = null
-) {
+async function exploreZigbeeNetwork(unitIp, canId, timeoutMs = 200000, onDeviceFound = null) {
   return new Promise((resolve, reject) => {
     const dgram = require("dgram");
     const client = dgram.createSocket("udp4");
@@ -323,9 +301,7 @@ async function exploreZigbeeNetwork(
     let networkOpened = false;
     let exploring = true; // Flag to prevent processing additional packets after device found
 
-    console.log(
-      `Exploring Zigbee network on unit ${unitIp} with CAN ID ${canId} (timeout: ${timeoutMs}ms)`
-    );
+    console.log(`Exploring Zigbee network on unit ${unitIp} with CAN ID ${canId} (timeout: ${timeoutMs}ms)`);
 
     const timeout = setTimeout(() => {
       if (!exploring) return; // Already completed
@@ -420,23 +396,14 @@ async function exploreZigbeeNetwork(
         const cmd1 = msg[6];
         const cmd2 = msg[7];
 
-        console.log(
-          `Parsed: ID=${receivedId}, Len=${packetLength}, CMD1=${cmd1}, CMD2=${cmd2}`
-        );
+        console.log(`Parsed: ID=${receivedId}, Len=${packetLength}, CMD1=${cmd1}, CMD2=${cmd2}`);
 
         // Check if this is response to OPEN_ZIGBEE_NETWORK command
-        if (
-          !networkOpened &&
-          receivedId === idAddress &&
-          cmd1 === PROTOCOL.ZIGBEE.CMD1 &&
-          cmd2 === PROTOCOL.ZIGBEE.CMD2.OPEN_ZIGBEE_NETWORK
-        ) {
+        if (!networkOpened && receivedId === idAddress && cmd1 === PROTOCOL.ZIGBEE.CMD1 && cmd2 === PROTOCOL.ZIGBEE.CMD2.OPEN_ZIGBEE_NETWORK) {
           const result = processResponse(msg, cmd1, cmd2, false);
 
           if (result.success) {
-            console.log(
-              "Zigbee network opened successfully, waiting for new device..."
-            );
+            console.log("Zigbee network opened successfully, waiting for new device...");
             networkOpened = true;
           } else {
             console.error("Failed to open Zigbee network");
@@ -463,10 +430,7 @@ async function exploreZigbeeNetwork(
           const dataLength = packetLength - 4;
           const data = Array.from(msg.slice(8, 8 + dataLength));
 
-          console.log(
-            "NEW_ZIGBEE_DEVICE notification received, data length:",
-            data.length
-          );
+          console.log("NEW_ZIGBEE_DEVICE notification received, data length:", data.length);
 
           if (data.length >= 10) {
             // Parse device data
@@ -478,9 +442,7 @@ async function exploreZigbeeNetwork(
             const deviceType = data[8];
             const numEndpoints = data[9];
 
-            console.log(
-              `New device found: ${ieeeAddress}, Type: ${deviceType}, Endpoints: ${numEndpoints}`
-            );
+            console.log(`New device found: ${ieeeAddress}, Type: ${deviceType}, Endpoints: ${numEndpoints}`);
 
             // Parse endpoint data (maximum 4 endpoints)
             const endpoints = [];
@@ -558,9 +520,7 @@ async function exploreZigbeeNetwork(
       const packetBuffer = Buffer.from(packetArray);
       const buffer = Buffer.concat([idBuffer, packetBuffer]);
 
-      console.log(
-        `Sending OPEN_ZIGBEE_NETWORK command to ${unitIp}:${UDP_PORT}`
-      );
+      console.log(`Sending OPEN_ZIGBEE_NETWORK command to ${unitIp}:${UDP_PORT}`);
       console.log(
         "Packet:",
         Array.from(buffer)
@@ -597,9 +557,7 @@ async function exploreZigbeeNetwork(
  */
 async function setupZigbeeDevice(unitIp, canId, devices) {
   try {
-    console.log(
-      `Setting up Zigbee device configurations for unit ${unitIp} with CAN ID ${canId}`
-    );
+    console.log(`Setting up Zigbee device configurations for unit ${unitIp} with CAN ID ${canId}`);
     console.log(`Total devices to configure: ${devices.length}`);
 
     // Validate device count
@@ -608,9 +566,7 @@ async function setupZigbeeDevice(unitIp, canId, devices) {
     }
 
     if (devices.length > 50) {
-      throw new Error(
-        `Too many devices: ${devices.length} (maximum 50 per packet)`
-      );
+      throw new Error(`Too many devices: ${devices.length} (maximum 50 per packet)`);
     }
 
     // Build data packet
@@ -625,14 +581,10 @@ async function setupZigbeeDevice(unitIp, canId, devices) {
 
     devices.forEach((device, index) => {
       // Parse IEEE address from string format "XX:XX:XX:XX:XX:XX:XX:XX" to bytes
-      const ieeeBytes = device.ieeeAddress
-        .split(":")
-        .map((byte) => parseInt(byte, 16));
+      const ieeeBytes = device.ieeeAddress.split(":").map((byte) => parseInt(byte, 16));
 
       if (ieeeBytes.length !== 8) {
-        throw new Error(
-          `Invalid IEEE address format for device ${index}: ${device.ieeeAddress}`
-        );
+        throw new Error(`Invalid IEEE address format for device ${index}: ${device.ieeeAddress}`);
       }
 
       // Add device data (13 bytes)
@@ -646,9 +598,7 @@ async function setupZigbeeDevice(unitIp, canId, devices) {
       );
     });
 
-    console.log(
-      `Built data packet: ${data.length} bytes for ${devices.length} device(s)`
-    );
+    console.log(`Built data packet: ${data.length} bytes for ${devices.length} device(s)`);
 
     const response = await sendCommand(
       unitIp,
@@ -681,9 +631,7 @@ async function setupZigbeeDevice(unitIp, canId, devices) {
  */
 async function factoryResetZigbee(unitIp, canId) {
   try {
-    console.log(
-      `Factory resetting Zigbee coordinator on unit ${unitIp} with CAN ID ${canId}`
-    );
+    console.log(`Factory resetting Zigbee coordinator on unit ${unitIp} with CAN ID ${canId}`);
 
     // Data: 2 bytes 00 00
     const data = [0x00, 0x00];
@@ -710,12 +658,4 @@ async function factoryResetZigbee(unitIp, canId) {
   }
 }
 
-export {
-  getZigbeeDevices,
-  sendZigbeeCommand,
-  removeZigbeeDevice,
-  closeZigbeeNetwork,
-  exploreZigbeeNetwork,
-  setupZigbeeDevice,
-  factoryResetZigbee,
-};
+export { getZigbeeDevices, sendZigbeeCommand, removeZigbeeDevice, closeZigbeeNetwork, exploreZigbeeNetwork, setupZigbeeDevice, factoryResetZigbee };

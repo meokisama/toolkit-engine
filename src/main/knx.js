@@ -7,49 +7,34 @@ export function registerKnxHandlers(ipcMain, dbService, rcu, loggerService) {
   // ==================== RCU Controller - KNX Operations ====================
 
   // Set KNX Config
-  ipcMain.handle(
-    "rcu:setKnxConfig",
-    async (event, unitIp, canId, knxConfig, unitType) => {
-      try {
-        return await rcu.setKnxConfig(
-          unitIp,
-          canId,
-          knxConfig,
-          loggerService,
-          unitType
-        );
-      } catch (error) {
-        console.error("Error setting KNX config:", error);
-        throw error;
-      }
+  ipcMain.handle("rcu:setKnxConfig", async (event, unitIp, canId, knxConfig, unitType) => {
+    try {
+      return await rcu.setKnxConfig(unitIp, canId, knxConfig, loggerService, unitType);
+    } catch (error) {
+      console.error("Error setting KNX config:", error);
+      throw error;
     }
-  );
+  });
 
   // Get KNX Config
-  ipcMain.handle(
-    "rcu:getKnxConfig",
-    async (event, { unitIp, canId, knxAddress }) => {
-      try {
-        return await rcu.getKnxConfig(unitIp, canId, knxAddress);
-      } catch (error) {
-        console.error("Error getting KNX config:", error);
-        throw error;
-      }
+  ipcMain.handle("rcu:getKnxConfig", async (event, { unitIp, canId, knxAddress }) => {
+    try {
+      return await rcu.getKnxConfig(unitIp, canId, knxAddress);
+    } catch (error) {
+      console.error("Error getting KNX config:", error);
+      throw error;
     }
-  );
+  });
 
   // Delete KNX Config
-  ipcMain.handle(
-    "rcu:deleteKnxConfig",
-    async (event, { unitIp, canId, knxAddress }) => {
-      try {
-        return await rcu.deleteKnxConfig(unitIp, canId, knxAddress);
-      } catch (error) {
-        console.error("Error deleting KNX config:", error);
-        throw error;
-      }
+  ipcMain.handle("rcu:deleteKnxConfig", async (event, { unitIp, canId, knxAddress }) => {
+    try {
+      return await rcu.deleteKnxConfig(unitIp, canId, knxAddress);
+    } catch (error) {
+      console.error("Error deleting KNX config:", error);
+      throw error;
     }
-  );
+  });
 
   // Delete All KNX Configs
   ipcMain.handle("rcu:deleteAllKnxConfigs", async (event, unitIp, canId) => {
@@ -62,17 +47,14 @@ export function registerKnxHandlers(ipcMain, dbService, rcu, loggerService) {
   });
 
   // Trigger KNX
-  ipcMain.handle(
-    "rcu:triggerKnx",
-    async (event, { unitIp, canId, knxAddress }) => {
-      try {
-        return await rcu.triggerKnx(unitIp, canId, knxAddress);
-      } catch (error) {
-        console.error("Error triggering KNX:", error);
-        throw error;
-      }
+  ipcMain.handle("rcu:triggerKnx", async (event, { unitIp, canId, knxAddress }) => {
+    try {
+      return await rcu.triggerKnx(unitIp, canId, knxAddress);
+    } catch (error) {
+      console.error("Error triggering KNX:", error);
+      throw error;
     }
-  );
+  });
 
   // ==================== Database - KNX Operations ====================
 

@@ -1,19 +1,9 @@
 import { getUnitIOSpec } from "@/utils/io-config-utils";
-import {
-  getOutputTypeForIndex,
-  getOutputTypeName,
-  getOutputTypeIndex,
-} from "./output-type-utils";
+import { getOutputTypeForIndex, getOutputTypeName, getOutputTypeIndex } from "./output-type-utils";
 import { findOrCreateDeviceByAddress } from "./device-management-utils";
 
 // Helper function to read I/O configurations from network unit
-export async function readIOConfigurations(
-  networkUnit,
-  selectedProject,
-  projectItems,
-  createItem,
-  createdItemsCache
-) {
+export async function readIOConfigurations(networkUnit, selectedProject, projectItems, createItem, createdItemsCache) {
   const ioSpec = getUnitIOSpec(networkUnit.type);
   if (!ioSpec) {
     return { input_configs: null, output_configs: null };
@@ -24,17 +14,14 @@ export async function readIOConfigurations(
 
   // Read input configurations
   try {
-    const inputResponse =
-      await window.electronAPI.ioController.getAllInputConfigs({
-        unitIp: networkUnit.ip_address,
-        canId: networkUnit.id_can,
-      });
+    const inputResponse = await window.electronAPI.ioController.getAllInputConfigs({
+      unitIp: networkUnit.ip_address,
+      canId: networkUnit.id_can,
+    });
 
     if (inputResponse?.configs) {
       for (let i = 0; i < ioSpec.inputs; i++) {
-        const unitConfig = inputResponse.configs.find(
-          (config) => config.inputNumber === i
-        );
+        const unitConfig = inputResponse.configs.find((config) => config.inputNumber === i);
         if (unitConfig) {
           inputConfigs.inputs.push({
             index: i,
@@ -80,46 +67,32 @@ export async function readIOConfigurations(
   try {
     // Read output assignments first
     console.log("Reading output assignments...");
-    const assignResponse =
-      await window.electronAPI.ioController.getOutputAssign({
-        unitIp: networkUnit.ip_address,
-        canId: networkUnit.id_can,
-      });
+    const assignResponse = await window.electronAPI.ioController.getOutputAssign({
+      unitIp: networkUnit.ip_address,
+      canId: networkUnit.id_can,
+    });
 
     // Add delay between output reads
     await new Promise((resolve) => setTimeout(resolve, 300));
 
     // Read output configurations second
     console.log("Reading output configurations...");
-    const configResponse =
-      await window.electronAPI.ioController.getOutputConfig(
-        networkUnit.ip_address,
-        networkUnit.id_can
-      );
+    const configResponse = await window.electronAPI.ioController.getOutputConfig(networkUnit.ip_address, networkUnit.id_can);
 
     // Add delay between output reads
     await new Promise((resolve) => setTimeout(resolve, 300));
 
     // Read AC configurations third for aircon address mapping
     console.log("Reading AC configurations...");
-    const acConfigResponse =
-      await window.electronAPI.ioController.getLocalACConfig(
-        networkUnit.ip_address,
-        networkUnit.id_can
-      );
+    const acConfigResponse = await window.electronAPI.ioController.getLocalACConfig(networkUnit.ip_address, networkUnit.id_can);
 
     // Create output configs for all outputs, whether we have network data or not
     for (let i = 0; i < ioSpec.totalOutputs; i++) {
-      const assignment = assignResponse?.outputAssignments?.find(
-        (a) => a.outputIndex === i
-      );
-      const config = configResponse?.outputConfigs?.find(
-        (c) => c.outputIndex === i
-      );
+      const assignment = assignResponse?.outputAssignments?.find((a) => a.outputIndex === i);
+      const config = configResponse?.outputConfigs?.find((c) => c.outputIndex === i);
 
       // Determine output type from assignment or default based on unit spec
-      const outputType =
-        assignment?.outputType || getOutputTypeForIndex(i, ioSpec.outputs);
+      const outputType = assignment?.outputType || getOutputTypeForIndex(i, ioSpec.outputs);
 
       // Handle device_id mapping and assignment data first
       let finalDeviceId = null;
@@ -158,8 +131,7 @@ export async function readIOConfigurations(
       } else {
         // For lighting outputs, get address from assignment
         if (assignment) {
-          assignmentAddress =
-            assignment.lightingAddress || assignment.address;
+          assignmentAddress = assignment.lightingAddress || assignment.address;
 
           // If assignment has an address, try to map it to existing device or create new one
           if (assignmentAddress && assignmentAddress > 0) {
@@ -250,8 +222,7 @@ export async function readIOConfigurations(
         // Handle delay settings from assignment for lighting outputs
         if (assignment) {
           if (assignment.delay || assignment.delayOff) {
-            configData.delayOffSeconds =
-              assignment.delay || assignment.delayOff || 0;
+            configData.delayOffSeconds = assignment.delay || assignment.delayOff || 0;
           }
           if (assignment.delayOn) {
             configData.delayOnSeconds = assignment.delayOn || 0;
@@ -263,25 +234,16 @@ export async function readIOConfigurations(
       if (config) {
         // Convert 0-255 range to 0-100% for min/max dim
         if (config.minDimmingLevel !== undefined) {
-          configData.minDim = Math.round(
-            (config.minDimmingLevel / 255) * 100
-          );
+          configData.minDim = Math.round((config.minDimmingLevel / 255) * 100);
         }
         if (config.maxDimmingLevel !== undefined) {
-          configData.maxDim = Math.round(
-            (config.maxDimmingLevel / 255) * 100
-          );
+          configData.maxDim = Math.round((config.maxDimmingLevel / 255) * 100);
         }
-        if (config.autoTriggerFlag !== undefined)
-          configData.autoTrigger = config.autoTriggerFlag === 1;
-        if (config.scheduleOnHour !== undefined)
-          configData.scheduleOnHour = config.scheduleOnHour;
-        if (config.scheduleOnMinute !== undefined)
-          configData.scheduleOnMinute = config.scheduleOnMinute;
-        if (config.scheduleOffHour !== undefined)
-          configData.scheduleOffHour = config.scheduleOffHour;
-        if (config.scheduleOffMinute !== undefined)
-          configData.scheduleOffMinute = config.scheduleOffMinute;
+        if (config.autoTriggerFlag !== undefined) configData.autoTrigger = config.autoTriggerFlag === 1;
+        if (config.scheduleOnHour !== undefined) configData.scheduleOnHour = config.scheduleOnHour;
+        if (config.scheduleOnMinute !== undefined) configData.scheduleOnMinute = config.scheduleOnMinute;
+        if (config.scheduleOffHour !== undefined) configData.scheduleOffHour = config.scheduleOffHour;
+        if (config.scheduleOffMinute !== undefined) configData.scheduleOffMinute = config.scheduleOffMinute;
       }
 
       const outputConfig = {
@@ -325,10 +287,7 @@ export async function readIOConfigurations(
                     }
                   }
                   const acConfigIndex = acOutputs.indexOf(i);
-                  return acConfigIndex >= 0 &&
-                    acConfigIndex < acConfigResponse.length
-                    ? acConfigResponse[acConfigIndex].address
-                    : null;
+                  return acConfigIndex >= 0 && acConfigIndex < acConfigResponse.length ? acConfigResponse[acConfigIndex].address : null;
                 })()
               : null,
         }),

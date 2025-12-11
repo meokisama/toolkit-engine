@@ -1,7 +1,4 @@
-import {
-  findOrCreateLightingByAddress,
-  getCurtainTypeName,
-} from "./config-helpers";
+import { findOrCreateLightingByAddress, getCurtainTypeName } from "./config-helpers";
 
 /**
  * Read curtain configurations from network unit and create them in database
@@ -13,12 +10,11 @@ export const readCurtainConfigurations = async (networkUnit, projectId) => {
   const createdCurtains = [];
 
   try {
-    const result =
-      await window.electronAPI.curtainController.getCurtainConfig({
-        unitIp: networkUnit.ip_address,
-        canId: networkUnit.id_can,
-        curtainIndex: null, // Get all curtains
-      });
+    const result = await window.electronAPI.curtainController.getCurtainConfig({
+      unitIp: networkUnit.ip_address,
+      canId: networkUnit.id_can,
+      curtainIndex: null, // Get all curtains
+    });
 
     if (result?.curtains && result.curtains.length > 0) {
       for (const networkCurtain of result.curtains) {
@@ -27,26 +23,15 @@ export const readCurtainConfigurations = async (networkUnit, projectId) => {
           if (networkCurtain.curtainType === 0) {
             continue;
           }
-          const openGroup = await findOrCreateLightingByAddress(
-            networkCurtain.openGroup,
-            projectId
-          );
-          const closeGroup = await findOrCreateLightingByAddress(
-            networkCurtain.closeGroup,
-            projectId
-          );
+          const openGroup = await findOrCreateLightingByAddress(networkCurtain.openGroup, projectId);
+          const closeGroup = await findOrCreateLightingByAddress(networkCurtain.closeGroup, projectId);
           const stopGroup =
             networkCurtain.stopGroup && networkCurtain.stopGroup > 0
-              ? await findOrCreateLightingByAddress(
-                  networkCurtain.stopGroup,
-                  projectId
-                )
+              ? await findOrCreateLightingByAddress(networkCurtain.stopGroup, projectId)
               : null;
 
           // Create curtain in database
-          const curtainTypeName = getCurtainTypeName(
-            networkCurtain.curtainType
-          );
+          const curtainTypeName = getCurtainTypeName(networkCurtain.curtainType);
 
           const curtainData = {
             name: `Curtain ${networkCurtain.address}`,
@@ -63,10 +48,7 @@ export const readCurtainConfigurations = async (networkUnit, projectId) => {
             transition_period: networkCurtain.transitionPeriod || 0,
           };
 
-          const createdCurtain = await window.electronAPI.curtain.create(
-            projectId,
-            curtainData
-          );
+          const createdCurtain = await window.electronAPI.curtain.create(projectId, curtainData);
 
           createdCurtains.push(createdCurtain);
 
@@ -77,9 +59,7 @@ export const readCurtainConfigurations = async (networkUnit, projectId) => {
         }
       }
     } else {
-      console.log(
-        "No curtains found on network unit or invalid result structure"
-      );
+      console.log("No curtains found on network unit or invalid result structure");
     }
 
     console.log(`Successfully created ${createdCurtains.length} curtains`);

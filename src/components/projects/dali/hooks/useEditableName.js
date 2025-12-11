@@ -10,11 +10,14 @@ export function useEditableName(initialName, onSave) {
   const [isEditing, setIsEditing] = useState(false);
   const [editName, setEditName] = useState(initialName);
 
-  const handleNameClick = useCallback((e) => {
-    e.stopPropagation();
-    setIsEditing(true);
-    setEditName(initialName);
-  }, [initialName]);
+  const handleNameClick = useCallback(
+    (e) => {
+      e.stopPropagation();
+      setIsEditing(true);
+      setEditName(initialName);
+    },
+    [initialName]
+  );
 
   const handleNameBlur = useCallback(() => {
     setIsEditing(false);
@@ -25,14 +28,17 @@ export function useEditableName(initialName, onSave) {
     }
   }, [editName, initialName, onSave]);
 
-  const handleNameKeyDown = useCallback((e) => {
-    if (e.key === "Enter") {
-      e.target.blur();
-    } else if (e.key === "Escape") {
-      setEditName(initialName);
-      setIsEditing(false);
-    }
-  }, [initialName]);
+  const handleNameKeyDown = useCallback(
+    (e) => {
+      if (e.key === "Enter") {
+        e.target.blur();
+      } else if (e.key === "Escape") {
+        setEditName(initialName);
+        setIsEditing(false);
+      }
+    },
+    [initialName]
+  );
 
   const handleNameChange = useCallback((e) => {
     setEditName(e.target.value);

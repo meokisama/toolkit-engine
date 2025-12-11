@@ -1,11 +1,4 @@
-import React, {
-  useState,
-  useCallback,
-  memo,
-  useEffect,
-  useRef,
-  useMemo,
-} from "react";
+import React, { useState, useCallback, memo, useEffect, useRef, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { Plus, Calendar } from "lucide-react";
 import { useProjectDetail } from "@/contexts/project-detail-context";
@@ -19,10 +12,7 @@ import { DataTableSkeleton } from "@/components/projects/table-skeleton";
 import { createScheduleColumns } from "./schedule-columns";
 import { toast } from "sonner";
 
-const ScheduleTable = memo(function ScheduleTable({
-  items = [],
-  loading = false,
-}) {
+const ScheduleTable = memo(function ScheduleTable({ items = [], loading = false }) {
   const category = "schedule";
   const { deleteItem, duplicateItem, updateItem } = useProjectDetail();
   const [scheduleSceneCounts, setScheduleSceneCounts] = useState({});
@@ -65,15 +55,10 @@ const ScheduleTable = memo(function ScheduleTable({
       const counts = {};
       for (const schedule of items) {
         try {
-          const scenes = await window.electronAPI.schedule.getScenesWithDetails(
-            schedule.id
-          );
+          const scenes = await window.electronAPI.schedule.getScenesWithDetails(schedule.id);
           counts[schedule.id] = scenes.length;
         } catch (error) {
-          console.error(
-            `Failed to load scene count for schedule ${schedule.id}:`,
-            error
-          );
+          console.error(`Failed to load scene count for schedule ${schedule.id}:`, error);
           counts[schedule.id] = 0;
         }
       }
@@ -115,7 +100,7 @@ const ScheduleTable = memo(function ScheduleTable({
       setConfirmDialog({
         open: true,
         title: "Delete Schedule",
-        description: `Are you sure you want to delete "${item.name || 'this schedule'}"? This action cannot be undone.`,
+        description: `Are you sure you want to delete "${item.name || "this schedule"}"? This action cannot be undone.`,
         onConfirm: async () => {
           try {
             await deleteItem(category, item.id);
@@ -164,9 +149,7 @@ const ScheduleTable = memo(function ScheduleTable({
   // ✅ Stable function that doesn't depend on state
   const getEffectiveValue = useCallback((item, field) => {
     const pendingChange = pendingChangesRef.current.get(item.id);
-    return pendingChange && pendingChange[field] !== undefined
-      ? pendingChange[field]
-      : item[field] || "";
+    return pendingChange && pendingChange[field] !== undefined ? pendingChange[field] : item[field] || "";
   }, []); // No dependencies = stable function!
 
   // Save pending changes
@@ -175,9 +158,7 @@ const ScheduleTable = memo(function ScheduleTable({
 
     setSaveLoading(true);
     try {
-      const updatePromises = Array.from(
-        pendingChangesRef.current.entries()
-      ).map(([id, changes]) => {
+      const updatePromises = Array.from(pendingChangesRef.current.entries()).map(([id, changes]) => {
         // Find the original item to merge with changes
         const originalItem = items.find((item) => item.id === id);
         if (!originalItem) {
@@ -187,10 +168,7 @@ const ScheduleTable = memo(function ScheduleTable({
         // Parse days field to ensure it's an array
         let parsedDays = [];
         try {
-          parsedDays =
-            typeof originalItem.days === "string"
-              ? JSON.parse(originalItem.days)
-              : originalItem.days || [];
+          parsedDays = typeof originalItem.days === "string" ? JSON.parse(originalItem.days) : originalItem.days || [];
         } catch (e) {
           parsedDays = [];
         }
@@ -201,8 +179,7 @@ const ScheduleTable = memo(function ScheduleTable({
           description: originalItem.description || "",
           time: originalItem.time || "",
           days: parsedDays, // Ensure days is always an array
-          enabled:
-            originalItem.enabled !== undefined ? originalItem.enabled : true,
+          enabled: originalItem.enabled !== undefined ? originalItem.enabled : true,
           ...changes, // Apply the pending changes on top
         };
 
@@ -278,15 +255,7 @@ const ScheduleTable = memo(function ScheduleTable({
 
   // ✅ Now columns will be truly stable because all dependencies are stable!
   const columns = useMemo(
-    () =>
-      createScheduleColumns(
-        handleEditItem,
-        handleDuplicateItem,
-        handleDeleteItem,
-        handleCellEdit,
-        getEffectiveValue,
-        handleSendSchedule
-      ),
+    () => createScheduleColumns(handleEditItem, handleDuplicateItem, handleDeleteItem, handleCellEdit, getEffectiveValue, handleSendSchedule),
     [
       handleEditItem,
       handleDuplicateItem,
@@ -308,9 +277,7 @@ const ScheduleTable = memo(function ScheduleTable({
           <div className="text-center text-muted-foreground flex flex-col justify-center items-center h-full -mt-8">
             <Calendar className="h-12 w-12 mx-auto mb-4 opacity-50" />
             <p>No schedules found.</p>
-            <p className="text-sm mb-8">
-              Click "Add Schedule" to create your first schedule.
-            </p>
+            <p className="text-sm mb-8">Click "Add Schedule" to create your first schedule.</p>
             <Button onClick={handleCreateItem}>
               <Plus className="h-4 w-4" />
               Add Schedule
@@ -353,25 +320,16 @@ const ScheduleTable = memo(function ScheduleTable({
                 enableRowSelection={true}
               />
             </div>
-            {table && (
-              <DataTablePagination table={table} pagination={pagination} />
-            )}
+            {table && <DataTablePagination table={table} pagination={pagination} />}
           </div>
         )}
       </div>
 
-      <ScheduleDialog
-        open={dialogOpen}
-        onOpenChange={handleDialogClose}
-        schedule={editingItem}
-        mode={dialogMode}
-      />
+      <ScheduleDialog open={dialogOpen} onOpenChange={handleDialogClose} schedule={editingItem} mode={dialogMode} />
 
       <SendScheduleDialog
         open={sendScheduleDialog.open}
-        onOpenChange={(open) =>
-          setSendScheduleDialog({ ...sendScheduleDialog, open })
-        }
+        onOpenChange={(open) => setSendScheduleDialog({ ...sendScheduleDialog, open })}
         items={sendScheduleDialog.items}
       />
 

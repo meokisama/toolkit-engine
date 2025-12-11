@@ -1,40 +1,12 @@
 import React from "react";
 import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import {
-  Settings2,
-  LibraryBig,
-  Network,
-  ChevronsLeftRightEllipsis,
-  Share2,
-} from "lucide-react";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Settings2, LibraryBig, Network, ChevronsLeftRightEllipsis, Share2 } from "lucide-react";
 
 export function RoomGeneralSettings({ config, updateConfig }) {
-  const {
-    roomMode,
-    clientMode,
-    roomAmount,
-    tcpMode,
-    slaveAmount,
-    port,
-    slaveIPs,
-    clientIP,
-    clientPort,
-  } = config;
+  const { roomMode, clientMode, roomAmount, tcpMode, slaveAmount, port, slaveIPs, clientIP, clientPort } = config;
 
   // Room mode determines if room amount is shown
   const showRoomAmount = roomMode === 0; // Only for Standalone
@@ -56,12 +28,8 @@ export function RoomGeneralSettings({ config, updateConfig }) {
     <div className="space-y-4">
       <Card className="">
         <CardHeader>
-          <CardTitle className="text-gray-800 font-extrabold">
-            Room General Settings
-          </CardTitle>
-          <CardDescription>
-            Overview configuration of the room and the room's slaves.
-          </CardDescription>
+          <CardTitle className="text-gray-800 font-extrabold">Room General Settings</CardTitle>
+          <CardDescription>Overview configuration of the room and the room's slaves.</CardDescription>
         </CardHeader>
         <CardContent className="space-y-5">
           <div className="grid grid-cols-4 gap-2">
@@ -71,12 +39,7 @@ export function RoomGeneralSettings({ config, updateConfig }) {
                 <Settings2 className="size-4" />
                 Room Mode
               </Label>
-              <Select
-                value={roomMode.toString()}
-                onValueChange={(value) =>
-                  updateConfig("roomMode", parseInt(value))
-                }
-              >
+              <Select value={roomMode.toString()} onValueChange={(value) => updateConfig("roomMode", parseInt(value))}>
                 <SelectTrigger id="room-mode" className="w-full">
                   <SelectValue placeholder="Select room mode" />
                 </SelectTrigger>
@@ -95,12 +58,7 @@ export function RoomGeneralSettings({ config, updateConfig }) {
                   <LibraryBig className="size-4" />
                   Room Amount
                 </Label>
-                <Select
-                  value={roomAmount.toString()}
-                  onValueChange={(value) =>
-                    updateConfig("roomAmount", parseInt(value))
-                  }
-                >
+                <Select value={roomAmount.toString()} onValueChange={(value) => updateConfig("roomAmount", parseInt(value))}>
                   <SelectTrigger id="room-amount" className="w-full">
                     <SelectValue placeholder="Select room amount" />
                   </SelectTrigger>
@@ -121,12 +79,7 @@ export function RoomGeneralSettings({ config, updateConfig }) {
                 <Network className="size-4" />
                 TCP Mode
               </Label>
-              <Select
-                value={tcpMode.toString()}
-                onValueChange={(value) =>
-                  updateConfig("tcpMode", parseInt(value))
-                }
-              >
+              <Select value={tcpMode.toString()} onValueChange={(value) => updateConfig("tcpMode", parseInt(value))}>
                 <SelectTrigger id="tcp-mode" className="w-full">
                   <SelectValue placeholder="Select TCP mode" />
                 </SelectTrigger>
@@ -149,9 +102,7 @@ export function RoomGeneralSettings({ config, updateConfig }) {
                   id="port"
                   type="number"
                   value={port}
-                  onChange={(e) =>
-                    updateConfig("port", parseInt(e.target.value) || 0)
-                  }
+                  onChange={(e) => updateConfig("port", parseInt(e.target.value) || 0)}
                   placeholder="5000"
                   className="w-full"
                 />
@@ -163,12 +114,7 @@ export function RoomGeneralSettings({ config, updateConfig }) {
                     <LibraryBig className="size-4" />
                     Slave Amount
                   </Label>
-                  <Select
-                    value={slaveAmount.toString()}
-                    onValueChange={(value) =>
-                      updateConfig("slaveAmount", parseInt(value))
-                    }
-                  >
+                  <Select value={slaveAmount.toString()} onValueChange={(value) => updateConfig("slaveAmount", parseInt(value))}>
                     <SelectTrigger id="slave-amount" className="w-full">
                       <SelectValue placeholder="Select slave amount" />
                     </SelectTrigger>
@@ -210,12 +156,8 @@ export function RoomGeneralSettings({ config, updateConfig }) {
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-gray-800 font-extrabold">
-            Client Settings
-          </CardTitle>
-          <CardDescription>
-            Configuration of third-party client.
-          </CardDescription>
+          <CardTitle className="text-gray-800 font-extrabold">Client Settings</CardTitle>
+          <CardDescription>Configuration of third-party client.</CardDescription>
         </CardHeader>
         <CardContent className="grid grid-cols-3 gap-2">
           {/* Client Mode */}
@@ -224,12 +166,7 @@ export function RoomGeneralSettings({ config, updateConfig }) {
               <Settings2 className="size-4" />
               Client Mode
             </Label>
-            <Select
-              value={clientMode.toString()}
-              onValueChange={(value) =>
-                updateConfig("clientMode", parseInt(value))
-              }
-            >
+            <Select value={clientMode.toString()} onValueChange={(value) => updateConfig("clientMode", parseInt(value))}>
               <SelectTrigger id="client-mode" className="w-full">
                 <SelectValue placeholder="Select client mode" />
               </SelectTrigger>
@@ -267,9 +204,7 @@ export function RoomGeneralSettings({ config, updateConfig }) {
                   id="client-port"
                   type="number"
                   value={clientPort}
-                  onChange={(e) =>
-                    updateConfig("clientPort", parseInt(e.target.value) || 0)
-                  }
+                  onChange={(e) => updateConfig("clientPort", parseInt(e.target.value) || 0)}
                   placeholder="8080"
                   className="col-span-3"
                 />

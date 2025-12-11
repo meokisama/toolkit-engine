@@ -4,13 +4,7 @@ import { useState, useCallback, useEffect, useRef, memo } from "react";
 import { Settings2, Loader2, Power, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { CONSTANTS } from "@/constants";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
@@ -26,23 +20,13 @@ const GroupCard = memo(({ state, onSwitchToggle, onSliderChange, loading }) => {
     <Card key={state.group} className="p-4">
       <CardContent className="space-y-4 flex gap-4 w-full justify-between px-0!">
         <div className="shrink-0 flex items-center justify-center h-full">
-          <img
-            src={state.value > 0 ? lightOn : lightOff}
-            alt="Lighting State"
-            className="w-[50px] h-auto rounded-lg"
-          />
+          <img src={state.value > 0 ? lightOn : lightOff} alt="Lighting State" className="w-[50px] h-auto rounded-lg" />
         </div>
         <div className="flex-1">
           <div className="pb-3">
             <div className="text-base flex items-center justify-between">
               <Label className="font-bold text-md">{state.name}</Label>
-              <Switch
-                checked={state.value > 0}
-                onCheckedChange={(checked) =>
-                  onSwitchToggle(state.group, checked)
-                }
-                disabled={loading}
-              />
+              <Switch checked={state.value > 0} onCheckedChange={(checked) => onSwitchToggle(state.group, checked)} disabled={loading} />
             </div>
           </div>
           <div className="space-y-2 pb-3">
@@ -144,9 +128,7 @@ export function GroupControlDialog({ open, onOpenChange, unit }) {
             }
 
             states[groupNum - fromGroup].value = value;
-            console.log(
-              `Alt Group ${groupNum}: index=${altIndex}, value=${value}`
-            );
+            console.log(`Alt Group ${groupNum}: index=${altIndex}, value=${value}`);
           }
         }
       }
@@ -189,11 +171,7 @@ export function GroupControlDialog({ open, onOpenChange, unit }) {
         const currentFromGroup = Math.min(...groupStates.map((s) => s.group));
         const currentToGroup = Math.max(...groupStates.map((s) => s.group));
 
-        for (
-          let groupNum = currentFromGroup;
-          groupNum <= currentToGroup;
-          groupNum++
-        ) {
+        for (let groupNum = currentFromGroup; groupNum <= currentToGroup; groupNum++) {
           const stateIndex = dataStartPos + groupNum;
           let value = 0;
 
@@ -210,11 +188,7 @@ export function GroupControlDialog({ open, onOpenChange, unit }) {
 
         // If no valid data found, try alternative parsing
         if (states.every((s) => s.value === 0) && data.length > 9) {
-          for (
-            let groupNum = currentFromGroup;
-            groupNum <= currentToGroup;
-            groupNum++
-          ) {
+          for (let groupNum = currentFromGroup; groupNum <= currentToGroup; groupNum++) {
             const altIndex = 8 + (groupNum - 1);
             let value = 0;
 
@@ -243,11 +217,7 @@ export function GroupControlDialog({ open, onOpenChange, unit }) {
 
       const value = isOn ? 255 : 0;
 
-      setGroupStates((prev) =>
-        prev.map((state) =>
-          state.group === groupNum ? { ...state, value } : state
-        )
-      );
+      setGroupStates((prev) => prev.map((state) => (state.group === groupNum ? { ...state, value } : state)));
 
       try {
         await window.electronAPI.ioController.setGroupState({
@@ -263,13 +233,7 @@ export function GroupControlDialog({ open, onOpenChange, unit }) {
         toast.error(`Failed to toggle group ${groupNum}: ${error.message}`);
 
         // Revert local state on error
-        setGroupStates((prev) =>
-          prev.map((state) =>
-            state.group === groupNum
-              ? { ...state, value: isOn ? 0 : 255 }
-              : state
-          )
-        );
+        setGroupStates((prev) => prev.map((state) => (state.group === groupNum ? { ...state, value: isOn ? 0 : 255 } : state)));
       }
     },
     [unit]
@@ -278,11 +242,7 @@ export function GroupControlDialog({ open, onOpenChange, unit }) {
   // Handle slider change with debounce
   const handleSliderChange = useCallback(
     (groupNum, newValue) => {
-      setGroupStates((prev) =>
-        prev.map((state) =>
-          state.group === groupNum ? { ...state, value: newValue[0] } : state
-        )
-      );
+      setGroupStates((prev) => prev.map((state) => (state.group === groupNum ? { ...state, value: newValue[0] } : state)));
 
       // Clear existing timeout for this group
       if (debounceRefs.current[groupNum]) {
@@ -301,11 +261,7 @@ export function GroupControlDialog({ open, onOpenChange, unit }) {
             unitIp: unit.ip_address,
           });
 
-          toast.success(
-            `Group ${groupNum} set to ${newValue[0]} (${Math.round(
-              (newValue[0] * 100) / 255
-            )}%)`
-          );
+          toast.success(`Group ${groupNum} set to ${newValue[0]} (${Math.round((newValue[0] * 100) / 255)}%)`);
         } catch (error) {
           console.error("Failed to set group value:", error);
           toast.error(`Failed to set group ${groupNum}: ${error.message}`);
@@ -360,10 +316,7 @@ export function GroupControlDialog({ open, onOpenChange, unit }) {
 
     return () => {
       window.removeEventListener("pauseAllAutoRefresh", handlePauseAutoRefresh);
-      window.removeEventListener(
-        "resumeAllAutoRefresh",
-        handleResumeAutoRefresh
-      );
+      window.removeEventListener("resumeAllAutoRefresh", handleResumeAutoRefresh);
     };
   }, [open, groupStates.length, autoRefreshStates]);
 
@@ -389,8 +342,7 @@ export function GroupControlDialog({ open, onOpenChange, unit }) {
             Group Control
           </DialogTitle>
           <DialogDescription>
-            Control multiple lighting groups for unit {unit?.id_can} at{" "}
-            {unit?.ip_address}:{CONSTANTS.UNIT.UDP_CONFIG.UDP_PORT}
+            Control multiple lighting groups for unit {unit?.id_can} at {unit?.ip_address}:{CONSTANTS.UNIT.UDP_CONFIG.UDP_PORT}
           </DialogDescription>
         </DialogHeader>
 
@@ -421,16 +373,8 @@ export function GroupControlDialog({ open, onOpenChange, unit }) {
                 placeholder="10"
               />
             </div>
-            <Button
-              onClick={handleGetStates}
-              disabled={getStateLoading}
-              className="flex items-center gap-2"
-            >
-              {getStateLoading ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
-              ) : (
-                <RefreshCw className="h-4 w-4" />
-              )}
+            <Button onClick={handleGetStates} disabled={getStateLoading} className="flex items-center gap-2">
+              {getStateLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
               Get State
             </Button>
           </div>
@@ -440,9 +384,7 @@ export function GroupControlDialog({ open, onOpenChange, unit }) {
             <div className="space-y-4">
               <div className="flex items-center justify-between">
                 <h3 className="text-lg font-medium">Group States</h3>
-                <span className="text-sm text-muted-foreground">
-                  {groupStates.length} groups loaded
-                </span>
+                <span className="text-sm text-muted-foreground">{groupStates.length} groups loaded</span>
               </div>
 
               <ScrollArea className="h-[400px] pr-4">
@@ -466,9 +408,7 @@ export function GroupControlDialog({ open, onOpenChange, unit }) {
             <div className="text-center py-8 text-muted-foreground">
               <Settings2 className="h-12 w-12 mx-auto mb-4 opacity-50" />
               <p className="text-lg font-medium mb-2">No Group States Loaded</p>
-              <p className="text-sm">
-                Set the group range and click "Get State" to load group states
-              </p>
+              <p className="text-sm">Set the group range and click "Get State" to load group states</p>
             </div>
           )}
         </div>

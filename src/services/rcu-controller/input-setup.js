@@ -139,25 +139,12 @@ async function setupInputConfig(unitIp, canId, inputConfig) {
   const data = buildInputConfigData(inputConfig);
 
   try {
-    const response = await sendCommand(
-      unitIp,
-      UDP_PORT,
-      idAddress,
-      PROTOCOL.LIGHTING.CMD1,
-      PROTOCOL.LIGHTING.CMD2.SETUP_INPUT,
-      data,
-      false
-    );
+    const response = await sendCommand(unitIp, UDP_PORT, idAddress, PROTOCOL.LIGHTING.CMD1, PROTOCOL.LIGHTING.CMD2.SETUP_INPUT, data, false);
 
-    console.log(
-      `Input ${inputConfig.inputNumber} configuration sent successfully`
-    );
+    console.log(`Input ${inputConfig.inputNumber} configuration sent successfully`);
     return response;
   } catch (error) {
-    console.error(
-      `Failed to setup input ${inputConfig.inputNumber} config:`,
-      error
-    );
+    console.error(`Failed to setup input ${inputConfig.inputNumber} config:`, error);
     throw error;
   }
 }
@@ -177,9 +164,7 @@ async function setupBatchInputConfigs(unitIp, canId, inputConfigs, maxBytes = 90
   // Group configs into batches
   const batches = groupInputConfigsIntoBatches(inputConfigs, maxBytes);
 
-  console.log(
-    `Sending ${inputConfigs.length} input configs in ${batches.length} batch(es)`
-  );
+  console.log(`Sending ${inputConfigs.length} input configs in ${batches.length} batch(es)`);
 
   let successCount = 0;
   let failCount = 0;
@@ -197,20 +182,10 @@ async function setupBatchInputConfigs(unitIp, canId, inputConfigs, maxBytes = 90
     }
 
     try {
-      await sendCommand(
-        unitIp,
-        UDP_PORT,
-        idAddress,
-        PROTOCOL.LIGHTING.CMD1,
-        PROTOCOL.LIGHTING.CMD2.SETUP_INPUT,
-        batchData,
-        false
-      );
+      await sendCommand(unitIp, UDP_PORT, idAddress, PROTOCOL.LIGHTING.CMD1, PROTOCOL.LIGHTING.CMD2.SETUP_INPUT, batchData, false);
 
       successCount += batch.length;
-      console.log(
-        `Batch ${batchIndex + 1}/${batches.length}: Sent ${batch.length} input config(s) successfully (${batchData.length} bytes)`
-      );
+      console.log(`Batch ${batchIndex + 1}/${batches.length}: Sent ${batch.length} input config(s) successfully (${batchData.length} bytes)`);
     } catch (error) {
       failCount += batch.length;
       const errorMessage = error instanceof Error ? error.message : String(error);
@@ -219,10 +194,7 @@ async function setupBatchInputConfigs(unitIp, canId, inputConfigs, maxBytes = 90
         inputIndices: batch.map((c) => c.inputNumber),
         error: errorMessage,
       });
-      console.error(
-        `Batch ${batchIndex + 1}/${batches.length} failed:`,
-        errorMessage
-      );
+      console.error(`Batch ${batchIndex + 1}/${batches.length} failed:`, errorMessage);
     }
   }
 

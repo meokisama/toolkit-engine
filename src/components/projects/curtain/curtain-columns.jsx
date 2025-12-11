@@ -1,12 +1,4 @@
-import {
-  ArrowUpDown,
-  MoreHorizontal,
-  Copy,
-  Edit,
-  Trash2,
-  Layers,
-  Blinds,
-} from "lucide-react";
+import { MoreHorizontal, Copy, Edit, Trash2, Layers, Blinds } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
@@ -23,25 +15,14 @@ import { EditableSelectCell } from "../data-table/editable-select-cell";
 import { EditableComboboxCell } from "../data-table/editable-combobox-cell";
 import { CURTAIN_TYPES } from "@/constants";
 
-export const createCurtainColumns = (
-  onEdit,
-  onDelete,
-  onDuplicate,
-  onCellEdit,
-  getEffectiveValue,
-  lightingItems = []
-) => {
+export const createCurtainColumns = (onEdit, onDelete, onDuplicate, onCellEdit, getEffectiveValue, lightingItems = []) => {
   // Create lighting options for group selection
   const lightingOptions = lightingItems.map((item) => ({
     value: item.id,
-    label: item.name
-      ? `${item.name} (${item.address})`
-      : `Group ${item.address}`,
+    label: item.name ? `${item.name} (${item.address})` : `Group ${item.address}`,
   }));
 
-  const curtainTypeOptions = CURTAIN_TYPES.filter(
-    (type) => type.value !== 0
-  ).map((type) => ({
+  const curtainTypeOptions = CURTAIN_TYPES.filter((type) => type.value !== 0).map((type) => ({
     value: type.name,
     label: type.label,
   }));
@@ -51,21 +32,13 @@ export const createCurtainColumns = (
       id: "select",
       header: ({ table }) => (
         <Checkbox
-          checked={
-            table.getIsAllPageRowsSelected() ||
-            (table.getIsSomePageRowsSelected() && "indeterminate")
-          }
+          checked={table.getIsAllPageRowsSelected() || (table.getIsSomePageRowsSelected() && "indeterminate")}
           onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
           aria-label="Select all"
         />
       ),
       cell: ({ row }) => (
-        <Checkbox
-          checked={row.getIsSelected()}
-          onCheckedChange={(value) => row.toggleSelected(!!value)}
-          aria-label="Select row"
-          className="mx-1.5"
-        />
+        <Checkbox checked={row.getIsSelected()} onCheckedChange={(value) => row.toggleSelected(!!value)} aria-label="Select row" className="mx-1.5" />
       ),
       enableSorting: false,
       enableHiding: false,
@@ -75,9 +48,7 @@ export const createCurtainColumns = (
     },
     {
       accessorKey: "name",
-      header: ({ column }) => (
-        <DataTableColumnHeader column={column} title="Name" />
-      ),
+      header: ({ column }) => <DataTableColumnHeader column={column} title="Name" />,
       cell: ({ row }) => {
         const name = row.getValue("name");
         const effectiveValue = getEffectiveValue(row.original.id, "name", name);
@@ -99,20 +70,10 @@ export const createCurtainColumns = (
     },
     {
       accessorKey: "address",
-      header: ({ column }) => (
-        <DataTableColumnHeader
-          column={column}
-          title="Address"
-          className="flex items-center justify-center"
-        />
-      ),
+      header: ({ column }) => <DataTableColumnHeader column={column} title="Address" className="flex items-center justify-center" />,
       cell: ({ row }) => {
         const address = row.getValue("address");
-        const effectiveValue = getEffectiveValue(
-          row.original.id,
-          "address",
-          address
-        );
+        const effectiveValue = getEffectiveValue(row.original.id, "address", address);
         return (
           <EditableCell
             value={effectiveValue}
@@ -134,27 +95,15 @@ export const createCurtainColumns = (
     },
     {
       accessorKey: "curtain_type",
-      header: ({ column }) => (
-        <DataTableColumnHeader
-          column={column}
-          title="Type"
-          className="flex items-center justify-center"
-        />
-      ),
+      header: ({ column }) => <DataTableColumnHeader column={column} title="Type" className="flex items-center justify-center" />,
       cell: ({ row }) => {
         const curtainType = row.getValue("curtain_type");
-        const effectiveValue = getEffectiveValue(
-          row.original.id,
-          "curtain_type",
-          curtainType
-        );
+        const effectiveValue = getEffectiveValue(row.original.id, "curtain_type", curtainType);
         return (
           <EditableSelectCell
             value={effectiveValue}
             options={curtainTypeOptions}
-            onSave={(value) =>
-              onCellEdit(row.original.id, "curtain_type", value)
-            }
+            onSave={(value) => onCellEdit(row.original.id, "curtain_type", value)}
             placeholder="Select type"
           />
         );
@@ -167,20 +116,10 @@ export const createCurtainColumns = (
     },
     {
       accessorKey: "open_group_id",
-      header: ({ column }) => (
-        <DataTableColumnHeader
-          column={column}
-          title="Open Group"
-          className="text-center"
-        />
-      ),
+      header: ({ column }) => <DataTableColumnHeader column={column} title="Open Group" className="text-center" />,
       cell: ({ row }) => {
         const openGroupId = row.getValue("open_group_id");
-        const effectiveValue = getEffectiveValue(
-          row.original.id,
-          "open_group_id",
-          openGroupId
-        );
+        const effectiveValue = getEffectiveValue(row.original.id, "open_group_id", openGroupId);
 
         return (
           <EditableComboboxCell
@@ -201,28 +140,16 @@ export const createCurtainColumns = (
     },
     {
       accessorKey: "close_group_id",
-      header: ({ column }) => (
-        <DataTableColumnHeader
-          column={column}
-          title="Close Group"
-          className="text-center"
-        />
-      ),
+      header: ({ column }) => <DataTableColumnHeader column={column} title="Close Group" className="text-center" />,
       cell: ({ row }) => {
         const closeGroupId = row.getValue("close_group_id");
-        const effectiveValue = getEffectiveValue(
-          row.original.id,
-          "close_group_id",
-          closeGroupId
-        );
+        const effectiveValue = getEffectiveValue(row.original.id, "close_group_id", closeGroupId);
 
         return (
           <EditableComboboxCell
             value={effectiveValue}
             options={lightingOptions}
-            onSave={(value) =>
-              onCellEdit(row.original.id, "close_group_id", value)
-            }
+            onSave={(value) => onCellEdit(row.original.id, "close_group_id", value)}
             placeholder="Select group"
             searchPlaceholder="Search lighting groups..."
             emptyMessage="No lighting groups found."
@@ -237,26 +164,12 @@ export const createCurtainColumns = (
     },
     {
       accessorKey: "stop_group_id",
-      header: ({ column }) => (
-        <DataTableColumnHeader
-          column={column}
-          title="Stop Group"
-          className="text-center"
-        />
-      ),
+      header: ({ column }) => <DataTableColumnHeader column={column} title="Stop Group" className="text-center" />,
       cell: ({ row }) => {
         const curtainType = row.getValue("curtain_type");
         const stopGroupId = row.getValue("stop_group_id");
-        const effectiveCurtainType = getEffectiveValue(
-          row.original.id,
-          "curtain_type",
-          curtainType
-        );
-        const effectiveValue = getEffectiveValue(
-          row.original.id,
-          "stop_group_id",
-          stopGroupId
-        );
+        const effectiveCurtainType = getEffectiveValue(row.original.id, "curtain_type", curtainType);
+        const effectiveValue = getEffectiveValue(row.original.id, "stop_group_id", stopGroupId);
 
         // Only show stop group for 3P types
         if (!effectiveCurtainType || !effectiveCurtainType.includes("3P")) {
@@ -282,26 +195,14 @@ export const createCurtainColumns = (
     },
     {
       accessorKey: "pause_period",
-      header: ({ column }) => (
-        <DataTableColumnHeader
-          column={column}
-          title="Pause"
-          className="text-center"
-        />
-      ),
+      header: ({ column }) => <DataTableColumnHeader column={column} title="Pause" className="text-center" />,
       cell: ({ row }) => {
         const pausePeriod = row.getValue("pause_period");
-        const effectiveValue = getEffectiveValue(
-          row.original.id,
-          "pause_period",
-          pausePeriod
-        );
+        const effectiveValue = getEffectiveValue(row.original.id, "pause_period", pausePeriod);
         return (
           <EditableCell
             value={effectiveValue}
-            onSave={(value) =>
-              onCellEdit(row.original.id, "pause_period", parseInt(value) || 0)
-            }
+            onSave={(value) => onCellEdit(row.original.id, "pause_period", parseInt(value) || 0)}
             placeholder="0"
             className="text-center"
             type="number"
@@ -318,30 +219,14 @@ export const createCurtainColumns = (
     },
     {
       accessorKey: "transition_period",
-      header: ({ column }) => (
-        <DataTableColumnHeader
-          column={column}
-          title="Transition"
-          className="text-center"
-        />
-      ),
+      header: ({ column }) => <DataTableColumnHeader column={column} title="Transition" className="text-center" />,
       cell: ({ row }) => {
         const transitionPeriod = row.getValue("transition_period");
-        const effectiveValue = getEffectiveValue(
-          row.original.id,
-          "transition_period",
-          transitionPeriod
-        );
+        const effectiveValue = getEffectiveValue(row.original.id, "transition_period", transitionPeriod);
         return (
           <EditableCell
             value={effectiveValue}
-            onSave={(value) =>
-              onCellEdit(
-                row.original.id,
-                "transition_period",
-                parseInt(value) || 0
-              )
-            }
+            onSave={(value) => onCellEdit(row.original.id, "transition_period", parseInt(value) || 0)}
             placeholder="0"
             className="text-center"
             type="number"
@@ -358,22 +243,14 @@ export const createCurtainColumns = (
     },
     {
       accessorKey: "description",
-      header: ({ column }) => (
-        <DataTableColumnHeader column={column} title="Description" />
-      ),
+      header: ({ column }) => <DataTableColumnHeader column={column} title="Description" />,
       cell: ({ row }) => {
         const description = row.getValue("description");
-        const effectiveValue = getEffectiveValue(
-          row.original.id,
-          "description",
-          description
-        );
+        const effectiveValue = getEffectiveValue(row.original.id, "description", description);
         return (
           <EditableCell
             value={effectiveValue}
-            onSave={(value) =>
-              onCellEdit(row.original.id, "description", value)
-            }
+            onSave={(value) => onCellEdit(row.original.id, "description", value)}
             placeholder="Enter description"
           />
         );
@@ -409,10 +286,7 @@ export const createCurtainColumns = (
                 Duplicate
               </DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem
-                onClick={() => onDelete(item)}
-                className="text-red-600"
-              >
+              <DropdownMenuItem onClick={() => onDelete(item)} className="text-red-600">
                 <Trash2 className="mr-2 h-4 w-4" />
                 Delete
               </DropdownMenuItem>

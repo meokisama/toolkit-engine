@@ -1,13 +1,5 @@
-"use client";
-
 import React, { useState, useEffect } from "react";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 
@@ -32,7 +24,7 @@ export function EditableSelectCell({
   const handleValueChange = (newValue) => {
     setEditValue(newValue);
     // Convert back to original type if it was a number
-    const originalOption = options.find(opt => String(opt.value) === newValue);
+    const originalOption = options.find((opt) => String(opt.value) === newValue);
     const convertedValue = originalOption ? originalOption.value : newValue;
 
     if (convertedValue !== value) {
@@ -41,12 +33,12 @@ export function EditableSelectCell({
   };
 
   // Find the option for display text
-  const selectedOption = options.find(opt => String(opt.value) === editValue);
-  const displayText = renderValue ? renderValue(editValue) : (selectedOption ? selectedOption.label : editValue);
+  const selectedOption = options.find((opt) => String(opt.value) === editValue);
+  const displayText = renderValue ? renderValue(editValue) : selectedOption ? selectedOption.label : editValue;
 
   return (
     <Select value={editValue} onValueChange={handleValueChange}>
-      <SelectTrigger className={cn("!h-10", className)}>
+      <SelectTrigger className={cn("h-10!", className)}>
         {renderBadge && editValue ? (
           <Badge variant={badgeVariant} className="text-xs">
             {displayText}

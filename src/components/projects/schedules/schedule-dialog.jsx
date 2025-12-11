@@ -1,11 +1,5 @@
 import React, { useState, useEffect, useCallback } from "react";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -33,21 +27,8 @@ const DAYS_OF_WEEK = [
 // Helper constant for all day keys
 const ALL_DAYS = DAYS_OF_WEEK.map((day) => day.key);
 
-export function ScheduleDialog({
-  open,
-  onOpenChange,
-  schedule = null,
-  mode = "create",
-}) {
-  const {
-    selectedProject,
-    projectItems,
-    createItem,
-    updateItem,
-    setActiveTab,
-    loadTabData,
-    loadedTabs,
-  } = useProjectDetail();
+export function ScheduleDialog({ open, onOpenChange, schedule = null, mode = "create" }) {
+  const { selectedProject, projectItems, createItem, updateItem, setActiveTab, loadTabData, loadedTabs } = useProjectDetail();
 
   const [formData, setFormData] = useState({
     name: "",
@@ -56,9 +37,7 @@ export function ScheduleDialog({
     days: ALL_DAYS,
     enabled: true,
   });
-  const [timeDate, setTimeDate] = useState(
-    new Date(new Date().setHours(0, 0, 0, 0))
-  );
+  const [timeDate, setTimeDate] = useState(new Date(new Date().setHours(0, 0, 0, 0)));
   const [errors, setErrors] = useState({});
   const [selectedSceneIds, setSelectedSceneIds] = useState([]);
   const [originalScheduleScenes, setOriginalScheduleScenes] = useState([]);
@@ -86,10 +65,7 @@ export function ScheduleDialog({
       if (mode === "edit" && schedule) {
         let parsedDays = [];
         try {
-          parsedDays =
-            typeof schedule.days === "string"
-              ? JSON.parse(schedule.days)
-              : schedule.days || [];
+          parsedDays = typeof schedule.days === "string" ? JSON.parse(schedule.days) : schedule.days || [];
         } catch (e) {
           parsedDays = [];
         }
@@ -99,8 +75,7 @@ export function ScheduleDialog({
           description: schedule.description || "",
           time: schedule.time || "",
           days: parsedDays,
-          enabled:
-            schedule.enabled !== undefined ? Boolean(schedule.enabled) : true,
+          enabled: schedule.enabled !== undefined ? Boolean(schedule.enabled) : true,
         });
         setTimeDate(timeStringToDate(schedule.time || ""));
 
@@ -129,9 +104,7 @@ export function ScheduleDialog({
 
   const loadScheduleScenes = async (scheduleId) => {
     try {
-      const scenes = await window.electronAPI.schedule.getScenesWithDetails(
-        scheduleId
-      );
+      const scenes = await window.electronAPI.schedule.getScenesWithDetails(scheduleId);
       setSelectedSceneIds(scenes.map((scene) => scene.scene_id));
       setOriginalScheduleScenes([...scenes]);
     } catch (error) {
@@ -161,9 +134,7 @@ export function ScheduleDialog({
   const handleDayToggle = useCallback((dayKey) => {
     setFormData((prev) => ({
       ...prev,
-      days: prev.days.includes(dayKey)
-        ? prev.days.filter((d) => d !== dayKey)
-        : [...prev.days, dayKey],
+      days: prev.days.includes(dayKey) ? prev.days.filter((d) => d !== dayKey) : [...prev.days, dayKey],
     }));
   }, []);
 
@@ -219,19 +190,13 @@ export function ScheduleDialog({
 
   const applyScheduleScenesChanges = async (scheduleId) => {
     // Get original scene IDs
-    const originalSceneIds = originalScheduleScenes.map(
-      (scene) => scene.scene_id
-    );
+    const originalSceneIds = originalScheduleScenes.map((scene) => scene.scene_id);
 
     // Find scenes to remove (in original but not in current selection)
-    const scenesToRemove = originalScheduleScenes.filter(
-      (original) => !selectedSceneIds.includes(original.scene_id)
-    );
+    const scenesToRemove = originalScheduleScenes.filter((original) => !selectedSceneIds.includes(original.scene_id));
 
     // Find scenes to add (in current selection but not in original)
-    const scenesToAdd = selectedSceneIds.filter(
-      (sceneId) => !originalSceneIds.includes(sceneId)
-    );
+    const scenesToAdd = selectedSceneIds.filter((sceneId) => !originalSceneIds.includes(sceneId));
 
     // Remove scenes
     for (const scene of scenesToRemove) {
@@ -284,17 +249,10 @@ export function ScheduleDialog({
       setTimeDate(new Date(new Date().setHours(0, 0, 0, 0)));
       setSelectedSceneIds([]);
       setOriginalScheduleScenes([]);
-      toast.success(
-        mode === "edit"
-          ? "Schedule updated successfully"
-          : "Schedule created successfully"
-      );
+      toast.success(mode === "edit" ? "Schedule updated successfully" : "Schedule created successfully");
     } catch (error) {
       console.error("Failed to save schedule:", error);
-      if (
-        error.message &&
-        error.message.includes("Maximum 32 schedules allowed")
-      ) {
+      if (error.message && error.message.includes("Maximum 32 schedules allowed")) {
         toast.error("Maximum 32 schedules allowed per project");
       } else {
         const errorMessage = error.message || "Failed to save schedule";
@@ -321,13 +279,9 @@ export function ScheduleDialog({
     <Dialog open={open} onOpenChange={handleDialogOpenChange}>
       <DialogContent className="sm:max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>
-            {mode === "edit" ? "Edit Schedule" : "Create New Schedule"}
-          </DialogTitle>
+          <DialogTitle>{mode === "edit" ? "Edit Schedule" : "Create New Schedule"}</DialogTitle>
           <DialogDescription>
-            {mode === "edit"
-              ? "Update the schedule details and manage scenes."
-              : "Create a new schedule with time, days, and scenes."}
+            {mode === "edit" ? "Update the schedule details and manage scenes." : "Create a new schedule with time, days, and scenes."}
           </DialogDescription>
         </DialogHeader>
 
@@ -343,9 +297,7 @@ export function ScheduleDialog({
                   placeholder="Enter schedule name"
                   className={errors.name ? "border-destructive" : ""}
                 />
-                {errors.name && (
-                  <p className="text-sm text-destructive">{errors.name}</p>
-                )}
+                {errors.name && <p className="text-sm text-destructive">{errors.name}</p>}
               </div>
 
               <div className="space-y-2">
@@ -353,9 +305,7 @@ export function ScheduleDialog({
                 <Textarea
                   id="description"
                   value={formData.description}
-                  onChange={(e) =>
-                    handleInputChange("description", e.target.value)
-                  }
+                  onChange={(e) => handleInputChange("description", e.target.value)}
                   placeholder="Enter description"
                   rows={6}
                 />
@@ -367,18 +317,13 @@ export function ScheduleDialog({
               <div className="flex gap-4">
                 <Card className="w-1/3">
                   <CardContent className="space-y-4 flex flex-col justify-center items-center">
-                    <Label
-                      htmlFor="enabled"
-                      className="flex items-center gap-2"
-                    >
+                    <Label htmlFor="enabled" className="flex items-center gap-2">
                       Enable
                     </Label>
                     <Switch
                       id="enabled"
                       checked={formData.enabled}
-                      onCheckedChange={(checked) =>
-                        handleInputChange("enabled", checked)
-                      }
+                      onCheckedChange={(checked) => handleInputChange("enabled", checked)}
                       className="h-7 w-12"
                       thumbClassName="h-6 w-6 data-[state=checked]:translate-x-5"
                     />
@@ -389,22 +334,10 @@ export function ScheduleDialog({
                     <Label htmlFor="time" className="flex items-center gap-2">
                       Trigger Time
                     </Label>
-                    <div
-                      className={
-                        errors.time
-                          ? "border border-destructive rounded-md p-2"
-                          : ""
-                      }
-                    >
-                      <TimePicker
-                        date={timeDate}
-                        setDate={handleTimeChange}
-                        showSeconds={false}
-                      />
+                    <div className={errors.time ? "border border-destructive rounded-md p-2" : ""}>
+                      <TimePicker date={timeDate} setDate={handleTimeChange} showSeconds={false} />
                     </div>
-                    {errors.time && (
-                      <p className="text-sm text-destructive">{errors.time}</p>
-                    )}
+                    {errors.time && <p className="text-sm text-destructive">{errors.time}</p>}
                   </CardContent>
                 </Card>
               </div>
@@ -412,27 +345,15 @@ export function ScheduleDialog({
                 <CardContent>
                   <div className="grid md:grid-cols-3 xl:grid-cols-4 gap-2 gap-x-4">
                     {DAYS_OF_WEEK.map((day) => (
-                      <div
-                        key={day.key}
-                        className="flex items-center space-x-2"
-                      >
-                        <Checkbox
-                          id={day.key}
-                          checked={formData.days.includes(day.key)}
-                          onCheckedChange={() => handleDayToggle(day.key)}
-                        />
-                        <Label
-                          htmlFor={day.key}
-                          className="text-sm font-normal"
-                        >
+                      <div key={day.key} className="flex items-center space-x-2">
+                        <Checkbox id={day.key} checked={formData.days.includes(day.key)} onCheckedChange={() => handleDayToggle(day.key)} />
+                        <Label htmlFor={day.key} className="text-sm font-normal">
                           {day.label}
                         </Label>
                       </div>
                     ))}
                   </div>
-                  {errors.days && (
-                    <p className="text-sm text-destructive">{errors.days}</p>
-                  )}
+                  {errors.days && <p className="text-sm text-destructive">{errors.days}</p>}
                 </CardContent>
               </Card>
             </div>
@@ -442,18 +363,14 @@ export function ScheduleDialog({
           <Card>
             <CardHeader>
               <CardTitle className="text-sm">Select Scenes</CardTitle>
-              <p className="text-sm text-muted-foreground">
-                Select the scenes you want to include in this schedule.
-              </p>
+              <p className="text-sm text-muted-foreground">Select the scenes you want to include in this schedule.</p>
             </CardHeader>
             <CardContent>
               <ScrollArea className="h-60">
                 {allScenes.length === 0 ? (
                   <div className="text-center text-muted-foreground py-8">
                     <p>No scenes available.</p>
-                    <p className="text-sm">
-                      Create scenes first to add them to schedules.
-                    </p>
+                    <p className="text-sm">Create scenes first to add them to schedules.</p>
                   </div>
                 ) : (
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 p-2">
@@ -461,26 +378,14 @@ export function ScheduleDialog({
                       <CheckboxPrimitive.Root
                         key={scene.id}
                         checked={selectedSceneIds.includes(scene.id)}
-                        onCheckedChange={(checked) =>
-                          handleSceneToggle(scene.id, checked)
-                        }
+                        onCheckedChange={(checked) => handleSceneToggle(scene.id, checked)}
                         className="relative ring-[1px] ring-border rounded-lg px-4 py-3 text-start text-muted-foreground data-[state=checked]:ring-2 data-[state=checked]:ring-primary data-[state=checked]:text-primary flex flex-row items-center gap-3 cursor-pointer"
                       >
                         <Lightbulb className="h-6 w-6" />
                         <div className="space-y-1">
-                          <span className="font-medium tracking-tight text-sm">
-                            {scene.name}
-                          </span>
-                          {scene.address && (
-                            <p className="text-xs text-muted-foreground">
-                              Address: {scene.address}
-                            </p>
-                          )}
-                          {scene.description && (
-                            <p className="text-xs text-muted-foreground line-clamp-2">
-                              {scene.description}
-                            </p>
-                          )}
+                          <span className="font-medium tracking-tight text-sm">{scene.name}</span>
+                          {scene.address && <p className="text-xs text-muted-foreground">Address: {scene.address}</p>}
+                          {scene.description && <p className="text-xs text-muted-foreground line-clamp-2">{scene.description}</p>}
                         </div>
 
                         <CheckboxPrimitive.Indicator className="absolute top-2 right-2">
@@ -495,20 +400,11 @@ export function ScheduleDialog({
           </Card>
 
           <div className="flex justify-end space-x-2">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => onOpenChange(false)}
-              disabled={loading}
-            >
+            <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={loading}>
               Cancel
             </Button>
             <Button type="submit" disabled={loading}>
-              {loading
-                ? "Saving..."
-                : mode === "edit"
-                  ? "Update Schedule"
-                  : "Create Schedule"}
+              {loading ? "Saving..." : mode === "edit" ? "Update Schedule" : "Create Schedule"}
             </Button>
           </div>
         </form>

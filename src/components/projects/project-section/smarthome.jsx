@@ -58,9 +58,7 @@ export function Smarthome() {
 
     setLoading(true);
     try {
-      const devicesData = await window.electronAPI.zigbee.getDevices(
-        selectedProject.id
-      );
+      const devicesData = await window.electronAPI.zigbee.getDevices(selectedProject.id);
       setDevices(devicesData);
     } catch (error) {
       console.error("Failed to load zigbee devices:", error);
@@ -79,9 +77,7 @@ export function Smarthome() {
 
     try {
       // 1. Get all devices from database to find unique units
-      const devicesData = await window.electronAPI.zigbee.getDevices(
-        selectedProject.id
-      );
+      const devicesData = await window.electronAPI.zigbee.getDevices(selectedProject.id);
 
       if (devicesData.length === 0) {
         if (!silent) {
@@ -114,22 +110,16 @@ export function Smarthome() {
       // 3. For each unit, send getZigbeeDevices command
       for (const unitData of unitMap.values()) {
         try {
-          console.log(
-            `Refreshing devices from unit ${unitData.unit_ip} (CAN ID: ${unitData.unit_can_id})`
-          );
+          console.log(`Refreshing devices from unit ${unitData.unit_ip} (CAN ID: ${unitData.unit_can_id})`);
 
           let response;
           try {
-            response =
-              await window.electronAPI.zigbeeController.getZigbeeDevices({
-                unitIp: unitData.unit_ip,
-                canId: unitData.unit_can_id,
-              });
+            response = await window.electronAPI.zigbeeController.getZigbeeDevices({
+              unitIp: unitData.unit_ip,
+              canId: unitData.unit_can_id,
+            });
           } catch (connectionError) {
-            console.error(
-              `Connection error to unit ${unitData.unit_ip}:`,
-              connectionError
-            );
+            console.error(`Connection error to unit ${unitData.unit_ip}:`, connectionError);
             response = { success: false };
           }
 
@@ -142,14 +132,9 @@ export function Smarthome() {
                 await window.electronAPI.zigbee.updateDevice(dbDevice.id, {
                   status: 0, // Offline
                 });
-                console.log(
-                  `Set device ${dbDevice.ieee_address} to offline (unit unreachable)`
-                );
+                console.log(`Set device ${dbDevice.ieee_address} to offline (unit unreachable)`);
               } catch (updateError) {
-                console.error(
-                  `Failed to update device ${dbDevice.ieee_address} to offline:`,
-                  updateError
-                );
+                console.error(`Failed to update device ${dbDevice.ieee_address} to offline:`, updateError);
               }
             }
 
@@ -157,17 +142,11 @@ export function Smarthome() {
             continue;
           }
 
-          console.log(
-            `Received ${response.devices.length} devices from unit ${unitData.unit_ip}`
-          );
+          console.log(`Received ${response.devices.length} devices from unit ${unitData.unit_ip}`);
 
           // 4. Update or create devices from unit response
           for (const receivedDevice of response.devices) {
-            const dbDevice = unitData.devices.find(
-              (d) =>
-                d.ieee_address.toUpperCase() ===
-                receivedDevice.ieee_address.toUpperCase()
-            );
+            const dbDevice = unitData.devices.find((d) => d.ieee_address.toUpperCase() === receivedDevice.ieee_address.toUpperCase());
 
             if (dbDevice) {
               try {
@@ -192,10 +171,7 @@ export function Smarthome() {
 
                 totalUpdated++;
               } catch (updateError) {
-                console.error(
-                  `Failed to update device ${receivedDevice.ieee_address}:`,
-                  updateError
-                );
+                console.error(`Failed to update device ${receivedDevice.ieee_address}:`, updateError);
                 totalErrors++;
               }
             } else {
@@ -222,20 +198,12 @@ export function Smarthome() {
                   status: receivedDevice.status,
                 };
 
-                await window.electronAPI.zigbee.createDevice(
-                  selectedProject.id,
-                  newDeviceData
-                );
+                await window.electronAPI.zigbee.createDevice(selectedProject.id, newDeviceData);
 
-                console.log(
-                  `Created new device ${receivedDevice.ieee_address} from unit ${unitData.unit_ip}`
-                );
+                console.log(`Created new device ${receivedDevice.ieee_address} from unit ${unitData.unit_ip}`);
                 totalUpdated++;
               } catch (createError) {
-                console.error(
-                  `Failed to create device ${receivedDevice.ieee_address}:`,
-                  createError
-                );
+                console.error(`Failed to create device ${receivedDevice.ieee_address}:`, createError);
                 totalErrors++;
               }
             }
@@ -243,45 +211,30 @@ export function Smarthome() {
 
           // 5. Delete devices from database that no longer exist on the unit
           // Create a Set of IEEE addresses from received devices (case-insensitive)
-          const receivedIeeeAddresses = new Set(
-            response.devices.map((d) => d.ieee_address.toUpperCase())
-          );
+          const receivedIeeeAddresses = new Set(response.devices.map((d) => d.ieee_address.toUpperCase()));
 
           // Find devices in database that are not in received devices
-          const devicesToDelete = unitData.devices.filter(
-            (dbDevice) =>
-              !receivedIeeeAddresses.has(dbDevice.ieee_address.toUpperCase())
-          );
+          const devicesToDelete = unitData.devices.filter((dbDevice) => !receivedIeeeAddresses.has(dbDevice.ieee_address.toUpperCase()));
 
           // Delete each device that no longer exists on the unit
           for (const deviceToDelete of devicesToDelete) {
             try {
               await window.electronAPI.zigbee.deleteDevice(deviceToDelete.id);
-              console.log(
-                `Deleted device ${deviceToDelete.ieee_address} (no longer exists on unit ${unitData.unit_ip})`
-              );
+              console.log(`Deleted device ${deviceToDelete.ieee_address} (no longer exists on unit ${unitData.unit_ip})`);
               totalDeleted++;
             } catch (deleteError) {
-              console.error(
-                `Failed to delete device ${deviceToDelete.ieee_address}:`,
-                deleteError
-              );
+              console.error(`Failed to delete device ${deviceToDelete.ieee_address}:`, deleteError);
               totalErrors++;
             }
           }
         } catch (unitError) {
-          console.error(
-            `Error refreshing unit ${unitData.unit_ip}:`,
-            unitError
-          );
+          console.error(`Error refreshing unit ${unitData.unit_ip}:`, unitError);
           totalErrors++;
         }
       }
 
       // 6. Reload devices to show updated data
-      const updatedDevices = await window.electronAPI.zigbee.getDevices(
-        selectedProject.id
-      );
+      const updatedDevices = await window.electronAPI.zigbee.getDevices(selectedProject.id);
       setDevices(updatedDevices);
 
       if (!silent) {
@@ -321,13 +274,12 @@ export function Smarthome() {
   const handleRemoveDevice = async (device) => {
     try {
       // 1. Send remove command to the device's unit
-      const result =
-        await window.electronAPI.zigbeeController.removeZigbeeDevice({
-          unitIp: device.unit_ip,
-          canId: device.unit_can_id,
-          ieeeAddress: device.ieee_address,
-          deviceType: device.device_type,
-        });
+      const result = await window.electronAPI.zigbeeController.removeZigbeeDevice({
+        unitIp: device.unit_ip,
+        canId: device.unit_can_id,
+        ieeeAddress: device.ieee_address,
+        deviceType: device.device_type,
+      });
 
       if (!result.success) {
         throw new Error("Failed to remove device from network");
@@ -347,44 +299,18 @@ export function Smarthome() {
   const renderDeviceCard = (device) => {
     // Device types: 0-3: Switch, 4-5: Curtain, 7: Motion Sensor, 9: Door Contact
     if (device.device_type >= 0 && device.device_type <= 3) {
-      return (
-        <ZigbeeSwitchCard
-          key={device.id}
-          device={device}
-          onRemove={handleRemoveDevice}
-        />
-      );
+      return <ZigbeeSwitchCard key={device.id} device={device} onRemove={handleRemoveDevice} />;
     } else if (device.device_type === 4 || device.device_type === 5) {
-      return (
-        <ZigbeeCurtainCard
-          key={device.id}
-          device={device}
-          onRemove={handleRemoveDevice}
-        />
-      );
+      return <ZigbeeCurtainCard key={device.id} device={device} onRemove={handleRemoveDevice} />;
     } else if (device.device_type === 7) {
-      return (
-        <ZigbeeMotionSensorCard
-          key={device.id}
-          device={device}
-          onRemove={handleRemoveDevice}
-        />
-      );
+      return <ZigbeeMotionSensorCard key={device.id} device={device} onRemove={handleRemoveDevice} />;
     } else if (device.device_type === 9) {
-      return (
-        <ZigbeeDoorContactCard
-          key={device.id}
-          device={device}
-          onRemove={handleRemoveDevice}
-        />
-      );
+      return <ZigbeeDoorContactCard key={device.id} device={device} onRemove={handleRemoveDevice} />;
     } else {
       return (
         <Card key={device.id}>
           <CardHeader>
-            <CardTitle className="text-base">
-              Unknown Device (Type: {device.device_type})
-            </CardTitle>
+            <CardTitle className="text-base">Unknown Device (Type: {device.device_type})</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-sm space-y-1">
@@ -403,9 +329,7 @@ export function Smarthome() {
       <div className="flex flex-1 items-center justify-center">
         <Card>
           <CardContent className="pt-6">
-            <div className="text-center text-muted-foreground">
-              Select a project to view smarthome features
-            </div>
+            <div className="text-center text-muted-foreground">Select a project to view smarthome features</div>
           </CardContent>
         </Card>
       </div>
@@ -424,68 +348,35 @@ export function Smarthome() {
               <span>Smart Home</span>
               {devices.length > 0 && (
                 <span className="text-sm font-normal text-muted-foreground">
-                  ({devices.length}{" "}
-                  {devices.length === 1 ? "device" : "devices"})
+                  ({devices.length} {devices.length === 1 ? "device" : "devices"})
                 </span>
               )}
             </CardTitle>
             <div className="flex items-center gap-2 flex-wrap">
               <div className="flex items-center gap-2 px-3 py-2 rounded-lg border bg-background/50 shadow">
-                <Switch
-                  id="auto-refresh"
-                  checked={autoRefresh}
-                  onCheckedChange={setAutoRefresh}
-                  disabled={loading}
-                />
-                <Label
-                  htmlFor="auto-refresh"
-                  className="cursor-pointer text-sm font-medium"
-                >
+                <Switch id="auto-refresh" checked={autoRefresh} onCheckedChange={setAutoRefresh} disabled={loading} />
+                <Label htmlFor="auto-refresh" className="cursor-pointer text-sm font-medium">
                   Auto Refresh (1s)
                 </Label>
               </div>
               <div className="flex gap-2 flex-wrap">
-                <Button
-                  variant="outline"
-                  onClick={() => handleRefresh()}
-                  disabled={loading || autoRefresh}
-                  className="gap-2 shadow"
-                >
-                  <RefreshCw
-                    className={`h-4 w-4 ${loading ? "animate-spin" : ""}`}
-                  />
+                <Button variant="outline" onClick={() => handleRefresh()} disabled={loading || autoRefresh} className="gap-2 shadow">
+                  <RefreshCw className={`h-4 w-4 ${loading ? "animate-spin" : ""}`} />
                   Refresh
                 </Button>
-                <Button
-                  variant="outline"
-                  onClick={() => setExploreDeviceDialogOpen(true)}
-                  className="gap-2 shadow"
-                >
+                <Button variant="outline" onClick={() => setExploreDeviceDialogOpen(true)} className="gap-2 shadow">
                   <Radio className="h-4 w-4" />
                   Explore
                 </Button>
-                <Button
-                  variant="outline"
-                  onClick={() => setAssignAddressDialogOpen(true)}
-                  disabled={devices.length === 0}
-                  className="gap-2 shadow"
-                >
+                <Button variant="outline" onClick={() => setAssignAddressDialogOpen(true)} disabled={devices.length === 0} className="gap-2 shadow">
                   <Cable className="h-4 w-4" />
                   Assign
                 </Button>
-                <Button
-                  variant="outline"
-                  onClick={() => setFactoryResetDialogOpen(true)}
-                  disabled={devices.length === 0}
-                  className="gap-2 shadow"
-                >
+                <Button variant="outline" onClick={() => setFactoryResetDialogOpen(true)} disabled={devices.length === 0} className="gap-2 shadow">
                   <RotateCcw className="h-4 w-4" />
                   Reset
                 </Button>
-                <Button
-                  onClick={() => setAddDeviceDialogOpen(true)}
-                  className="gap-2 shadow"
-                >
+                <Button onClick={() => setAddDeviceDialogOpen(true)} className="gap-2 shadow">
                   <Plus className="h-4 w-4" />
                   Add Device
                 </Button>
@@ -501,44 +392,23 @@ export function Smarthome() {
                 <Home className="h-12 w-12 text-muted-foreground" />
               </div>
               <h3 className="text-lg font-semibold mb-2">No Zigbee Devices</h3>
-              <p className="text-muted-foreground mb-6 max-w-md">
-                Get started by adding your first Zigbee device to your smart
-                home network.
-              </p>
-              <Button
-                onClick={() => setAddDeviceDialogOpen(true)}
-                className="gap-2"
-              >
+              <p className="text-muted-foreground mb-6 max-w-md">Get started by adding your first Zigbee device to your smart home network.</p>
+              <Button onClick={() => setAddDeviceDialogOpen(true)} className="gap-2">
                 <Plus className="h-4 w-4" />
                 Add Your First Device
               </Button>
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {devices.map((device) => renderDeviceCard(device))}
-            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">{devices.map((device) => renderDeviceCard(device))}</div>
           )}
         </div>
       </div>
 
-      <AddZigbeeDeviceDialog
-        open={addDeviceDialogOpen}
-        onOpenChange={setAddDeviceDialogOpen}
-        onDevicesAdded={handleDevicesAdded}
-      />
+      <AddZigbeeDeviceDialog open={addDeviceDialogOpen} onOpenChange={setAddDeviceDialogOpen} onDevicesAdded={handleDevicesAdded} />
 
-      <ExploreZigbeeDeviceDialog
-        open={exploreDeviceDialogOpen}
-        onOpenChange={setExploreDeviceDialogOpen}
-        onDevicesAdded={handleDevicesAdded}
-      />
+      <ExploreZigbeeDeviceDialog open={exploreDeviceDialogOpen} onOpenChange={setExploreDeviceDialogOpen} onDevicesAdded={handleDevicesAdded} />
 
-      <AssignEndpointAddressDialog
-        open={assignAddressDialogOpen}
-        onOpenChange={setAssignAddressDialogOpen}
-        devices={devices}
-        onSaved={loadDevices}
-      />
+      <AssignEndpointAddressDialog open={assignAddressDialogOpen} onOpenChange={setAssignAddressDialogOpen} devices={devices} onSaved={loadDevices} />
 
       <FactoryResetZigbeeDialog
         open={factoryResetDialogOpen}

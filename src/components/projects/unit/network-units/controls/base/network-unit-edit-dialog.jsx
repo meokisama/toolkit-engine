@@ -1,33 +1,15 @@
 import React, { useState, useEffect } from "react";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
 import { Loader2, Cable } from "lucide-react";
 import { NetworkRS485ConfigDialog } from "../rs485/network-rs485-config-dialog";
 
-export function NetworkUnitEditDialog({
-  open,
-  onOpenChange,
-  unit,
-  onUnitUpdated,
-}) {
+export function NetworkUnitEditDialog({ open, onOpenChange, unit, onUnitUpdated }) {
   const [formData, setFormData] = useState({
     ip_address: "",
     id_can: "",
@@ -153,11 +135,7 @@ export function NetworkUnitEditDialog({
 
       // Apply changes sequentially
       if (changes.ip_address) {
-        await changeIpAddress(
-          unit.ip_address,
-          formData.ip_address,
-          unit.id_can
-        );
+        await changeIpAddress(unit.ip_address, formData.ip_address, unit.id_can);
       }
 
       if (changes.id_can) {
@@ -168,11 +146,7 @@ export function NetworkUnitEditDialog({
       if (changes.hardware_config) {
         const currentIp = changes.ip_address || unit.ip_address;
         const currentCanId = changes.id_can || unit.id_can;
-        await changeHardwareConfig(
-          currentIp,
-          currentCanId,
-          changes.hardware_config
-        );
+        await changeHardwareConfig(currentIp, currentCanId, changes.hardware_config);
       }
 
       // Update the unit data
@@ -249,12 +223,11 @@ export function NetworkUnitEditDialog({
       configByte |= 0x40;
     }
 
-    const response =
-      await window.electronAPI.deviceController.setHardwareConfig({
-        unitIp: unitIp,
-        canId: canId,
-        configByte: configByte,
-      });
+    const response = await window.electronAPI.deviceController.setHardwareConfig({
+      unitIp: unitIp,
+      canId: canId,
+      configByte: configByte,
+    });
 
     if (!response.result.success) {
       throw new Error("Failed to change hardware configuration");
@@ -274,9 +247,7 @@ export function NetworkUnitEditDialog({
         <DialogContent className="sm:max-w-[500px]">
           <DialogHeader>
             <DialogTitle>Edit Network Unit</DialogTitle>
-            <DialogDescription>
-              Modify the network unit configuration.
-            </DialogDescription>
+            <DialogDescription>Modify the network unit configuration.</DialogDescription>
           </DialogHeader>
 
           <div className="space-y-6 mb-6">
@@ -288,9 +259,7 @@ export function NetworkUnitEditDialog({
                 <Input
                   id="ip_address"
                   value={formData.ip_address}
-                  onChange={(e) =>
-                    handleInputChange("ip_address", e.target.value)
-                  }
+                  onChange={(e) => handleInputChange("ip_address", e.target.value)}
                   placeholder="192.168.1.100"
                 />
               </div>
@@ -302,11 +271,7 @@ export function NetworkUnitEditDialog({
                   <Input
                     className="text-muted-foreground w-20 tracking-[2px] text-center"
                     readOnly
-                    value={
-                      formData.id_can
-                        ? formData.id_can.split(".").slice(0, 3).join(".") + "."
-                        : "0.0.1."
-                    }
+                    value={formData.id_can ? formData.id_can.split(".").slice(0, 3).join(".") + "." : "0.0.1."}
                   />
                   <Input
                     id="id_can_last_part"
@@ -314,9 +279,7 @@ export function NetworkUnitEditDialog({
                     min="1"
                     max="255"
                     value={formData.id_can_last_part}
-                    onChange={(e) =>
-                      handleInputChange("id_can_last_part", e.target.value)
-                    }
+                    onChange={(e) => handleInputChange("id_can_last_part", e.target.value)}
                     className="w-15 text-center [&::-webkit-inner-spin-button]:appearance-none"
                     placeholder="1"
                   />
@@ -327,10 +290,7 @@ export function NetworkUnitEditDialog({
               <Label htmlFor="mode" className="text-right">
                 Mode
               </Label>
-              <Select
-                value={formData.mode}
-                onValueChange={(value) => handleInputChange("mode", value)}
-              >
+              <Select value={formData.mode} onValueChange={(value) => handleInputChange("mode", value)}>
                 <SelectTrigger className="w-full">
                   <SelectValue />
                 </SelectTrigger>
@@ -343,13 +303,7 @@ export function NetworkUnitEditDialog({
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div className="flex flex-row gap-2">
-                <Checkbox
-                  id="can_load"
-                  checked={formData.can_load}
-                  onCheckedChange={(checked) =>
-                    handleInputChange("can_load", checked)
-                  }
-                />
+                <Checkbox id="can_load" checked={formData.can_load} onCheckedChange={(checked) => handleInputChange("can_load", checked)} />
                 <Label htmlFor="can_load">CAN Load</Label>
               </div>
 
@@ -357,18 +311,12 @@ export function NetworkUnitEditDialog({
                 <Checkbox
                   id="recovery_mode"
                   checked={formData.recovery_mode}
-                  onCheckedChange={(checked) =>
-                    handleInputChange("recovery_mode", checked)
-                  }
+                  onCheckedChange={(checked) => handleInputChange("recovery_mode", checked)}
                 />
                 <Label htmlFor="recovery_mode">Line Cut Recovery</Label>
               </div>
             </div>
-            <Button
-              variant="outline"
-              onClick={handleRS485Config}
-              className="flex items-center gap-2 w-full"
-            >
+            <Button variant="outline" onClick={handleRS485Config} className="flex items-center gap-2 w-full">
               <Cable className="h-4 w-4" />
               RS485 Configuration
             </Button>
@@ -389,11 +337,7 @@ export function NetworkUnitEditDialog({
       </Dialog>
 
       {/* RS485 Configuration Dialog */}
-      <NetworkRS485ConfigDialog
-        open={rs485ConfigDialogOpen}
-        onOpenChange={setRS485ConfigDialogOpen}
-        unit={unit}
-      />
+      <NetworkRS485ConfigDialog open={rs485ConfigDialogOpen} onOpenChange={setRS485ConfigDialogOpen} unit={unit} />
     </>
   );
 }

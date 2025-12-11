@@ -1,13 +1,5 @@
 import { useState, useEffect, useCallback, useMemo, memo } from "react";
-import {
-  DndContext,
-  DragOverlay,
-  PointerSensor,
-  useSensor,
-  useSensors,
-  useDraggable,
-  useDroppable,
-} from "@dnd-kit/core";
+import { DndContext, DragOverlay, PointerSensor, useSensor, useSensors, useDraggable, useDroppable } from "@dnd-kit/core";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
@@ -53,15 +45,10 @@ export function Group({ isActive }) {
         await window.electronAPI.dali.initializeDaliGroups(selectedProject.id);
 
         // Load group names and lighting_group_address
-        const groupNames = await window.electronAPI.dali.getAllDaliGroupNames(
-          selectedProject.id
-        );
+        const groupNames = await window.electronAPI.dali.getAllDaliGroupNames(selectedProject.id);
 
         // Load group relationships
-        const groupDevices =
-          await window.electronAPI.dali.getAllDaliGroupDevices(
-            selectedProject.id
-          );
+        const groupDevices = await window.electronAPI.dali.getAllDaliGroupDevices(selectedProject.id);
 
         setGroups((prev) =>
           prev.map((group) => {
@@ -70,9 +57,7 @@ export function Group({ isActive }) {
               ...group,
               name: nameData ? nameData.name : `Group ${group.id}`,
               lightingGroupAddress: nameData?.lighting_group_address,
-              deviceIds: groupDevices
-                .filter((gd) => gd.group_id === group.id)
-                .map((gd) => gd.device_address),
+              deviceIds: groupDevices.filter((gd) => gd.group_id === group.id).map((gd) => gd.device_address),
             };
           })
         );
@@ -92,17 +77,9 @@ export function Group({ isActive }) {
       if (!selectedProject || !newName.trim()) return;
 
       try {
-        await window.electronAPI.dali.updateDaliGroupName(
-          selectedProject.id,
-          groupId,
-          newName.trim()
-        );
+        await window.electronAPI.dali.updateDaliGroupName(selectedProject.id, groupId, newName.trim());
 
-        setGroups((prev) =>
-          prev.map((group) =>
-            group.id === groupId ? { ...group, name: newName.trim() } : group
-          )
-        );
+        setGroups((prev) => prev.map((group) => (group.id === groupId ? { ...group, name: newName.trim() } : group)));
 
         toast.success("Group name updated");
       } catch (error) {
@@ -129,10 +106,7 @@ export function Group({ isActive }) {
             group.id === groupId
               ? {
                   ...group,
-                  lightingGroupAddress:
-                    lightingGroupAddress === ""
-                      ? null
-                      : parseInt(lightingGroupAddress),
+                  lightingGroupAddress: lightingGroupAddress === "" ? null : parseInt(lightingGroupAddress),
                 }
               : group
           )
@@ -251,18 +225,10 @@ export function Group({ isActive }) {
     });
   }, []);
 
-  const activeDevice = useMemo(
-    () => devices.find((d) => `device-${d.id}` === activeId),
-    [devices, activeId]
-  );
+  const activeDevice = useMemo(() => devices.find((d) => `device-${d.id}` === activeId), [devices, activeId]);
 
   return (
-    <DndContext
-      sensors={sensors}
-      onDragStart={handleDragStart}
-      onDragEnd={handleDragEnd}
-      onDragCancel={handleDragCancel}
-    >
+    <DndContext sensors={sensors} onDragStart={handleDragStart} onDragEnd={handleDragEnd} onDragCancel={handleDragCancel}>
       <div className="grid grid-cols-2 gap-4 h-full">
         {/* Left: 16 Groups */}
         <Card>
@@ -311,12 +277,8 @@ export function Group({ isActive }) {
           <div className="bg-primary text-primary-foreground p-3 rounded-md shadow-lg flex items-center gap-2">
             <GripVertical className="h-4 w-4" />
             <div>
-              <div className="font-medium">
-                {activeDevice.name || `Address ${activeDevice.address}`}
-              </div>
-              {activeDevice.type && (
-                <div className="text-xs opacity-80">{activeDevice.type}</div>
-              )}
+              <div className="font-medium">{activeDevice.name || `Address ${activeDevice.address}`}</div>
+              {activeDevice.type && <div className="text-xs opacity-80">{activeDevice.type}</div>}
             </div>
           </div>
         ) : null}
@@ -325,23 +287,12 @@ export function Group({ isActive }) {
   );
 }
 
-const GroupItem = memo(function GroupItem({
-  group,
-  devices,
-  expanded,
-  onToggleExpanded,
-  onRemoveDevice,
-  onUpdateName,
-  onUpdateLightingAddress,
-}) {
+const GroupItem = memo(function GroupItem({ group, devices, expanded, onToggleExpanded, onRemoveDevice, onUpdateName, onUpdateLightingAddress }) {
   const { setNodeRef, isOver } = useDroppable({
     id: `group-${group.id}`,
   });
 
-  const groupDevices = useMemo(
-    () => devices.filter((d) => group.deviceIds.includes(d.id)),
-    [devices, group.deviceIds]
-  );
+  const groupDevices = useMemo(() => devices.filter((d) => group.deviceIds.includes(d.id)), [devices, group.deviceIds]);
 
   const handleSaveName = useCallback(
     (newName) => {
@@ -350,14 +301,9 @@ const GroupItem = memo(function GroupItem({
     [onUpdateName, group.id]
   );
 
-  const { isEditing, editName, handlers } = useEditableName(
-    group.name,
-    handleSaveName
-  );
+  const { isEditing, editName, handlers } = useEditableName(group.name, handleSaveName);
 
-  const [lightingAddress, setLightingAddress] = useState(
-    group.lightingGroupAddress ?? ""
-  );
+  const [lightingAddress, setLightingAddress] = useState(group.lightingGroupAddress ?? "");
 
   useEffect(() => {
     setLightingAddress(group.lightingGroupAddress ?? "");
@@ -381,10 +327,7 @@ const GroupItem = memo(function GroupItem({
   return (
     <div
       ref={setNodeRef}
-      className={cn(
-        "border rounded-md bg-card transition-colors hover:border-primary",
-        isOver && "border-primary border-2 bg-accent"
-      )}
+      className={cn("border rounded-md bg-card transition-colors hover:border-primary", isOver && "border-primary border-2 bg-accent")}
     >
       <div className="p-3 cursor-pointer" onClick={onToggleExpanded}>
         <div className="flex items-center justify-between">
@@ -402,10 +345,7 @@ const GroupItem = memo(function GroupItem({
                   className="h-7 w-40"
                 />
               ) : (
-                <div
-                  className="font-medium hover:text-primary"
-                  onClick={handlers.onClick}
-                >
+                <div className="font-medium hover:text-primary" onClick={handlers.onClick}>
                   {group.name}
                 </div>
               )}
@@ -438,14 +378,9 @@ const GroupItem = memo(function GroupItem({
       {expanded && group.deviceIds.length > 0 && (
         <div className="border-t bg-muted/50 p-2 space-y-1">
           {groupDevices.map((device) => (
-            <div
-              key={device.id}
-              className="flex items-center justify-between bg-background rounded px-2 py-1 text-sm"
-            >
+            <div key={device.id} className="flex items-center justify-between bg-background rounded px-2 py-1 text-sm">
               <div>
-                <span className="font-mono mr-2">
-                  {device.address.toString().padStart(2, "0")}
-                </span>
+                <span className="font-mono mr-2">{device.address.toString().padStart(2, "0")}</span>
                 {device.name || "Unmapped"}
               </div>
               <Button
@@ -472,31 +407,18 @@ const DeviceItem = memo(function DeviceItem({ device, groups }) {
     id: `device-${device.id}`,
   });
 
-  const memberGroups = useMemo(
-    () => groups.filter((g) => g.deviceIds.includes(device.id)),
-    [groups, device.id]
-  );
+  const memberGroups = useMemo(() => groups.filter((g) => g.deviceIds.includes(device.id)), [groups, device.id]);
 
   return (
     <div
       ref={setNodeRef}
-      className={cn(
-        "border rounded-md p-3 transition-colors",
-        device.name ? "bg-card" : "bg-muted/50",
-        isDragging && "opacity-50"
-      )}
+      className={cn("border rounded-md p-3 transition-colors", device.name ? "bg-card" : "bg-muted/50", isDragging && "opacity-50")}
     >
       <div className="flex items-center gap-2">
-        <div
-          className="flex items-center gap-2 flex-1 cursor-move"
-          {...attributes}
-          {...listeners}
-        >
+        <div className="flex items-center gap-2 flex-1 cursor-move" {...attributes} {...listeners}>
           <GripVertical className="h-4 w-4 text-muted-foreground" />
           <div className="flex-1 flex items-center gap-4">
-            <div className="font-mono text-sm font-medium text-muted-foreground">
-              {device.address.toString().padStart(2, "0")}
-            </div>
+            <div className="font-mono text-sm font-medium text-muted-foreground">{device.address.toString().padStart(2, "0")}</div>
             <div className="flex flex-col">
               <span className="font-medium">{device.name || "Unmapped"}</span>
               {memberGroups.length > 0 && (

@@ -7,10 +7,7 @@ import { UnitTable } from "@/components/projects/unit/database-units/database-un
 import { AirconCards } from "@/components/projects/aircon/aircon-cards";
 import { CurtainTable } from "@/components/projects/curtain/curtain-table";
 import { KnxTable } from "@/components/projects/knx/knx-table";
-import {
-  TabLoadingSkeleton,
-  AirconCardsSkeleton,
-} from "@/components/projects/tab-loading-skeleton";
+import { TabLoadingSkeleton, AirconCardsSkeleton } from "@/components/projects/tab-loading-skeleton";
 import { Lightbulb, Wind, Cpu, Blinds, Network, BedDouble } from "lucide-react";
 import { RoomSettings } from "@/components/projects/room/RoomSettings";
 
@@ -49,36 +46,17 @@ const groupConfigTabConfig = {
 };
 
 export function GroupConfig() {
-  const {
-    selectedProject,
-    activeTab,
-    setActiveTab,
-    projectItems,
-    airconCards,
-    loading,
-    tabLoading,
-    loadedTabs,
-    loadTabData,
-  } = useProjectDetail();
+  const { selectedProject, activeTab, setActiveTab, projectItems, airconCards, loading, tabLoading, loadedTabs, loadTabData } = useProjectDetail();
 
   // Load all required data for KNX tab when it becomes active
   const loadKnxRequiredData = useCallback(async () => {
     if (!selectedProject) return;
 
     // List of tabs that KNX RCU Group column depends on
-    const requiredTabs = [
-      "lighting",
-      "aircon",
-      "curtain",
-      "scene",
-      "multi_scenes",
-      "sequences",
-    ];
+    const requiredTabs = ["lighting", "aircon", "curtain", "scene", "multi_scenes", "sequences"];
 
     // Load each required tab if not already loaded
-    const loadPromises = requiredTabs
-      .filter((tab) => !loadedTabs.has(tab))
-      .map((tab) => loadTabData(selectedProject.id, tab));
+    const loadPromises = requiredTabs.filter((tab) => !loadedTabs.has(tab)).map((tab) => loadTabData(selectedProject.id, tab));
 
     if (loadPromises.length > 0) {
       try {
@@ -118,9 +96,7 @@ export function GroupConfig() {
       <div className="flex flex-1 items-center justify-center">
         <Card>
           <CardContent className="pt-6">
-            <div className="text-center text-muted-foreground">
-              Select a project to view group configuration
-            </div>
+            <div className="text-center text-muted-foreground">Select a project to view group configuration</div>
           </CardContent>
         </Card>
       </div>
@@ -135,26 +111,17 @@ export function GroupConfig() {
             const Icon = config.icon;
             const itemCount = itemCounts[key];
             return (
-              <TabsTrigger
-                key={key}
-                value={key}
-                className="flex items-center justify-center gap-3 cursor-pointer"
-              >
+              <TabsTrigger key={key} value={key} className="flex items-center justify-center gap-3 cursor-pointer">
                 <Icon className="h-4 w-4" />
                 <span className="hidden sm:inline">{config.label}</span>
-                {itemCount > 0 && (
-                  <span className="bg-amber-200 border border-amber-300 rounded-full px-1.5">
-                    {itemCount}
-                  </span>
-                )}
+                {itemCount > 0 && <span className="bg-amber-200 border border-amber-300 rounded-full px-1.5">{itemCount}</span>}
               </TabsTrigger>
             );
           })}
         </TabsList>
         {tabEntries.map(([key]) => {
           // Check if this tab is currently loading
-          const isTabLoading =
-            tabLoading[key] || (!loadedTabs.has(key) && activeTab === key);
+          const isTabLoading = tabLoading[key] || (!loadedTabs.has(key) && activeTab === key);
 
           return (
             <TabsContent key={key} value={key} className="flex-1 mt-2">
@@ -169,29 +136,11 @@ export function GroupConfig() {
               ) : (
                 <Card className="h-full">
                   <CardContent className="h-full">
-                    {key === "lighting" && (
-                      <ProjectItemsTable
-                        items={projectItems.lighting}
-                        category="lighting"
-                      />
-                    )}
+                    {key === "lighting" && <ProjectItemsTable items={projectItems.lighting} category="lighting" />}
                     {key === "aircon" && <AirconCards cards={airconCards} />}
-                    {key === "curtain" && (
-                      <CurtainTable
-                        items={projectItems.curtain}
-                        category="curtain"
-                      />
-                    )}
-                    {key === "knx" && (
-                      <KnxTable
-                        items={projectItems.knx}
-                        category="knx"
-                        loading={isTabLoading}
-                      />
-                    )}
-                    {key === "unit" && (
-                      <UnitTable items={projectItems.unit} category="unit" />
-                    )}
+                    {key === "curtain" && <CurtainTable items={projectItems.curtain} category="curtain" />}
+                    {key === "knx" && <KnxTable items={projectItems.knx} category="knx" loading={isTabLoading} />}
+                    {key === "unit" && <UnitTable items={projectItems.unit} category="unit" />}
                   </CardContent>
                 </Card>
               )}
