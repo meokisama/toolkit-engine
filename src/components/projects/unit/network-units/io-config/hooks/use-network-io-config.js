@@ -40,9 +40,6 @@ export const useNetworkIOConfig = (item, open, childDialogOpen = false) => {
         canId: item.id_can,
       });
 
-      // Add small delay after GET command to prevent conflicts
-      await new Promise((resolve) => setTimeout(resolve, 200));
-
       if (response.success && response.inputStates) {
         // Update ref first to avoid re-renders
         const updatedInputs = inputStatesRef.current.map((input, index) => {
@@ -83,9 +80,6 @@ export const useNetworkIOConfig = (item, open, childDialogOpen = false) => {
 
     try {
       const acConfigs = await window.electronAPI.ioController.getLocalACConfig(item.ip_address, item.id_can);
-
-      // Add delay after GET command to prevent conflicts
-      await new Promise((resolve) => setTimeout(resolve, 300));
 
       if (acConfigs && Array.isArray(acConfigs) && acConfigs.length === 10) {
         // Update output configs with FULL AC config data
@@ -170,9 +164,6 @@ export const useNetworkIOConfig = (item, open, childDialogOpen = false) => {
         canId: item.id_can,
       });
 
-      // Add small delay after GET command to prevent conflicts
-      await new Promise((resolve) => setTimeout(resolve, 200));
-
       if (response.success && response.outputStates) {
         // Update ref first to avoid re-renders
         const updatedOutputs = outputStatesRef.current.map((output, index) => {
@@ -216,9 +207,6 @@ export const useNetworkIOConfig = (item, open, childDialogOpen = false) => {
         unitIp: item.ip_address,
         canId: item.id_can,
       });
-
-      // Add delay after GET command to prevent conflicts
-      await new Promise((resolve) => setTimeout(resolve, 300));
 
       if (response?.configs) {
         // Update input configs with actual function values from unit
@@ -294,16 +282,12 @@ export const useNetworkIOConfig = (item, open, childDialogOpen = false) => {
         canId: item.id_can,
       });
 
-      await new Promise((resolve) => setTimeout(resolve, 300));
-
       if (!assignResponse?.outputAssignments) {
         return false;
       }
 
       // 2. Get full output configs (minDim, maxDim, autoTrigger, schedule)
       const configResponse = await window.electronAPI.ioController.getOutputConfig(item.ip_address, item.id_can);
-
-      await new Promise((resolve) => setTimeout(resolve, 300));
 
       // Update output configs with FULL data
       const updatedOutputs = outputStatesRef.current.map((output) => {
@@ -340,16 +324,13 @@ export const useNetworkIOConfig = (item, open, childDialogOpen = false) => {
     return false;
   }, [item?.ip_address, item?.id_can]);
 
-  // Sequential read function to ensure input completes before output with proper delays
+  // Sequential read function to ensure input completes before output
   const readStatesSequentially = useCallback(async () => {
     try {
       // Step 1: Read input states first
       await readInputStatesBackground();
 
-      // Step 2: Wait for input processing to complete
-      await new Promise((resolve) => setTimeout(resolve, 400));
-
-      // Step 3: Read output states
+      // Step 2: Read output states
       await readOutputStatesBackground();
     } catch (error) {
       console.warn("❌ Sequential state read failed:", error.message);

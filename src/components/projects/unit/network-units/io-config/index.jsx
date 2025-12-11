@@ -130,18 +130,7 @@ const NetworkIOConfigDialog = ({ open, onOpenChange, item = null }) => {
       pauseAutoRefresh();
     } else if (open && !multiGroupDialogOpen && autoRefreshEnabled) {
       // Only resume if auto refresh is actually enabled
-      // Add delay before resuming auto refresh to allow unit to process any pending commands
-      const timeoutId = setTimeout(() => {
-        // Double check that auto refresh is still enabled before resuming
-        if (autoRefreshEnabled) {
-          resumeAutoRefresh();
-        }
-      }, 1000);
-
-      // Cleanup timeout if effect runs again
-      return () => {
-        clearTimeout(timeoutId);
-      };
+      resumeAutoRefresh();
     }
   }, [lightingOutputDialogOpen, acOutputDialogOpen, open, multiGroupDialogOpen, autoRefreshEnabled, pauseAutoRefresh, resumeAutoRefresh]);
 
@@ -199,10 +188,8 @@ const NetworkIOConfigDialog = ({ open, onOpenChange, item = null }) => {
 
         if (success) {
           // Command succeeded - UI is already updated optimistically
-          // Read actual state after a short delay to ensure consistency
-          setTimeout(async () => {
-            await readStatesInitial();
-          }, 500);
+          // Read actual state to ensure consistency
+          await readStatesInitial();
         } else {
           // Command failed - revert UI to original state
           setOutputConfigs((prevConfigs) =>
