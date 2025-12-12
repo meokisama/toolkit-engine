@@ -80,7 +80,7 @@ const NetworkIOConfigDialog = ({ open, onOpenChange, item = null }) => {
 
     return outputConfigs.some((config) => {
       const original = originalOutputConfigs.find((orig) => orig.index === config.index);
-      return hasOutputConfigChanged(config, original);
+      return hasOutputConfigChanged(config, original, 'network');
     });
   }, [outputConfigs, originalOutputConfigs, configsLoaded]);
 

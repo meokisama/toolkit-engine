@@ -24,7 +24,7 @@ const NetworkOutputConfigItem = memo(
 
     // Check if this output has changed from original configuration
     const hasChanged = useMemo(() => {
-      return hasOutputConfigChanged(config, originalConfig);
+      return hasOutputConfigChanged(config, originalConfig, 'network');
     }, [originalConfig, config]);
 
     // Check if output has address but no matching database entry

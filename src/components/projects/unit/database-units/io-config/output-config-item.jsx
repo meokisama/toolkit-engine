@@ -18,7 +18,7 @@ const OutputConfigItem = memo(({ config, originalConfig, outputConfiguration, de
 
   // Check if this output has changed from original configuration
   const hasChanged = useMemo(() => {
-    return hasOutputConfigChanged(fullConfig, originalConfig);
+    return hasOutputConfigChanged(fullConfig, originalConfig, 'database');
   }, [fullConfig, originalConfig]);
 
   const getOutputIcon = useCallback((type) => {
