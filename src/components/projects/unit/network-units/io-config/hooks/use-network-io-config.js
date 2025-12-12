@@ -426,25 +426,10 @@ export const useNetworkIOConfig = (item, open, childDialogOpen = false) => {
       // Load aircon configs after outputs
       await readAirconConfigsFromUnit();
 
-      setConfigsLoaded(true);
-      setIsInitialLoading(false);
-
-      // Initial state read to show current status
-      await readStatesSequentially();
-
-      isInitializingRef.current = false; // Mark as complete
-    };
-
-    initializeDialog();
-  }, [open, item, ioSpec, readInputConfigsFromUnit, readOutputConfigsFromUnit, readAirconConfigsFromUnit, readStatesSequentially]);
-
-  // Create originalOutputConfigs after configs are fully loaded and state is updated
-  useEffect(() => {
-    // Only create original configs once, after all configs are loaded
-    if (configsLoaded && !originalOutputConfigsSet && outputConfigs.length > 0) {
-      // Use a small delay to ensure state updates have completed
-      const timer = setTimeout(() => {
-        const originalOutputs = outputConfigs.map((output) => ({
+      // Set original output configs AFTER all configs are loaded (including aircon)
+      // This ensures AC fields are properly populated before creating the snapshot
+      if (!originalOutputConfigsSet) {
+        const originalOutputs = outputStatesRef.current.map((output) => ({
           index: output.index,
           type: output.type,
           lightingAddress: output.lightingAddress ?? 0,
@@ -458,7 +443,7 @@ export const useNetworkIOConfig = (item, open, childDialogOpen = false) => {
           scheduleOnMinute: output.scheduleOnMinute ?? 0,
           scheduleOffHour: output.scheduleOffHour ?? 0,
           scheduleOffMinute: output.scheduleOffMinute ?? 0,
-          // AC configs
+          // AC configs - now properly populated from readAirconConfigsFromUnit
           acEnable: output.acEnable ?? false,
           acWindowMode: output.acWindowMode ?? 0,
           acFanType: output.acFanType ?? 0,
@@ -502,11 +487,28 @@ export const useNetworkIOConfig = (item, open, childDialogOpen = false) => {
         }));
         setOriginalOutputConfigs(originalOutputs);
         setOriginalOutputConfigsSet(true);
-      }, 100); // Small delay to ensure state updates have propagated
+      }
 
-      return () => clearTimeout(timer);
-    }
-  }, [configsLoaded, originalOutputConfigsSet, outputConfigs]);
+      setConfigsLoaded(true);
+      setIsInitialLoading(false);
+
+      // Initial state read to show current status
+      await readStatesSequentially();
+
+      isInitializingRef.current = false; // Mark as complete
+    };
+
+    initializeDialog();
+  }, [
+    open,
+    item,
+    ioSpec,
+    readInputConfigsFromUnit,
+    readOutputConfigsFromUnit,
+    readAirconConfigsFromUnit,
+    readStatesSequentially,
+    originalOutputConfigsSet,
+  ]);
 
   // Reset states when dialog closes
   useEffect(() => {
