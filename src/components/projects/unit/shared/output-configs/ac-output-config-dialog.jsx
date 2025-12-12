@@ -70,8 +70,8 @@ const WINDOWS_OPTIONS = [
 ];
 
 const WINDOW_OPEN_ACTION_OPTIONS = [
-  { value: "0", label: "Free thermostat" },
-  { value: "1", label: "Lock thermostat" },
+  { value: "0", label: "Free Thermostat" },
+  { value: "1", label: "Lock Thermostat" },
 ];
 
 const ACOutputConfigDialogComponent = ({
@@ -616,38 +616,6 @@ const ACOutputConfigDialogComponent = ({
                 </CardContent>
               </Card>
 
-              {/* Additional Configuration */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2 text-base">
-                    <Settings className="h-4 w-4" />
-                    Additional Settings
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label className="text-sm font-medium">Set Point Offset</Label>
-                      <Select
-                        value={config.setPointOffset?.toString() || "0"}
-                        onValueChange={(value) => updateConfig("setPointOffset", parseInt(value) || 0)}
-                      >
-                        <SelectTrigger className="w-full">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {Array.from({ length: 21 }, (_, i) => i - 10).map((offset) => (
-                            <SelectItem key={offset} value={offset.toString()}>
-                              {offset > 0 ? `+${offset}` : offset.toString()}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-
               {/* Window Open Configuration */}
               <Card>
                 <CardHeader>
@@ -657,7 +625,7 @@ const ACOutputConfigDialogComponent = ({
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  <div className="grid grid-cols-4 gap-4">
+                  <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <Label className="text-sm font-medium">Window Open Action</Label>
                       <Select value={config.windowOpenAction} onValueChange={(value) => updateConfig("windowOpenAction", value)}>
@@ -673,39 +641,39 @@ const ACOutputConfigDialogComponent = ({
                         </SelectContent>
                       </Select>
                     </div>
+                    <div className="grid grid-cols-2 gap-2">
+                      <div className="space-y-2">
+                        <Label className="text-sm font-medium">Cool Setpoint (°C)</Label>
+                        <Input
+                          type="number"
+                          min="0"
+                          max="50"
+                          value={config.windowOpenCoolSetPoint || 0}
+                          onChange={(e) => {
+                            const value = parseInt(e.target.value) || 0;
+                            updateConfig("windowOpenCoolSetPoint", Math.min(Math.max(value, 0), 50));
+                          }}
+                          className="w-full"
+                        />
+                      </div>
 
-                    <div className="space-y-2">
-                      <Label className="text-sm font-medium">Cool SetPoint (°C)</Label>
-                      <Input
-                        type="number"
-                        min="0"
-                        max="50"
-                        value={config.windowOpenCoolSetPoint || 0}
-                        onChange={(e) => {
-                          const value = parseInt(e.target.value) || 0;
-                          updateConfig("windowOpenCoolSetPoint", Math.min(Math.max(value, 0), 50));
-                        }}
-                        className="w-full"
-                      />
+                      <div className="space-y-2">
+                        <Label className="text-sm font-medium">Heat Setpoint (°C)</Label>
+                        <Input
+                          type="number"
+                          min="0"
+                          max="50"
+                          value={config.windowOpenHeatSetPoint || 0}
+                          onChange={(e) => {
+                            const value = parseInt(e.target.value) || 0;
+                            updateConfig("windowOpenHeatSetPoint", Math.min(Math.max(value, 0), 50));
+                          }}
+                          className="w-full"
+                        />
+                      </div>
                     </div>
-
                     <div className="space-y-2">
-                      <Label className="text-sm font-medium">Heat SetPoint (°C)</Label>
-                      <Input
-                        type="number"
-                        min="0"
-                        max="50"
-                        value={config.windowOpenHeatSetPoint || 0}
-                        onChange={(e) => {
-                          const value = parseInt(e.target.value) || 0;
-                          updateConfig("windowOpenHeatSetPoint", Math.min(Math.max(value, 0), 50));
-                        }}
-                        className="w-full"
-                      />
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label className="text-sm font-medium">Window Delay (seconds)</Label>
+                      <Label className="text-sm font-medium">Window Delay (s)</Label>
                       <Input
                         type="number"
                         min="0"
@@ -729,10 +697,42 @@ const ACOutputConfigDialogComponent = ({
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="0">0 (None)</SelectItem>
+                          <SelectItem value="0">None</SelectItem>
                           {Array.from({ length: 5 }, (_, i) => i + 1).map((address) => (
                             <SelectItem key={address} value={address.toString()}>
                               {address}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Additional Configuration */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2 text-base">
+                    <Settings className="h-4 w-4" />
+                    Additional Settings
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label className="text-sm font-medium">Setpoint Offset</Label>
+                      <Select
+                        value={config.setPointOffset?.toString() || "0"}
+                        onValueChange={(value) => updateConfig("setPointOffset", parseInt(value) || 0)}
+                      >
+                        <SelectTrigger className="w-full">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {Array.from({ length: 21 }, (_, i) => i - 10).map((offset) => (
+                            <SelectItem key={offset} value={offset.toString()}>
+                              {offset > 0 ? `+${offset}` : offset.toString()}
                             </SelectItem>
                           ))}
                         </SelectContent>
