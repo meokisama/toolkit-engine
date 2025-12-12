@@ -7,22 +7,14 @@ export function registerRoomHandlers(ipcMain, dbService, rcu) {
   // ==================== RCU Controller - Room Configuration ====================
 
   // Set room configuration on RCU device
-  ipcMain.handle(
-    "rcu:setRoomConfiguration",
-    async (event, unitIp, canId, generalConfig, roomConfigs) => {
-      try {
-        return await rcu.setRoomConfiguration(
-          unitIp,
-          canId,
-          generalConfig,
-          roomConfigs
-        );
-      } catch (error) {
-        console.error("Error setting room configuration:", error);
-        throw error;
-      }
+  ipcMain.handle("rcu:setRoomConfiguration", async (event, unitIp, canId, generalConfig, roomConfigs) => {
+    try {
+      return await rcu.setRoomConfiguration(unitIp, canId, generalConfig, roomConfigs);
+    } catch (error) {
+      console.error("Error setting room configuration:", error);
+      throw error;
     }
-  );
+  });
 
   // Get room configuration from RCU device
   ipcMain.handle("rcu:getRoomConfiguration", async (event, unitIp, canId) => {
@@ -45,17 +37,14 @@ export function registerRoomHandlers(ipcMain, dbService, rcu) {
   });
 
   // Set room status on RCU device
-  ipcMain.handle(
-    "rcu:setRoomStatus",
-    async (event, unitIp, canId, airconMode, roomStatuses) => {
-      try {
-        return await rcu.setRoomStatus(unitIp, canId, airconMode, roomStatuses);
-      } catch (error) {
-        console.error("Error setting room status:", error);
-        throw error;
-      }
+  ipcMain.handle("rcu:setRoomStatus", async (event, unitIp, canId, airconMode, roomStatuses) => {
+    try {
+      return await rcu.setRoomStatus(unitIp, canId, airconMode, roomStatuses);
+    } catch (error) {
+      console.error("Error setting room status:", error);
+      throw error;
     }
-  );
+  });
 
   // ==================== Database - Room Configuration ====================
 
@@ -80,17 +69,14 @@ export function registerRoomHandlers(ipcMain, dbService, rcu) {
   });
 
   // Get room config for specific address from database
-  ipcMain.handle(
-    "room:getRoomConfig",
-    async (event, projectId, roomAddress) => {
-      try {
-        return await dbService.getRoomConfig(projectId, roomAddress);
-      } catch (error) {
-        console.error("Error getting room config:", error);
-        throw error;
-      }
+  ipcMain.handle("room:getRoomConfig", async (event, projectId, roomAddress) => {
+    try {
+      return await dbService.getRoomConfig(projectId, roomAddress);
+    } catch (error) {
+      console.error("Error getting room config:", error);
+      throw error;
     }
-  );
+  });
 
   // Get all room configs for project from database
   ipcMain.handle("room:getAllRoomConfigs", async (event, projectId) => {
@@ -103,34 +89,24 @@ export function registerRoomHandlers(ipcMain, dbService, rcu) {
   });
 
   // Create or update room config in database
-  ipcMain.handle(
-    "room:setRoomConfig",
-    async (event, projectId, roomAddress, config) => {
-      try {
-        return await dbService.createOrUpdateRoomConfig(
-          projectId,
-          roomAddress,
-          config
-        );
-      } catch (error) {
-        console.error("Error setting room config:", error);
-        throw error;
-      }
+  ipcMain.handle("room:setRoomConfig", async (event, projectId, roomAddress, config) => {
+    try {
+      return await dbService.createOrUpdateRoomConfig(projectId, roomAddress, config);
+    } catch (error) {
+      console.error("Error setting room config:", error);
+      throw error;
     }
-  );
+  });
 
   // Delete room config from database
-  ipcMain.handle(
-    "room:deleteRoomConfig",
-    async (event, projectId, roomAddress) => {
-      try {
-        return await dbService.deleteRoomConfig(projectId, roomAddress);
-      } catch (error) {
-        console.error("Error deleting room config:", error);
-        throw error;
-      }
+  ipcMain.handle("room:deleteRoomConfig", async (event, projectId, roomAddress) => {
+    try {
+      return await dbService.deleteRoomConfig(projectId, roomAddress);
+    } catch (error) {
+      console.error("Error deleting room config:", error);
+      throw error;
     }
-  );
+  });
 
   // Delete all room configs for project from database
   ipcMain.handle("room:deleteAllRoomConfigs", async (event, projectId) => {

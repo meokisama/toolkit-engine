@@ -1,7 +1,7 @@
 import { sendCommand, sendCommandMultipleResponses } from "./command-sender.js";
 import { convertCanIdToInt } from "./utils.js";
 import { validators } from "./validators.js";
-import { PROTOCOL,UDP_PORT } from "./constants.js";
+import { PROTOCOL, UDP_PORT } from "./constants.js";
 
 // Get Sequence Information function
 async function getSequenceInformation(unitIp, canId, sequenceIndex = null) {
@@ -102,7 +102,7 @@ async function getAllSequencesInformation(unitIp, canId) {
     // Process all responses
     for (const response of responses) {
       const { msg } = response;
-      
+
       // Parse response data
       let offset = 8; // Skip header
       while (offset < msg.length) {
@@ -149,18 +149,12 @@ async function getAllSequencesInformation(unitIp, canId) {
     };
   }
 
-  throw new Error(
-    "No valid responses received from get all sequences information command"
-  );
+  throw new Error("No valid responses received from get all sequences information command");
 }
 
 // Setup Sequence function
 async function setupSequence(unitIp, canId, sequenceConfig) {
-  const {
-    sequenceIndex,
-    sequenceAddress,
-    multiSceneAddresses = [],
-  } = sequenceConfig;
+  const { sequenceIndex, sequenceAddress, multiSceneAddresses = [] } = sequenceConfig;
 
   // Validate inputs
   validators.sequenceIndex(sequenceIndex);
@@ -197,14 +191,7 @@ async function setupSequence(unitIp, canId, sequenceConfig) {
     data.push(parseInt(address) || 0);
   }
 
-  return sendCommand(
-    unitIp,
-    UDP_PORT,
-    idAddress,
-    PROTOCOL.GENERAL.CMD1,
-    PROTOCOL.GENERAL.CMD2.SETUP_SEQUENCE,
-    data
-  );
+  return sendCommand(unitIp, UDP_PORT, idAddress, PROTOCOL.GENERAL.CMD1, PROTOCOL.GENERAL.CMD2.SETUP_SEQUENCE, data);
 }
 
 // Trigger Sequence function
@@ -212,19 +199,7 @@ async function triggerSequence(unitIp, canId, sequenceAddress) {
   const idAddress = convertCanIdToInt(canId);
   const triggerData = parseInt(sequenceAddress);
 
-  return sendCommand(
-    unitIp,
-    UDP_PORT,
-    idAddress,
-    PROTOCOL.GENERAL.CMD1,
-    PROTOCOL.GENERAL.CMD2.TRIGGER_SEQUENCE,
-    [triggerData]
-  );
+  return sendCommand(unitIp, UDP_PORT, idAddress, PROTOCOL.GENERAL.CMD1, PROTOCOL.GENERAL.CMD2.TRIGGER_SEQUENCE, [triggerData]);
 }
 
-export {
-  setupSequence,
-  getSequenceInformation,
-  getAllSequencesInformation,
-  triggerSequence,
-};
+export { setupSequence, getSequenceInformation, getAllSequencesInformation, triggerSequence };

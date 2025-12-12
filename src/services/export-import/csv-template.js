@@ -4,25 +4,24 @@
  */
 
 export class CSVTemplateGenerator {
-
   /**
    * Generate and download Template 1 (Vertical List Format)
    * Format: SCENE NAME, ITEM NAME, TYPE, ADDRESS, VALUE
    */
   static downloadTemplate1() {
-    const headers = ['SCENE NAME', 'ITEM NAME', 'TYPE', 'ADDRESS', 'VALUE'];
+    const headers = ["SCENE NAME", "ITEM NAME", "TYPE", "ADDRESS", "VALUE"];
     const sampleData = [
-      ['Bedroom Scene', 'Main Light', 'LIGHTING', '1', '100%'],
-      ['', 'Side Light', 'LIGHTING', '2', '75%'],
-      ['', 'Table Lamp', 'LIGHTING', '3', '50%'],
-      ['', 'Ceiling Light', 'LIGHTING', '4', '80%'],
-      ['', 'Bedside Lamp', 'LIGHTING', '5', '30%'],
-      ['Kitchen Scene', 'Kitchen Light', 'LIGHTING', '6', '100%'],
-      ['', 'Under Cabinet', 'LIGHTING', '7', '60%']
+      ["Bedroom Scene", "Main Light", "LIGHTING", "1", "100%"],
+      ["", "Side Light", "LIGHTING", "2", "75%"],
+      ["", "Table Lamp", "LIGHTING", "3", "50%"],
+      ["", "Ceiling Light", "LIGHTING", "4", "80%"],
+      ["", "Bedside Lamp", "LIGHTING", "5", "30%"],
+      ["Kitchen Scene", "Kitchen Light", "LIGHTING", "6", "100%"],
+      ["", "Under Cabinet", "LIGHTING", "7", "60%"],
     ];
 
     const csvContent = this.generateCSVContent(headers, sampleData);
-    this.downloadFile(csvContent, 'scene_template_1_vertical.csv');
+    this.downloadFile(csvContent, "scene_template_1_vertical.csv");
   }
 
   /**
@@ -30,19 +29,19 @@ export class CSVTemplateGenerator {
    * Format: ITEM NAME, TYPE, ADDRESS, Scene1, Scene2, Scene3, ...
    */
   static downloadTemplate2() {
-    const headers = ['ITEM NAME', 'TYPE', 'ADDRESS', 'Living Room Scene', 'Bedroom Scene', 'Kitchen Scene'];
+    const headers = ["ITEM NAME", "TYPE", "ADDRESS", "Living Room Scene", "Bedroom Scene", "Kitchen Scene"];
     const sampleData = [
-      ['Main Light', 'LIGHTING', '1', '100%', '50%', '50%'],
-      ['Side Light', 'LIGHTING', '2', '75%', '50%', '50%'],
-      ['Table Lamp', 'LIGHTING', '3', '50%', '50%', '50%'],
-      ['Ceiling Light', 'LIGHTING', '4', '50%', '80%', '50%'],
-      ['Bedside Lamp', 'LIGHTING', '5', '50%', '30%', '50%'],
-      ['Kitchen Light', 'LIGHTING', '6', '50%', '50%', '100%'],
-      ['Under Cabinet', 'LIGHTING', '7', '50%', '50%', '60%']
+      ["Main Light", "LIGHTING", "1", "100%", "50%", "50%"],
+      ["Side Light", "LIGHTING", "2", "75%", "50%", "50%"],
+      ["Table Lamp", "LIGHTING", "3", "50%", "50%", "50%"],
+      ["Ceiling Light", "LIGHTING", "4", "50%", "80%", "50%"],
+      ["Bedside Lamp", "LIGHTING", "5", "50%", "30%", "50%"],
+      ["Kitchen Light", "LIGHTING", "6", "50%", "50%", "100%"],
+      ["Under Cabinet", "LIGHTING", "7", "50%", "50%", "60%"],
     ];
 
     const csvContent = this.generateCSVContent(headers, sampleData);
-    this.downloadFile(csvContent, 'scene_template_2_horizontal.csv');
+    this.downloadFile(csvContent, "scene_template_2_horizontal.csv");
   }
 
   /**
@@ -52,28 +51,28 @@ export class CSVTemplateGenerator {
     const csvRows = [];
 
     // Add headers
-    csvRows.push(headers.map(header => `"${header}"`).join(','));
+    csvRows.push(headers.map((header) => `"${header}"`).join(","));
 
     // Add data rows
-    data.forEach(row => {
-      const csvRow = row.map(cell => `"${cell || ''}"`).join(',');
+    data.forEach((row) => {
+      const csvRow = row.map((cell) => `"${cell || ""}"`).join(",");
       csvRows.push(csvRow);
     });
 
-    return csvRows.join('\n');
+    return csvRows.join("\n");
   }
 
   /**
    * Download file with given content and filename
    */
   static downloadFile(content, filename) {
-    const blob = new Blob([content], { type: 'text/csv;charset=utf-8;' });
+    const blob = new Blob([content], { type: "text/csv;charset=utf-8;" });
     const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
+    const link = document.createElement("a");
 
     link.href = url;
     link.download = filename;
-    link.style.display = 'none';
+    link.style.display = "none";
 
     document.body.appendChild(link);
     link.click();

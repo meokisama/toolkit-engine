@@ -30,11 +30,7 @@ export const airconMethods = {
   // Get aircon cards (each item is now a card)
   getAirconCards(projectId) {
     try {
-      const items = this.db
-        .prepare(
-          "SELECT * FROM aircon WHERE project_id = ? ORDER BY CAST(address AS INTEGER) ASC"
-        )
-        .all(projectId);
+      const items = this.db.prepare("SELECT * FROM aircon WHERE project_id = ? ORDER BY CAST(address AS INTEGER) ASC").all(projectId);
 
       // Each item is now a card
       return items.map((item) => ({
@@ -58,11 +54,7 @@ export const airconMethods = {
       const addressStr = address.toString();
 
       // Check if address already exists for this project
-      const existingItems = this.db
-        .prepare(
-          "SELECT COUNT(*) as count FROM aircon WHERE project_id = ? AND address = ?"
-        )
-        .get(projectId, addressStr);
+      const existingItems = this.db.prepare("SELECT COUNT(*) as count FROM aircon WHERE project_id = ? AND address = ?").get(projectId, addressStr);
 
       if (existingItems.count > 0) {
         throw new Error(`Address ${addressStr} already exists.`);
@@ -102,9 +94,7 @@ export const airconMethods = {
   // Delete entire aircon card (all items with same address)
   deleteAirconCard(projectId, address) {
     try {
-      const stmt = this.db.prepare(
-        "DELETE FROM aircon WHERE project_id = ? AND address = ?"
-      );
+      const stmt = this.db.prepare("DELETE FROM aircon WHERE project_id = ? AND address = ?");
       const result = stmt.run(projectId, address);
 
       return { success: true, deletedCount: result.changes };
@@ -122,9 +112,7 @@ export const airconMethods = {
   // Duplicate entire aircon card
   duplicateAirconCard(projectId, address) {
     try {
-      const item = this.db
-        .prepare("SELECT * FROM aircon WHERE project_id = ? AND address = ?")
-        .get(projectId, address);
+      const item = this.db.prepare("SELECT * FROM aircon WHERE project_id = ? AND address = ?").get(projectId, address);
 
       if (!item) {
         throw new Error("Aircon card not found");
@@ -140,11 +128,7 @@ export const airconMethods = {
         label: item.label,
       };
 
-      const newItem = this.createProjectItem(
-        projectId,
-        duplicatedItem,
-        "aircon"
-      );
+      const newItem = this.createProjectItem(projectId, duplicatedItem, "aircon");
       return [newItem]; // Return as array for compatibility
     } catch (error) {
       console.error("Failed to duplicate aircon card:", error);

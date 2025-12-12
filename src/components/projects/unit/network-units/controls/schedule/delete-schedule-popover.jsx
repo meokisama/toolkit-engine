@@ -1,13 +1,7 @@
 import React from "react";
 import { BaseDeleteDialog } from "../base/base-delete-dialog";
 
-export function DeleteScheduleDialog({
-  open,
-  onOpenChange,
-  unit,
-  asPopover = false,
-  trigger = null,
-}) {
+export function DeleteScheduleDialog({ open, onOpenChange, unit, asPopover = false, trigger = null }) {
   const config = {
     entityName: "Schedules",
     entityNameSingular: "Schedule",
@@ -25,22 +19,10 @@ export function DeleteScheduleDialog({
         });
       },
       deleteAll: async (unitIp, canId) => {
-        return await window.electronAPI.scheduleController.deleteAllSchedules(
-          unitIp,
-          canId
-        );
+        return await window.electronAPI.scheduleController.deleteAllSchedules(unitIp, canId);
       },
     },
   };
 
-  return (
-    <BaseDeleteDialog
-      open={open}
-      onOpenChange={onOpenChange}
-      unit={unit}
-      asPopover={asPopover}
-      trigger={trigger}
-      config={config}
-    />
-  );
+  return <BaseDeleteDialog open={open} onOpenChange={onOpenChange} unit={unit} asPopover={asPopover} trigger={trigger} config={config} />;
 }

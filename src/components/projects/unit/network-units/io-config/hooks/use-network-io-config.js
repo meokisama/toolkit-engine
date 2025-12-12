@@ -1,17 +1,5 @@
-import {
-  useState,
-  useEffect,
-  useMemo,
-  useCallback,
-  useRef,
-  startTransition,
-} from "react";
-import {
-  getUnitIOSpec,
-  getOutputTypes,
-  createDefaultInputConfigs,
-  createDefaultOutputConfigs,
-} from "@/utils/io-config-utils";
+import { useState, useEffect, useMemo, useCallback, useRef, startTransition } from "react";
+import { getUnitIOSpec, getOutputTypes, createDefaultInputConfigs, createDefaultOutputConfigs } from "@/utils/io-config-utils";
 import { useAutoRefresh } from "./use-auto-refresh";
 
 export const useNetworkIOConfig = (item, open, childDialogOpen = false) => {
@@ -20,8 +8,7 @@ export const useNetworkIOConfig = (item, open, childDialogOpen = false) => {
   const [originalInputConfigs, setOriginalInputConfigs] = useState([]); // Store original configs for change detection
   const [originalOutputConfigs, setOriginalOutputConfigs] = useState([]); // Store original output configs
   const [originalInputConfigsSet, setOriginalInputConfigsSet] = useState(false); // Flag to track if original input configs have been set
-  const [originalOutputConfigsSet, setOriginalOutputConfigsSet] =
-    useState(false); // Flag to track if original output configs have been set
+  const [originalOutputConfigsSet, setOriginalOutputConfigsSet] = useState(false); // Flag to track if original output configs have been set
   const [loading, setLoading] = useState(false);
   const [isInitialLoading, setIsInitialLoading] = useState(false);
   const [configsLoaded, setConfigsLoaded] = useState(false);
@@ -53,9 +40,6 @@ export const useNetworkIOConfig = (item, open, childDialogOpen = false) => {
         canId: item.id_can,
       });
 
-      // Add small delay after GET command to prevent conflicts
-      await new Promise((resolve) => setTimeout(resolve, 200));
-
       if (response.success && response.inputStates) {
         // Update ref first to avoid re-renders
         const updatedInputs = inputStatesRef.current.map((input, index) => {
@@ -72,11 +56,7 @@ export const useNetworkIOConfig = (item, open, childDialogOpen = false) => {
         // Only update state if there are actual changes
         const hasChanges = updatedInputs.some((input, index) => {
           const current = inputStatesRef.current[index];
-          return (
-            current &&
-            (current.brightness !== input.brightness ||
-              current.isActive !== input.isActive)
-          );
+          return current && (current.brightness !== input.brightness || current.isActive !== input.isActive);
         });
 
         if (hasChanges) {
@@ -88,7 +68,7 @@ export const useNetworkIOConfig = (item, open, childDialogOpen = false) => {
         }
       }
     } catch (error) {
-      console.error("❌ Background input state read failed:", error.message);
+      console.error(" Background input state read failed:", error.message);
     }
   }, [item?.ip_address, item?.id_can]);
 
@@ -99,25 +79,15 @@ export const useNetworkIOConfig = (item, open, childDialogOpen = false) => {
     }
 
     try {
-      const acConfigs = await window.electronAPI.ioController.getLocalACConfig(
-        item.ip_address,
-        item.id_can
-      );
-
-      // Add delay after GET command to prevent conflicts
-      await new Promise((resolve) => setTimeout(resolve, 300));
+      const acConfigs = await window.electronAPI.ioController.getLocalACConfig(item.ip_address, item.id_can);
 
       if (acConfigs && Array.isArray(acConfigs) && acConfigs.length === 10) {
         // Update output configs with FULL AC config data
         const updatedOutputs = outputStatesRef.current.map((config) => {
           if (config.type === "ac") {
             // Find the AC config index for this output
-            const acOutputs = outputStatesRef.current.filter(
-              (output) => output.type === "ac"
-            );
-            const acConfigIndex = acOutputs.findIndex(
-              (output) => output.index === config.index
-            );
+            const acOutputs = outputStatesRef.current.filter((output) => output.type === "ac");
+            const acConfigIndex = acOutputs.findIndex((output) => output.index === config.index);
 
             if (acConfigIndex >= 0 && acConfigIndex < acConfigs.length) {
               const acConfig = acConfigs[acConfigIndex];
@@ -146,6 +116,11 @@ export const useNetworkIOConfig = (item, open, childDialogOpen = false) => {
                 acValveHeatCloseGroup: acConfig.valveHeatCloseGroup ?? 0,
                 acWindowBypass: acConfig.windowBypass ?? 0,
                 acSetPointOffset: acConfig.setPointOffset ?? 0,
+                acWindowOpenAction: acConfig.windowOpenAction ?? 0,
+                acWindowOpenCoolSetPoint: acConfig.windowOpenCoolSetPoint ?? 0,
+                acWindowOpenHeatSetPoint: acConfig.windowOpenHeatSetPoint ?? 0,
+                acWindowDelay: acConfig.windowDelay ?? 0,
+                acRoomAddress: acConfig.roomAddress ?? 0,
                 acUnoccupyPower: acConfig.unoccupyPower ?? 0,
                 acOccupyPower: acConfig.occupyPower ?? 0,
                 acStandbyPower: acConfig.standbyPower ?? 0,
@@ -189,15 +164,10 @@ export const useNetworkIOConfig = (item, open, childDialogOpen = false) => {
     }
 
     try {
-      const response = await window.electronAPI.ioController.getAllOutputStates(
-        {
-          unitIp: item.ip_address,
-          canId: item.id_can,
-        }
-      );
-
-      // Add small delay after GET command to prevent conflicts
-      await new Promise((resolve) => setTimeout(resolve, 200));
+      const response = await window.electronAPI.ioController.getAllOutputStates({
+        unitIp: item.ip_address,
+        canId: item.id_can,
+      });
 
       if (response.success && response.outputStates) {
         // Update ref first to avoid re-renders
@@ -215,11 +185,7 @@ export const useNetworkIOConfig = (item, open, childDialogOpen = false) => {
         // Only update state if there are actual changes
         const hasChanges = updatedOutputs.some((output, index) => {
           const current = outputStatesRef.current[index];
-          return (
-            current &&
-            (current.brightness !== output.brightness ||
-              current.state !== output.state)
-          );
+          return current && (current.brightness !== output.brightness || current.state !== output.state);
         });
 
         if (hasChanges) {
@@ -231,7 +197,7 @@ export const useNetworkIOConfig = (item, open, childDialogOpen = false) => {
         }
       }
     } catch (error) {
-      console.error("❌ Background output state read failed:", error.message);
+      console.error(" Background output state read failed:", error.message);
     }
   }, [item?.ip_address, item?.id_can]);
 
@@ -242,22 +208,15 @@ export const useNetworkIOConfig = (item, open, childDialogOpen = false) => {
     }
 
     try {
-      const response = await window.electronAPI.ioController.getAllInputConfigs(
-        {
-          unitIp: item.ip_address,
-          canId: item.id_can,
-        }
-      );
-
-      // Add delay after GET command to prevent conflicts
-      await new Promise((resolve) => setTimeout(resolve, 300));
+      const response = await window.electronAPI.ioController.getAllInputConfigs({
+        unitIp: item.ip_address,
+        canId: item.id_can,
+      });
 
       if (response?.configs) {
         // Update input configs with actual function values from unit
         const updatedInputs = inputStatesRef.current.map((input, index) => {
-          const unitConfig = response.configs.find(
-            (config) => config.inputNumber === index
-          );
+          const unitConfig = response.configs.find((config) => config.inputNumber === index);
           return unitConfig
             ? {
                 ...input,
@@ -323,36 +282,23 @@ export const useNetworkIOConfig = (item, open, childDialogOpen = false) => {
 
     try {
       // 1. Get output assignments (address + delays)
-      const assignResponse =
-        await window.electronAPI.ioController.getOutputAssign({
-          unitIp: item.ip_address,
-          canId: item.id_can,
-        });
-
-      await new Promise((resolve) => setTimeout(resolve, 300));
+      const assignResponse = await window.electronAPI.ioController.getOutputAssign({
+        unitIp: item.ip_address,
+        canId: item.id_can,
+      });
 
       if (!assignResponse?.outputAssignments) {
         return false;
       }
 
       // 2. Get full output configs (minDim, maxDim, autoTrigger, schedule)
-      const configResponse =
-        await window.electronAPI.ioController.getOutputConfig(
-          item.ip_address,
-          item.id_can
-        );
-
-      await new Promise((resolve) => setTimeout(resolve, 300));
+      const configResponse = await window.electronAPI.ioController.getOutputConfig(item.ip_address, item.id_can);
 
       // Update output configs with FULL data
       const updatedOutputs = outputStatesRef.current.map((output) => {
-        const unitAssignment = assignResponse.outputAssignments.find(
-          (assignment) => assignment.outputIndex === output.index
-        );
+        const unitAssignment = assignResponse.outputAssignments.find((assignment) => assignment.outputIndex === output.index);
 
-        const unitConfig = configResponse?.outputConfigs?.find(
-          (config) => config.outputIndex === output.index
-        );
+        const unitConfig = configResponse?.outputConfigs?.find((config) => config.outputIndex === output.index);
 
         return {
           ...output,
@@ -377,34 +323,28 @@ export const useNetworkIOConfig = (item, open, childDialogOpen = false) => {
 
       return true;
     } catch (error) {
-      console.error(
-        "Failed to read output configurations from unit:",
-        error.message
-      );
+      console.error("Failed to read output configurations from unit:", error.message);
     }
 
     return false;
   }, [item?.ip_address, item?.id_can]);
 
-  // Sequential read function to ensure input completes before output with proper delays
+  // Sequential read function to ensure input completes before output
   const readStatesSequentially = useCallback(async () => {
     try {
       // Step 1: Read input states first
       await readInputStatesBackground();
 
-      // Step 2: Wait for input processing to complete
-      await new Promise((resolve) => setTimeout(resolve, 400));
-
-      // Step 3: Read output states
+      // Step 2: Read output states
       await readOutputStatesBackground();
     } catch (error) {
-      console.warn("❌ Sequential state read failed:", error.message);
+      console.warn(" Sequential state read failed:", error.message);
     }
   }, [readInputStatesBackground, readOutputStatesBackground]);
 
   // Use simplified auto refresh hook
   const autoRefresh = useAutoRefresh(readStatesSequentially, {
-    interval: 3000,
+    interval: 1000,
     enabled: autoRefreshEnabled,
     dialogOpen: open,
     childDialogOpen: childDialogOpen,
@@ -524,6 +464,11 @@ export const useNetworkIOConfig = (item, open, childDialogOpen = false) => {
           acValveHeatCloseGroup: output.acValveHeatCloseGroup ?? 0,
           acWindowBypass: output.acWindowBypass ?? 0,
           acSetPointOffset: output.acSetPointOffset ?? 0,
+          acWindowOpenAction: output.acWindowOpenAction ?? 0,
+          acWindowOpenCoolSetPoint: output.acWindowOpenCoolSetPoint ?? 0,
+          acWindowOpenHeatSetPoint: output.acWindowOpenHeatSetPoint ?? 0,
+          acWindowDelay: output.acWindowDelay ?? 0,
+          acRoomAddress: output.acRoomAddress ?? 0,
           acUnoccupyPower: output.acUnoccupyPower ?? 0,
           acOccupyPower: output.acOccupyPower ?? 0,
           acStandbyPower: output.acStandbyPower ?? 0,
@@ -588,10 +533,7 @@ export const useNetworkIOConfig = (item, open, childDialogOpen = false) => {
 
     return () => {
       window.removeEventListener("pauseAllAutoRefresh", handlePauseAutoRefresh);
-      window.removeEventListener(
-        "resumeAllAutoRefresh",
-        handleResumeAutoRefresh
-      );
+      window.removeEventListener("resumeAllAutoRefresh", handleResumeAutoRefresh);
     };
   }, [autoRefresh]);
 
@@ -612,9 +554,7 @@ export const useNetworkIOConfig = (item, open, childDialogOpen = false) => {
 
       // Separate AC outputs from lighting outputs
       const acOutputs = outputConfigs.filter((output) => output.type === "ac");
-      const lightingOutputs = outputConfigs.filter(
-        (output) => output.type !== "ac"
-      );
+      const lightingOutputs = outputConfigs.filter((output) => output.type !== "ac");
 
       // 1. Save AC outputs (already optimized - batch mode)
       if (acOutputs.length > 0) {
@@ -624,9 +564,7 @@ export const useNetworkIOConfig = (item, open, childDialogOpen = false) => {
             .fill(null)
             .map((_, idx) => {
               const acOutput = acOutputs.find((output) => {
-                const acOutputIndex = acOutputs.findIndex(
-                  (o) => o.index === output.index
-                );
+                const acOutputIndex = acOutputs.findIndex((o) => o.index === output.index);
                 return acOutputIndex === idx;
               });
 
@@ -653,6 +591,11 @@ export const useNetworkIOConfig = (item, open, childDialogOpen = false) => {
                   valveHeatCloseGroup: acOutput.acValveHeatCloseGroup ?? 0,
                   windowBypass: acOutput.acWindowBypass ?? 0,
                   setPointOffset: acOutput.acSetPointOffset ?? 0,
+                  windowOpenAction: acOutput.acWindowOpenAction ?? 0,
+                  windowOpenCoolSetPoint: acOutput.acWindowOpenCoolSetPoint ?? 0,
+                  windowOpenHeatSetPoint: acOutput.acWindowOpenHeatSetPoint ?? 0,
+                  windowDelay: acOutput.acWindowDelay ?? 0,
+                  roomAddress: acOutput.acRoomAddress ?? 0,
                   unoccupyPower: acOutput.acUnoccupyPower ?? 0,
                   occupyPower: acOutput.acOccupyPower ?? 0,
                   standbyPower: acOutput.acStandbyPower ?? 0,
@@ -694,6 +637,11 @@ export const useNetworkIOConfig = (item, open, childDialogOpen = false) => {
                 valveHeatCloseGroup: 0,
                 windowBypass: 0,
                 setPointOffset: 0,
+                windowOpenAction: 0,
+                windowOpenCoolSetPoint: 0,
+                windowOpenHeatSetPoint: 0,
+                windowDelay: 0,
+                roomAddress: 0,
                 unoccupyPower: 0,
                 occupyPower: 0,
                 standbyPower: 0,
@@ -712,11 +660,7 @@ export const useNetworkIOConfig = (item, open, childDialogOpen = false) => {
               };
             });
 
-          await window.electronAPI.ioController.setLocalACConfig(
-            item.ip_address,
-            item.id_can,
-            acConfigs
-          );
+          await window.electronAPI.ioController.setLocalACConfig(item.ip_address, item.id_can, acConfigs);
 
           totalSuccessCount += acOutputs.length;
           console.log(`✓ Saved ${acOutputs.length} AC outputs`);
@@ -733,35 +677,27 @@ export const useNetworkIOConfig = (item, open, childDialogOpen = false) => {
       // 2. Save lighting outputs (BATCH MODE - OPTIMIZED)
       if (lightingOutputs.length > 0) {
         try {
-          const result =
-            await window.electronAPI.ioController.setupBatchLightingOutputs({
-              unitIp: item.ip_address,
-              canId: item.id_can,
-              lightingOutputs: lightingOutputs,
-              maxBytes: 900,
-            });
+          const result = await window.electronAPI.ioController.setupBatchLightingOutputs({
+            unitIp: item.ip_address,
+            canId: item.id_can,
+            lightingOutputs: lightingOutputs,
+            maxBytes: 900,
+          });
 
           // Aggregate results from all batch operations
           const lightingSuccess = result.overallSuccess;
           if (lightingSuccess) {
             totalSuccessCount += lightingOutputs.length;
-            console.log(
-              `✓ Saved ${lightingOutputs.length} lighting outputs in batch mode`
-            );
+            console.log(`✓ Saved ${lightingOutputs.length} lighting outputs in batch mode`);
           } else {
             // Count partial successes
-            const successfulOps = [
-              result.assignments?.success,
-              result.delayOff?.success,
-              result.delayOn?.success,
-              result.configs?.success,
-            ].filter(Boolean).length;
+            const successfulOps = [result.assignments?.success, result.delayOff?.success, result.delayOn?.success, result.configs?.success].filter(
+              Boolean
+            ).length;
 
             if (successfulOps > 0) {
               totalSuccessCount += lightingOutputs.length;
-              console.warn(
-                `⚠ Partially saved lighting outputs: ${successfulOps}/4 operations succeeded`
-              );
+              console.warn(`⚠ Partially saved lighting outputs: ${successfulOps}/4 operations succeeded`);
             } else {
               totalFailCount += lightingOutputs.length;
             }
@@ -839,13 +775,12 @@ export const useNetworkIOConfig = (item, open, childDialogOpen = false) => {
       }));
 
       // Send all configs in batches (max 900 bytes per batch)
-      const result =
-        await window.electronAPI.ioController.setupBatchInputConfigs({
-          unitIp: item.ip_address,
-          canId: item.id_can,
-          inputConfigs: inputConfigsData,
-          maxBytes: 900,
-        });
+      const result = await window.electronAPI.ioController.setupBatchInputConfigs({
+        unitIp: item.ip_address,
+        canId: item.id_can,
+        inputConfigs: inputConfigsData,
+        maxBytes: 900,
+      });
 
       // Update original configs after successful save
       if (result.successCount > 0) {

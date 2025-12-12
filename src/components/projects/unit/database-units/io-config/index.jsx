@@ -1,12 +1,5 @@
 import React, { useMemo, useCallback, memo, useEffect, useState } from "react";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -31,21 +24,11 @@ import { useOutputConfig } from "./hooks/use-output-config";
 const PERFORMANCE_THRESHOLD = 50; // Show warning for large lists
 
 const IOConfigDialogComponent = ({ open, onOpenChange, item = null }) => {
-  const { projectItems, updateItem, selectedProject, loadTabData, loadedTabs } =
-    useProjectDetail();
+  const { projectItems, updateItem, selectedProject, loadTabData, loadedTabs } = useProjectDetail();
 
   // Use custom hooks for better organization
-  const {
-    inputConfigs,
-    outputConfigs,
-    setInputConfigs,
-    setOutputConfigs,
-    originalInputConfigs,
-    ioSpec,
-    loading,
-    isInitialLoading,
-    saveConfig,
-  } = useIOConfig(item, open);
+  const { inputConfigs, outputConfigs, setInputConfigs, setOutputConfigs, originalInputConfigs, originalOutputConfigs, ioSpec, loading, isInitialLoading, saveConfig } =
+    useIOConfig(item, open);
 
   const {
     multiGroupConfigs,
@@ -98,23 +81,11 @@ const IOConfigDialogComponent = ({ open, onOpenChange, item = null }) => {
   }, [onOpenChange]);
 
   const handleSave = useCallback(async () => {
-    const success = await saveConfig(
-      updateItem,
-      multiGroupConfigs,
-      rlcConfigs,
-      outputConfigurations
-    );
+    const success = await saveConfig(updateItem, multiGroupConfigs, rlcConfigs, outputConfigurations);
     if (success) {
       handleClose();
     }
-  }, [
-    saveConfig,
-    updateItem,
-    handleClose,
-    multiGroupConfigs,
-    rlcConfigs,
-    outputConfigurations,
-  ]);
+  }, [saveConfig, updateItem, handleClose, multiGroupConfigs, rlcConfigs, outputConfigurations]);
 
   // Handle create/edit device
   const handleCreateEditDevice = useCallback(
@@ -124,9 +95,7 @@ const IOConfigDialogComponent = ({ open, onOpenChange, item = null }) => {
       const items = isAircon ? airconItems : lightingItems;
 
       // Find existing item if deviceId is provided
-      const existingItem = deviceId
-        ? items.find((item) => item.id === deviceId)
-        : null;
+      const existingItem = deviceId ? items.find((item) => item.id === deviceId) : null;
 
       setCreateEditDialog({
         open: true,
@@ -176,13 +145,7 @@ const IOConfigDialogComponent = ({ open, onOpenChange, item = null }) => {
       loadAllInputDetailConfigs();
       loadAllOutputConfigs();
     }
-  }, [
-    open,
-    item,
-    isInitialLoading,
-    loadAllInputDetailConfigs,
-    loadAllOutputConfigs,
-  ]);
+  }, [open, item, isInitialLoading, loadAllInputDetailConfigs, loadAllOutputConfigs]);
 
   // Prepare combobox options - memoized to prevent recalculation
   const lightingOptions = useMemo(() => {
@@ -205,8 +168,7 @@ const IOConfigDialogComponent = ({ open, onOpenChange, item = null }) => {
 
     const map = new Map();
     outputConfigs.forEach((config) => {
-      const deviceOptions =
-        config.type === "ac" ? airconOptions : lightingOptions;
+      const deviceOptions = config.type === "ac" ? airconOptions : lightingOptions;
       map.set(config.index, deviceOptions);
     });
     return map;
@@ -224,11 +186,7 @@ const IOConfigDialogComponent = ({ open, onOpenChange, item = null }) => {
   const handleOutputDeviceChangeWithState = useCallback(
     (outputIndex, deviceId) => {
       // Update local state immediately for better UX
-      setOutputConfigs((prev) =>
-        prev.map((config) =>
-          config.index === outputIndex ? { ...config, deviceId } : config
-        )
-      );
+      setOutputConfigs((prev) => prev.map((config) => (config.index === outputIndex ? { ...config, deviceId } : config)));
       // Call the hook handler
       handleOutputDeviceChange(outputIndex, deviceId, setOutputConfigs);
     },
@@ -250,11 +208,8 @@ const IOConfigDialogComponent = ({ open, onOpenChange, item = null }) => {
         // No need to duplicate the logic here
         return success;
       } catch (error) {
-        console.error(
-          "❌ IOConfigDialog - Failed to save multi-group configuration:",
-          error
-        );
-        console.error("❌ IOConfigDialog - Error stack:", error.stack);
+        console.error(" IOConfigDialog - Failed to save multi-group configuration:", error);
+        console.error(" IOConfigDialog - Error stack:", error.stack);
         toast.error("Failed to save configuration: " + error.message);
         return false;
       }
@@ -270,38 +225,25 @@ const IOConfigDialogComponent = ({ open, onOpenChange, item = null }) => {
   useEffect(() => {
     if (process.env.NODE_ENV === "development") {
       if (hasLargeInputList) {
-        console.warn(
-          `IOConfigDialog: Large input list detected (${inputConfigs.length} items). Consider pagination.`
-        );
+        console.warn(`IOConfigDialog: Large input list detected (${inputConfigs.length} items). Consider pagination.`);
       }
       if (hasLargeOutputList) {
-        console.warn(
-          `IOConfigDialog: Large output list detected (${outputConfigs.length} items). Consider pagination.`
-        );
+        console.warn(`IOConfigDialog: Large output list detected (${outputConfigs.length} items). Consider pagination.`);
       }
     }
-  }, [
-    hasLargeInputList,
-    hasLargeOutputList,
-    inputConfigs.length,
-    outputConfigs.length,
-  ]);
+  }, [hasLargeInputList, hasLargeOutputList, inputConfigs.length, outputConfigs.length]);
 
   return (
     <>
       <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent
-          className="sm:max-w-[70%] max-h-[90vh] overflow-y-auto"
-          aria-describedby="io-config-description"
-        >
+        <DialogContent className="sm:max-w-[70%] max-h-[90vh] overflow-y-auto" aria-describedby="io-config-description">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Settings className="h-5 w-5" />
               I/O Configuration
             </DialogTitle>
             <DialogDescription id="io-config-description">
-              Configure input/output settings for {item?.type || "unit"}:{" "}
-              {item?.serial_no || "N/A"}
+              Configure input/output settings for {item?.type || "unit"}: {item?.serial_no || "N/A"}
             </DialogDescription>
           </DialogHeader>
 
@@ -327,41 +269,19 @@ const IOConfigDialogComponent = ({ open, onOpenChange, item = null }) => {
                         <div className="space-y-3 pr-4">
                           {inputConfigs.map((config) => {
                             // Find the original config for this input
-                            const originalConfig = originalInputConfigs.find(
-                              (orig) => orig.index === config.index
-                            );
+                            const originalConfig = originalInputConfigs.find((orig) => orig.index === config.index);
 
                             // Create enhanced config with current multi-group and RLC data
                             const currentConfigWithExtras = {
                               ...config,
-                              multiGroupConfig:
-                                multiGroupConfigs[config.index]
-                                  ?.multiGroupConfig || [],
+                              multiGroupConfig: multiGroupConfigs[config.index]?.multiGroupConfig || [],
                               rlcConfig: {
-                                ramp:
-                                  multiGroupConfigs[config.index]?.ramp ||
-                                  rlcConfigs[config.index]?.ramp ||
-                                  0,
-                                preset:
-                                  multiGroupConfigs[config.index]?.preset ||
-                                  rlcConfigs[config.index]?.preset ||
-                                  100,
-                                ledStatus:
-                                  multiGroupConfigs[config.index]?.led_status ||
-                                  rlcConfigs[config.index]?.ledStatus ||
-                                  0,
-                                autoMode:
-                                  multiGroupConfigs[config.index]?.auto_mode ||
-                                  rlcConfigs[config.index]?.autoMode ||
-                                  0,
-                                delayOff:
-                                  multiGroupConfigs[config.index]?.delay_off ||
-                                  rlcConfigs[config.index]?.delayOff ||
-                                  0,
-                                delayOn:
-                                  multiGroupConfigs[config.index]?.delay_on ||
-                                  rlcConfigs[config.index]?.delayOn ||
-                                  0,
+                                ramp: multiGroupConfigs[config.index]?.ramp || rlcConfigs[config.index]?.ramp || 0,
+                                preset: multiGroupConfigs[config.index]?.preset || rlcConfigs[config.index]?.preset || 100,
+                                ledStatus: multiGroupConfigs[config.index]?.led_status || rlcConfigs[config.index]?.ledStatus || 0,
+                                autoMode: multiGroupConfigs[config.index]?.auto_mode || rlcConfigs[config.index]?.autoMode || 0,
+                                delayOff: multiGroupConfigs[config.index]?.delay_off || rlcConfigs[config.index]?.delayOff || 0,
+                                delayOn: multiGroupConfigs[config.index]?.delay_on || rlcConfigs[config.index]?.delayOn || 0,
                               },
                             };
 
@@ -371,12 +291,8 @@ const IOConfigDialogComponent = ({ open, onOpenChange, item = null }) => {
                                 config={currentConfigWithExtras}
                                 unitType={item?.type}
                                 originalConfig={originalConfig}
-                                onInputFunctionChange={
-                                  handleInputFunctionChangeWithState
-                                }
-                                onOpenInputDetailConfig={
-                                  handleOpenInputDetailConfig
-                                }
+                                onInputFunctionChange={handleInputFunctionChangeWithState}
+                                onOpenInputDetailConfig={handleOpenInputDetailConfig}
                               />
                             );
                           })}
@@ -405,23 +321,24 @@ const IOConfigDialogComponent = ({ open, onOpenChange, item = null }) => {
                     <ScrollArea className="h-full">
                       {outputConfigs.length > 0 ? (
                         <div className="space-y-3 pr-4">
-                          {outputConfigs.map((config) => (
-                            <OutputConfigItem
-                              key={config.index}
-                              config={config}
-                              deviceOptions={
-                                outputDeviceOptionsMap.get(config.index) || []
-                              }
-                              onOutputDeviceChange={
-                                handleOutputDeviceChangeWithState
-                              }
-                              onOpenOutputConfig={
-                                handleOpenOutputConfigWithState
-                              }
-                              onCreateEditDevice={handleCreateEditDevice}
-                              isLoadingConfig={false}
-                            />
-                          ))}
+                          {outputConfigs.map((config) => {
+                            // Find the original config for this output
+                            const originalConfig = originalOutputConfigs.find((orig) => orig.index === config.index);
+
+                            return (
+                              <OutputConfigItem
+                                key={config.index}
+                                config={config}
+                                originalConfig={originalConfig}
+                                outputConfiguration={outputConfigurations[config.index]}
+                                deviceOptions={outputDeviceOptionsMap.get(config.index) || []}
+                                onOutputDeviceChange={handleOutputDeviceChangeWithState}
+                                onOpenOutputConfig={handleOpenOutputConfigWithState}
+                                onCreateEditDevice={handleCreateEditDevice}
+                                isLoadingConfig={false}
+                              />
+                            );
+                          })}
                         </div>
                       ) : (
                         <div className="text-center text-muted-foreground py-8">
@@ -435,22 +352,14 @@ const IOConfigDialogComponent = ({ open, onOpenChange, item = null }) => {
             ) : (
               <div className="text-center text-muted-foreground">
                 <Settings className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                <p className="text-lg font-medium mb-2">
-                  No I/O Specifications
-                </p>
-                <p className="text-sm">
-                  Unable to load I/O specifications for this unit type.
-                </p>
+                <p className="text-lg font-medium mb-2">No I/O Specifications</p>
+                <p className="text-sm">Unable to load I/O specifications for this unit type.</p>
               </div>
             )}
           </div>
 
           <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={handleClose}
-              disabled={loading || isInitialLoading}
-            >
+            <Button variant="outline" onClick={handleClose} disabled={loading || isInitialLoading}>
               Cancel
             </Button>
             <Button onClick={handleSave} disabled={loading || isInitialLoading}>
@@ -469,9 +378,7 @@ const IOConfigDialogComponent = ({ open, onOpenChange, item = null }) => {
         functionValue={currentInputDetailInput?.functionValue || null}
         unitType={item?.type || null}
         inputIndex={currentInputDetailInput?.index || 0}
-        initialGroups={
-          currentInputDetailInput?.config?.multiGroupConfig || null
-        }
+        initialGroups={currentInputDetailInput?.config?.multiGroupConfig || null}
         initialRlcOptions={
           currentInputDetailInput?.config
             ? {
@@ -484,9 +391,7 @@ const IOConfigDialogComponent = ({ open, onOpenChange, item = null }) => {
               }
             : {}
         }
-        isLoading={
-          loadingInputConfig || currentInputDetailInput?.isLoading || false
-        }
+        isLoading={loadingInputConfig || currentInputDetailInput?.isLoading || false}
         onSave={handleSaveInputDetailConfigWithState}
       />
 
@@ -543,16 +448,13 @@ const IOConfigDialogComponent = ({ open, onOpenChange, item = null }) => {
 };
 
 // Export memoized component for optimal performance
-export const IOConfigDialog = memo(
-  IOConfigDialogComponent,
-  (prevProps, nextProps) => {
-    // Custom comparison function for better memoization
-    return (
-      prevProps.open === nextProps.open &&
-      prevProps.onOpenChange === nextProps.onOpenChange &&
-      prevProps.item?.id === nextProps.item?.id &&
-      prevProps.item?.type === nextProps.item?.type &&
-      prevProps.item?.serial_no === nextProps.item?.serial_no
-    );
-  }
-);
+export const IOConfigDialog = memo(IOConfigDialogComponent, (prevProps, nextProps) => {
+  // Custom comparison function for better memoization
+  return (
+    prevProps.open === nextProps.open &&
+    prevProps.onOpenChange === nextProps.onOpenChange &&
+    prevProps.item?.id === nextProps.item?.id &&
+    prevProps.item?.type === nextProps.item?.type &&
+    prevProps.item?.serial_no === nextProps.item?.serial_no
+  );
+});

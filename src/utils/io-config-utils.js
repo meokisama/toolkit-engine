@@ -73,6 +73,13 @@ const createDefaultACConfig = () => ({
   windowBypass: 0,
   setPointOffset: 0,
 
+  // Window open configuration
+  windowOpenAction: 0,
+  windowOpenCoolSetPoint: 0,
+  windowOpenHeatSetPoint: 0,
+  windowDelay: 0,
+  roomAddress: 0,
+
   // Group assignments
   lowFCU_Group: 0,
   medFCU_Group: 0,
@@ -288,10 +295,7 @@ export const hasInputConfigChanged = (originalInput, currentInput) => {
   if (!originalInput || !currentInput) return true;
 
   // Compare the key properties that indicate a change
-  if (
-    originalInput.functionValue !== currentInput.functionValue ||
-    originalInput.lightingId !== currentInput.lightingId
-  ) {
+  if (originalInput.functionValue !== currentInput.functionValue || originalInput.lightingId !== currentInput.lightingId) {
     return true;
   }
 
@@ -305,10 +309,7 @@ export const hasInputConfigChanged = (originalInput, currentInput) => {
 
   // Deep compare multi group config array
   for (let i = 0; i < originalInputDetail.length; i++) {
-    if (
-      JSON.stringify(originalInputDetail[i]) !==
-      JSON.stringify(currentInputDetail[i])
-    ) {
+    if (JSON.stringify(originalInputDetail[i]) !== JSON.stringify(currentInputDetail[i])) {
       return true;
     }
   }
@@ -360,12 +361,8 @@ export const getChangedInputIndices = (originalInputs, currentInputs) => {
   if (!originalInputs || !currentInputs) return changedIndices;
 
   // Create maps for easier lookup
-  const originalMap = new Map(
-    originalInputs.map((input) => [input.index, input])
-  );
-  const currentMap = new Map(
-    currentInputs.map((input) => [input.index, input])
-  );
+  const originalMap = new Map(originalInputs.map((input) => [input.index, input]));
+  const currentMap = new Map(currentInputs.map((input) => [input.index, input]));
 
   // Check each current input against its original
   currentInputs.forEach((currentInput) => {
@@ -399,9 +396,7 @@ export const getInputConfig = (ioConfig, inputIndex) => {
 export const updateInputConfig = (ioConfig, inputIndex, inputData) => {
   const newConfig = cloneIOConfig(ioConfig);
 
-  const inputConfigIndex = newConfig.inputs.findIndex(
-    (input) => input.index === inputIndex
-  );
+  const inputConfigIndex = newConfig.inputs.findIndex((input) => input.index === inputIndex);
   if (inputConfigIndex >= 0) {
     newConfig.inputs[inputConfigIndex] = {
       ...newConfig.inputs[inputConfigIndex],
@@ -422,9 +417,7 @@ export const updateInputConfig = (ioConfig, inputIndex, inputData) => {
  */
 export const getOutputConfig = (ioConfig, outputIndex) => {
   if (!ioConfig?.outputs) return null;
-  return (
-    ioConfig.outputs.find((output) => output.index === outputIndex) || null
-  );
+  return ioConfig.outputs.find((output) => output.index === outputIndex) || null;
 };
 
 /**
@@ -448,9 +441,7 @@ export const getOutputDetailedConfig = (ioConfig, outputIndex) => {
 export const updateOutputConfig = (ioConfig, outputIndex, outputData) => {
   const newConfig = cloneIOConfig(ioConfig);
 
-  const outputConfigIndex = newConfig.outputs.findIndex(
-    (output) => output.index === outputIndex
-  );
+  const outputConfigIndex = newConfig.outputs.findIndex((output) => output.index === outputIndex);
   if (outputConfigIndex >= 0) {
     newConfig.outputs[outputConfigIndex] = {
       ...newConfig.outputs[outputConfigIndex],
@@ -461,4 +452,197 @@ export const updateOutputConfig = (ioConfig, outputIndex, outputData) => {
   }
 
   return newConfig;
+};
+
+// ============================================================================
+// Output Configuration Change Detection
+// ============================================================================
+
+/**
+ * Configuration fields to compare for lighting outputs (Network units)
+ */
+const NETWORK_LIGHTING_CONFIG_FIELDS = [
+  "lightingAddress",
+  "delayOff",
+  "delayOn",
+  "minDim",
+  "maxDim",
+  "autoTrigger",
+  "scheduleOnHour",
+  "scheduleOnMinute",
+  "scheduleOffHour",
+  "scheduleOffMinute",
+];
+
+/**
+ * Configuration fields to compare for lighting outputs (Database units)
+ */
+const DATABASE_LIGHTING_CONFIG_FIELDS = [
+  "deviceId",
+  "delayOffHours",
+  "delayOffMinutes",
+  "delayOffSeconds",
+  "delayOnHours",
+  "delayOnMinutes",
+  "delayOnSeconds",
+  "minDim",
+  "maxDim",
+  "autoTrigger",
+  "scheduleOnHour",
+  "scheduleOnMinute",
+  "scheduleOffHour",
+  "scheduleOffMinute",
+];
+
+/**
+ * Configuration fields to compare for aircon outputs (Network units)
+ */
+const NETWORK_AIRCON_CONFIG_FIELDS = [
+  "airconAddress",
+  "acEnable",
+  "acWindowMode",
+  "acFanType",
+  "acTempType",
+  "acTempUnit",
+  "acValveContact",
+  "acValveType",
+  "acDeadband",
+  "acLowFCU_Group",
+  "acMedFCU_Group",
+  "acHighFCU_Group",
+  "acFanAnalogGroup",
+  "acAnalogCoolGroup",
+  "acAnalogHeatGroup",
+  "acValveCoolOpenGroup",
+  "acValveCoolCloseGroup",
+  "acValveHeatOpenGroup",
+  "acValveHeatCloseGroup",
+  "acWindowBypass",
+  "acSetPointOffset",
+  "acWindowOpenAction",
+  "acWindowOpenCoolSetPoint",
+  "acWindowOpenHeatSetPoint",
+  "acWindowDelay",
+  "acRoomAddress",
+  "acUnoccupyPower",
+  "acOccupyPower",
+  "acStandbyPower",
+  "acUnoccupyMode",
+  "acOccupyMode",
+  "acStandbyMode",
+  "acUnoccupyFanSpeed",
+  "acOccupyFanSpeed",
+  "acStandbyFanSpeed",
+  "acUnoccupyCoolSetPoint",
+  "acOccupyCoolSetPoint",
+  "acStandbyCoolSetPoint",
+  "acUnoccupyHeatSetPoint",
+  "acOccupyHeatSetPoint",
+  "acStandbyHeatSetPoint",
+];
+
+/**
+ * Configuration fields to compare for aircon outputs (Database units)
+ */
+const DATABASE_AIRCON_CONFIG_FIELDS = [
+  "deviceId",
+  "enable",
+  "windowMode",
+  "fanType",
+  "tempType",
+  "tempUnit",
+  "valveContact",
+  "valveType",
+  "deadband",
+  "lowFCU_Group",
+  "medFCU_Group",
+  "highFCU_Group",
+  "fanAnalogGroup",
+  "analogCoolGroup",
+  "analogHeatGroup",
+  "valveCoolOpenGroup",
+  "valveCoolCloseGroup",
+  "valveHeatOpenGroup",
+  "valveHeatCloseGroup",
+  "windowBypass",
+  "setPointOffset",
+  "windowOpenAction",
+  "windowOpenCoolSetPoint",
+  "windowOpenHeatSetPoint",
+  "windowDelay",
+  "roomAddress",
+  "unoccupyPower",
+  "occupyPower",
+  "standbyPower",
+  "unoccupyMode",
+  "occupyMode",
+  "standbyMode",
+  "unoccupyFanSpeed",
+  "occupyFanSpeed",
+  "standbyFanSpeed",
+  "unoccupyCoolSetPoint",
+  "occupyCoolSetPoint",
+  "standbyCoolSetPoint",
+  "unoccupyHeatSetPoint",
+  "occupyHeatSetPoint",
+  "standbyHeatSetPoint",
+];
+
+/**
+ * Generic function to compare configuration fields
+ * @param {Object} config - Current configuration
+ * @param {Object} originalConfig - Original configuration
+ * @param {Array<string>} fields - Array of field names to compare
+ * @returns {boolean} True if any field has changed
+ */
+function hasConfigFieldsChanged(config, originalConfig, fields) {
+  if (!originalConfig) return false;
+  return fields.some((field) => config[field] !== originalConfig[field]);
+}
+
+/**
+ * Compare lighting output configuration with original configuration
+ * @param {Object} config - Current configuration
+ * @param {Object} originalConfig - Original configuration
+ * @param {string} source - Source of the configuration ('network' or 'database')
+ * @returns {boolean} True if configuration has changed
+ */
+export const hasLightingConfigChanged = (config, originalConfig, source = 'database') => {
+  const fields = source === 'network'
+    ? NETWORK_LIGHTING_CONFIG_FIELDS
+    : DATABASE_LIGHTING_CONFIG_FIELDS;
+  return hasConfigFieldsChanged(config, originalConfig, fields);
+};
+
+/**
+ * Compare aircon output configuration with original configuration
+ * @param {Object} config - Current configuration
+ * @param {Object} originalConfig - Original configuration
+ * @param {string} source - Source of the configuration ('network' or 'database')
+ * @returns {boolean} True if configuration has changed
+ */
+export const hasAirconConfigChanged = (config, originalConfig, source = 'database') => {
+  const fields = source === 'network'
+    ? NETWORK_AIRCON_CONFIG_FIELDS
+    : DATABASE_AIRCON_CONFIG_FIELDS;
+  return hasConfigFieldsChanged(config, originalConfig, fields);
+};
+
+/**
+ * Check if output configuration has changed from original
+ * Automatically detects type and uses appropriate comparison
+ * @param {Object} config - Current configuration with type field
+ * @param {Object} originalConfig - Original configuration
+ * @param {string} source - Source of the configuration ('network' or 'database')
+ * @returns {boolean} True if configuration has changed
+ */
+export const hasOutputConfigChanged = (config, originalConfig, source = 'database') => {
+  if (!originalConfig) return false;
+
+  // Use type-specific comparison based on config type
+  if (config.type === "ac") {
+    return hasAirconConfigChanged(config, originalConfig, source);
+  } else {
+    return hasLightingConfigChanged(config, originalConfig, source);
+  }
 };

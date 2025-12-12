@@ -1,12 +1,5 @@
 import React, { useState, useEffect } from "react";
-import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetHeader,
-  SheetTitle,
-  SheetFooter,
-} from "@/components/ui/sheet";
+import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetFooter } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -17,12 +10,7 @@ import { toast } from "sonner";
 import { CONSTANTS } from "@/constants";
 import lightOn from "@/assets/light-on.png";
 
-export function AssignEndpointAddressDialog({
-  open,
-  onOpenChange,
-  devices,
-  onSaved,
-}) {
+export function AssignEndpointAddressDialog({ open, onOpenChange, devices, onSaved }) {
   const { selectedProject } = useProjectDetail();
   const [loading, setLoading] = useState(false);
   const [lightingItems, setLightingItems] = useState([]);
@@ -112,10 +100,7 @@ export function AssignEndpointAddressDialog({
 
       // Step 1: Update database
       for (const [deviceId, updates] of Object.entries(deviceUpdates)) {
-        await window.electronAPI.zigbee.updateDevice(
-          parseInt(deviceId),
-          updates
-        );
+        await window.electronAPI.zigbee.updateDevice(parseInt(deviceId), updates);
       }
 
       // Step 2: Send configuration to units
@@ -135,22 +120,10 @@ export function AssignEndpointAddressDialog({
         const deviceConfig = {
           ieeeAddress: device.ieee_address,
           deviceType: device.device_type,
-          endpoint1Address:
-            endpointAddresses[`${device.id}_1`] ||
-            device.endpoint1_address ||
-            0,
-          endpoint2Address:
-            endpointAddresses[`${device.id}_2`] ||
-            device.endpoint2_address ||
-            0,
-          endpoint3Address:
-            endpointAddresses[`${device.id}_3`] ||
-            device.endpoint3_address ||
-            0,
-          endpoint4Address:
-            endpointAddresses[`${device.id}_4`] ||
-            device.endpoint4_address ||
-            0,
+          endpoint1Address: endpointAddresses[`${device.id}_1`] || device.endpoint1_address || 0,
+          endpoint2Address: endpointAddresses[`${device.id}_2`] || device.endpoint2_address || 0,
+          endpoint3Address: endpointAddresses[`${device.id}_3`] || device.endpoint3_address || 0,
+          endpoint4Address: endpointAddresses[`${device.id}_4`] || device.endpoint4_address || 0,
         };
 
         unitMap.get(unitKey).devices.push(deviceConfig);
@@ -165,9 +138,7 @@ export function AssignEndpointAddressDialog({
           const totalDevices = unitData.devices.length;
           const batchCount = Math.ceil(totalDevices / batchSize);
 
-          console.log(
-            `Unit ${unitData.unitIp}: ${totalDevices} devices, will send ${batchCount} batch(es)`
-          );
+          console.log(`Unit ${unitData.unitIp}: ${totalDevices} devices, will send ${batchCount} batch(es)`);
 
           // Send each batch
           for (let i = 0; i < batchCount; i++) {
@@ -175,25 +146,16 @@ export function AssignEndpointAddressDialog({
             const end = Math.min(start + batchSize, totalDevices);
             const batch = unitData.devices.slice(start, end);
 
-            console.log(
-              `Sending batch ${i + 1}/${batchCount} to unit ${
-                unitData.unitIp
-              } (${batch.length} devices)`
-            );
+            console.log(`Sending batch ${i + 1}/${batchCount} to unit ${unitData.unitIp} (${batch.length} devices)`);
 
-            const result =
-              await window.electronAPI.zigbeeController.setupZigbeeDevice({
-                unitIp: unitData.unitIp,
-                canId: unitData.canId,
-                devices: batch,
-              });
+            const result = await window.electronAPI.zigbeeController.setupZigbeeDevice({
+              unitIp: unitData.unitIp,
+              canId: unitData.canId,
+              devices: batch,
+            });
 
             if (!result.success) {
-              console.error(
-                `Failed to setup batch ${i + 1}/${batchCount} for unit ${
-                  unitData.unitIp
-                }`
-              );
+              console.error(`Failed to setup batch ${i + 1}/${batchCount} for unit ${unitData.unitIp}`);
               setupErrors++;
               break; // Stop sending remaining batches for this unit if one fails
             }
@@ -205,13 +167,9 @@ export function AssignEndpointAddressDialog({
       }
 
       if (setupErrors > 0) {
-        toast.warning(
-          `Addresses saved to database, but failed to send to ${setupErrors} unit(s)`
-        );
+        toast.warning(`Addresses saved to database, but failed to send to ${setupErrors} unit(s)`);
       } else {
-        toast.success(
-          "Endpoint addresses updated and sent to units successfully"
-        );
+        toast.success("Endpoint addresses updated and sent to units successfully");
       }
 
       if (onSaved) {
@@ -227,9 +185,7 @@ export function AssignEndpointAddressDialog({
   };
 
   const getDeviceTypeInfo = (deviceType) => {
-    return CONSTANTS.ZIGBEE.DEVICE_TYPE.find(
-      (type) => type.value === deviceType
-    );
+    return CONSTANTS.ZIGBEE.DEVICE_TYPE.find((type) => type.value === deviceType);
   };
 
   const isSwitch = (deviceType) => {
@@ -257,8 +213,7 @@ export function AssignEndpointAddressDialog({
 
   const renderDeviceEndpoints = (device) => {
     const deviceTypeInfo = getDeviceTypeInfo(device.device_type);
-    const deviceName =
-      device.device_name || deviceTypeInfo?.label || `Device ${device.id}`;
+    const deviceName = device.device_name || deviceTypeInfo?.label || `Device ${device.id}`;
 
     const endpoints = [];
     for (let i = 1; i <= device.num_endpoints && i <= 4; i++) {
@@ -293,17 +248,10 @@ export function AssignEndpointAddressDialog({
             const currentAddress = endpointAddresses[key] || 0;
 
             return (
-              <div
-                key={endpoint.index}
-                className="space-y-2 p-3 border rounded-lg shadow"
-              >
+              <div key={endpoint.index} className="space-y-2 p-3 border rounded-lg shadow">
                 <div className="grid grid-cols-3 gap-2 items-center">
                   <div className="font-medium text-sm flex items-center gap-2">
-                    <img
-                      src={lightOn}
-                      alt="Lighting State"
-                      className="w-[25px] h-auto rounded-lg -translate-y-0.5"
-                    />
+                    <img src={lightOn} alt="Lighting State" className="w-[25px] h-auto rounded-lg -translate-y-0.5" />
                     {endpoint.name || `Switch ${endpoint.index}`}
                   </div>
                   <div className="space-y-1 relative">
@@ -313,13 +261,7 @@ export function AssignEndpointAddressDialog({
                       min="0"
                       max="255"
                       value={currentAddress}
-                      onChange={(e) =>
-                        handleAddressChange(
-                          device.id,
-                          endpoint.index,
-                          e.target.value
-                        )
-                      }
+                      onChange={(e) => handleAddressChange(device.id, endpoint.index, e.target.value)}
                       disabled={loading}
                       className="pl-8 font-semibold"
                     />
@@ -327,19 +269,11 @@ export function AssignEndpointAddressDialog({
                   <div className="space-y-1">
                     <Combobox
                       value={currentAddress}
-                      onValueChange={(value) =>
-                        handleSelectFromCombobox(
-                          device.id,
-                          endpoint.index,
-                          value
-                        )
-                      }
+                      onValueChange={(value) => handleSelectFromCombobox(device.id, endpoint.index, value)}
                       options={comboboxOptions}
                       placeholder="Select..."
                       searchPlaceholder="Search..."
-                      emptyMessage={`No ${
-                        isSwitch(device.device_type) ? "lighting" : "curtain"
-                      } items found.`}
+                      emptyMessage={`No ${isSwitch(device.device_type) ? "lighting" : "curtain"} items found.`}
                       disabled={loading}
                     />
                   </div>
@@ -357,9 +291,7 @@ export function AssignEndpointAddressDialog({
       <SheetContent side="left" className="w-full sm:max-w-2xl overflow-y-auto">
         <SheetHeader>
           <SheetTitle>Assign Endpoint Addresses</SheetTitle>
-          <SheetDescription>
-            Configure address mappings for switch and curtain device endpoints
-          </SheetDescription>
+          <SheetDescription>Configure address mappings for switch and curtain device endpoints</SheetDescription>
         </SheetHeader>
 
         <div className="space-y-4 p-4 flex-1">
@@ -368,24 +300,14 @@ export function AssignEndpointAddressDialog({
               <Loader2 className="h-6 w-6 animate-spin" />
             </div>
           ) : switchAndCurtainDevices.length === 0 ? (
-            <div className="text-center text-muted-foreground py-8">
-              No switch or curtain devices found
-            </div>
+            <div className="text-center text-muted-foreground py-8">No switch or curtain devices found</div>
           ) : (
-            <div className="space-y-4">
-              {switchAndCurtainDevices.map((device) =>
-                renderDeviceEndpoints(device)
-              )}
-            </div>
+            <div className="space-y-4">{switchAndCurtainDevices.map((device) => renderDeviceEndpoints(device))}</div>
           )}
         </div>
 
         <SheetFooter>
-          <Button
-            variant="outline"
-            onClick={() => onOpenChange(false)}
-            disabled={loading}
-          >
+          <Button variant="outline" onClick={() => onOpenChange(false)} disabled={loading}>
             Cancel
           </Button>
           <Button onClick={handleSave} disabled={loading}>

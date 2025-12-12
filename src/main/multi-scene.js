@@ -7,73 +7,54 @@ export function registerMultiSceneHandlers(ipcMain, dbService, rcu) {
   // ==================== RCU Controller - Multi-Scene Operations ====================
 
   // Setup Multi-Scene
-  ipcMain.handle(
-    "rcu:setupMultiScene",
-    async (event, unitIp, canId, multiSceneConfig) => {
-      try {
-        return await rcu.setupMultiScene(unitIp, canId, multiSceneConfig);
-      } catch (error) {
-        console.error("Error setting up multi-scene:", error);
-        throw error;
-      }
+  ipcMain.handle("rcu:setupMultiScene", async (event, unitIp, canId, multiSceneConfig) => {
+    try {
+      return await rcu.setupMultiScene(unitIp, canId, multiSceneConfig);
+    } catch (error) {
+      console.error("Error setting up multi-scene:", error);
+      throw error;
     }
-  );
+  });
 
   // Get Multi-Scene Information
-  ipcMain.handle(
-    "rcu:getMultiSceneInformation",
-    async (event, { unitIp, canId, multiSceneIndex }) => {
-      try {
-        return await rcu.getMultiSceneInformation(
-          unitIp,
-          canId,
-          multiSceneIndex
-        );
-      } catch (error) {
-        console.error("Error getting multi-scene information:", error);
-        throw error;
-      }
+  ipcMain.handle("rcu:getMultiSceneInformation", async (event, { unitIp, canId, multiSceneIndex }) => {
+    try {
+      return await rcu.getMultiSceneInformation(unitIp, canId, multiSceneIndex);
+    } catch (error) {
+      console.error("Error getting multi-scene information:", error);
+      throw error;
     }
-  );
+  });
 
   // Get All Multi-Scenes Information
-  ipcMain.handle(
-    "rcu:getAllMultiScenesInformation",
-    async (event, { unitIp, canId }) => {
-      try {
-        return await rcu.getAllMultiScenesInformation(unitIp, canId);
-      } catch (error) {
-        console.error("Error getting all multi-scenes information:", error);
-        throw error;
-      }
+  ipcMain.handle("rcu:getAllMultiScenesInformation", async (event, { unitIp, canId }) => {
+    try {
+      return await rcu.getAllMultiScenesInformation(unitIp, canId);
+    } catch (error) {
+      console.error("Error getting all multi-scenes information:", error);
+      throw error;
     }
-  );
+  });
 
   // Trigger Multi-Scene
-  ipcMain.handle(
-    "rcu:triggerMultiScene",
-    async (event, { unitIp, canId, multiSceneAddress }) => {
-      try {
-        return await rcu.triggerMultiScene(unitIp, canId, multiSceneAddress);
-      } catch (error) {
-        console.error("Error triggering multi-scene:", error);
-        throw error;
-      }
+  ipcMain.handle("rcu:triggerMultiScene", async (event, { unitIp, canId, multiSceneAddress }) => {
+    try {
+      return await rcu.triggerMultiScene(unitIp, canId, multiSceneAddress);
+    } catch (error) {
+      console.error("Error triggering multi-scene:", error);
+      throw error;
     }
-  );
+  });
 
   // Delete Multi-Scene
-  ipcMain.handle(
-    "rcu:deleteMultiScene",
-    async (event, unitIp, canId, multiSceneIndex) => {
-      try {
-        return await rcu.deleteMultiScene(unitIp, canId, multiSceneIndex);
-      } catch (error) {
-        console.error("Error deleting multi-scene:", error);
-        throw error;
-      }
+  ipcMain.handle("rcu:deleteMultiScene", async (event, unitIp, canId, multiSceneIndex) => {
+    try {
+      return await rcu.deleteMultiScene(unitIp, canId, multiSceneIndex);
+    } catch (error) {
+      console.error("Error deleting multi-scene:", error);
+      throw error;
     }
-  );
+  });
 
   // Delete All Multi-Scenes
   ipcMain.handle("rcu:deleteAllMultiScenes", async (event, unitIp, canId) => {
@@ -99,11 +80,7 @@ export function registerMultiSceneHandlers(ipcMain, dbService, rcu) {
 
   ipcMain.handle("multiScenes:create", async (event, projectId, itemData) => {
     try {
-      return await dbService.createProjectItem(
-        projectId,
-        itemData,
-        "multi_scenes"
-      );
+      return await dbService.createProjectItem(projectId, itemData, "multi_scenes");
     } catch (error) {
       console.error("Error creating multi-scene item:", error);
       throw error;
@@ -156,43 +133,30 @@ export function registerMultiSceneHandlers(ipcMain, dbService, rcu) {
     }
   });
 
-  ipcMain.handle(
-    "multiScenes:addScene",
-    async (event, multiSceneId, sceneId, sceneOrder) => {
-      try {
-        return await dbService.addSceneToMultiScene(
-          multiSceneId,
-          sceneId,
-          sceneOrder
-        );
-      } catch (error) {
-        console.error("Error adding scene to multi-scene:", error);
-        throw error;
-      }
+  ipcMain.handle("multiScenes:addScene", async (event, multiSceneId, sceneId, sceneOrder) => {
+    try {
+      return await dbService.addSceneToMultiScene(multiSceneId, sceneId, sceneOrder);
+    } catch (error) {
+      console.error("Error adding scene to multi-scene:", error);
+      throw error;
     }
-  );
+  });
 
-  ipcMain.handle(
-    "multiScenes:removeScene",
-    async (event, multiSceneId, sceneId) => {
-      try {
-        return await dbService.removeSceneFromMultiScene(multiSceneId, sceneId);
-      } catch (error) {
-        console.error("Error removing scene from multi-scene:", error);
-        throw error;
-      }
+  ipcMain.handle("multiScenes:removeScene", async (event, multiSceneId, sceneId) => {
+    try {
+      return await dbService.removeSceneFromMultiScene(multiSceneId, sceneId);
+    } catch (error) {
+      console.error("Error removing scene from multi-scene:", error);
+      throw error;
     }
-  );
+  });
 
-  ipcMain.handle(
-    "multiScenes:updateScenes",
-    async (event, multiSceneId, sceneIds) => {
-      try {
-        return await dbService.updateMultiSceneScenes(multiSceneId, sceneIds);
-      } catch (error) {
-        console.error("Error updating multi-scene scenes:", error);
-        throw error;
-      }
+  ipcMain.handle("multiScenes:updateScenes", async (event, multiSceneId, sceneIds) => {
+    try {
+      return await dbService.updateMultiSceneScenes(multiSceneId, sceneIds);
+    } catch (error) {
+      console.error("Error updating multi-scene scenes:", error);
+      throw error;
     }
-  );
+  });
 }

@@ -1,10 +1,5 @@
 import React, { useMemo, useCallback, useEffect, useState } from "react";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -13,28 +8,22 @@ import { Separator } from "@/components/ui/separator";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Settings, Download } from "lucide-react";
 import { toast } from "sonner";
-
-// Import network-specific components
 import { NetworkInputConfigItem } from "./network-input-config-item";
 import { NetworkOutputConfigItem } from "./network-output-config-item";
 import { LoadingSkeleton } from "../../shared/loading-skeleton";
-
-// Import dialogs for configuration
 import { InputDetailConfigDialog } from "../../shared/input-config";
 import { LightingOutputConfigDialog } from "../../shared/output-configs/lighting-output-config-dialog";
 import { ACOutputConfigDialog } from "../../shared/output-configs/ac-output-config-dialog";
 import { ProjectItemDialog } from "@/components/projects/lighting/lighting-dialog";
 import { AirconCardDialog } from "@/components/projects/aircon/aircon-card-dialog";
-
-// Import hooks for network I/O configuration
 import { useNetworkIOConfig } from "./hooks/use-network-io-config";
 import { useNetworkInputConfig } from "./hooks/use-network-input-config";
 import { useNetworkOutputConfig } from "./hooks/use-network-output-config";
 import { useProjectDetail } from "@/contexts/project-detail-context";
+import { hasInputConfigChanged, hasOutputConfigChanged } from "@/utils/io-config-utils";
 
 const NetworkIOConfigDialog = ({ open, onOpenChange, item = null }) => {
-  const { projectItems, selectedProject, loadTabData, loadedTabs } =
-    useProjectDetail();
+  const { projectItems, selectedProject, loadTabData, loadedTabs } = useProjectDetail();
 
   // Use custom hooks for better organization
   const {
@@ -58,7 +47,7 @@ const NetworkIOConfigDialog = ({ open, onOpenChange, item = null }) => {
     pauseAutoRefresh,
     resumeAutoRefresh,
     readStatesInitial,
-  } = useNetworkIOConfig(item, open, false); // We'll update this after getting multiGroupDialogOpen
+  } = useNetworkIOConfig(item, open, false);
 
   const {
     multiGroupDialogOpen,
@@ -69,132 +58,29 @@ const NetworkIOConfigDialog = ({ open, onOpenChange, item = null }) => {
     handleOpenInputDetailConfig,
     handleSaveInputDetailConfig,
     handleToggleInputState,
-  } = useNetworkInputConfig(
-    item,
-    projectItems,
-    readInputConfigsFromUnit,
-    setInputConfigs
-  );
+  } = useNetworkInputConfig(item, projectItems, readInputConfigsFromUnit, setInputConfigs);
 
   // Track if there are pending INPUT changes
   const hasPendingInputChanges = useMemo(() => {
-    if (
-      !configsLoaded ||
-      inputConfigs.length === 0 ||
-      originalInputConfigs.length === 0
-    ) {
+    if (!configsLoaded || inputConfigs.length === 0 || originalInputConfigs.length === 0) {
       return false;
     }
 
     return inputConfigs.some((config) => {
-      const original = originalInputConfigs.find(
-        (orig) => orig.index === config.index
-      );
-      if (!original) return false;
-
-      // Check if function changed
-      if (config.functionValue !== original.functionValue) return true;
-
-      // Check if multiGroupConfig changed
-      const configGroups = JSON.stringify(config.multiGroupConfig || []);
-      const originalGroups = JSON.stringify(original.multiGroupConfig || []);
-      if (configGroups !== originalGroups) return true;
-
-      // Check if rlcConfig changed
-      const configRlc = JSON.stringify(config.rlcConfig || {});
-      const originalRlc = JSON.stringify(original.rlcConfig || {});
-      if (configRlc !== originalRlc) return true;
-
-      return false;
+      const original = originalInputConfigs.find((orig) => orig.index === config.index);
+      return hasInputConfigChanged(original, config);
     });
   }, [inputConfigs, originalInputConfigs, configsLoaded]);
 
   // Track if there are pending OUTPUT changes
   const hasPendingOutputChanges = useMemo(() => {
-    if (
-      !configsLoaded ||
-      outputConfigs.length === 0 ||
-      originalOutputConfigs.length === 0
-    ) {
+    if (!configsLoaded || outputConfigs.length === 0 || originalOutputConfigs.length === 0) {
       return false;
     }
 
     return outputConfigs.some((config) => {
-      const original = originalOutputConfigs.find(
-        (orig) => orig.index === config.index
-      );
-      if (!original) return false;
-
-      // For lighting outputs
-      if (config.type !== "ac") {
-        if (config.lightingAddress !== original.lightingAddress) return true;
-        if (config.delayOff !== original.delayOff) return true;
-        if (config.delayOn !== original.delayOn) return true;
-        if (config.minDim !== original.minDim) return true;
-        if (config.maxDim !== original.maxDim) return true;
-        if (config.autoTrigger !== original.autoTrigger) return true;
-        if (config.scheduleOnHour !== original.scheduleOnHour) return true;
-        if (config.scheduleOnMinute !== original.scheduleOnMinute) return true;
-        if (config.scheduleOffHour !== original.scheduleOffHour) return true;
-        if (config.scheduleOffMinute !== original.scheduleOffMinute)
-          return true;
-      }
-
-      // For AC outputs
-      if (config.type === "ac") {
-        if (config.airconAddress !== original.airconAddress) return true;
-        if (config.acEnable !== original.acEnable) return true;
-        if (config.acWindowMode !== original.acWindowMode) return true;
-        if (config.acFanType !== original.acFanType) return true;
-        if (config.acTempType !== original.acTempType) return true;
-        if (config.acTempUnit !== original.acTempUnit) return true;
-        if (config.acValveContact !== original.acValveContact) return true;
-        if (config.acValveType !== original.acValveType) return true;
-        if (config.acDeadband !== original.acDeadband) return true;
-        if (config.acLowFCU_Group !== original.acLowFCU_Group) return true;
-        if (config.acMedFCU_Group !== original.acMedFCU_Group) return true;
-        if (config.acHighFCU_Group !== original.acHighFCU_Group) return true;
-        if (config.acFanAnalogGroup !== original.acFanAnalogGroup) return true;
-        if (config.acAnalogCoolGroup !== original.acAnalogCoolGroup)
-          return true;
-        if (config.acAnalogHeatGroup !== original.acAnalogHeatGroup)
-          return true;
-        if (config.acValveCoolOpenGroup !== original.acValveCoolOpenGroup)
-          return true;
-        if (config.acValveCoolCloseGroup !== original.acValveCoolCloseGroup)
-          return true;
-        if (config.acValveHeatOpenGroup !== original.acValveHeatOpenGroup)
-          return true;
-        if (config.acValveHeatCloseGroup !== original.acValveHeatCloseGroup)
-          return true;
-        if (config.acWindowBypass !== original.acWindowBypass) return true;
-        if (config.acSetPointOffset !== original.acSetPointOffset) return true;
-        if (config.acUnoccupyPower !== original.acUnoccupyPower) return true;
-        if (config.acOccupyPower !== original.acOccupyPower) return true;
-        if (config.acStandbyPower !== original.acStandbyPower) return true;
-        if (config.acUnoccupyMode !== original.acUnoccupyMode) return true;
-        if (config.acOccupyMode !== original.acOccupyMode) return true;
-        if (config.acStandbyMode !== original.acStandbyMode) return true;
-        if (config.acUnoccupyFanSpeed !== original.acUnoccupyFanSpeed)
-          return true;
-        if (config.acOccupyFanSpeed !== original.acOccupyFanSpeed) return true;
-        if (config.acStandbyFanSpeed !== original.acStandbyFanSpeed)
-          return true;
-        if (config.acUnoccupyCoolSetPoint !== original.acUnoccupyCoolSetPoint)
-          return true;
-        if (config.acOccupyCoolSetPoint !== original.acOccupyCoolSetPoint)
-          return true;
-        if (config.acStandbyCoolSetPoint !== original.acStandbyCoolSetPoint)
-          return true;
-        if (config.acUnoccupyHeatSetPoint !== original.acUnoccupyHeatSetPoint)
-          return true;
-        if (config.acOccupyHeatSetPoint !== original.acOccupyHeatSetPoint)
-          return true;
-        if (config.acStandbyHeatSetPoint !== original.acStandbyHeatSetPoint)
-          return true;
-      }
-
-      return false;
+      const original = originalOutputConfigs.find((orig) => orig.index === config.index);
+      return hasOutputConfigChanged(config, original, 'network');
     });
   }, [outputConfigs, originalOutputConfigs, configsLoaded]);
 
@@ -217,14 +103,7 @@ const NetworkIOConfigDialog = ({ open, onOpenChange, item = null }) => {
     handleOpenOutputConfig,
     handleSaveOutputConfig,
     handleToggleOutputState,
-  } = useNetworkOutputConfig(
-    item,
-    outputConfigs,
-    setOutputConfigs,
-    lightingItems,
-    airconItems,
-    readAirconConfigsFromUnit
-  );
+  } = useNetworkOutputConfig(item, outputConfigs, setOutputConfigs, lightingItems, airconItems, readAirconConfigsFromUnit);
 
   // State for create/edit device dialogs
   const [createEditDialog, setCreateEditDialog] = useState({
@@ -242,28 +121,9 @@ const NetworkIOConfigDialog = ({ open, onOpenChange, item = null }) => {
       pauseAutoRefresh();
     } else if (open && !multiGroupDialogOpen && autoRefreshEnabled) {
       // Only resume if auto refresh is actually enabled
-      // Add delay before resuming auto refresh to allow unit to process any pending commands
-      const timeoutId = setTimeout(() => {
-        // Double check that auto refresh is still enabled before resuming
-        if (autoRefreshEnabled) {
-          resumeAutoRefresh();
-        }
-      }, 1000);
-
-      // Cleanup timeout if effect runs again
-      return () => {
-        clearTimeout(timeoutId);
-      };
+      resumeAutoRefresh();
     }
-  }, [
-    lightingOutputDialogOpen,
-    acOutputDialogOpen,
-    open,
-    multiGroupDialogOpen,
-    autoRefreshEnabled,
-    pauseAutoRefresh,
-    resumeAutoRefresh,
-  ]);
+  }, [lightingOutputDialogOpen, acOutputDialogOpen, open, multiGroupDialogOpen, autoRefreshEnabled, pauseAutoRefresh, resumeAutoRefresh]);
 
   // Load required data when dialog opens
   useEffect(() => {
@@ -302,9 +162,7 @@ const NetworkIOConfigDialog = ({ open, onOpenChange, item = null }) => {
   const handleToggleOutput = useCallback(
     async (outputIndex, currentState) => {
       // Store original config for potential revert
-      const originalConfig = outputConfigs.find(
-        (config) => config.index === outputIndex
-      );
+      const originalConfig = outputConfigs.find((config) => config.index === outputIndex);
       if (!originalConfig) return;
 
       // Step 1: Optimistically update UI immediately
@@ -312,26 +170,17 @@ const NetworkIOConfigDialog = ({ open, onOpenChange, item = null }) => {
       const newBrightness = newState ? originalConfig.brightness || 255 : 0;
 
       setOutputConfigs((prevConfigs) =>
-        prevConfigs.map((config) =>
-          config.index === outputIndex
-            ? { ...config, state: newState, brightness: newBrightness }
-            : config
-        )
+        prevConfigs.map((config) => (config.index === outputIndex ? { ...config, state: newState, brightness: newBrightness } : config))
       );
 
       try {
         // Step 2: Send command to network unit
-        const success = await handleToggleOutputState(
-          outputIndex,
-          currentState
-        );
+        const success = await handleToggleOutputState(outputIndex, currentState);
 
         if (success) {
           // Command succeeded - UI is already updated optimistically
-          // Read actual state after a short delay to ensure consistency
-          setTimeout(async () => {
-            await readStatesInitial();
-          }, 500);
+          // Read actual state to ensure consistency
+          await readStatesInitial();
         } else {
           // Command failed - revert UI to original state
           setOutputConfigs((prevConfigs) =>
@@ -362,12 +211,7 @@ const NetworkIOConfigDialog = ({ open, onOpenChange, item = null }) => {
         );
       }
     },
-    [
-      handleToggleOutputState,
-      readStatesInitial,
-      setOutputConfigs,
-      outputConfigs,
-    ]
+    [handleToggleOutputState, readStatesInitial, setOutputConfigs, outputConfigs]
   );
 
   // Handle reading all input configurations from unit
@@ -416,13 +260,9 @@ const NetworkIOConfigDialog = ({ open, onOpenChange, item = null }) => {
 
       // Show appropriate toast based on results
       if (totalFail === 0 && totalSuccess > 0) {
-        toast.success(
-          `All configurations saved successfully (${totalSuccess} total)`
-        );
+        toast.success(`All configurations saved successfully (${totalSuccess} total)`);
       } else if (totalSuccess > 0) {
-        toast.warning(
-          `Partially saved: ${totalSuccess} succeeded, ${totalFail} failed`
-        );
+        toast.warning(`Partially saved: ${totalSuccess} succeeded, ${totalFail} failed`);
       } else if (errors.length > 0) {
         toast.error(`Failed to save configurations: ${errors.join(", ")}`);
       }
@@ -430,14 +270,7 @@ const NetworkIOConfigDialog = ({ open, onOpenChange, item = null }) => {
       console.error("Failed to save configurations:", error);
       toast.error(`Failed to save: ${error.message}`);
     }
-  }, [
-    hasPendingInputChanges,
-    hasPendingOutputChanges,
-    saveAllInputConfigs,
-    saveAllOutputConfigs,
-    inputConfigs.length,
-    outputConfigs.length,
-  ]);
+  }, [hasPendingInputChanges, hasPendingOutputChanges, saveAllInputConfigs, saveAllOutputConfigs, inputConfigs.length, outputConfigs.length]);
 
   // Handle adding missing address to database (aircon or lighting)
   const handleAddMissingAddress = useCallback(
@@ -448,16 +281,11 @@ const NetworkIOConfigDialog = ({ open, onOpenChange, item = null }) => {
           const newAirconItem = {
             name: `Group ${address}`,
             address: address.toString(),
-            description: `Auto-added from network unit output ${
-              outputIndex + 1
-            }`,
+            description: `Auto-added from network unit output ${outputIndex + 1}`,
           };
 
           // Add to database via electronAPI with projectId
-          const result = await window.electronAPI.aircon.create(
-            selectedProject.id,
-            newAirconItem
-          );
+          const result = await window.electronAPI.aircon.create(selectedProject.id, newAirconItem);
 
           if (result) {
             // Refresh aircon items to update the options
@@ -473,18 +301,13 @@ const NetworkIOConfigDialog = ({ open, onOpenChange, item = null }) => {
           const newLightingItem = {
             name: `Group ${address}`,
             address: address.toString(),
-            description: `Auto-added from network unit output ${
-              outputIndex + 1
-            }`,
+            description: `Auto-added from network unit output ${outputIndex + 1}`,
             object_type: "OBJ_LIGHTING",
             object_value: 1,
           };
 
           // Add to database via electronAPI with projectId
-          const result = await window.electronAPI.lighting.create(
-            selectedProject.id,
-            newLightingItem
-          );
+          const result = await window.electronAPI.lighting.create(selectedProject.id, newLightingItem);
 
           if (result) {
             // Refresh lighting items to update the options
@@ -512,9 +335,7 @@ const NetworkIOConfigDialog = ({ open, onOpenChange, item = null }) => {
       const items = isAircon ? airconItems : lightingItems;
 
       // Find existing item if deviceId is provided
-      const existingItem = deviceId
-        ? items.find((item) => item.id === deviceId)
-        : null;
+      const existingItem = deviceId ? items.find((item) => item.id === deviceId) : null;
 
       setCreateEditDialog({
         open: true,
@@ -550,7 +371,7 @@ const NetworkIOConfigDialog = ({ open, onOpenChange, item = null }) => {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-6xl! max-h-[90vh] flex flex-col overflow-y-auto">
+      <DialogContent className="max-w-6xl! max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Settings className="h-5 w-5" />
@@ -561,7 +382,7 @@ const NetworkIOConfigDialog = ({ open, onOpenChange, item = null }) => {
           </DialogTitle>
         </DialogHeader>
 
-        <div className="flex-1 overflow-hidden">
+        <div className="">
           {isInitialLoading ? (
             <LoadingSkeleton />
           ) : (
@@ -599,9 +420,7 @@ const NetworkIOConfigDialog = ({ open, onOpenChange, item = null }) => {
                       <div className="space-y-3 pr-4">
                         {inputConfigs.map((config) => {
                           // Find original config for this input
-                          const originalConfig = originalInputConfigs.find(
-                            (original) => original.index === config.index
-                          );
+                          const originalConfig = originalInputConfigs.find((original) => original.index === config.index);
 
                           return (
                             <NetworkInputConfigItem
@@ -610,16 +429,9 @@ const NetworkIOConfigDialog = ({ open, onOpenChange, item = null }) => {
                               unitType={item?.type}
                               originalConfig={originalConfig}
                               onInputFunctionChange={handleInputFunctionChange}
-                              onOpenInputDetailConfig={(
-                                inputIndex,
-                                functionValue
-                              ) => {
+                              onOpenInputDetailConfig={(inputIndex, functionValue) => {
                                 // Pass current config to avoid re-reading from unit
-                                handleOpenInputDetailConfig(
-                                  inputIndex,
-                                  functionValue,
-                                  config
-                                );
+                                handleOpenInputDetailConfig(inputIndex, functionValue, config);
                               }}
                               onToggleInputState={handleToggleInputState}
                             />
@@ -627,9 +439,7 @@ const NetworkIOConfigDialog = ({ open, onOpenChange, item = null }) => {
                         })}
                       </div>
                     ) : (
-                      <div className="flex items-center justify-center h-full text-muted-foreground">
-                        No input configurations available
-                      </div>
+                      <div className="flex items-center justify-center h-full text-muted-foreground">No input configurations available</div>
                     )}
                   </ScrollArea>
                 </CardContent>
@@ -652,26 +462,18 @@ const NetworkIOConfigDialog = ({ open, onOpenChange, item = null }) => {
                       <div className="space-y-3 pr-4">
                         {outputConfigs.map((config) => {
                           // Find original config for this output
-                          const originalConfig = originalOutputConfigs.find(
-                            (original) => original.index === config.index
-                          );
+                          const originalConfig = originalOutputConfigs.find((original) => original.index === config.index);
 
                           return (
                             <NetworkOutputConfigItem
                               key={config.index}
                               config={config}
                               originalConfig={originalConfig}
-                              deviceOptions={
-                                outputDeviceOptionsMap.get(config.index) || []
-                              }
+                              deviceOptions={outputDeviceOptionsMap.get(config.index) || []}
                               onOutputDeviceChange={handleOutputDeviceChange}
                               onOpenOutputConfig={(outputIndex, outputType) => {
                                 // Pass current config to avoid re-reading from unit
-                                handleOpenOutputConfig(
-                                  outputIndex,
-                                  outputType,
-                                  config
-                                );
+                                handleOpenOutputConfig(outputIndex, outputType, config);
                               }}
                               onToggleState={handleToggleOutput}
                               onAddMissingAddress={handleAddMissingAddress}
@@ -683,9 +485,7 @@ const NetworkIOConfigDialog = ({ open, onOpenChange, item = null }) => {
                         })}
                       </div>
                     ) : (
-                      <div className="flex items-center justify-center h-full text-muted-foreground">
-                        No output configurations available
-                      </div>
+                      <div className="flex items-center justify-center h-full text-muted-foreground">No output configurations available</div>
                     )}
                   </ScrollArea>
                 </CardContent>
@@ -699,10 +499,7 @@ const NetworkIOConfigDialog = ({ open, onOpenChange, item = null }) => {
         <div className="flex justify-between gap-2 shrink-0">
           <div className="flex items-center gap-2">
             <span className="text-sm text-muted-foreground">Auto Refresh</span>
-            <Switch
-              checked={autoRefreshEnabled}
-              onCheckedChange={setAutoRefreshEnabled}
-            />
+            <Switch checked={autoRefreshEnabled} onCheckedChange={setAutoRefreshEnabled} />
             {(hasPendingInputChanges || hasPendingOutputChanges) && (
               <Badge variant="destructive" className="ml-2">
                 Unsaved Changes
@@ -710,12 +507,7 @@ const NetworkIOConfigDialog = ({ open, onOpenChange, item = null }) => {
             )}
           </div>
           <div className="flex gap-2">
-            <Button
-              onClick={handleSaveAllConfigs}
-              disabled={
-                (!hasPendingInputChanges && !hasPendingOutputChanges) || loading
-              }
-            >
+            <Button onClick={handleSaveAllConfigs} disabled={(!hasPendingInputChanges && !hasPendingOutputChanges) || loading}>
               {loading ? "Saving..." : "Save"}
             </Button>
             <Button variant="outline" onClick={() => onOpenChange(false)}>

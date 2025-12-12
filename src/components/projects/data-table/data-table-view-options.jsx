@@ -1,23 +1,12 @@
-"use client";
-
 import React, { useCallback, useState, useEffect } from "react";
 import { DropdownMenuTrigger } from "@radix-ui/react-dropdown-menu";
 import { Settings2 } from "lucide-react";
-
 import { Button } from "@/components/ui/button";
-import {
-  DropdownMenu,
-  DropdownMenuCheckboxItem,
-  DropdownMenuContent,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-} from "@/components/ui/dropdown-menu";
+import { DropdownMenu, DropdownMenuCheckboxItem, DropdownMenuContent, DropdownMenuLabel, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
 
 function DataTableViewOptionsComponent({ table, columnVisibility }) {
   // Use prop-based state instead of internal state management
-  const [localColumnVisibility, setLocalColumnVisibility] = useState(
-    columnVisibility || {}
-  );
+  const [localColumnVisibility, setLocalColumnVisibility] = useState(columnVisibility || {});
 
   // Update local state when prop changes
   useEffect(() => {
@@ -30,12 +19,7 @@ function DataTableViewOptionsComponent({ table, columnVisibility }) {
   const hidableColumns = React.useMemo(() => {
     if (!table) return [];
 
-    return table
-      .getAllColumns()
-      .filter(
-        (column) =>
-          typeof column.accessorFn !== "undefined" && column.getCanHide()
-      );
+    return table.getAllColumns().filter((column) => typeof column.accessorFn !== "undefined" && column.getCanHide());
   }, [table]);
 
   // Optimized toggle handler with immediate UI feedback

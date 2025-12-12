@@ -69,12 +69,7 @@ function convertCanIdToInt(canId) {
   }
 }
 
-function processResponse(
-  msg,
-  expectedCmd1,
-  expectedCmd2,
-  skipStatusCheck = false
-) {
+function processResponse(msg, expectedCmd1, expectedCmd2, skipStatusCheck = false) {
   if (msg.length < 10) {
     throw new Error("Response too short (minimum 10 bytes required)");
   }
@@ -102,8 +97,7 @@ function processResponse(
     const originalCmd1 = cmd1 & 0x7f;
     const originalCmd2 = cmd2 & 0x7f;
     const errorCode = msg[dataStart]; // First byte of data contains error code
-    const errorMessage =
-      ERROR_CODES[errorCode] || `Unknown error (${errorCode})`;
+    const errorMessage = ERROR_CODES[errorCode] || `Unknown error (${errorCode})`;
 
     console.error("RCU Error Response:", {
       receivedCmd1: `0x${cmd1.toString(16)}`,
@@ -121,19 +115,11 @@ function processResponse(
 
   // Check if cmd1 and cmd2 match expected values (only for success responses)
   if (cmd1 !== expectedCmd1) {
-    throw new Error(
-      `Unexpected cmd1 in response: got 0x${cmd1.toString(
-        16
-      )}, expected 0x${expectedCmd1.toString(16)}`
-    );
+    throw new Error(`Unexpected cmd1 in response: got 0x${cmd1.toString(16)}, expected 0x${expectedCmd1.toString(16)}`);
   }
 
   if (cmd2 !== expectedCmd2) {
-    throw new Error(
-      `Unexpected cmd2 in response: got 0x${cmd2.toString(
-        16
-      )}, expected 0x${expectedCmd2.toString(16)}`
-    );
+    throw new Error(`Unexpected cmd2 in response: got 0x${cmd2.toString(16)}, expected 0x${expectedCmd2.toString(16)}`);
   }
 
   // For setup commands, check if data field contains success status (0x00)
@@ -142,8 +128,7 @@ function processResponse(
     const statusByte = msg[dataStart];
 
     if (statusByte !== 0x00) {
-      const errorMessage =
-        ERROR_CODES[statusByte] || `Unknown error (${statusByte})`;
+      const errorMessage = ERROR_CODES[statusByte] || `Unknown error (${statusByte})`;
       throw new Error(`Command failed: ${errorMessage} (Code: ${statusByte})`);
     }
   }
@@ -166,10 +151,4 @@ function calculateCRC(data) {
   return crc & 0xffff;
 }
 
-export {
-  parseResponse,
-  convertKnxAddressToHex,
-  convertCanIdToInt,
-  processResponse,
-  calculateCRC,
-};
+export { parseResponse, convertKnxAddressToHex, convertCanIdToInt, processResponse, calculateCRC };

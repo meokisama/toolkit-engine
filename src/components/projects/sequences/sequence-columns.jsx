@@ -1,48 +1,24 @@
 import React from "react";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
-import {
-  Copy,
-  Trash2,
-  Send,
-  FileText,
-  Hash,
-  Settings,
-} from "lucide-react";
-import { CONSTANTS } from "@/constants";
+import { Copy, Trash2, Send, FileText, Hash, Settings } from "lucide-react";
 import { EditableCell } from "@/components/projects/data-table/editable-cell";
-import { EditableSelectCell } from "@/components/projects/data-table/editable-select-cell";
 import { DataTableColumnHeader } from "@/components/projects/data-table/data-table-column-header";
 import { Badge } from "@/components/ui/badge";
 
-export function createSequenceColumns(
-  onEdit,
-  onDuplicate,
-  onDelete,
-  onCellEdit,
-  getEffectiveValue,
-  onSendToUnit
-) {
+export function createSequenceColumns(onEdit, onDuplicate, onDelete, onCellEdit, getEffectiveValue, onSendToUnit) {
   return [
     {
       id: "select",
       header: ({ table }) => (
         <Checkbox
-          checked={
-            table.getIsAllPageRowsSelected() ||
-            (table.getIsSomePageRowsSelected() && "indeterminate")
-          }
+          checked={table.getIsAllPageRowsSelected() || (table.getIsSomePageRowsSelected() && "indeterminate")}
           onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
           aria-label="Select all"
         />
       ),
       cell: ({ row }) => (
-        <Checkbox
-          checked={row.getIsSelected()}
-          onCheckedChange={(value) => row.toggleSelected(!!value)}
-          aria-label="Select row"
-          className="mx-1.5"
-        />
+        <Checkbox checked={row.getIsSelected()} onCheckedChange={(value) => row.toggleSelected(!!value)} aria-label="Select row" className="mx-1.5" />
       ),
       enableSorting: false,
       enableHiding: false,
@@ -52,9 +28,7 @@ export function createSequenceColumns(
     },
     {
       accessorKey: "name",
-      header: ({ column }) => (
-        <DataTableColumnHeader column={column} title="Name" />
-      ),
+      header: ({ column }) => <DataTableColumnHeader column={column} title="Name" />,
       cell: ({ row }) => {
         const effectiveValue = getEffectiveValue(row.original, "name");
         return (
@@ -75,13 +49,7 @@ export function createSequenceColumns(
     },
     {
       accessorKey: "address",
-      header: ({ column }) => (
-        <DataTableColumnHeader
-          column={column}
-          title="Address"
-          className="flex items-center justify-center"
-        />
-      ),
+      header: ({ column }) => <DataTableColumnHeader column={column} title="Address" className="flex items-center justify-center" />,
       cell: ({ row }) => {
         const effectiveValue = getEffectiveValue(row.original, "address");
         return (
@@ -107,13 +75,7 @@ export function createSequenceColumns(
     },
     {
       accessorKey: "multiSceneCount",
-      header: ({ column }) => (
-        <DataTableColumnHeader
-          column={column}
-          title="Multi-Scenes"
-          className="flex items-center justify-center"
-        />
-      ),
+      header: ({ column }) => <DataTableColumnHeader column={column} title="Multi-Scenes" className="flex items-center justify-center" />,
       cell: ({ row }) => {
         const count = row.original.multiSceneCount || 0;
         return (
@@ -130,17 +92,13 @@ export function createSequenceColumns(
     },
     {
       accessorKey: "description",
-      header: ({ column }) => (
-        <DataTableColumnHeader column={column} title="Description" />
-      ),
+      header: ({ column }) => <DataTableColumnHeader column={column} title="Description" />,
       cell: ({ row }) => {
         const effectiveValue = getEffectiveValue(row.original, "description");
         return (
           <EditableCell
             value={effectiveValue || ""}
-            onSave={(newValue) =>
-              onCellEdit(row.original.id, "description", newValue)
-            }
+            onSave={(newValue) => onCellEdit(row.original.id, "description", newValue)}
             placeholder="Enter description"
             className="text-muted-foreground"
           />
@@ -160,13 +118,7 @@ export function createSequenceColumns(
 
         return (
           <div className="flex justify-end gap-1">
-            <Button
-              variant="outline"
-              size="icon"
-              onClick={() => onEdit(sequence)}
-              className="cursor-pointer"
-              title="Manage sequence multi-scenes"
-            >
+            <Button variant="outline" size="icon" onClick={() => onEdit(sequence)} className="cursor-pointer" title="Manage sequence multi-scenes">
               <Settings className="h-4 w-4" />
             </Button>
             <Button
@@ -178,13 +130,7 @@ export function createSequenceColumns(
             >
               <Send className="h-4 w-4" />
             </Button>
-            <Button
-              variant="outline"
-              size="icon"
-              onClick={() => onDuplicate(sequence.id)}
-              className="cursor-pointer"
-              title="Duplicate sequence"
-            >
+            <Button variant="outline" size="icon" onClick={() => onDuplicate(sequence.id)} className="cursor-pointer" title="Duplicate sequence">
               <Copy className="h-4 w-4" />
             </Button>
             <Button

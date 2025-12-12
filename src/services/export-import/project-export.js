@@ -15,20 +15,20 @@ export class ProjectExporter {
         },
         items: transformedItems,
         exportedAt: new Date().toISOString(),
-        version: "1.1" // Increment version to indicate new format
+        version: "1.1", // Increment version to indicate new format
       };
 
       const jsonString = JSON.stringify(exportData, null, 2);
-      const blob = new Blob([jsonString], { type: 'application/json' });
+      const blob = new Blob([jsonString], { type: "application/json" });
 
       // Create download link with event listeners
       const url = URL.createObjectURL(blob);
-      const link = document.createElement('a');
+      const link = document.createElement("a");
       link.href = url;
-      link.download = `${project.name.replace(/[^a-z0-9]/gi, '_').toLowerCase()}_export.json`;
+      link.download = `${project.name.replace(/[^a-z0-9]/gi, "_").toLowerCase()}_export.json`;
 
       // Add event listener to show success message after download starts
-      link.addEventListener('click', () => {
+      link.addEventListener("click", () => {
         // Small delay to ensure download dialog appears first
         setTimeout(() => {
           toast.success(`Project "${project.name}" export started`);
@@ -42,8 +42,8 @@ export class ProjectExporter {
 
       return true;
     } catch (error) {
-      console.error('Export project failed:', error);
-      toast.error('Failed to export project');
+      console.error("Export project failed:", error);
+      toast.error("Failed to export project");
       return false;
     }
   }
@@ -54,16 +54,12 @@ export class ProjectExporter {
 
     // Transform KNX items
     if (transformedItems.knx && transformedItems.knx.length > 0) {
-      transformedItems.knx = transformedItems.knx.map(knxItem => {
+      transformedItems.knx = transformedItems.knx.map((knxItem) => {
         const transformedKnx = { ...knxItem };
 
         // If KNX item has RCU group reference, replace ID with address
         if (knxItem.rcu_group_id && knxItem.rcu_group_type) {
-          const rcuGroupAddress = this.findRcuGroupAddress(
-            knxItem.rcu_group_id,
-            knxItem.rcu_group_type,
-            projectItems
-          );
+          const rcuGroupAddress = this.findRcuGroupAddress(knxItem.rcu_group_id, knxItem.rcu_group_type, projectItems);
 
           if (rcuGroupAddress) {
             // Replace rcu_group_id with rcu_group_address
@@ -78,7 +74,7 @@ export class ProjectExporter {
 
     // Transform Curtain items
     if (transformedItems.curtain && transformedItems.curtain.length > 0) {
-      transformedItems.curtain = transformedItems.curtain.map(curtainItem => {
+      transformedItems.curtain = transformedItems.curtain.map((curtainItem) => {
         const transformedCurtain = { ...curtainItem };
 
         // Replace lighting group IDs with addresses
@@ -125,7 +121,7 @@ export class ProjectExporter {
 
     // Transform scene_items
     if (transformedItems.scene_items && transformedItems.scene_items.length > 0) {
-      transformedItems.scene_items = transformedItems.scene_items.map(sceneItem => {
+      transformedItems.scene_items = transformedItems.scene_items.map((sceneItem) => {
         const transformedSceneItem = { ...sceneItem };
 
         // Replace scene_id with scene_address
@@ -148,7 +144,7 @@ export class ProjectExporter {
 
     // Transform schedule_scenes
     if (transformedItems.schedule_scenes && transformedItems.schedule_scenes.length > 0) {
-      transformedItems.schedule_scenes = transformedItems.schedule_scenes.map(scheduleScene => {
+      transformedItems.schedule_scenes = transformedItems.schedule_scenes.map((scheduleScene) => {
         const transformedScheduleScene = { ...scheduleScene };
 
         // Replace schedule_id with schedule identifier (name + time combination)
@@ -175,7 +171,7 @@ export class ProjectExporter {
 
     // Transform multi_scene_scenes
     if (transformedItems.multi_scene_scenes && transformedItems.multi_scene_scenes.length > 0) {
-      transformedItems.multi_scene_scenes = transformedItems.multi_scene_scenes.map(multiSceneScene => {
+      transformedItems.multi_scene_scenes = transformedItems.multi_scene_scenes.map((multiSceneScene) => {
         const transformedMultiSceneScene = { ...multiSceneScene };
 
         // Replace multi_scene_id with multi_scene_address
@@ -202,7 +198,7 @@ export class ProjectExporter {
 
     // Transform sequence_multi_scenes
     if (transformedItems.sequence_multi_scenes && transformedItems.sequence_multi_scenes.length > 0) {
-      transformedItems.sequence_multi_scenes = transformedItems.sequence_multi_scenes.map(sequenceMultiScene => {
+      transformedItems.sequence_multi_scenes = transformedItems.sequence_multi_scenes.map((sequenceMultiScene) => {
         const transformedSequenceMultiScene = { ...sequenceMultiScene };
 
         // Replace sequence_id with sequence_address
@@ -235,7 +231,7 @@ export class ProjectExporter {
     const items = projectItems[rcuGroupType];
     if (!items) return null;
 
-    const rcuGroup = items.find(item => item.id === rcuGroupId);
+    const rcuGroup = items.find((item) => item.id === rcuGroupId);
     return rcuGroup ? rcuGroup.address : null;
   }
 
@@ -244,7 +240,7 @@ export class ProjectExporter {
     const lightingItems = projectItems.lighting;
     if (!lightingItems) return null;
 
-    const lightingItem = lightingItems.find(item => item.id === lightingId);
+    const lightingItem = lightingItems.find((item) => item.id === lightingId);
     return lightingItem ? lightingItem.address : null;
   }
 
@@ -253,7 +249,7 @@ export class ProjectExporter {
     const sceneItems = projectItems.scene;
     if (!sceneItems) return null;
 
-    const sceneItem = sceneItems.find(item => item.id === sceneId);
+    const sceneItem = sceneItems.find((item) => item.id === sceneId);
     return sceneItem ? sceneItem.address : null;
   }
 
@@ -262,7 +258,7 @@ export class ProjectExporter {
     const scheduleItems = projectItems.schedule;
     if (!scheduleItems) return null;
 
-    const scheduleItem = scheduleItems.find(item => item.id === scheduleId);
+    const scheduleItem = scheduleItems.find((item) => item.id === scheduleId);
     return scheduleItem ? `${scheduleItem.name}|${scheduleItem.time}` : null;
   }
 
@@ -271,7 +267,7 @@ export class ProjectExporter {
     const multiSceneItems = projectItems.multi_scenes;
     if (!multiSceneItems) return null;
 
-    const multiSceneItem = multiSceneItems.find(item => item.id === multiSceneId);
+    const multiSceneItem = multiSceneItems.find((item) => item.id === multiSceneId);
     return multiSceneItem ? multiSceneItem.address : null;
   }
 
@@ -280,7 +276,7 @@ export class ProjectExporter {
     const sequenceItems = projectItems.sequences;
     if (!sequenceItems) return null;
 
-    const sequenceItem = sequenceItems.find(item => item.id === sequenceId);
+    const sequenceItem = sequenceItems.find((item) => item.id === sequenceId);
     return sequenceItem ? sequenceItem.address : null;
   }
 }

@@ -1,38 +1,16 @@
 import React, { useState, useCallback, memo } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import {
-  Plus,
-  MoreHorizontal,
-  Copy,
-  Trash2,
-  Edit,
-  FileText,
-  Upload,
-  Download,
-} from "lucide-react";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+import { Plus, MoreHorizontal, Copy, Trash2, Edit, FileText, Upload, Download } from "lucide-react";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { useProjectDetail } from "@/contexts/project-detail-context";
 import { AirconCardDialog } from "@/components/projects/aircon/aircon-card-dialog";
 import { ConfirmDialog } from "@/components/projects/confirm-dialog";
 import { ImportItemsDialog } from "@/components/projects/import-category-dialog";
-import { CONSTANTS } from "@/constants";
 
 // Memoized component to prevent unnecessary rerenders
 function AirconCardsComponent({ cards, loading }) {
-  const {
-    selectedProject,
-    deleteAirconCard,
-    duplicateAirconCard,
-    exportItems,
-    importItems,
-  } = useProjectDetail();
+  const { selectedProject, deleteAirconCard, duplicateAirconCard, exportItems, importItems } = useProjectDetail();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
@@ -145,19 +123,9 @@ function AirconCardsComponent({ cards, loading }) {
             <CardHeader className="pb-3">
               <div className="flex justify-between items-start">
                 <div>
-                  <CardTitle className="text-lg font-bold">
-                    {card.name && card.name.trim()
-                      ? card.name
-                      : `Aircon ${card.address}`}
-                  </CardTitle>
-                  <p className="text-xs text-muted-foreground mt-1">
-                    Address: {card.address}
-                  </p>
-                  {card.description && (
-                    <p className="text-sm text-muted-foreground mt-1">
-                      {card.description}
-                    </p>
-                  )}
+                  <CardTitle className="text-lg font-bold">{card.name && card.name.trim() ? card.name : `Aircon ${card.address}`}</CardTitle>
+                  <p className="text-xs text-muted-foreground mt-1">Address: {card.address}</p>
+                  {card.description && <p className="text-sm text-muted-foreground mt-1">{card.description}</p>}
                 </div>
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
@@ -166,25 +134,15 @@ function AirconCardsComponent({ cards, loading }) {
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end">
-                    <DropdownMenuItem
-                      onClick={() => handleEditCard(card)}
-                      className="cursor-pointer"
-                    >
+                    <DropdownMenuItem onClick={() => handleEditCard(card)} className="cursor-pointer">
                       <Edit className="h-4 w-4" />
                       Edit
                     </DropdownMenuItem>
-                    <DropdownMenuItem
-                      onClick={() => handleDuplicateCard(card.address)}
-                      className="cursor-pointer"
-                    >
+                    <DropdownMenuItem onClick={() => handleDuplicateCard(card.address)} className="cursor-pointer">
                       <Copy className="h-4 w-4" />
                       Duplicate
                     </DropdownMenuItem>
-                    <DropdownMenuItem
-                      onClick={() => handleDeleteCard(card.address)}
-                      variant="destructive"
-                      className="cursor-pointer"
-                    >
+                    <DropdownMenuItem onClick={() => handleDeleteCard(card.address)} variant="destructive" className="cursor-pointer">
                       <Trash2 className="h-4 w-4" />
                       Delete
                     </DropdownMenuItem>
@@ -194,9 +152,7 @@ function AirconCardsComponent({ cards, loading }) {
             </CardHeader>
             <CardContent>
               <div className="space-y-2">
-                <div className="text-xs text-muted-foreground mt-2 p-2 bg-blue-50 rounded">
-                  Supports: Power, Mode, Fan Speed, Temperature, Swing
-                </div>
+                <div className="text-xs text-muted-foreground mt-2 p-2 bg-blue-50 rounded">Supports: Power, Mode, Fan Speed, Temperature, Swing</div>
               </div>
             </CardContent>
           </Card>
@@ -205,20 +161,13 @@ function AirconCardsComponent({ cards, loading }) {
         {/* Add placeholder card for creating new aircon */}
         <Card className="min-h-60 border-dashed border-2 border-muted-foreground/25 hover:border-muted-foreground/50 transition-colors">
           <CardContent className="flex flex-col items-center justify-center h-full space-y-3">
-            <Button
-              onClick={handleCreateCard}
-              variant="default"
-              className="cursor-pointer w-[60%]"
-            >
+            <Button onClick={handleCreateCard} variant="default" className="cursor-pointer w-[60%]">
               <Plus className="h-4 w-4" />
               Create Aircon
             </Button>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button
-                  variant="outline"
-                  className="text-gray-700 w-[60%] cursor-pointer"
-                >
+                <Button variant="outline" className="text-gray-700 w-[60%] cursor-pointer">
                   <FileText className="h-4 w-4" />
                   Import/Export
                 </Button>
@@ -238,12 +187,7 @@ function AirconCardsComponent({ cards, loading }) {
         </Card>
       </div>
       <AirconCardDialog open={dialogOpen} onOpenChange={setDialogOpen} />
-      <AirconCardDialog
-        open={editDialogOpen}
-        onOpenChange={setEditDialogOpen}
-        mode="edit"
-        card={cardToEdit}
-      />
+      <AirconCardDialog open={editDialogOpen} onOpenChange={setEditDialogOpen} mode="edit" card={cardToEdit} />
       <ConfirmDialog
         open={confirmDialogOpen}
         onOpenChange={setConfirmDialogOpen}
@@ -253,12 +197,7 @@ function AirconCardsComponent({ cards, loading }) {
         loading={deleteLoading}
         variant="destructive"
       />
-      <ImportItemsDialog
-        open={importDialogOpen}
-        onOpenChange={setImportDialogOpen}
-        category="aircon"
-        onImport={handleImportConfirm}
-      />
+      <ImportItemsDialog open={importDialogOpen} onOpenChange={setImportDialogOpen} category="aircon" onImport={handleImportConfirm} />
     </div>
   );
 }

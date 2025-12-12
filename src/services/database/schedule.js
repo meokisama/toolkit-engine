@@ -41,9 +41,7 @@ export const scheduleMethods = {
   createScheduleItem(projectId, itemData) {
     try {
       // Check maximum schedule limit (32 schedules)
-      const scheduleCount = this.db
-        .prepare("SELECT COUNT(*) as count FROM schedule WHERE project_id = ?")
-        .get(projectId);
+      const scheduleCount = this.db.prepare("SELECT COUNT(*) as count FROM schedule WHERE project_id = ?").get(projectId);
       if (scheduleCount.count >= 32) {
         throw new Error("Maximum 32 schedules allowed per project.");
       }
@@ -54,17 +52,9 @@ export const scheduleMethods = {
       `);
 
       // Convert boolean to integer for SQLite
-      const enabledValue =
-        itemData.enabled !== undefined ? (itemData.enabled ? 1 : 0) : 1;
+      const enabledValue = itemData.enabled !== undefined ? (itemData.enabled ? 1 : 0) : 1;
 
-      const result = stmt.run(
-        projectId,
-        itemData.name,
-        itemData.description,
-        itemData.time,
-        JSON.stringify(itemData.days),
-        enabledValue
-      );
+      const result = stmt.run(projectId, itemData.name, itemData.description, itemData.time, JSON.stringify(itemData.days), enabledValue);
 
       // Return the created schedule item
       const getStmt = this.db.prepare("SELECT * FROM schedule WHERE id = ?");
@@ -84,17 +74,9 @@ export const scheduleMethods = {
       `);
 
       // Convert boolean to integer for SQLite
-      const enabledValue =
-        itemData.enabled !== undefined ? (itemData.enabled ? 1 : 0) : 1;
+      const enabledValue = itemData.enabled !== undefined ? (itemData.enabled ? 1 : 0) : 1;
 
-      const result = stmt.run(
-        itemData.name,
-        itemData.description,
-        itemData.time,
-        JSON.stringify(itemData.days),
-        enabledValue,
-        id
-      );
+      const result = stmt.run(itemData.name, itemData.description, itemData.time, JSON.stringify(itemData.days), enabledValue, id);
 
       if (result.changes === 0) {
         throw new Error("Schedule item not found");
@@ -145,22 +127,13 @@ export const scheduleMethods = {
       // Ensure enabled value is properly converted to integer for SQLite
       const enabledValue = original.enabled ? 1 : 0;
 
-      const result = createStmt.run(
-        original.project_id,
-        duplicateName,
-        original.description,
-        original.time,
-        original.days,
-        enabledValue
-      );
+      const result = createStmt.run(original.project_id, duplicateName, original.description, original.time, original.days, enabledValue);
 
       // Get the duplicated schedule item
       const newSchedule = getStmt.get(result.lastInsertRowid);
 
       // Copy schedule-scene relationships
-      const getRelationsStmt = this.db.prepare(
-        "SELECT scene_id FROM schedule_scenes WHERE schedule_id = ?"
-      );
+      const getRelationsStmt = this.db.prepare("SELECT scene_id FROM schedule_scenes WHERE schedule_id = ?");
       const relations = getRelationsStmt.all(id);
 
       const addRelationStmt = this.db.prepare(`
@@ -210,9 +183,7 @@ export const scheduleMethods = {
       const result = stmt.run(scheduleId, sceneId);
 
       // Return the created schedule-scene relationship
-      const getStmt = this.db.prepare(
-        "SELECT * FROM schedule_scenes WHERE id = ?"
-      );
+      const getStmt = this.db.prepare("SELECT * FROM schedule_scenes WHERE id = ?");
       return getStmt.get(result.lastInsertRowid);
     } catch (error) {
       console.error("Failed to add scene to schedule:", error);
@@ -297,9 +268,7 @@ export const scheduleMethods = {
         parsedDays: days,
         hour,
         minute,
-        sceneAddresses: scenes
-          .map((scene) => scene.scene_address)
-          .filter((addr) => addr !== null),
+        sceneAddresses: scenes.map((scene) => scene.scene_address).filter((addr) => addr !== null),
       };
     } catch (error) {
       console.error("Failed to get schedule for sending:", error);
@@ -318,10 +287,7 @@ export const scheduleMethods = {
       const result = stmt.get(projectId, name, time);
       return result ? result.id : null;
     } catch (error) {
-      console.error(
-        `Failed to find schedule ID for identifier ${identifier}:`,
-        error
-      );
+      console.error(`Failed to find schedule ID for identifier ${identifier}:`, error);
       return null;
     }
   },

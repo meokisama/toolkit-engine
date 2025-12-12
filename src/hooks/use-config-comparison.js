@@ -1,9 +1,6 @@
 import { useState, useCallback, useRef } from "react";
 import { toast } from "sonner";
-import {
-  findMatchingUnits,
-  compareUnitConfigurations,
-} from "@/services/config-comparison";
+import { findMatchingUnits, compareUnitConfigurations } from "@/services/config-comparison";
 import { getUnitIOSpec } from "@/utils/io-config-utils";
 
 /**
@@ -57,54 +54,43 @@ export function useConfigComparison() {
       }
 
       try {
-        console.log(
-          `Reading configurations from network unit: ${networkUnit.ip_address}`
-        );
+        console.log(`Reading configurations from network unit: ${networkUnit.ip_address}`);
 
         const unitWithConfigs = { ...networkUnit };
 
         // Read RS485 configurations sequentially (same as transfer function)
         try {
           console.log("Reading RS485 CH1 configuration...");
-          const ch1Config =
-            await window.electronAPI.deviceController.getRS485CH1Config({
-              unitIp: networkUnit.ip_address,
-              canId: networkUnit.id_can,
-            });
+          const ch1Config = await window.electronAPI.deviceController.getRS485CH1Config({
+            unitIp: networkUnit.ip_address,
+            canId: networkUnit.id_can,
+          });
 
           // Add delay between RS485 channel reads
           await new Promise((resolve) => setTimeout(resolve, 300));
 
           console.log("Reading RS485 CH2 configuration...");
-          const ch2Config =
-            await window.electronAPI.deviceController.getRS485CH2Config({
-              unitIp: networkUnit.ip_address,
-              canId: networkUnit.id_can,
-            });
+          const ch2Config = await window.electronAPI.deviceController.getRS485CH2Config({
+            unitIp: networkUnit.ip_address,
+            canId: networkUnit.id_can,
+          });
 
           // Convert to database format (same as transfer function)
-          unitWithConfigs.rs485_config = [
-            convertNetworkToDialogFormat(ch1Config),
-            convertNetworkToDialogFormat(ch2Config),
-          ];
+          unitWithConfigs.rs485_config = [convertNetworkToDialogFormat(ch1Config), convertNetworkToDialogFormat(ch2Config)];
 
           // Add delay after RS485 config read
           await new Promise((resolve) => setTimeout(resolve, 500));
         } catch (error) {
-          console.warn(
-            `Failed to read RS485 config from ${networkUnit.ip_address}:`,
-            error
-          );
+          console.warn(`Failed to read RS485 config from ${networkUnit.ip_address}:`, error);
           unitWithConfigs.rs485_config = null;
         }
 
         // Read input configurations (same as transfer function)
         try {
-          const inputResponse =
-            await window.electronAPI.ioController.getAllInputConfigs({
-              unitIp: networkUnit.ip_address,
-              canId: networkUnit.id_can,
-            });
+          const inputResponse = await window.electronAPI.ioController.getAllInputConfigs({
+            unitIp: networkUnit.ip_address,
+            canId: networkUnit.id_can,
+          });
 
           const inputConfigs = { inputs: [] };
 
@@ -118,9 +104,7 @@ export function useConfigComparison() {
           // Process inputs based on unit spec (same as transfer function)
           if (inputResponse?.configs) {
             for (let i = 0; i < ioSpec.inputs; i++) {
-              const unitConfig = inputResponse.configs.find(
-                (config) => config.inputNumber === i
-              );
+              const unitConfig = inputResponse.configs.find((config) => config.inputNumber === i);
 
               if (unitConfig) {
                 inputConfigs.inputs.push({
@@ -162,41 +146,29 @@ export function useConfigComparison() {
           // Add delay after input config read
           await new Promise((resolve) => setTimeout(resolve, 500));
         } catch (error) {
-          console.warn(
-            `Failed to read input configs from ${networkUnit.ip_address}:`,
-            error
-          );
+          console.warn(`Failed to read input configs from ${networkUnit.ip_address}:`, error);
           unitWithConfigs.input_configs = null;
         }
 
         // Read output configurations (same as transfer function)
         try {
           // Read output assignments first
-          const assignResponse =
-            await window.electronAPI.ioController.getOutputAssign({
-              unitIp: networkUnit.ip_address,
-              canId: networkUnit.id_can,
-            });
+          const assignResponse = await window.electronAPI.ioController.getOutputAssign({
+            unitIp: networkUnit.ip_address,
+            canId: networkUnit.id_can,
+          });
 
           // Add delay between output reads
           await new Promise((resolve) => setTimeout(resolve, 300));
 
           // Read output configurations second
-          const configResponse =
-            await window.electronAPI.ioController.getOutputConfig(
-              networkUnit.ip_address,
-              networkUnit.id_can
-            );
+          const configResponse = await window.electronAPI.ioController.getOutputConfig(networkUnit.ip_address, networkUnit.id_can);
 
           // Add delay between output reads
           await new Promise((resolve) => setTimeout(resolve, 300));
 
           // Read AC configurations third
-          const acConfigResponse =
-            await window.electronAPI.ioController.getLocalACConfig(
-              networkUnit.ip_address,
-              networkUnit.id_can
-            );
+          const acConfigResponse = await window.electronAPI.ioController.getLocalACConfig(networkUnit.ip_address, networkUnit.id_can);
 
           const outputConfigs = { outputs: [] };
 
@@ -239,17 +211,11 @@ export function useConfigComparison() {
 
           // Process all outputs (same logic as transfer function)
           for (let i = 0; i < ioSpec.totalOutputs; i++) {
-            const assignment = assignResponse?.outputAssignments?.find(
-              (a) => a.outputIndex === i
-            );
-            const config = configResponse?.outputConfigs?.find(
-              (c) => c.outputIndex === i
-            );
+            const assignment = assignResponse?.outputAssignments?.find((a) => a.outputIndex === i);
+            const config = configResponse?.outputConfigs?.find((c) => c.outputIndex === i);
 
             // Determine output type
-            const outputType =
-              assignment?.outputType ||
-              getOutputTypeForIndex(i, ioSpec.outputs);
+            const outputType = assignment?.outputType || getOutputTypeForIndex(i, ioSpec.outputs);
 
             let configData;
             let assignmentAddress = null;
@@ -265,10 +231,7 @@ export function useConfigComparison() {
 
               const acConfigIndex = acOutputs.indexOf(i);
               let acConfig = null;
-              if (
-                acConfigIndex >= 0 &&
-                acConfigIndex < (acConfigResponse?.length || 0)
-              ) {
+              if (acConfigIndex >= 0 && acConfigIndex < (acConfigResponse?.length || 0)) {
                 acConfig = acConfigResponse[acConfigIndex];
                 assignmentAddress = acConfig?.address || 0;
               }
@@ -315,8 +278,7 @@ export function useConfigComparison() {
               };
             } else {
               // Lighting/relay/dimmer config structure (same as transfer function)
-              assignmentAddress =
-                assignment?.lightingAddress || assignment?.address || 0;
+              assignmentAddress = assignment?.lightingAddress || assignment?.address || 0;
 
               configData = {
                 address: assignmentAddress || 0, // Add address to config for comparison
@@ -334,17 +296,9 @@ export function useConfigComparison() {
               };
 
               // Add dimming settings for dimmer, relay, and AO outputs
-              if (
-                outputType === "dimmer" ||
-                outputType === "relay" ||
-                outputType === "ao"
-              ) {
-                configData.minDim = config?.minDimmingLevel
-                  ? Math.round((config.minDimmingLevel / 255) * 100)
-                  : 1;
-                configData.maxDim = config?.maxDimmingLevel
-                  ? Math.round((config.maxDimmingLevel / 255) * 100)
-                  : 100;
+              if (outputType === "dimmer" || outputType === "relay" || outputType === "ao") {
+                configData.minDim = config?.minDimmingLevel ? Math.round((config.minDimmingLevel / 255) * 100) : 1;
+                configData.maxDim = config?.maxDimmingLevel ? Math.round((config.maxDimmingLevel / 255) * 100) : 100;
               }
             }
 
@@ -362,10 +316,7 @@ export function useConfigComparison() {
 
           unitWithConfigs.output_configs = outputConfigs;
         } catch (error) {
-          console.warn(
-            `Failed to read output configs from ${networkUnit.ip_address}:`,
-            error
-          );
+          console.warn(`Failed to read output configs from ${networkUnit.ip_address}:`, error);
           unitWithConfigs.output_configs = null;
         }
 
@@ -375,20 +326,14 @@ export function useConfigComparison() {
 
           // Read scenes
           try {
-            const scenesResult =
-              await window.electronAPI.sceneController.getAllScenesInformation({
-                unitIp: networkUnit.ip_address,
-                canId: networkUnit.id_can,
-              });
+            const scenesResult = await window.electronAPI.sceneController.getAllScenesInformation({
+              unitIp: networkUnit.ip_address,
+              canId: networkUnit.id_can,
+            });
             unitWithConfigs.scenes = scenesResult?.scenes || [];
-            console.log(
-              `Found ${unitWithConfigs.scenes.length} scenes on network unit`
-            );
+            console.log(`Found ${unitWithConfigs.scenes.length} scenes on network unit`);
           } catch (error) {
-            console.warn(
-              `Failed to read scenes from ${networkUnit.ip_address}:`,
-              error
-            );
+            console.warn(`Failed to read scenes from ${networkUnit.ip_address}:`, error);
             unitWithConfigs.scenes = [];
           }
 
@@ -397,22 +342,14 @@ export function useConfigComparison() {
 
           // Read schedules
           try {
-            const schedulesResult =
-              await window.electronAPI.scheduleController.getAllSchedulesInformation(
-                {
-                  unitIp: networkUnit.ip_address,
-                  canId: networkUnit.id_can,
-                }
-              );
+            const schedulesResult = await window.electronAPI.scheduleController.getAllSchedulesInformation({
+              unitIp: networkUnit.ip_address,
+              canId: networkUnit.id_can,
+            });
             unitWithConfigs.schedules = schedulesResult?.schedules || [];
-            console.log(
-              `Found ${unitWithConfigs.schedules.length} schedules on network unit`
-            );
+            console.log(`Found ${unitWithConfigs.schedules.length} schedules on network unit`);
           } catch (error) {
-            console.warn(
-              `Failed to read schedules from ${networkUnit.ip_address}:`,
-              error
-            );
+            console.warn(`Failed to read schedules from ${networkUnit.ip_address}:`, error);
             unitWithConfigs.schedules = [];
           }
 
@@ -421,21 +358,15 @@ export function useConfigComparison() {
 
           // Read curtains
           try {
-            const curtainsResult =
-              await window.electronAPI.curtainController.getCurtainConfig({
-                unitIp: networkUnit.ip_address,
-                canId: networkUnit.id_can,
-                curtainIndex: null, // Get all curtains
-              });
+            const curtainsResult = await window.electronAPI.curtainController.getCurtainConfig({
+              unitIp: networkUnit.ip_address,
+              canId: networkUnit.id_can,
+              curtainIndex: null, // Get all curtains
+            });
             unitWithConfigs.curtains = curtainsResult?.curtains || [];
-            console.log(
-              `Found ${unitWithConfigs.curtains.length} curtains on network unit`
-            );
+            console.log(`Found ${unitWithConfigs.curtains.length} curtains on network unit`);
           } catch (error) {
-            console.warn(
-              `Failed to read curtains from ${networkUnit.ip_address}:`,
-              error
-            );
+            console.warn(`Failed to read curtains from ${networkUnit.ip_address}:`, error);
             unitWithConfigs.curtains = [];
           }
 
@@ -444,21 +375,15 @@ export function useConfigComparison() {
 
           // Read KNX configurations
           try {
-            const knxResult =
-              await window.electronAPI.knxController.getKnxConfig({
-                unitIp: networkUnit.ip_address,
-                canId: networkUnit.id_can,
-                knxAddress: null, // Get all KNX configs
-              });
+            const knxResult = await window.electronAPI.knxController.getKnxConfig({
+              unitIp: networkUnit.ip_address,
+              canId: networkUnit.id_can,
+              knxAddress: null, // Get all KNX configs
+            });
             unitWithConfigs.knxConfigs = knxResult?.knxConfigs || [];
-            console.log(
-              `Found ${unitWithConfigs.knxConfigs.length} KNX configs on network unit`
-            );
+            console.log(`Found ${unitWithConfigs.knxConfigs.length} KNX configs on network unit`);
           } catch (error) {
-            console.warn(
-              `Failed to read KNX configs from ${networkUnit.ip_address}:`,
-              error
-            );
+            console.warn(`Failed to read KNX configs from ${networkUnit.ip_address}:`, error);
             unitWithConfigs.knxConfigs = [];
           }
 
@@ -467,22 +392,14 @@ export function useConfigComparison() {
 
           // Read multi scenes
           try {
-            const multiScenesResult =
-              await window.electronAPI.multiScenesController.getAllMultiScenesInformation(
-                {
-                  unitIp: networkUnit.ip_address,
-                  canId: networkUnit.id_can,
-                }
-              );
+            const multiScenesResult = await window.electronAPI.multiScenesController.getAllMultiScenesInformation({
+              unitIp: networkUnit.ip_address,
+              canId: networkUnit.id_can,
+            });
             unitWithConfigs.multiScenes = multiScenesResult?.multiScenes || [];
-            console.log(
-              `Found ${unitWithConfigs.multiScenes.length} multi scenes on network unit`
-            );
+            console.log(`Found ${unitWithConfigs.multiScenes.length} multi scenes on network unit`);
           } catch (error) {
-            console.warn(
-              `Failed to read multi scenes from ${networkUnit.ip_address}:`,
-              error
-            );
+            console.warn(`Failed to read multi scenes from ${networkUnit.ip_address}:`, error);
             unitWithConfigs.multiScenes = [];
           }
 
@@ -491,29 +408,18 @@ export function useConfigComparison() {
 
           // Read sequences
           try {
-            const sequencesResult =
-              await window.electronAPI.sequenceController.getAllSequencesInformation(
-                {
-                  unitIp: networkUnit.ip_address,
-                  canId: networkUnit.id_can,
-                }
-              );
+            const sequencesResult = await window.electronAPI.sequenceController.getAllSequencesInformation({
+              unitIp: networkUnit.ip_address,
+              canId: networkUnit.id_can,
+            });
             unitWithConfigs.sequences = sequencesResult?.sequences || [];
-            console.log(
-              `Found ${unitWithConfigs.sequences.length} sequences on network unit`
-            );
+            console.log(`Found ${unitWithConfigs.sequences.length} sequences on network unit`);
           } catch (error) {
-            console.warn(
-              `Failed to read sequences from ${networkUnit.ip_address}:`,
-              error
-            );
+            console.warn(`Failed to read sequences from ${networkUnit.ip_address}:`, error);
             unitWithConfigs.sequences = [];
           }
         } catch (error) {
-          console.warn(
-            `Failed to read advanced configurations from ${networkUnit.ip_address}:`,
-            error
-          );
+          console.warn(`Failed to read advanced configurations from ${networkUnit.ip_address}:`, error);
           // Set default empty arrays for all advanced configs
           unitWithConfigs.scenes = [];
           unitWithConfigs.schedules = [];
@@ -528,10 +434,7 @@ export function useConfigComparison() {
 
         return unitWithConfigs;
       } catch (error) {
-        console.error(
-          `Failed to read configurations from network unit ${networkUnit.ip_address}:`,
-          error
-        );
+        console.error(`Failed to read configurations from network unit ${networkUnit.ip_address}:`, error);
         throw error;
       }
     },
@@ -548,15 +451,14 @@ export function useConfigComparison() {
       console.log(`Loading database configurations for project ${projectId}`);
 
       // Load all database configurations in parallel
-      const [scenes, schedules, curtains, knx, multiScenes, sequences] =
-        await Promise.all([
-          window.electronAPI.scene.getAll(projectId),
-          window.electronAPI.schedule.getAll(projectId),
-          window.electronAPI.curtain.getAll(projectId),
-          window.electronAPI.knx.getAll(projectId),
-          window.electronAPI.multiScenes.getAll(projectId),
-          window.electronAPI.sequences.getAll(projectId),
-        ]);
+      const [scenes, schedules, curtains, knx, multiScenes, sequences] = await Promise.all([
+        window.electronAPI.scene.getAll(projectId),
+        window.electronAPI.schedule.getAll(projectId),
+        window.electronAPI.curtain.getAll(projectId),
+        window.electronAPI.knx.getAll(projectId),
+        window.electronAPI.multiScenes.getAll(projectId),
+        window.electronAPI.sequences.getAll(projectId),
+      ]);
 
       // For scenes, we need to get scene items as well
       const scenesWithItems = await Promise.all(
@@ -575,15 +477,10 @@ export function useConfigComparison() {
       const schedulesWithScenes = await Promise.all(
         schedules.map(async (schedule) => {
           try {
-            const scenes = await window.electronAPI.schedules.getScenes(
-              schedule.id
-            );
+            const scenes = await window.electronAPI.schedules.getScenes(schedule.id);
             return { ...schedule, scenes };
           } catch (error) {
-            console.warn(
-              `Failed to load scenes for schedule ${schedule.id}:`,
-              error
-            );
+            console.warn(`Failed to load scenes for schedule ${schedule.id}:`, error);
             return { ...schedule, scenes: [] };
           }
         })
@@ -593,15 +490,10 @@ export function useConfigComparison() {
       const multiScenesWithScenes = await Promise.all(
         multiScenes.map(async (multiScene) => {
           try {
-            const scenes = await window.electronAPI.multiScenes.getScenes(
-              multiScene.id
-            );
+            const scenes = await window.electronAPI.multiScenes.getScenes(multiScene.id);
             return { ...multiScene, scenes };
           } catch (error) {
-            console.warn(
-              `Failed to load scenes for multi scene ${multiScene.id}:`,
-              error
-            );
+            console.warn(`Failed to load scenes for multi scene ${multiScene.id}:`, error);
             return { ...multiScene, scenes: [] };
           }
         })
@@ -611,14 +503,10 @@ export function useConfigComparison() {
       const sequencesWithMultiScenes = await Promise.all(
         sequences.map(async (sequence) => {
           try {
-            const multiScenes =
-              await window.electronAPI.sequences.getMultiScenes(sequence.id);
+            const multiScenes = await window.electronAPI.sequences.getMultiScenes(sequence.id);
             return { ...sequence, multiScenes };
           } catch (error) {
-            console.warn(
-              `Failed to load multi scenes for sequence ${sequence.id}:`,
-              error
-            );
+            console.warn(`Failed to load multi scenes for sequence ${sequence.id}:`, error);
             return { ...sequence, multiScenes: [] };
           }
         })
@@ -642,10 +530,7 @@ export function useConfigComparison() {
         sequences: sequencesWithMultiScenes,
       };
     } catch (error) {
-      console.error(
-        `Failed to load database configurations for project ${projectId}:`,
-        error
-      );
+      console.error(`Failed to load database configurations for project ${projectId}:`, error);
       return {
         scenes: [],
         schedules: [],
@@ -673,25 +558,18 @@ export function useConfigComparison() {
       setIsComparing(true);
       setComparisonProgress(0);
 
-      const loadingToast = toast.loading(
-        "Comparing configurations between database and network units..."
-      );
+      const loadingToast = toast.loading("Comparing configurations between database and network units...");
 
       try {
         // Find matching units
         const matchingUnits = findMatchingUnits(databaseUnits, networkUnits);
 
         if (matchingUnits.length === 0) {
-          toast.warning(
-            "No matching units found between database and network",
-            { id: loadingToast }
-          );
+          toast.warning("No matching units found between database and network", { id: loadingToast });
           return;
         }
 
-        console.log(
-          `Found ${matchingUnits.length} matching units for comparison`
-        );
+        console.log(`Found ${matchingUnits.length} matching units for comparison`);
 
         const results = new Map();
 
@@ -701,31 +579,17 @@ export function useConfigComparison() {
 
           setComparisonProgress(((i + 1) / matchingUnits.length) * 100);
 
-          toast.loading(
-            `Comparing unit ${i + 1}/${matchingUnits.length}: ${
-              networkUnit.type
-            } (${networkUnit.ip_address})...`,
-            { id: loadingToast }
-          );
+          toast.loading(`Comparing unit ${i + 1}/${matchingUnits.length}: ${networkUnit.type} (${networkUnit.ip_address})...`, { id: loadingToast });
 
           try {
             // Read network unit configurations
-            const networkUnitWithConfigs = await readNetworkUnitConfigurations(
-              networkUnit
-            );
+            const networkUnitWithConfigs = await readNetworkUnitConfigurations(networkUnit);
 
             // Get database configurations for this unit's project
-            const databaseConfigs = await getDatabaseConfigurations(
-              databaseUnit.project_id
-            );
+            const databaseConfigs = await getDatabaseConfigurations(databaseUnit.project_id);
 
             // Compare configurations
-            const comparisonResult = await compareUnitConfigurations(
-              databaseUnit,
-              networkUnitWithConfigs,
-              projectItems,
-              databaseConfigs
-            );
+            const comparisonResult = await compareUnitConfigurations(databaseUnit, networkUnitWithConfigs, projectItems, databaseConfigs);
 
             // Store results for both database and network units
             const resultData = {
@@ -736,15 +600,9 @@ export function useConfigComparison() {
             };
 
             results.set(`db_${databaseUnit.id}`, resultData);
-            results.set(
-              `net_${networkUnit.ip_address}_${networkUnit.id_can}`,
-              resultData
-            );
+            results.set(`net_${networkUnit.ip_address}_${networkUnit.id_can}`, resultData);
           } catch (error) {
-            console.error(
-              `Failed to compare unit ${networkUnit.ip_address}:`,
-              error
-            );
+            console.error(`Failed to compare unit ${networkUnit.ip_address}:`, error);
 
             // Store error result
             const errorResult = {
@@ -757,10 +615,7 @@ export function useConfigComparison() {
             };
 
             results.set(`db_${databaseUnit.id}`, errorResult);
-            results.set(
-              `net_${networkUnit.ip_address}_${networkUnit.id_can}`,
-              errorResult
-            );
+            results.set(`net_${networkUnit.ip_address}_${networkUnit.id_can}`, errorResult);
           }
         }
 
@@ -771,12 +626,8 @@ export function useConfigComparison() {
         const resultArray = Array.from(results.values());
         const uniqueResults = resultArray.filter((_, index) => index % 2 === 0); // Remove duplicates
 
-        const identicalUnits = uniqueResults.filter(
-          (result) => result.isEqual && !result.error
-        );
-        const differentUnits = uniqueResults.filter(
-          (result) => !result.isEqual && !result.error
-        );
+        const identicalUnits = uniqueResults.filter((result) => result.isEqual && !result.error);
+        const differentUnits = uniqueResults.filter((result) => !result.isEqual && !result.error);
         const errorUnits = uniqueResults.filter((result) => result.error);
 
         const summary = {
@@ -799,10 +650,9 @@ export function useConfigComparison() {
         setComparisonSummary(summary);
         setHasComparisonResults(true);
 
-        toast.success(
-          `Comparison complete: ${identicalUnits.length} identical, ${differentUnits.length} different, ${errorUnits.length} errors`,
-          { id: loadingToast }
-        );
+        toast.success(`Comparison complete: ${identicalUnits.length} identical, ${differentUnits.length} different, ${errorUnits.length} errors`, {
+          id: loadingToast,
+        });
       } catch (error) {
         console.error("Failed to compare configurations:", error);
         toast.error(`Failed to compare configurations: ${error.message}`, {

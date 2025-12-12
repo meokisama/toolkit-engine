@@ -1,13 +1,7 @@
 import React from "react";
 import { BaseDeleteDialog } from "../base/base-delete-dialog";
 
-export function DeleteCurtainDialog({
-  open,
-  onOpenChange,
-  unit,
-  asPopover = false,
-  trigger = null,
-}) {
+export function DeleteCurtainDialog({ open, onOpenChange, unit, asPopover = false, trigger = null }) {
   const config = {
     entityName: "Curtains",
     entityNameSingular: "Curtain",
@@ -25,22 +19,10 @@ export function DeleteCurtainDialog({
         });
       },
       deleteAll: async (unitIp, canId) => {
-        return await window.electronAPI.curtainController.deleteAllCurtains(
-          unitIp,
-          canId
-        );
+        return await window.electronAPI.curtainController.deleteAllCurtains(unitIp, canId);
       },
     },
   };
 
-  return (
-    <BaseDeleteDialog
-      open={open}
-      onOpenChange={onOpenChange}
-      unit={unit}
-      asPopover={asPopover}
-      trigger={trigger}
-      config={config}
-    />
-  );
+  return <BaseDeleteDialog open={open} onOpenChange={onOpenChange} unit={unit} asPopover={asPopover} trigger={trigger} config={config} />;
 }

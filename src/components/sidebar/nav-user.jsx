@@ -1,12 +1,10 @@
-import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 
 export function SidebarOptInForm() {
   const version = __APP_VERSION__ || "Unknown";
   const buildDate = __BUILD_DATE__ || new Date().toISOString().slice(0, 10);
-  const electron =
-    __ELECTRON_VERSION__ || new Date().toISOString().slice(0, 10);
+  const electron = __ELECTRON_VERSION__ || new Date().toISOString().slice(0, 10);
   return (
     <Card className="gap-2 py-4 shadow-none">
       <CardContent className="px-4 space-y-2">

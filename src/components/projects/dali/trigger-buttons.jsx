@@ -1,11 +1,7 @@
 import { memo } from "react";
 import { Lightbulb, Play } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Slider } from "@/components/ui/slider";
 import { Input } from "@/components/ui/input";
 import { RgbColorPicker } from "react-colorful";
@@ -15,23 +11,16 @@ import { useTriggerType8 } from "./hooks/useTriggerType8";
 /**
  * Trigger button for DALI devices - shows popover with brightness slider or color controls
  */
-export const TriggerDeviceButton = memo(function TriggerDeviceButton({
-  address,
-  index,
-  disabled,
-  deviceType,
-  colorFeature,
-}) {
+export const TriggerDeviceButton = memo(function TriggerDeviceButton({ address, index, disabled, deviceType, colorFeature }) {
   // Check if device is Type 6 or Type 8
   const isType6 = deviceType === 6;
   const isType8 = deviceType === 8;
 
   // Use useTrigger hook for Type 6 devices
-  const { level, open, setOpen, handleLevelChange, selectedGateway } =
-    useTrigger({
-      type: "device",
-      id: address,
-    });
+  const { level, open, setOpen, handleLevelChange, selectedGateway } = useTrigger({
+    type: "device",
+    id: address,
+  });
 
   // Use useTriggerType8 hook for Type 8 devices
   const {
@@ -61,12 +50,7 @@ export const TriggerDeviceButton = memo(function TriggerDeviceButton({
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
-        <Button
-          variant="ghost"
-          size="icon"
-          className="h-8 w-8"
-          disabled={disabled || !activeGateway}
-        >
+        <Button variant="ghost" size="icon" className="h-8 w-8" disabled={disabled || !activeGateway}>
           <Lightbulb className="h-4 w-4" />
         </Button>
       </PopoverTrigger>
@@ -77,17 +61,9 @@ export const TriggerDeviceButton = memo(function TriggerDeviceButton({
             <div className="space-y-2">
               <div className="flex items-center justify-between">
                 <label className="text-sm font-medium">Brightness</label>
-                <span className="text-sm text-muted-foreground">
-                  {level[0]} / 255
-                </span>
+                <span className="text-sm text-muted-foreground">{level[0]} / 255</span>
               </div>
-              <Slider
-                value={level}
-                onValueChange={handleLevelChange}
-                max={255}
-                step={1}
-                className="w-full"
-              />
+              <Slider value={level} onValueChange={handleLevelChange} max={255} step={1} className="w-full" />
             </div>
           )}
 
@@ -99,36 +75,17 @@ export const TriggerDeviceButton = memo(function TriggerDeviceButton({
                 <div className="space-y-3">
                   <div className="space-y-2">
                     <div className="flex items-center justify-between">
-                      <label className="text-sm font-medium">
-                        Color Temperature
-                      </label>
-                      <span className="text-sm text-muted-foreground">
-                        {colorTemperature[0]}K
-                      </span>
+                      <label className="text-sm font-medium">Color Temperature</label>
+                      <span className="text-sm text-muted-foreground">{colorTemperature[0]}K</span>
                     </div>
-                    <Slider
-                      value={colorTemperature}
-                      onValueChange={setColorTemperature}
-                      min={1000}
-                      max={10000}
-                      step={100}
-                      className="w-full"
-                    />
+                    <Slider value={colorTemperature} onValueChange={setColorTemperature} min={1000} max={10000} step={100} className="w-full" />
                   </div>
                   <div className="space-y-2">
                     <div className="flex items-center justify-between">
                       <label className="text-sm font-medium">Brightness</label>
-                      <span className="text-sm text-muted-foreground">
-                        {brightness[0]} / 254
-                      </span>
+                      <span className="text-sm text-muted-foreground">{brightness[0]} / 254</span>
                     </div>
-                    <Slider
-                      value={brightness}
-                      onValueChange={setBrightness}
-                      max={254}
-                      step={1}
-                      className="w-full"
-                    />
+                    <Slider value={brightness} onValueChange={setBrightness} max={254} step={1} className="w-full" />
                   </div>
                 </div>
               )}
@@ -137,54 +94,38 @@ export const TriggerDeviceButton = memo(function TriggerDeviceButton({
               {colorFeature === 3 && (
                 <div className="space-y-3">
                   <div className="space-y-2">
-                    <RgbColorPicker
-                      color={rgbColor}
-                      onChange={setRgbColor}
-                      className="w-auto!"
-                    />
+                    <RgbColorPicker color={rgbColor} onChange={setRgbColor} className="w-auto!" />
                     <div className="grid grid-cols-3 gap-2 mt-2">
                       <div className="space-y-1">
-                        <label className="text-xs text-muted-foreground flex justify-center">
-                          Red
-                        </label>
+                        <label className="text-xs text-muted-foreground flex justify-center">Red</label>
                         <Input
                           type="number"
                           min="0"
                           max="255"
                           value={rInput}
-                          onChange={(e) =>
-                            handleRgbInputChange("r", e.target.value)
-                          }
+                          onChange={(e) => handleRgbInputChange("r", e.target.value)}
                           className="h-8 text-xs [&::-webkit-inner-spin-button]:appearance-none text-center"
                         />
                       </div>
                       <div className="space-y-1">
-                        <label className="text-xs text-muted-foreground flex justify-center">
-                          Green
-                        </label>
+                        <label className="text-xs text-muted-foreground flex justify-center">Green</label>
                         <Input
                           type="number"
                           min="0"
                           max="255"
                           value={gInput}
-                          onChange={(e) =>
-                            handleRgbInputChange("g", e.target.value)
-                          }
+                          onChange={(e) => handleRgbInputChange("g", e.target.value)}
                           className="h-8 text-xs [&::-webkit-inner-spin-button]:appearance-none text-center"
                         />
                       </div>
                       <div className="space-y-1">
-                        <label className="text-xs text-muted-foreground flex justify-center">
-                          Blue
-                        </label>
+                        <label className="text-xs text-muted-foreground flex justify-center">Blue</label>
                         <Input
                           type="number"
                           min="0"
                           max="255"
                           value={bInput}
-                          onChange={(e) =>
-                            handleRgbInputChange("b", e.target.value)
-                          }
+                          onChange={(e) => handleRgbInputChange("b", e.target.value)}
                           className="h-8 text-xs [&::-webkit-inner-spin-button]:appearance-none text-center"
                         />
                       </div>
@@ -193,17 +134,9 @@ export const TriggerDeviceButton = memo(function TriggerDeviceButton({
                   <div className="space-y-2">
                     <div className="flex items-center justify-between">
                       <label className="text-sm font-medium">Brightness</label>
-                      <span className="text-sm text-muted-foreground">
-                        {brightness[0]} / 254
-                      </span>
+                      <span className="text-sm text-muted-foreground">{brightness[0]} / 254</span>
                     </div>
-                    <Slider
-                      value={brightness}
-                      onValueChange={setBrightness}
-                      max={254}
-                      step={1}
-                      className="w-full"
-                    />
+                    <Slider value={brightness} onValueChange={setBrightness} max={254} step={1} className="w-full" />
                   </div>
                 </div>
               )}
@@ -212,61 +145,43 @@ export const TriggerDeviceButton = memo(function TriggerDeviceButton({
               {colorFeature === 4 && (
                 <div className="space-y-3">
                   <div className="space-y-2">
-                    <RgbColorPicker
-                      color={rgbColor}
-                      onChange={setRgbColor}
-                      className="w-auto!"
-                    />
+                    <RgbColorPicker color={rgbColor} onChange={setRgbColor} className="w-auto!" />
                     <div className="grid grid-cols-4 gap-2 mt-2">
                       <div className="space-y-1">
-                        <label className="text-xs text-muted-foreground flex justify-center">
-                          R
-                        </label>
+                        <label className="text-xs text-muted-foreground flex justify-center">R</label>
                         <Input
                           type="number"
                           min="0"
                           max="255"
                           value={rInput}
-                          onChange={(e) =>
-                            handleRgbInputChange("r", e.target.value)
-                          }
+                          onChange={(e) => handleRgbInputChange("r", e.target.value)}
                           className="h-8 text-xs [&::-webkit-inner-spin-button]:appearance-none text-center"
                         />
                       </div>
                       <div className="space-y-1">
-                        <label className="text-xs text-muted-foreground flex justify-center">
-                          G
-                        </label>
+                        <label className="text-xs text-muted-foreground flex justify-center">G</label>
                         <Input
                           type="number"
                           min="0"
                           max="255"
                           value={gInput}
-                          onChange={(e) =>
-                            handleRgbInputChange("g", e.target.value)
-                          }
+                          onChange={(e) => handleRgbInputChange("g", e.target.value)}
                           className="h-8 text-xs [&::-webkit-inner-spin-button]:appearance-none text-center"
                         />
                       </div>
                       <div className="space-y-1">
-                        <label className="text-xs text-muted-foreground flex justify-center">
-                          B
-                        </label>
+                        <label className="text-xs text-muted-foreground flex justify-center">B</label>
                         <Input
                           type="number"
                           min="0"
                           max="255"
                           value={bInput}
-                          onChange={(e) =>
-                            handleRgbInputChange("b", e.target.value)
-                          }
+                          onChange={(e) => handleRgbInputChange("b", e.target.value)}
                           className="h-8 text-xs [&::-webkit-inner-spin-button]:appearance-none text-center"
                         />
                       </div>
                       <div className="space-y-1">
-                        <label className="text-xs text-muted-foreground flex justify-center">
-                          W
-                        </label>
+                        <label className="text-xs text-muted-foreground flex justify-center">W</label>
                         <Input
                           type="number"
                           min="0"
@@ -281,17 +196,9 @@ export const TriggerDeviceButton = memo(function TriggerDeviceButton({
                   <div className="space-y-2">
                     <div className="flex items-center justify-between">
                       <label className="text-sm font-medium">Brightness</label>
-                      <span className="text-sm text-muted-foreground">
-                        {brightness[0]} / 254
-                      </span>
+                      <span className="text-sm text-muted-foreground">{brightness[0]} / 254</span>
                     </div>
-                    <Slider
-                      value={brightness}
-                      onValueChange={setBrightness}
-                      max={254}
-                      step={1}
-                      className="w-full"
-                    />
+                    <Slider value={brightness} onValueChange={setBrightness} max={254} step={1} className="w-full" />
                   </div>
                 </div>
               )}
@@ -306,26 +213,16 @@ export const TriggerDeviceButton = memo(function TriggerDeviceButton({
 /**
  * Trigger button for DALI groups - shows popover with brightness slider
  */
-export const TriggerGroupButton = memo(function TriggerGroupButton({
-  groupId,
-  disabled,
-}) {
-  const { level, open, setOpen, handleLevelChange, selectedGateway } =
-    useTrigger({
-      type: "group",
-      id: groupId,
-    });
+export const TriggerGroupButton = memo(function TriggerGroupButton({ groupId, disabled }) {
+  const { level, open, setOpen, handleLevelChange, selectedGateway } = useTrigger({
+    type: "group",
+    id: groupId,
+  });
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
-        <Button
-          variant="ghost"
-          size="icon"
-          className="h-8 w-8"
-          disabled={disabled || !selectedGateway}
-          onClick={(e) => e.stopPropagation()}
-        >
+        <Button variant="ghost" size="icon" className="h-8 w-8" disabled={disabled || !selectedGateway} onClick={(e) => e.stopPropagation()}>
           <Lightbulb className="h-4 w-4" />
         </Button>
       </PopoverTrigger>
@@ -334,17 +231,9 @@ export const TriggerGroupButton = memo(function TriggerGroupButton({
           <div className="space-y-2">
             <div className="flex items-center justify-between">
               <label className="text-sm font-medium">Brightness</label>
-              <span className="text-sm text-muted-foreground">
-                {level[0]} / 255
-              </span>
+              <span className="text-sm text-muted-foreground">{level[0]} / 255</span>
             </div>
-            <Slider
-              value={level}
-              onValueChange={handleLevelChange}
-              max={255}
-              step={1}
-              className="w-full"
-            />
+            <Slider value={level} onValueChange={handleLevelChange} max={255} step={1} className="w-full" />
           </div>
         </div>
       </PopoverContent>
@@ -355,23 +244,14 @@ export const TriggerGroupButton = memo(function TriggerGroupButton({
 /**
  * Trigger button for DALI scenes - simple button without slider
  */
-export const TriggerSceneButton = memo(function TriggerSceneButton({
-  sceneId,
-  disabled,
-}) {
+export const TriggerSceneButton = memo(function TriggerSceneButton({ sceneId, disabled }) {
   const { handleTriggerScene, selectedGateway } = useTrigger({
     type: "scene",
     id: sceneId,
   });
 
   return (
-    <Button
-      variant="ghost"
-      size="icon"
-      className="h-8 w-8"
-      disabled={disabled || !selectedGateway}
-      onClick={handleTriggerScene}
-    >
+    <Button variant="ghost" size="icon" className="h-8 w-8" disabled={disabled || !selectedGateway} onClick={handleTriggerScene}>
       <Play className="h-4 w-4" />
     </Button>
   );

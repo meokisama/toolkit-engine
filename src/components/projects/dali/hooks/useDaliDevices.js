@@ -27,15 +27,11 @@ export function useDaliDevices(selectedProject, isActive) {
     const loadDevices = async () => {
       try {
         setLoading(true);
-        const dbDevices = await window.electronAPI.dali.getAllDaliDevices(
-          selectedProject.id
-        );
+        const dbDevices = await window.electronAPI.dali.getAllDaliDevices(selectedProject.id);
 
         setDevices((prev) =>
           prev.map((device) => {
-            const dbDevice = dbDevices.find(
-              (d) => d.address === device.address
-            );
+            const dbDevice = dbDevices.find((d) => d.address === device.address);
             if (dbDevice && dbDevice.mapped_device_name) {
               return {
                 ...device,

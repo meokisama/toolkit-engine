@@ -4,40 +4,21 @@ function createOptimalSocket(targetIp) {
   const dgram = require("dgram");
   const client = dgram.createSocket("udp4");
 
-  console.log(
-    `Creating UDP socket for target ${targetIp} with default binding`
-  );
+  console.log(`Creating UDP socket for target ${targetIp} with default binding`);
 
   return { client, interface: null };
 }
 
-async function sendCommand(
-  unitIp,
-  port,
-  idAddress,
-  cmd1,
-  cmd2,
-  data = [],
-  skipStatusCheck = false,
-  waitAfterBusy = false,
-  timeoutMs = 5000
-) {
+async function sendCommand(unitIp, port, idAddress, cmd1, cmd2, data = [], skipStatusCheck = false, waitAfterBusy = false, timeoutMs = 5000) {
   return new Promise((resolve, reject) => {
-    const { client, interface: selectedInterface } =
-      createOptimalSocket(unitIp);
+    const { client, interface: selectedInterface } = createOptimalSocket(unitIp);
 
     let busyReceived = false;
     let responseCount = 0;
 
     const timeout = setTimeout(() => {
       client.close();
-      reject(
-        new Error(
-          `Command timeout after ${timeoutMs / 1000}s for ${unitIp}:${port} cmd1=0x${cmd1.toString(
-            16
-          )} cmd2=0x${cmd2.toString(16)}`
-        )
-      );
+      reject(new Error(`Command timeout after ${timeoutMs / 1000}s for ${unitIp}:${port} cmd1=0x${cmd1.toString(16)} cmd2=0x${cmd2.toString(16)}`));
     }, timeoutMs);
 
     client.on("message", (msg, rinfo) => {
@@ -97,11 +78,7 @@ async function sendCommand(
       const packetBuffer = Buffer.from(packetArray);
       const buffer = Buffer.concat([idBuffer, packetBuffer]);
 
-      console.log(
-        `Send to ${unitIp}:${port} - CMD1:${cmd1} CMD2:${cmd2} Data:[${data.join(
-          ","
-        )}]`
-      );
+      console.log(`Send to ${unitIp}:${port} - CMD1:${cmd1} CMD2:${cmd2} Data:[${data.join(",")}]`);
       console.log(
         "Packet:",
         Array.from(buffer)
@@ -139,8 +116,7 @@ async function sendCommandMultipleResponses(
   onPacket = null // Optional callback called for each packet received: (msg, packetLength, dataSection) => void
 ) {
   return new Promise((resolve, reject) => {
-    const { client, interface: selectedInterface } =
-      createOptimalSocket(unitIp);
+    const { client, interface: selectedInterface } = createOptimalSocket(unitIp);
     const responses = [];
     let responseCount = 0;
     let successPacketReceived = false;
@@ -148,9 +124,7 @@ async function sendCommandMultipleResponses(
 
     // Setup keepalive if enabled
     if (keepaliveIntervalMs > 0) {
-      console.log(
-        `Keepalive enabled: sending packet every ${keepaliveIntervalMs}ms to maintain firewall connection tracking`
-      );
+      console.log(`Keepalive enabled: sending packet every ${keepaliveIntervalMs}ms to maintain firewall connection tracking`);
 
       keepaliveInterval = setInterval(() => {
         // Send a minimal dummy packet to keep connection alive
@@ -178,9 +152,7 @@ async function sendCommandMultipleResponses(
 
     const timeout = setTimeout(() => {
       cleanup();
-      console.log(
-        `Timeout: collected ${responseCount} responses, success packet: ${successPacketReceived}`
-      );
+      console.log(`Timeout: collected ${responseCount} responses, success packet: ${successPacketReceived}`);
       resolve({ responses, successPacketReceived });
     }, timeoutMs);
 
@@ -208,15 +180,10 @@ async function sendCommandMultipleResponses(
           onPacket(msg, packetLength, dataSection);
         }
 
-        const isSuccessPacket =
-          packetLength === 5 &&
-          dataSection.length === 1 &&
-          dataSection[0] === 0x00;
+        const isSuccessPacket = packetLength === 5 && dataSection.length === 1 && dataSection[0] === 0x00;
 
         if (isSuccessPacket) {
-          console.log(
-            "Success packet received - all data transmitted successfully"
-          );
+          console.log("Success packet received - all data transmitted successfully");
           successPacketReceived = true;
           clearTimeout(timeout);
           cleanup();
@@ -267,9 +234,7 @@ async function sendCommandMultipleResponses(
       const packetBuffer = Buffer.from(packetArray);
       const buffer = Buffer.concat([idBuffer, packetBuffer]);
 
-      console.log(
-        `Send to ${unitIp}:${port} listening for success packet - CMD1:${cmd1} CMD2:${cmd2}`
-      );
+      console.log(`Send to ${unitIp}:${port} listening for success packet - CMD1:${cmd1} CMD2:${cmd2}`);
       console.log(
         "Packet:",
         Array.from(buffer)

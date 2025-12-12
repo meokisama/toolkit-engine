@@ -8,9 +8,7 @@ export const getGroupTypeFromFunction = (functionValue) => {
 
   // Search through INPUT_TYPES to find which category the function belongs to
   for (const [categoryKey, functions] of Object.entries(INPUT_TYPES)) {
-    const hasFunction = functions.some(
-      (func) => func.value === functionValue
-    );
+    const hasFunction = functions.some((func) => func.value === functionValue);
     if (hasFunction) {
       // Map category keys to project item types
       switch (categoryKey) {

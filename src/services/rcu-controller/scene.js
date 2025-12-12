@@ -60,14 +60,7 @@ async function setupScene(unitIp, canId, sceneConfig) {
     data.push(itemValue);
   }
 
-  return sendCommand(
-    unitIp,
-    UDP_PORT,
-    idAddress,
-    PROTOCOL.GENERAL.CMD1,
-    PROTOCOL.GENERAL.CMD2.SETUP_SCENE,
-    data
-  );
+  return sendCommand(unitIp, UDP_PORT, idAddress, PROTOCOL.GENERAL.CMD1, PROTOCOL.GENERAL.CMD2.SETUP_SCENE, data);
 }
 
 // Get Scene Information function
@@ -94,9 +87,7 @@ async function getSceneInformation(unitIp, canId, sceneIndex) {
 
     const minDataLength = isSendName ? 18 : 3; // Adjust minimum data length based on isSendName
     if (data.length < minDataLength) {
-      throw new Error(
-        `Insufficient scene data: ${data.length} bytes (expected at least ${minDataLength})`
-      );
+      throw new Error(`Insufficient scene data: ${data.length} bytes (expected at least ${minDataLength})`);
     }
 
     // Parse scene information
@@ -120,11 +111,7 @@ async function getSceneInformation(unitIp, canId, sceneIndex) {
     const items = [];
     const itemsStartIndex = offset + 7; // Skip 7 empty bytes
 
-    for (
-      let i = 0;
-      i < itemCount && itemsStartIndex + i * 3 + 2 < data.length;
-      i++
-    ) {
+    for (let i = 0; i < itemCount && itemsStartIndex + i * 3 + 2 < data.length; i++) {
       const itemIndex = itemsStartIndex + i * 3;
       items.push({
         objectValue: data[itemIndex],
@@ -220,9 +207,7 @@ async function getAllScenesInformation(unitIp, canId) {
     };
   }
 
-  throw new Error(
-    "No valid responses received from get all scenes information command"
-  );
+  throw new Error("No valid responses received from get all scenes information command");
 }
 
 // Trigger Scene function
@@ -230,19 +215,7 @@ async function triggerScene(unitIp, canId, sceneAddress) {
   const idAddress = convertCanIdToInt(canId);
   const triggerData = parseInt(sceneAddress);
 
-  return sendCommand(
-    unitIp,
-    UDP_PORT,
-    idAddress,
-    PROTOCOL.GENERAL.CMD1,
-    PROTOCOL.GENERAL.CMD2.TRIGGER_SCENE,
-    [triggerData]
-  );
+  return sendCommand(unitIp, UDP_PORT, idAddress, PROTOCOL.GENERAL.CMD1, PROTOCOL.GENERAL.CMD2.TRIGGER_SCENE, [triggerData]);
 }
 
-export {
-  setupScene,
-  getSceneInformation,
-  getAllScenesInformation,
-  triggerScene,
-};
+export { setupScene, getSceneInformation, getAllScenesInformation, triggerScene };

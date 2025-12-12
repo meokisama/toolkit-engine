@@ -1,21 +1,8 @@
-"use client";
-
 import React, { useState, useEffect } from "react";
 import { Check, ChevronsUpDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-  CommandList,
-} from "@/components/ui/command";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
 
 export function EditableComboboxCell({
@@ -37,10 +24,7 @@ export function EditableComboboxCell({
 
   const handleSelect = (selectedValue) => {
     // Convert string back to number if it's a numeric value
-    const normalizedValue =
-      !isNaN(selectedValue) && selectedValue !== ""
-        ? Number(selectedValue)
-        : selectedValue;
+    const normalizedValue = !isNaN(selectedValue) && selectedValue !== "" ? Number(selectedValue) : selectedValue;
 
     setEditValue(normalizedValue);
     setOpen(false);
@@ -63,11 +47,7 @@ export function EditableComboboxCell({
           variant="outline"
           role="combobox"
           aria-expanded={open}
-          className={cn(
-            "h-10 w-full justify-between text-left font-normal",
-            !editValue && "text-muted-foreground",
-            className
-          )}
+          className={cn("h-10 w-full justify-between text-left font-normal", !editValue && "text-muted-foreground", className)}
         >
           <span className="truncate">{displayText}</span>
           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
@@ -81,26 +61,12 @@ export function EditableComboboxCell({
             <CommandGroup>
               {/* Clear option */}
               <CommandItem value="" onSelect={handleSelect}>
-                <Check
-                  className={cn(
-                    "mr-2 h-4 w-4",
-                    !editValue ? "opacity-100" : "opacity-0"
-                  )}
-                />
+                <Check className={cn("mr-2 h-4 w-4", !editValue ? "opacity-100" : "opacity-0")} />
                 <span className="text-muted-foreground">Clear selection</span>
               </CommandItem>
               {options.map((option) => (
-                <CommandItem
-                  key={option.value}
-                  value={String(option.value)}
-                  onSelect={handleSelect}
-                >
-                  <Check
-                    className={cn(
-                      "mr-2 h-4 w-4",
-                      editValue == option.value ? "opacity-100" : "opacity-0"
-                    )}
-                  />
+                <CommandItem key={option.value} value={String(option.value)} onSelect={handleSelect}>
+                  <Check className={cn("mr-2 h-4 w-4", editValue == option.value ? "opacity-100" : "opacity-0")} />
                   {option.label}
                 </CommandItem>
               ))}

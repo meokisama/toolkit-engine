@@ -5,22 +5,8 @@ import { sortByIpAddress } from "@/utils/ip-utils";
 import { readNetworkUnitConfigurations } from "../utils/config-reader";
 import { DIALOG_TYPES } from "./use-dialog-state";
 
-export function useNetworkUnitHandlers({
-  state,
-  onTransferToDatabase,
-  existingUnits,
-  selectedProject,
-  projectItems,
-  createItem,
-}) {
-  const {
-    setNetworkUnits,
-    setSelectedNetworkUnits,
-    setScanLoading,
-    networkTable,
-    dialogState,
-    createdItemsCache,
-  } = state;
+export function useNetworkUnitHandlers({ state, onTransferToDatabase, existingUnits, selectedProject, projectItems, createItem }) {
+  const { setNetworkUnits, setSelectedNetworkUnits, setScanLoading, networkTable, dialogState, createdItemsCache } = state;
 
   // Network scanning
   const handleScanNetwork = async () => {
@@ -36,9 +22,7 @@ export function useNetworkUnitHandlers({
       setSelectedNetworkUnits([]);
 
       if (sortedUnits.length > 0) {
-        toast.success(
-          `Found ${sortedUnits.length} unit(s) on network (sorted by IP)`
-        );
+        toast.success(`Found ${sortedUnits.length} unit(s) on network (sorted by IP)`);
       } else {
         toast.warning("No units found on network");
       }
@@ -57,9 +41,7 @@ export function useNetworkUnitHandlers({
       return;
     }
 
-    const loadingToast = toast.loading(
-      `Reading configurations from ${state.selectedNetworkUnits.length} selected unit(s)...`
-    );
+    const loadingToast = toast.loading(`Reading configurations from ${state.selectedNetworkUnits.length} selected unit(s)...`);
 
     try {
       const unitsToTransfer = [];
@@ -69,35 +51,21 @@ export function useNetworkUnitHandlers({
         const networkUnit = state.selectedNetworkUnits[i];
 
         // Check if unit already exists in database
-        const existingUnit = existingUnits.find(
-          (unit) =>
-            unit.ip_address === networkUnit.ip_address ||
-            unit.serial_no === networkUnit.serial_no
-        );
+        const existingUnit = existingUnits.find((unit) => unit.ip_address === networkUnit.ip_address || unit.serial_no === networkUnit.serial_no);
 
         if (existingUnit) {
-          toast.warning(
-            `Unit ${networkUnit.type} (${networkUnit.ip_address}) already exists in database`
-          );
+          toast.warning(`Unit ${networkUnit.type} (${networkUnit.ip_address}) already exists in database`);
           continue;
         }
 
         // Update progress
         toast.loading(
-          `Reading configurations from unit ${i + 1}/${
-            state.selectedNetworkUnits.length
-          }: ${networkUnit.type} (${networkUnit.ip_address})...`,
+          `Reading configurations from unit ${i + 1}/${state.selectedNetworkUnits.length}: ${networkUnit.type} (${networkUnit.ip_address})...`,
           { id: loadingToast }
         );
 
         // Read configurations from network unit and create new unit with configs
-        const newUnit = await readNetworkUnitConfigurations(
-          networkUnit,
-          selectedProject,
-          projectItems,
-          createItem,
-          createdItemsCache
-        );
+        const newUnit = await readNetworkUnitConfigurations(networkUnit, selectedProject, projectItems, createItem, createdItemsCache);
         unitsToTransfer.push(newUnit);
 
         // Add delay between units to prevent UDP conflicts
@@ -116,22 +84,13 @@ export function useNetworkUnitHandlers({
           networkTable.resetRowSelection();
         }
 
-        toast.success(
-          `Successfully transferred ${unitsToTransfer.length} unit(s) with configurations to database`,
-          { id: loadingToast }
-        );
+        toast.success(`Successfully transferred ${unitsToTransfer.length} unit(s) with configurations to database`, { id: loadingToast });
       } else {
         toast.dismiss(loadingToast);
       }
     } catch (error) {
-      console.error(
-        "Failed to transfer selected network units to database:",
-        error
-      );
-      toast.error(
-        "Failed to transfer selected units to database: " + error.message,
-        { id: loadingToast }
-      );
+      console.error("Failed to transfer selected network units to database:", error);
+      toast.error("Failed to transfer selected units to database: " + error.message, { id: loadingToast });
     }
   };
 
@@ -141,9 +100,7 @@ export function useNetworkUnitHandlers({
       return;
     }
 
-    const loadingToast = toast.loading(
-      `Reading configurations from all ${state.networkUnits.length} unit(s)...`
-    );
+    const loadingToast = toast.loading(`Reading configurations from all ${state.networkUnits.length} unit(s)...`);
 
     try {
       const unitsToTransfer = [];
@@ -153,35 +110,20 @@ export function useNetworkUnitHandlers({
         const networkUnit = state.networkUnits[i];
 
         // Check if unit already exists in database
-        const existingUnit = existingUnits.find(
-          (unit) =>
-            unit.ip_address === networkUnit.ip_address ||
-            unit.serial_no === networkUnit.serial_no
-        );
+        const existingUnit = existingUnits.find((unit) => unit.ip_address === networkUnit.ip_address || unit.serial_no === networkUnit.serial_no);
 
         if (existingUnit) {
-          toast.warning(
-            `Unit ${networkUnit.type} (${networkUnit.ip_address}) already exists in database`
-          );
+          toast.warning(`Unit ${networkUnit.type} (${networkUnit.ip_address}) already exists in database`);
           continue;
         }
 
         // Update progress
-        toast.loading(
-          `Reading configurations from unit ${i + 1}/${state.networkUnits.length}: ${
-            networkUnit.type
-          } (${networkUnit.ip_address})...`,
-          { id: loadingToast }
-        );
+        toast.loading(`Reading configurations from unit ${i + 1}/${state.networkUnits.length}: ${networkUnit.type} (${networkUnit.ip_address})...`, {
+          id: loadingToast,
+        });
 
         // Read configurations from network unit and create new unit with configs
-        const newUnit = await readNetworkUnitConfigurations(
-          networkUnit,
-          selectedProject,
-          projectItems,
-          createItem,
-          createdItemsCache
-        );
+        const newUnit = await readNetworkUnitConfigurations(networkUnit, selectedProject, projectItems, createItem, createdItemsCache);
         unitsToTransfer.push(newUnit);
 
         // Add delay between units to prevent UDP conflicts
@@ -200,19 +142,13 @@ export function useNetworkUnitHandlers({
           networkTable.resetRowSelection();
         }
 
-        toast.success(
-          `Successfully transferred all ${unitsToTransfer.length} unit(s) with configurations to database`,
-          { id: loadingToast }
-        );
+        toast.success(`Successfully transferred all ${unitsToTransfer.length} unit(s) with configurations to database`, { id: loadingToast });
       } else {
         toast.dismiss(loadingToast);
       }
     } catch (error) {
       console.error("Failed to transfer all network units to database:", error);
-      toast.error(
-        "Failed to transfer all units to database: " + error.message,
-        { id: loadingToast }
-      );
+      toast.error("Failed to transfer all units to database: " + error.message, { id: loadingToast });
     }
   };
 
@@ -220,49 +156,31 @@ export function useNetworkUnitHandlers({
     async (unit) => {
       // Check if unit already exists in database
       const existingUnit = existingUnits.find(
-        (existingUnit) =>
-          existingUnit.ip_address === unit.ip_address ||
-          existingUnit.serial_no === unit.serial_no
+        (existingUnit) => existingUnit.ip_address === unit.ip_address || existingUnit.serial_no === unit.serial_no
       );
 
       if (existingUnit) {
-        toast.warning(
-          `Unit ${unit.type} (${unit.ip_address}) already exists in database`
-        );
+        toast.warning(`Unit ${unit.type} (${unit.ip_address}) already exists in database`);
         return;
       }
 
-      const loadingToast = toast.loading(
-        `Reading configuration from unit ${unit.ip_address}...`
-      );
+      const loadingToast = toast.loading(`Reading configuration from unit ${unit.ip_address}...`);
 
       try {
         // Read configurations from network unit and create new unit with configs
-        const unitToTransfer = await readNetworkUnitConfigurations(
-          unit,
-          selectedProject,
-          projectItems,
-          createItem,
-          createdItemsCache
-        );
+        const unitToTransfer = await readNetworkUnitConfigurations(unit, selectedProject, projectItems, createItem, createdItemsCache);
 
         if (unitToTransfer) {
           toast.loading("Saving unit to database...", { id: loadingToast });
           await onTransferToDatabase([unitToTransfer]);
 
-          toast.success(
-            `Successfully transferred unit ${unit.ip_address} to database`,
-            { id: loadingToast }
-          );
+          toast.success(`Successfully transferred unit ${unit.ip_address} to database`, { id: loadingToast });
         } else {
           toast.dismiss(loadingToast);
         }
       } catch (error) {
         console.error("Failed to transfer unit to database:", error);
-        toast.error(
-          `Failed to transfer unit ${unit.ip_address} to database: ${error.message}`,
-          { id: loadingToast }
-        );
+        toast.error(`Failed to transfer unit ${unit.ip_address} to database: ${error.message}`, { id: loadingToast });
       }
     },
     [onTransferToDatabase, existingUnits, selectedProject, projectItems, createItem, createdItemsCache]
@@ -300,11 +218,7 @@ export function useNetworkUnitHandlers({
 
   const handleGroupControlSubmit = async (params) => {
     try {
-      if (
-        typeof window !== "undefined" &&
-        window.electronAPI &&
-        window.electronAPI.ioController
-      ) {
+      if (typeof window !== "undefined" && window.electronAPI && window.electronAPI.ioController) {
         await window.electronAPI.ioController.setGroupState(params);
       } else {
         // Fallback for development/testing
@@ -322,19 +236,18 @@ export function useNetworkUnitHandlers({
     dialogState.openDialog(DIALOG_TYPES.FIRMWARE_UPDATE, null); // No specific unit
   }, [dialogState]);
 
-  const handleFirmwareUpdateForUnit = useCallback((unit) => {
-    dialogState.openDialog(DIALOG_TYPES.FIRMWARE_UPDATE, unit);
-  }, [dialogState]);
+  const handleFirmwareUpdateForUnit = useCallback(
+    (unit) => {
+      dialogState.openDialog(DIALOG_TYPES.FIRMWARE_UPDATE, unit);
+    },
+    [dialogState]
+  );
 
   const handleFirmwareUpdateComplete = (results) => {
     // Optionally refresh network scan after firmware update
     const successCount = results.filter((r) => r.success).length;
     if (successCount > 0) {
-      toast.success(
-        `Firmware update completed for ${successCount} unit${
-          successCount !== 1 ? "s" : ""
-        }`
-      );
+      toast.success(`Firmware update completed for ${successCount} unit${successCount !== 1 ? "s" : ""}`);
       // Refresh network scan after a delay to allow units to restart
       setTimeout(() => {
         handleScanNetwork();
@@ -347,9 +260,7 @@ export function useNetworkUnitHandlers({
     (_, rowSelection) => {
       if (networkTable && rowSelection && typeof rowSelection === "object") {
         // Get selected rows from the table using rowSelection object
-        const selectedRowIds = Object.keys(rowSelection).filter(
-          (id) => rowSelection[id]
-        );
+        const selectedRowIds = Object.keys(rowSelection).filter((id) => rowSelection[id]);
         const selectedRows = selectedRowIds
           .map((id) => {
             try {
@@ -370,14 +281,20 @@ export function useNetworkUnitHandlers({
   );
 
   // I/O Config handler
-  const handleIOConfig = useCallback((unit) => {
-    dialogState.openDialog(DIALOG_TYPES.IO_CONFIG, unit);
-  }, [dialogState]);
+  const handleIOConfig = useCallback(
+    (unit) => {
+      dialogState.openDialog(DIALOG_TYPES.IO_CONFIG, unit);
+    },
+    [dialogState]
+  );
 
   // Edit unit handler
-  const handleEditUnit = useCallback((unit) => {
-    dialogState.openDialog(DIALOG_TYPES.EDIT, unit);
-  }, [dialogState]);
+  const handleEditUnit = useCallback(
+    (unit) => {
+      dialogState.openDialog(DIALOG_TYPES.EDIT, unit);
+    },
+    [dialogState]
+  );
 
   return {
     handleScanNetwork,

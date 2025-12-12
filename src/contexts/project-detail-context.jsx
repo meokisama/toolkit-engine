@@ -1,10 +1,4 @@
-import React, {
-  createContext,
-  useContext,
-  useState,
-  useCallback,
-  useMemo,
-} from "react";
+import React, { createContext, useContext, useState, useCallback, useMemo } from "react";
 import { toast } from "sonner";
 import { exportImportService } from "@/services/export-import";
 
@@ -17,9 +11,7 @@ const ProjectDetailContext = createContext();
 export function useProjectDetail() {
   const context = useContext(ProjectDetailContext);
   if (!context) {
-    throw new Error(
-      "useProjectDetail must be used within a ProjectDetailProvider"
-    );
+    throw new Error("useProjectDetail must be used within a ProjectDetailProvider");
   }
   return context;
 }
@@ -83,8 +75,7 @@ export function ProjectDetailProvider({ children }) {
       } else {
         // Load specific category items using individual API calls
         // Map tab name to API name
-        const apiName = tabName === "multi_scenes" ? "multiScenes" :
-          tabName === "sequences" ? "sequences" : tabName;
+        const apiName = tabName === "multi_scenes" ? "multiScenes" : tabName === "sequences" ? "sequences" : tabName;
         const items = await window.electronAPI[apiName].getAll(projectId);
         setProjectItems((prev) => ({
           ...prev,
@@ -113,9 +104,7 @@ export function ProjectDetailProvider({ children }) {
       setError(null);
 
       // Use optimized single API call instead of 5 separate calls
-      const projectItems = await window.electronAPI.projects.getAllItems(
-        projectId
-      );
+      const projectItems = await window.electronAPI.projects.getAllItems(projectId);
 
       setProjectItems(projectItems);
 
@@ -129,20 +118,7 @@ export function ProjectDetailProvider({ children }) {
       setAirconCards(cards);
 
       // Mark all tabs as loaded
-      setLoadedTabs(
-        new Set([
-          "lighting",
-          "aircon",
-          "unit",
-          "curtain",
-          "knx",
-          "room",
-          "scene",
-          "schedule",
-          "multi_scenes",
-          "sequences",
-        ])
-      );
+      setLoadedTabs(new Set(["lighting", "aircon", "unit", "curtain", "knx", "room", "scene", "schedule", "multi_scenes", "sequences"]));
     } catch (err) {
       console.error("Failed to load project items:", err);
       const errorMessage = err.message || "Failed to load project items";
@@ -237,17 +213,12 @@ export function ProjectDetailProvider({ children }) {
       try {
         // Map category to API name
         const apiName = category === "multi_scenes" ? "multiScenes" : category;
-        const newItem = await window.electronAPI[apiName].create(
-          selectedProject.id,
-          itemData
-        );
+        const newItem = await window.electronAPI[apiName].create(selectedProject.id, itemData);
         setProjectItems((prev) => ({
           ...prev,
           [category]: [...prev[category], newItem],
         }));
-        toast.success(
-          `${capitalizeFirstLetter(category)} item created successfully`
-        );
+        toast.success(`${capitalizeFirstLetter(category)} item created successfully`);
         return newItem;
       } catch (err) {
         console.error(`Failed to create ${category} item:`, err);
@@ -263,19 +234,12 @@ export function ProjectDetailProvider({ children }) {
     try {
       // Map category to API name
       const apiName = category === "multi_scenes" ? "multiScenes" : category;
-      const updatedItem = await window.electronAPI[apiName].update(
-        id,
-        itemData
-      );
+      const updatedItem = await window.electronAPI[apiName].update(id, itemData);
       setProjectItems((prev) => ({
         ...prev,
-        [category]: prev[category].map((item) =>
-          item.id === id ? updatedItem : item
-        ),
+        [category]: prev[category].map((item) => (item.id === id ? updatedItem : item)),
       }));
-      toast.success(
-        `${capitalizeFirstLetter(category)} item updated successfully`
-      );
+      toast.success(`${capitalizeFirstLetter(category)} item updated successfully`);
       return updatedItem;
     } catch (err) {
       console.error(`Failed to update ${category} item:`, err);
@@ -294,9 +258,7 @@ export function ProjectDetailProvider({ children }) {
         ...prev,
         [category]: prev[category].filter((item) => item.id !== id),
       }));
-      toast.success(
-        `${capitalizeFirstLetter(category)} item deleted successfully`
-      );
+      toast.success(`${capitalizeFirstLetter(category)} item deleted successfully`);
     } catch (err) {
       console.error(`Failed to delete ${category} item:`, err);
       const errorMessage = err.message || `Failed to delete ${category} item`;
@@ -314,9 +276,7 @@ export function ProjectDetailProvider({ children }) {
         ...prev,
         [category]: [...prev[category], duplicatedItem],
       }));
-      toast.success(
-        `${capitalizeFirstLetter(category)} item duplicated successfully`
-      );
+      toast.success(`${capitalizeFirstLetter(category)} item duplicated successfully`);
       return duplicatedItem;
     } catch (err) {
       console.error(`Failed to duplicate ${category} item:`, err);
@@ -336,11 +296,7 @@ export function ProjectDetailProvider({ children }) {
         }
 
         const items = projectItems[category] || [];
-        return await exportImportService.exportItemsToCSV(
-          items,
-          category,
-          selectedProject.name
-        );
+        return await exportImportService.exportItemsToCSV(items, category, selectedProject.name);
       } catch (err) {
         console.error(`Failed to export ${category} items:`, err);
         const errorMessage = err.message || `Failed to export ${category} items`;
@@ -364,9 +320,7 @@ export function ProjectDetailProvider({ children }) {
 
         // Special handling for aircon category - import as cards
         if (category === "aircon") {
-          const cardPromises = items.map((cardData) =>
-            window.electronAPI.aircon.createCard(selectedProject.id, cardData)
-          );
+          const cardPromises = items.map((cardData) => window.electronAPI.aircon.createCard(selectedProject.id, cardData));
           const cardResults = await Promise.all(cardPromises);
           importedItems = cardResults.flat(); // Flatten array of arrays
 
@@ -385,31 +339,23 @@ export function ProjectDetailProvider({ children }) {
           }));
           setAirconCards((prev) => [...prev, ...cards]);
 
-          toast.success(
-            `${items.length} aircon cards (${importedItems.length} items) imported successfully`
-          );
+          toast.success(`${items.length} aircon cards (${importedItems.length} items) imported successfully`);
         } else {
           // Map category to API name
           const apiName = category === "multi_scenes" ? "multiScenes" : category;
-          importedItems = await window.electronAPI[apiName].bulkImport(
-            selectedProject.id,
-            items
-          );
+          importedItems = await window.electronAPI[apiName].bulkImport(selectedProject.id, items);
           setProjectItems((prev) => ({
             ...prev,
             [category]: [...prev[category], ...importedItems],
           }));
 
-          toast.success(
-            `${importedItems.length} ${category} items imported successfully`
-          );
+          toast.success(`${importedItems.length} ${category} items imported successfully`);
         }
 
         return importedItems;
       } catch (err) {
         console.error(`Failed to import ${category} items:`, err);
-        const errorMessage =
-          err.message || `Failed to import ${category} items`;
+        const errorMessage = err.message || `Failed to import ${category} items`;
         toast.error(errorMessage);
         throw err;
       }
@@ -423,10 +369,7 @@ export function ProjectDetailProvider({ children }) {
       if (!selectedProject) return;
 
       try {
-        const newItems = await window.electronAPI.aircon.createCard(
-          selectedProject.id,
-          cardData
-        );
+        const newItems = await window.electronAPI.aircon.createCard(selectedProject.id, cardData);
 
         // Update aircon items (now just one item per card)
         setProjectItems((prev) => ({
@@ -478,10 +421,7 @@ export function ProjectDetailProvider({ children }) {
 
   const duplicateAirconCard = useCallback(async (projectId, address) => {
     try {
-      const duplicatedItems = await window.electronAPI.aircon.duplicateCard(
-        projectId,
-        address
-      );
+      const duplicatedItems = await window.electronAPI.aircon.duplicateCard(projectId, address);
 
       // Update both aircon items and cards
       setProjectItems((prev) => ({
@@ -514,12 +454,8 @@ export function ProjectDetailProvider({ children }) {
 
       try {
         // Find items to update using the original address
-        const originalAddress = originalCard
-          ? originalCard.address
-          : cardData.address;
-        const itemsToUpdate = projectItems.aircon.filter(
-          (item) => item.address === originalAddress
-        );
+        const originalAddress = originalCard ? originalCard.address : cardData.address;
+        const itemsToUpdate = projectItems.aircon.filter((item) => item.address === originalAddress);
 
         console.log("Updating aircon card:", {
           originalAddress,
@@ -542,9 +478,7 @@ export function ProjectDetailProvider({ children }) {
         setProjectItems((prev) => ({
           ...prev,
           aircon: prev.aircon.map((item) => {
-            const updatedItem = updatedItems.find(
-              (updated) => updated.id === item.id
-            );
+            const updatedItem = updatedItems.find((updated) => updated.id === item.id);
             return updatedItem || item;
           }),
         }));
@@ -554,17 +488,17 @@ export function ProjectDetailProvider({ children }) {
           prev.map((card) =>
             card.address === originalAddress
               ? {
-                ...card,
-                address: cardData.address, // Update the address
-                name: cardData.name,
-                description: cardData.description,
-                item: {
-                  ...card.item,
-                  address: cardData.address, // Update the address in item too
+                  ...card,
+                  address: cardData.address, // Update the address
                   name: cardData.name,
                   description: cardData.description,
-                },
-              }
+                  item: {
+                    ...card.item,
+                    address: cardData.address, // Update the address in item too
+                    name: cardData.name,
+                    description: cardData.description,
+                  },
+                }
               : card
           )
         );
@@ -640,9 +574,5 @@ export function ProjectDetailProvider({ children }) {
     ]
   );
 
-  return (
-    <ProjectDetailContext.Provider value={value}>
-      {children}
-    </ProjectDetailContext.Provider>
-  );
+  return <ProjectDetailContext.Provider value={value}>{children}</ProjectDetailContext.Provider>;
 }

@@ -7,69 +7,54 @@ export function registerSequenceHandlers(ipcMain, dbService, rcu) {
   // ==================== RCU Controller - Sequence Operations ====================
 
   // Setup Sequence
-  ipcMain.handle(
-    "rcu:setupSequence",
-    async (event, unitIp, canId, sequenceConfig) => {
-      try {
-        return await rcu.setupSequence(unitIp, canId, sequenceConfig);
-      } catch (error) {
-        console.error("Error setting up sequence:", error);
-        throw error;
-      }
+  ipcMain.handle("rcu:setupSequence", async (event, unitIp, canId, sequenceConfig) => {
+    try {
+      return await rcu.setupSequence(unitIp, canId, sequenceConfig);
+    } catch (error) {
+      console.error("Error setting up sequence:", error);
+      throw error;
     }
-  );
+  });
 
   // Get Sequence Information
-  ipcMain.handle(
-    "rcu:getSequenceInformation",
-    async (event, { unitIp, canId, sequenceIndex }) => {
-      try {
-        return await rcu.getSequenceInformation(unitIp, canId, sequenceIndex);
-      } catch (error) {
-        console.error("Error getting sequence information:", error);
-        throw error;
-      }
+  ipcMain.handle("rcu:getSequenceInformation", async (event, { unitIp, canId, sequenceIndex }) => {
+    try {
+      return await rcu.getSequenceInformation(unitIp, canId, sequenceIndex);
+    } catch (error) {
+      console.error("Error getting sequence information:", error);
+      throw error;
     }
-  );
+  });
 
   // Get All Sequences Information
-  ipcMain.handle(
-    "rcu:getAllSequencesInformation",
-    async (event, { unitIp, canId }) => {
-      try {
-        return await rcu.getAllSequencesInformation(unitIp, canId);
-      } catch (error) {
-        console.error("Error getting all sequences information:", error);
-        throw error;
-      }
+  ipcMain.handle("rcu:getAllSequencesInformation", async (event, { unitIp, canId }) => {
+    try {
+      return await rcu.getAllSequencesInformation(unitIp, canId);
+    } catch (error) {
+      console.error("Error getting all sequences information:", error);
+      throw error;
     }
-  );
+  });
 
   // Trigger Sequence
-  ipcMain.handle(
-    "rcu:triggerSequence",
-    async (event, { unitIp, canId, sequenceAddress }) => {
-      try {
-        return await rcu.triggerSequence(unitIp, canId, sequenceAddress);
-      } catch (error) {
-        console.error("Error triggering sequence:", error);
-        throw error;
-      }
+  ipcMain.handle("rcu:triggerSequence", async (event, { unitIp, canId, sequenceAddress }) => {
+    try {
+      return await rcu.triggerSequence(unitIp, canId, sequenceAddress);
+    } catch (error) {
+      console.error("Error triggering sequence:", error);
+      throw error;
     }
-  );
+  });
 
   // Delete Sequence
-  ipcMain.handle(
-    "rcu:deleteSequence",
-    async (event, unitIp, canId, sequenceIndex) => {
-      try {
-        return await rcu.deleteSequence(unitIp, canId, sequenceIndex);
-      } catch (error) {
-        console.error("Error deleting sequence:", error);
-        throw error;
-      }
+  ipcMain.handle("rcu:deleteSequence", async (event, unitIp, canId, sequenceIndex) => {
+    try {
+      return await rcu.deleteSequence(unitIp, canId, sequenceIndex);
+    } catch (error) {
+      console.error("Error deleting sequence:", error);
+      throw error;
     }
-  );
+  });
 
   // Delete All Sequences
   ipcMain.handle("rcu:deleteAllSequences", async (event, unitIp, canId) => {
@@ -95,11 +80,7 @@ export function registerSequenceHandlers(ipcMain, dbService, rcu) {
 
   ipcMain.handle("sequences:create", async (event, projectId, itemData) => {
     try {
-      return await dbService.createProjectItem(
-        projectId,
-        itemData,
-        "sequences"
-      );
+      return await dbService.createProjectItem(projectId, itemData, "sequences");
     } catch (error) {
       console.error("Error creating sequence item:", error);
       throw error;
@@ -152,49 +133,30 @@ export function registerSequenceHandlers(ipcMain, dbService, rcu) {
     }
   });
 
-  ipcMain.handle(
-    "sequences:addMultiScene",
-    async (event, sequenceId, multiSceneId, multiSceneOrder) => {
-      try {
-        return await dbService.addMultiSceneToSequence(
-          sequenceId,
-          multiSceneId,
-          multiSceneOrder
-        );
-      } catch (error) {
-        console.error("Error adding multi-scene to sequence:", error);
-        throw error;
-      }
+  ipcMain.handle("sequences:addMultiScene", async (event, sequenceId, multiSceneId, multiSceneOrder) => {
+    try {
+      return await dbService.addMultiSceneToSequence(sequenceId, multiSceneId, multiSceneOrder);
+    } catch (error) {
+      console.error("Error adding multi-scene to sequence:", error);
+      throw error;
     }
-  );
+  });
 
-  ipcMain.handle(
-    "sequences:removeMultiScene",
-    async (event, sequenceId, multiSceneId) => {
-      try {
-        return await dbService.removeMultiSceneFromSequence(
-          sequenceId,
-          multiSceneId
-        );
-      } catch (error) {
-        console.error("Error removing multi-scene from sequence:", error);
-        throw error;
-      }
+  ipcMain.handle("sequences:removeMultiScene", async (event, sequenceId, multiSceneId) => {
+    try {
+      return await dbService.removeMultiSceneFromSequence(sequenceId, multiSceneId);
+    } catch (error) {
+      console.error("Error removing multi-scene from sequence:", error);
+      throw error;
     }
-  );
+  });
 
-  ipcMain.handle(
-    "sequences:updateMultiScenes",
-    async (event, sequenceId, multiSceneIds) => {
-      try {
-        return await dbService.updateSequenceMultiScenes(
-          sequenceId,
-          multiSceneIds
-        );
-      } catch (error) {
-        console.error("Error updating sequence multi-scenes:", error);
-        throw error;
-      }
+  ipcMain.handle("sequences:updateMultiScenes", async (event, sequenceId, multiSceneIds) => {
+    try {
+      return await dbService.updateSequenceMultiScenes(sequenceId, multiSceneIds);
+    } catch (error) {
+      console.error("Error updating sequence multi-scenes:", error);
+      throw error;
     }
-  );
+  });
 }

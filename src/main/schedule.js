@@ -98,16 +98,7 @@ export function registerScheduleHandlers(ipcMain, dbService, rcu) {
 
   ipcMain.handle("schedule:send", async (event, params) => {
     try {
-      const {
-        unitIp,
-        canId,
-        scheduleIndex,
-        enabled,
-        weekDays,
-        hour,
-        minute,
-        sceneAddresses,
-      } = params;
+      const { unitIp, canId, scheduleIndex, enabled, weekDays, hour, minute, sceneAddresses } = params;
 
       return await rcu.setupSchedule(unitIp, canId, {
         scheduleIndex,
@@ -126,43 +117,34 @@ export function registerScheduleHandlers(ipcMain, dbService, rcu) {
   // ==================== RCU Controller - Schedule Information ====================
 
   // Get schedule information from RCU device
-  ipcMain.handle(
-    "rcu:getScheduleInformation",
-    async (event, { unitIp, canId, scheduleIndex }) => {
-      try {
-        return await rcu.getScheduleInformation(unitIp, canId, scheduleIndex);
-      } catch (error) {
-        console.error("Error getting schedule information:", error);
-        throw error;
-      }
+  ipcMain.handle("rcu:getScheduleInformation", async (event, { unitIp, canId, scheduleIndex }) => {
+    try {
+      return await rcu.getScheduleInformation(unitIp, canId, scheduleIndex);
+    } catch (error) {
+      console.error("Error getting schedule information:", error);
+      throw error;
     }
-  );
+  });
 
   // Get all schedules information from RCU device
-  ipcMain.handle(
-    "rcu:getAllSchedulesInformation",
-    async (event, { unitIp, canId }) => {
-      try {
-        return await rcu.getAllSchedulesInformation(unitIp, canId);
-      } catch (error) {
-        console.error("Error getting all schedules information:", error);
-        throw error;
-      }
+  ipcMain.handle("rcu:getAllSchedulesInformation", async (event, { unitIp, canId }) => {
+    try {
+      return await rcu.getAllSchedulesInformation(unitIp, canId);
+    } catch (error) {
+      console.error("Error getting all schedules information:", error);
+      throw error;
     }
-  );
+  });
 
   // Delete schedule from RCU device
-  ipcMain.handle(
-    "rcu:deleteSchedule",
-    async (event, { unitIp, canId, scheduleIndex }) => {
-      try {
-        return await rcu.deleteSchedule(unitIp, canId, scheduleIndex);
-      } catch (error) {
-        console.error("Error deleting schedule:", error);
-        throw error;
-      }
+  ipcMain.handle("rcu:deleteSchedule", async (event, { unitIp, canId, scheduleIndex }) => {
+    try {
+      return await rcu.deleteSchedule(unitIp, canId, scheduleIndex);
+    } catch (error) {
+      console.error("Error deleting schedule:", error);
+      throw error;
     }
-  );
+  });
 
   // Delete all schedules from RCU device
   ipcMain.handle("rcu:deleteAllSchedules", async (event, unitIp, canId) => {

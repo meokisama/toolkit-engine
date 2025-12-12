@@ -1,23 +1,10 @@
 import { useState, useEffect } from "react";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { OBJECT_TYPES, CONSTANTS } from "@/constants";
 import { Thermometer, Power, Wind, Settings, Move } from "lucide-react";
 
@@ -27,7 +14,7 @@ const AIRCON_PROPERTIES = [
     label: "Power",
     icon: Power,
     defaultValue: "1",
-    options: CONSTANTS.AIRCON.find(item => item.obj_type === "OBJ_AC_POWER").values.map(item => ({
+    options: CONSTANTS.AIRCON.find((item) => item.obj_type === "OBJ_AC_POWER").values.map((item) => ({
       value: item.value.toString(),
       label: item.label,
     })),
@@ -37,7 +24,7 @@ const AIRCON_PROPERTIES = [
     label: "Mode",
     icon: Settings,
     defaultValue: "0",
-    options: CONSTANTS.AIRCON.find(item => item.obj_type === "OBJ_AC_MODE").values.map(item => ({
+    options: CONSTANTS.AIRCON.find((item) => item.obj_type === "OBJ_AC_MODE").values.map((item) => ({
       value: item.value.toString(),
       label: item.label,
     })),
@@ -47,7 +34,7 @@ const AIRCON_PROPERTIES = [
     label: "Fan Speed",
     icon: Wind,
     defaultValue: "0",
-    options: CONSTANTS.AIRCON.find(item => item.obj_type === "OBJ_AC_FAN_SPEED").values.map(item => ({
+    options: CONSTANTS.AIRCON.find((item) => item.obj_type === "OBJ_AC_FAN_SPEED").values.map((item) => ({
       value: item.value.toString(),
       label: item.label,
     })),
@@ -64,7 +51,7 @@ const AIRCON_PROPERTIES = [
     label: "Swing",
     icon: Move,
     defaultValue: "0",
-    options: CONSTANTS.AIRCON.find(item => item.obj_type === "OBJ_AC_SWING").values.map(item => ({
+    options: CONSTANTS.AIRCON.find((item) => item.obj_type === "OBJ_AC_SWING").values.map((item) => ({
       value: item.value.toString(),
       label: item.label,
     })),
@@ -93,10 +80,7 @@ export function AirconPropertiesDialog({
 
       airconGroup.items.forEach((item) => {
         selected[item.object_type] = true;
-        values[item.object_type] =
-          item.item_value ||
-          AIRCON_PROPERTIES.find((p) => p.objectType === item.object_type)
-            ?.defaultValue;
+        values[item.object_type] = item.item_value || AIRCON_PROPERTIES.find((p) => p.objectType === item.object_type)?.defaultValue;
       });
 
       setSelectedProperties(selected);
@@ -116,9 +100,7 @@ export function AirconPropertiesDialog({
 
     // Set default value when property is selected
     if (checked) {
-      const property = AIRCON_PROPERTIES.find(
-        (p) => p.objectType === objectType
-      );
+      const property = AIRCON_PROPERTIES.find((p) => p.objectType === objectType);
       if (property && !propertyValues[objectType]) {
         setPropertyValues((prev) => ({
           ...prev,
@@ -140,10 +122,7 @@ export function AirconPropertiesDialog({
       .filter(([_, selected]) => selected)
       .map(([objectType]) => ({
         objectType,
-        value:
-          propertyValues[objectType] ||
-          AIRCON_PROPERTIES.find((p) => p.objectType === objectType)
-            ?.defaultValue,
+        value: propertyValues[objectType] || AIRCON_PROPERTIES.find((p) => p.objectType === objectType)?.defaultValue,
       }));
 
     if (selectedPropertiesArray.length > 0) {
@@ -167,9 +146,7 @@ export function AirconPropertiesDialog({
           min="0"
           max="40"
           value={value}
-          onChange={(e) =>
-            handleValueChange(property.objectType, e.target.value)
-          }
+          onChange={(e) => handleValueChange(property.objectType, e.target.value)}
           className="w-32"
           placeholder="25"
         />
@@ -178,12 +155,7 @@ export function AirconPropertiesDialog({
 
     if (property.options) {
       return (
-        <Select
-          value={value}
-          onValueChange={(newValue) =>
-            handleValueChange(property.objectType, newValue)
-          }
-        >
+        <Select value={value} onValueChange={(newValue) => handleValueChange(property.objectType, newValue)}>
           <SelectTrigger className="w-32">
             <SelectValue />
           </SelectTrigger>
@@ -207,15 +179,10 @@ export function AirconPropertiesDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
-          <DialogTitle>
-            {mode === "edit" ? "Edit Aircon Properties" : "Add Aircon to Scene"}
-          </DialogTitle>
+          <DialogTitle>{mode === "edit" ? "Edit Aircon Properties" : "Add Aircon to Scene"}</DialogTitle>
           <DialogDescription>
-            {mode === "edit" ? "Modify" : "Select"} the aircon properties you
-            want to control in this scene for{" "}
-            <strong>
-              {dataSource?.name || `Aircon ${dataSource?.address}`}
-            </strong>
+            {mode === "edit" ? "Modify" : "Select"} the aircon properties you want to control in this scene for{" "}
+            <strong>{dataSource?.name || `Aircon ${dataSource?.address}`}</strong>
           </DialogDescription>
         </DialogHeader>
 
@@ -225,32 +192,20 @@ export function AirconPropertiesDialog({
             const isSelected = selectedProperties[property.objectType];
 
             return (
-              <div
-                key={property.objectType}
-                className="flex items-center justify-between space-x-4 p-3 border rounded-lg"
-              >
+              <div key={property.objectType} className="flex items-center justify-between space-x-4 p-3 border rounded-lg">
                 <div className="flex items-center space-x-3">
                   <Checkbox
                     id={property.objectType}
                     checked={isSelected || false}
-                    onCheckedChange={(checked) =>
-                      handlePropertyToggle(property.objectType, checked)
-                    }
+                    onCheckedChange={(checked) => handlePropertyToggle(property.objectType, checked)}
                   />
                   <Icon className="h-4 w-4 text-muted-foreground" />
-                  <Label
-                    htmlFor={property.objectType}
-                    className="text-sm font-medium cursor-pointer"
-                  >
+                  <Label htmlFor={property.objectType} className="text-sm font-medium cursor-pointer">
                     {property.label}
                   </Label>
                 </div>
 
-                {isSelected && (
-                  <div className="flex items-center space-x-2">
-                    {renderValueInput(property)}
-                  </div>
-                )}
+                {isSelected && <div className="flex items-center space-x-2">{renderValueInput(property)}</div>}
               </div>
             );
           })}

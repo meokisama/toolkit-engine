@@ -65,9 +65,7 @@ function validateHexFile(hexContent, expectedBoardType) {
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i].trim();
     if (line && !line.startsWith(":")) {
-      throw new Error(
-        `Invalid HEX format at line ${i + 1}: must start with ":"`
-      );
+      throw new Error(`Invalid HEX format at line ${i + 1}: must start with ":"`);
     }
   }
 
@@ -83,16 +81,12 @@ function validateHexFile(hexContent, expectedBoardType) {
 
   if (firstLineData.isHeader) {
     // Log detected firmware version
-    console.log(
-      `Firmware version detected: ${firstLineData.version.major}.${firstLineData.version.minor}`
-    );
+    console.log(`Firmware version detected: ${firstLineData.version.major}.${firstLineData.version.minor}`);
 
     // Get unit information from barcode
     const unitInfo = getUnitByBarcode(firstLineData.barcode);
     if (unitInfo) {
-      console.log(
-        `Firmware for unit: ${unitInfo.name} (${firstLineData.barcode})`
-      );
+      console.log(`Firmware for unit: ${unitInfo.name} (${firstLineData.barcode})`);
     } else {
       console.warn(`Unknown unit barcode: ${firstLineData.barcode}`);
     }
@@ -108,12 +102,8 @@ function validateHexFile(hexContent, expectedBoardType) {
         const expectedUnitInfo = getUnitByBarcode(expectedBarcode);
         const actualUnitInfo = getUnitByBarcode(firmwareBarcode);
 
-        const expectedUnitName = expectedUnitInfo
-          ? expectedUnitInfo.name
-          : expectedBarcode;
-        const actualUnitName = actualUnitInfo
-          ? actualUnitInfo.name
-          : firmwareBarcode;
+        const expectedUnitName = expectedUnitInfo ? expectedUnitInfo.name : expectedBarcode;
+        const actualUnitName = actualUnitInfo ? actualUnitInfo.name : firmwareBarcode;
 
         throw new Error(
           `Firmware is not correct for board type: expected ${expectedUnitName} (${expectedBarcode}), got ${actualUnitName} (${firmwareBarcode})`
@@ -121,9 +111,7 @@ function validateHexFile(hexContent, expectedBoardType) {
       }
     }
   } else {
-    console.warn(
-      "First line is not a firmware header, version detection skipped"
-    );
+    console.warn("First line is not a firmware header, version detection skipped");
   }
 
   return hexLines;
@@ -149,10 +137,7 @@ async function sendFirmwarePacket(unitIp, canId, packetData, retryCount = 6) {
         return response;
       }
     } catch (error) {
-      console.warn(
-        `Firmware packet send attempt ${attempt + 1} failed:`,
-        error.message
-      );
+      console.warn(`Firmware packet send attempt ${attempt + 1} failed:`, error.message);
 
       // If this is the last attempt, throw the error
       if (attempt === retryCount - 1) {
@@ -187,19 +172,14 @@ async function requestUnitAfterFirmware(unitIp, canId, maxRetries = 10) {
         if (statusByte >= 10) {
           // Follow RLC original logic: if retryCount < 3 (slave units), wait 8 seconds
           if (retryCount < 3) {
-            console.log(
-              "Slave unit detected, waiting 8 seconds for firmware completion..."
-            );
+            console.log("Slave unit detected, waiting 8 seconds for firmware completion...");
             await new Promise((resolve) => setTimeout(resolve, 8000));
           }
           return true;
         }
       }
     } catch (error) {
-      console.warn(
-        `Unit request attempt ${attempt + 1} failed:`,
-        error.message
-      );
+      console.warn(`Unit request attempt ${attempt + 1} failed:`, error.message);
       retryCount++;
     }
 
@@ -210,13 +190,7 @@ async function requestUnitAfterFirmware(unitIp, canId, maxRetries = 10) {
   return false;
 }
 
-async function updateFirmware(
-  unitIp,
-  canId,
-  hexContent,
-  onProgress,
-  unitType = null
-) {
+async function updateFirmware(unitIp, canId, hexContent, onProgress, unitType = null) {
   try {
     // Validate HEX file
     const hexLines = validateHexFile(hexContent, unitType);
@@ -241,9 +215,7 @@ async function updateFirmware(
 
       processedLines++;
       if (onProgress) {
-        const versionInfo = hexData.isHeader
-          ? `${hexData.version.major}.${hexData.version.minor}`
-          : "unknown";
+        const versionInfo = hexData.isHeader ? `${hexData.version.major}.${hexData.version.minor}` : "unknown";
         onProgress(5, `Sending firmware version ${versionInfo}...`);
       }
     }
@@ -264,10 +236,7 @@ async function updateFirmware(
         const hexData = parseHexLine(line);
 
         // Check if adding this complete line would exceed packet size
-        if (
-          currentPacketData.length + hexData.rawBytes.length >
-          maxPacketSize
-        ) {
+        if (currentPacketData.length + hexData.rawBytes.length > maxPacketSize) {
           // Send current packet if it has data (complete lines only)
           if (currentPacketData.length > 0) {
             await sendFirmwarePacket(unitIp, canId, currentPacketData);
@@ -290,10 +259,7 @@ async function updateFirmware(
         // Update progress
         if (onProgress) {
           const progress = Math.round((processedLines / totalLines) * 90); // Reserve 10% for final steps
-          onProgress(
-            Math.min(progress, 90),
-            `Processing line ${processedLines}/${totalLines}`
-          );
+          onProgress(Math.min(progress, 90), `Processing line ${processedLines}/${totalLines}`);
         }
       } catch (error) {
         throw new Error(`Error processing HEX line ${i + 1}: ${error.message}`);
@@ -322,10 +288,7 @@ async function updateFirmware(
 
     // Give unit time to process firmware (varies by file size)
     // Estimate: ~1-2 seconds per KB of firmware data
-    const estimatedWaitTime = Math.max(
-      5000,
-      Math.min(30000, processedLines * 50)
-    ); // 5-30 seconds
+    const estimatedWaitTime = Math.max(5000, Math.min(30000, processedLines * 50)); // 5-30 seconds
     await new Promise((resolve) => setTimeout(resolve, estimatedWaitTime));
 
     // Step 5: Request unit to verify firmware update completion
@@ -336,9 +299,7 @@ async function updateFirmware(
     const success = await requestUnitAfterFirmware(unitIp, canId);
 
     if (!success) {
-      throw new Error(
-        "Failed to complete firmware update - unit not responding after update"
-      );
+      throw new Error("Failed to complete firmware update - unit not responding after update");
     }
 
     if (onProgress) {
@@ -355,10 +316,4 @@ async function updateFirmware(
   }
 }
 
-export {
-  parseHexLine,
-  validateHexFile,
-  sendFirmwarePacket,
-  requestUnitAfterFirmware,
-  updateFirmware,
-};
+export { parseHexLine, validateHexFile, sendFirmwarePacket, requestUnitAfterFirmware, updateFirmware };

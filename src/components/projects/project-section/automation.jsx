@@ -34,21 +34,10 @@ const scenesSchedulesTabConfig = {
 };
 
 export function ScenesSchedules() {
-  const {
-    selectedProject,
-    activeTab,
-    setActiveTab,
-    projectItems,
-    loading,
-    tabLoading,
-    loadedTabs,
-  } = useProjectDetail();
+  const { selectedProject, activeTab, setActiveTab, projectItems, loading, tabLoading, loadedTabs } = useProjectDetail();
 
   // Memoize tab entries to prevent recreating on every render
-  const tabEntries = useMemo(
-    () => Object.entries(scenesSchedulesTabConfig),
-    []
-  );
+  const tabEntries = useMemo(() => Object.entries(scenesSchedulesTabConfig), []);
 
   // Calculate item counts for each tab
   const itemCounts = useMemo(() => {
@@ -65,9 +54,7 @@ export function ScenesSchedules() {
       <div className="flex flex-1 items-center justify-center">
         <Card>
           <CardContent className="pt-6">
-            <div className="text-center text-muted-foreground">
-              Select a project to view scenes and schedules
-            </div>
+            <div className="text-center text-muted-foreground">Select a project to view scenes and schedules</div>
           </CardContent>
         </Card>
       </div>
@@ -82,26 +69,17 @@ export function ScenesSchedules() {
             const Icon = config.icon;
             const itemCount = itemCounts[key];
             return (
-              <TabsTrigger
-                key={key}
-                value={key}
-                className="flex items-center justify-center gap-3 cursor-pointer"
-              >
+              <TabsTrigger key={key} value={key} className="flex items-center justify-center gap-3 cursor-pointer">
                 <Icon className="h-4 w-4" />
                 <span className="hidden sm:inline">{config.label}</span>
-                {itemCount > 0 && (
-                  <span className="bg-amber-200 border border-amber-300 rounded-full px-1.5">
-                    {itemCount}
-                  </span>
-                )}
+                {itemCount > 0 && <span className="bg-amber-200 border border-amber-300 rounded-full px-1.5">{itemCount}</span>}
               </TabsTrigger>
             );
           })}
         </TabsList>
         {tabEntries.map(([key]) => {
           // Check if this tab is currently loading
-          const isTabLoading =
-            tabLoading[key] || (!loadedTabs.has(key) && activeTab === key);
+          const isTabLoading = tabLoading[key] || (!loadedTabs.has(key) && activeTab === key);
 
           return (
             <TabsContent key={key} value={key} className="flex-1 mt-2">
@@ -110,18 +88,10 @@ export function ScenesSchedules() {
               ) : (
                 <Card className="h-full">
                   <CardContent className="h-full">
-                    {key === "scene" && (
-                      <SceneTable items={projectItems.scene} />
-                    )}
-                    {key === "multi_scenes" && (
-                      <MultiSceneTable items={projectItems.multi_scenes} />
-                    )}
-                    {key === "sequences" && (
-                      <SequenceTable items={projectItems.sequences} />
-                    )}
-                    {key === "schedule" && (
-                      <ScheduleTable items={projectItems.schedule} />
-                    )}
+                    {key === "scene" && <SceneTable items={projectItems.scene} />}
+                    {key === "multi_scenes" && <MultiSceneTable items={projectItems.multi_scenes} />}
+                    {key === "sequences" && <SequenceTable items={projectItems.sequences} />}
+                    {key === "schedule" && <ScheduleTable items={projectItems.schedule} />}
                   </CardContent>
                 </Card>
               )}

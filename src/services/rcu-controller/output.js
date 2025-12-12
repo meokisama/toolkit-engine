@@ -18,7 +18,7 @@ async function getOutputAssign(unitIp, canId) {
   );
 
   // Add delay after GET command to prevent auto refresh conflicts
-  await new Promise(resolve => setTimeout(resolve, 300));
+  await new Promise((resolve) => setTimeout(resolve, 300));
 
   if (response?.result?.success && response.result.data) {
     const data = response.result.data;
@@ -84,21 +84,11 @@ async function setOutputAssign(unitIp, canId, outputIndex, lightingAddress) {
   }
 
   // Prepare data: 2 bytes per assignment (only index and address)
-  const data = [
-    outputIndex,
-    lightingAddress
-  ];
+  const data = [outputIndex, lightingAddress];
 
-  const result = await sendCommand(
-    unitIp,
-    UDP_PORT,
-    idAddress,
-    PROTOCOL.LIGHTING.CMD1,
-    PROTOCOL.LIGHTING.CMD2.SET_OUTPUT_ASSIGN,
-    data
-  );
+  const result = await sendCommand(unitIp, UDP_PORT, idAddress, PROTOCOL.LIGHTING.CMD1, PROTOCOL.LIGHTING.CMD2.SET_OUTPUT_ASSIGN, data);
 
-  await new Promise(resolve => setTimeout(resolve, 500));
+  await new Promise((resolve) => setTimeout(resolve, 500));
 
   return result;
 }
@@ -134,18 +124,11 @@ async function setAllOutputAssignments(unitIp, canId, outputAssignments) {
     data.push(lightingAddress); // Lighting address
   }
 
-  console.log(`Sending bulk assignment data: [${data.join(',')}]`);
+  console.log(`Sending bulk assignment data: [${data.join(",")}]`);
 
-  const result = await sendCommand(
-    unitIp,
-    UDP_PORT,
-    idAddress,
-    PROTOCOL.LIGHTING.CMD1,
-    PROTOCOL.LIGHTING.CMD2.SET_OUTPUT_ASSIGN,
-    data
-  );
+  const result = await sendCommand(unitIp, UDP_PORT, idAddress, PROTOCOL.LIGHTING.CMD1, PROTOCOL.LIGHTING.CMD2.SET_OUTPUT_ASSIGN, data);
 
-  await new Promise(resolve => setTimeout(resolve, 500));
+  await new Promise((resolve) => setTimeout(resolve, 500));
 
   console.log(`Bulk output assignment command completed for ${outputAssignments.length} outputs`);
   return result;
@@ -168,20 +151,13 @@ async function setOutputDelayOff(unitIp, canId, outputIndex, delayOff) {
   // Prepare data: 3 bytes (index + 2 bytes delay time)
   const data = [
     outputIndex,
-    delayOff & 0xFF,        // Low byte of delay off
-    (delayOff >> 8) & 0xFF  // High byte of delay off
+    delayOff & 0xff, // Low byte of delay off
+    (delayOff >> 8) & 0xff, // High byte of delay off
   ];
 
-  const result = await sendCommand(
-    unitIp,
-    UDP_PORT,
-    idAddress,
-    PROTOCOL.LIGHTING.CMD1,
-    PROTOCOL.LIGHTING.CMD2.SET_OUTPUT_DELAY_OFF,
-    data
-  );
+  const result = await sendCommand(unitIp, UDP_PORT, idAddress, PROTOCOL.LIGHTING.CMD1, PROTOCOL.LIGHTING.CMD2.SET_OUTPUT_DELAY_OFF, data);
 
-  await new Promise(resolve => setTimeout(resolve, 500));
+  await new Promise((resolve) => setTimeout(resolve, 500));
 
   return result;
 }
@@ -203,20 +179,13 @@ async function setOutputDelayOn(unitIp, canId, outputIndex, delayOn) {
   // Prepare data: 3 bytes (index + 2 bytes delay time)
   const data = [
     outputIndex,
-    delayOn & 0xFF,         // Low byte of delay on
-    (delayOn >> 8) & 0xFF   // High byte of delay on
+    delayOn & 0xff, // Low byte of delay on
+    (delayOn >> 8) & 0xff, // High byte of delay on
   ];
 
-  const result = await sendCommand(
-    unitIp,
-    UDP_PORT,
-    idAddress,
-    PROTOCOL.LIGHTING.CMD1,
-    PROTOCOL.LIGHTING.CMD2.SET_OUTPUT_DELAY_ON,
-    data
-  );
+  const result = await sendCommand(unitIp, UDP_PORT, idAddress, PROTOCOL.LIGHTING.CMD1, PROTOCOL.LIGHTING.CMD2.SET_OUTPUT_DELAY_ON, data);
 
-  await new Promise(resolve => setTimeout(resolve, 500));
+  await new Promise((resolve) => setTimeout(resolve, 500));
 
   return result;
 }
@@ -236,7 +205,7 @@ async function getOutputConfig(unitIp, canId) {
   );
 
   // Add delay after GET command to prevent auto refresh conflicts
-  await new Promise(resolve => setTimeout(resolve, 300));
+  await new Promise((resolve) => setTimeout(resolve, 300));
 
   if (response?.result?.success && response.result.data) {
     const data = response.result.data;
@@ -284,8 +253,8 @@ async function getOutputConfig(unitIp, canId) {
         scheduleOffMinute: scheduleOffMinute,
         // Additional computed properties
         isAutoTriggerEnabled: autoTriggerFlag > 0,
-        scheduleOnTime: `${scheduleOnHour.toString().padStart(2, '0')}:${scheduleOnMinute.toString().padStart(2, '0')}`,
-        scheduleOffTime: `${scheduleOffHour.toString().padStart(2, '0')}:${scheduleOffMinute.toString().padStart(2, '0')}`,
+        scheduleOnTime: `${scheduleOnHour.toString().padStart(2, "0")}:${scheduleOnMinute.toString().padStart(2, "0")}`,
+        scheduleOffTime: `${scheduleOffHour.toString().padStart(2, "0")}:${scheduleOffMinute.toString().padStart(2, "0")}`,
       });
     }
 
@@ -310,15 +279,7 @@ async function setOutputConfig(unitIp, canId, outputIndex, config) {
     throw new Error("Output index must be between 0 and 255");
   }
 
-  const {
-    minDimmingLevel,
-    maxDimmingLevel,
-    autoTriggerFlag,
-    scheduleOnHour,
-    scheduleOnMinute,
-    scheduleOffHour,
-    scheduleOffMinute
-  } = config;
+  const { minDimmingLevel, maxDimmingLevel, autoTriggerFlag, scheduleOnHour, scheduleOnMinute, scheduleOffHour, scheduleOffMinute } = config;
 
   // Validate dimming levels
   if (minDimmingLevel < 0 || minDimmingLevel > 255) {
@@ -351,28 +312,12 @@ async function setOutputConfig(unitIp, canId, outputIndex, config) {
   }
 
   // Prepare data: 8 bytes
-  const data = [
-    outputIndex,
-    minDimmingLevel,
-    maxDimmingLevel,
-    autoTriggerFlag,
-    scheduleOnHour,
-    scheduleOnMinute,
-    scheduleOffHour,
-    scheduleOffMinute
-  ];
+  const data = [outputIndex, minDimmingLevel, maxDimmingLevel, autoTriggerFlag, scheduleOnHour, scheduleOnMinute, scheduleOffHour, scheduleOffMinute];
 
-  const result = await sendCommand(
-    unitIp,
-    UDP_PORT,
-    idAddress,
-    PROTOCOL.LIGHTING.CMD1,
-    PROTOCOL.LIGHTING.CMD2.SET_OUTPUT_CONFIG,
-    data
-  );
+  const result = await sendCommand(unitIp, UDP_PORT, idAddress, PROTOCOL.LIGHTING.CMD1, PROTOCOL.LIGHTING.CMD2.SET_OUTPUT_CONFIG, data);
 
   // Add delay after SET command to allow unit to process
-  await new Promise(resolve => setTimeout(resolve, 500));
+  await new Promise((resolve) => setTimeout(resolve, 500));
 
   console.log(`Output config command completed for output ${outputIndex}`);
   return result;
@@ -412,19 +357,12 @@ async function setBatchOutputDelayOff(unitIp, canId, delayOffConfigs, maxBytes =
     // Build data: [index1, delayOff1_low, delayOff1_high, index2, delayOff2_low, delayOff2_high, ...]
     for (const config of batch) {
       data.push(config.outputIndex);
-      data.push(config.delayOff & 0xFF); // Low byte
-      data.push((config.delayOff >> 8) & 0xFF); // High byte
+      data.push(config.delayOff & 0xff); // Low byte
+      data.push((config.delayOff >> 8) & 0xff); // High byte
     }
 
     try {
-      await sendCommand(
-        unitIp,
-        UDP_PORT,
-        idAddress,
-        PROTOCOL.LIGHTING.CMD1,
-        PROTOCOL.LIGHTING.CMD2.SET_OUTPUT_DELAY_OFF,
-        data
-      );
+      await sendCommand(unitIp, UDP_PORT, idAddress, PROTOCOL.LIGHTING.CMD1, PROTOCOL.LIGHTING.CMD2.SET_OUTPUT_DELAY_OFF, data);
 
       successCount += batch.length;
       console.log(`Batch ${batchIndex + 1}/${batches.length}: Sent ${batch.length} delay off config(s) successfully`);
@@ -483,19 +421,12 @@ async function setBatchOutputDelayOn(unitIp, canId, delayOnConfigs, maxBytes = 9
     // Build data: [index1, delayOn1_low, delayOn1_high, index2, delayOn2_low, delayOn2_high, ...]
     for (const config of batch) {
       data.push(config.outputIndex);
-      data.push(config.delayOn & 0xFF); // Low byte
-      data.push((config.delayOn >> 8) & 0xFF); // High byte
+      data.push(config.delayOn & 0xff); // Low byte
+      data.push((config.delayOn >> 8) & 0xff); // High byte
     }
 
     try {
-      await sendCommand(
-        unitIp,
-        UDP_PORT,
-        idAddress,
-        PROTOCOL.LIGHTING.CMD1,
-        PROTOCOL.LIGHTING.CMD2.SET_OUTPUT_DELAY_ON,
-        data
-      );
+      await sendCommand(unitIp, UDP_PORT, idAddress, PROTOCOL.LIGHTING.CMD1, PROTOCOL.LIGHTING.CMD2.SET_OUTPUT_DELAY_ON, data);
 
       successCount += batch.length;
       console.log(`Batch ${batchIndex + 1}/${batches.length}: Sent ${batch.length} delay on config(s) successfully`);
@@ -564,14 +495,7 @@ async function setBatchOutputConfigs(unitIp, canId, outputConfigs, maxBytes = 90
     }
 
     try {
-      await sendCommand(
-        unitIp,
-        UDP_PORT,
-        idAddress,
-        PROTOCOL.LIGHTING.CMD1,
-        PROTOCOL.LIGHTING.CMD2.SET_OUTPUT_CONFIG,
-        data
-      );
+      await sendCommand(unitIp, UDP_PORT, idAddress, PROTOCOL.LIGHTING.CMD1, PROTOCOL.LIGHTING.CMD2.SET_OUTPUT_CONFIG, data);
 
       successCount += batch.length;
       console.log(`Batch ${batchIndex + 1}/${batches.length}: Sent ${batch.length} output config(s) successfully (${data.length} bytes)`);

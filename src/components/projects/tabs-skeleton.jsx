@@ -38,10 +38,7 @@ export function TabContentSkeleton() {
 
               {/* Rows */}
               {Array.from({ length: 5 }).map((_, index) => (
-                <div
-                  key={index}
-                  className="flex items-center space-x-4 p-4 border-b"
-                >
+                <div key={index} className="flex items-center space-x-4 p-4 border-b">
                   <Skeleton className="h-4 w-4" /> {/* Checkbox */}
                   <Skeleton className="h-4 w-24" /> {/* Name */}
                   <Skeleton className="h-4 w-20" /> {/* Address */}

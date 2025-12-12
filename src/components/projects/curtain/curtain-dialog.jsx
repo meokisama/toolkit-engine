@@ -1,48 +1,18 @@
 import React, { useState, useEffect, useCallback } from "react";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-  CommandList,
-} from "@/components/ui/command";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Check, ChevronsUpDown } from "lucide-react";
 import { useProjectDetail } from "@/contexts/project-detail-context";
 import { OBJECT_TYPES, CURTAIN_TYPES } from "@/constants";
 import { cn } from "@/lib/utils";
 
 // Helper component for combobox
-function LightingCombobox({
-  value,
-  onValueChange,
-  options,
-  placeholder,
-  className,
-}) {
+function LightingCombobox({ value, onValueChange, options, placeholder, className }) {
   const [open, setOpen] = useState(false);
 
   const selectedOption = options.find((option) => option.value === value);
@@ -55,11 +25,7 @@ function LightingCombobox({
           variant="outline"
           role="combobox"
           aria-expanded={open}
-          className={cn(
-            "w-full justify-between text-left font-normal",
-            !value && "text-muted-foreground",
-            className
-          )}
+          className={cn("w-full justify-between text-left font-normal", !value && "text-muted-foreground", className)}
         >
           <span className="truncate">{displayText}</span>
           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
@@ -79,12 +45,7 @@ function LightingCombobox({
                   setOpen(false);
                 }}
               >
-                <Check
-                  className={cn(
-                    "mr-2 h-4 w-4",
-                    !value ? "opacity-100" : "opacity-0"
-                  )}
-                />
+                <Check className={cn("mr-2 h-4 w-4", !value ? "opacity-100" : "opacity-0")} />
                 <span className="text-muted-foreground">Clear selection</span>
               </CommandItem>
               {options.map((option) => (
@@ -96,12 +57,7 @@ function LightingCombobox({
                     setOpen(false);
                   }}
                 >
-                  <Check
-                    className={cn(
-                      "mr-2 h-4 w-4",
-                      value === option.value ? "opacity-100" : "opacity-0"
-                    )}
-                  />
+                  <Check className={cn("mr-2 h-4 w-4", value === option.value ? "opacity-100" : "opacity-0")} />
                   {option.label}
                 </CommandItem>
               ))}
@@ -113,12 +69,7 @@ function LightingCombobox({
   );
 }
 
-export function CurtainDialog({
-  open,
-  onOpenChange,
-  item = null,
-  mode = "create",
-}) {
+export function CurtainDialog({ open, onOpenChange, item = null, mode = "create" }) {
   const { createItem, updateItem, projectItems } = useProjectDetail();
   const [formData, setFormData] = useState({
     name: "",
@@ -165,9 +116,7 @@ export function CurtainDialog({
   const lightingItems = projectItems.lighting || [];
   const lightingOptions = lightingItems.map((item) => ({
     value: item.id,
-    label: item.name
-      ? `${item.name} (${item.address})`
-      : `Group ${item.address}`,
+    label: item.name ? `${item.name} (${item.address})` : `Group ${item.address}`,
   }));
 
   // Reset form when dialog opens/closes or item changes
@@ -253,8 +202,7 @@ export function CurtainDialog({
 
     // Validate transition_period
     if (formData.transition_period < 0 || formData.transition_period > 65535) {
-      newErrors.transition_period =
-        "Transition period must be between 0 and 65535";
+      newErrors.transition_period = "Transition period must be between 0 and 65535";
     }
 
     // Open, close, and stop groups are all optional for curtain items
@@ -296,9 +244,7 @@ export function CurtainDialog({
     }
   };
 
-  const curtainTypeOptions = CURTAIN_TYPES.filter(
-    (type) => type.value !== 0
-  ).map((type) => ({
+  const curtainTypeOptions = CURTAIN_TYPES.filter((type) => type.value !== 0).map((type) => ({
     value: type.name,
     label: type.label,
   }));
@@ -307,38 +253,21 @@ export function CurtainDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
-          <DialogTitle>
-            {mode === "edit" ? "Edit Curtain Item" : "Create New Curtain Item"}
-          </DialogTitle>
+          <DialogTitle>{mode === "edit" ? "Edit Curtain Item" : "Create New Curtain Item"}</DialogTitle>
           <DialogDescription>
-            {mode === "edit"
-              ? "Update the curtain item details below."
-              : "Add a new curtain item to your project."}
+            {mode === "edit" ? "Update the curtain item details below." : "Add a new curtain item to your project."}
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="w-full">
           <div className="grid gap-6 py-4 w-full">
-            {errors.general && (
-              <div className="text-sm text-red-600 bg-red-50 p-2 rounded">
-                {errors.general}
-              </div>
-            )}
+            {errors.general && <div className="text-sm text-red-600 bg-red-50 p-2 rounded">{errors.general}</div>}
 
             <div className="flex flex-col gap-2">
               <Label htmlFor="name" className="text-right">
                 Name
               </Label>
-              <Input
-                id="name"
-                value={formData.name}
-                onChange={(e) => handleInputChange("name", e.target.value)}
-                placeholder="Enter curtain name"
-              />
-              {errors.name && (
-                <div className="col-span-4 text-sm text-red-600">
-                  {errors.name}
-                </div>
-              )}
+              <Input id="name" value={formData.name} onChange={(e) => handleInputChange("name", e.target.value)} placeholder="Enter curtain name" />
+              {errors.name && <div className="col-span-4 text-sm text-red-600">{errors.name}</div>}
             </div>
 
             <div className="flex gap-2">
@@ -355,23 +284,14 @@ export function CurtainDialog({
                   onChange={(e) => handleInputChange("address", e.target.value)}
                   placeholder="1-255"
                 />
-                {errors.address && (
-                  <div className="col-span-4 text-sm text-red-600">
-                    {errors.address}
-                  </div>
-                )}
+                {errors.address && <div className="col-span-4 text-sm text-red-600">{errors.address}</div>}
               </div>
 
               <div className="flex flex-col gap-2 w-1/2">
                 <Label htmlFor="curtain_type" className="text-right">
                   Type *
                 </Label>
-                <Select
-                  value={formData.curtain_type}
-                  onValueChange={(value) =>
-                    handleInputChange("curtain_type", value)
-                  }
-                >
+                <Select value={formData.curtain_type} onValueChange={(value) => handleInputChange("curtain_type", value)}>
                   <SelectTrigger className="w-full">
                     <SelectValue placeholder="Select curtain type" />
                   </SelectTrigger>
@@ -387,64 +307,36 @@ export function CurtainDialog({
             </div>
 
             <div className="flex gap-2">
-              <div
-                className={`flex flex-col gap-2 ${
-                  hasThreeGroups(formData.curtain_type) ? "w-1/3" : "w-1/2"
-                }`}
-              >
+              <div className={`flex flex-col gap-2 ${hasThreeGroups(formData.curtain_type) ? "w-1/3" : "w-1/2"}`}>
                 <Label htmlFor="open_group_id" className="text-right">
                   Open Group
                 </Label>
                 <div>
                   <LightingCombobox
                     value={formData.open_group_id}
-                    onValueChange={(value) =>
-                      handleInputChange("open_group_id", value)
-                    }
+                    onValueChange={(value) => handleInputChange("open_group_id", value)}
                     options={lightingOptions}
                     placeholder="Select group"
-                    className={`${
-                      hasThreeGroups(formData.curtain_type)
-                        ? "max-w-36"
-                        : "max-w-55"
-                    }`}
+                    className={`${hasThreeGroups(formData.curtain_type) ? "max-w-36" : "max-w-55"}`}
                   />
                 </div>
-                {errors.open_group_id && (
-                  <div className="col-span-4 text-sm text-red-600">
-                    {errors.open_group_id}
-                  </div>
-                )}
+                {errors.open_group_id && <div className="col-span-4 text-sm text-red-600">{errors.open_group_id}</div>}
               </div>
 
-              <div
-                className={`flex flex-col gap-2 ${
-                  hasThreeGroups(formData.curtain_type) ? "w-1/3" : "w-1/2"
-                }`}
-              >
+              <div className={`flex flex-col gap-2 ${hasThreeGroups(formData.curtain_type) ? "w-1/3" : "w-1/2"}`}>
                 <Label htmlFor="close_group_id" className="text-right">
                   Close Group
                 </Label>
                 <div>
                   <LightingCombobox
                     value={formData.close_group_id}
-                    onValueChange={(value) =>
-                      handleInputChange("close_group_id", value)
-                    }
+                    onValueChange={(value) => handleInputChange("close_group_id", value)}
                     options={lightingOptions}
                     placeholder="Select group"
-                    className={`${
-                      hasThreeGroups(formData.curtain_type)
-                        ? "max-w-36"
-                        : "max-w-55"
-                    }`}
+                    className={`${hasThreeGroups(formData.curtain_type) ? "max-w-36" : "max-w-55"}`}
                   />
                 </div>
-                {errors.close_group_id && (
-                  <div className="col-span-4 text-sm text-red-600">
-                    {errors.close_group_id}
-                  </div>
-                )}
+                {errors.close_group_id && <div className="col-span-4 text-sm text-red-600">{errors.close_group_id}</div>}
               </div>
 
               {hasThreeGroups(formData.curtain_type) && (
@@ -455,23 +347,13 @@ export function CurtainDialog({
                   <div>
                     <LightingCombobox
                       value={formData.stop_group_id}
-                      onValueChange={(value) =>
-                        handleInputChange("stop_group_id", value)
-                      }
+                      onValueChange={(value) => handleInputChange("stop_group_id", value)}
                       options={lightingOptions}
                       placeholder="Select group"
-                      className={`${
-                        hasThreeGroups(formData.curtain_type)
-                          ? "max-w-36"
-                          : "max-w-55"
-                      }`}
+                      className={`${hasThreeGroups(formData.curtain_type) ? "max-w-36" : "max-w-55"}`}
                     />
                   </div>
-                  {errors.stop_group_id && (
-                    <div className="col-span-4 text-sm text-red-600">
-                      {errors.stop_group_id}
-                    </div>
-                  )}
+                  {errors.stop_group_id && <div className="col-span-4 text-sm text-red-600">{errors.stop_group_id}</div>}
                 </div>
               )}
             </div>
@@ -487,19 +369,10 @@ export function CurtainDialog({
                   min="0"
                   max="65535"
                   value={formData.pause_period}
-                  onChange={(e) =>
-                    handleInputChange(
-                      "pause_period",
-                      parseInt(e.target.value) || 0
-                    )
-                  }
+                  onChange={(e) => handleInputChange("pause_period", parseInt(e.target.value) || 0)}
                   placeholder="0"
                 />
-                {errors.pause_period && (
-                  <div className="text-sm text-red-600">
-                    {errors.pause_period}
-                  </div>
-                )}
+                {errors.pause_period && <div className="text-sm text-red-600">{errors.pause_period}</div>}
               </div>
 
               <div className="flex flex-col gap-2 w-1/2">
@@ -512,19 +385,10 @@ export function CurtainDialog({
                   min="0"
                   max="65535"
                   value={formData.transition_period}
-                  onChange={(e) =>
-                    handleInputChange(
-                      "transition_period",
-                      parseInt(e.target.value) || 0
-                    )
-                  }
+                  onChange={(e) => handleInputChange("transition_period", parseInt(e.target.value) || 0)}
                   placeholder="0"
                 />
-                {errors.transition_period && (
-                  <div className="text-sm text-red-600">
-                    {errors.transition_period}
-                  </div>
-                )}
+                {errors.transition_period && <div className="text-sm text-red-600">{errors.transition_period}</div>}
               </div>
             </div>
 
@@ -535,20 +399,13 @@ export function CurtainDialog({
               <Input
                 id="description"
                 value={formData.description}
-                onChange={(e) =>
-                  handleInputChange("description", e.target.value)
-                }
+                onChange={(e) => handleInputChange("description", e.target.value)}
                 placeholder="Enter description"
               />
             </div>
           </div>
           <DialogFooter>
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => onOpenChange(false)}
-              disabled={loading}
-            >
+            <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={loading}>
               Cancel
             </Button>
             <Button type="submit" disabled={loading}>

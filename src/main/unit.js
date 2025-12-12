@@ -78,34 +78,23 @@ export function registerUnitHandlers(ipcMain, dbService) {
     }
   });
 
-  ipcMain.handle(
-    "unit:saveOutputConfig",
-    async (event, unitId, outputIndex, outputType, configData) => {
-      try {
-        return await dbService.saveUnitOutputConfig(
-          unitId,
-          outputIndex,
-          outputType,
-          configData
-        );
-      } catch (error) {
-        console.error("Error saving unit output config:", error);
-        throw error;
-      }
+  ipcMain.handle("unit:saveOutputConfig", async (event, unitId, outputIndex, outputType, configData) => {
+    try {
+      return await dbService.saveUnitOutputConfig(unitId, outputIndex, outputType, configData);
+    } catch (error) {
+      console.error("Error saving unit output config:", error);
+      throw error;
     }
-  );
+  });
 
-  ipcMain.handle(
-    "unit:deleteOutputConfig",
-    async (event, unitId, outputIndex) => {
-      try {
-        return await dbService.deleteUnitOutputConfig(unitId, outputIndex);
-      } catch (error) {
-        console.error("Error deleting unit output config:", error);
-        throw error;
-      }
+  ipcMain.handle("unit:deleteOutputConfig", async (event, unitId, outputIndex) => {
+    try {
+      return await dbService.deleteUnitOutputConfig(unitId, outputIndex);
+    } catch (error) {
+      console.error("Error deleting unit output config:", error);
+      throw error;
     }
-  );
+  });
 
   ipcMain.handle("unit:getAllOutputConfigs", async (event, unitId) => {
     try {
@@ -126,44 +115,23 @@ export function registerUnitHandlers(ipcMain, dbService) {
     }
   });
 
-  ipcMain.handle(
-    "unit:saveInputConfig",
-    async (
-      event,
-      unitId,
-      inputIndex,
-      functionValue,
-      lightingId,
-      multiGroupConfig,
-      rlcConfig
-    ) => {
-      try {
-        return await dbService.saveUnitInputConfig(
-          unitId,
-          inputIndex,
-          functionValue,
-          lightingId,
-          multiGroupConfig,
-          rlcConfig
-        );
-      } catch (error) {
-        console.error("Error saving unit input config:", error);
-        throw error;
-      }
+  ipcMain.handle("unit:saveInputConfig", async (event, unitId, inputIndex, functionValue, lightingId, multiGroupConfig, rlcConfig) => {
+    try {
+      return await dbService.saveUnitInputConfig(unitId, inputIndex, functionValue, lightingId, multiGroupConfig, rlcConfig);
+    } catch (error) {
+      console.error("Error saving unit input config:", error);
+      throw error;
     }
-  );
+  });
 
-  ipcMain.handle(
-    "unit:deleteInputConfig",
-    async (event, unitId, inputIndex) => {
-      try {
-        return await dbService.deleteUnitInputConfig(unitId, inputIndex);
-      } catch (error) {
-        console.error("Error deleting unit input config:", error);
-        throw error;
-      }
+  ipcMain.handle("unit:deleteInputConfig", async (event, unitId, inputIndex) => {
+    try {
+      return await dbService.deleteUnitInputConfig(unitId, inputIndex);
+    } catch (error) {
+      console.error("Error deleting unit input config:", error);
+      throw error;
     }
-  );
+  });
 
   ipcMain.handle("unit:getAllInputConfigs", async (event, unitId) => {
     try {

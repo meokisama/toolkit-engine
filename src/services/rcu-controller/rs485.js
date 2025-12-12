@@ -11,9 +11,7 @@ import { sendCommand } from "./command-sender.js";
 async function getRS485CH1Config(unitIp, canId) {
   const idAddress = convertCanIdToInt(canId);
 
-  console.log(
-    `Getting RS485 CH1 config from unit ${unitIp} (CAN ID: ${canId})`
-  );
+  console.log(`Getting RS485 CH1 config from unit ${unitIp} (CAN ID: ${canId})`);
 
   const response = await sendCommand(
     unitIp,
@@ -50,9 +48,7 @@ async function getRS485CH1Config(unitIp, canId) {
 async function getRS485CH2Config(unitIp, canId) {
   const idAddress = convertCanIdToInt(canId);
 
-  console.log(
-    `Getting RS485 CH2 config from unit ${unitIp} (CAN ID: ${canId})`
-  );
+  console.log(`Getting RS485 CH2 config from unit ${unitIp} (CAN ID: ${canId})`);
 
   const response = await sendCommand(
     unitIp,
@@ -95,14 +91,7 @@ async function setRS485CH1Config(unitIp, canId, config) {
   // Build data frame according to the specification
   const data = buildRS485ConfigData(config);
 
-  const response = await sendCommand(
-    unitIp,
-    UDP_PORT,
-    idAddress,
-    PROTOCOL.GENERAL.CMD1,
-    PROTOCOL.GENERAL.CMD2.SET_RS485_CH1_CONFIG,
-    data
-  );
+  const response = await sendCommand(unitIp, UDP_PORT, idAddress, PROTOCOL.GENERAL.CMD1, PROTOCOL.GENERAL.CMD2.SET_RS485_CH1_CONFIG, data);
 
   // Add delay after SET command
   await new Promise((resolve) => setTimeout(resolve, 500));
@@ -129,14 +118,7 @@ async function setRS485CH2Config(unitIp, canId, config) {
   // Build data frame according to the specification
   const data = buildRS485ConfigData(config);
 
-  const response = await sendCommand(
-    unitIp,
-    UDP_PORT,
-    idAddress,
-    PROTOCOL.GENERAL.CMD1,
-    PROTOCOL.GENERAL.CMD2.SET_RS485_CH2_CONFIG,
-    data
-  );
+  const response = await sendCommand(unitIp, UDP_PORT, idAddress, PROTOCOL.GENERAL.CMD1, PROTOCOL.GENERAL.CMD2.SET_RS485_CH2_CONFIG, data);
 
   // Add delay after SET command
   await new Promise((resolve) => setTimeout(resolve, 500));
@@ -256,8 +238,7 @@ function buildRS485ConfigData(config) {
 
     // Byte 18-33: 16 byte for 16 indoors
     for (let j = 0; j < 16; j++) {
-      const indoorGroup =
-        slave.indoorGroups && slave.indoorGroups[j] ? slave.indoorGroups[j] : 0;
+      const indoorGroup = slave.indoorGroups && slave.indoorGroups[j] ? slave.indoorGroups[j] : 0;
       data[slaveOffset + 3 + j] = indoorGroup & 0xff;
     }
   }

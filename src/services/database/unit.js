@@ -168,9 +168,7 @@ export const unitMethods = {
       }
 
       const inputConfigs = unit.input_configs;
-      const inputConfig = inputConfigs.inputs?.find(
-        (input) => input.index === inputIndex
-      );
+      const inputConfig = inputConfigs.inputs?.find((input) => input.index === inputIndex);
 
       if (inputConfig) {
         return {
@@ -197,9 +195,7 @@ export const unitMethods = {
       }
 
       const outputConfigs = unit.output_configs;
-      const outputConfig = outputConfigs.outputs?.find(
-        (output) => output.index === outputIndex
-      );
+      const outputConfig = outputConfigs.outputs?.find((output) => output.index === outputIndex);
 
       if (outputConfig) {
         return {
@@ -216,14 +212,7 @@ export const unitMethods = {
     }
   },
 
-  saveUnitInputConfig(
-    unitId,
-    inputIndex,
-    functionValue,
-    lightingId,
-    multiGroupConfig,
-    rlcConfig
-  ) {
+  saveUnitInputConfig(unitId, inputIndex, functionValue, lightingId, multiGroupConfig, rlcConfig) {
     try {
       const unit = this.getProjectItemById(unitId, "unit");
       if (!unit) {
@@ -234,9 +223,7 @@ export const unitMethods = {
       let inputConfigs = unit.input_configs || { inputs: [] };
 
       // Find existing input config or create new one
-      const existingIndex = inputConfigs.inputs.findIndex(
-        (input) => input.index === inputIndex
-      );
+      const existingIndex = inputConfigs.inputs.findIndex((input) => input.index === inputIndex);
       const inputConfig = {
         index: inputIndex,
         function_value: functionValue || 0,
@@ -278,9 +265,7 @@ export const unitMethods = {
       let outputConfigs = unit.output_configs || { outputs: [] };
 
       // Find existing output config or create new one
-      const existingIndex = outputConfigs.outputs.findIndex(
-        (output) => output.index === outputIndex
-      );
+      const existingIndex = outputConfigs.outputs.findIndex((output) => output.index === outputIndex);
 
       // Remove deviceId, deviceType, and address from config data to avoid duplication
       // For AC outputs, address is equivalent to deviceId and should be stored at output level
@@ -290,8 +275,7 @@ export const unitMethods = {
         index: outputIndex,
         type: outputType,
         device_id: deviceId || null,
-        device_type:
-          deviceType || (outputType === "ac" ? "aircon" : "lighting"),
+        device_type: deviceType || (outputType === "ac" ? "aircon" : "lighting"),
         name: cleanConfigData.name || `${outputType} ${outputIndex + 1}`,
         config: cleanConfigData,
       };
@@ -373,9 +357,7 @@ export const unitMethods = {
       const originalLength = inputConfigs.inputs?.length || 0;
 
       // Remove the input config
-      inputConfigs.inputs = (inputConfigs.inputs || []).filter(
-        (input) => input.index !== inputIndex
-      );
+      inputConfigs.inputs = (inputConfigs.inputs || []).filter((input) => input.index !== inputIndex);
 
       if (inputConfigs.inputs.length < originalLength) {
         // Update unit with new input configs
@@ -403,9 +385,7 @@ export const unitMethods = {
       const originalLength = outputConfigs.outputs?.length || 0;
 
       // Remove the output config
-      outputConfigs.outputs = (outputConfigs.outputs || []).filter(
-        (output) => output.index !== outputIndex
-      );
+      outputConfigs.outputs = (outputConfigs.outputs || []).filter((output) => output.index !== outputIndex);
 
       if (outputConfigs.outputs.length < originalLength) {
         // Update unit with new output configs

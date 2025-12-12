@@ -29,13 +29,7 @@ import { registerDeviceConfigHandlers } from "./device-config.js";
  * @param {Object} loggerService - Logger service instance
  * @param {Object} networkInterfaceService - Network interface service instance
  */
-export function registerAllHandlers(
-  ipcMain,
-  dbService,
-  rcu,
-  loggerService,
-  networkInterfaceService
-) {
+export function registerAllHandlers(ipcMain, dbService, rcu, loggerService, networkInterfaceService) {
   registerProjectHandlers(ipcMain, dbService);
   registerLightingHandlers(ipcMain, dbService);
   registerAirconHandlers(ipcMain, dbService, rcu);

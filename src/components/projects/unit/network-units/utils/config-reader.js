@@ -4,21 +4,13 @@ import { readIOConfigurations } from "./io-config-utils";
 import { autoCreateMissingItems } from "./device-management-utils";
 
 // Function to read all configurations from network unit and prepare for database transfer
-export async function readNetworkUnitConfigurations(
-  networkUnit,
-  selectedProject,
-  projectItems,
-  createItem,
-  createdItemsCache
-) {
+export async function readNetworkUnitConfigurations(networkUnit, selectedProject, projectItems, createItem, createdItemsCache) {
   try {
     // Clear cache for this transfer session
     createdItemsCache.current.aircon.clear();
     createdItemsCache.current.lighting.clear();
 
-    console.log(
-      `Reading configurations from network unit: ${networkUnit.ip_address}`
-    );
+    console.log(`Reading configurations from network unit: ${networkUnit.ip_address}`);
 
     // Start with basic unit data
     const newUnit = {
@@ -45,13 +37,7 @@ export async function readNetworkUnitConfigurations(
     // Read I/O configurations
     try {
       console.log("Reading I/O configurations...");
-      const ioConfigs = await readIOConfigurations(
-        networkUnit,
-        selectedProject,
-        projectItems,
-        createItem,
-        createdItemsCache
-      );
+      const ioConfigs = await readIOConfigurations(networkUnit, selectedProject, projectItems, createItem, createdItemsCache);
       newUnit.input_configs = ioConfigs.input_configs;
       newUnit.output_configs = ioConfigs.output_configs;
 
@@ -63,11 +49,7 @@ export async function readNetworkUnitConfigurations(
       });
 
       // Auto-create missing lighting, aircon, curtain items from outputs and input multi-groups
-      const createdCount = await autoCreateMissingItems(
-        ioConfigs,
-        selectedProject,
-        projectItems
-      );
+      const createdCount = await autoCreateMissingItems(ioConfigs, selectedProject, projectItems);
 
       if (createdCount > 0) {
         toast.success(`Auto-created ${createdCount} lighting group(s)`);
@@ -85,10 +67,7 @@ export async function readNetworkUnitConfigurations(
 
     return newUnit;
   } catch (error) {
-    console.error(
-      `Failed to read configurations from network unit ${networkUnit.ip_address}:`,
-      error
-    );
+    console.error(`Failed to read configurations from network unit ${networkUnit.ip_address}:`, error);
     // Return basic unit data without configurations
     return {
       ...networkUnit,

@@ -37,11 +37,7 @@ export const InputDetailSection = ({
     <>
       {/* Percentage Toggle */}
       <div className="flex items-center space-x-2">
-        <Checkbox
-          id="percentage-toggle"
-          checked={usePercentage}
-          onCheckedChange={onTogglePercentage}
-        />
+        <Checkbox id="percentage-toggle" checked={usePercentage} onCheckedChange={onTogglePercentage} />
         <Label htmlFor="percentage-toggle" className="text-sm font-medium">
           Show percentage (0-100%) instead of raw values (0-255)
         </Label>
@@ -51,16 +47,9 @@ export const InputDetailSection = ({
         {/* Selected Groups - Left Side */}
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-base">
-              Selected Groups ({selectedGroups.length})
-            </CardTitle>
+            <CardTitle className="text-base">Selected Groups ({selectedGroups.length})</CardTitle>
             <div className="flex gap-2">
-              <Button
-                variant="outline"
-                onClick={onAddAllGroups}
-                disabled={availableGroups.length === 0}
-                className="flex items-center gap-1"
-              >
+              <Button variant="outline" onClick={onAddAllGroups} disabled={availableGroups.length === 0} className="flex items-center gap-1">
                 <Copy className="h-3 w-3" />
                 Add All
               </Button>
@@ -82,16 +71,10 @@ export const InputDetailSection = ({
                 <div className="space-y-3 pr-4">
                   {selectedGroups.map((group, index) => {
                     // Find the group item based on current input type
-                    const groupItem = availableItems.find(
-                      (item) => item.id === group.lightingId
-                    );
+                    const groupItem = availableItems.find((item) => item.id === group.lightingId);
 
                     // Create stable key combining multiple properties
-                    const stableKey = `${
-                      group.lightingId ||
-                      "addr-" + group.groupAddress ||
-                      "unknown"
-                    }-${index}`;
+                    const stableKey = `${group.lightingId || "addr-" + group.groupAddress || "unknown"}-${index}`;
 
                     return (
                       <GroupItem
@@ -112,9 +95,7 @@ export const InputDetailSection = ({
                 </div>
               </ScrollArea>
             ) : (
-              <div className="text-center text-muted-foreground py-8">
-                No groups selected
-              </div>
+              <div className="text-center text-muted-foreground py-8">No groups selected</div>
             )}
           </CardContent>
         </Card>
@@ -148,11 +129,7 @@ export const InputDetailSection = ({
                 <Plus className="h-4 w-4" />
               </Button>
             </div>
-            {searchTerm && (
-              <div className="text-xs text-muted-foreground">
-                Searching for: "{searchTerm}"
-              </div>
-            )}
+            {searchTerm && <div className="text-xs text-muted-foreground">Searching for: "{searchTerm}"</div>}
           </CardHeader>
           <CardContent>
             <Separator className="mb-4 -mt-4" />
@@ -160,12 +137,7 @@ export const InputDetailSection = ({
               <ScrollArea className="h-[400px]">
                 <div className="space-y-2 pr-4">
                   {availableGroups.map((item) => (
-                    <AvailableGroupItem
-                      key={item.id}
-                      item={item}
-                      onAddFromAvailable={onAddFromAvailable}
-                      onEditItem={onEditItem}
-                    />
+                    <AvailableGroupItem key={item.id} item={item} onAddFromAvailable={onAddFromAvailable} onEditItem={onEditItem} />
                   ))}
                 </div>
               </ScrollArea>

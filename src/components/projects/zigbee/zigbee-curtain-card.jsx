@@ -1,14 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Blinds, Loader2, Pencil, ChevronUp, ChevronDown } from "lucide-react";
@@ -60,16 +53,11 @@ export function ZigbeeCurtainCard({ device, onRemove }) {
   }, [device]);
 
   // Get device type info
-  const deviceTypeInfo = CONSTANTS.ZIGBEE.DEVICE_TYPE.find(
-    (type) => type.value === device.device_type
-  );
+  const deviceTypeInfo = CONSTANTS.ZIGBEE.DEVICE_TYPE.find((type) => type.value === device.device_type);
 
   // Get number of curtains (1 or 2 gang)
   const numCurtains = device.device_type === 4 ? 1 : 2; // 4: 1-Gang, 5: 2-Gang
-  const deviceName =
-    device.device_name ||
-    deviceTypeInfo?.label ||
-    `Curtain ${numCurtains}-Gang`;
+  const deviceName = device.device_name || deviceTypeInfo?.label || `Curtain ${numCurtains}-Gang`;
 
   // Get endpoints data with local state values
   const endpoints = [];
@@ -98,16 +86,15 @@ export function ZigbeeCurtainCard({ device, onRemove }) {
     setLoadingEndpoints((prev) => ({ ...prev, [key]: true }));
 
     try {
-      const result =
-        await window.electronAPI.zigbeeController.sendZigbeeCommand({
-          unitIp: device.unit_ip,
-          canId: device.unit_can_id,
-          ieeeAddress: device.ieee_address,
-          deviceType: device.device_type,
-          endpointId: endpoint.id,
-          command: command, // 0: Close, 1: Open
-          deviceId: device.id,
-        });
+      const result = await window.electronAPI.zigbeeController.sendZigbeeCommand({
+        unitIp: device.unit_ip,
+        canId: device.unit_can_id,
+        ieeeAddress: device.ieee_address,
+        deviceType: device.device_type,
+        endpointId: endpoint.id,
+        command: command, // 0: Close, 1: Open
+        deviceId: device.id,
+      });
 
       if (result.success) {
         const action = command === 1 ? "opened" : "closed";
@@ -140,8 +127,7 @@ export function ZigbeeCurtainCard({ device, onRemove }) {
   const handleSaveEndpointName = async () => {
     try {
       await window.electronAPI.zigbee.updateDevice(device.id, {
-        [`endpoint${editEndpointIndex}_name`]:
-          editEndpointNameValue.trim() || null,
+        [`endpoint${editEndpointIndex}_name`]: editEndpointNameValue.trim() || null,
       });
 
       setEndpointNames((prev) => ({
@@ -158,13 +144,7 @@ export function ZigbeeCurtainCard({ device, onRemove }) {
   };
 
   return (
-    <ZigbeeDeviceCardWrapper
-      device={device}
-      onRemove={onRemove}
-      icon={Blinds}
-      title={deviceName}
-      showStatus={true}
-    >
+    <ZigbeeDeviceCardWrapper device={device} onRemove={onRemove} icon={Blinds} title={deviceName} showStatus={true}>
       {/* Curtain Controls */}
       <div className="space-y-2.5">
         {endpoints.map((endpoint) => {
@@ -176,28 +156,15 @@ export function ZigbeeCurtainCard({ device, onRemove }) {
             <div
               key={endpoint.id}
               className={`p-3.5 rounded-lg border-2 transition-all duration-200 ${
-                isOpen
-                  ? "bg-blue-500/5 border-blue-500/20"
-                  : "bg-background border-border"
+                isOpen ? "bg-blue-500/5 border-blue-500/20" : "bg-background border-border"
               }`}
             >
               <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center gap-2 flex-1 min-w-0 group">
-                  <div
-                    className={`p-1.5 rounded-lg ${
-                      isOpen ? "bg-blue-500/20" : "bg-muted"
-                    }`}
-                  >
-                    <Blinds
-                      className={`h-4 w-4 ${
-                        isOpen ? "text-blue-600" : "text-muted-foreground"
-                      }`}
-                    />
+                  <div className={`p-1.5 rounded-lg ${isOpen ? "bg-blue-500/20" : "bg-muted"}`}>
+                    <Blinds className={`h-4 w-4 ${isOpen ? "text-blue-600" : "text-muted-foreground"}`} />
                   </div>
-                  <span className="font-medium truncate">
-                    {endpointNames[endpoint.index] ||
-                      `Curtain ${endpoint.index}`}
-                  </span>
+                  <span className="font-medium truncate">{endpointNames[endpoint.index] || `Curtain ${endpoint.index}`}</span>
                   <Button
                     variant="ghost"
                     size="icon"
@@ -206,10 +173,7 @@ export function ZigbeeCurtainCard({ device, onRemove }) {
                   >
                     <Pencil className="h-3 w-3" />
                   </Button>
-                  <Badge
-                    variant={isOpen ? "default" : "secondary"}
-                    className="ml-auto shrink-0"
-                  >
+                  <Badge variant={isOpen ? "default" : "secondary"} className="ml-auto shrink-0">
                     {isOpen ? "Open" : "Closed"}
                   </Badge>
                 </div>
@@ -253,16 +217,11 @@ export function ZigbeeCurtainCard({ device, onRemove }) {
       </div>
 
       {/* Edit Endpoint Name Dialog */}
-      <Dialog
-        open={editEndpointDialogOpen}
-        onOpenChange={setEditEndpointDialogOpen}
-      >
+      <Dialog open={editEndpointDialogOpen} onOpenChange={setEditEndpointDialogOpen}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Edit Curtain Name</DialogTitle>
-            <DialogDescription>
-              Enter a custom name for curtain {editEndpointIndex}
-            </DialogDescription>
+            <DialogDescription>Enter a custom name for curtain {editEndpointIndex}</DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">
             <div className="space-y-2">
@@ -276,10 +235,7 @@ export function ZigbeeCurtainCard({ device, onRemove }) {
             </div>
           </div>
           <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={() => setEditEndpointDialogOpen(false)}
-            >
+            <Button variant="outline" onClick={() => setEditEndpointDialogOpen(false)}>
               Cancel
             </Button>
             <Button onClick={handleSaveEndpointName}>Save</Button>

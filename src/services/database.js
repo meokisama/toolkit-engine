@@ -84,7 +84,6 @@ class DatabaseService {
       this.db.exec(knxTableSchemas.createKnxTable);
       this.db.exec(sceneTableSchemas.createSceneTable);
       this.db.exec(sceneTableSchemas.createSceneItemsTable);
-      this.db.exec(sceneTableSchemas.createSceneAddressItemsTable);
       this.db.exec(scheduleTableSchemas.createScheduleTable);
       this.db.exec(sceneTableSchemas.createScheduleScenesTable);
       this.db.exec(multisceneTableSchemas.createMultiScenesTable);

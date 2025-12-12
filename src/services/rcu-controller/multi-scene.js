@@ -31,9 +31,7 @@ async function getMultiSceneInformation(unitIp, canId, multiSceneIndex = null) {
 
     const minLength = isSendName ? 24 : 9; // Adjust minimum length based on isSendName
     if (data.length < minLength) {
-      throw new Error(
-        `Insufficient multi-scene data: ${data.length} bytes (expected at least ${minLength})`
-      );
+      throw new Error(`Insufficient multi-scene data: ${data.length} bytes (expected at least ${minLength})`);
     }
 
     // Parse multi-scene data structure:
@@ -82,9 +80,7 @@ async function getMultiSceneInformation(unitIp, canId, multiSceneIndex = null) {
     };
   }
 
-  throw new Error(
-    "No response received from get multi-scene information command"
-  );
+  throw new Error("No response received from get multi-scene information command");
 }
 
 // Trigger Multi-Scene function
@@ -92,25 +88,12 @@ async function triggerMultiScene(unitIp, canId, multiSceneAddress) {
   const idAddress = convertCanIdToInt(canId);
   const triggerData = parseInt(multiSceneAddress);
 
-  return sendCommand(
-    unitIp,
-    UDP_PORT,
-    idAddress,
-    PROTOCOL.GENERAL.CMD1,
-    PROTOCOL.GENERAL.CMD2.TRIGGER_MULTI_SCENE,
-    [triggerData]
-  );
+  return sendCommand(unitIp, UDP_PORT, idAddress, PROTOCOL.GENERAL.CMD1, PROTOCOL.GENERAL.CMD2.TRIGGER_MULTI_SCENE, [triggerData]);
 }
 
 // Setup Multi-Scene function
 async function setupMultiScene(unitIp, canId, multiSceneConfig) {
-  const {
-    multiSceneIndex,
-    multiSceneName,
-    multiSceneAddress,
-    multiSceneType,
-    sceneAddresses,
-  } = multiSceneConfig;
+  const { multiSceneIndex, multiSceneName, multiSceneAddress, multiSceneType, sceneAddresses } = multiSceneConfig;
 
   // Validations
   if (multiSceneIndex < 0 || multiSceneIndex > 39) {
@@ -165,14 +148,7 @@ async function setupMultiScene(unitIp, canId, multiSceneConfig) {
     data.push(parseInt(address) || 0);
   }
 
-  return sendCommand(
-    unitIp,
-    UDP_PORT,
-    idAddress,
-    PROTOCOL.GENERAL.CMD1,
-    PROTOCOL.GENERAL.CMD2.SETUP_MULTI_SCENE,
-    data
-  );
+  return sendCommand(unitIp, UDP_PORT, idAddress, PROTOCOL.GENERAL.CMD1, PROTOCOL.GENERAL.CMD2.SETUP_MULTI_SCENE, data);
 }
 
 // Get All Multi-Scenes Information function
@@ -208,16 +184,11 @@ async function getAllMultiScenesInformation(unitIp, canId) {
             // Success packet format: <ID><length><cmd1><cmd2><0x00><crc>
             const packetLength = msg[4] | (msg[5] << 8);
             const dataSection = msg.slice(8, 8 + packetLength - 4);
-            const isSuccessPacket =
-              packetLength === 5 &&
-              dataSection.length === 1 &&
-              dataSection[0] === 0x00;
+            const isSuccessPacket = packetLength === 5 && dataSection.length === 1 && dataSection[0] === 0x00;
 
             if (isSuccessPacket) {
               successPacketReceived = true;
-              console.log(
-                `Success packet received for multi-scene response ${i + 1}`
-              );
+              console.log(`Success packet received for multi-scene response ${i + 1}`);
               continue;
             }
           }
@@ -276,14 +247,7 @@ async function getAllMultiScenesInformation(unitIp, canId) {
     };
   }
 
-  throw new Error(
-    "No valid responses received from get all multi-scenes information command"
-  );
+  throw new Error("No valid responses received from get all multi-scenes information command");
 }
 
-export {
-  getMultiSceneInformation,
-  triggerMultiScene,
-  setupMultiScene,
-  getAllMultiScenesInformation,
-};
+export { getMultiSceneInformation, triggerMultiScene, setupMultiScene, getAllMultiScenesInformation };

@@ -1,25 +1,11 @@
 import * as React from "react";
-import {
-  ChevronLeft,
-  ChevronRight,
-  ChevronsLeft,
-  ChevronsRight,
-} from "lucide-react";
-
+import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 export function DataTablePagination({ table, pagination }) {
   // Use prop-based state instead of internal state management
-  const [localPagination, setLocalPagination] = React.useState(
-    pagination || { pageIndex: 0, pageSize: 10 }
-  );
+  const [localPagination, setLocalPagination] = React.useState(pagination || { pageIndex: 0, pageSize: 10 });
 
   // Update local state when prop changes
   React.useEffect(() => {

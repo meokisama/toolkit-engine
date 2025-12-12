@@ -1,27 +1,10 @@
-"use client";
-
 import { useState, useCallback, useEffect, memo } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardTitle } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Badge } from "@/components/ui/badge";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import {
-  GitCompare,
-  List,
-  Square,
-  ChevronUp,
-  ChevronDown,
-  Trash2,
-} from "lucide-react";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { GitCompare, List, Square, ChevronUp, ChevronDown, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { CONSTANTS } from "@/constants";
 import { DeleteCurtainDialog } from "./delete-curtain-popover";
@@ -42,88 +25,80 @@ const initialLoadingState = {
 };
 
 // Memoized CurtainCard component to prevent unnecessary re-renders
-const CurtainCard = memo(
-  ({ curtain, onControl, onDelete, loading, formatCurtainName }) => (
-    <Card className="relative">
-      <CardContent>
-        <div className="flex items-center justify-between">
-          <CardTitle className="flex flex-col gap-2">
-            <span className="text-lg font-bold">
-              {formatCurtainName
-                ? formatCurtainName(curtain)
-                : `Curtain #${curtain.index}`}
-            </span>
-            <div className="text-sm text-muted-foreground font-light space-y-2">
-              <p>
-                <span className="font-bold">Groups:</span> Open:
-                {curtain.openGroup}, Close:{curtain.closeGroup}, Stop:
-                {curtain.stopGroup}
-              </p>
-              <p>
-                <span className="font-bold">Type:</span>{" "}
-                {CONSTANTS.CURTAIN.TYPES.find(
-                  (t) => t.value === curtain.curtainType
-                )?.label || `Unknown (${curtain.curtainType})`}
-                <span className="mx-1"> | </span>
-                <span className="font-bold">Address:</span> {curtain.address}
-              </p>
-            </div>
-          </CardTitle>
-
-          <div className="flex items-center gap-2">
-            {/* Delete Curtain Button */}
-            <Button
-              variant="outline"
-              size="icon"
-              onClick={() => onDelete(curtain.index)}
-              disabled={loading}
-              className="flex items-center gap-1 shadow text-destructive hover:text-destructive"
-              title="Delete"
-            >
-              <Trash2 className="h-3 w-3" />
-            </Button>
-
-            {/* Stop Button */}
-            <Button
-              variant="outline"
-              size="icon"
-              onClick={() => onControl(curtain.address, 0)}
-              disabled={loading}
-              className="flex items-center gap-1 shadow"
-              title="Stop"
-            >
-              <Square className="h-3 w-3" />
-            </Button>
-
-            {/* Open Button */}
-            <Button
-              variant="outline"
-              size="icon"
-              onClick={() => onControl(curtain.address, 1)}
-              disabled={loading}
-              className="flex items-center gap-1 shadow"
-              title="Open"
-            >
-              <ChevronUp className="h-3 w-3" />
-            </Button>
-
-            {/* Close Button */}
-            <Button
-              variant="outline"
-              size="icon"
-              onClick={() => onControl(curtain.address, 2)}
-              disabled={loading}
-              className="flex items-center gap-1 shadow"
-              title="Close"
-            >
-              <ChevronDown className="h-3 w-3" />
-            </Button>
+const CurtainCard = memo(({ curtain, onControl, onDelete, loading, formatCurtainName }) => (
+  <Card className="relative">
+    <CardContent>
+      <div className="flex items-center justify-between">
+        <CardTitle className="flex flex-col gap-2">
+          <span className="text-lg font-bold">{formatCurtainName ? formatCurtainName(curtain) : `Curtain #${curtain.index}`}</span>
+          <div className="text-sm text-muted-foreground font-light space-y-2">
+            <p>
+              <span className="font-bold">Groups:</span> Open:
+              {curtain.openGroup}, Close:{curtain.closeGroup}, Stop:
+              {curtain.stopGroup}
+            </p>
+            <p>
+              <span className="font-bold">Type:</span>{" "}
+              {CONSTANTS.CURTAIN.TYPES.find((t) => t.value === curtain.curtainType)?.label || `Unknown (${curtain.curtainType})`}
+              <span className="mx-1"> | </span>
+              <span className="font-bold">Address:</span> {curtain.address}
+            </p>
           </div>
+        </CardTitle>
+
+        <div className="flex items-center gap-2">
+          {/* Delete Curtain Button */}
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={() => onDelete(curtain.index)}
+            disabled={loading}
+            className="flex items-center gap-1 shadow text-destructive hover:text-destructive"
+            title="Delete"
+          >
+            <Trash2 className="h-3 w-3" />
+          </Button>
+
+          {/* Stop Button */}
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={() => onControl(curtain.address, 0)}
+            disabled={loading}
+            className="flex items-center gap-1 shadow"
+            title="Stop"
+          >
+            <Square className="h-3 w-3" />
+          </Button>
+
+          {/* Open Button */}
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={() => onControl(curtain.address, 1)}
+            disabled={loading}
+            className="flex items-center gap-1 shadow"
+            title="Open"
+          >
+            <ChevronUp className="h-3 w-3" />
+          </Button>
+
+          {/* Close Button */}
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={() => onControl(curtain.address, 2)}
+            disabled={loading}
+            className="flex items-center gap-1 shadow"
+            title="Close"
+          >
+            <ChevronDown className="h-3 w-3" />
+          </Button>
         </div>
-      </CardContent>
-    </Card>
-  )
-);
+      </div>
+    </CardContent>
+  </Card>
+));
 
 CurtainCard.displayName = "CurtainCard";
 
@@ -132,8 +107,7 @@ export function CurtainControlDialog({ open, onOpenChange, unit }) {
   const [loadingState, setLoadingState] = useState(initialLoadingState);
 
   // Access project context to get database curtains
-  const { selectedProject, projectItems, loadTabData, loadedTabs } =
-    useProjectDetail();
+  const { selectedProject, projectItems, loadTabData, loadedTabs } = useProjectDetail();
 
   // Load curtain data when dialog opens if not already loaded
   useEffect(() => {
@@ -147,9 +121,7 @@ export function CurtainControlDialog({ open, onOpenChange, unit }) {
     (address) => {
       if (!selectedProject || !projectItems.curtain) return null;
 
-      const databaseCurtain = projectItems.curtain.find(
-        (curtain) => parseInt(curtain.address) === parseInt(address)
-      );
+      const databaseCurtain = projectItems.curtain.find((curtain) => parseInt(curtain.address) === parseInt(address));
 
       return databaseCurtain ? databaseCurtain.name : null;
     },
@@ -200,12 +172,11 @@ export function CurtainControlDialog({ open, onOpenChange, unit }) {
         curtainIndex: index,
       });
 
-      const result =
-        await window.electronAPI.curtainController.getCurtainConfig({
-          unitIp: unit.ip_address,
-          canId: unit.id_can,
-          curtainIndex: index,
-        });
+      const result = await window.electronAPI.curtainController.getCurtainConfig({
+        unitIp: unit.ip_address,
+        canId: unit.id_can,
+        curtainIndex: index,
+      });
 
       // Convert single curtain result to card format
       if (result) {
@@ -248,18 +219,15 @@ export function CurtainControlDialog({ open, onOpenChange, unit }) {
         canId: unit.id_can,
       });
 
-      const result =
-        await window.electronAPI.curtainController.getCurtainConfig({
-          unitIp: unit.ip_address,
-          canId: unit.id_can,
-          curtainIndex: null,
-        });
+      const result = await window.electronAPI.curtainController.getCurtainConfig({
+        unitIp: unit.ip_address,
+        canId: unit.id_can,
+        curtainIndex: null,
+      });
 
       if (result && result.curtains && result.curtains.length > 0) {
         // Filter out curtains with type = 0 (invalid/unused curtains)
-        const validCurtains = result.curtains.filter(
-          (curtain) => curtain.curtainType !== 0
-        );
+        const validCurtains = result.curtains.filter((curtain) => curtain.curtainType !== 0);
 
         const curtainCards = validCurtains.map((curtain) => ({
           address: curtain.address,
@@ -279,13 +247,9 @@ export function CurtainControlDialog({ open, onOpenChange, unit }) {
         }));
 
         if (curtainCards.length > 0) {
-          toast.success(
-            `Loaded ${curtainCards.length} valid curtain(s) successfully`
-          );
+          toast.success(`Loaded ${curtainCards.length} valid curtain(s) successfully`);
         } else {
-          toast.info(
-            "No valid curtains found on this unit (all curtains have type = 0)"
-          );
+          toast.info("No valid curtains found on this unit (all curtains have type = 0)");
         }
       } else {
         setState((prev) => ({
@@ -312,9 +276,7 @@ export function CurtainControlDialog({ open, onOpenChange, unit }) {
 
       setLoadingState((prev) => ({ ...prev, loading: true }));
       try {
-        const valueLabel =
-          CONSTANTS.CURTAIN.VALUES.find((v) => v.value === value)?.label ||
-          value;
+        const valueLabel = CONSTANTS.CURTAIN.VALUES.find((v) => v.value === value)?.label || value;
         console.log("Controlling curtain:", {
           unitIp: unit.ip_address,
           canId: unit.id_can,
@@ -331,9 +293,7 @@ export function CurtainControlDialog({ open, onOpenChange, unit }) {
         });
 
         if (success) {
-          toast.success(
-            `Curtain ${curtainAddress} ${valueLabel.toLowerCase()} command sent successfully`
-          );
+          toast.success(`Curtain ${curtainAddress} ${valueLabel.toLowerCase()} command sent successfully`);
         } else {
           throw new Error("Unit returned failure response");
         }
@@ -362,21 +322,18 @@ export function CurtainControlDialog({ open, onOpenChange, unit }) {
           curtainIndex,
         });
 
-        const success =
-          await window.electronAPI.curtainController.deleteCurtain({
-            unitIp: unit.ip_address,
-            canId: unit.id_can,
-            curtainIndex,
-          });
+        const success = await window.electronAPI.curtainController.deleteCurtain({
+          unitIp: unit.ip_address,
+          canId: unit.id_can,
+          curtainIndex,
+        });
 
         if (success) {
           toast.success(`Curtain ${curtainIndex} deleted successfully`);
           // Remove the deleted curtain from the list
           setState((prev) => ({
             ...prev,
-            curtains: prev.curtains.filter(
-              (curtain) => curtain.index !== curtainIndex
-            ),
+            curtains: prev.curtains.filter((curtain) => curtain.index !== curtainIndex),
           }));
         } else {
           throw new Error("Unit returned failure response");
@@ -397,8 +354,7 @@ export function CurtainControlDialog({ open, onOpenChange, unit }) {
         <DialogHeader>
           <DialogTitle>Curtain Control</DialogTitle>
           <DialogDescription>
-            Load information and control curtains on unit {unit?.ip_address}{" "}
-            (CAN ID: {unit?.id_can}).
+            Load information and control curtains on unit {unit?.ip_address} (CAN ID: {unit?.id_can}).
           </DialogDescription>
         </DialogHeader>
 
@@ -422,9 +378,7 @@ export function CurtainControlDialog({ open, onOpenChange, unit }) {
                 />
                 <Button
                   onClick={handleLoadCurtainInfo}
-                  disabled={
-                    loadingState.loadingInfo || loadingState.loadingAllCurtains
-                  }
+                  disabled={loadingState.loadingInfo || loadingState.loadingAllCurtains}
                   className="flex items-center gap-2"
                 >
                   <GitCompare className="h-4 w-4" />
@@ -434,17 +388,11 @@ export function CurtainControlDialog({ open, onOpenChange, unit }) {
               <div className="flex items-center gap-2">
                 <DeleteCurtainDialog
                   open={state.deletePopoverOpen}
-                  onOpenChange={(open) =>
-                    setState((prev) => ({ ...prev, deletePopoverOpen: open }))
-                  }
+                  onOpenChange={(open) => setState((prev) => ({ ...prev, deletePopoverOpen: open }))}
                   unit={unit}
                   asPopover={true}
                   trigger={
-                    <Button
-                      variant="outline"
-                      size="lg"
-                      className="flex items-center gap-2"
-                    >
+                    <Button variant="outline" size="lg" className="flex items-center gap-2">
                       <Trash2 className="h-4 w-4" />
                       Delete Curtains
                     </Button>
@@ -453,15 +401,11 @@ export function CurtainControlDialog({ open, onOpenChange, unit }) {
                 <Button
                   onClick={handleLoadAllCurtains}
                   size="lg"
-                  disabled={
-                    loadingState.loadingAllCurtains || loadingState.loadingInfo
-                  }
+                  disabled={loadingState.loadingAllCurtains || loadingState.loadingInfo}
                   className="flex items-center gap-2"
                 >
                   <List className="h-4 w-4" />
-                  {loadingState.loadingAllCurtains
-                    ? "Loading..."
-                    : "Load All Curtains"}
+                  {loadingState.loadingAllCurtains ? "Loading..." : "Load All Curtains"}
                 </Button>
               </div>
             </div>
@@ -486,9 +430,7 @@ export function CurtainControlDialog({ open, onOpenChange, unit }) {
               ) : state.showCurtains ? (
                 <div className="text-center text-muted-foreground py-8">
                   <p>No curtains found.</p>
-                  <p className="text-sm">
-                    Try loading a specific curtain index or all curtains.
-                  </p>
+                  <p className="text-sm">Try loading a specific curtain index or all curtains.</p>
                 </div>
               ) : (
                 <div className="text-center text-muted-foreground py-8">

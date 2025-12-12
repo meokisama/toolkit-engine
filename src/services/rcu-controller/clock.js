@@ -25,14 +25,7 @@ async function syncClock(unitIp, canId, clockData) {
   const idAddress = convertCanIdToInt(canId);
   const data = [year, month, day, dayOfWeek, hour, minute, second];
 
-  return sendCommand(
-    unitIp,
-    UDP_PORT,
-    idAddress,
-    PROTOCOL.GENERAL.CMD1,
-    PROTOCOL.GENERAL.CMD2.SYNC_CLOCK,
-    data
-  );
+  return sendCommand(unitIp, UDP_PORT, idAddress, PROTOCOL.GENERAL.CMD1, PROTOCOL.GENERAL.CMD2.SYNC_CLOCK, data);
 }
 
 // Get Clock function - retrieves the unit's current clock

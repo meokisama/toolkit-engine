@@ -17,26 +17,13 @@ import { NetworkUnitTable } from "../network-units/network-unit-table";
 import { useConfigComparison } from "@/hooks/use-config-comparison";
 import { toast } from "sonner";
 import { createDefaultRS485Config } from "@/utils/rs485-utils";
-import {
-  createDefaultInputConfigs,
-  createDefaultOutputConfigs,
-} from "@/utils/io-config-utils";
+import { createDefaultInputConfigs, createDefaultOutputConfigs } from "@/utils/io-config-utils";
 import { readAdvancedConfigurations } from "./utils";
 
 export function UnitTable() {
   const category = "unit";
-  const {
-    selectedProject,
-    projectItems,
-    deleteItem,
-    duplicateItem,
-    loading,
-    exportItems,
-    importItems,
-    updateItem,
-    loadTabData,
-    loadedTabs,
-  } = useProjectDetail();
+  const { selectedProject, projectItems, deleteItem, duplicateItem, loading, exportItems, importItems, updateItem, loadTabData, loadedTabs } =
+    useProjectDetail();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [dialogMode, setDialogMode] = useState("create");
   const [editingItem, setEditingItem] = useState(null);
@@ -53,15 +40,8 @@ export function UnitTable() {
   const pendingChangesRef = useRef(new Map());
 
   // Configuration comparison hook
-  const {
-    compareConfigurations,
-    isComparing,
-    comparisonProgress,
-    hasComparisonResults,
-    comparisonSummary,
-    getUnitRowClass,
-    clearComparisons,
-  } = useConfigComparison();
+  const { compareConfigurations, isComparing, comparisonProgress, hasComparisonResults, comparisonSummary, getUnitRowClass, clearComparisons } =
+    useConfigComparison();
   const [pendingChangesCount, setPendingChangesCount] = useState(0);
   const [ioConfigDialogOpen, setIOConfigDialogOpen] = useState(false);
   const [ioConfigItem, setIOConfigItem] = useState(null);
@@ -81,9 +61,7 @@ export function UnitTable() {
     // If unit type is being changed, reset RS485 config and I/O config to defaults
     if (field === "type" && newValue) {
       // Reset RS485 config to default (2 configurations for RS485-1 and RS485-2)
-      itemChanges.rs485_config = Array.from({ length: 2 }, () =>
-        createDefaultRS485Config()
-      );
+      itemChanges.rs485_config = Array.from({ length: 2 }, () => createDefaultRS485Config());
 
       // Reset I/O config to default based on new unit type
       itemChanges.input_configs = createDefaultInputConfigs(newValue);
@@ -101,9 +79,7 @@ export function UnitTable() {
 
   const getEffectiveValue = useCallback((itemId, field, originalValue) => {
     const itemChanges = pendingChangesRef.current.get(itemId);
-    return itemChanges && itemChanges.hasOwnProperty(field)
-      ? itemChanges[field]
-      : originalValue;
+    return itemChanges && itemChanges.hasOwnProperty(field) ? itemChanges[field] : originalValue;
   }, []); // No dependencies = stable function!
 
   // Save all pending changes
@@ -179,9 +155,7 @@ export function UnitTable() {
 
   const handleBulkDelete = async (selectedItems) => {
     try {
-      const deletePromises = selectedItems.map((item) =>
-        deleteItem(category, item.id)
-      );
+      const deletePromises = selectedItems.map((item) => deleteItem(category, item.id));
       await Promise.all(deletePromises);
 
       if (databaseTable) {
@@ -199,41 +173,27 @@ export function UnitTable() {
       const importedUnits = await importItems(category, unitsToTransfer);
 
       // Then, read and create advanced configurations for units that have the flag
-      const unitsWithAdvancedConfigs = unitsToTransfer.filter(
-        (unit) => unit.readAdvancedConfigs
-      );
+      const unitsWithAdvancedConfigs = unitsToTransfer.filter((unit) => unit.readAdvancedConfigs);
 
       if (unitsWithAdvancedConfigs.length > 0) {
-        console.log(
-          `Reading advanced configurations for ${unitsWithAdvancedConfigs.length} units...`
-        );
+        console.log(`Reading advanced configurations for ${unitsWithAdvancedConfigs.length} units...`);
 
         for (let i = 0; i < unitsWithAdvancedConfigs.length; i++) {
           const networkUnit = unitsWithAdvancedConfigs[i];
-          const importedUnit =
-            importedUnits[unitsToTransfer.indexOf(networkUnit)];
+          const importedUnit = importedUnits[unitsToTransfer.indexOf(networkUnit)];
 
           if (importedUnit) {
             try {
-              await readAdvancedConfigurations(
-                networkUnit,
-                importedUnit,
-                selectedProject.id
-              );
+              await readAdvancedConfigurations(networkUnit, importedUnit, selectedProject.id);
             } catch (error) {
-              console.error(
-                `Failed to read advanced configurations for unit ${networkUnit.ip_address}:`,
-                error
-              );
+              console.error(`Failed to read advanced configurations for unit ${networkUnit.ip_address}:`, error);
               // Continue with other units
             }
           }
         }
       }
 
-      toast.success(
-        `Successfully transferred ${unitsToTransfer.length} unit(s) with configurations to database`
-      );
+      toast.success(`Successfully transferred ${unitsToTransfer.length} unit(s) with configurations to database`);
     } catch (error) {
       console.error("Failed to transfer units to database:", error);
       throw error; // Re-throw to let NetworkUnitTable handle the error display
@@ -256,9 +216,7 @@ export function UnitTable() {
     }
 
     if (!networkUnits.length) {
-      toast.warning(
-        "No network units available for comparison. Please scan network first."
-      );
+      toast.warning("No network units available for comparison. Please scan network first.");
       return;
     }
 
@@ -282,9 +240,7 @@ export function UnitTable() {
       let freshProjectItems = projectItems;
       if (selectedProject) {
         try {
-          const freshAirconItems = await window.electronAPI.aircon.getAll(
-            selectedProject.id
-          );
+          const freshAirconItems = await window.electronAPI.aircon.getAll(selectedProject.id);
           freshProjectItems = {
             ...projectItems,
             aircon: freshAirconItems,
@@ -309,15 +265,7 @@ export function UnitTable() {
       console.error("Failed to compare configurations:", error);
       toast.error(`Failed to compare configurations: ${error.message}`);
     }
-  }, [
-    units,
-    networkUnits,
-    compareConfigurations,
-    projectItems,
-    selectedProject,
-    loadedTabs,
-    loadTabData,
-  ]);
+  }, [units, networkUnits, compareConfigurations, projectItems, selectedProject, loadedTabs, loadTabData]);
 
   const handleImport = () => {
     setImportDialogOpen(true);
@@ -354,15 +302,7 @@ export function UnitTable() {
   }, []);
 
   const databaseColumns = useMemo(
-    () =>
-      createUnitColumns(
-        handleEditItem,
-        handleDuplicateItem,
-        handleDeleteItem,
-        handleCellEdit,
-        getEffectiveValue,
-        handleIOConfig
-      ),
+    () => createUnitColumns(handleEditItem, handleDuplicateItem, handleDeleteItem, handleCellEdit, getEffectiveValue, handleIOConfig),
     [
       handleEditItem,
       handleDuplicateItem,
@@ -397,13 +337,8 @@ export function UnitTable() {
                 <div className="text-center text-muted-foreground flex flex-col justify-center items-center h-full -mt-8">
                   <Database className="h-12 w-12 mx-auto mb-4 opacity-50" />
                   <p>No units found.</p>
-                  <p className="text-sm mb-8">
-                    Click "Add Unit" to create your first unit.
-                  </p>
-                  <Button
-                    onClick={handleCreateItem}
-                    className="flex items-center gap-2"
-                  >
+                  <p className="text-sm mb-8">Click "Add Unit" to create your first unit.</p>
+                  <Button onClick={handleCreateItem} className="flex items-center gap-2">
                     <Plus className="h-4 w-4" />
                     Add Unit
                   </Button>
@@ -443,11 +378,7 @@ export function UnitTable() {
                       </Button>
 
                       {hasComparisonResults && (
-                        <Button
-                          onClick={() => setDifferencesDialogOpen(true)}
-                          className="flex items-center gap-2"
-                          variant="secondary"
-                        >
+                        <Button onClick={() => setDifferencesDialogOpen(true)} className="flex items-center gap-2" variant="secondary">
                           <FileText className="h-4 w-4" />
                           View Differences
                         </Button>
@@ -468,17 +399,10 @@ export function UnitTable() {
                       onDelete={handleDeleteItem}
                       onIOConfig={handleIOConfig}
                       enableRowSelection={true}
-                      getRowClassName={(unit) =>
-                        getUnitRowClass(`db_${unit.id}`)
-                      }
+                      getRowClassName={(unit) => getUnitRowClass(`db_${unit.id}`)}
                     />
                   </div>
-                  {databaseTable && (
-                    <DataTablePagination
-                      table={databaseTable}
-                      pagination={pagination}
-                    />
-                  )}
+                  {databaseTable && <DataTablePagination table={databaseTable} pagination={pagination} />}
                 </div>
               )}
             </CardContent>
@@ -489,25 +413,14 @@ export function UnitTable() {
             onTransferToDatabase={handleTransferToDatabase}
             existingUnits={units}
             onNetworkUnitsChange={setNetworkUnits}
-            getRowClassName={(unit) =>
-              getUnitRowClass(`net_${unit.ip_address}_${unit.id_can}`)
-            }
+            getRowClassName={(unit) => getUnitRowClass(`net_${unit.ip_address}_${unit.id_can}`)}
           />
         </div>
       </div>
 
-      <UnitDialog
-        open={dialogOpen}
-        onOpenChange={setDialogOpen}
-        item={editingItem}
-        mode={dialogMode}
-      />
+      <UnitDialog open={dialogOpen} onOpenChange={setDialogOpen} item={editingItem} mode={dialogMode} />
 
-      <IOConfigDialog
-        open={ioConfigDialogOpen}
-        onOpenChange={setIOConfigDialogOpen}
-        item={ioConfigItem}
-      />
+      <IOConfigDialog open={ioConfigDialogOpen} onOpenChange={setIOConfigDialogOpen} item={ioConfigItem} />
 
       <ConfirmDialog
         open={confirmDialogOpen}
@@ -521,18 +434,9 @@ export function UnitTable() {
         loading={deleteLoading}
       />
 
-      <ImportItemsDialog
-        open={importDialogOpen}
-        onOpenChange={setImportDialogOpen}
-        onImport={handleImportConfirm}
-        category={category}
-      />
+      <ImportItemsDialog open={importDialogOpen} onOpenChange={setImportDialogOpen} onImport={handleImportConfirm} category={category} />
 
-      <ComparisonDifferencesDialog
-        open={differencesDialogOpen}
-        onOpenChange={setDifferencesDialogOpen}
-        comparisonSummary={comparisonSummary}
-      />
+      <ComparisonDifferencesDialog open={differencesDialogOpen} onOpenChange={setDifferencesDialogOpen} comparisonSummary={comparisonSummary} />
     </>
   );
 }

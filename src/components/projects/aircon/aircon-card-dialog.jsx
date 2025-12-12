@@ -1,25 +1,12 @@
 import React, { useState, useEffect } from "react";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useProjectDetail } from "@/contexts/project-detail-context";
 
-export function AirconCardDialog({
-  open,
-  onOpenChange,
-  mode = "create",
-  card = null,
-}) {
-  const { selectedProject, createAirconCard, updateAirconCard } =
-    useProjectDetail();
+export function AirconCardDialog({ open, onOpenChange, mode = "create", card = null }) {
+  const { selectedProject, createAirconCard, updateAirconCard } = useProjectDetail();
   const [formData, setFormData] = useState({
     name: "",
     address: "",
@@ -126,9 +113,7 @@ export function AirconCardDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>
-            {mode === "edit" ? "Edit Aircon Card" : "Create New Aircon Card"}
-          </DialogTitle>
+          <DialogTitle>{mode === "edit" ? "Edit Aircon Card" : "Create New Aircon Card"}</DialogTitle>
           <DialogDescription>
             {mode === "edit"
               ? "Update the aircon card details."
@@ -161,9 +146,7 @@ export function AirconCardDialog({
                   placeholder="Enter integer 1-255 (e.g., 1, 2, 255)"
                   className={errors.address ? "border-red-500" : ""}
                 />
-                {errors.address && (
-                  <p className="text-sm text-red-500 mt-1">{errors.address}</p>
-                )}
+                {errors.address && <p className="text-sm text-red-500 mt-1">{errors.address}</p>}
               </div>
             </div>
             <div className="grid grid-cols-4 items-center gap-4">
@@ -173,41 +156,21 @@ export function AirconCardDialog({
               <Input
                 id="description"
                 value={formData.description}
-                onChange={(e) =>
-                  handleInputChange("description", e.target.value)
-                }
+                onChange={(e) => handleInputChange("description", e.target.value)}
                 className="col-span-3"
                 placeholder="Enter description"
               />
             </div>
           </div>
 
-          {errors.general && (
-            <div className="text-sm text-red-500 text-center py-2">
-              {errors.general}
-            </div>
-          )}
+          {errors.general && <div className="text-sm text-red-500 text-center py-2">{errors.general}</div>}
 
           <DialogFooter>
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => onOpenChange(false)}
-              disabled={loading}
-            >
+            <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={loading}>
               Cancel
             </Button>
-            <Button
-              type="submit"
-              disabled={loading || !formData.address.trim() || errors.address}
-            >
-              {loading
-                ? mode === "edit"
-                  ? "Updating..."
-                  : "Creating..."
-                : mode === "edit"
-                ? "Update"
-                : "Create"}
+            <Button type="submit" disabled={loading || !formData.address.trim() || errors.address}>
+              {loading ? (mode === "edit" ? "Updating..." : "Creating...") : mode === "edit" ? "Update" : "Create"}
             </Button>
           </DialogFooter>
         </form>

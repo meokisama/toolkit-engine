@@ -1,11 +1,4 @@
-import React, {
-  useState,
-  useCallback,
-  memo,
-  useEffect,
-  useRef,
-  useMemo,
-} from "react";
+import React, { useState, useCallback, memo, useEffect, useRef, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { Plus, Upload } from "lucide-react";
 import { useProjectDetail } from "@/contexts/project-detail-context";
@@ -48,7 +41,7 @@ const SceneTable = memo(function SceneTable({ items = [], loading = false }) {
   const [saveLoading, setSaveLoading] = useState(false);
   const [selectedRowsCount, setSelectedRowsCount] = useState(0);
 
-  // ✅ Use ref instead of state to avoid re-renders when pendingChanges update
+  // Use ref instead of state to avoid re-renders when pendingChanges update
   const pendingChangesRef = useRef(new Map());
   const [pendingChangesCount, setPendingChangesCount] = useState(0);
 
@@ -58,9 +51,7 @@ const SceneTable = memo(function SceneTable({ items = [], loading = false }) {
       const counts = {};
       for (const scene of items) {
         try {
-          const sceneItems = await window.electronAPI.scene.getItemsWithDetails(
-            scene.id
-          );
+          const sceneItems = await window.electronAPI.scene.getItemsWithDetails(scene.id);
           counts[scene.id] = sceneItems.length;
         } catch (error) {
           console.error(`Failed to load items for scene ${scene.id}:`, error);
@@ -85,9 +76,7 @@ const SceneTable = memo(function SceneTable({ items = [], loading = false }) {
       const counts = {};
       for (const scene of items) {
         try {
-          const sceneItems = await window.electronAPI.scene.getItemsWithDetails(
-            scene.id
-          );
+          const sceneItems = await window.electronAPI.scene.getItemsWithDetails(scene.id);
           counts[scene.id] = sceneItems.length;
         } catch (error) {
           console.error(`Failed to load items for scene ${scene.id}:`, error);
@@ -98,7 +87,7 @@ const SceneTable = memo(function SceneTable({ items = [], loading = false }) {
     }
   }, [items]);
 
-  // ✅ Stable function that doesn't change reference
+  // Stable function that doesn't change reference
   const handleCellEdit = useCallback((itemId, field, newValue) => {
     const itemChanges = pendingChangesRef.current.get(itemId) || {};
     itemChanges[field] = newValue;
@@ -108,12 +97,10 @@ const SceneTable = memo(function SceneTable({ items = [], loading = false }) {
     setPendingChangesCount(pendingChangesRef.current.size);
   }, []);
 
-  // ✅ Stable function that doesn't depend on state
+  // Stable function that doesn't depend on state
   const getEffectiveValue = useCallback((itemId, field, originalValue) => {
     const itemChanges = pendingChangesRef.current.get(itemId);
-    return itemChanges && itemChanges.hasOwnProperty(field)
-      ? itemChanges[field]
-      : originalValue;
+    return itemChanges && itemChanges.hasOwnProperty(field) ? itemChanges[field] : originalValue;
   }, []); // No dependencies = stable function!
 
   // Save all pending changes
@@ -181,8 +168,9 @@ const SceneTable = memo(function SceneTable({ items = [], loading = false }) {
       setConfirmDialog({
         open: true,
         title: "Delete Scene",
-        description: `Are you sure you want to delete "${item.name || `Scene ${item.address}`
-          }"? This action cannot be undone and will also remove all items associated with this scene.`,
+        description: `Are you sure you want to delete "${
+          item.name || `Scene ${item.address}`
+        }"? This action cannot be undone and will also remove all items associated with this scene.`,
         onConfirm: async () => {
           try {
             await deleteItem(category, item.id);
@@ -220,20 +208,21 @@ const SceneTable = memo(function SceneTable({ items = [], loading = false }) {
     setPagination(newPagination);
   }, []);
 
-  const handleBulkDelete = useCallback(async (selectedItems) => {
-    try {
-      const deletePromises = selectedItems.map((item) =>
-        deleteItem(category, item.id)
-      );
-      await Promise.all(deletePromises);
+  const handleBulkDelete = useCallback(
+    async (selectedItems) => {
+      try {
+        const deletePromises = selectedItems.map((item) => deleteItem(category, item.id));
+        await Promise.all(deletePromises);
 
-      if (table) {
-        table.resetRowSelection();
+        if (table) {
+          table.resetRowSelection();
+        }
+      } catch (error) {
+        console.error("Failed to bulk delete scenes:", error);
       }
-    } catch (error) {
-      console.error("Failed to bulk delete scenes:", error);
-    }
-  }, [deleteItem, table]);
+    },
+    [deleteItem, table]
+  );
 
   const handleSendAllScenes = useCallback(() => {
     // Add calculated index to all scenes
@@ -283,17 +272,9 @@ const SceneTable = memo(function SceneTable({ items = [], loading = false }) {
     itemCount: sceneItemCounts[item.id] || 0,
   }));
 
-  // ✅ Now columns will be truly stable because all dependencies are stable!
+  // Now columns will be truly stable because all dependencies are stable!
   const columns = useMemo(
-    () =>
-      createSceneColumns(
-        handleEditItem,
-        handleDuplicateItem,
-        handleDeleteItem,
-        handleCellEdit,
-        getEffectiveValue,
-        handleSendToUnit
-      ),
+    () => createSceneColumns(handleEditItem, handleDuplicateItem, handleDeleteItem, handleCellEdit, getEffectiveValue, handleSendToUnit),
     [
       handleEditItem,
       handleDuplicateItem,
@@ -315,9 +296,7 @@ const SceneTable = memo(function SceneTable({ items = [], loading = false }) {
           <div className="text-center text-muted-foreground flex flex-col justify-center items-center h-full -mt-8">
             <SlidersHorizontal className="h-12 w-12 mx-auto mb-4 opacity-50" />
             <p>No scenes found.</p>
-            <p className="text-sm mb-8">
-              Click "Add Scene" to create your first item or "Import" to import from CSV.
-            </p>
+            <p className="text-sm mb-8">Click "Add Scene" to create your first item or "Import" to import from CSV.</p>
             <div className="flex gap-2">
               <Button onClick={handleCreateItem}>
                 <Plus className="h-4 w-4" />
@@ -366,19 +345,12 @@ const SceneTable = memo(function SceneTable({ items = [], loading = false }) {
                 enableRowSelection={true}
               />
             </div>
-            {table && (
-              <DataTablePagination table={table} pagination={pagination} />
-            )}
+            {table && <DataTablePagination table={table} pagination={pagination} />}
           </div>
         )}
       </div>
 
-      <SceneDialog
-        open={dialogOpen}
-        onOpenChange={handleDialogClose}
-        scene={editingItem}
-        mode={dialogMode}
-      />
+      <SceneDialog open={dialogOpen} onOpenChange={handleDialogClose} scene={editingItem} mode={dialogMode} />
 
       <ConfirmDialog
         open={confirmDialog.open}
@@ -390,18 +362,11 @@ const SceneTable = memo(function SceneTable({ items = [], loading = false }) {
 
       <SendSceneDialog
         open={sendSceneDialog.open}
-        onOpenChange={(open) =>
-          setSendSceneDialog({ ...sendSceneDialog, open })
-        }
+        onOpenChange={(open) => setSendSceneDialog({ ...sendSceneDialog, open })}
         items={sendSceneDialog.items}
       />
 
-      <ImportCategoryDialog
-        open={importDialogOpen}
-        onOpenChange={setImportDialogOpen}
-        category={category}
-        onConfirm={handleImportConfirm}
-      />
+      <ImportCategoryDialog open={importDialogOpen} onOpenChange={setImportDialogOpen} category={category} onConfirm={handleImportConfirm} />
     </div>
   );
 });

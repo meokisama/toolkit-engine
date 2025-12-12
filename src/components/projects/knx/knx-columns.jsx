@@ -5,42 +5,21 @@ import { DataTableColumnHeader } from "@/components/projects/data-table/data-tab
 import { EditableCell } from "@/components/projects/data-table/editable-cell";
 import { EditableSelectCell } from "@/components/projects/data-table/editable-select-cell";
 import { EditableComboboxCell } from "@/components/projects/data-table/editable-combobox-cell";
-import {
-  DropdownMenu,
-  DropdownMenuTrigger,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-} from "@/components/ui/dropdown-menu";
+import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
 import { CONSTANTS } from "@/constants";
 
-export const createKnxItemsColumns = (
-  onEdit,
-  onDuplicate,
-  onDelete,
-  onCellEdit,
-  getEffectiveValue,
-  projectItems = {}
-) => [
+export const createKnxItemsColumns = (onEdit, onDuplicate, onDelete, onCellEdit, getEffectiveValue, projectItems = {}) => [
   {
     id: "select",
     header: ({ table }) => (
       <Checkbox
-        checked={
-          table.getIsAllPageRowsSelected() ||
-          (table.getIsSomePageRowsSelected() && "indeterminate")
-        }
+        checked={table.getIsAllPageRowsSelected() || (table.getIsSomePageRowsSelected() && "indeterminate")}
         onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
         aria-label="Select all"
       />
     ),
     cell: ({ row }) => (
-      <Checkbox
-        checked={row.getIsSelected()}
-        onCheckedChange={(value) => row.toggleSelected(!!value)}
-        aria-label="Select row"
-        className="mx-1.5"
-      />
+      <Checkbox checked={row.getIsSelected()} onCheckedChange={(value) => row.toggleSelected(!!value)} aria-label="Select row" className="mx-1.5" />
     ),
     enableSorting: false,
     enableHiding: false,
@@ -50,9 +29,7 @@ export const createKnxItemsColumns = (
   },
   {
     accessorKey: "name",
-    header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Name" />
-    ),
+    header: ({ column }) => <DataTableColumnHeader column={column} title="Name" />,
     cell: ({ row }) => {
       const item = row.original;
       const effectiveValue = getEffectiveValue(item.id, "name", item.name);
@@ -72,20 +49,10 @@ export const createKnxItemsColumns = (
   },
   {
     accessorKey: "address",
-    header: ({ column }) => (
-      <DataTableColumnHeader
-        column={column}
-        title="Address"
-        className="flex items-center justify-center"
-      />
-    ),
+    header: ({ column }) => <DataTableColumnHeader column={column} title="Address" className="flex items-center justify-center" />,
     cell: ({ row }) => {
       const item = row.original;
-      const effectiveValue = getEffectiveValue(
-        item.id,
-        "address",
-        item.address
-      );
+      const effectiveValue = getEffectiveValue(item.id, "address", item.address);
 
       return (
         <div className="w-full flex justify-center">
@@ -110,13 +77,7 @@ export const createKnxItemsColumns = (
   },
   {
     accessorKey: "type",
-    header: ({ column }) => (
-      <DataTableColumnHeader
-        column={column}
-        title="Type"
-        className="flex items-center justify-center"
-      />
-    ),
+    header: ({ column }) => <DataTableColumnHeader column={column} title="Type" className="flex items-center justify-center" />,
     cell: ({ row }) => {
       const item = row.original;
       const effectiveValue = getEffectiveValue(item.id, "type", item.type);
@@ -141,13 +102,7 @@ export const createKnxItemsColumns = (
   },
   {
     accessorKey: "factor",
-    header: ({ column }) => (
-      <DataTableColumnHeader
-        column={column}
-        title="Factor"
-        className="text-center"
-      />
-    ),
+    header: ({ column }) => <DataTableColumnHeader column={column} title="Factor" className="text-center" />,
     cell: ({ row }) => {
       const item = row.original;
       const effectiveValue = getEffectiveValue(item.id, "factor", item.factor);
@@ -174,20 +129,10 @@ export const createKnxItemsColumns = (
   },
   {
     accessorKey: "feedback",
-    header: ({ column }) => (
-      <DataTableColumnHeader
-        column={column}
-        title="Feedback"
-        className="text-center"
-      />
-    ),
+    header: ({ column }) => <DataTableColumnHeader column={column} title="Feedback" className="text-center" />,
     cell: ({ row }) => {
       const item = row.original;
-      const effectiveValue = getEffectiveValue(
-        item.id,
-        "feedback",
-        item.feedback
-      );
+      const effectiveValue = getEffectiveValue(item.id, "feedback", item.feedback);
 
       return (
         <EditableSelectCell
@@ -196,9 +141,7 @@ export const createKnxItemsColumns = (
             ...option,
             value: option.value.toString(),
           }))}
-          onSave={(newValue) =>
-            onCellEdit(item.id, "feedback", parseInt(newValue))
-          }
+          onSave={(newValue) => onCellEdit(item.id, "feedback", parseInt(newValue))}
           placeholder="Select feedback"
           className="w-full"
         />
@@ -211,46 +154,16 @@ export const createKnxItemsColumns = (
   },
   {
     accessorKey: "rcu_group_id",
-    header: ({ column }) => (
-      <DataTableColumnHeader
-        column={column}
-        title="RCU Group"
-        className="flex items-center justify-center"
-      />
-    ),
+    header: ({ column }) => <DataTableColumnHeader column={column} title="RCU Group" className="flex items-center justify-center" />,
     cell: ({ row }) => {
       const item = row.original;
-      const effectiveValue = getEffectiveValue(
-        item.id,
-        "rcu_group_id",
-        item.rcu_group_id
-      );
+      const effectiveValue = getEffectiveValue(item.id, "rcu_group_id", item.rcu_group_id);
 
       // Get appropriate items based on KNX type
       const getRcuGroupItems = (knxType) => {
         const typeValue = parseInt(knxType);
-
-        switch (typeValue) {
-          case 1: // Switch
-          case 2: // Dimmer
-            return projectItems?.lighting || [];
-          case 3: // Curtain
-            return projectItems?.curtain || [];
-          case 4: // Scene
-            return projectItems?.scene || [];
-          case 5: // Multi Scene
-            return projectItems?.multi_scenes || [];
-          case 6: // Sequences
-            return projectItems?.sequences || [];
-          case 7: // AC Power
-          case 8: // AC Mode
-          case 9: // AC Fan Speed
-          case 10: // AC Swing
-          case 11: // AC Set Point
-            return projectItems?.aircon || [];
-          default:
-            return projectItems?.lighting || [];
-        }
+        const typeConfig = CONSTANTS.KNX.KNX_OUTPUT_TYPES.find((t) => t.value === typeValue);
+        return typeConfig?.resource ? projectItems?.[typeConfig.resource] || [] : projectItems?.lighting || [];
       };
 
       const rcuGroupItems = getRcuGroupItems(item.type);
@@ -264,27 +177,8 @@ export const createKnxItemsColumns = (
       // Get type label for placeholder and search text
       const getTypeLabel = (knxType) => {
         const typeValue = parseInt(knxType);
-        switch (typeValue) {
-          case 1:
-          case 2:
-            return "lighting";
-          case 3:
-            return "curtain";
-          case 4:
-            return "scene";
-          case 5:
-            return "multi scene";
-          case 6:
-            return "sequence";
-          case 7:
-          case 8:
-          case 9:
-          case 10:
-          case 11:
-            return "aircon";
-          default:
-            return "lighting";
-        }
+        const typeConfig = CONSTANTS.KNX.KNX_OUTPUT_TYPES.find((t) => t.value === typeValue);
+        return typeConfig?.resource || "lighting";
       };
 
       const typeLabel = getTypeLabel(item.type);
@@ -293,13 +187,7 @@ export const createKnxItemsColumns = (
         <EditableComboboxCell
           value={effectiveValue?.toString() || ""}
           options={rcuGroupOptions}
-          onSave={(newValue) =>
-            onCellEdit(
-              item.id,
-              "rcu_group_id",
-              newValue ? parseInt(newValue) : null
-            )
-          }
+          onSave={(newValue) => onCellEdit(item.id, "rcu_group_id", newValue ? parseInt(newValue) : null)}
           placeholder="Select RCU group"
           searchPlaceholder={`Search ${typeLabel} groups...`}
           emptyMessage={`No ${typeLabel} groups found.`}
@@ -314,16 +202,10 @@ export const createKnxItemsColumns = (
   },
   {
     accessorKey: "knx_switch_group",
-    header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Switch Group" />
-    ),
+    header: ({ column }) => <DataTableColumnHeader column={column} title="Switch Group" />,
     cell: ({ row }) => {
       const item = row.original;
-      const effectiveValue = getEffectiveValue(
-        item.id,
-        "knx_switch_group",
-        item.knx_switch_group
-      );
+      const effectiveValue = getEffectiveValue(item.id, "knx_switch_group", item.knx_switch_group);
 
       return (
         <EditableCell
@@ -342,16 +224,10 @@ export const createKnxItemsColumns = (
   },
   {
     accessorKey: "knx_dimming_group",
-    header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Dimming Group" />
-    ),
+    header: ({ column }) => <DataTableColumnHeader column={column} title="Dimming Group" />,
     cell: ({ row }) => {
       const item = row.original;
-      const effectiveValue = getEffectiveValue(
-        item.id,
-        "knx_dimming_group",
-        item.knx_dimming_group
-      );
+      const effectiveValue = getEffectiveValue(item.id, "knx_dimming_group", item.knx_dimming_group);
 
       return (
         <EditableCell
@@ -370,16 +246,10 @@ export const createKnxItemsColumns = (
   },
   {
     accessorKey: "knx_value_group",
-    header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Value Group" />
-    ),
+    header: ({ column }) => <DataTableColumnHeader column={column} title="Value Group" />,
     cell: ({ row }) => {
       const item = row.original;
-      const effectiveValue = getEffectiveValue(
-        item.id,
-        "knx_value_group",
-        item.knx_value_group
-      );
+      const effectiveValue = getEffectiveValue(item.id, "knx_value_group", item.knx_value_group);
 
       return (
         <EditableCell
@@ -398,16 +268,10 @@ export const createKnxItemsColumns = (
   },
   {
     accessorKey: "description",
-    header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Description" />
-    ),
+    header: ({ column }) => <DataTableColumnHeader column={column} title="Description" />,
     cell: ({ row }) => {
       const item = row.original;
-      const effectiveValue = getEffectiveValue(
-        item.id,
-        "description",
-        item.description
-      );
+      const effectiveValue = getEffectiveValue(item.id, "description", item.description);
 
       return (
         <EditableCell
@@ -433,36 +297,22 @@ export const createKnxItemsColumns = (
         <div className="flex items-center justify-end">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-8 w-8 p-0"
-                title="More actions"
-              >
+              <Button variant="ghost" size="icon" className="h-8 w-8 p-0" title="More actions">
                 <MoreHorizontal className="h-4 w-4" />
                 <span className="sr-only">More</span>
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent className="w-48" align="end">
-              <DropdownMenuItem
-                onClick={() => onEdit(item)}
-                className="cursor-pointer"
-              >
+              <DropdownMenuItem onClick={() => onEdit(item)} className="cursor-pointer">
                 <SquarePen className="text-muted-foreground" />
                 <span>Edit</span>
               </DropdownMenuItem>
-              <DropdownMenuItem
-                onClick={() => onDuplicate(item)}
-                className="cursor-pointer"
-              >
+              <DropdownMenuItem onClick={() => onDuplicate(item)} className="cursor-pointer">
                 <Copy className="text-muted-foreground" />
                 <span>Duplicate</span>
               </DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem
-                onClick={() => onDelete(item)}
-                className="cursor-pointer text-red-600 focus:text-red-600"
-              >
+              <DropdownMenuItem onClick={() => onDelete(item)} className="cursor-pointer text-red-600 focus:text-red-600">
                 <Trash2 className="text-red-600" />
                 <span>Delete</span>
               </DropdownMenuItem>

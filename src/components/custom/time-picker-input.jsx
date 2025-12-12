@@ -1,12 +1,7 @@
 import { Input } from "@/components/ui/input";
-
 import { cn } from "@/lib/utils";
 import React from "react";
-import {
-  getArrowByType,
-  getDateByType,
-  setDateByType,
-} from "@/utils/time-picker-utils";
+import { getArrowByType, getDateByType, setDateByType } from "@/utils/time-picker-utils";
 
 const TimePickerInput = React.forwardRef(
   (
@@ -55,8 +50,7 @@ const TimePickerInput = React.forwardRef(
        * The second entered digit will break the condition and the value will be set to 10-12.
        */
       if (picker === "12hours") {
-        if (flag && calculatedValue.slice(1, 2) === "1" && prevIntKey === "0")
-          return "0" + key;
+        if (flag && calculatedValue.slice(1, 2) === "1" && prevIntKey === "0") return "0" + key;
       }
 
       return !flag ? "0" + key : calculatedValue.slice(1, 2) + key;
@@ -91,7 +85,7 @@ const TimePickerInput = React.forwardRef(
         id={id || picker}
         name={name || picker}
         className={cn(
-          "w-[48px] text-center font-mono text-base tabular-nums caret-transparent focus:bg-accent focus:text-accent-foreground [&::-webkit-inner-spin-button]:appearance-none",
+          "w-12 text-center font-mono text-base tabular-nums caret-transparent focus:bg-accent focus:text-accent-foreground [&::-webkit-inner-spin-button]:appearance-none",
           className
         )}
         value={value || calculatedValue}

@@ -1,25 +1,14 @@
 import React, { useState, useCallback, useEffect, useMemo, memo } from "react";
 import { toast } from "sonner";
-import { Calendar, GitCompare, List, Trash2, Loader2 } from "lucide-react";
+import { GitCompare, List, Trash2, Loader2 } from "lucide-react";
 import { DeleteScheduleDialog } from "./delete-schedule-popover";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -33,18 +22,14 @@ import {
 
 // Memoized utility functions for better performance
 const formatTime = (hour, minute) => {
-  return `${hour.toString().padStart(2, "0")}:${minute
-    .toString()
-    .padStart(2, "0")}`;
+  return `${hour.toString().padStart(2, "0")}:${minute.toString().padStart(2, "0")}`;
 };
 
 const formatDays = (weekDays) => {
   const dayNames = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
   if (!weekDays || weekDays.length !== 7) return "No days";
 
-  const activeDays = weekDays
-    .map((enabled, index) => (enabled ? dayNames[index] : null))
-    .filter(Boolean);
+  const activeDays = weekDays.map((enabled, index) => (enabled ? dayNames[index] : null)).filter(Boolean);
 
   if (activeDays.length === 7) return "Every day";
   if (activeDays.length === 0) return "No days";
@@ -73,95 +58,75 @@ const initialLoadingState = {
 };
 
 // Memoized ScheduleCard component to prevent unnecessary re-renders
-const ScheduleCard = memo(
-  ({ schedule, onDelete, loading, formatTime, formatDays }) => (
-    <Card key={schedule.index} className="relative">
-      <CardContent>
-        <div className="flex items-center justify-between">
-          <CardTitle className="flex flex-col gap-2">
-            <span className="text-lg font-bold">
-              Schedule #{schedule.index}
-            </span>
-            <div className="text-sm text-muted-foreground font-light">
-              <span className="font-bold">Time:</span>{" "}
-              {formatTime(schedule.hour, schedule.minute)}
-              <span className="mx-1"> | </span>
-              <span className="font-bold">Status:</span>{" "}
-              <Badge variant={schedule.enabled ? "default" : "secondary"}>
-                {schedule.enabled ? "Enabled" : "Disabled"}
-              </Badge>
-            </div>
-            <div className="text-sm text-muted-foreground font-light">
-              <span className="font-bold">Days:</span>{" "}
-              {formatDays(schedule.weekDays)}
-            </div>
-          </CardTitle>
+const ScheduleCard = memo(({ schedule, onDelete, loading, formatTime, formatDays }) => (
+  <Card key={schedule.index} className="relative">
+    <CardContent>
+      <div className="flex items-center justify-between">
+        <CardTitle className="flex flex-col gap-2">
+          <span className="text-lg font-bold">Schedule #{schedule.index}</span>
+          <div className="text-sm text-muted-foreground font-light">
+            <span className="font-bold">Time:</span> {formatTime(schedule.hour, schedule.minute)}
+            <span className="mx-1"> | </span>
+            <span className="font-bold">Status:</span>{" "}
+            <Badge variant={schedule.enabled ? "default" : "secondary"}>{schedule.enabled ? "Enabled" : "Disabled"}</Badge>
+          </div>
+          <div className="text-sm text-muted-foreground font-light">
+            <span className="font-bold">Days:</span> {formatDays(schedule.weekDays)}
+          </div>
+        </CardTitle>
 
-          <div className="flex items-center gap-2">
-            {/* Scenes Button with Popover */}
-            <Popover modal={true}>
-              <PopoverTrigger asChild>
-                <Button variant="outline">
-                  <span className="font-light">Scenes:</span>{" "}
-                  {schedule.sceneCount}
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-108" align="end">
-                <div className="space-y-3">
-                  <div className="flex justify-between">
-                    <h4 className="font-medium text-sm">
-                      Schedule #{schedule.index}
-                    </h4>
-                    <div className="text-xs text-muted-foreground">
-                      <strong>Time:</strong>{" "}
-                      {formatTime(schedule.hour, schedule.minute)} |{" "}
-                      <strong>Total Scenes:</strong> {schedule.sceneCount}
+        <div className="flex items-center gap-2">
+          {/* Scenes Button with Popover */}
+          <Popover modal={true}>
+            <PopoverTrigger asChild>
+              <Button variant="outline">
+                <span className="font-light">Scenes:</span> {schedule.sceneCount}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-108" align="end">
+              <div className="space-y-3">
+                <div className="flex justify-between">
+                  <h4 className="font-medium text-sm">Schedule #{schedule.index}</h4>
+                  <div className="text-xs text-muted-foreground">
+                    <strong>Time:</strong> {formatTime(schedule.hour, schedule.minute)} | <strong>Total Scenes:</strong> {schedule.sceneCount}
+                  </div>
+                </div>
+
+                {schedule.sceneAddresses && schedule.sceneAddresses.length > 0 ? (
+                  <div className="space-y-2">
+                    <h5 className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Scene Addresses</h5>
+                    <div className="grid grid-cols-4 gap-2 max-h-40 overflow-y-auto">
+                      {schedule.sceneAddresses.map((address, index) => (
+                        <Badge key={index} variant="outline" className="text-xs justify-center">
+                          {address}
+                        </Badge>
+                      ))}
                     </div>
                   </div>
+                ) : (
+                  <div className="text-center text-muted-foreground py-4">
+                    <p className="text-sm">No scenes configured</p>
+                  </div>
+                )}
+              </div>
+            </PopoverContent>
+          </Popover>
 
-                  {schedule.sceneAddresses &&
-                  schedule.sceneAddresses.length > 0 ? (
-                    <div className="space-y-2">
-                      <h5 className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-                        Scene Addresses
-                      </h5>
-                      <div className="grid grid-cols-4 gap-2 max-h-40 overflow-y-auto">
-                        {schedule.sceneAddresses.map((address, index) => (
-                          <Badge
-                            key={index}
-                            variant="outline"
-                            className="text-xs justify-center"
-                          >
-                            {address}
-                          </Badge>
-                        ))}
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="text-center text-muted-foreground py-4">
-                      <p className="text-sm">No scenes configured</p>
-                    </div>
-                  )}
-                </div>
-              </PopoverContent>
-            </Popover>
-
-            {/* Delete Schedule Button */}
-            <Button
-              variant="outline"
-              size="icon"
-              onClick={() => onDelete(schedule.index)}
-              disabled={loading}
-              className="flex items-center gap-1 shadow text-destructive hover:text-destructive"
-            >
-              <Trash2 className="h-3 w-3" />
-            </Button>
-          </div>
+          {/* Delete Schedule Button */}
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={() => onDelete(schedule.index)}
+            disabled={loading}
+            className="flex items-center gap-1 shadow text-destructive hover:text-destructive"
+          >
+            <Trash2 className="h-3 w-3" />
+          </Button>
         </div>
-      </CardContent>
-    </Card>
-  )
-);
+      </div>
+    </CardContent>
+  </Card>
+));
 
 ScheduleCard.displayName = "ScheduleCard";
 
@@ -193,10 +158,7 @@ export function TriggerScheduleDialog({ open, onOpenChange, unit }) {
   const handleScheduleIndexChange = useCallback((e) => {
     const value = e.target.value;
     // Allow only numbers and limit to 0-31
-    if (
-      value === "" ||
-      (/^\d+$/.test(value) && parseInt(value) >= 0 && parseInt(value) <= 31)
-    ) {
+    if (value === "" || (/^\d+$/.test(value) && parseInt(value) >= 0 && parseInt(value) <= 31)) {
       setState((prev) => ({ ...prev, scheduleIndex: value }));
     }
   }, []);
@@ -230,12 +192,11 @@ export function TriggerScheduleDialog({ open, onOpenChange, unit }) {
         scheduleIndex: index,
       });
 
-      const result =
-        await window.electronAPI.scheduleController.getScheduleInformation({
-          unitIp: unit.ip_address,
-          canId: unit.id_can,
-          scheduleIndex: index,
-        });
+      const result = await window.electronAPI.scheduleController.getScheduleInformation({
+        unitIp: unit.ip_address,
+        canId: unit.id_can,
+        scheduleIndex: index,
+      });
 
       // Convert single schedule result to card format
       if (result && result.success && result.data) {
@@ -245,18 +206,8 @@ export function TriggerScheduleDialog({ open, onOpenChange, unit }) {
           enabled: scheduleData.enabled || false,
           hour: scheduleData.hour || 0,
           minute: scheduleData.minute || 0,
-          weekDays: scheduleData.weekDays || [
-            false,
-            false,
-            false,
-            false,
-            false,
-            false,
-            false,
-          ],
-          sceneCount: scheduleData.sceneAddresses
-            ? scheduleData.sceneAddresses.length
-            : 0,
+          weekDays: scheduleData.weekDays || [false, false, false, false, false, false, false],
+          sceneCount: scheduleData.sceneAddresses ? scheduleData.sceneAddresses.length : 0,
           sceneAddresses: scheduleData.sceneAddresses || [],
         };
 
@@ -293,11 +244,10 @@ export function TriggerScheduleDialog({ open, onOpenChange, unit }) {
         canId: unit.id_can,
       });
 
-      const result =
-        await window.electronAPI.scheduleController.getAllSchedulesInformation({
-          unitIp: unit.ip_address,
-          canId: unit.id_can,
-        });
+      const result = await window.electronAPI.scheduleController.getAllSchedulesInformation({
+        unitIp: unit.ip_address,
+        canId: unit.id_can,
+      });
 
       if (result.data && result.data.length > 0) {
         // Convert schedule data to card format
@@ -306,18 +256,8 @@ export function TriggerScheduleDialog({ open, onOpenChange, unit }) {
           enabled: schedule.enabled || false,
           hour: schedule.hour || 0,
           minute: schedule.minute || 0,
-          weekDays: schedule.weekDays || [
-            false,
-            false,
-            false,
-            false,
-            false,
-            false,
-            false,
-          ],
-          sceneCount: schedule.sceneAddresses
-            ? schedule.sceneAddresses.length
-            : 0,
+          weekDays: schedule.weekDays || [false, false, false, false, false, false, false],
+          sceneCount: schedule.sceneAddresses ? schedule.sceneAddresses.length : 0,
           sceneAddresses: schedule.sceneAddresses || [],
         }));
 
@@ -332,18 +272,14 @@ export function TriggerScheduleDialog({ open, onOpenChange, unit }) {
             schedules: filteredSchedules,
             showSchedules: true,
           }));
-          toast.success(
-            `Loaded ${filteredSchedules.length} schedules successfully`
-          );
+          toast.success(`Loaded ${filteredSchedules.length} schedules successfully`);
         } else {
           setState((prev) => ({
             ...prev,
             schedules: [],
             showSchedules: false,
           }));
-          toast.info(
-            "No valid schedules found (filtered out disabled empty schedules)"
-          );
+          toast.info("No valid schedules found (filtered out disabled empty schedules)");
         }
       } else {
         setState((prev) => ({
@@ -397,9 +333,7 @@ export function TriggerScheduleDialog({ open, onOpenChange, unit }) {
         scheduleIndex: state.deleteConfirmDialog.scheduleIndex, // Keep 0-31 range
       });
 
-      toast.success(
-        `Schedule ${state.deleteConfirmDialog.scheduleIndex} deleted successfully`
-      );
+      toast.success(`Schedule ${state.deleteConfirmDialog.scheduleIndex} deleted successfully`);
 
       // Close the confirmation dialog
       setState((prev) => ({
@@ -423,8 +357,7 @@ export function TriggerScheduleDialog({ open, onOpenChange, unit }) {
         <DialogHeader>
           <DialogTitle>Schedule Control</DialogTitle>
           <DialogDescription>
-            Load information and manage schedules on unit {unit?.ip_address}{" "}
-            (CAN ID: {unit?.id_can}).
+            Load information and manage schedules on unit {unit?.ip_address} (CAN ID: {unit?.id_can}).
           </DialogDescription>
         </DialogHeader>
 
@@ -440,21 +373,13 @@ export function TriggerScheduleDialog({ open, onOpenChange, unit }) {
                   onChange={handleScheduleIndexChange}
                   onKeyPress={handleKeyPress}
                   placeholder="Schedule (0-31)"
-                  disabled={
-                    loadingState.loading ||
-                    loadingState.loadingInfo ||
-                    loadingState.loadingAllSchedules
-                  }
+                  disabled={loadingState.loading || loadingState.loadingInfo || loadingState.loadingAllSchedules}
                   autoFocus
                   className="max-w-[150px]"
                 />
                 <Button
                   onClick={handleLoadScheduleInfo}
-                  disabled={
-                    loadingState.loadingInfo ||
-                    !state.scheduleIndex ||
-                    loadingState.loadingAllSchedules
-                  }
+                  disabled={loadingState.loadingInfo || !state.scheduleIndex || loadingState.loadingAllSchedules}
                   className="flex items-center gap-2"
                 >
                   <GitCompare className="h-4 w-4" />
@@ -464,17 +389,11 @@ export function TriggerScheduleDialog({ open, onOpenChange, unit }) {
               <div className="flex items-center gap-2">
                 <DeleteScheduleDialog
                   open={state.deletePopoverOpen}
-                  onOpenChange={(open) =>
-                    setState((prev) => ({ ...prev, deletePopoverOpen: open }))
-                  }
+                  onOpenChange={(open) => setState((prev) => ({ ...prev, deletePopoverOpen: open }))}
                   unit={unit}
                   asPopover={true}
                   trigger={
-                    <Button
-                      variant="outline"
-                      size="lg"
-                      className="flex items-center gap-2"
-                    >
+                    <Button variant="outline" size="lg" className="flex items-center gap-2">
                       <Trash2 className="h-4 w-4" />
                       Delete Schedules
                     </Button>
@@ -483,15 +402,11 @@ export function TriggerScheduleDialog({ open, onOpenChange, unit }) {
                 <Button
                   onClick={handleLoadAllSchedules}
                   size="lg"
-                  disabled={
-                    loadingState.loadingAllSchedules || loadingState.loadingInfo
-                  }
+                  disabled={loadingState.loadingAllSchedules || loadingState.loadingInfo}
                   className="flex items-center gap-2"
                 >
                   <List className="h-4 w-4" />
-                  {loadingState.loadingAllSchedules
-                    ? "Loading..."
-                    : "Load All Schedules"}
+                  {loadingState.loadingAllSchedules ? "Loading..." : "Load All Schedules"}
                 </Button>
               </div>
             </div>
@@ -516,13 +431,8 @@ export function TriggerScheduleDialog({ open, onOpenChange, unit }) {
               ) : (
                 <div className="flex items-center justify-center h-full mt-10">
                   <div className="text-center text-muted-foreground">
-                    <p className="text-lg font-medium mb-2">
-                      No schedules loaded
-                    </p>
-                    <p className="text-sm">
-                      Use "Load Schedule" or "Load All Schedules" to display
-                      schedule information
-                    </p>
+                    <p className="text-lg font-medium mb-2">No schedules loaded</p>
+                    <p className="text-sm">Use "Load Schedule" or "Load All Schedules" to display schedule information</p>
                   </div>
                 </div>
               )}
@@ -535,11 +445,7 @@ export function TriggerScheduleDialog({ open, onOpenChange, unit }) {
             type="button"
             variant="outline"
             onClick={() => onOpenChange(false)}
-            disabled={
-              loadingState.loading ||
-              loadingState.loadingInfo ||
-              loadingState.loadingAllSchedules
-            }
+            disabled={loadingState.loading || loadingState.loadingInfo || loadingState.loadingAllSchedules}
           >
             Close
           </Button>
@@ -561,15 +467,11 @@ export function TriggerScheduleDialog({ open, onOpenChange, unit }) {
           <AlertDialogHeader>
             <AlertDialogTitle>Delete Schedule</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to delete{" "}
-              {state.deleteConfirmDialog.scheduleName}? This action cannot be
-              undone.
+              Are you sure you want to delete {state.deleteConfirmDialog.scheduleName}? This action cannot be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel disabled={loadingState.loading}>
-              Cancel
-            </AlertDialogCancel>
+            <AlertDialogCancel disabled={loadingState.loading}>Cancel</AlertDialogCancel>
             <AlertDialogAction
               onClick={handleConfirmDeleteSchedule}
               disabled={loadingState.loading}

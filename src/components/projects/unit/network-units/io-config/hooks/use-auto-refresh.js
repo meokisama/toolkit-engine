@@ -22,12 +22,7 @@ const REFRESH_STATES = {
  * @returns {Object} Auto refresh controls
  */
 export function useAutoRefresh(refreshCallback, options = {}) {
-  const {
-    interval = 3000,
-    enabled = false,
-    dialogOpen = false,
-    childDialogOpen = false,
-  } = options;
+  const { interval = 1000, enabled = false, dialogOpen = false, childDialogOpen = false } = options;
 
   const [state, setState] = useState(REFRESH_STATES.IDLE);
   const intervalRef = useRef(null);
@@ -127,14 +122,7 @@ export function useAutoRefresh(refreshCallback, options = {}) {
     if (childDialogOpen && state === REFRESH_STATES.RUNNING) {
       pause();
     } else if (!childDialogOpen && state === REFRESH_STATES.PAUSED && enabled && dialogOpen) {
-      // Add delay before resuming to allow unit to process pending commands
-      const timer = setTimeout(() => {
-        if (enabled && dialogOpen && !childDialogOpen) {
-          resume();
-        }
-      }, 1000);
-
-      return () => clearTimeout(timer);
+      resume();
     }
   }, [childDialogOpen, state, enabled, dialogOpen, pause, resume]);
 

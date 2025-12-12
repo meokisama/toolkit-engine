@@ -17,8 +17,8 @@ export const createDefaultRS485Config = () => ({
     slave_id: 1,
     slave_group: 0,
     num_indoors: 0,
-    indoor_group: Array.from({ length: RS485.SLAVE_MAX_INDOORS }, () => 0)
-  }))
+    indoor_group: Array.from({ length: RS485.SLAVE_MAX_INDOORS }, () => 0),
+  })),
 });
 
 /**
@@ -28,7 +28,7 @@ export const createDefaultSlaveConfig = () => ({
   slave_id: 1,
   slave_group: 0,
   num_indoors: 0,
-  indoor_group: Array.from({ length: RS485.SLAVE_MAX_INDOORS }, () => 0)
+  indoor_group: Array.from({ length: RS485.SLAVE_MAX_INDOORS }, () => 0),
 });
 
 /**
@@ -43,7 +43,7 @@ export const validateRS485Config = (config) => {
   }
 
   // Validate baudrate
-  const validBaudrates = RS485.BAUDRATES.map(b => b.value);
+  const validBaudrates = RS485.BAUDRATES.map((b) => b.value);
   if (!validBaudrates.includes(config.baudrate)) {
     errors.push("Invalid baudrate");
   }
@@ -64,7 +64,7 @@ export const validateRS485Config = (config) => {
   }
 
   // Validate config type (0 = None/not selected, or valid RS485 type)
-  const validTypes = [0, ...RS485.TYPES.map(t => t.value)];
+  const validTypes = [0, ...RS485.TYPES.map((t) => t.value)];
   if (!validTypes.includes(config.config_type)) {
     errors.push("Invalid RS485 type");
   }
@@ -135,20 +135,18 @@ export const serializeRS485Config = (configs) => {
     configStr += `,${config.num_slave_devs}`;
 
     // Add reserved bytes
-    config.reserved.forEach(byte => {
+    config.reserved.forEach((byte) => {
       configStr += `,${byte}`;
     });
 
     // Add slave configurations
-    config.slave_cfg.forEach(slave => {
+    config.slave_cfg.forEach((slave) => {
       configStr += `,${slave.slave_id}`;
       configStr += `,${slave.slave_group}`;
       configStr += `,${slave.num_indoors}`;
 
       // Add indoor groups (ensure exactly 16 values)
-      const indoorGroups = Array.isArray(slave.indoor_group)
-        ? slave.indoor_group
-        : Array.from({ length: RS485.SLAVE_MAX_INDOORS }, () => 0);
+      const indoorGroups = Array.isArray(slave.indoor_group) ? slave.indoor_group : Array.from({ length: RS485.SLAVE_MAX_INDOORS }, () => 0);
 
       // Ensure we have exactly 16 values
       for (let k = 0; k < RS485.SLAVE_MAX_INDOORS; k++) {
@@ -201,7 +199,7 @@ export const deserializeRS485Config = (configStrings) => {
       config_type: parseInt(parts[index++]),
       num_slave_devs: parseInt(parts[index++]),
       reserved: [],
-      slave_cfg: []
+      slave_cfg: [],
     };
 
     // Read reserved bytes
@@ -215,7 +213,7 @@ export const deserializeRS485Config = (configStrings) => {
         slave_id: parseInt(parts[index++]),
         slave_group: parseInt(parts[index++]),
         num_indoors: parseInt(parts[index++]),
-        indoor_group: []
+        indoor_group: [],
       };
 
       // Read indoor groups
@@ -273,7 +271,7 @@ export const supportsRS485 = (unitType) => {
     "GNT-EXT-12RL-12AO",
     "GNT-EXT-24IN",
     "GNT-EXT-48IN",
-    "GNT-ETH2KDL"
+    "GNT-ETH2KDL",
   ];
   return rs485SupportedTypes.includes(unitType);
 };
@@ -285,7 +283,7 @@ export const getRS485TypeLabel = (value) => {
   if (value === 0) {
     return "None";
   }
-  const type = RS485.TYPES.find(t => t.value === value);
+  const type = RS485.TYPES.find((t) => t.value === value);
   return type ? type.label : "Unknown";
 };
 
@@ -293,8 +291,8 @@ export const getRS485TypeLabel = (value) => {
  * Check if RS485 type is slave
  */
 export const isSlaveType = (configType) => {
-  const type = RS485.TYPES.find(t => t.value === configType);
-  return type ? type.label.includes('SLAVE') : false;
+  const type = RS485.TYPES.find((t) => t.value === configType);
+  return type ? type.label.includes("SLAVE") : false;
 };
 
 /**
@@ -322,7 +320,7 @@ export const isSlaveOnlyUnit = (unitType) => {
     "GNT-EXT-28AO",
     "GNT-EXT-12RL-12AO",
     "GNT-EXT-24IN",
-    "GNT-EXT-48IN"
+    "GNT-EXT-48IN",
   ];
   return slaveOnlyTypes.includes(unitType);
 };
@@ -339,20 +337,22 @@ export const getUnitTypeConstraints = (unitType) => {
     modes: {
       master: !isSlaveOnly,
       slave: true,
-      standAlone: !isSlaveOnly
+      standAlone: !isSlaveOnly,
     },
     // Default mode when unit type is selected
     defaultMode: isSlaveOnly ? "Slave" : "Stand-Alone",
     // Checkbox constraints
     checkboxes: {
       canLoad: !isSlaveOnly, // Enabled for non-slave-only units
-      recovery: !isSlaveOnly  // Enabled for non-slave-only units
+      recovery: !isSlaveOnly, // Enabled for non-slave-only units
     },
     // Default checkbox values for slave-only units
-    defaultValues: isSlaveOnly ? {
-      canLoad: false,
-      recovery: false
-    } : null
+    defaultValues: isSlaveOnly
+      ? {
+          canLoad: false,
+          recovery: false,
+        }
+      : null,
   };
 };
 
@@ -366,45 +366,45 @@ export const getModeConstraints = (mode) => {
       return {
         canLoad: {
           enabled: false,
-          value: true
+          value: true,
         },
         recovery: {
           enabled: true,
-          value: null // Keep current value
-        }
+          value: null, // Keep current value
+        },
       };
     case "Slave":
       return {
         canLoad: {
           enabled: true,
-          value: false
+          value: false,
         },
         recovery: {
           enabled: true,
-          value: null // Keep current value
-        }
+          value: null, // Keep current value
+        },
       };
     case "Stand-Alone":
       return {
         canLoad: {
           enabled: true,
-          value: false
+          value: false,
         },
         recovery: {
           enabled: true,
-          value: null // Keep current value
-        }
+          value: null, // Keep current value
+        },
       };
     default:
       return {
         canLoad: {
           enabled: true,
-          value: null
+          value: null,
         },
         recovery: {
           enabled: true,
-          value: null
-        }
+          value: null,
+        },
       };
   }
 };

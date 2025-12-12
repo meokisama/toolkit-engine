@@ -1,12 +1,5 @@
 import React, { useState, useCallback } from "react";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Settings } from "lucide-react";
 
@@ -27,10 +20,7 @@ import { useInputDetail } from "./hooks/use-input-detail";
 import { useInputType } from "./hooks/use-input-type";
 
 // Import utilities
-import {
-  getGroupTypeLabel,
-  getGroupTypeFromFunction,
-} from "./utils/group-helpers";
+import { getGroupTypeLabel, getGroupTypeFromFunction } from "./utils/group-helpers";
 
 import { useProjectDetail } from "@/contexts/project-detail-context";
 import { getRlcOptionsConfig, getInputFunctionByValue } from "@/constants";
@@ -49,8 +39,7 @@ export function InputDetailConfigDialog({
   isLoading = false,
   onSave = () => {},
 }) {
-  const { projectItems, selectedProject, loadedTabs, loadTabData, createItem } =
-    useProjectDetail();
+  const { projectItems, selectedProject, loadedTabs, loadTabData, createItem } = useProjectDetail();
 
   // Prepare initial groups and RLC options in the correct format (before hooks)
   const initialGroupsFormatted = React.useMemo(() => {
@@ -70,8 +59,7 @@ export function InputDetailConfigDialog({
     return {
       ramp: initialRlcOptions.ramp || 0,
       preset: initialRlcOptions.preset || 100,
-      ledStatus:
-        initialRlcOptions.ledStatus || initialRlcOptions.led_status || 0,
+      ledStatus: initialRlcOptions.ledStatus || initialRlcOptions.led_status || 0,
       autoMode: initialRlcOptions.autoMode || initialRlcOptions.auto_mode || 0,
       delayOff: initialRlcOptions.delayOff || initialRlcOptions.delay_off || 0,
       delayOn: initialRlcOptions.delayOn || initialRlcOptions.delay_on || 0,
@@ -79,31 +67,11 @@ export function InputDetailConfigDialog({
   }, [initialRlcOptions]);
 
   // Use custom hooks for state management
-  const {
-    currentInputType,
-    availableInputFunctions,
-    currentInputFunction,
-    isInputTypeChanging,
-    handleInputTypeChange,
-    resetInputType,
-  } = useInputType(
-    functionValue,
-    unitType,
-    inputIndex,
-    selectedProject,
-    loadedTabs,
-    loadTabData,
-    open
-  );
+  const { currentInputType, availableInputFunctions, currentInputFunction, isInputTypeChanging, handleInputTypeChange, resetInputType } =
+    useInputType(functionValue, unitType, inputIndex, selectedProject, loadedTabs, loadTabData, open);
 
-  const {
-    rlcOptions,
-    delayOffTime,
-    handleRlcOptionChange,
-    handleDelayOffTimeChange,
-    resetRlcOptions,
-    getFinalRlcOptions,
-  } = useRlcOptions(initialRlcOptionsFormatted);
+  const { rlcOptions, delayOffTime, handleRlcOptionChange, handleDelayOffTimeChange, resetRlcOptions, getFinalRlcOptions } =
+    useRlcOptions(initialRlcOptionsFormatted);
 
   const {
     selectedGroups,
@@ -126,13 +94,7 @@ export function InputDetailConfigDialog({
     handleTogglePercentage,
     resetMultipleGroups,
     initializeDaliGroups,
-  } = useInputDetail(
-    initialGroupsFormatted,
-    currentInputType,
-    projectItems,
-    selectedProject,
-    createItem
-  );
+  } = useInputDetail(initialGroupsFormatted, currentInputType, projectItems, selectedProject, createItem);
 
   // State for create/edit device dialogs
   const [createEditDialog, setCreateEditDialog] = useState({
@@ -204,9 +166,7 @@ export function InputDetailConfigDialog({
   // Track initialGroups changes with ref to prevent infinite loops
   const initialGroupsRef = React.useRef(initialGroups);
   const hasInitialGroupsChanged = React.useMemo(() => {
-    const changed =
-      JSON.stringify(initialGroupsRef.current) !==
-      JSON.stringify(initialGroups);
+    const changed = JSON.stringify(initialGroupsRef.current) !== JSON.stringify(initialGroups);
     if (changed) {
       initialGroupsRef.current = initialGroups;
     }
@@ -225,13 +185,7 @@ export function InputDetailConfigDialog({
     ) {
       initializeDaliGroups(initialGroups);
     }
-  }, [
-    open,
-    isLoading,
-    isInputTypeChanging,
-    hasInitialGroupsChanged,
-    initializeDaliGroups,
-  ]);
+  }, [open, isLoading, isInputTypeChanging, hasInitialGroupsChanged, initializeDaliGroups]);
 
   // Handle dialog close
   const handleClose = React.useCallback(() => {
@@ -255,15 +209,11 @@ export function InputDetailConfigDialog({
           };
         } else if (group.lightingId) {
           // Group in database - find address from lightingId
-          let groupItem = availableItems.find(
-            (item) => item.id === group.lightingId
-          );
+          let groupItem = availableItems.find((item) => item.id === group.lightingId);
 
           // Fallback to lighting items if not found in current type
           if (!groupItem) {
-            groupItem = lightingItems.find(
-              (item) => item.id === group.lightingId
-            );
+            groupItem = lightingItems.find((item) => item.id === group.lightingId);
           }
 
           const result = {
@@ -283,13 +233,7 @@ export function InputDetailConfigDialog({
     };
 
     return result;
-  }, [
-    selectedGroups,
-    currentInputType,
-    availableItems,
-    lightingItems,
-    getFinalRlcOptions,
-  ]);
+  }, [selectedGroups, currentInputType, availableItems, lightingItems, getFinalRlcOptions]);
 
   // Handle save with proper callback
   const handleSave = React.useCallback(async () => {
@@ -353,10 +297,7 @@ export function InputDetailConfigDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange} modal={true}>
-      <DialogContent
-        className="sm:max-w-6xl max-h-[95vh] overflow-y-auto"
-        aria-describedby="multi-group-description"
-      >
+      <DialogContent className="sm:max-w-6xl max-h-[95vh] overflow-y-auto" aria-describedby="multi-group-description">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Settings className="h-5 w-5" />

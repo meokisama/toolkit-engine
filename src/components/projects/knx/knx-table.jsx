@@ -18,16 +18,8 @@ import { GenerateFromMultiSceneSheet } from "@/components/projects/knx/sheets/ge
 import { GenerateFromSequenceSheet } from "@/components/projects/knx/sheets/generate-sequence";
 import { Network, Send } from "lucide-react";
 
-// Memoized component to prevent unnecessary rerenders
 function KnxTableComponent({ items, loading }) {
-  const {
-    deleteItem,
-    duplicateItem,
-    exportItems,
-    importItems,
-    updateItem,
-    projectItems,
-  } = useProjectDetail();
+  const { deleteItem, duplicateItem, exportItems, importItems, updateItem, projectItems } = useProjectDetail();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingItem, setEditingItem] = useState(null);
   const [dialogMode, setDialogMode] = useState("create");
@@ -46,7 +38,6 @@ function KnxTableComponent({ items, loading }) {
   const [pagination, setPagination] = useState({ pageIndex: 0, pageSize: 10 });
   const [saveLoading, setSaveLoading] = useState(false);
 
-  // ✅ Use ref instead of state to avoid re-renders when pendingChanges update
   const pendingChangesRef = useRef(new Map());
   const [pendingChangesCount, setPendingChangesCount] = useState(0);
   const [sendDialogOpen, setSendDialogOpen] = useState(false);
@@ -59,7 +50,6 @@ function KnxTableComponent({ items, loading }) {
 
   const category = "knx";
 
-  // ✅ Stable function that doesn't change reference
   const handleCellEdit = useCallback((itemId, field, newValue) => {
     const itemChanges = pendingChangesRef.current.get(itemId) || {};
     itemChanges[field] = newValue;
@@ -69,12 +59,9 @@ function KnxTableComponent({ items, loading }) {
     setPendingChangesCount(pendingChangesRef.current.size);
   }, []);
 
-  // ✅ Stable function that doesn't depend on state
   const getEffectiveValue = useCallback((itemId, field, originalValue) => {
     const itemChanges = pendingChangesRef.current.get(itemId);
-    return itemChanges && itemChanges.hasOwnProperty(field)
-      ? itemChanges[field]
-      : originalValue;
+    return itemChanges && itemChanges.hasOwnProperty(field) ? itemChanges[field] : originalValue;
   }, []); // No dependencies = stable function!
 
   // Save pending changes
@@ -251,17 +238,8 @@ function KnxTableComponent({ items, loading }) {
     setGenerateSequenceSheetOpen(true);
   }, []);
 
-  // ✅ Now columns will be truly stable because all dependencies are stable!
   const columns = useMemo(
-    () =>
-      createKnxItemsColumns(
-        handleEditItem,
-        handleDuplicateItem,
-        handleDeleteItem,
-        handleCellEdit,
-        getEffectiveValue,
-        projectItems || {}
-      ),
+    () => createKnxItemsColumns(handleEditItem, handleDuplicateItem, handleDeleteItem, handleCellEdit, getEffectiveValue, projectItems || {}),
     [
       handleEditItem,
       handleDuplicateItem,
@@ -283,9 +261,7 @@ function KnxTableComponent({ items, loading }) {
           <div className="text-center text-muted-foreground flex flex-col justify-center items-center h-full -mt-8">
             <Network className="h-12 w-12 mx-auto mb-4 opacity-50" />
             <p>No KNX devices found.</p>
-            <p className="text-sm mb-8">
-              Click "Add Device" to create your first KNX device.
-            </p>
+            <p className="text-sm mb-8">Click "Add Device" to create your first KNX device.</p>
             <Button onClick={handleCreateItem}>
               <Plus className="h-4 w-4" />
               Add Device
@@ -338,26 +314,18 @@ function KnxTableComponent({ items, loading }) {
                 enableRowSelection={true}
               />
             </div>
-            {table && (
-              <DataTablePagination table={table} pagination={pagination} />
-            )}
+            {table && <DataTablePagination table={table} pagination={pagination} />}
           </div>
         )}
       </div>
 
-      <KnxItemDialog
-        open={dialogOpen}
-        onOpenChange={setDialogOpen}
-        mode={dialogMode}
-        item={editingItem}
-      />
+      <KnxItemDialog open={dialogOpen} onOpenChange={setDialogOpen} mode={dialogMode} item={editingItem} />
 
       <ConfirmDialog
         open={confirmDialogOpen}
         onOpenChange={setConfirmDialogOpen}
         title="Delete KNX Device"
-        description={`Are you sure you want to delete "${itemToDelete?.name || `Device ${itemToDelete?.address}`
-          }"? This action cannot be undone.`}
+        description={`Are you sure you want to delete "${itemToDelete?.name || `Device ${itemToDelete?.address}`}"? This action cannot be undone.`}
         onConfirm={handleConfirmDelete}
         loading={deleteLoading}
       />
@@ -371,43 +339,13 @@ function KnxTableComponent({ items, loading }) {
         loading={bulkDeleteLoading}
       />
 
-      <ImportItemsDialog
-        open={importDialogOpen}
-        onOpenChange={setImportDialogOpen}
-        category={category}
-        onConfirm={handleImportConfirm}
-      />
-
-      <SendKnxDialog
-        open={sendDialogOpen}
-        onOpenChange={setSendDialogOpen}
-        items={itemsToSend}
-      />
-
-      <GenerateFromLightingSheet
-        open={generateLightingSheetOpen}
-        onOpenChange={setGenerateLightingSheetOpen}
-      />
-
-      <GenerateFromCurtainSheet
-        open={generateCurtainSheetOpen}
-        onOpenChange={setGenerateCurtainSheetOpen}
-      />
-
-      <GenerateFromSceneSheet
-        open={generateSceneSheetOpen}
-        onOpenChange={setGenerateSceneSheetOpen}
-      />
-
-      <GenerateFromMultiSceneSheet
-        open={generateMultiSceneSheetOpen}
-        onOpenChange={setGenerateMultiSceneSheetOpen}
-      />
-
-      <GenerateFromSequenceSheet
-        open={generateSequenceSheetOpen}
-        onOpenChange={setGenerateSequenceSheetOpen}
-      />
+      <ImportItemsDialog open={importDialogOpen} onOpenChange={setImportDialogOpen} category={category} onConfirm={handleImportConfirm} />
+      <SendKnxDialog open={sendDialogOpen} onOpenChange={setSendDialogOpen} items={itemsToSend} />
+      <GenerateFromLightingSheet open={generateLightingSheetOpen} onOpenChange={setGenerateLightingSheetOpen} />
+      <GenerateFromCurtainSheet open={generateCurtainSheetOpen} onOpenChange={setGenerateCurtainSheetOpen} />
+      <GenerateFromSceneSheet open={generateSceneSheetOpen} onOpenChange={setGenerateSceneSheetOpen} />
+      <GenerateFromMultiSceneSheet open={generateMultiSceneSheetOpen} onOpenChange={setGenerateMultiSceneSheetOpen} />
+      <GenerateFromSequenceSheet open={generateSequenceSheetOpen} onOpenChange={setGenerateSequenceSheetOpen} />
     </>
   );
 }
@@ -415,8 +353,5 @@ function KnxTableComponent({ items, loading }) {
 // Export memoized component with custom comparison function
 export const KnxTable = memo(KnxTableComponent, (prevProps, nextProps) => {
   // Only rerender if items array reference or loading state changes
-  return (
-    prevProps.items === nextProps.items &&
-    prevProps.loading === nextProps.loading
-  );
+  return prevProps.items === nextProps.items && prevProps.loading === nextProps.loading;
 });

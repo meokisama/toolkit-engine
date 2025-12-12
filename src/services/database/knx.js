@@ -66,11 +66,7 @@ export const knxMethods = {
     // Check for duplicate addresses
     if (itemId === null) {
       // Creating new item
-      const existingItems = this.db
-        .prepare(
-          "SELECT COUNT(*) as count FROM knx WHERE project_id = ? AND address = ?"
-        )
-        .get(projectId, address);
+      const existingItems = this.db.prepare("SELECT COUNT(*) as count FROM knx WHERE project_id = ? AND address = ?").get(projectId, address);
       if (existingItems.count > 0) {
         throw new Error(`KNX address ${address} already exists.`);
       }
@@ -79,9 +75,7 @@ export const knxMethods = {
       const currentItem = this.getProjectItemById(itemId, "knx");
       if (currentItem && currentItem.address !== address) {
         const existingItems = this.db
-          .prepare(
-            "SELECT COUNT(*) as count FROM knx WHERE project_id = ? AND address = ? AND id != ?"
-          )
+          .prepare("SELECT COUNT(*) as count FROM knx WHERE project_id = ? AND address = ? AND id != ?")
           .get(currentItem.project_id, address, itemId);
         if (existingItems.count > 0) {
           throw new Error(`KNX address ${address} already exists.`);
@@ -98,18 +92,7 @@ export const knxMethods = {
 
   // Create KNX item in createProjectItem
   createKnxItemInline(projectId, itemData) {
-    const {
-      name,
-      address,
-      type,
-      factor,
-      feedback,
-      rcu_group_id,
-      knx_switch_group,
-      knx_dimming_group,
-      knx_value_group,
-      description,
-    } = itemData;
+    const { name, address, type, factor, feedback, rcu_group_id, knx_switch_group, knx_dimming_group, knx_value_group, description } = itemData;
 
     // Determine rcu_group_type based on KNX type
     let rcu_group_type = null;
@@ -140,18 +123,7 @@ export const knxMethods = {
 
   // Update KNX item in updateProjectItem
   updateKnxItemInline(id, itemData) {
-    const {
-      name,
-      address,
-      type,
-      factor,
-      feedback,
-      rcu_group_id,
-      knx_switch_group,
-      knx_dimming_group,
-      knx_value_group,
-      description,
-    } = itemData;
+    const { name, address, type, factor, feedback, rcu_group_id, knx_switch_group, knx_dimming_group, knx_value_group, description } = itemData;
 
     // Determine rcu_group_type based on KNX type
     let rcu_group_type = null;
@@ -194,20 +166,14 @@ export const knxMethods = {
     delete duplicatedItem.updated_at;
 
     // For KNX, find a unique address if address exists
-    if (
-      originalItem.address !== null &&
-      originalItem.address !== undefined
-    ) {
+    if (originalItem.address !== null && originalItem.address !== undefined) {
       // For KNX, find next available address in range 0-511
       let newAddress = originalItem.address;
       do {
         newAddress = (newAddress + 1) % 512;
       } while (
-        this.db
-          .prepare(
-            "SELECT COUNT(*) as count FROM knx WHERE project_id = ? AND address = ?"
-          )
-          .get(originalItem.project_id, newAddress).count > 0 &&
+        this.db.prepare("SELECT COUNT(*) as count FROM knx WHERE project_id = ? AND address = ?").get(originalItem.project_id, newAddress).count >
+          0 &&
         newAddress !== originalItem.address
       );
 
@@ -219,8 +185,7 @@ export const knxMethods = {
       duplicatedItem.feedback = originalItem.feedback || 0;
       duplicatedItem.rcu_group_id = originalItem.rcu_group_id || null;
       duplicatedItem.knx_switch_group = originalItem.knx_switch_group || null;
-      duplicatedItem.knx_dimming_group =
-        originalItem.knx_dimming_group || null;
+      duplicatedItem.knx_dimming_group = originalItem.knx_dimming_group || null;
       duplicatedItem.knx_value_group = originalItem.knx_value_group || null;
     }
 
@@ -251,11 +216,7 @@ export const knxMethods = {
       // Handle both old format (rcu_group_id) and new format (rcu_group_address)
       if (rcu_group_address && rcu_group_type) {
         // New format: lookup ID by address
-        finalRcuGroupId = this.findRcuGroupIdByAddress(
-          projectId,
-          rcu_group_address,
-          rcu_group_type
-        );
+        finalRcuGroupId = this.findRcuGroupIdByAddress(projectId, rcu_group_address, rcu_group_type);
         finalRcuGroupType = rcu_group_type;
       } else if (rcu_group_id && rcu_group_type) {
         // Old format: use ID directly (for backward compatibility)
@@ -301,11 +262,7 @@ export const knxMethods = {
       knxItems.forEach((knxItem) => {
         // Check if this KNX item has rcu_group_address (new format)
         if (knxItem.rcu_group_address && knxItem.rcu_group_type) {
-          const newRcuGroupId = this.findRcuGroupIdByAddress(
-            projectId,
-            knxItem.rcu_group_address,
-            knxItem.rcu_group_type
-          );
+          const newRcuGroupId = this.findRcuGroupIdByAddress(projectId, knxItem.rcu_group_address, knxItem.rcu_group_type);
 
           if (newRcuGroupId) {
             // Update the KNX item with the new RCU group ID
@@ -334,10 +291,7 @@ export const knxMethods = {
       const result = stmt.get(projectId, address);
       return result ? result.id : null;
     } catch (error) {
-      console.error(
-        `Failed to find RCU group ID for ${rcuGroupType} address ${address}:`,
-        error
-      );
+      console.error(`Failed to find RCU group ID for ${rcuGroupType} address ${address}:`, error);
       return null;
     }
   },

@@ -13,70 +13,42 @@ import { readSequenceConfigurations } from "./read-sequence";
  * @param {string} projectId - The project ID
  * @returns {Promise<void>}
  */
-export const readAdvancedConfigurations = async (
-  networkUnit,
-  importedUnit,
-  projectId
-) => {
+export const readAdvancedConfigurations = async (networkUnit, importedUnit, projectId) => {
   try {
-    console.log(
-      `Reading advanced configurations for unit ${networkUnit.ip_address}...`
-    );
+    console.log(`Reading advanced configurations for unit ${networkUnit.ip_address}...`);
 
     // Read curtain configurations FIRST to avoid conflicts with scene auto-creation
-    const createdCurtains = await readCurtainConfigurations(
-      networkUnit,
-      projectId
-    );
+    const createdCurtains = await readCurtainConfigurations(networkUnit, projectId);
 
     // Add delay between different configuration types
     await new Promise((resolve) => setTimeout(resolve, 500));
 
     // Read scene configurations (after curtains to avoid auto-creating duplicate curtains)
-    const { createdScenes, sceneAddressMap } = await readSceneConfigurations(
-      networkUnit,
-      projectId
-    );
+    const { createdScenes, sceneAddressMap } = await readSceneConfigurations(networkUnit, projectId);
 
     // Add delay between different configuration types
     await new Promise((resolve) => setTimeout(resolve, 500));
 
     // Read schedule configurations
-    const createdSchedules = await readScheduleConfigurations(
-      networkUnit,
-      projectId,
-      sceneAddressMap
-    );
+    const createdSchedules = await readScheduleConfigurations(networkUnit, projectId, sceneAddressMap);
 
     // Add delay between different configuration types
     await new Promise((resolve) => setTimeout(resolve, 500));
 
     // Read KNX configurations
-    const createdKnxConfigs = await readKnxConfigurations(
-      networkUnit,
-      projectId
-    );
+    const createdKnxConfigs = await readKnxConfigurations(networkUnit, projectId);
 
     // Add delay between different configuration types
     await new Promise((resolve) => setTimeout(resolve, 500));
 
     // Read Multi-Scene configurations
-    const { createdMultiScenes, multiSceneAddressMap } =
-      await readMultiSceneConfigurations(
-        networkUnit,
-        projectId,
-        sceneAddressMap
-      );
+    const { createdMultiScenes, multiSceneAddressMap } = await readMultiSceneConfigurations(networkUnit, projectId, sceneAddressMap);
 
     // Add delay between different configuration types
     await new Promise((resolve) => setTimeout(resolve, 500));
 
     // Read Sequence configurations
-    const createdSequences = await readSequenceConfigurations(
-      networkUnit,
-      projectId,
-      multiSceneAddressMap
-    );
+    const createdSequences = await readSequenceConfigurations(networkUnit, projectId, multiSceneAddressMap);
 
     // Log summary of created configurations
     const configSummary = {
@@ -88,20 +60,11 @@ export const readAdvancedConfigurations = async (
       sequences: createdSequences.length,
     };
 
-    const totalConfigs = Object.values(configSummary).reduce(
-      (sum, count) => sum + count,
-      0
-    );
-    console.log(
-      `Advanced configurations read successfully for unit ${networkUnit.ip_address}:`,
-      configSummary
-    );
+    const totalConfigs = Object.values(configSummary).reduce((sum, count) => sum + count, 0);
+    console.log(`Advanced configurations read successfully for unit ${networkUnit.ip_address}:`, configSummary);
     console.log(`Total configurations created: ${totalConfigs}`);
   } catch (error) {
-    console.error(
-      `Failed to read advanced configurations for unit ${networkUnit.ip_address}:`,
-      error
-    );
+    console.error(`Failed to read advanced configurations for unit ${networkUnit.ip_address}:`, error);
     throw error;
   }
 };

@@ -35,16 +35,10 @@ export async function deleteAllConfigsFromUnit(unit, configTypes, onProgress) {
 
       completedOperations++;
       if (onProgress) {
-        onProgress(
-          (completedOperations / totalOperations) * 100,
-          `Deleting existing ${configType}...`
-        );
+        onProgress((completedOperations / totalOperations) * 100, `Deleting existing ${configType}...`);
       }
     } catch (error) {
-      console.error(
-        `Failed to delete existing ${configType} from unit ${unit.ip_address}:`,
-        error
-      );
+      console.error(`Failed to delete existing ${configType} from unit ${unit.ip_address}:`, error);
       operationResults.push({
         unit: `${unit.type || "Unknown Unit"} (${unit.ip_address})`,
         configType: `Delete All ${getConfigTypeLabel(configType)}`,
@@ -55,10 +49,7 @@ export async function deleteAllConfigsFromUnit(unit, configTypes, onProgress) {
 
       completedOperations++;
       if (onProgress) {
-        onProgress(
-          (completedOperations / totalOperations) * 100,
-          `Deleting existing ${configType}...`
-        );
+        onProgress((completedOperations / totalOperations) * 100, `Deleting existing ${configType}...`);
       }
     }
   }
@@ -73,33 +64,22 @@ export async function deleteAllConfigsFromUnit(unit, configTypes, onProgress) {
  * @param {Function} onProgress - Progress callback function
  * @returns {Array} Array of operation results
  */
-export async function deleteAllConfigsFromUnits(
-  units,
-  configTypes,
-  onProgress
-) {
+export async function deleteAllConfigsFromUnits(units, configTypes, onProgress) {
   const allResults = [];
   let completedUnits = 0;
   const totalUnits = units.length;
 
   for (const unit of units) {
-    const unitResults = await deleteAllConfigsFromUnit(
-      unit,
-      configTypes,
-      (progress, message) => {
-        // Calculate overall progress
-        const unitProgress = (completedUnits / totalUnits) * 100;
-        const currentUnitProgress = (progress / 100) * (100 / totalUnits);
-        const overallProgress = unitProgress + currentUnitProgress;
+    const unitResults = await deleteAllConfigsFromUnit(unit, configTypes, (progress, message) => {
+      // Calculate overall progress
+      const unitProgress = (completedUnits / totalUnits) * 100;
+      const currentUnitProgress = (progress / 100) * (100 / totalUnits);
+      const overallProgress = unitProgress + currentUnitProgress;
 
-        if (onProgress) {
-          onProgress(
-            overallProgress,
-            `Unit ${completedUnits + 1}/${totalUnits}: ${message}`
-          );
-        }
+      if (onProgress) {
+        onProgress(overallProgress, `Unit ${completedUnits + 1}/${totalUnits}: ${message}`);
       }
-    );
+    });
 
     allResults.push(...unitResults);
     completedUnits++;
@@ -120,31 +100,19 @@ async function deleteConfigByType(unitIp, canId, configType) {
       await window.electronAPI.sceneController.deleteAllScenes(unitIp, canId);
       break;
     case "schedules":
-      await window.electronAPI.scheduleController.deleteAllSchedules(
-        unitIp,
-        canId
-      );
+      await window.electronAPI.scheduleController.deleteAllSchedules(unitIp, canId);
       break;
     case "multiScenes":
-      await window.electronAPI.multiScenesController.deleteAllMultiScenes(
-        unitIp,
-        canId
-      );
+      await window.electronAPI.multiScenesController.deleteAllMultiScenes(unitIp, canId);
       break;
     case "sequences":
-      await window.electronAPI.sequenceController.deleteAllSequences(
-        unitIp,
-        canId
-      );
+      await window.electronAPI.sequenceController.deleteAllSequences(unitIp, canId);
       break;
     case "knx":
       await window.electronAPI.knxController.deleteAllKnxConfigs(unitIp, canId);
       break;
     case "curtain":
-      await window.electronAPI.curtainController.deleteAllCurtains(
-        unitIp,
-        canId
-      );
+      await window.electronAPI.curtainController.deleteAllCurtains(unitIp, canId);
       break;
     default:
       throw new Error(`Unknown config type: ${configType}`);

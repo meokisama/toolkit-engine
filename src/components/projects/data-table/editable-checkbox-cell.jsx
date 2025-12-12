@@ -1,5 +1,3 @@
-"use client";
-
 import React, { useState, useEffect } from "react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { cn } from "@/lib/utils";
@@ -31,16 +29,8 @@ export function EditableCheckboxCell({
     return (
       <div className="flex items-center justify-center">
         <div className="flex items-center space-x-2">
-          <Checkbox
-            checked={editValue}
-            onCheckedChange={handleCheckedChange}
-            className={cn("h-4 w-4", className)}
-          />
-          <span
-            className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
-              editValue ? trueColor : falseColor
-            }`}
-          >
+          <Checkbox checked={editValue} onCheckedChange={handleCheckedChange} className={cn("h-4 w-4", className)} />
+          <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${editValue ? trueColor : falseColor}`}>
             {editValue ? "Yes" : "No"}
           </span>
         </div>
@@ -50,11 +40,7 @@ export function EditableCheckboxCell({
 
   return (
     <div className="flex items-center justify-center">
-      <Checkbox
-        checked={editValue}
-        onCheckedChange={handleCheckedChange}
-        className={cn("h-4 w-4", className)}
-      />
+      <Checkbox checked={editValue} onCheckedChange={handleCheckedChange} className={cn("h-4 w-4", className)} />
       {label && <span className="ml-2 text-sm text-gray-700">{label}</span>}
     </div>
   );

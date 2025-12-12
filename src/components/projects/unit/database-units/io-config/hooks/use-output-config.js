@@ -15,18 +15,12 @@ export const useOutputConfig = (item, setOutputConfigs) => {
   const [loadingOutputConfig, setLoadingOutputConfig] = useState(false);
 
   const handleOutputDeviceChange = useCallback((outputIndex, deviceId, setOutputConfigs) => {
-    setOutputConfigs((prev) =>
-      prev.map((config) =>
-        config.index === outputIndex ? { ...config, deviceId } : config
-      )
-    );
+    setOutputConfigs((prev) => prev.map((config) => (config.index === outputIndex ? { ...config, deviceId } : config)));
   }, []);
 
   const handleOpenOutputConfig = useCallback(
     async (outputIndex, outputType, outputConfigs) => {
-      const outputConfig = outputConfigs.find(
-        (config) => config.index === outputIndex
-      );
+      const outputConfig = outputConfigs.find((config) => config.index === outputIndex);
       if (!outputConfig) return;
 
       setCurrentOutputConfig({
@@ -47,10 +41,7 @@ export const useOutputConfig = (item, setOutputConfigs) => {
         let configData = outputConfigurations[outputIndex];
 
         if (!configData) {
-          const result = await window.electronAPI.unit.getOutputConfig(
-            item.id,
-            outputIndex
-          );
+          const result = await window.electronAPI.unit.getOutputConfig(item.id, outputIndex);
           configData = result?.config_data || {};
 
           setOutputConfigurations((prev) => ({
@@ -61,11 +52,14 @@ export const useOutputConfig = (item, setOutputConfigs) => {
 
         // For AC outputs, include deviceId and address from outputConfig for sync
         // These are needed by AC output config dialog but are stored at output level
-        const finalConfigData = outputType === "ac" ? {
-          ...configData,
-          deviceId: outputConfig.deviceId || null,
-          address: outputConfig.deviceId || 0 // address is equivalent to deviceId for AC outputs
-        } : configData;
+        const finalConfigData =
+          outputType === "ac"
+            ? {
+                ...configData,
+                deviceId: outputConfig.deviceId || null,
+                address: outputConfig.deviceId || 0, // address is equivalent to deviceId for AC outputs
+              }
+            : configData;
 
         setCurrentOutputConfig((prev) => ({
           ...prev,
@@ -89,12 +83,7 @@ export const useOutputConfig = (item, setOutputConfigs) => {
       if (!currentOutputConfig) return;
 
       try {
-        await window.electronAPI.unit.saveOutputConfig(
-          item.id,
-          currentOutputConfig.index,
-          currentOutputConfig.type,
-          configData
-        );
+        await window.electronAPI.unit.saveOutputConfig(item.id, currentOutputConfig.index, currentOutputConfig.type, configData);
 
         setOutputConfigurations((prev) => ({
           ...prev,
@@ -104,11 +93,7 @@ export const useOutputConfig = (item, setOutputConfigs) => {
         // For AC outputs, update outputConfigs with deviceId for sync
         if (currentOutputConfig.type === "ac" && configData.deviceId && setOutputConfigs) {
           setOutputConfigs((prev) =>
-            prev.map((config) =>
-              config.index === currentOutputConfig.index
-                ? { ...config, deviceId: configData.deviceId }
-                : config
-            )
+            prev.map((config) => (config.index === currentOutputConfig.index ? { ...config, deviceId: configData.deviceId } : config))
           );
         }
 
@@ -122,30 +107,27 @@ export const useOutputConfig = (item, setOutputConfigs) => {
   );
 
   // Function to load all output configurations from database
-  const loadAllOutputConfigs = useCallback(
-    async () => {
-      if (!item?.id || isNetworkUnit(item)) return;
+  const loadAllOutputConfigs = useCallback(async () => {
+    if (!item?.id || isNetworkUnit(item)) return;
 
-      try {
-        // Load from JSON structure instead of separate table
-        const unit = await window.electronAPI.unit.getById(item.id);
-        if (!unit || !unit.output_configs) return;
+    try {
+      // Load from JSON structure instead of separate table
+      const unit = await window.electronAPI.unit.getById(item.id);
+      if (!unit || !unit.output_configs) return;
 
-        const outputConfigs = unit.output_configs;
-        const newOutputConfigurations = {};
+      const outputConfigs = unit.output_configs;
+      const newOutputConfigurations = {};
 
-        (outputConfigs.outputs || []).forEach((config) => {
-          if (config.config) {
-            newOutputConfigurations[config.index] = config.config;
-          }
-        });
-        setOutputConfigurations(newOutputConfigurations);
-      } catch (error) {
-        console.error("Failed to load all output configs:", error);
-      }
-    },
-    [item?.id]
-  );
+      (outputConfigs.outputs || []).forEach((config) => {
+        if (config.config) {
+          newOutputConfigurations[config.index] = config.config;
+        }
+      });
+      setOutputConfigurations(newOutputConfigurations);
+    } catch (error) {
+      console.error("Failed to load all output configs:", error);
+    }
+  }, [item?.id]);
 
   return {
     lightingOutputDialogOpen,

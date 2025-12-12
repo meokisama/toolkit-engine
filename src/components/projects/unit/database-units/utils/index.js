@@ -18,9 +18,4 @@ export { readMultiSceneConfigurations } from "./read-multi-scene";
 export { readSequenceConfigurations } from "./read-sequence";
 
 // Helper functions
-export {
-  findOrCreateDatabaseItemByNetworkItem,
-  findOrCreateLightingByAddress,
-  getCurtainTypeName,
-  getObjectTypeFromValue,
-} from "./config-helpers";
+export { findOrCreateDatabaseItemByNetworkItem, findOrCreateLightingByAddress, getCurtainTypeName, getObjectTypeFromValue } from "./config-helpers";

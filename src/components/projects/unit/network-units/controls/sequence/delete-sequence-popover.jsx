@@ -1,13 +1,7 @@
 import React from "react";
 import { BaseDeleteDialog } from "../base/base-delete-dialog";
 
-export function DeleteSequenceDialog({
-  open,
-  onOpenChange,
-  unit,
-  asPopover = false,
-  trigger = null,
-}) {
+export function DeleteSequenceDialog({ open, onOpenChange, unit, asPopover = false, trigger = null }) {
   const config = {
     entityName: "Sequences",
     entityNameSingular: "Sequence",
@@ -18,29 +12,13 @@ export function DeleteSequenceDialog({
     ],
     apiMethods: {
       deleteOne: async ({ unitIp, canId, index }) => {
-        return await window.electronAPI.sequenceController.deleteSequence(
-          unitIp,
-          canId,
-          index
-        );
+        return await window.electronAPI.sequenceController.deleteSequence(unitIp, canId, index);
       },
       deleteAll: async (unitIp, canId) => {
-        return await window.electronAPI.sequenceController.deleteAllSequences(
-          unitIp,
-          canId
-        );
+        return await window.electronAPI.sequenceController.deleteAllSequences(unitIp, canId);
       },
     },
   };
 
-  return (
-    <BaseDeleteDialog
-      open={open}
-      onOpenChange={onOpenChange}
-      unit={unit}
-      asPopover={asPopover}
-      trigger={trigger}
-      config={config}
-    />
-  );
+  return <BaseDeleteDialog open={open} onOpenChange={onOpenChange} unit={unit} asPopover={asPopover} trigger={trigger} config={config} />;
 }

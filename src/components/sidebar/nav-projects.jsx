@@ -1,31 +1,7 @@
 import React, { useState, useCallback } from "react";
-import {
-  Folder,
-  SquarePen,
-  Trash2,
-  Copy,
-  Plus,
-  Download,
-  Upload,
-  ChevronRight,
-  Library,
-  Workflow,
-  Home,
-  Eclipse,
-} from "lucide-react";
-
-import {
-  ContextMenu,
-  ContextMenuContent,
-  ContextMenuItem,
-  ContextMenuSeparator,
-  ContextMenuTrigger,
-} from "@/components/ui/context-menu";
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from "@/components/ui/collapsible";
+import { Folder, SquarePen, Trash2, Copy, Plus, Download, Upload, ChevronRight, Library, Workflow, Home, Eclipse } from "lucide-react";
+import { ContextMenu, ContextMenuContent, ContextMenuItem, ContextMenuSeparator, ContextMenuTrigger } from "@/components/ui/context-menu";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import {
   SidebarGroup,
   SidebarGroupLabel,
@@ -48,16 +24,8 @@ import { ImportDialog } from "@/components/projects/import-project-dialog";
 
 export function NavProjects() {
   const { isMobile } = useSidebar();
-  const {
-    projects,
-    loading,
-    deleteProject,
-    duplicateProject,
-    exportProject,
-    importProject,
-  } = useProjects();
-  const { selectProjectSection, selectedProject, activeSection } =
-    useProjectDetail();
+  const { projects, loading, deleteProject, duplicateProject, exportProject, importProject } = useProjects();
+  const { selectProjectSection, selectedProject, activeSection } = useProjectDetail();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingProject, setEditingProject] = useState(null);
   const [dialogMode, setDialogMode] = useState("create");
@@ -178,12 +146,7 @@ export function NavProjects() {
           <SidebarGroup className="group-data-[collapsible=icon]:hidden flex-1">
             <div className="flex items-center justify-between">
               <SidebarGroupLabel>Projects</SidebarGroupLabel>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={handleCreateProject}
-                className="h-6 w-6 p-0"
-              >
+              <Button variant="ghost" size="sm" onClick={handleCreateProject} className="h-6 w-6 p-0">
                 <Plus className="h-4 w-4" />
                 <span className="sr-only">Add Project</span>
               </Button>
@@ -191,71 +154,44 @@ export function NavProjects() {
             <SidebarMenu>
               {loading ? (
                 // Show skeleton while loading
-                Array.from({ length: 3 }).map((_, index) => (
-                  <SidebarMenuSkeleton key={index} showIcon />
-                ))
+                Array.from({ length: 3 }).map((_, index) => <SidebarMenuSkeleton key={index} showIcon />)
               ) : projects.length === 0 ? (
-                <div className="px-2 py-4 text-xs text-muted-foreground text-center italic">
-                  No projects found.
-                </div>
+                <div className="px-2 py-4 text-xs text-muted-foreground text-center italic">No projects found.</div>
               ) : (
                 projects.map((project) => {
                   const isExpanded = expandedProjects.has(project.id);
                   const isSelected = selectedProject?.id === project.id;
 
                   return (
-                    <Collapsible
-                      key={project.id}
-                      open={isExpanded}
-                      onOpenChange={() => toggleProject(project.id)}
-                    >
+                    <Collapsible key={project.id} open={isExpanded} onOpenChange={() => toggleProject(project.id)}>
                       <SidebarMenuItem>
                         <ContextMenu>
                           <ContextMenuTrigger asChild>
-                            <SidebarMenuButton
-                              className="text-gray-700 cursor-pointer"
-                              onClick={() => toggleProject(project.id)}
-                            >
+                            <SidebarMenuButton className="text-gray-700 cursor-pointer" onClick={() => toggleProject(project.id)}>
                               <Folder />
                               <span>{project.name}</span>
                             </SidebarMenuButton>
                           </ContextMenuTrigger>
                           <ContextMenuContent className="w-48 text-gray-700">
-                            <ContextMenuItem
-                              onClick={() => handleEditProject(project)}
-                              className="cursor-pointer"
-                            >
+                            <ContextMenuItem onClick={() => handleEditProject(project)} className="cursor-pointer">
                               <SquarePen className="text-muted-foreground" />
                               <span>Edit Project</span>
                             </ContextMenuItem>
-                            <ContextMenuItem
-                              onClick={() => handleDuplicateProject(project)}
-                              className="cursor-pointer"
-                            >
+                            <ContextMenuItem onClick={() => handleDuplicateProject(project)} className="cursor-pointer">
                               <Copy className="text-muted-foreground" />
                               <span>Duplicate Project</span>
                             </ContextMenuItem>
                             <ContextMenuSeparator />
-                            <ContextMenuItem
-                              onClick={() => handleExportProject(project)}
-                              className="cursor-pointer"
-                            >
+                            <ContextMenuItem onClick={() => handleExportProject(project)} className="cursor-pointer">
                               <Download className="text-muted-foreground" />
                               <span>Export Project</span>
                             </ContextMenuItem>
-                            <ContextMenuItem
-                              onClick={handleImportProject}
-                              className="cursor-pointer"
-                            >
+                            <ContextMenuItem onClick={handleImportProject} className="cursor-pointer">
                               <Upload className="text-muted-foreground" />
                               <span>Import Project</span>
                             </ContextMenuItem>
                             <ContextMenuSeparator />
-                            <ContextMenuItem
-                              onClick={() => handleDeleteProject(project)}
-                              className="cursor-pointer"
-                              variant="destructive"
-                            >
+                            <ContextMenuItem onClick={() => handleDeleteProject(project)} className="cursor-pointer" variant="destructive">
                               <Trash2 />
                               <span>Delete Project</span>
                             </ContextMenuItem>
@@ -271,14 +207,8 @@ export function NavProjects() {
                           <SidebarMenuSub>
                             <SidebarMenuSubItem>
                               <SidebarMenuSubButton
-                                className={`text-gray-700 cursor-pointer ${
-                                  isSelected && activeSection === "group-config"
-                                    ? "bg-accent"
-                                    : ""
-                                }`}
-                                onClick={() =>
-                                  handleSectionSelect(project, "group-config")
-                                }
+                                className={`text-gray-700 cursor-pointer ${isSelected && activeSection === "group-config" ? "bg-accent" : ""}`}
+                                onClick={() => handleSectionSelect(project, "group-config")}
                               >
                                 <Library className="h-4 w-4" />
                                 <span>Configuration</span>
@@ -286,18 +216,8 @@ export function NavProjects() {
                             </SidebarMenuSubItem>
                             <SidebarMenuSubItem>
                               <SidebarMenuSubButton
-                                className={`text-gray-700 cursor-pointer ${
-                                  isSelected &&
-                                  activeSection === "scenes-schedules"
-                                    ? "bg-accent"
-                                    : ""
-                                }`}
-                                onClick={() =>
-                                  handleSectionSelect(
-                                    project,
-                                    "scenes-schedules"
-                                  )
-                                }
+                                className={`text-gray-700 cursor-pointer ${isSelected && activeSection === "scenes-schedules" ? "bg-accent" : ""}`}
+                                onClick={() => handleSectionSelect(project, "scenes-schedules")}
                               >
                                 <Workflow className="h-4 w-4" />
                                 <span>Automation</span>
@@ -305,14 +225,8 @@ export function NavProjects() {
                             </SidebarMenuSubItem>
                             <SidebarMenuSubItem>
                               <SidebarMenuSubButton
-                                className={`text-gray-700 cursor-pointer ${
-                                  isSelected && activeSection === "dali-core"
-                                    ? "bg-accent"
-                                    : ""
-                                }`}
-                                onClick={() =>
-                                  handleSectionSelect(project, "dali-core")
-                                }
+                                className={`text-gray-700 cursor-pointer ${isSelected && activeSection === "dali-core" ? "bg-accent" : ""}`}
+                                onClick={() => handleSectionSelect(project, "dali-core")}
                               >
                                 <Eclipse className="h-4 w-4" />
                                 <span>Dali Interface</span>
@@ -320,14 +234,8 @@ export function NavProjects() {
                             </SidebarMenuSubItem>
                             <SidebarMenuSubItem>
                               <SidebarMenuSubButton
-                                className={`text-gray-700 cursor-pointer ${
-                                  isSelected && activeSection === "smarthome"
-                                    ? "bg-accent"
-                                    : ""
-                                }`}
-                                onClick={() =>
-                                  handleSectionSelect(project, "smarthome")
-                                }
+                                className={`text-gray-700 cursor-pointer ${isSelected && activeSection === "smarthome" ? "bg-accent" : ""}`}
+                                onClick={() => handleSectionSelect(project, "smarthome")}
                               >
                                 <Home className="h-4 w-4" />
                                 <span>Smarthome</span>
@@ -344,30 +252,19 @@ export function NavProjects() {
           </SidebarGroup>
         </ContextMenuTrigger>
         <ContextMenuContent className="w-48 text-gray-700">
-          <ContextMenuItem
-            onClick={handleCreateProject}
-            className="cursor-pointer"
-          >
+          <ContextMenuItem onClick={handleCreateProject} className="cursor-pointer">
             <Plus className="text-muted-foreground" />
             <span>Add Project</span>
           </ContextMenuItem>
           <ContextMenuSeparator />
-          <ContextMenuItem
-            onClick={handleImportProject}
-            className="cursor-pointer"
-          >
+          <ContextMenuItem onClick={handleImportProject} className="cursor-pointer">
             <Upload className="text-muted-foreground" />
             <span>Import Project</span>
           </ContextMenuItem>
         </ContextMenuContent>
       </ContextMenu>
 
-      <ProjectDialog
-        open={dialogOpen}
-        onOpenChange={setDialogOpen}
-        project={editingProject}
-        mode={dialogMode}
-      />
+      <ProjectDialog open={dialogOpen} onOpenChange={setDialogOpen} project={editingProject} mode={dialogMode} />
 
       <ConfirmDialog
         open={confirmDialogOpen}
@@ -381,11 +278,7 @@ export function NavProjects() {
         loading={deleteLoading}
       />
 
-      <ImportDialog
-        open={importDialogOpen}
-        onOpenChange={setImportDialogOpen}
-        onImport={handleImportConfirm}
-      />
+      <ImportDialog open={importDialogOpen} onOpenChange={setImportDialogOpen} onImport={handleImportConfirm} />
     </>
   );
 }

@@ -1,40 +1,22 @@
 import React, { useState, useEffect, useRef } from "react";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { RoomGeneralSettings } from "./RoomGeneralSettings";
 import { RoomConfiguration } from "./RoomConfiguration";
 import { useProjectDetail } from "@/contexts/project-detail-context";
 import { toast } from "sonner";
 import { Save, Send, Loader2 } from "lucide-react";
-import {
-  NetworkUnitSelector,
-  useNetworkUnitSelector,
-} from "@/components/shared/network-unit-selector";
+import { NetworkUnitSelector, useNetworkUnitSelector } from "@/components/shared/network-unit-selector";
 
 export function RoomSettings() {
-  const { selectedProject, projectItems, loadTabData, loadedTabs } =
-    useProjectDetail();
+  const { selectedProject, projectItems, loadTabData, loadedTabs } = useProjectDetail();
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [isSendDialogOpen, setIsSendDialogOpen] = useState(false);
   const [isSending, setIsSending] = useState(false);
-  const { selectedUnitIds, handleSelectionChange, clearSelection } =
-    useNetworkUnitSelector();
+  const { selectedUnitIds, handleSelectionChange, clearSelection } = useNetworkUnitSelector();
   const networkUnitSelectorRef = useRef(null);
 
   // Room configuration state
@@ -94,9 +76,7 @@ export function RoomSettings() {
       setIsLoading(true);
       try {
         // Load general config
-        const generalConfig = await window.electronAPI.room.getGeneralConfig(
-          selectedProject.id
-        );
+        const generalConfig = await window.electronAPI.room.getGeneralConfig(selectedProject.id);
         if (generalConfig) {
           setRoomConfig({
             roomMode: generalConfig.room_mode,
@@ -112,9 +92,7 @@ export function RoomSettings() {
         }
 
         // Load all room configs
-        const allRoomConfigs = await window.electronAPI.room.getAllRoomConfigs(
-          selectedProject.id
-        );
+        const allRoomConfigs = await window.electronAPI.room.getAllRoomConfigs(selectedProject.id);
         if (allRoomConfigs && allRoomConfigs.length > 0) {
           setRoomConfigurations((prev) => {
             const updated = [...prev];
@@ -169,25 +147,20 @@ export function RoomSettings() {
       });
 
       // Save room configs based on effective room amount
-      const effectiveRoomAmount =
-        roomConfig.roomMode === 0 ? roomConfig.roomAmount : 1;
+      const effectiveRoomAmount = roomConfig.roomMode === 0 ? roomConfig.roomAmount : 1;
       for (let i = 0; i < effectiveRoomAmount; i++) {
         const config = roomConfigurations[i];
-        await window.electronAPI.room.setRoomConfig(
-          selectedProject.id,
-          config.roomAddress,
-          {
-            occupancyType: config.occupancyType,
-            occupancySceneType: config.occupancySceneType,
-            enableWelcomeNight: config.enableWelcomeNight,
-            period: config.period,
-            pirInitTime: config.pirInitTime,
-            pirVerifyTime: config.pirVerifyTime,
-            unrentPeriod: config.unrentPeriod,
-            standbyTime: config.standbyTime,
-            states: config.states,
-          }
-        );
+        await window.electronAPI.room.setRoomConfig(selectedProject.id, config.roomAddress, {
+          occupancyType: config.occupancyType,
+          occupancySceneType: config.occupancySceneType,
+          enableWelcomeNight: config.enableWelcomeNight,
+          period: config.period,
+          pirInitTime: config.pirInitTime,
+          pirVerifyTime: config.pirVerifyTime,
+          unrentPeriod: config.unrentPeriod,
+          standbyTime: config.standbyTime,
+          states: config.states,
+        });
       }
 
       toast.success("Room configurations saved successfully");
@@ -208,8 +181,7 @@ export function RoomSettings() {
 
     if (!selectedProject) return;
 
-    const selectedUnits =
-      networkUnitSelectorRef.current?.getSelectedUnits() || [];
+    const selectedUnits = networkUnitSelectorRef.current?.getSelectedUnits() || [];
 
     setIsSending(true);
     let successCount = 0;
@@ -230,8 +202,7 @@ export function RoomSettings() {
       };
 
       // Prepare room configs for sending
-      const effectiveRoomAmount =
-        roomConfig.roomMode === 0 ? roomConfig.roomAmount : 1;
+      const effectiveRoomAmount = roomConfig.roomMode === 0 ? roomConfig.roomAmount : 1;
       const roomConfigsToSend = [];
 
       for (let i = 0; i < effectiveRoomAmount; i++) {
@@ -260,37 +231,19 @@ export function RoomSettings() {
             roomConfigs: roomConfigsToSend,
           });
 
-          await window.electronAPI.roomController.setRoomConfiguration(
-            unit.ip_address,
-            unit.id_can,
-            generalConfig,
-            roomConfigsToSend
-          );
+          await window.electronAPI.roomController.setRoomConfiguration(unit.ip_address, unit.id_can, generalConfig, roomConfigsToSend);
 
           successCount++;
-          toast.success(
-            `Configuration sent successfully to ${
-              unit.type || "Unknown Unit"
-            } (${unit.ip_address})`
-          );
+          toast.success(`Configuration sent successfully to ${unit.type || "Unknown Unit"} (${unit.ip_address})`);
         } catch (error) {
           errorCount++;
-          console.error(
-            `Failed to send configuration to unit ${unit.ip_address}:`,
-            error
-          );
-          toast.error(
-            `Failed to send configuration to ${unit.type || "Unknown Unit"} (${
-              unit.ip_address
-            }): ${error.message}`
-          );
+          console.error(`Failed to send configuration to unit ${unit.ip_address}:`, error);
+          toast.error(`Failed to send configuration to ${unit.type || "Unknown Unit"} (${unit.ip_address}): ${error.message}`);
         }
       }
 
       if (successCount > 0) {
-        toast.success(
-          `Configuration sent successfully to ${successCount} unit(s)`
-        );
+        toast.success(`Configuration sent successfully to ${successCount} unit(s)`);
       }
 
       if (errorCount === 0) {
@@ -306,8 +259,7 @@ export function RoomSettings() {
   };
 
   // Determine effective room amount based on room mode
-  const effectiveRoomAmount =
-    roomConfig.roomMode === 0 ? roomConfig.roomAmount : 1;
+  const effectiveRoomAmount = roomConfig.roomMode === 0 ? roomConfig.roomAmount : 1;
 
   // Load scenes data if not already loaded
   useEffect(() => {
@@ -333,26 +285,15 @@ export function RoomSettings() {
       {/* Room specific configurations */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-gray-800 font-extrabold">
-            Room Configurations
-          </CardTitle>
-          <CardDescription>
-            Room's detail settings and aircons & scenes configuration.
-          </CardDescription>
+          <CardTitle className="text-gray-800 font-extrabold">Room Configurations</CardTitle>
+          <CardDescription>Room's detail settings and aircons & scenes configuration.</CardDescription>
         </CardHeader>
         <CardContent>
           {effectiveRoomAmount === 1 ? (
-            <RoomConfiguration
-              roomIndex={0}
-              config={roomConfigurations[0]}
-              updateConfig={updateRoomConfig}
-              availableScenes={availableScenes}
-            />
+            <RoomConfiguration roomIndex={0} config={roomConfigurations[0]} updateConfig={updateRoomConfig} availableScenes={availableScenes} />
           ) : (
             <Tabs defaultValue="0" className="w-full">
-              <TabsList
-                className={`grid w-full grid-cols-${effectiveRoomAmount}`}
-              >
+              <TabsList className={`grid w-full grid-cols-${effectiveRoomAmount}`}>
                 {Array.from({ length: effectiveRoomAmount }).map((_, index) => (
                   <TabsTrigger key={index} value={index.toString()}>
                     Room {index + 1}
@@ -360,11 +301,7 @@ export function RoomSettings() {
                 ))}
               </TabsList>
               {Array.from({ length: effectiveRoomAmount }).map((_, index) => (
-                <TabsContent
-                  key={index}
-                  value={index.toString()}
-                  className="mt-4"
-                >
+                <TabsContent key={index} value={index.toString()} className="mt-4">
                   <RoomConfiguration
                     roomIndex={index}
                     config={roomConfigurations[index]}
@@ -380,11 +317,7 @@ export function RoomSettings() {
 
       {/* Action Buttons at bottom */}
       <div className="flex justify-end gap-2">
-        <Button
-          onClick={() => setIsSendDialogOpen(true)}
-          disabled={isSaving || isSending}
-          variant="outline"
-        >
+        <Button onClick={() => setIsSendDialogOpen(true)} disabled={isSaving || isSending} variant="outline">
           <Send className="size-4" />
           Send Configuration
         </Button>
@@ -412,9 +345,7 @@ export function RoomSettings() {
               <Send className="h-5 w-5" />
               Send Room Configuration to Network Units
             </DialogTitle>
-            <DialogDescription>
-              Send the current room configuration to selected network units.
-            </DialogDescription>
+            <DialogDescription>Send the current room configuration to selected network units.</DialogDescription>
           </DialogHeader>
 
           <div className="space-y-3">
@@ -428,23 +359,14 @@ export function RoomSettings() {
           </div>
 
           <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={() => setIsSendDialogOpen(false)}
-              disabled={isSending}
-            >
+            <Button variant="outline" onClick={() => setIsSendDialogOpen(false)} disabled={isSending}>
               Cancel
             </Button>
-            <Button
-              onClick={handleSendConfiguration}
-              disabled={isSending || selectedUnitIds.length === 0}
-            >
+            <Button onClick={handleSendConfiguration} disabled={isSending || selectedUnitIds.length === 0}>
               {isSending && <Loader2 className="h-4 w-4 animate-spin" />}
               {selectedUnitIds.length === 0
                 ? "Send Configuration"
-                : `Send to ${selectedUnitIds.length} Unit${
-                    selectedUnitIds.length !== 1 ? "s" : ""
-                  }`}
+                : `Send to ${selectedUnitIds.length} Unit${selectedUnitIds.length !== 1 ? "s" : ""}`}
             </Button>
           </DialogFooter>
         </DialogContent>

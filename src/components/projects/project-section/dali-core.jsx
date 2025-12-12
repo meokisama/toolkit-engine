@@ -2,20 +2,8 @@ import React, { useState, useEffect } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
@@ -47,9 +35,7 @@ export function DaliCore() {
 
   // Helper: Load project DALI data
   const loadProjectData = async () => {
-    const dbDevices = await window.electronAPI.dali.getAllDaliDevices(
-      selectedProject.id
-    );
+    const dbDevices = await window.electronAPI.dali.getAllDaliDevices(selectedProject.id);
     const scannedDevices = getScannedDevices();
     return { dbDevices, scannedDevices };
   };
@@ -103,31 +89,17 @@ export function DaliCore() {
 
       // Apply swap operations for each mapped device
       dbDevices.forEach((device, index) => {
-        if (
-          device.mapped_device_index !== null &&
-          device.mapped_device_address !== null
-        ) {
+        if (device.mapped_device_index !== null && device.mapped_device_address !== null) {
           // Find current position of this device by its original identity
-          const currentPos = deviceTracker.findIndex(
-            (id) => id === device.address
-          );
+          const currentPos = deviceTracker.findIndex((id) => id === device.address);
           const targetPos = device.mapped_device_index;
 
           if (currentPos !== -1 && currentPos !== targetPos) {
             // Swap positions in both arrays to keep tracking
-            [addressMapping[currentPos], addressMapping[targetPos]] = [
-              addressMapping[targetPos],
-              addressMapping[currentPos],
-            ];
-            [deviceTracker[currentPos], deviceTracker[targetPos]] = [
-              deviceTracker[targetPos],
-              deviceTracker[currentPos],
-            ];
+            [addressMapping[currentPos], addressMapping[targetPos]] = [addressMapping[targetPos], addressMapping[currentPos]];
+            [deviceTracker[currentPos], deviceTracker[targetPos]] = [deviceTracker[targetPos], deviceTracker[currentPos]];
 
-            console.log(
-              `Swap ${index}: device ${device.address} from pos ${currentPos} to pos ${targetPos}`,
-              addressMapping
-            );
+            console.log(`Swap ${index}: device ${device.address} from pos ${currentPos} to pos ${targetPos}`, addressMapping);
           }
         }
       });
@@ -150,18 +122,14 @@ export function DaliCore() {
         const device = dbDevices.find((d) => d.mapped_device_index === index);
 
         if (device) {
-          await window.electronAPI.dali.upsertDaliDevice(
-            selectedProject.id,
-            device.address,
-            {
-              mapped_device_index: device.mapped_device_index,
-              mapped_device_name: `Device ${newAddress}`,
-              mapped_device_type: device.mapped_device_type,
-              mapped_device_address: newAddress,
-              lighting_group_address: device.lighting_group_address,
-              color_feature: device.color_feature,
-            }
-          );
+          await window.electronAPI.dali.upsertDaliDevice(selectedProject.id, device.address, {
+            mapped_device_index: device.mapped_device_index,
+            mapped_device_name: `Device ${newAddress}`,
+            mapped_device_type: device.mapped_device_type,
+            mapped_device_address: newAddress,
+            lighting_group_address: device.lighting_group_address,
+            color_feature: device.color_feature,
+          });
         }
       }
 
@@ -179,10 +147,7 @@ export function DaliCore() {
       });
 
       const scannedDevicesKey = `dali-scanned-devices-${selectedProject.id}`;
-      localStorage.setItem(
-        scannedDevicesKey,
-        JSON.stringify(updatedScannedDevices)
-      );
+      localStorage.setItem(scannedDevicesKey, JSON.stringify(updatedScannedDevices));
 
       toast.success("Address mapping sent and devices updated successfully!");
       // Reload to reflect changes
@@ -215,9 +180,7 @@ export function DaliCore() {
 
       // Get all groups from database
       await window.electronAPI.dali.initializeDaliGroups(selectedProject.id);
-      const groupNames = await window.electronAPI.dali.getAllDaliGroupNames(
-        selectedProject.id
-      );
+      const groupNames = await window.electronAPI.dali.getAllDaliGroupNames(selectedProject.id);
 
       // Build RCU mapping array (80 bytes)
       const rcuMapping = new Array(80).fill(0);
@@ -238,8 +201,7 @@ export function DaliCore() {
           device.mapped_device_index < 64 &&
           device.lighting_group_address !== null
         ) {
-          rcuMapping[device.mapped_device_index] =
-            device.lighting_group_address;
+          rcuMapping[device.mapped_device_index] = device.lighting_group_address;
         }
       });
 
@@ -284,21 +246,16 @@ export function DaliCore() {
       setSending(true);
       toast.info("Sending Group & Scene configuration...");
 
-      const result =
-        await window.electronAPI.daliController.sendGroupSceneConfig({
-          unitIp: selectedGateway.ip_address,
-          canId: selectedGateway.id_can,
-          projectId: selectedProject.id,
-        });
+      const result = await window.electronAPI.daliController.sendGroupSceneConfig({
+        unitIp: selectedGateway.ip_address,
+        canId: selectedGateway.id_can,
+        projectId: selectedProject.id,
+      });
 
-      toast.success(
-        `Group & Scene configuration sent successfully! Configured ${result.deviceCount} device(s) (${result.totalBytes} bytes)`
-      );
+      toast.success(`Group & Scene configuration sent successfully! Configured ${result.deviceCount} device(s) (${result.totalBytes} bytes)`);
     } catch (error) {
       console.error("Failed to send Group & Scene configuration:", error);
-      toast.error(
-        `Failed to send Group & Scene configuration: ${error.message}`
-      );
+      toast.error(`Failed to send Group & Scene configuration: ${error.message}`);
     } finally {
       setSending(false);
     }
@@ -343,9 +300,7 @@ export function DaliCore() {
       setClearing(true);
       toast.info("Clearing address mappings...");
 
-      const result = await window.electronAPI.dali.clearAllDaliDeviceMappings(
-        selectedProject.id
-      );
+      const result = await window.electronAPI.dali.clearAllDaliDeviceMappings(selectedProject.id);
 
       toast.success(`Cleared ${result.cleared} address mapping(s)`);
       // window.location.reload();
@@ -367,13 +322,9 @@ export function DaliCore() {
       setClearing(true);
       toast.info("Clearing groups...");
 
-      const result = await window.electronAPI.dali.clearAllDaliGroups(
-        selectedProject.id
-      );
+      const result = await window.electronAPI.dali.clearAllDaliGroups(selectedProject.id);
 
-      toast.success(
-        `Cleared ${result.clearedRelationships} group relationship(s) and ${result.clearedMetadata} group(s)`
-      );
+      toast.success(`Cleared ${result.clearedRelationships} group relationship(s) and ${result.clearedMetadata} group(s)`);
       // window.location.reload();
     } catch (error) {
       console.error("Failed to clear groups:", error);
@@ -393,13 +344,9 @@ export function DaliCore() {
       setClearing(true);
       toast.info("Clearing scenes...");
 
-      const result = await window.electronAPI.dali.clearAllDaliScenes(
-        selectedProject.id
-      );
+      const result = await window.electronAPI.dali.clearAllDaliScenes(selectedProject.id);
 
-      toast.success(
-        `Cleared ${result.clearedDevices} scene device(s) and ${result.clearedMetadata} scene(s)`
-      );
+      toast.success(`Cleared ${result.clearedDevices} scene device(s) and ${result.clearedMetadata} scene(s)`);
       // window.location.reload();
     } catch (error) {
       console.error("Failed to clear scenes:", error);
@@ -443,9 +390,7 @@ export function DaliCore() {
       toast.info("Clearing all DALI configurations...");
 
       // Clear all configurations (mapping, groups, scenes)
-      const result = await window.electronAPI.dali.clearAllDaliConfigurations(
-        selectedProject.id
-      );
+      const result = await window.electronAPI.dali.clearAllDaliConfigurations(selectedProject.id);
 
       // Clear local storage for scanned devices
       localStorage.removeItem(`dali-scanned-devices-${selectedProject.id}`);
@@ -541,11 +486,7 @@ export function DaliCore() {
         });
       }
 
-      toast.success(
-        `Successfully deleted ${
-          deleteMode === "all" ? "all" : addresses.length
-        } address(es)`
-      );
+      toast.success(`Successfully deleted ${deleteMode === "all" ? "all" : addresses.length} address(es)`);
 
       // Reset form
       setDeleteMode("all");
@@ -563,9 +504,7 @@ export function DaliCore() {
       <div className="flex flex-1 items-center justify-center">
         <Card>
           <CardContent className="pt-6">
-            <div className="text-center text-muted-foreground">
-              Select a project to view DALI Core features
-            </div>
+            <div className="text-center text-muted-foreground">Select a project to view DALI Core features</div>
           </CardContent>
         </Card>
       </div>
@@ -597,18 +536,10 @@ export function DaliCore() {
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={handleClearAddressMapping}>
-                Address Mapping
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={handleClearGroups}>
-                Group
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={handleClearScenes}>
-                Scene
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={handleClearScannedDevices}>
-                Scanned Device
-              </DropdownMenuItem>
+              <DropdownMenuItem onClick={handleClearAddressMapping}>Address Mapping</DropdownMenuItem>
+              <DropdownMenuItem onClick={handleClearGroups}>Group</DropdownMenuItem>
+              <DropdownMenuItem onClick={handleClearScenes}>Scene</DropdownMenuItem>
+              <DropdownMenuItem onClick={handleClearScannedDevices}>Scanned Device</DropdownMenuItem>
               <DropdownMenuItem onClick={handleClearAll}>
                 <span className="font-semibold text-red-700">Clear All</span>
               </DropdownMenuItem>
@@ -616,51 +547,28 @@ export function DaliCore() {
           </DropdownMenu>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button
-                variant="outline"
-                disabled={sending || !selectedGateway}
-                className="shadow"
-              >
+              <Button variant="outline" disabled={sending || !selectedGateway} className="shadow">
                 <Upload className="h-4 w-4" />
                 {sending ? "Sending..." : "Send Configuration"}
                 <ChevronDown className="h-4 w-4" />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={handleSendAddressMapping}>
-                Address Mapping
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={handleSendMappingRCU}>
-                Mapping RCU
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={handleSendGroupAndScene}>
-                Group & Scene
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                onClick={() => setShowDeleteAddressDialog(true)}
-              >
-                Delete Address
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={handleResetAllConfig}>
-                Reset
-              </DropdownMenuItem>
+              <DropdownMenuItem onClick={handleSendAddressMapping}>Address Mapping</DropdownMenuItem>
+              <DropdownMenuItem onClick={handleSendMappingRCU}>Mapping RCU</DropdownMenuItem>
+              <DropdownMenuItem onClick={handleSendGroupAndScene}>Group & Scene</DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setShowDeleteAddressDialog(true)}>Delete Address</DropdownMenuItem>
+              <DropdownMenuItem onClick={handleResetAllConfig}>Reset</DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
-          <Button
-            variant={selectedGateway ? "outline" : "default"}
-            onClick={() => setShowGatewayDialog(true)}
-          >
+          <Button variant={selectedGateway ? "outline" : "default"} onClick={() => setShowGatewayDialog(true)}>
             <Network className="h-4 w-4" />
             {selectedGateway ? "Change Gateway" : "Select Gateway"}
           </Button>
         </div>
       </div>
 
-      <Tabs
-        value={activeTab}
-        onValueChange={setActiveTab}
-        className="flex-1 flex flex-col"
-      >
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col">
         <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="address-mapping">Address Mapping</TabsTrigger>
           <TabsTrigger value="group">Group</TabsTrigger>
@@ -680,23 +588,13 @@ export function DaliCore() {
         </TabsContent>
       </Tabs>
 
-      <SelectGatewayDialog
-        open={showGatewayDialog}
-        onOpenChange={setShowGatewayDialog}
-        onSelect={selectGateway}
-      />
+      <SelectGatewayDialog open={showGatewayDialog} onOpenChange={setShowGatewayDialog} onSelect={selectGateway} />
 
-      <Dialog
-        open={showDeleteAddressDialog}
-        onOpenChange={setShowDeleteAddressDialog}
-      >
+      <Dialog open={showDeleteAddressDialog} onOpenChange={setShowDeleteAddressDialog}>
         <DialogContent className="sm:max-w-[500px]">
           <DialogHeader>
             <DialogTitle>Delete Address</DialogTitle>
-            <DialogDescription>
-              Choose to delete all addresses or specify custom addresses to
-              delete.
-            </DialogDescription>
+            <DialogDescription>Choose to delete all addresses or specify custom addresses to delete.</DialogDescription>
           </DialogHeader>
           <div className="grid gap-4 py-4">
             <RadioGroup value={deleteMode} onValueChange={setDeleteMode}>
@@ -716,19 +614,14 @@ export function DaliCore() {
 
             {deleteMode === "custom" && (
               <div className="grid gap-2">
-                <Label htmlFor="address-input">
-                  Enter address(es) to delete
-                </Label>
+                <Label htmlFor="address-input">Enter address(es) to delete</Label>
                 <Input
                   id="address-input"
                   placeholder="e.g., 5, 10, 15-20"
                   value={deleteAddressInput}
                   onChange={(e) => setDeleteAddressInput(e.target.value)}
                 />
-                <p className="text-sm text-muted-foreground">
-                  Enter single addresses (e.g., 5, 10) or ranges (e.g., 15-20)
-                  separated by commas
-                </p>
+                <p className="text-sm text-muted-foreground">Enter single addresses (e.g., 5, 10) or ranges (e.g., 15-20) separated by commas</p>
               </div>
             )}
           </div>

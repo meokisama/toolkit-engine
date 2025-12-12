@@ -5,66 +5,35 @@
  * @param {Map} sceneAddressMap - Map of scene addresses to scene IDs
  * @returns {Promise<Array>} Created schedules
  */
-export const readScheduleConfigurations = async (
-  networkUnit,
-  projectId,
-  sceneAddressMap
-) => {
+export const readScheduleConfigurations = async (networkUnit, projectId, sceneAddressMap) => {
   const createdSchedules = [];
 
   try {
     console.log("Reading schedule configurations...");
 
-    const result =
-      await window.electronAPI.scheduleController.getAllSchedulesInformation({
-        unitIp: networkUnit.ip_address,
-        canId: networkUnit.id_can,
-      });
+    const result = await window.electronAPI.scheduleController.getAllSchedulesInformation({
+      unitIp: networkUnit.ip_address,
+      canId: networkUnit.id_can,
+    });
 
     if (result?.data && result.data.length > 0) {
       console.log(`Found ${result.data.length} schedules on network unit`);
 
       for (const networkSchedule of result.data) {
         try {
-          // Only process enabled schedules with scenes
-          if (
-            !networkSchedule.enabled ||
-            !networkSchedule.sceneAddresses ||
-            networkSchedule.sceneAddresses.length === 0
-          ) {
-            console.log(
-              `Skipping schedule ${networkSchedule.scheduleIndex}: disabled or no scenes`
-            );
+          // Only process schedules with scenes
+          if (!networkSchedule.sceneAddresses || networkSchedule.sceneAddresses.length === 0) {
+            console.log(`Skipping schedule ${networkSchedule.scheduleIndex}: no scenes`);
             continue;
           }
 
           // Convert weekDays array to days string format for database
-          const daysArray = networkSchedule.weekDays || [
-            false,
-            false,
-            false,
-            false,
-            false,
-            false,
-            false,
-          ];
-          const dayNames = [
-            "Monday",
-            "Tuesday",
-            "Wednesday",
-            "Thursday",
-            "Friday",
-            "Saturday",
-            "Sunday",
-          ];
+          const daysArray = networkSchedule.weekDays || [false, false, false, false, false, false, false];
+          const dayNames = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
           const enabledDays = dayNames.filter((_, index) => daysArray[index]);
 
           // Format time as HH:MM
-          const timeString = `${networkSchedule.hour
-            .toString()
-            .padStart(2, "0")}:${networkSchedule.minute
-            .toString()
-            .padStart(2, "0")}`;
+          const timeString = `${networkSchedule.hour.toString().padStart(2, "0")}:${networkSchedule.minute.toString().padStart(2, "0")}`;
 
           // Create schedule in database
           const scheduleData = {
@@ -75,46 +44,30 @@ export const readScheduleConfigurations = async (
             enabled: networkSchedule.enabled,
           };
 
-          const createdSchedule = await window.electronAPI.schedule.create(
-            projectId,
-            scheduleData
-          );
+          const createdSchedule = await window.electronAPI.schedule.create(projectId, scheduleData);
 
           // Add scenes to schedule
           for (const sceneAddress of networkSchedule.sceneAddresses) {
             const sceneId = sceneAddressMap.get(sceneAddress);
             if (sceneId) {
               try {
-                await window.electronAPI.schedule.addScene(
-                  createdSchedule.id,
-                  sceneId
-                );
+                await window.electronAPI.schedule.addScene(createdSchedule.id, sceneId);
               } catch (error) {
-                console.error(
-                  `Failed to add scene ${sceneId} to schedule ${createdSchedule.id}:`,
-                  error
-                );
+                console.error(`Failed to add scene ${sceneId} to schedule ${createdSchedule.id}:`, error);
                 // Continue with other scenes
               }
             } else {
-              console.warn(
-                `Scene with address ${sceneAddress} not found in created scenes`
-              );
+              console.warn(`Scene with address ${sceneAddress} not found in created scenes`);
             }
           }
 
           createdSchedules.push(createdSchedule);
-          console.log(
-            `Created schedule: ${createdSchedule.name} (ID: ${createdSchedule.id}) with ${networkSchedule.sceneAddresses.length} scenes`
-          );
+          console.log(`Created schedule: ${createdSchedule.name} (ID: ${createdSchedule.id}) with ${networkSchedule.sceneAddresses.length} scenes`);
 
           // Add delay between schedule reads
           await new Promise((resolve) => setTimeout(resolve, 300));
         } catch (error) {
-          console.error(
-            `Failed to process schedule ${networkSchedule.scheduleIndex}:`,
-            error
-          );
+          console.error(`Failed to process schedule ${networkSchedule.scheduleIndex}:`, error);
           // Continue with other schedules
         }
       }

@@ -1,6 +1,6 @@
 import { memo, useCallback } from "react";
 import { Input } from "@/components/ui/input";
-import { Sun, Percent, Thermometer, Palette } from "lucide-react";
+import { Sun, Percent, Thermometer } from "lucide-react";
 import { parseBrightnessInput, brightnessToPercent } from "./utils/brightness";
 
 /**
@@ -12,11 +12,7 @@ import { parseBrightnessInput, brightnessToPercent } from "./utils/brightness";
  * - Type 8 with color_feature 3: RGB (0-254) + brightness
  * - Type 8 with color_feature 4: RGBW (0-254) + brightness
  */
-export const DeviceSceneControl = memo(function DeviceSceneControl({
-  device,
-  values,
-  onChange,
-}) {
+export const DeviceSceneControl = memo(function DeviceSceneControl({ device, values, onChange }) {
   const { type, colorFeature } = device;
 
   // Brightness handlers
@@ -39,10 +35,7 @@ export const DeviceSceneControl = memo(function DeviceSceneControl({
   // Color temperature handler
   const handleColorTempChange = useCallback(
     (e) => {
-      const colorTemp = Math.max(
-        1000,
-        Math.min(10000, parseInt(e.target.value) || 1000)
-      );
+      const colorTemp = Math.max(1000, Math.min(10000, parseInt(e.target.value) || 1000));
       onChange({ ...values, colorTemp });
     },
     [onChange, values]
@@ -89,25 +82,11 @@ export const DeviceSceneControl = memo(function DeviceSceneControl({
       <div className="grid grid-cols-2 gap-3">
         <div className="relative">
           <Sun className="absolute left-2 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
-          <Input
-            type="number"
-            min="0"
-            max="255"
-            value={values.brightness}
-            onChange={handleBrightnessChange255}
-            className="h-10 pl-8 font-bold"
-          />
+          <Input type="number" min="0" max="255" value={values.brightness} onChange={handleBrightnessChange255} className="h-10 pl-8 font-bold" />
         </div>
         <div className="relative">
           <Percent className="absolute left-2 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
-          <Input
-            type="number"
-            min="0"
-            max="100"
-            value={brightnessPercent}
-            onChange={handleBrightnessChange100}
-            className="h-10 pl-8 font-bold"
-          />
+          <Input type="number" min="0" max="100" value={brightnessPercent} onChange={handleBrightnessChange100} className="h-10 pl-8 font-bold" />
         </div>
       </div>
     );
@@ -131,25 +110,11 @@ export const DeviceSceneControl = memo(function DeviceSceneControl({
         </div>
         <div className="relative">
           <Sun className="absolute left-2 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
-          <Input
-            type="number"
-            min="0"
-            max="255"
-            value={values.brightness}
-            onChange={handleBrightnessChange255}
-            className="h-10 pl-8 font-bold"
-          />
+          <Input type="number" min="0" max="255" value={values.brightness} onChange={handleBrightnessChange255} className="h-10 pl-8 font-bold" />
         </div>
         <div className="relative">
           <Percent className="absolute left-2 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
-          <Input
-            type="number"
-            min="0"
-            max="100"
-            value={brightnessPercent}
-            onChange={handleBrightnessChange100}
-            className="h-10 pl-8 font-bold"
-          />
+          <Input type="number" min="0" max="100" value={brightnessPercent} onChange={handleBrightnessChange100} className="h-10 pl-8 font-bold" />
         </div>
       </div>
     );
@@ -162,66 +127,25 @@ export const DeviceSceneControl = memo(function DeviceSceneControl({
         <div className="grid grid-cols-2 gap-1">
           <div className="relative">
             <Sun className="absolute left-2 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
-            <Input
-              type="number"
-              min="0"
-              max="255"
-              value={values.brightness}
-              onChange={handleBrightnessChange255}
-              className="h-10 pl-8 font-bold"
-            />
+            <Input type="number" min="0" max="255" value={values.brightness} onChange={handleBrightnessChange255} className="h-10 pl-8 font-bold" />
           </div>
           <div className="relative">
             <Percent className="absolute left-2 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
-            <Input
-              type="number"
-              min="0"
-              max="100"
-              value={brightnessPercent}
-              onChange={handleBrightnessChange100}
-              className="h-10 pl-8 font-bold"
-            />
+            <Input type="number" min="0" max="100" value={brightnessPercent} onChange={handleBrightnessChange100} className="h-10 pl-8 font-bold" />
           </div>
         </div>
         <div className="grid grid-cols-3 gap-1">
           <div className="relative">
-            <span className="absolute left-2 top-1/2 transform -translate-y-1/2 font-bold text-red-800 pointer-events-none">
-              R
-            </span>
-            <Input
-              type="number"
-              min="0"
-              max="254"
-              value={values.r ?? 0}
-              onChange={handleRChange}
-              className="h-10 pl-8 font-bold"
-            />
+            <span className="absolute left-2 top-1/2 transform -translate-y-1/2 font-bold text-red-800 pointer-events-none">R</span>
+            <Input type="number" min="0" max="254" value={values.r ?? 0} onChange={handleRChange} className="h-10 pl-8 font-bold" />
           </div>
           <div className="relative">
-            <span className="absolute left-2 top-1/2 transform -translate-y-1/2 font-bold text-green-800 pointer-events-none">
-              G
-            </span>
-            <Input
-              type="number"
-              min="0"
-              max="254"
-              value={values.g ?? 0}
-              onChange={handleGChange}
-              className="h-10 pl-8 font-bold"
-            />
+            <span className="absolute left-2 top-1/2 transform -translate-y-1/2 font-bold text-green-800 pointer-events-none">G</span>
+            <Input type="number" min="0" max="254" value={values.g ?? 0} onChange={handleGChange} className="h-10 pl-8 font-bold" />
           </div>
           <div className="relative">
-            <span className="absolute left-2 top-1/2 transform -translate-y-1/2 font-bold text-blue-800 pointer-events-none">
-              B
-            </span>
-            <Input
-              type="number"
-              min="0"
-              max="254"
-              value={values.b ?? 0}
-              onChange={handleBChange}
-              className="h-10 pl-8 font-bold"
-            />
+            <span className="absolute left-2 top-1/2 transform -translate-y-1/2 font-bold text-blue-800 pointer-events-none">B</span>
+            <Input type="number" min="0" max="254" value={values.b ?? 0} onChange={handleBChange} className="h-10 pl-8 font-bold" />
           </div>
         </div>
       </div>
@@ -235,79 +159,29 @@ export const DeviceSceneControl = memo(function DeviceSceneControl({
         <div className="grid grid-cols-2 gap-1">
           <div className="relative">
             <Sun className="absolute left-2 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
-            <Input
-              type="number"
-              min="0"
-              max="255"
-              value={values.brightness}
-              onChange={handleBrightnessChange255}
-              className="h-10 pl-8 font-bold"
-            />
+            <Input type="number" min="0" max="255" value={values.brightness} onChange={handleBrightnessChange255} className="h-10 pl-8 font-bold" />
           </div>
           <div className="relative">
             <Percent className="absolute left-2 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
-            <Input
-              type="number"
-              min="0"
-              max="100"
-              value={brightnessPercent}
-              onChange={handleBrightnessChange100}
-              className="h-10 pl-8 font-bold"
-            />
+            <Input type="number" min="0" max="100" value={brightnessPercent} onChange={handleBrightnessChange100} className="h-10 pl-8 font-bold" />
           </div>
         </div>
         <div className="grid grid-cols-4 gap-1">
           <div className="relative">
-            <span className="absolute left-2 top-1/2 transform -translate-y-1/2 font-bold text-red-800 pointer-events-none">
-              R
-            </span>
-            <Input
-              type="number"
-              min="0"
-              max="254"
-              value={values.r ?? 0}
-              onChange={handleRChange}
-              className="h-10 pl-8 font-bold"
-            />
+            <span className="absolute left-2 top-1/2 transform -translate-y-1/2 font-bold text-red-800 pointer-events-none">R</span>
+            <Input type="number" min="0" max="254" value={values.r ?? 0} onChange={handleRChange} className="h-10 pl-8 font-bold" />
           </div>
           <div className="relative">
-            <span className="absolute left-2 top-1/2 transform -translate-y-1/2 font-bold text-green-800 pointer-events-none">
-              G
-            </span>
-            <Input
-              type="number"
-              min="0"
-              max="254"
-              value={values.g ?? 0}
-              onChange={handleGChange}
-              className="h-10 pl-8 font-bold"
-            />
+            <span className="absolute left-2 top-1/2 transform -translate-y-1/2 font-bold text-green-800 pointer-events-none">G</span>
+            <Input type="number" min="0" max="254" value={values.g ?? 0} onChange={handleGChange} className="h-10 pl-8 font-bold" />
           </div>
           <div className="relative">
-            <span className="absolute left-2 top-1/2 transform -translate-y-1/2 font-bold text-blue-800 pointer-events-none">
-              B
-            </span>
-            <Input
-              type="number"
-              min="0"
-              max="254"
-              value={values.b ?? 0}
-              onChange={handleBChange}
-              className="h-10 pl-8 font-bold"
-            />
+            <span className="absolute left-2 top-1/2 transform -translate-y-1/2 font-bold text-blue-800 pointer-events-none">B</span>
+            <Input type="number" min="0" max="254" value={values.b ?? 0} onChange={handleBChange} className="h-10 pl-8 font-bold" />
           </div>
           <div className="relative">
-            <span className="absolute left-2 top-1/2 transform -translate-y-1/2 font-bold text-muted-foreground pointer-events-none">
-              W
-            </span>
-            <Input
-              type="number"
-              min="0"
-              max="254"
-              value={values.w ?? 0}
-              onChange={handleWChange}
-              className="h-10 pl-8 font-bold"
-            />
+            <span className="absolute left-2 top-1/2 transform -translate-y-1/2 font-bold text-muted-foreground pointer-events-none">W</span>
+            <Input type="number" min="0" max="254" value={values.w ?? 0} onChange={handleWChange} className="h-10 pl-8 font-bold" />
           </div>
         </div>
       </div>
@@ -319,25 +193,11 @@ export const DeviceSceneControl = memo(function DeviceSceneControl({
     <div className="grid grid-cols-2 gap-3">
       <div className="relative">
         <Sun className="absolute left-2 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
-        <Input
-          type="number"
-          min="0"
-          max="255"
-          value={values.brightness}
-          onChange={handleBrightnessChange255}
-          className="h-10 pl-8 font-bold"
-        />
+        <Input type="number" min="0" max="255" value={values.brightness} onChange={handleBrightnessChange255} className="h-10 pl-8 font-bold" />
       </div>
       <div className="relative">
         <Percent className="absolute left-2 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
-        <Input
-          type="number"
-          min="0"
-          max="100"
-          value={brightnessPercent}
-          onChange={handleBrightnessChange100}
-          className="h-10 pl-8 font-bold"
-        />
+        <Input type="number" min="0" max="100" value={brightnessPercent} onChange={handleBrightnessChange100} className="h-10 pl-8 font-bold" />
       </div>
     </div>
   );

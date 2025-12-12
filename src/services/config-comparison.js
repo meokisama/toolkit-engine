@@ -15,12 +15,12 @@ async function getAddressFromDeviceId(deviceId, deviceType, projectItems = null)
   try {
     // If we have project items cache, use it
     if (projectItems && projectItems[deviceType]) {
-      const item = projectItems[deviceType].find(item => item.id === deviceId);
+      const item = projectItems[deviceType].find((item) => item.id === deviceId);
       return item ? item.address : null;
     }
 
     // Otherwise, try to get from electronAPI if available
-    if (typeof window !== 'undefined' && window.electronAPI && window.electronAPI[deviceType]) {
+    if (typeof window !== "undefined" && window.electronAPI && window.electronAPI[deviceType]) {
       // This would require project ID, which we don't have in comparison context
       // For now, return null and handle in the comparison logic
       return null;
@@ -49,7 +49,7 @@ export function compareRS485Config(databaseRS485, networkRS485) {
   if (!databaseRS485 || !networkRS485) {
     return {
       isEqual: false,
-      differences: ['One unit has RS485 config while the other does not']
+      differences: ["One unit has RS485 config while the other does not"],
     };
   }
 
@@ -68,19 +68,17 @@ export function compareRS485Config(databaseRS485, networkRS485) {
 
     // Compare basic settings (both should use database format after conversion)
     const fieldsToCompare = [
-      { name: 'baudrate', label: 'Baudrate' },
-      { name: 'parity', label: 'Parity' },
-      { name: 'stop_bit', label: 'Stop Bit' },
-      { name: 'board_id', label: 'Board ID' },
-      { name: 'config_type', label: 'RS485 Type' },
-      { name: 'num_slave_devs', label: 'Number of Slaves' }
+      { name: "baudrate", label: "Baudrate" },
+      { name: "parity", label: "Parity" },
+      { name: "stop_bit", label: "Stop Bit" },
+      { name: "board_id", label: "Board ID" },
+      { name: "config_type", label: "RS485 Type" },
+      { name: "num_slave_devs", label: "Number of Slaves" },
     ];
 
-    fieldsToCompare.forEach(field => {
+    fieldsToCompare.forEach((field) => {
       if (dbConfig[field.name] !== netConfig[field.name]) {
-        differences.push(
-          `RS485 CH${i + 1} ${field.label}: DB=${dbConfig[field.name]}, Network=${netConfig[field.name]}`
-        );
+        differences.push(`RS485 CH${i + 1} ${field.label}: DB=${dbConfig[field.name]}, Network=${netConfig[field.name]}`);
       }
     });
 
@@ -92,8 +90,8 @@ export function compareRS485Config(databaseRS485, networkRS485) {
       const netSlaves = netConfig.slave_cfg || [];
 
       // Compare actual number of configured slaves
-      const dbActiveSlaves = dbSlaves.filter(slave => slave && slave.slave_id > 0);
-      const netActiveSlaves = netSlaves.filter(slave => slave && slave.slave_id > 0);
+      const dbActiveSlaves = dbSlaves.filter((slave) => slave && slave.slave_id > 0);
+      const netActiveSlaves = netSlaves.filter((slave) => slave && slave.slave_id > 0);
 
       if (dbActiveSlaves.length !== netActiveSlaves.length) {
         differences.push(`RS485 CH${i + 1} Active Slaves count: DB=${dbActiveSlaves.length}, Network=${netActiveSlaves.length}`);
@@ -114,16 +112,14 @@ export function compareRS485Config(databaseRS485, networkRS485) {
 
         // Compare slave basic properties
         const slaveFields = [
-          { name: 'slave_id', label: 'Slave ID' },
-          { name: 'slave_group', label: 'Slave Group' },
-          { name: 'num_indoors', label: 'Number of Indoors' }
+          { name: "slave_id", label: "Slave ID" },
+          { name: "slave_group", label: "Slave Group" },
+          { name: "num_indoors", label: "Number of Indoors" },
         ];
 
-        slaveFields.forEach(field => {
+        slaveFields.forEach((field) => {
           if (dbSlave[field.name] !== netSlave[field.name]) {
-            differences.push(
-              `RS485 CH${i + 1} Slave ${j + 1} ${field.label}: DB=${dbSlave[field.name]}, Network=${netSlave[field.name]}`
-            );
+            differences.push(`RS485 CH${i + 1} Slave ${j + 1} ${field.label}: DB=${dbSlave[field.name]}, Network=${netSlave[field.name]}`);
           }
         });
 
@@ -155,7 +151,7 @@ export function compareRS485Config(databaseRS485, networkRS485) {
 
   return {
     isEqual: differences.length === 0,
-    differences
+    differences,
   };
 }
 
@@ -175,7 +171,7 @@ export function compareInputConfigs(databaseInputs, networkInputs) {
   if (!databaseInputs || !networkInputs) {
     return {
       isEqual: false,
-      differences: ['One unit has input configs while the other does not']
+      differences: ["One unit has input configs while the other does not"],
     };
   }
 
@@ -195,16 +191,14 @@ export function compareInputConfigs(databaseInputs, networkInputs) {
 
     // Compare input properties based on actual structure from transfer function
     const fieldsToCompare = [
-      { name: 'index', label: 'Index' },
-      { name: 'function_value', label: 'Function Value' },
-      { name: 'lighting_id', label: 'Lighting ID' }
+      { name: "index", label: "Index" },
+      { name: "function_value", label: "Function Value" },
+      { name: "lighting_id", label: "Lighting ID" },
     ];
 
-    fieldsToCompare.forEach(field => {
+    fieldsToCompare.forEach((field) => {
       if (dbInput[field.name] !== netInput[field.name]) {
-        differences.push(
-          `Input ${i + 1} ${field.label}: DB=${dbInput[field.name]}, Network=${netInput[field.name]}`
-        );
+        differences.push(`Input ${i + 1} ${field.label}: DB=${dbInput[field.name]}, Network=${netInput[field.name]}`);
       }
     });
 
@@ -213,12 +207,8 @@ export function compareInputConfigs(databaseInputs, networkInputs) {
     const netGroups = netInput.multi_group_config || [];
 
     // Filter out invalid/empty groups (groups with groupId > 0)
-    const dbActiveGroups = dbGroups.filter(group =>
-      group && typeof group === 'object' && group.groupId > 0
-    );
-    const netActiveGroups = netGroups.filter(group =>
-      group && typeof group === 'object' && group.groupId > 0
-    );
+    const dbActiveGroups = dbGroups.filter((group) => group && typeof group === "object" && group.groupId > 0);
+    const netActiveGroups = netGroups.filter((group) => group && typeof group === "object" && group.groupId > 0);
 
     if (dbActiveGroups.length !== netActiveGroups.length) {
       differences.push(`Input ${i + 1} Active Multi-Group Count: DB=${dbActiveGroups.length}, Network=${netActiveGroups.length}`);
@@ -236,7 +226,9 @@ export function compareInputConfigs(databaseInputs, networkInputs) {
         }
 
         if (dbGroup.presetBrightness !== netGroup.presetBrightness) {
-          differences.push(`Input ${i + 1} Multi-Group[${j}] Preset Brightness: DB=${dbGroup.presetBrightness}, Network=${netGroup.presetBrightness}`);
+          differences.push(
+            `Input ${i + 1} Multi-Group[${j}] Preset Brightness: DB=${dbGroup.presetBrightness}, Network=${netGroup.presetBrightness}`
+          );
         }
       }
     }
@@ -246,26 +238,24 @@ export function compareInputConfigs(databaseInputs, networkInputs) {
     const netRlc = netInput.rlc_config || {};
 
     const rlcFields = [
-      { name: 'ramp', label: 'Ramp' },
-      { name: 'preset', label: 'Preset' },
-      { name: 'ledStatus', label: 'LED Status' },
-      { name: 'autoMode', label: 'Auto Mode' },
-      { name: 'delayOff', label: 'Delay Off' },
-      { name: 'delayOn', label: 'Delay On' }
+      { name: "ramp", label: "Ramp" },
+      { name: "preset", label: "Preset" },
+      { name: "ledStatus", label: "LED Status" },
+      { name: "autoMode", label: "Auto Mode" },
+      { name: "delayOff", label: "Delay Off" },
+      { name: "delayOn", label: "Delay On" },
     ];
 
-    rlcFields.forEach(field => {
+    rlcFields.forEach((field) => {
       if (dbRlc[field.name] !== netRlc[field.name]) {
-        differences.push(
-          `Input ${i + 1} RLC ${field.label}: DB=${dbRlc[field.name]}, Network=${netRlc[field.name]}`
-        );
+        differences.push(`Input ${i + 1} RLC ${field.label}: DB=${dbRlc[field.name]}, Network=${netRlc[field.name]}`);
       }
     });
   }
 
   return {
     isEqual: differences.length === 0,
-    differences
+    differences,
   };
 }
 
@@ -286,7 +276,7 @@ export function compareOutputConfigs(databaseOutputs, networkOutputs, projectIte
   if (!databaseOutputs || !networkOutputs) {
     return {
       isEqual: false,
-      differences: ['One unit has output configs while the other does not']
+      differences: ["One unit has output configs while the other does not"],
     };
   }
 
@@ -306,16 +296,14 @@ export function compareOutputConfigs(databaseOutputs, networkOutputs, projectIte
 
     // Compare output properties (skip device_id and name as they are not meaningful for comparison)
     const fieldsToCompare = [
-      { name: 'index', label: 'Index' },
-      { name: 'type', label: 'Type' },
-      { name: 'device_type', label: 'Device Type' }
+      { name: "index", label: "Index" },
+      { name: "type", label: "Type" },
+      { name: "device_type", label: "Device Type" },
     ];
 
-    fieldsToCompare.forEach(field => {
+    fieldsToCompare.forEach((field) => {
       if (dbOutput[field.name] !== netOutput[field.name]) {
-        differences.push(
-          `Output ${i + 1} ${field.label}: DB=${dbOutput[field.name]}, Network=${netOutput[field.name]}`
-        );
+        differences.push(`Output ${i + 1} ${field.label}: DB=${dbOutput[field.name]}, Network=${netOutput[field.name]}`);
       }
     });
 
@@ -325,27 +313,27 @@ export function compareOutputConfigs(databaseOutputs, networkOutputs, projectIte
 
     // Get database address from device_id
     if (dbOutput.device_id && projectItems) {
-      const deviceType = dbOutput.device_type === 'aircon' ? 'aircon' : 'lighting';
+      const deviceType = dbOutput.device_type === "aircon" ? "aircon" : "lighting";
       if (projectItems[deviceType]) {
-        const item = projectItems[deviceType].find(item => item.id === dbOutput.device_id);
+        const item = projectItems[deviceType].find((item) => item.id === dbOutput.device_id);
         dbAddress = item ? parseInt(item.address) : null;
 
         // Debug logging for AC outputs
-        if (dbOutput.type === 'ac') {
+        if (dbOutput.type === "ac") {
           console.log(`AC Output ${i + 1} device_id lookup:`, {
             device_id: dbOutput.device_id,
             deviceType,
             availableItems: projectItems[deviceType]?.length || 0,
             foundItem: !!item,
             itemAddress: item?.address,
-            resolvedAddress: dbAddress
+            resolvedAddress: dbAddress,
           });
         }
       }
     }
 
     // Get network address based on output type
-    if (dbOutput.type === 'ac' || netOutput.type === 'ac') {
+    if (dbOutput.type === "ac" || netOutput.type === "ac") {
       // For AC outputs, address comes from AC config, not from assignment
       netAddress = netOutput.config?.address || 0;
     } else {
@@ -355,27 +343,23 @@ export function compareOutputConfigs(databaseOutputs, networkOutputs, projectIte
 
     // Convert addresses for comparison
     // For both AC and lighting: treat 0 and null as equivalent (unassigned)
-    const dbAddressStr = dbAddress && dbAddress > 0 ? dbAddress.toString() : '0';
-    const netAddressStr = netAddress && netAddress > 0 ? netAddress.toString() : '0';
+    const dbAddressStr = dbAddress && dbAddress > 0 ? dbAddress.toString() : "0";
+    const netAddressStr = netAddress && netAddress > 0 ? netAddress.toString() : "0";
 
     // Only report address differences if they are meaningful
     if (dbAddressStr !== netAddressStr) {
-      if (dbOutput.type === 'ac' || netOutput.type === 'ac') {
+      if (dbOutput.type === "ac" || netOutput.type === "ac") {
         // For AC outputs, show AC Address comparison
-        const dbDisplayValue = dbAddressStr === '0' ? 'unassigned' : dbAddressStr;
-        const netDisplayValue = netAddressStr === '0' ? 'unassigned' : netAddressStr;
-        differences.push(
-          `Output ${i + 1} AC Address: DB=${dbDisplayValue}, Network=${netDisplayValue}`
-        );
+        const dbDisplayValue = dbAddressStr === "0" ? "unassigned" : dbAddressStr;
+        const netDisplayValue = netAddressStr === "0" ? "unassigned" : netAddressStr;
+        differences.push(`Output ${i + 1} AC Address: DB=${dbDisplayValue}, Network=${netDisplayValue}`);
       } else {
         // For lighting outputs, only report if both are not unassigned (0)
         // Skip reporting if both DB and Network are unassigned (0)
-        if (!(dbAddressStr === '0' && netAddressStr === '0')) {
-          const dbDisplayValue = dbAddressStr === '0' ? 'unassigned' : dbAddressStr;
-          const netDisplayValue = netAddressStr === '0' ? 'unassigned' : netAddressStr;
-          differences.push(
-            `Output ${i + 1} Address: DB=${dbDisplayValue} (device_id=${dbOutput.device_id}), Network=${netDisplayValue}`
-          );
+        if (!(dbAddressStr === "0" && netAddressStr === "0")) {
+          const dbDisplayValue = dbAddressStr === "0" ? "unassigned" : dbAddressStr;
+          const netDisplayValue = netAddressStr === "0" ? "unassigned" : netAddressStr;
+          differences.push(`Output ${i + 1} Address: DB=${dbDisplayValue} (device_id=${dbOutput.device_id}), Network=${netDisplayValue}`);
         }
       }
     }
@@ -384,76 +368,72 @@ export function compareOutputConfigs(databaseOutputs, networkOutputs, projectIte
     const dbConfig = dbOutput.config || {};
     const netConfig = netOutput.config || {};
 
-    if (dbOutput.type === 'ac' || netOutput.type === 'ac') {
+    if (dbOutput.type === "ac" || netOutput.type === "ac") {
       // Compare aircon-specific config fields (address is handled separately above)
       const acConfigFields = [
-        { name: 'enable', label: 'Enable' },
-        { name: 'windowMode', label: 'Window Mode' },
-        { name: 'fanType', label: 'Fan Type' },
-        { name: 'tempType', label: 'Temp Type' },
-        { name: 'tempUnit', label: 'Temp Unit' },
-        { name: 'valveContact', label: 'Valve Contact' },
-        { name: 'valveType', label: 'Valve Type' },
-        { name: 'deadband', label: 'Deadband' },
-        { name: 'lowFCU_Group', label: 'Low FCU Group' },
-        { name: 'medFCU_Group', label: 'Med FCU Group' },
-        { name: 'highFCU_Group', label: 'High FCU Group' },
-        { name: 'fanAnalogGroup', label: 'Fan Analog Group' },
-        { name: 'analogCoolGroup', label: 'Analog Cool Group' },
-        { name: 'analogHeatGroup', label: 'Analog Heat Group' },
-        { name: 'valveCoolOpenGroup', label: 'Valve Cool Open Group' },
-        { name: 'valveCoolCloseGroup', label: 'Valve Cool Close Group' },
-        { name: 'valveHeatOpenGroup', label: 'Valve Heat Open Group' },
-        { name: 'valveHeatCloseGroup', label: 'Valve Heat Close Group' },
-        { name: 'windowBypass', label: 'Window Bypass' },
-        { name: 'setPointOffset', label: 'Set Point Offset' },
-        { name: 'unoccupyPower', label: 'Unoccupy Power' },
-        { name: 'occupyPower', label: 'Occupy Power' },
-        { name: 'standbyPower', label: 'Standby Power' },
-        { name: 'unoccupyMode', label: 'Unoccupy Mode' },
-        { name: 'occupyMode', label: 'Occupy Mode' },
-        { name: 'standbyMode', label: 'Standby Mode' },
-        { name: 'unoccupyFanSpeed', label: 'Unoccupy Fan Speed' },
-        { name: 'occupyFanSpeed', label: 'Occupy Fan Speed' },
-        { name: 'standbyFanSpeed', label: 'Standby Fan Speed' },
-        { name: 'unoccupyCoolSetPoint', label: 'Unoccupy Cool Set Point' },
-        { name: 'occupyCoolSetPoint', label: 'Occupy Cool Set Point' },
-        { name: 'standbyCoolSetPoint', label: 'Standby Cool Set Point' },
-        { name: 'unoccupyHeatSetPoint', label: 'Unoccupy Heat Set Point' },
-        { name: 'occupyHeatSetPoint', label: 'Occupy Heat Set Point' },
-        { name: 'standbyHeatSetPoint', label: 'Standby Heat Set Point' }
+        { name: "enable", label: "Enable" },
+        { name: "windowMode", label: "Window Mode" },
+        { name: "fanType", label: "Fan Type" },
+        { name: "tempType", label: "Temp Type" },
+        { name: "tempUnit", label: "Temp Unit" },
+        { name: "valveContact", label: "Valve Contact" },
+        { name: "valveType", label: "Valve Type" },
+        { name: "deadband", label: "Deadband" },
+        { name: "lowFCU_Group", label: "Low FCU Group" },
+        { name: "medFCU_Group", label: "Med FCU Group" },
+        { name: "highFCU_Group", label: "High FCU Group" },
+        { name: "fanAnalogGroup", label: "Fan Analog Group" },
+        { name: "analogCoolGroup", label: "Analog Cool Group" },
+        { name: "analogHeatGroup", label: "Analog Heat Group" },
+        { name: "valveCoolOpenGroup", label: "Valve Cool Open Group" },
+        { name: "valveCoolCloseGroup", label: "Valve Cool Close Group" },
+        { name: "valveHeatOpenGroup", label: "Valve Heat Open Group" },
+        { name: "valveHeatCloseGroup", label: "Valve Heat Close Group" },
+        { name: "windowBypass", label: "Window Bypass" },
+        { name: "setPointOffset", label: "Set Point Offset" },
+        { name: "unoccupyPower", label: "Unoccupy Power" },
+        { name: "occupyPower", label: "Occupy Power" },
+        { name: "standbyPower", label: "Standby Power" },
+        { name: "unoccupyMode", label: "Unoccupy Mode" },
+        { name: "occupyMode", label: "Occupy Mode" },
+        { name: "standbyMode", label: "Standby Mode" },
+        { name: "unoccupyFanSpeed", label: "Unoccupy Fan Speed" },
+        { name: "occupyFanSpeed", label: "Occupy Fan Speed" },
+        { name: "standbyFanSpeed", label: "Standby Fan Speed" },
+        { name: "unoccupyCoolSetPoint", label: "Unoccupy Cool Set Point" },
+        { name: "occupyCoolSetPoint", label: "Occupy Cool Set Point" },
+        { name: "standbyCoolSetPoint", label: "Standby Cool Set Point" },
+        { name: "unoccupyHeatSetPoint", label: "Unoccupy Heat Set Point" },
+        { name: "occupyHeatSetPoint", label: "Occupy Heat Set Point" },
+        { name: "standbyHeatSetPoint", label: "Standby Heat Set Point" },
       ];
 
-      acConfigFields.forEach(field => {
+      acConfigFields.forEach((field) => {
         if (dbConfig[field.name] !== netConfig[field.name]) {
-          differences.push(
-            `Output ${i + 1} AC ${field.label}: DB=${dbConfig[field.name]}, Network=${netConfig[field.name]}`
-          );
+          differences.push(`Output ${i + 1} AC ${field.label}: DB=${dbConfig[field.name]}, Network=${netConfig[field.name]}`);
         }
       });
     } else {
       // Compare lighting/relay/dimmer config fields
       const lightingConfigFields = [
-        { name: 'autoTrigger', label: 'Auto Trigger' },
-        { name: 'delayOffHours', label: 'Delay Off Hours' },
-        { name: 'delayOffMinutes', label: 'Delay Off Minutes' },
-        { name: 'delayOffSeconds', label: 'Delay Off Seconds' },
-        { name: 'delayOnHours', label: 'Delay On Hours' },
-        { name: 'delayOnMinutes', label: 'Delay On Minutes' },
-        { name: 'delayOnSeconds', label: 'Delay On Seconds' },
-        { name: 'scheduleOnHour', label: 'Schedule On Hour' },
-        { name: 'scheduleOnMinute', label: 'Schedule On Minute' },
-        { name: 'scheduleOffHour', label: 'Schedule Off Hour' },
-        { name: 'scheduleOffMinute', label: 'Schedule Off Minute' },
-        { name: 'minDim', label: 'Min Dim' },
-        { name: 'maxDim', label: 'Max Dim' }
+        { name: "autoTrigger", label: "Auto Trigger" },
+        { name: "delayOffHours", label: "Delay Off Hours" },
+        { name: "delayOffMinutes", label: "Delay Off Minutes" },
+        { name: "delayOffSeconds", label: "Delay Off Seconds" },
+        { name: "delayOnHours", label: "Delay On Hours" },
+        { name: "delayOnMinutes", label: "Delay On Minutes" },
+        { name: "delayOnSeconds", label: "Delay On Seconds" },
+        { name: "scheduleOnHour", label: "Schedule On Hour" },
+        { name: "scheduleOnMinute", label: "Schedule On Minute" },
+        { name: "scheduleOffHour", label: "Schedule Off Hour" },
+        { name: "scheduleOffMinute", label: "Schedule Off Minute" },
+        { name: "minDim", label: "Min Dim" },
+        { name: "maxDim", label: "Max Dim" },
       ];
 
-      lightingConfigFields.forEach(field => {
+      lightingConfigFields.forEach((field) => {
         if (dbConfig[field.name] !== netConfig[field.name]) {
-          differences.push(
-            `Output ${i + 1} Lighting ${field.label}: DB=${dbConfig[field.name]}, Network=${netConfig[field.name]}`
-          );
+          differences.push(`Output ${i + 1} Lighting ${field.label}: DB=${dbConfig[field.name]}, Network=${netConfig[field.name]}`);
         }
       });
     }
@@ -461,7 +441,7 @@ export function compareOutputConfigs(databaseOutputs, networkOutputs, projectIte
 
   return {
     isEqual: differences.length === 0,
-    differences
+    differences,
   };
 }
 
@@ -481,7 +461,7 @@ export function compareScenes(databaseScenes, networkScenes) {
   if (!databaseScenes || !networkScenes) {
     return {
       isEqual: false,
-      differences: ['One unit has scenes while the other does not']
+      differences: ["One unit has scenes while the other does not"],
     };
   }
 
@@ -492,13 +472,13 @@ export function compareScenes(databaseScenes, networkScenes) {
   const dbSceneMap = new Map();
   const netSceneMap = new Map();
 
-  dbScenes.forEach(scene => {
+  dbScenes.forEach((scene) => {
     if (scene.address !== undefined) {
       dbSceneMap.set(scene.address, scene);
     }
   });
 
-  netScenes.forEach(scene => {
+  netScenes.forEach((scene) => {
     if (scene.address !== undefined) {
       netSceneMap.set(scene.address, scene);
     }
@@ -513,7 +493,7 @@ export function compareScenes(databaseScenes, networkScenes) {
   }
 
   // Compare scenes by address
-  allAddresses.forEach(address => {
+  allAddresses.forEach((address) => {
     const dbScene = dbSceneMap.get(address);
     const netScene = netSceneMap.get(address);
 
@@ -555,17 +535,15 @@ export function compareScenes(databaseScenes, networkScenes) {
 
         // Compare scene item properties
         const itemFields = [
-          { name: 'object_type', label: 'Object Type' },
-          { name: 'object_address', label: 'Object Address' },
-          { name: 'object_value', label: 'Object Value' },
-          { name: 'delay', label: 'Delay' }
+          { name: "object_type", label: "Object Type" },
+          { name: "object_address", label: "Object Address" },
+          { name: "object_value", label: "Object Value" },
+          { name: "delay", label: "Delay" },
         ];
 
-        itemFields.forEach(field => {
+        itemFields.forEach((field) => {
           if (dbItem[field.name] !== netItem[field.name]) {
-            differences.push(
-              `Scene ${address} Item ${i + 1} ${field.label}: DB=${dbItem[field.name]}, Network=${netItem[field.name]}`
-            );
+            differences.push(`Scene ${address} Item ${i + 1} ${field.label}: DB=${dbItem[field.name]}, Network=${netItem[field.name]}`);
           }
         });
       }
@@ -574,7 +552,7 @@ export function compareScenes(databaseScenes, networkScenes) {
 
   return {
     isEqual: differences.length === 0,
-    differences
+    differences,
   };
 }
 
@@ -594,7 +572,7 @@ export function compareSchedules(databaseSchedules, networkSchedules) {
   if (!databaseSchedules || !networkSchedules) {
     return {
       isEqual: false,
-      differences: ['One unit has schedules while the other does not']
+      differences: ["One unit has schedules while the other does not"],
     };
   }
 
@@ -605,13 +583,13 @@ export function compareSchedules(databaseSchedules, networkSchedules) {
   const dbScheduleMap = new Map();
   const netScheduleMap = new Map();
 
-  dbSchedules.forEach(schedule => {
+  dbSchedules.forEach((schedule) => {
     if (schedule.address !== undefined) {
       dbScheduleMap.set(schedule.address, schedule);
     }
   });
 
-  netSchedules.forEach(schedule => {
+  netSchedules.forEach((schedule) => {
     if (schedule.address !== undefined) {
       netScheduleMap.set(schedule.address, schedule);
     }
@@ -626,7 +604,7 @@ export function compareSchedules(databaseSchedules, networkSchedules) {
   }
 
   // Compare schedules by address
-  allAddresses.forEach(address => {
+  allAddresses.forEach((address) => {
     const dbSchedule = dbScheduleMap.get(address);
     const netSchedule = netScheduleMap.get(address);
 
@@ -644,31 +622,27 @@ export function compareSchedules(databaseSchedules, networkSchedules) {
 
     // Compare schedule properties
     const scheduleFields = [
-      { name: 'name', label: 'Name' },
-      { name: 'enabled', label: 'Enabled' },
-      { name: 'repeat_type', label: 'Repeat Type' },
-      { name: 'start_date', label: 'Start Date' },
-      { name: 'end_date', label: 'End Date' },
-      { name: 'days_of_week', label: 'Days of Week' },
-      { name: 'time_slots', label: 'Time Slots' }
+      { name: "name", label: "Name" },
+      { name: "enabled", label: "Enabled" },
+      { name: "repeat_type", label: "Repeat Type" },
+      { name: "start_date", label: "Start Date" },
+      { name: "end_date", label: "End Date" },
+      { name: "days_of_week", label: "Days of Week" },
+      { name: "time_slots", label: "Time Slots" },
     ];
 
-    scheduleFields.forEach(field => {
-      if (field.name === 'days_of_week' || field.name === 'time_slots') {
+    scheduleFields.forEach((field) => {
+      if (field.name === "days_of_week" || field.name === "time_slots") {
         // Compare arrays
         const dbArray = dbSchedule[field.name] || [];
         const netArray = netSchedule[field.name] || [];
 
         if (JSON.stringify(dbArray) !== JSON.stringify(netArray)) {
-          differences.push(
-            `Schedule ${address} ${field.label}: DB=${JSON.stringify(dbArray)}, Network=${JSON.stringify(netArray)}`
-          );
+          differences.push(`Schedule ${address} ${field.label}: DB=${JSON.stringify(dbArray)}, Network=${JSON.stringify(netArray)}`);
         }
       } else {
         if (dbSchedule[field.name] !== netSchedule[field.name]) {
-          differences.push(
-            `Schedule ${address} ${field.label}: DB="${dbSchedule[field.name]}", Network="${netSchedule[field.name]}"`
-          );
+          differences.push(`Schedule ${address} ${field.label}: DB="${dbSchedule[field.name]}", Network="${netSchedule[field.name]}"`);
         }
       }
     });
@@ -685,9 +659,7 @@ export function compareSchedules(databaseSchedules, networkSchedules) {
         const netScene = netScenes[i];
 
         if (dbScene.scene_address !== netScene.scene_address) {
-          differences.push(
-            `Schedule ${address} Scene ${i + 1} Address: DB=${dbScene.scene_address}, Network=${netScene.scene_address}`
-          );
+          differences.push(`Schedule ${address} Scene ${i + 1} Address: DB=${dbScene.scene_address}, Network=${netScene.scene_address}`);
         }
       }
     }
@@ -695,7 +667,7 @@ export function compareSchedules(databaseSchedules, networkSchedules) {
 
   return {
     isEqual: differences.length === 0,
-    differences
+    differences,
   };
 }
 
@@ -715,7 +687,7 @@ export function compareCurtains(databaseCurtains, networkCurtains) {
   if (!databaseCurtains || !networkCurtains) {
     return {
       isEqual: false,
-      differences: ['One unit has curtains while the other does not']
+      differences: ["One unit has curtains while the other does not"],
     };
   }
 
@@ -724,20 +696,20 @@ export function compareCurtains(databaseCurtains, networkCurtains) {
 
   // Filter out disabled curtains (type = 0) from both database and network
   // This matches the behavior for other disabled configurations
-  const validDbCurtains = dbCurtains.filter(curtain => curtain.type !== 0);
-  const validNetCurtains = netCurtains.filter(curtain => curtain.type !== 0);
+  const validDbCurtains = dbCurtains.filter((curtain) => curtain.type !== 0);
+  const validNetCurtains = netCurtains.filter((curtain) => curtain.type !== 0);
 
   // Create maps for easier comparison by address
   const dbCurtainMap = new Map();
   const netCurtainMap = new Map();
 
-  validDbCurtains.forEach(curtain => {
+  validDbCurtains.forEach((curtain) => {
     if (curtain.address !== undefined) {
       dbCurtainMap.set(curtain.address, curtain);
     }
   });
 
-  validNetCurtains.forEach(curtain => {
+  validNetCurtains.forEach((curtain) => {
     if (curtain.address !== undefined) {
       netCurtainMap.set(curtain.address, curtain);
     }
@@ -752,7 +724,7 @@ export function compareCurtains(databaseCurtains, networkCurtains) {
   }
 
   // Compare curtains by address
-  allAddresses.forEach(address => {
+  allAddresses.forEach((address) => {
     const dbCurtain = dbCurtainMap.get(address);
     const netCurtain = netCurtainMap.get(address);
 
@@ -770,22 +742,20 @@ export function compareCurtains(databaseCurtains, networkCurtains) {
 
     // Compare curtain properties (skip name as it's not meaningful for comparison)
     const fieldsToCompare = [
-      { name: 'type', label: 'Type' },
-      { name: 'runtime', label: 'Runtime' }
+      { name: "type", label: "Type" },
+      { name: "runtime", label: "Runtime" },
     ];
 
-    fieldsToCompare.forEach(field => {
+    fieldsToCompare.forEach((field) => {
       if (dbCurtain[field.name] !== netCurtain[field.name]) {
-        differences.push(
-          `Curtain ${address} ${field.label}: DB=${dbCurtain[field.name]}, Network=${netCurtain[field.name]}`
-        );
+        differences.push(`Curtain ${address} ${field.label}: DB=${dbCurtain[field.name]}, Network=${netCurtain[field.name]}`);
       }
     });
   });
 
   return {
     isEqual: differences.length === 0,
-    differences
+    differences,
   };
 }
 
@@ -805,7 +775,7 @@ export function compareMultiScenes(databaseMultiScenes, networkMultiScenes) {
   if (!databaseMultiScenes || !networkMultiScenes) {
     return {
       isEqual: false,
-      differences: ['One unit has multi scenes while the other does not']
+      differences: ["One unit has multi scenes while the other does not"],
     };
   }
 
@@ -816,13 +786,13 @@ export function compareMultiScenes(databaseMultiScenes, networkMultiScenes) {
   const dbMultiSceneMap = new Map();
   const netMultiSceneMap = new Map();
 
-  dbMultiScenes.forEach(multiScene => {
+  dbMultiScenes.forEach((multiScene) => {
     if (multiScene.address !== undefined) {
       dbMultiSceneMap.set(multiScene.address, multiScene);
     }
   });
 
-  netMultiScenes.forEach(multiScene => {
+  netMultiScenes.forEach((multiScene) => {
     if (multiScene.address !== undefined) {
       netMultiSceneMap.set(multiScene.address, multiScene);
     }
@@ -837,7 +807,7 @@ export function compareMultiScenes(databaseMultiScenes, networkMultiScenes) {
   }
 
   // Compare multi scenes by address
-  allAddresses.forEach(address => {
+  allAddresses.forEach((address) => {
     const dbMultiScene = dbMultiSceneMap.get(address);
     const netMultiScene = netMultiSceneMap.get(address);
 
@@ -855,15 +825,13 @@ export function compareMultiScenes(databaseMultiScenes, networkMultiScenes) {
 
     // Compare multi scene properties
     const multiSceneFields = [
-      { name: 'name', label: 'Name' },
-      { name: 'type', label: 'Type' }
+      { name: "name", label: "Name" },
+      { name: "type", label: "Type" },
     ];
 
-    multiSceneFields.forEach(field => {
+    multiSceneFields.forEach((field) => {
       if (dbMultiScene[field.name] !== netMultiScene[field.name]) {
-        differences.push(
-          `Multi Scene ${address} ${field.label}: DB="${dbMultiScene[field.name]}", Network="${netMultiScene[field.name]}"`
-        );
+        differences.push(`Multi Scene ${address} ${field.label}: DB="${dbMultiScene[field.name]}", Network="${netMultiScene[field.name]}"`);
       }
     });
 
@@ -879,9 +847,7 @@ export function compareMultiScenes(databaseMultiScenes, networkMultiScenes) {
         const netScene = netScenes[i];
 
         if (dbScene.scene_address !== netScene.scene_address) {
-          differences.push(
-            `Multi Scene ${address} Scene ${i + 1} Address: DB=${dbScene.scene_address}, Network=${netScene.scene_address}`
-          );
+          differences.push(`Multi Scene ${address} Scene ${i + 1} Address: DB=${dbScene.scene_address}, Network=${netScene.scene_address}`);
         }
       }
     }
@@ -889,7 +855,7 @@ export function compareMultiScenes(databaseMultiScenes, networkMultiScenes) {
 
   return {
     isEqual: differences.length === 0,
-    differences
+    differences,
   };
 }
 
@@ -909,7 +875,7 @@ export function compareSequences(databaseSequences, networkSequences) {
   if (!databaseSequences || !networkSequences) {
     return {
       isEqual: false,
-      differences: ['One unit has sequences while the other does not']
+      differences: ["One unit has sequences while the other does not"],
     };
   }
 
@@ -920,13 +886,13 @@ export function compareSequences(databaseSequences, networkSequences) {
   const dbSequenceMap = new Map();
   const netSequenceMap = new Map();
 
-  dbSequences.forEach(sequence => {
+  dbSequences.forEach((sequence) => {
     if (sequence.address !== undefined) {
       dbSequenceMap.set(sequence.address, sequence);
     }
   });
 
-  netSequences.forEach(sequence => {
+  netSequences.forEach((sequence) => {
     if (sequence.address !== undefined) {
       netSequenceMap.set(sequence.address, sequence);
     }
@@ -941,7 +907,7 @@ export function compareSequences(databaseSequences, networkSequences) {
   }
 
   // Compare sequences by address
-  allAddresses.forEach(address => {
+  allAddresses.forEach((address) => {
     const dbSequence = dbSequenceMap.get(address);
     const netSequence = netSequenceMap.get(address);
 
@@ -984,7 +950,7 @@ export function compareSequences(databaseSequences, networkSequences) {
 
   return {
     isEqual: differences.length === 0,
-    differences
+    differences,
   };
 }
 
@@ -1004,7 +970,7 @@ export function compareKnx(databaseKnx, networkKnx) {
   if (!databaseKnx || !networkKnx) {
     return {
       isEqual: false,
-      differences: ['One unit has KNX configs while the other does not']
+      differences: ["One unit has KNX configs while the other does not"],
     };
   }
 
@@ -1013,20 +979,20 @@ export function compareKnx(databaseKnx, networkKnx) {
 
   // Filter out disabled KNX configs (type = 0) from both database and network
   // This matches the behavior in KNX Control dialog
-  const validDbKnx = dbKnx.filter(knx => knx.type !== 0);
-  const validNetKnx = netKnx.filter(knx => knx.type !== 0);
+  const validDbKnx = dbKnx.filter((knx) => knx.type !== 0);
+  const validNetKnx = netKnx.filter((knx) => knx.type !== 0);
 
   // Create maps for easier comparison by address
   const dbKnxMap = new Map();
   const netKnxMap = new Map();
 
-  validDbKnx.forEach(knx => {
+  validDbKnx.forEach((knx) => {
     if (knx.address !== undefined) {
       dbKnxMap.set(knx.address, knx);
     }
   });
 
-  validNetKnx.forEach(knx => {
+  validNetKnx.forEach((knx) => {
     if (knx.address !== undefined) {
       netKnxMap.set(knx.address, knx);
     }
@@ -1041,7 +1007,7 @@ export function compareKnx(databaseKnx, networkKnx) {
   }
 
   // Compare KNX configs by address
-  allAddresses.forEach(address => {
+  allAddresses.forEach((address) => {
     const dbKnxConfig = dbKnxMap.get(address);
     const netKnxConfig = netKnxMap.get(address);
 
@@ -1059,36 +1025,36 @@ export function compareKnx(databaseKnx, networkKnx) {
 
     // Compare KNX properties (skip name as it's not meaningful for comparison)
     const knxFields = [
-      { name: 'type', label: 'Type' },
-      { name: 'factor', label: 'Factor' },
-      { name: 'feedback', label: 'Feedback' },
-      { name: 'knx_switch_group', label: 'KNX Switch Group' },
-      { name: 'knx_dimming_group', label: 'KNX Dimming Group' },
-      { name: 'knx_value_group', label: 'KNX Value Group' }
+      { name: "type", label: "Type" },
+      { name: "factor", label: "Factor" },
+      { name: "feedback", label: "Feedback" },
+      { name: "knx_switch_group", label: "KNX Switch Group" },
+      { name: "knx_dimming_group", label: "KNX Dimming Group" },
+      { name: "knx_value_group", label: "KNX Value Group" },
     ];
 
-    knxFields.forEach(field => {
+    knxFields.forEach((field) => {
       // Handle different field names between database and network
       let dbValue = dbKnxConfig[field.name];
       let netValue = netKnxConfig[field.name];
 
       // Map network field names to database field names
-      if (field.name === 'knx_switch_group' && netValue === undefined) {
+      if (field.name === "knx_switch_group" && netValue === undefined) {
         netValue = netKnxConfig.knxSwitchGroup;
       }
-      if (field.name === 'knx_dimming_group' && netValue === undefined) {
+      if (field.name === "knx_dimming_group" && netValue === undefined) {
         netValue = netKnxConfig.knxDimmingGroup;
       }
-      if (field.name === 'knx_value_group' && netValue === undefined) {
+      if (field.name === "knx_value_group" && netValue === undefined) {
         netValue = netKnxConfig.knxValueGroup;
       }
 
       // For KNX group fields, treat null and empty string as equivalent
-      if (field.name.includes('knx_') && field.name.includes('_group')) {
+      if (field.name.includes("knx_") && field.name.includes("_group")) {
         // Normalize values: treat null, undefined, and empty string as equivalent
         const normalizeGroupValue = (value) => {
-          if (value === null || value === undefined || value === '' || value === 'null') {
-            return '';
+          if (value === null || value === undefined || value === "" || value === "null") {
+            return "";
           }
           return value;
         };
@@ -1098,9 +1064,7 @@ export function compareKnx(databaseKnx, networkKnx) {
       }
 
       if (dbValue !== netValue) {
-        differences.push(
-          `KNX ${address} ${field.label}: DB="${dbValue}", Network="${netValue}"`
-        );
+        differences.push(`KNX ${address} ${field.label}: DB="${dbValue}", Network="${netValue}"`);
       }
     });
 
@@ -1114,7 +1078,7 @@ export function compareKnx(databaseKnx, networkKnx) {
 
   return {
     isEqual: differences.length === 0,
-    differences
+    differences,
   };
 }
 
@@ -1127,18 +1091,16 @@ export function compareKnx(databaseKnx, networkKnx) {
 export function findMatchingUnits(databaseUnits, networkUnits) {
   const matches = [];
 
-  databaseUnits.forEach(dbUnit => {
-    const matchingNetworkUnit = networkUnits.find(netUnit =>
-      dbUnit.type === netUnit.type &&
-      dbUnit.id_can === netUnit.id_can &&
-      dbUnit.ip_address === netUnit.ip_address
+  databaseUnits.forEach((dbUnit) => {
+    const matchingNetworkUnit = networkUnits.find(
+      (netUnit) => dbUnit.type === netUnit.type && dbUnit.id_can === netUnit.id_can && dbUnit.ip_address === netUnit.ip_address
     );
 
     if (matchingNetworkUnit) {
       matches.push({
         databaseUnit: dbUnit,
         networkUnit: matchingNetworkUnit,
-        matchType: 'exact'
+        matchType: "exact",
       });
     }
   });
@@ -1160,13 +1122,13 @@ export async function compareUnitConfigurations(databaseUnit, networkUnit, proje
 
   // Compare basic unit properties (skip CAN Load and Recovery Mode as they are equivalent)
   const basicFields = [
-    { name: 'type', label: 'Board Type' },
-    { name: 'id_can', label: 'CAN ID' },
-    { name: 'ip_address', label: 'IP Address' },
-    { name: 'mode', label: 'Mode' }
+    { name: "type", label: "Board Type" },
+    { name: "id_can", label: "CAN ID" },
+    { name: "ip_address", label: "IP Address" },
+    { name: "mode", label: "Mode" },
   ];
 
-  basicFields.forEach(field => {
+  basicFields.forEach((field) => {
     if (databaseUnit[field.name] !== networkUnit[field.name]) {
       allDifferences.push(`${field.label}: DB=${databaseUnit[field.name]}, Network=${networkUnit[field.name]}`);
       hasAnyDifferences = true;
@@ -1192,63 +1154,63 @@ export async function compareUnitConfigurations(databaseUnit, networkUnit, proje
   // Compare RS485 configurations
   const rs485Comparison = compareRS485Config(databaseUnit.rs485_config, networkUnit.rs485_config);
   if (!rs485Comparison.isEqual) {
-    allDifferences.push(...rs485Comparison.differences.map(diff => `RS485: ${diff}`));
+    allDifferences.push(...rs485Comparison.differences.map((diff) => `RS485: ${diff}`));
     hasAnyDifferences = true;
   }
 
   // Compare input configurations
   const inputComparison = compareInputConfigs(databaseUnit.input_configs, networkUnit.input_configs);
   if (!inputComparison.isEqual) {
-    allDifferences.push(...inputComparison.differences.map(diff => `Input: ${diff}`));
+    allDifferences.push(...inputComparison.differences.map((diff) => `Input: ${diff}`));
     hasAnyDifferences = true;
   }
 
   // Compare output configurations
   const outputComparison = compareOutputConfigs(databaseUnit.output_configs, networkUnit.output_configs, projectItems);
   if (!outputComparison.isEqual) {
-    allDifferences.push(...outputComparison.differences.map(diff => `Output: ${diff}`));
+    allDifferences.push(...outputComparison.differences.map((diff) => `Output: ${diff}`));
     hasAnyDifferences = true;
   }
 
   // Compare scenes (use databaseConfigs instead of databaseUnit.scenes)
   const sceneComparison = compareScenes(databaseConfigs?.scenes, networkUnit.scenes);
   if (!sceneComparison.isEqual) {
-    allDifferences.push(...sceneComparison.differences.map(diff => `Scene: ${diff}`));
+    allDifferences.push(...sceneComparison.differences.map((diff) => `Scene: ${diff}`));
     hasAnyDifferences = true;
   }
 
   // Compare schedules (use databaseConfigs instead of databaseUnit.schedules)
   const scheduleComparison = compareSchedules(databaseConfigs?.schedules, networkUnit.schedules);
   if (!scheduleComparison.isEqual) {
-    allDifferences.push(...scheduleComparison.differences.map(diff => `Schedule: ${diff}`));
+    allDifferences.push(...scheduleComparison.differences.map((diff) => `Schedule: ${diff}`));
     hasAnyDifferences = true;
   }
 
   // Compare curtains (use databaseConfigs instead of databaseUnit.curtains)
   const curtainComparison = compareCurtains(databaseConfigs?.curtains, networkUnit.curtains);
   if (!curtainComparison.isEqual) {
-    allDifferences.push(...curtainComparison.differences.map(diff => `Curtain: ${diff}`));
+    allDifferences.push(...curtainComparison.differences.map((diff) => `Curtain: ${diff}`));
     hasAnyDifferences = true;
   }
 
   // Compare multi scenes
   const multiSceneComparison = compareMultiScenes(databaseConfigs?.multiScenes, networkUnit.multiScenes);
   if (!multiSceneComparison.isEqual) {
-    allDifferences.push(...multiSceneComparison.differences.map(diff => `Multi Scene: ${diff}`));
+    allDifferences.push(...multiSceneComparison.differences.map((diff) => `Multi Scene: ${diff}`));
     hasAnyDifferences = true;
   }
 
   // Compare sequences
   const sequenceComparison = compareSequences(databaseConfigs?.sequences, networkUnit.sequences);
   if (!sequenceComparison.isEqual) {
-    allDifferences.push(...sequenceComparison.differences.map(diff => `Sequence: ${diff}`));
+    allDifferences.push(...sequenceComparison.differences.map((diff) => `Sequence: ${diff}`));
     hasAnyDifferences = true;
   }
 
   // Compare KNX configurations
   const knxComparison = compareKnx(databaseConfigs?.knx, networkUnit.knxConfigs);
   if (!knxComparison.isEqual) {
-    allDifferences.push(...knxComparison.differences.map(diff => `KNX: ${diff}`));
+    allDifferences.push(...knxComparison.differences.map((diff) => `KNX: ${diff}`));
     hasAnyDifferences = true;
   }
 
@@ -1256,7 +1218,7 @@ export async function compareUnitConfigurations(databaseUnit, networkUnit, proje
     isEqual: !hasAnyDifferences,
     differences: allDifferences,
     comparisonDetails: {
-      basic: { isEqual: allDifferences.filter(d => !d.includes(':')).length === 0 },
+      basic: { isEqual: allDifferences.filter((d) => !d.includes(":")).length === 0 },
       rs485: rs485Comparison,
       input: inputComparison,
       output: outputComparison,
@@ -1265,7 +1227,7 @@ export async function compareUnitConfigurations(databaseUnit, networkUnit, proje
       curtains: curtainComparison,
       multiScenes: multiSceneComparison,
       sequences: sequenceComparison,
-      knx: knxComparison
-    }
+      knx: knxComparison,
+    },
   };
 }

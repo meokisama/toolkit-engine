@@ -13,14 +13,7 @@ async function deleteItem(unitIp, canId, config, index = null) {
     data.push(index);
   }
 
-  const response = await sendCommand(
-    unitIp,
-    UDP_PORT,
-    idAddress,
-    config.cmd1,
-    config.cmd2,
-    data
-  );
+  const response = await sendCommand(unitIp, UDP_PORT, idAddress, config.cmd1, config.cmd2, data);
 
   return config.needsSuccessCheck ? parseResponse.success(response) : response;
 }
@@ -102,12 +95,7 @@ async function deleteAllSequences(unitIp, canId) {
 // Delete Curtain function
 async function deleteCurtain(unitIp, canId, curtainIndex) {
   console.log("Deleting curtain:", { unitIp, canId, curtainIndex });
-  const result = await deleteItem(
-    unitIp,
-    canId,
-    deleteConfigs.curtain,
-    curtainIndex
-  );
+  const result = await deleteItem(unitIp, canId, deleteConfigs.curtain, curtainIndex);
   if (!result) throw new Error("Failed to delete curtain");
   return result;
 }

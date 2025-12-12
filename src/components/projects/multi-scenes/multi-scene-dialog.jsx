@@ -1,48 +1,16 @@
 import React, { useState, useEffect, useCallback } from "react";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Checkbox } from "@/components/ui/checkbox";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import {
-  SlidersHorizontal,
-  CircleCheck,
-  Lightbulb,
-  List,
-  GripVertical,
-} from "lucide-react";
-import {
-  DndContext,
-  closestCenter,
-  KeyboardSensor,
-  PointerSensor,
-  useSensor,
-  useSensors,
-} from "@dnd-kit/core";
-import {
-  arrayMove,
-  SortableContext,
-  sortableKeyboardCoordinates,
-  verticalListSortingStrategy,
-} from "@dnd-kit/sortable";
+import { CircleCheck, Lightbulb, List, GripVertical } from "lucide-react";
+import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors } from "@dnd-kit/core";
+import { arrayMove, SortableContext, sortableKeyboardCoordinates, verticalListSortingStrategy } from "@dnd-kit/sortable";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import * as CheckboxPrimitive from "@radix-ui/react-checkbox";
@@ -52,14 +20,7 @@ import { toast } from "sonner";
 
 // Sortable Address Item Component
 function SortableAddressItem({ address, scenes, onRemove }) {
-  const {
-    attributes,
-    listeners,
-    setNodeRef,
-    transform,
-    transition,
-    isDragging,
-  } = useSortable({ id: address });
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: address });
 
   const style = {
     transform: CSS.Transform.toString(transform),
@@ -68,16 +29,8 @@ function SortableAddressItem({ address, scenes, onRemove }) {
   };
 
   return (
-    <div
-      ref={setNodeRef}
-      style={style}
-      className="flex items-center gap-3 p-3 bg-muted/50 rounded-lg border"
-    >
-      <div
-        {...attributes}
-        {...listeners}
-        className="cursor-grab active:cursor-grabbing"
-      >
+    <div ref={setNodeRef} style={style} className="flex items-center gap-3 p-3 bg-muted/50 rounded-lg border">
+      <div {...attributes} {...listeners} className="cursor-grab active:cursor-grabbing">
         <GripVertical className="h-4 w-4 text-muted-foreground" />
       </div>
 
@@ -88,38 +41,18 @@ function SortableAddressItem({ address, scenes, onRemove }) {
             {scenes.length} scene{scenes.length > 1 ? "s" : ""}
           </Badge>
         </div>
-        <div className="text-xs text-muted-foreground">
-          {scenes.map((scene) => scene.name).join(", ")}
-        </div>
+        <div className="text-xs text-muted-foreground">{scenes.map((scene) => scene.name).join(", ")}</div>
       </div>
 
-      <Button
-        variant="ghost"
-        size="sm"
-        onClick={() => onRemove(address)}
-        className="text-red-500 hover:text-red-700"
-      >
+      <Button variant="ghost" size="sm" onClick={() => onRemove(address)} className="text-red-500 hover:text-red-700">
         Remove
       </Button>
     </div>
   );
 }
 
-export function MultiSceneDialog({
-  open,
-  onOpenChange,
-  multiScene = null,
-  mode = "create",
-}) {
-  const {
-    selectedProject,
-    projectItems,
-    createItem,
-    updateItem,
-    setActiveTab,
-    loadTabData,
-    loadedTabs,
-  } = useProjectDetail();
+export function MultiSceneDialog({ open, onOpenChange, multiScene = null, mode = "create" }) {
+  const { selectedProject, projectItems, createItem, updateItem, setActiveTab, loadTabData, loadedTabs } = useProjectDetail();
 
   const [formData, setFormData] = useState({
     name: "",
@@ -140,8 +73,8 @@ export function MultiSceneDialog({
 
     // Get all existing addresses and sort them
     const existingAddresses = projectItems.multi_scenes
-      .map(item => parseInt(item.address))
-      .filter(addr => !isNaN(addr) && addr >= 1 && addr <= 255)
+      .map((item) => parseInt(item.address))
+      .filter((addr) => !isNaN(addr) && addr >= 1 && addr <= 255)
       .sort((a, b) => a - b);
 
     // Find the first gap in the sequence
@@ -161,9 +94,7 @@ export function MultiSceneDialog({
   const loadMultiSceneScenes = useCallback(
     async (multiSceneId) => {
       try {
-        const scenes = await window.electronAPI.multiScenes.getScenes(
-          multiSceneId
-        );
+        const scenes = await window.electronAPI.multiScenes.getScenes(multiSceneId);
         const sceneIds = scenes.map((scene) => scene.scene_id);
         setSelectedSceneIds(sceneIds);
 
@@ -215,16 +146,7 @@ export function MultiSceneDialog({
         loadTabData(selectedProject.id, "scene");
       }
     }
-  }, [
-    open,
-    mode,
-    multiScene,
-    selectedProject,
-    loadedTabs,
-    loadTabData,
-    loadMultiSceneScenes,
-    findNextAvailableMultiSceneAddress,
-  ]);
+  }, [open, mode, multiScene, selectedProject, loadedTabs, loadTabData, loadMultiSceneScenes, findNextAvailableMultiSceneAddress]);
 
   const handleInputChange = (field, value) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
@@ -236,33 +158,20 @@ export function MultiSceneDialog({
   const handleSceneToggle = (sceneId, checked) => {
     setSelectedSceneIds((prev) => {
       const availableScenes = projectItems.scene || [];
-      const clickedScene = availableScenes.find(
-        (scene) => scene.id === sceneId
-      );
+      const clickedScene = availableScenes.find((scene) => scene.id === sceneId);
 
       if (!clickedScene) return prev;
 
       // Find all scenes with the same address
-      const scenesWithSameAddress = availableScenes.filter(
-        (scene) => scene.address === clickedScene.address
-      );
-      const sceneIdsWithSameAddress = scenesWithSameAddress.map(
-        (scene) => scene.id
-      );
+      const scenesWithSameAddress = availableScenes.filter((scene) => scene.address === clickedScene.address);
+      const sceneIdsWithSameAddress = scenesWithSameAddress.map((scene) => scene.id);
 
       if (checked) {
         // Check if adding this address would exceed the limit of 20 addresses
-        const currentSelectedScenes = availableScenes.filter((scene) =>
-          prev.includes(scene.id)
-        );
-        const currentAddresses = new Set(
-          currentSelectedScenes.map((scene) => scene.address)
-        );
+        const currentSelectedScenes = availableScenes.filter((scene) => prev.includes(scene.id));
+        const currentAddresses = new Set(currentSelectedScenes.map((scene) => scene.address));
 
-        if (
-          !currentAddresses.has(clickedScene.address) &&
-          currentAddresses.size >= 20
-        ) {
+        if (!currentAddresses.has(clickedScene.address) && currentAddresses.size >= 20) {
           toast.error("Maximum 20 addresses allowed per multi-scene");
           return prev;
         }
@@ -287,14 +196,10 @@ export function MultiSceneDialog({
         return newSelectedIds;
       } else {
         // If the clicked scene is being deselected, remove all scenes with the same address
-        const newSelectedIds = prev.filter(
-          (id) => !sceneIdsWithSameAddress.includes(id)
-        );
+        const newSelectedIds = prev.filter((id) => !sceneIdsWithSameAddress.includes(id));
 
         // Remove address from order if no scenes with this address are selected
-        setAddressOrder((prevOrder) =>
-          prevOrder.filter((addr) => addr !== clickedScene.address)
-        );
+        setAddressOrder((prevOrder) => prevOrder.filter((addr) => addr !== clickedScene.address));
 
         return newSelectedIds;
       }
@@ -324,13 +229,9 @@ export function MultiSceneDialog({
 
   const handleRemoveAddress = (addressToRemove) => {
     const availableScenes = projectItems.scene || [];
-    const scenesToRemove = availableScenes
-      .filter((scene) => scene.address === addressToRemove)
-      .map((scene) => scene.id);
+    const scenesToRemove = availableScenes.filter((scene) => scene.address === addressToRemove).map((scene) => scene.id);
 
-    setSelectedSceneIds((prev) =>
-      prev.filter((id) => !scenesToRemove.includes(id))
-    );
+    setSelectedSceneIds((prev) => prev.filter((id) => !scenesToRemove.includes(id)));
     setAddressOrder((prev) => prev.filter((addr) => addr !== addressToRemove));
   };
 
@@ -350,9 +251,7 @@ export function MultiSceneDialog({
       } else {
         // Check for duplicate addresses
         const existingMultiScenes = projectItems?.multi_scenes || [];
-        const duplicateMultiScene = existingMultiScenes.find(
-          (ms) => ms.address === formData.address.trim() && ms.id !== multiScene?.id
-        );
+        const duplicateMultiScene = existingMultiScenes.find((ms) => ms.address === formData.address.trim() && ms.id !== multiScene?.id);
         if (duplicateMultiScene) {
           newErrors.address = `Address ${formData.address.trim()} is already used by another multi-scene`;
         }
@@ -383,17 +282,12 @@ export function MultiSceneDialog({
         // Update scenes in multi-scene with proper ordering
         const orderedSceneIds = [];
         for (const address of addressOrder) {
-          const scenesForAddress = selectedScenes.filter(
-            (scene) => scene.address === address
-          );
+          const scenesForAddress = selectedScenes.filter((scene) => scene.address === address);
           for (const scene of scenesForAddress) {
             orderedSceneIds.push(scene.id);
           }
         }
-        await window.electronAPI.multiScenes.updateScenes(
-          multiScene.id,
-          orderedSceneIds
-        );
+        await window.electronAPI.multiScenes.updateScenes(multiScene.id, orderedSceneIds);
       } else {
         // Create new multi-scene
         const newMultiScene = await createItem("multi_scenes", formData);
@@ -401,15 +295,9 @@ export function MultiSceneDialog({
         // Add all selected scenes in the order specified by addressOrder
         let sceneIndex = 0;
         for (const address of addressOrder) {
-          const scenesForAddress = selectedScenes.filter(
-            (scene) => scene.address === address
-          );
+          const scenesForAddress = selectedScenes.filter((scene) => scene.address === address);
           for (const scene of scenesForAddress) {
-            await window.electronAPI.multiScenes.addScene(
-              newMultiScene.id,
-              scene.id,
-              sceneIndex
-            );
+            await window.electronAPI.multiScenes.addScene(newMultiScene.id, scene.id, sceneIndex);
             sceneIndex++;
           }
         }
@@ -438,9 +326,7 @@ export function MultiSceneDialog({
   };
 
   const availableScenes = projectItems.scene || [];
-  const selectedScenes = availableScenes.filter((scene) =>
-    selectedSceneIds.includes(scene.id)
-  );
+  const selectedScenes = availableScenes.filter((scene) => selectedSceneIds.includes(scene.id));
 
   // Group scenes by address for better display
   const groupScenesByAddress = (scenes) => {
@@ -458,15 +344,11 @@ export function MultiSceneDialog({
 
   return (
     <Dialog open={open} onOpenChange={() => onOpenChange(false)}>
-      <DialogContent className="!max-w-4xl max-h-[90vh] overflow-hidden">
+      <DialogContent className="max-w-4xl! max-h-[90vh] overflow-auto">
         <DialogHeader>
-          <DialogTitle>
-            {mode === "edit" ? "Edit Multi-Scene" : "Create Multi-Scene"}
-          </DialogTitle>
+          <DialogTitle>{mode === "edit" ? "Edit Multi-Scene" : "Create Multi-Scene"}</DialogTitle>
           <DialogDescription>
-            {mode === "edit"
-              ? "Update the multi-scene details and selected scenes."
-              : "Create a new multi-scene with selected scenes."}
+            {mode === "edit" ? "Update the multi-scene details and selected scenes." : "Create a new multi-scene with selected scenes."}
           </DialogDescription>
         </DialogHeader>
 
@@ -482,9 +364,7 @@ export function MultiSceneDialog({
                 maxLength={15}
                 className={errors.name ? "border-red-500" : ""}
               />
-              {errors.name && (
-                <p className="text-sm text-red-500">{errors.name}</p>
-              )}
+              {errors.name && <p className="text-sm text-red-500">{errors.name}</p>}
             </div>
 
             <div className="space-y-2">
@@ -496,19 +376,12 @@ export function MultiSceneDialog({
                 placeholder="Enter address"
                 className={errors.address ? "border-red-500" : ""}
               />
-              {errors.address && (
-                <p className="text-sm text-red-500">{errors.address}</p>
-              )}
+              {errors.address && <p className="text-sm text-red-500">{errors.address}</p>}
             </div>
 
             <div className="space-y-2">
               <Label htmlFor="type">Type</Label>
-              <Select
-                value={formData.type.toString()}
-                onValueChange={(value) =>
-                  handleInputChange("type", parseInt(value))
-                }
-              >
+              <Select value={formData.type.toString()} onValueChange={(value) => handleInputChange("type", parseInt(value))}>
                 <SelectTrigger className="w-full">
                   <SelectValue placeholder="Select type" />
                 </SelectTrigger>
@@ -542,30 +415,21 @@ export function MultiSceneDialog({
                 {selectedScenes.length > 0 && (
                   <span className="ml-2">
                     <Badge variant="secondary">
-                      {selectedScenes.length} scenes (
-                      {Object.keys(selectedSceneGroups).length} addresses)
+                      {selectedScenes.length} scenes ({Object.keys(selectedSceneGroups).length} addresses)
                     </Badge>
                   </span>
                 )}
               </p>
-              {errors.scenes && (
-                <p className="text-sm text-red-500">{errors.scenes}</p>
-              )}
+              {errors.scenes && <p className="text-sm text-red-500">{errors.scenes}</p>}
             </CardHeader>
             <CardContent>
               <Tabs defaultValue="selection" className="w-full">
                 <TabsList className="grid w-full grid-cols-2">
-                  <TabsTrigger
-                    value="selection"
-                    className="flex items-center gap-2"
-                  >
+                  <TabsTrigger value="selection" className="flex items-center gap-2">
                     <Lightbulb className="h-4 w-4" />
                     Scene Selection
                   </TabsTrigger>
-                  <TabsTrigger
-                    value="ordering"
-                    className="flex items-center gap-2"
-                  >
+                  <TabsTrigger value="ordering" className="flex items-center gap-2">
                     <List className="h-4 w-4" />
                     Address Ordering
                   </TabsTrigger>
@@ -576,9 +440,7 @@ export function MultiSceneDialog({
                     {availableScenes.length === 0 ? (
                       <div className="text-center text-muted-foreground py-8">
                         <p>No scenes available.</p>
-                        <p className="text-sm">
-                          Create scenes first to add them to multi-scenes.
-                        </p>
+                        <p className="text-sm">Create scenes first to add them to multi-scenes.</p>
                       </div>
                     ) : (
                       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 p-2">
@@ -586,26 +448,14 @@ export function MultiSceneDialog({
                           <CheckboxPrimitive.Root
                             key={scene.id}
                             checked={selectedSceneIds.includes(scene.id)}
-                            onCheckedChange={(checked) =>
-                              handleSceneToggle(scene.id, checked)
-                            }
+                            onCheckedChange={(checked) => handleSceneToggle(scene.id, checked)}
                             className="relative ring-[1px] ring-border rounded-lg px-4 py-3 text-start text-muted-foreground data-[state=checked]:ring-2 data-[state=checked]:ring-primary data-[state=checked]:text-primary flex flex-row items-center gap-3 cursor-pointer"
                           >
                             <Lightbulb className="h-6 w-6" />
                             <div className="space-y-1">
-                              <span className="font-medium tracking-tight text-sm">
-                                {scene.name}
-                              </span>
-                              {scene.address && (
-                                <p className="text-xs text-muted-foreground">
-                                  Address: {scene.address}
-                                </p>
-                              )}
-                              {scene.description && (
-                                <p className="text-xs text-muted-foreground line-clamp-2">
-                                  {scene.description}
-                                </p>
-                              )}
+                              <span className="font-medium tracking-tight text-sm">{scene.name}</span>
+                              {scene.address && <p className="text-xs text-muted-foreground">Address: {scene.address}</p>}
+                              {scene.description && <p className="text-xs text-muted-foreground line-clamp-2">{scene.description}</p>}
                             </div>
 
                             <CheckboxPrimitive.Indicator className="absolute top-2 right-2">
@@ -623,33 +473,15 @@ export function MultiSceneDialog({
                     {addressOrder.length === 0 ? (
                       <div className="text-center text-muted-foreground py-8">
                         <p>No addresses selected.</p>
-                        <p className="text-sm">
-                          Select scenes first to manage address ordering.
-                        </p>
+                        <p className="text-sm">Select scenes first to manage address ordering.</p>
                       </div>
                     ) : (
-                      <DndContext
-                        sensors={sensors}
-                        collisionDetection={closestCenter}
-                        onDragEnd={handleDragEnd}
-                      >
-                        <SortableContext
-                          items={addressOrder}
-                          strategy={verticalListSortingStrategy}
-                        >
+                      <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+                        <SortableContext items={addressOrder} strategy={verticalListSortingStrategy}>
                           <div className="space-y-2 p-2">
                             {addressOrder.map((address) => {
-                              const scenesForAddress = selectedScenes.filter(
-                                (scene) => scene.address === address
-                              );
-                              return (
-                                <SortableAddressItem
-                                  key={address}
-                                  address={address}
-                                  scenes={scenesForAddress}
-                                  onRemove={handleRemoveAddress}
-                                />
-                              );
+                              const scenesForAddress = selectedScenes.filter((scene) => scene.address === address);
+                              return <SortableAddressItem key={address} address={address} scenes={scenesForAddress} onRemove={handleRemoveAddress} />;
                             })}
                           </div>
                         </SortableContext>
@@ -662,11 +494,7 @@ export function MultiSceneDialog({
           </Card>
 
           <DialogFooter>
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => onOpenChange(false)}
-            >
+            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
               Cancel
             </Button>
             <Button type="submit" disabled={loading}>

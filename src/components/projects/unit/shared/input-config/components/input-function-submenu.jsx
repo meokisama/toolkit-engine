@@ -9,17 +9,7 @@ import {
   DropdownMenuSubTrigger,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import {
-  ChevronDown,
-  Home,
-  Lightbulb,
-  Thermometer,
-  ChevronsUpDown,
-  Play,
-  PlayCircle,
-  ListOrdered,
-  Check,
-} from "lucide-react";
+import { ChevronDown, Home, Lightbulb, Thermometer, ChevronsUpDown, Play, PlayCircle, ListOrdered, Check } from "lucide-react";
 import { INPUT_TYPES, getInputFunctionByValue } from "@/constants";
 import { cn } from "@/lib/utils";
 
@@ -84,44 +74,36 @@ const createCategoryLookup = () => {
 const CATEGORY_LOOKUP = createCategoryLookup();
 
 // Memoized category submenu component
-const CategorySubmenu = memo(
-  ({ categoryKey, functions, selectedValue, onSelect }) => {
-    const categoryConfig = CATEGORY_CONFIG[categoryKey];
-    const CategoryIcon = categoryConfig.icon;
+const CategorySubmenu = memo(({ categoryKey, functions, selectedValue, onSelect }) => {
+  const categoryConfig = CATEGORY_CONFIG[categoryKey];
+  const CategoryIcon = categoryConfig.icon;
 
-    return (
-      <DropdownMenuSub>
-        <DropdownMenuSubTrigger className="flex items-center gap-2 py-2">
-          <CategoryIcon className={cn("h-4 w-4", categoryConfig.color)} />
-          <div className="flex flex-col items-start">
-            <span className="font-medium">{categoryConfig.label}</span>
-            <span className="text-xs text-muted-foreground">
-              {functions.length} option{functions.length !== 1 ? "s" : ""}
-            </span>
-          </div>
-        </DropdownMenuSubTrigger>
-        <DropdownMenuSubContent className="w-56 max-h-[300px] overflow-y-auto">
-          {functions.map((func) => (
-            <DropdownMenuItem
-              key={func.value}
-              onClick={() => onSelect(func.value)}
-              className={cn(
-                "cursor-pointer py-2",
-                parseInt(selectedValue) === func.value &&
-                  "bg-accent text-accent-foreground"
-              )}
-            >
-              <span className="font-medium">{func.label}</span>
-              {parseInt(selectedValue) === func.value && (
-                <Check className="h-4 w-4 ml-auto" />
-              )}
-            </DropdownMenuItem>
-          ))}
-        </DropdownMenuSubContent>
-      </DropdownMenuSub>
-    );
-  }
-);
+  return (
+    <DropdownMenuSub>
+      <DropdownMenuSubTrigger className="flex items-center gap-2 py-2">
+        <CategoryIcon className={cn("h-4 w-4", categoryConfig.color)} />
+        <div className="flex flex-col items-start">
+          <span className="font-medium">{categoryConfig.label}</span>
+          <span className="text-xs text-muted-foreground">
+            {functions.length} option{functions.length !== 1 ? "s" : ""}
+          </span>
+        </div>
+      </DropdownMenuSubTrigger>
+      <DropdownMenuSubContent className="w-56 max-h-[300px] overflow-y-auto">
+        {functions.map((func) => (
+          <DropdownMenuItem
+            key={func.value}
+            onClick={() => onSelect(func.value)}
+            className={cn("cursor-pointer py-2", parseInt(selectedValue) === func.value && "bg-accent text-accent-foreground")}
+          >
+            <span className="font-medium">{func.label}</span>
+            {parseInt(selectedValue) === func.value && <Check className="h-4 w-4 ml-auto" />}
+          </DropdownMenuItem>
+        ))}
+      </DropdownMenuSubContent>
+    </DropdownMenuSub>
+  );
+});
 
 CategorySubmenu.displayName = "CategorySubmenu";
 
@@ -160,18 +142,8 @@ export const InputFunctionSubmenu = memo(function InputFunctionSubmenu({
     });
 
     // Return sorted categories for consistent ordering
-    const categoryOrder = [
-      "ROOM",
-      "LIGHTING",
-      "AIR_CONDITIONER",
-      "CURTAIN",
-      "SCENE",
-      "MULTI_SCENES",
-      "SEQUENCE",
-    ];
-    return categoryOrder
-      .filter((categoryKey) => categories[categoryKey]?.length > 0)
-      .map((categoryKey) => [categoryKey, categories[categoryKey]]);
+    const categoryOrder = ["ROOM", "LIGHTING", "AIR_CONDITIONER", "CURTAIN", "SCENE", "MULTI_SCENES", "SEQUENCE"];
+    return categoryOrder.filter((categoryKey) => categories[categoryKey]?.length > 0).map((categoryKey) => [categoryKey, categories[categoryKey]]);
   }, [availableFunctions]);
 
   // Memoize current function lookup
@@ -202,11 +174,7 @@ export const InputFunctionSubmenu = memo(function InputFunctionSubmenu({
           variant="outline"
           role="combobox"
           aria-expanded={open}
-          className={cn(
-            "w-full justify-between text-left font-normal",
-            !currentFunction && "text-muted-foreground",
-            className
-          )}
+          className={cn("w-full justify-between text-left font-normal", !currentFunction && "text-muted-foreground", className)}
           disabled={disabled}
         >
           <span className="truncate">{displayText}</span>
@@ -215,13 +183,7 @@ export const InputFunctionSubmenu = memo(function InputFunctionSubmenu({
       </DropdownMenuTrigger>
       <DropdownMenuContent className="w-64 max-h-[400px] overflow-y-auto">
         {categorizedFunctions.map(([categoryKey, functions]) => (
-          <CategorySubmenu
-            key={categoryKey}
-            categoryKey={categoryKey}
-            functions={functions}
-            selectedValue={value}
-            onSelect={handleSelect}
-          />
+          <CategorySubmenu key={categoryKey} categoryKey={categoryKey} functions={functions} selectedValue={value} onSelect={handleSelect} />
         ))}
       </DropdownMenuContent>
     </DropdownMenu>

@@ -21,30 +21,24 @@ export function registerNetworkHandlers(ipcMain, networkInterfaceService) {
   // ==================== Network Interface Management ====================
 
   // Get network interfaces
-  ipcMain.handle(
-    "network:getInterfaces",
-    async (event, forceRefresh = false) => {
-      try {
-        return networkInterfaceService.getNetworkInterfaces(forceRefresh);
-      } catch (error) {
-        console.error("Error getting network interfaces:", error);
-        throw error;
-      }
+  ipcMain.handle("network:getInterfaces", async (event, forceRefresh = false) => {
+    try {
+      return networkInterfaceService.getNetworkInterfaces(forceRefresh);
+    } catch (error) {
+      console.error("Error getting network interfaces:", error);
+      throw error;
     }
-  );
+  });
 
   // Get broadcast addresses
-  ipcMain.handle(
-    "network:getBroadcastAddresses",
-    async (event, forceRefresh = false) => {
-      try {
-        return networkInterfaceService.getBroadcastAddresses(forceRefresh);
-      } catch (error) {
-        console.error("Error getting broadcast addresses:", error);
-        throw error;
-      }
+  ipcMain.handle("network:getBroadcastAddresses", async (event, forceRefresh = false) => {
+    try {
+      return networkInterfaceService.getBroadcastAddresses(forceRefresh);
+    } catch (error) {
+      console.error("Error getting broadcast addresses:", error);
+      throw error;
     }
-  );
+  });
 
   // Get network summary
   ipcMain.handle("network:getSummary", async (event) => {
@@ -82,15 +76,7 @@ export function registerNetworkHandlers(ipcMain, networkInterfaceService) {
  * UDP Network Scanner Implementation with Multi-Interface Support
  */
 async function scanUDPNetwork(config) {
-  const {
-    broadcastAddresses,
-    broadcastIP,
-    udpPort,
-    localPort,
-    timeout,
-    multiInterface = false,
-    targetCanId = "0.0.0.0",
-  } = config;
+  const { broadcastAddresses, broadcastIP, udpPort, localPort, timeout, multiInterface = false, targetCanId = "0.0.0.0" } = config;
 
   return new Promise((resolve, reject) => {
     const results = [];
@@ -164,10 +150,7 @@ async function scanUDPNetwork(config) {
 
     // Multi-interface scanning
     if (multiInterface && broadcastAddresses && broadcastAddresses.length > 0) {
-      console.log(
-        `Multi-interface UDP scan starting on ${broadcastAddresses.length} interfaces:`,
-        broadcastAddresses
-      );
+      console.log(`Multi-interface UDP scan starting on ${broadcastAddresses.length} interfaces:`, broadcastAddresses);
 
       const expectedScans = broadcastAddresses.length;
       const requestData = createHardwareInfoRequest(targetCanId);
@@ -194,10 +177,7 @@ async function scanUDPNetwork(config) {
             socket.setBroadcast(true);
             socket.setRecvBufferSize(0x40000);
           } catch (e) {
-            console.log(
-              `Socket option warning on ${broadcastAddr}:`,
-              e.message
-            );
+            console.log(`Socket option warning on ${broadcastAddr}:`, e.message);
           }
 
           // Send broadcast request to this interface
@@ -213,9 +193,7 @@ async function scanUDPNetwork(config) {
             // If this is the last scan to complete, set the timeout
             if (completedScans === expectedScans) {
               timeoutHandle = setTimeout(() => {
-                console.log(
-                  `Multi-interface scan timeout reached. Found ${results.length} responses.`
-                );
+                console.log(`Multi-interface scan timeout reached. Found ${results.length} responses.`);
                 cleanup();
                 resolve(results);
               }, timeout);
@@ -271,9 +249,7 @@ async function scanUDPNetwork(config) {
 
           // Set timeout for responses
           timeoutHandle = setTimeout(() => {
-            console.log(
-              `Single-interface scan timeout reached. Found ${results.length} responses.`
-            );
+            console.log(`Single-interface scan timeout reached. Found ${results.length} responses.`);
             cleanup();
             resolve(results);
           }, timeout);

@@ -17,10 +17,7 @@ export const LoadingSkeleton = () => {
         <CardContent className="flex-1 overflow-hidden">
           <div className="space-y-3 pr-4">
             {Array.from({ length: 8 }).map((_, i) => (
-              <div
-                key={i}
-                className="p-4 border rounded-lg flex gap-4 justify-between items-center"
-              >
+              <div key={i} className="p-4 border rounded-lg flex gap-4 justify-between items-center">
                 <Skeleton className="h-4 w-24" />
                 <div className="flex items-center gap-2">
                   <Skeleton className="h-10 w-40" />
@@ -45,10 +42,7 @@ export const LoadingSkeleton = () => {
         <CardContent className="flex-1 overflow-hidden">
           <div className="space-y-3 pr-4">
             {Array.from({ length: 6 }).map((_, i) => (
-              <div
-                key={i}
-                className="p-4 border rounded-lg flex gap-4 justify-between items-center"
-              >
+              <div key={i} className="p-4 border rounded-lg flex gap-4 justify-between items-center">
                 <Skeleton className="h-4 w-24" />
                 <div className="flex items-center gap-2">
                   <Skeleton className="h-10 w-56" />

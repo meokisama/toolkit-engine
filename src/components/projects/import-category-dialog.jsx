@@ -1,36 +1,12 @@
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
-import {
-  Upload,
-  FileText,
-  AlertCircle,
-  CheckCircle,
-  Download,
-  Info,
-} from "lucide-react";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Upload, FileText, AlertCircle, CheckCircle, Download, Info } from "lucide-react";
 import { toast } from "sonner";
 import { exportImportService } from "@/services/export-import";
 
-export function ImportItemsDialog({
-  open,
-  onOpenChange,
-  onImport,
-  category,
-  onConfirm,
-}) {
+export function ImportItemsDialog({ open, onOpenChange, onImport, category, onConfirm }) {
   const [importData, setImportData] = useState(null);
   const [loading, setLoading] = useState(false);
 
@@ -88,35 +64,18 @@ export function ImportItemsDialog({
 
     // Detect delimiter from first line
     const delimiter = detectDelimiter(lines[0]);
-    const headers = lines[0]
-      .split(delimiter)
-      .map((h) => h.trim().replace(/"/g, ""));
+    const headers = lines[0].split(delimiter).map((h) => h.trim().replace(/"/g, ""));
     const items = [];
 
     // Validate headers based on category
     const expectedHeaders =
       category === "unit"
-        ? [
-            "name",
-            "type",
-            "serial_no",
-            "ip_address",
-            "id_can",
-            "mode",
-            "firmware_version",
-            "description",
-          ]
+        ? ["name", "type", "serial_no", "ip_address", "id_can", "mode", "firmware_version", "description"]
         : ["name", "address", "description"];
 
-    const hasValidHeaders = expectedHeaders.every((header) =>
-      headers.includes(header)
-    );
+    const hasValidHeaders = expectedHeaders.every((header) => headers.includes(header));
     if (!hasValidHeaders) {
-      throw new Error(
-        `Invalid CSV headers for ${category} items. Expected: ${expectedHeaders.join(
-          ", "
-        )}`
-      );
+      throw new Error(`Invalid CSV headers for ${category} items. Expected: ${expectedHeaders.join(", ")}`);
     }
 
     for (let i = 1; i < lines.length; i++) {
@@ -216,28 +175,11 @@ export function ImportItemsDialog({
 
   const getExpectedHeaders = () => {
     if (category === "unit") {
-      return [
-        "type",
-        "serial_no",
-        "ip_address",
-        "id_can",
-        "mode",
-        "firmware_version",
-        "description",
-      ];
+      return ["type", "serial_no", "ip_address", "id_can", "mode", "firmware_version", "description"];
     } else if (category === "aircon") {
       return ["name", "address", "description"];
     } else if (category === "curtain") {
-      return [
-        "name",
-        "address",
-        "description",
-        "object_type",
-        "curtain_type",
-        "open_group",
-        "close_group",
-        "stop_group",
-      ];
+      return ["name", "address", "description", "object_type", "curtain_type", "open_group", "close_group", "stop_group"];
     } else if (category === "scene") {
       return ["SCENE NAME", "ITEM NAME", "TYPE", "ADDRESS", "VALUE"];
     } else {
@@ -245,8 +187,7 @@ export function ImportItemsDialog({
     }
   };
 
-  const categoryDisplayName =
-    category.charAt(0).toUpperCase() + category.slice(1);
+  const categoryDisplayName = category.charAt(0).toUpperCase() + category.slice(1);
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
@@ -267,9 +208,7 @@ export function ImportItemsDialog({
             <div className="space-y-4">
               <div className="border-2 border-dashed border-muted-foreground/25 rounded-lg p-8 text-center">
                 <FileText className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
-                <p className="text-sm text-muted-foreground mb-4">
-                  Select a CSV file to import {category} items
-                </p>
+                <p className="text-sm text-muted-foreground mb-4">Select a CSV file to import {category} items</p>
                 <Button onClick={handleFileSelect} variant="outline">
                   <Upload className="h-4 w-4 mr-2" />
                   Select CSV File
@@ -280,19 +219,13 @@ export function ImportItemsDialog({
                 <div className="bg-muted/50 rounded-lg p-4 relative">
                   <div className="flex items-center gap-2 mb-3">
                     <Download className="h-4 w-4 text-blue-600" />
-                    <span className="text-sm font-medium">
-                      Download Template
-                    </span>
+                    <span className="text-sm font-medium">Download Template</span>
                   </div>
 
                   {/* Info icon with popover */}
                   <Popover>
                     <PopoverTrigger asChild>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="absolute top-2 right-2 p-1 hover:bg-muted rounded-full transition-colors"
-                      >
+                      <Button variant="ghost" size="icon" className="absolute top-2 right-2 p-1 hover:bg-muted rounded-full transition-colors">
                         <Info className="h-4 w-4 text-muted-foreground hover:text-foreground" />
                       </Button>
                     </PopoverTrigger>
@@ -301,21 +234,15 @@ export function ImportItemsDialog({
                         <div className="space-y-2 text-xs">
                           <div className="grid grid-cols-3 gap-2 font-bold border-b pb-1">
                             <span>TYPE</span>
-                            <span className="col-span-2">
-                              Value điền chính xác như sau
-                            </span>
+                            <span className="col-span-2">Value điền chính xác như sau</span>
                           </div>
                           <div className="grid grid-cols-3 gap-2 border-b pb-1">
                             <span className="font-mono">LIGHTING</span>
-                            <span className="col-span-2">
-                              Độ sáng (Ví dụ: 50%, hoặc 50)
-                            </span>
+                            <span className="col-span-2">Độ sáng (Ví dụ: 50%, hoặc 50)</span>
                           </div>
                           <div className="grid grid-cols-3 gap-2 border-b pb-1">
                             <span className="font-mono">CURTAIN</span>
-                            <span className="col-span-2">
-                              Open - Close - Stop
-                            </span>
+                            <span className="col-span-2">Open - Close - Stop</span>
                           </div>
                           <div className="grid grid-cols-3 gap-2 border-b pb-1">
                             <span className="font-mono">AC_POWER</span>
@@ -323,48 +250,29 @@ export function ImportItemsDialog({
                           </div>
                           <div className="grid grid-cols-3 gap-2 border-b pb-1">
                             <span className="font-mono">AC_MODE</span>
-                            <span className="col-span-2">
-                              Cool - Heat - Ventilation - Dry - Auto
-                            </span>
+                            <span className="col-span-2">Cool - Heat - Ventilation - Dry - Auto</span>
                           </div>
                           <div className="grid grid-cols-3 gap-2 border-b pb-1">
                             <span className="font-mono">AC_FAN_SPEED</span>
-                            <span className="col-span-2">
-                              Low - Medium - High - Auto - Off
-                            </span>
+                            <span className="col-span-2">Low - Medium - High - Auto - Off</span>
                           </div>
                           <div className="grid grid-cols-3 gap-2">
                             <span className="font-mono">AC_TEMPERATURE</span>
-                            <span className="col-span-2">
-                              Nhiệt độ (Ví dụ: 25, phải là số nguyên)
-                            </span>
+                            <span className="col-span-2">Nhiệt độ (Ví dụ: 25, phải là số nguyên)</span>
                           </div>
                         </div>
                       </div>
                     </PopoverContent>
                   </Popover>
                   <div className="text-sm text-muted-foreground mb-3">
-                    <p>
-                      Download CSV templates to get started with the correct
-                      format:
-                    </p>
+                    <p>Download CSV templates to get started with the correct format:</p>
                   </div>
                   <div className="flex gap-2">
-                    <Button
-                      onClick={handleDownloadTemplate1}
-                      variant="outline"
-                      size="sm"
-                      className="flex-1"
-                    >
+                    <Button onClick={handleDownloadTemplate1} variant="outline" size="sm" className="flex-1">
                       <Download className="h-3 w-3 mr-1" />
                       Template 1 (Vertical)
                     </Button>
-                    <Button
-                      onClick={handleDownloadTemplate2}
-                      variant="outline"
-                      size="sm"
-                      className="flex-1"
-                    >
+                    <Button onClick={handleDownloadTemplate2} variant="outline" size="sm" className="flex-1">
                       <Download className="h-3 w-3 mr-1" />
                       Template 2 (Horizontal)
                     </Button>
@@ -374,17 +282,11 @@ export function ImportItemsDialog({
                 <div className="bg-muted/50 rounded-lg p-4">
                   <div className="flex items-center gap-2 mb-2">
                     <AlertCircle className="h-4 w-4 text-blue-600" />
-                    <span className="text-sm font-medium">
-                      Required CSV Headers
-                    </span>
+                    <span className="text-sm font-medium">Required CSV Headers</span>
                   </div>
                   <div className="text-sm text-muted-foreground">
-                    <p>
-                      Your CSV file must include these headers (in any order):
-                    </p>
-                    <div className="mt-1 font-mono text-xs bg-background rounded px-2 py-1">
-                      {getExpectedHeaders().join(", ")}
-                    </div>
+                    <p>Your CSV file must include these headers (in any order):</p>
+                    <div className="mt-1 font-mono text-xs bg-background rounded px-2 py-1">{getExpectedHeaders().join(", ")}</div>
                   </div>
                 </div>
               )}
@@ -394,9 +296,7 @@ export function ImportItemsDialog({
               <div className="bg-muted/50 rounded-lg p-4">
                 <div className="flex items-center gap-2 mb-2">
                   <CheckCircle className="h-4 w-4 text-green-600" />
-                  <span className="text-sm font-medium">
-                    CSV file loaded successfully
-                  </span>
+                  <span className="text-sm font-medium">CSV file loaded successfully</span>
                 </div>
                 <div className="text-sm text-muted-foreground">
                   <p>Found {importData.length} valid items to import</p>
@@ -412,24 +312,13 @@ export function ImportItemsDialog({
                   <p>First few items:</p>
                   <div className="mt-2 space-y-1">
                     {importData.slice(0, 3).map((item, index) => (
-                      <div
-                        key={index}
-                        className="font-mono text-xs bg-background rounded px-2 py-1"
-                      >
+                      <div key={index} className="font-mono text-xs bg-background rounded px-2 py-1">
                         {category === "scene"
-                          ? `${item.name} (${item.items?.length || 0} items)${
-                              item.name.includes("(Part") ? " - Auto-split" : ""
-                            }`
-                          : `${item.name} ${
-                              item.address && `- ${item.address}`
-                            } ${item.type && `(${item.type})`}`}
+                          ? `${item.name} (${item.items?.length || 0} items)${item.name.includes("(Part") ? " - Auto-split" : ""}`
+                          : `${item.name} ${item.address && `- ${item.address}`} ${item.type && `(${item.type})`}`}
                       </div>
                     ))}
-                    {importData.length > 3 && (
-                      <div className="text-xs text-muted-foreground">
-                        ... and {importData.length - 3} more items
-                      </div>
-                    )}
+                    {importData.length > 3 && <div className="text-xs text-muted-foreground">... and {importData.length - 3} more items</div>}
                   </div>
                 </div>
               </div>
@@ -448,11 +337,7 @@ export function ImportItemsDialog({
           </Button>
           {importData && (
             <>
-              <Button
-                variant="outline"
-                onClick={handleFileSelect}
-                disabled={loading}
-              >
+              <Button variant="outline" onClick={handleFileSelect} disabled={loading}>
                 Select Different File
               </Button>
               <Button onClick={handleImport} disabled={loading}>

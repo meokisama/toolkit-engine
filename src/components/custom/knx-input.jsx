@@ -102,8 +102,7 @@ export const KNXAddressInput = ({
       // Auto-focus next input when reaching max length for each field
       const maxLengths = { area: 2, line: 1, device: 3 };
       if (inputValue.length === maxLengths[field]) {
-        const nextField =
-          field === "area" ? "line" : field === "line" ? "device" : null;
+        const nextField = field === "area" ? "line" : field === "line" ? "device" : null;
         if (nextField && refs[nextField].current) {
           setTimeout(() => refs[nextField].current.focus(), 0);
         }
@@ -117,8 +116,7 @@ export const KNXAddressInput = ({
       // Handle "." and "/" to move to next field
       if (event.key === "." || event.key === "/") {
         event.preventDefault();
-        const nextField =
-          field === "area" ? "line" : field === "line" ? "device" : null;
+        const nextField = field === "area" ? "line" : field === "line" ? "device" : null;
         if (nextField && refs[nextField].current) {
           refs[nextField].current.focus();
           refs[nextField].current.select();
@@ -129,8 +127,7 @@ export const KNXAddressInput = ({
       // Enhanced backspace navigation
       if (event.key === "Backspace" && !values[field]) {
         event.preventDefault();
-        const prevField =
-          field === "device" ? "line" : field === "line" ? "area" : null;
+        const prevField = field === "device" ? "line" : field === "line" ? "area" : null;
         if (prevField && refs[prevField].current) {
           refs[prevField].current.focus();
           refs[prevField].current.select();
@@ -140,24 +137,16 @@ export const KNXAddressInput = ({
       // Arrow key navigation
       if (event.key === "ArrowLeft" && event.target.selectionStart === 0) {
         event.preventDefault();
-        const prevField =
-          field === "device" ? "line" : field === "line" ? "area" : null;
+        const prevField = field === "device" ? "line" : field === "line" ? "area" : null;
         if (prevField && refs[prevField].current) {
           refs[prevField].current.focus();
-          refs[prevField].current.setSelectionRange(
-            refs[prevField].current.value.length,
-            refs[prevField].current.value.length
-          );
+          refs[prevField].current.setSelectionRange(refs[prevField].current.value.length, refs[prevField].current.value.length);
         }
       }
 
-      if (
-        event.key === "ArrowRight" &&
-        event.target.selectionStart === event.target.value.length
-      ) {
+      if (event.key === "ArrowRight" && event.target.selectionStart === event.target.value.length) {
         event.preventDefault();
-        const nextField =
-          field === "area" ? "line" : field === "line" ? "device" : null;
+        const nextField = field === "area" ? "line" : field === "line" ? "device" : null;
         if (nextField && refs[nextField].current) {
           refs[nextField].current.focus();
           refs[nextField].current.setSelectionRange(0, 0);
@@ -166,8 +155,7 @@ export const KNXAddressInput = ({
 
       // Tab navigation enhancement
       if (event.key === "Tab" && !event.shiftKey) {
-        const nextField =
-          field === "area" ? "line" : field === "line" ? "device" : null;
+        const nextField = field === "area" ? "line" : field === "line" ? "device" : null;
         if (nextField && refs[nextField].current) {
           event.preventDefault();
           refs[nextField].current.focus();
@@ -176,8 +164,7 @@ export const KNXAddressInput = ({
       }
 
       if (event.key === "Tab" && event.shiftKey) {
-        const prevField =
-          field === "device" ? "line" : field === "line" ? "area" : null;
+        const prevField = field === "device" ? "line" : field === "line" ? "area" : null;
         if (prevField && refs[prevField].current) {
           event.preventDefault();
           refs[prevField].current.focus();

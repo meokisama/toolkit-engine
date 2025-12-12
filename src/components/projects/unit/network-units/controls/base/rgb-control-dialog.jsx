@@ -1,17 +1,5 @@
-import React, {
-  useState,
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-} from "react";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import React, { useState, useCallback, useEffect, useMemo, useRef } from "react";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
@@ -36,9 +24,7 @@ const rgbToHex = (r, g, b, a = 255) => {
 
 const hexToRgba = (hex) => {
   // Support both #RRGGBB and #RRGGBBAA formats
-  const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})?$/i.exec(
-    hex
-  );
+  const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})?$/i.exec(hex);
   return result
     ? {
         r: parseInt(result[1], 16),
@@ -88,18 +74,9 @@ const RGBControlDialog = ({ open, onOpenChange, unit }) => {
   const actualColor = useMemo(() => color, [color]);
 
   // Memoized derived values (hexColor from baseColor for color picker)
-  const hexColor = useMemo(
-    () => rgbToHex(baseColor.r, baseColor.g, baseColor.b, baseColor.a),
-    [baseColor]
-  );
-  const actualHexColor = useMemo(
-    () => rgbToHex(actualColor.r, actualColor.g, actualColor.b, actualColor.a),
-    [actualColor]
-  );
-  const textColor = useMemo(
-    () => getTextColor(actualColor.r, actualColor.g, actualColor.b),
-    [actualColor]
-  );
+  const hexColor = useMemo(() => rgbToHex(baseColor.r, baseColor.g, baseColor.b, baseColor.a), [baseColor]);
+  const actualHexColor = useMemo(() => rgbToHex(actualColor.r, actualColor.g, actualColor.b, actualColor.a), [actualColor]);
+  const textColor = useMemo(() => getTextColor(actualColor.r, actualColor.g, actualColor.b), [actualColor]);
 
   // Memoized button style to prevent object recreation
   const buttonStyle = useMemo(
@@ -259,9 +236,7 @@ const RGBControlDialog = ({ open, onOpenChange, unit }) => {
         groupSettings,
       });
 
-      toast.success(
-        `RGBA color sent successfully!\nR:${actualColor.r} G:${actualColor.g} B:${actualColor.b} A:${actualColor.a} (${brightness}%)`
-      );
+      toast.success(`RGBA color sent successfully!\nR:${actualColor.r} G:${actualColor.g} B:${actualColor.b} A:${actualColor.a} (${brightness}%)`);
     } catch (error) {
       console.error("Failed to send RGBA color:", error);
       toast.error(`Failed to send RGBA color: ${error.message}`);
@@ -298,14 +273,7 @@ const RGBControlDialog = ({ open, onOpenChange, unit }) => {
   const RGBAInput = React.memo(({ channel, label, value, onChange }) => (
     <div className="space-y-2">
       <Label htmlFor={`${channel}-input`}>{label}</Label>
-      <Input
-        id={`${channel}-input`}
-        type="number"
-        min="0"
-        max="255"
-        value={value}
-        onChange={(e) => onChange(channel, e.target.value)}
-      />
+      <Input id={`${channel}-input`} type="number" min="0" max="255" value={value} onChange={(e) => onChange(channel, e.target.value)} />
     </div>
   ));
 
@@ -318,8 +286,7 @@ const RGBControlDialog = ({ open, onOpenChange, unit }) => {
             RGBA Control
           </DialogTitle>
           <DialogDescription>
-            Control RGBA lighting for unit {unit?.id_can} at {unit?.ip_address}:
-            {CONSTANTS.UNIT.UDP_CONFIG.UDP_PORT}
+            Control RGBA lighting for unit {unit?.id_can} at {unit?.ip_address}:{CONSTANTS.UNIT.UDP_CONFIG.UDP_PORT}
           </DialogDescription>
         </DialogHeader>
 
@@ -328,30 +295,10 @@ const RGBControlDialog = ({ open, onOpenChange, unit }) => {
           <Card>
             <CardContent className="space-y-4">
               <div className="grid grid-cols-4 gap-4">
-                <ChannelInput
-                  channel="red"
-                  label="Red Channel"
-                  value={rgbChannels.red}
-                  onChange={handleChannelChange}
-                />
-                <ChannelInput
-                  channel="green"
-                  label="Green Channel"
-                  value={rgbChannels.green}
-                  onChange={handleChannelChange}
-                />
-                <ChannelInput
-                  channel="blue"
-                  label="Blue Channel"
-                  value={rgbChannels.blue}
-                  onChange={handleChannelChange}
-                />
-                <ChannelInput
-                  channel="alpha"
-                  label="Alpha Channel"
-                  value={rgbChannels.alpha}
-                  onChange={handleChannelChange}
-                />
+                <ChannelInput channel="red" label="Red Channel" value={rgbChannels.red} onChange={handleChannelChange} />
+                <ChannelInput channel="green" label="Green Channel" value={rgbChannels.green} onChange={handleChannelChange} />
+                <ChannelInput channel="blue" label="Blue Channel" value={rgbChannels.blue} onChange={handleChannelChange} />
+                <ChannelInput channel="alpha" label="Alpha Channel" value={rgbChannels.alpha} onChange={handleChannelChange} />
               </div>
             </CardContent>
           </Card>
@@ -362,11 +309,7 @@ const RGBControlDialog = ({ open, onOpenChange, unit }) => {
               <div className="flex flex-col items-center space-y-4">
                 {/* Color Picker with Alpha */}
                 <div className="w-full">
-                  <HexAlphaColorPicker
-                    color={hexColor}
-                    onChange={handleColorChange}
-                    style={{ width: "100%", height: "200px" }}
-                  />
+                  <HexAlphaColorPicker color={hexColor} onChange={handleColorChange} style={{ width: "100%", height: "200px" }} />
                 </div>
 
                 {/* Manual Input Controls */}
@@ -385,30 +328,10 @@ const RGBControlDialog = ({ open, onOpenChange, unit }) => {
 
                   {/* RGBA Inputs */}
                   <div className="grid grid-cols-4 gap-4">
-                    <RGBAInput
-                      channel="r"
-                      label="Red"
-                      value={color.r}
-                      onChange={handleRgbaInputChange}
-                    />
-                    <RGBAInput
-                      channel="g"
-                      label="Green"
-                      value={color.g}
-                      onChange={handleRgbaInputChange}
-                    />
-                    <RGBAInput
-                      channel="b"
-                      label="Blue"
-                      value={color.b}
-                      onChange={handleRgbaInputChange}
-                    />
-                    <RGBAInput
-                      channel="a"
-                      label="Alpha"
-                      value={color.a}
-                      onChange={handleRgbaInputChange}
-                    />
+                    <RGBAInput channel="r" label="Red" value={color.r} onChange={handleRgbaInputChange} />
+                    <RGBAInput channel="g" label="Green" value={color.g} onChange={handleRgbaInputChange} />
+                    <RGBAInput channel="b" label="Blue" value={color.b} onChange={handleRgbaInputChange} />
+                    <RGBAInput channel="a" label="Alpha" value={color.a} onChange={handleRgbaInputChange} />
                   </div>
                 </div>
               </div>
@@ -420,10 +343,7 @@ const RGBControlDialog = ({ open, onOpenChange, unit }) => {
             <CardContent className="space-y-4">
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
-                  <Label
-                    htmlFor="brightness-slider"
-                    className="flex items-center gap-2"
-                  >
+                  <Label htmlFor="brightness-slider" className="flex items-center gap-2">
                     <Sun className="h-4 w-4" />
                     Dimming
                   </Label>
@@ -450,11 +370,7 @@ const RGBControlDialog = ({ open, onOpenChange, unit }) => {
               className="flex items-center gap-2 transition-all duration-200 shadow-md"
               style={buttonStyle}
             >
-              {sendingColor ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
-              ) : (
-                <Send className="h-4 w-4" />
-              )}
+              {sendingColor ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
               {sendingColor ? "Sending..." : "Send RGBA Color"}
             </Button>
           </div>

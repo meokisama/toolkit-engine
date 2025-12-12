@@ -105,9 +105,7 @@ export const zigbeeMethods = {
       );
 
       // Return the created device
-      const getStmt = this.db.prepare(
-        "SELECT * FROM zigbee_devices WHERE id = ?"
-      );
+      const getStmt = this.db.prepare("SELECT * FROM zigbee_devices WHERE id = ?");
       return getStmt.get(result.lastInsertRowid);
     } catch (error) {
       console.error("Failed to create zigbee device:", error);
@@ -185,9 +183,7 @@ export const zigbeeMethods = {
       }
 
       // Return updated device
-      const getStmt = this.db.prepare(
-        "SELECT * FROM zigbee_devices WHERE id = ?"
-      );
+      const getStmt = this.db.prepare("SELECT * FROM zigbee_devices WHERE id = ?");
       return getStmt.get(id);
     } catch (error) {
       console.error("Failed to update zigbee device:", error);
@@ -215,9 +211,7 @@ export const zigbeeMethods = {
   // Delete all Zigbee devices for a specific unit
   deleteAllZigbeeDevicesForUnit(projectId, unitIp) {
     try {
-      const stmt = this.db.prepare(
-        "DELETE FROM zigbee_devices WHERE project_id = ? AND unit_ip = ?"
-      );
+      const stmt = this.db.prepare("DELETE FROM zigbee_devices WHERE project_id = ? AND unit_ip = ?");
       const result = stmt.run(projectId, unitIp);
 
       return { success: true, deletedCount: result.changes };

@@ -15,28 +15,12 @@ async function triggerKnx(unitIp, canId, knxAddress) {
     triggerData,
   });
 
-  return sendCommand(
-    unitIp,
-    UDP_PORT,
-    idAddress,
-    PROTOCOL.KNX.CMD1,
-    PROTOCOL.KNX.CMD2.SET_KNX_OUT,
-    [triggerData]
-  );
+  return sendCommand(unitIp, UDP_PORT, idAddress, PROTOCOL.KNX.CMD1, PROTOCOL.KNX.CMD2.SET_KNX_OUT, [triggerData]);
 }
 
 // Set KNX Configuration function
 async function setKnxConfig(unitIp, canId, knxConfig, loggerService = null, unitType = "Unknown") {
-  const {
-    address,
-    type,
-    factor,
-    feedback,
-    rcuGroup,
-    knxSwitchGroup,
-    knxDimmingGroup,
-    knxValueGroup,
-  } = knxConfig;
+  const { address, type, factor, feedback, rcuGroup, knxSwitchGroup, knxDimmingGroup, knxValueGroup } = knxConfig;
 
   // Validations
   validators.knxAddress(address);
@@ -86,39 +70,20 @@ async function setKnxConfig(unitIp, canId, knxConfig, loggerService = null, unit
     canId,
     ...knxConfig,
     dataLength: data.length,
-    switchGroupHex: `0x${switchGroupBytes[1]
-      .toString(16)
-      .padStart(2, "0")}${switchGroupBytes[0].toString(16).padStart(2, "0")}`,
-    dimmingGroupHex: `0x${dimmingGroupBytes[1]
-      .toString(16)
-      .padStart(2, "0")}${dimmingGroupBytes[0].toString(16).padStart(2, "0")}`,
-    valueGroupHex: `0x${valueGroupBytes[1]
-      .toString(16)
-      .padStart(2, "0")}${valueGroupBytes[0].toString(16).padStart(2, "0")}`,
+    switchGroupHex: `0x${switchGroupBytes[1].toString(16).padStart(2, "0")}${switchGroupBytes[0].toString(16).padStart(2, "0")}`,
+    dimmingGroupHex: `0x${dimmingGroupBytes[1].toString(16).padStart(2, "0")}${dimmingGroupBytes[0].toString(16).padStart(2, "0")}`,
+    valueGroupHex: `0x${valueGroupBytes[1].toString(16).padStart(2, "0")}${valueGroupBytes[0].toString(16).padStart(2, "0")}`,
   });
 
   try {
-    const response = await sendCommand(
-      unitIp,
-      UDP_PORT,
-      idAddress,
-      PROTOCOL.KNX.CMD1,
-      PROTOCOL.KNX.CMD2.SET_KNX_OUT_CONFIG,
-      data
-    );
+    const response = await sendCommand(unitIp, UDP_PORT, idAddress, PROTOCOL.KNX.CMD1, PROTOCOL.KNX.CMD2.SET_KNX_OUT_CONFIG, data);
 
     if (!parseResponse.success(response)) {
       const error = "Failed to set KNX configuration";
 
       // Log error if logger service is available
       if (loggerService) {
-        loggerService.logKnxSend(
-          'SET_CONFIG',
-          knxConfig,
-          { ip_address: unitIp, id_can: canId, type: unitType },
-          false,
-          error
-        );
+        loggerService.logKnxSend("SET_CONFIG", knxConfig, { ip_address: unitIp, id_can: canId, type: unitType }, false, error);
       }
 
       throw new Error(error);
@@ -126,25 +91,14 @@ async function setKnxConfig(unitIp, canId, knxConfig, loggerService = null, unit
 
     // Log success if logger service is available
     if (loggerService) {
-      loggerService.logKnxSend(
-        'SET_CONFIG',
-        knxConfig,
-        { ip_address: unitIp, id_can: canId, type: unitType },
-        true
-      );
+      loggerService.logKnxSend("SET_CONFIG", knxConfig, { ip_address: unitIp, id_can: canId, type: unitType }, true);
     }
 
     return true;
   } catch (error) {
     // Log error if logger service is available
     if (loggerService) {
-      loggerService.logKnxSend(
-        'SET_CONFIG',
-        knxConfig,
-        { ip_address: unitIp, id_can: canId, type: unitType },
-        false,
-        error.message
-      );
+      loggerService.logKnxSend("SET_CONFIG", knxConfig, { ip_address: unitIp, id_can: canId, type: unitType }, false, error.message);
     }
 
     throw error;
@@ -239,10 +193,7 @@ async function getKnxConfig(unitIp, canId, knxAddress = null) {
               console.log(`Failed to parse KNX config ${i + 1}`);
             }
           } else {
-            console.log(
-              `Invalid response ${i + 1}:`,
-              response ? `msg length: ${response.msg?.length}` : "null response"
-            );
+            console.log(`Invalid response ${i + 1}:`, response ? `msg length: ${response.msg?.length}` : "null response");
           }
         } catch (error) {
           console.error(`Error parsing KNX response ${i + 1}:`, error);
@@ -258,9 +209,7 @@ async function getKnxConfig(unitIp, canId, knxAddress = null) {
       };
     }
 
-    throw new Error(
-      "No valid responses received from get KNX configuration command"
-    );
+    throw new Error("No valid responses received from get KNX configuration command");
   }
 }
 
@@ -304,14 +253,8 @@ function parseKnxConfigResponse(data) {
       return `${area}/${line}/${device}`;
     };
 
-    const knxSwitchGroup = convertHexToKnxAddress(
-      switchGroupLow,
-      switchGroupHigh
-    );
-    const knxDimmingGroup = convertHexToKnxAddress(
-      dimmingGroupLow,
-      dimmingGroupHigh
-    );
+    const knxSwitchGroup = convertHexToKnxAddress(switchGroupLow, switchGroupHigh);
+    const knxDimmingGroup = convertHexToKnxAddress(dimmingGroupLow, dimmingGroupHigh);
     const knxValueGroup = convertHexToKnxAddress(valueGroupLow, valueGroupHigh);
 
     return {
@@ -344,14 +287,7 @@ async function deleteKnxConfig(unitIp, canId, knxAddress = null) {
 
   console.log("Deleting KNX config:", { unitIp, canId, knxAddress });
 
-  const response = await sendCommand(
-    unitIp,
-    UDP_PORT,
-    idAddress,
-    PROTOCOL.KNX.CMD1,
-    PROTOCOL.KNX.CMD2.CLEAR_KNX,
-    data
-  );
+  const response = await sendCommand(unitIp, UDP_PORT, idAddress, PROTOCOL.KNX.CMD1, PROTOCOL.KNX.CMD2.CLEAR_KNX, data);
 
   if (!parseResponse.success(response)) {
     throw new Error("Failed to delete KNX configuration");
@@ -366,11 +302,4 @@ async function deleteAllKnxConfigs(unitIp, canId) {
   return deleteKnxConfig(unitIp, canId);
 }
 
-export {
-  triggerKnx,
-  setKnxConfig,
-  getKnxConfig,
-  parseKnxConfigResponse,
-  deleteKnxConfig,
-  deleteAllKnxConfigs,
-};
+export { triggerKnx, setKnxConfig, getKnxConfig, parseKnxConfigResponse, deleteKnxConfig, deleteAllKnxConfigs };

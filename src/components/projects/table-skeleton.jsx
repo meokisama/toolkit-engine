@@ -13,10 +13,7 @@ export function TableSkeleton({ rows = 5, columns = 4 }) {
 
       {/* Table rows skeleton */}
       {Array.from({ length: rows }).map((_, rowIndex) => (
-        <div
-          key={rowIndex}
-          className="flex items-center space-x-4 p-4 border-b border-muted"
-        >
+        <div key={rowIndex} className="flex items-center space-x-4 p-4 border-b border-muted">
           {Array.from({ length: columns }).map((_, colIndex) => (
             <Skeleton key={colIndex} className="h-4 flex-1" />
           ))}

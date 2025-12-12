@@ -37,10 +37,7 @@ export const useInputType = (
       });
 
       // Remove duplicates and sort by value
-      const uniqueTypes = allTypes.filter(
-        (type, index, self) =>
-          index === self.findIndex((t) => t.value === type.value)
-      );
+      const uniqueTypes = allTypes.filter((type, index, self) => index === self.findIndex((t) => t.value === type.value));
 
       return uniqueTypes.sort((a, b) => a.value - b.value);
     }
@@ -53,9 +50,7 @@ export const useInputType = (
   // Get current function from available functions
   const currentInputFunction = useMemo(() => {
     if (!currentInputType || !availableInputFunctions) return null;
-    return availableInputFunctions.find(
-      (func) => func.value === currentInputType
-    );
+    return availableInputFunctions.find((func) => func.value === currentInputType);
   }, [currentInputType, availableInputFunctions]);
 
   // Sync currentInputType with functionValue prop - only update if different and user hasn't manually changed it
@@ -82,19 +77,11 @@ export const useInputType = (
 
   // Ensure current input type is valid for this unit type (only on initial load)
   useEffect(() => {
-    if (
-      availableInputFunctions.length > 0 &&
-      currentInputType !== null &&
-      !isInputTypeChanging
-    ) {
-      const isCurrentTypeAvailable = availableInputFunctions.some(
-        (func) => func.value === currentInputType
-      );
+    if (availableInputFunctions.length > 0 && currentInputType !== null && !isInputTypeChanging) {
+      const isCurrentTypeAvailable = availableInputFunctions.some((func) => func.value === currentInputType);
 
       if (!isCurrentTypeAvailable) {
-        console.warn(
-          `Current input type ${currentInputType} not available for unit type ${unitType}. Resetting to Unused.`
-        );
+        console.warn(`Current input type ${currentInputType} not available for unit type ${unitType}. Resetting to Unused.`);
         setCurrentInputType(0); // Reset to "Unused"
       }
     }

@@ -19,10 +19,10 @@ jobs:
           node-version: 24
 
       - name: Install dependencies
-        run: npm install
+        run: yarn install
 
       - name: Build Electron App
-        run: npm run make
+        run: yarn make
 
       - name: Upload release assets
         uses: softprops/action-gh-release@v2
