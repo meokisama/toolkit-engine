@@ -1,7 +1,7 @@
 {
   "name": "toolkit-engine",
   "productName": "GNT Toolkit Engine",
-  "version": "0.2.7",
+  "version": "0.2.8",
   "description": "Professional automation and control toolkit for smart building management",
   "main": ".vite/build/main.js",
   "scripts": {
@@ -10,7 +10,7 @@
     "make": "electron-forge make",
     "publish": "electron-forge publish",
     "lint": "echo \"No linting configured\"",
-    "release": "npm version patch --message \"chore(release): bump version to %s\" && git push --follow-tags"
+    "release": "yarn version --patch --message \"chore(release): bump version to %s\" && git push --follow-tags"
   },
   "keywords": [
     "automation",
