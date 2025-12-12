@@ -464,18 +464,6 @@ const NetworkIOConfigDialog = ({ open, onOpenChange, item = null }) => {
                           // Find original config for this output
                           const originalConfig = originalOutputConfigs.find((original) => original.index === config.index);
 
-                          // Debug log for first output only
-                          if (config.index === 0) {
-                            console.log("🔍 [RENDER DEBUG] Output config comparison:", {
-                              configIndex: config.index,
-                              configType: config.type,
-                              config: config,
-                              originalConfig: originalConfig,
-                              hasOriginal: !!originalConfig,
-                              configsLoadedStatus: configsLoaded,
-                            });
-                          }
-
                           return (
                             <NetworkOutputConfigItem
                               key={config.index}

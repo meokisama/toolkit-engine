@@ -429,12 +429,6 @@ export const useNetworkIOConfig = (item, open, childDialogOpen = false) => {
       // Set original output configs AFTER all configs are loaded (including aircon)
       // This ensures AC fields are properly populated before creating the snapshot
       if (!originalOutputConfigsSet) {
-        console.log("📊 [DEBUG] Creating originalOutputConfigs from outputStatesRef.current:", {
-          outputStatesRefLength: outputStatesRef.current.length,
-          firstOutput: outputStatesRef.current[0],
-          allOutputs: outputStatesRef.current,
-        });
-
         const originalOutputs = outputStatesRef.current.map((output) => ({
           index: output.index,
           type: output.type,
@@ -491,13 +485,6 @@ export const useNetworkIOConfig = (item, open, childDialogOpen = false) => {
           acOccupyHeatSetPoint: output.acOccupyHeatSetPoint ?? 0,
           acStandbyHeatSetPoint: output.acStandbyHeatSetPoint ?? 0,
         }));
-
-        console.log("📊 [DEBUG] Created originalOutputConfigs:", {
-          length: originalOutputs.length,
-          firstOriginal: originalOutputs[0],
-          allOriginals: originalOutputs,
-        });
-
         setOriginalOutputConfigs(originalOutputs);
         setOriginalOutputConfigsSet(true);
       }

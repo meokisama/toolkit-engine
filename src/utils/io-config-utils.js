@@ -614,43 +614,12 @@ export const hasAirconConfigChanged = (config, originalConfig) => {
  * @returns {boolean} True if configuration has changed
  */
 export const hasOutputConfigChanged = (config, originalConfig) => {
-  if (!originalConfig) {
-    console.log("⚠️ [COMPARE DEBUG] No originalConfig, returning false");
-    return false;
-  }
+  if (!originalConfig) return false;
 
   // Use type-specific comparison based on config type
-  let hasChanged = false;
   if (config.type === "ac") {
-    hasChanged = hasAirconConfigChanged(config, originalConfig);
+    return hasAirconConfigChanged(config, originalConfig);
   } else {
-    hasChanged = hasLightingConfigChanged(config, originalConfig);
+    return hasLightingConfigChanged(config, originalConfig);
   }
-
-  // Log only for first output (index 0) to avoid spam
-  if (config.index === 0) {
-    console.log("🔍 [COMPARE DEBUG] hasOutputConfigChanged result:", {
-      index: config.index,
-      type: config.type,
-      hasChanged: hasChanged,
-      configFields: {
-        lightingAddress: config.lightingAddress,
-        delayOff: config.delayOff,
-        delayOn: config.delayOn,
-        minDim: config.minDim,
-        maxDim: config.maxDim,
-        autoTrigger: config.autoTrigger,
-      },
-      originalFields: {
-        lightingAddress: originalConfig.lightingAddress,
-        delayOff: originalConfig.delayOff,
-        delayOn: originalConfig.delayOn,
-        minDim: originalConfig.minDim,
-        maxDim: originalConfig.maxDim,
-        autoTrigger: originalConfig.autoTrigger,
-      },
-    });
-  }
-
-  return hasChanged;
 };
