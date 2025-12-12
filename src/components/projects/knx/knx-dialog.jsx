@@ -284,7 +284,7 @@ export function KnxItemDialog({ open, onOpenChange, mode, item }) {
       return {
         showSwitch: true,
         showDimming: true,
-        showValue: false,
+        showValue: true,
         allowInput: true,
       };
     }
@@ -398,13 +398,13 @@ export function KnxItemDialog({ open, onOpenChange, mode, item }) {
                       {rcuDataLoading
                         ? "Loading..."
                         : formData.rcu_group_id
-                        ? (() => {
-                            const selectedItem = rcuGroupItems.find((item) => item.id === formData.rcu_group_id);
-                            return selectedItem
-                              ? `${selectedItem.name || `Group ${selectedItem.address}`} (Address: ${selectedItem.address})`
-                              : "Select group...";
-                          })()
-                        : "Select group..."}
+                          ? (() => {
+                              const selectedItem = rcuGroupItems.find((item) => item.id === formData.rcu_group_id);
+                              return selectedItem
+                                ? `${selectedItem.name || `Group ${selectedItem.address}`} (Address: ${selectedItem.address})`
+                                : "Select group...";
+                            })()
+                          : "Select group..."}
                     </span>
                     <ChevronsUpDown className="h-4 w-4 shrink-0 opacity-50" />
                   </Button>
