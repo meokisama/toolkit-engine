@@ -15,10 +15,6 @@ if (started) {
   app.quit();
 }
 
-// Force scale 1:1
-app.commandLine.appendSwitch("force-device-scale-factor", "1");
-app.commandLine.appendSwitch("high-dpi-support", "1");
-
 // Initialize services
 let dbService;
 let loggerService;
