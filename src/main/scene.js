@@ -151,24 +151,6 @@ export function registerSceneHandlers(ipcMain, dbService, rcu) {
     }
   });
 
-  ipcMain.handle("scene:canAddItemToScene", async (event, projectId, address, itemType, itemId, objectType, excludeSceneId) => {
-    try {
-      return await dbService.canAddItemToScene(projectId, address, itemType, itemId, objectType, excludeSceneId);
-    } catch (error) {
-      console.error("Error checking if item can be added to scene:", error);
-      throw error;
-    }
-  });
-
-  ipcMain.handle("scene:getAddressItems", async (event, projectId, address) => {
-    try {
-      return await dbService.getSceneAddressItems(projectId, address);
-    } catch (error) {
-      console.error("Error getting scene address items:", error);
-      throw error;
-    }
-  });
-
   // Bulk import
   ipcMain.handle("scene:bulkImport", async (event, projectId, items) => {
     try {

@@ -21,9 +21,9 @@ export const readScheduleConfigurations = async (networkUnit, projectId, sceneAd
 
       for (const networkSchedule of result.data) {
         try {
-          // Only process enabled schedules with scenes
-          if (!networkSchedule.enabled || !networkSchedule.sceneAddresses || networkSchedule.sceneAddresses.length === 0) {
-            console.log(`Skipping schedule ${networkSchedule.scheduleIndex}: disabled or no scenes`);
+          // Only process schedules with scenes
+          if (!networkSchedule.sceneAddresses || networkSchedule.sceneAddresses.length === 0) {
+            console.log(`Skipping schedule ${networkSchedule.scheduleIndex}: no scenes`);
             continue;
           }
 

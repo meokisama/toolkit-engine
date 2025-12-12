@@ -88,7 +88,6 @@ export function SceneDialog({ open, onOpenChange, scene = null, mode = "create" 
     item: null,
   });
   const [currentTab, setCurrentTab] = useState("lighting"); // Track current active tab
-  const [usedItemsByAddress, setUsedItemsByAddress] = useState([]); // Store items used by other scenes with same address
 
   // Debounce timer for validation
   const validationTimeoutRef = useRef(null);
@@ -130,25 +129,6 @@ export function SceneDialog({ open, onOpenChange, scene = null, mode = "create" 
     }
   }, []);
 
-  // Load items used by other scenes with the same address
-  const loadUsedItemsByAddress = useCallback(
-    async (address) => {
-      if (!address || !address.trim() || !selectedProject) {
-        setUsedItemsByAddress([]);
-        return;
-      }
-
-      try {
-        const usedItems = await window.electronAPI.scene.getAddressItems(selectedProject.id, address);
-        setUsedItemsByAddress(usedItems);
-      } catch (error) {
-        console.error("Failed to load used items by address:", error);
-        setUsedItemsByAddress([]);
-      }
-    },
-    [selectedProject]
-  );
-
   useEffect(() => {
     if (open) {
       if (mode === "edit" && scene) {
@@ -158,10 +138,6 @@ export function SceneDialog({ open, onOpenChange, scene = null, mode = "create" 
           description: scene.description || "",
         });
         loadSceneItems(scene.id);
-        // Load used items for the current address
-        if (scene.address) {
-          loadUsedItemsByAddress(scene.address);
-        }
       } else {
         setFormData({
           name: "",
@@ -170,7 +146,6 @@ export function SceneDialog({ open, onOpenChange, scene = null, mode = "create" 
         });
         setSceneItems([]);
         setOriginalSceneItems([]);
-        setUsedItemsByAddress([]);
       }
       setErrors({});
 
@@ -190,7 +165,7 @@ export function SceneDialog({ open, onOpenChange, scene = null, mode = "create" 
         }
       }
     }
-  }, [open, mode, scene, selectedProject, loadedTabs, loadTabData, loadSceneItems, loadUsedItemsByAddress]);
+  }, [open, mode, scene, selectedProject, loadedTabs, loadTabData, loadSceneItems]);
 
   // Reload scene items when project data changes (to reflect address updates or item deletions)
   useEffect(() => {
@@ -237,17 +212,10 @@ export function SceneDialog({ open, onOpenChange, scene = null, mode = "create" 
         validationTimeoutRef.current = setTimeout(() => {
           const error = validateAddress(value);
           setErrors((prev) => ({ ...prev, address: error }));
-
-          // Load used items by address after validation
-          if (!error && value.trim()) {
-            loadUsedItemsByAddress(value.trim());
-          } else {
-            setUsedItemsByAddress([]);
-          }
         }, 300); // 300ms debounce
       }
     },
-    [validateAddress, loadUsedItemsByAddress]
+    [validateAddress]
   );
 
   // Memoize getItemDetails to prevent unnecessary recalculations
@@ -307,28 +275,6 @@ export function SceneDialog({ open, onOpenChange, scene = null, mode = "create" 
         command = getCommandForAirconItem(item.object_type, itemValue);
       }
 
-      // Check if this item can be added (not already used by another scene with same address)
-      if (formData.address && selectedProject) {
-        try {
-          const canAdd = await window.electronAPI.scene.canAddItemToScene(
-            selectedProject.id,
-            formData.address,
-            itemType,
-            itemId,
-            objectType,
-            mode === "edit" && scene ? scene.id : null // Exclude current scene when editing
-          );
-
-          if (!canAdd) {
-            toast.error(`This item is already used by another scene with address ${formData.address}`);
-            return;
-          }
-        } catch (error) {
-          console.error("Failed to check if item can be added:", error);
-          // Continue with adding if check fails
-        }
-      }
-
       // Always add to local state only - changes will be saved when user clicks Save
       const newSceneItem = {
         id: mode === "edit" ? `temp_${Date.now()}` : Date.now(), // Temporary ID
@@ -344,7 +290,7 @@ export function SceneDialog({ open, onOpenChange, scene = null, mode = "create" 
       };
       setSceneItems((prev) => [...prev, newSceneItem]);
     },
-    [sceneItems.length, getItemDetails, getCommandForAirconItem, mode, formData.address, selectedProject, scene]
+    [sceneItems.length, getItemDetails, getCommandForAirconItem, mode]
   );
 
   // Add multiple aircon items to scene from a card
@@ -360,34 +306,6 @@ export function SceneDialog({ open, onOpenChange, scene = null, mode = "create" 
       const airconItem = projectItems.aircon?.find((item) => item.address === address);
 
       if (!airconItem) return;
-
-      // Check if any of the properties can be added
-      if (formData.address && selectedProject) {
-        for (const property of selectedProperties) {
-          try {
-            const canAdd = await window.electronAPI.scene.canAddItemToScene(
-              selectedProject.id,
-              formData.address,
-              "aircon",
-              airconItem.id,
-              property.objectType,
-              mode === "edit" && scene ? scene.id : null // Exclude current scene when editing
-            );
-
-            if (!canAdd) {
-              toast.error(
-                `Aircon ${
-                  CONSTANTS.AIRCON.find((item) => item.obj_type === property.objectType)?.label || property.objectType
-                } is already used by another scene with address ${formData.address}`
-              );
-              return;
-            }
-          } catch (error) {
-            console.error("Failed to check if aircon item can be added:", error);
-            // Continue with adding if check fails
-          }
-        }
-      }
 
       selectedProperties.forEach((property) => {
         // Create scene item with the aircon item ID but specific object_type and value
@@ -406,7 +324,7 @@ export function SceneDialog({ open, onOpenChange, scene = null, mode = "create" 
         setSceneItems((prev) => [...prev, newSceneItem]);
       });
     },
-    [sceneItems.length, projectItems.aircon, getCommandForAirconItem, mode, formData.address, selectedProject, scene]
+    [sceneItems.length, projectItems.aircon, getCommandForAirconItem, mode]
   );
 
   // Handle opening aircon properties dialog
@@ -557,34 +475,6 @@ export function SceneDialog({ open, onOpenChange, scene = null, mode = "create" 
 
       if (!airconItem) return;
 
-      // Check if any of the new properties can be added (with current scene excluded)
-      if (formData.address && selectedProject) {
-        for (const property of selectedProperties) {
-          try {
-            const canAdd = await window.electronAPI.scene.canAddItemToScene(
-              selectedProject.id,
-              formData.address,
-              "aircon",
-              airconItem.id,
-              property.objectType,
-              mode === "edit" && scene ? scene.id : null // Exclude current scene when editing
-            );
-
-            if (!canAdd) {
-              toast.error(
-                `Aircon ${
-                  CONSTANTS.AIRCON.find((item) => item.obj_type === property.objectType)?.label || property.objectType
-                } is already used by another scene with address ${formData.address}`
-              );
-              return;
-            }
-          } catch (error) {
-            console.error("Failed to check if aircon item can be added:", error);
-            // Continue with adding if check fails
-          }
-        }
-      }
-
       // Update scene items directly to avoid UI flicker
       setSceneItems((prev) => {
         // Remove existing aircon items for this address
@@ -607,7 +497,7 @@ export function SceneDialog({ open, onOpenChange, scene = null, mode = "create" 
         return [...filteredItems, ...newAirconItems];
       });
     },
-    [projectItems.aircon, getCommandForAirconItem, mode, formData.address, selectedProject, scene]
+    [projectItems.aircon, getCommandForAirconItem, mode]
   );
 
   // Get aircon cards from aircon items - memoized
@@ -670,84 +560,28 @@ export function SceneDialog({ open, onOpenChange, scene = null, mode = "create" 
       projectItems.lighting?.filter((item) => {
         // Filter out items already in current scene
         const isInCurrentScene = sceneItems.some((si) => si.item_type === "lighting" && si.item_id === item.id);
-
-        // Filter out items used by other scenes with same address
-        // When editing, we need to check if the item is ONLY used by the current scene
-        const isUsedByOtherScene = usedItemsByAddress.some((usedItem) => {
-          if (usedItem.item_type === "lighting" && usedItem.item_id === item.id) {
-            // If we're editing a scene, check if this item is only used by the current scene
-            if (mode === "edit" && scene) {
-              // Check if this item exists in the original scene items
-              const isInOriginalScene = originalSceneItems.some((origItem) => origItem.item_type === "lighting" && origItem.item_id === item.id);
-              // If it's in the original scene, it means it's used by the current scene
-              // So we should allow it to be available when removed from current scene
-              return !isInOriginalScene;
-            }
-            return true;
-          }
-          return false;
-        });
-
-        return !isInCurrentScene && !isUsedByOtherScene;
+        return !isInCurrentScene;
       }) || []
     );
-  }, [projectItems.lighting, sceneItems, usedItemsByAddress, mode, scene, originalSceneItems]);
+  }, [projectItems.lighting, sceneItems]);
 
   const filteredAirconCards = useMemo(() => {
     return availableAirconCards.filter((card) => {
       // Filter out cards already in current scene
       const isInCurrentScene = sceneItems.some((si) => si.item_type === "aircon" && si.item_address === card.address);
-
-      // Filter out cards where any aircon item is used by other scenes with same address
-      // When editing, we need to check if the item is ONLY used by the current scene
-      const isUsedByOtherScene = usedItemsByAddress.some((usedItem) => {
-        if (usedItem.item_type === "aircon" && usedItem.item_id === card.item.id) {
-          // If we're editing a scene, check if this item is only used by the current scene
-          if (mode === "edit" && scene) {
-            // Check if this aircon address exists in the original scene items
-            const isInOriginalScene = originalSceneItems.some(
-              (origItem) => origItem.item_type === "aircon" && origItem.item_address === card.address
-            );
-            // If it's in the original scene, it means it's used by the current scene
-            // So we should allow it to be available when removed from current scene
-            return !isInOriginalScene;
-          }
-          return true;
-        }
-        return false;
-      });
-
-      return !isInCurrentScene && !isUsedByOtherScene;
+      return !isInCurrentScene;
     });
-  }, [availableAirconCards, sceneItems, usedItemsByAddress, mode, scene, originalSceneItems]);
+  }, [availableAirconCards, sceneItems]);
 
   const filteredCurtainItems = useMemo(() => {
     return (
       projectItems.curtain?.filter((item) => {
         // Filter out items already in current scene
         const isInCurrentScene = sceneItems.some((si) => si.item_type === "curtain" && si.item_id === item.id);
-
-        // Filter out items used by other scenes with same address
-        // When editing, we need to check if the item is ONLY used by the current scene
-        const isUsedByOtherScene = usedItemsByAddress.some((usedItem) => {
-          if (usedItem.item_type === "curtain" && usedItem.item_id === item.id) {
-            // If we're editing a scene, check if this item is only used by the current scene
-            if (mode === "edit" && scene) {
-              // Check if this item exists in the original scene items
-              const isInOriginalScene = originalSceneItems.some((origItem) => origItem.item_type === "curtain" && origItem.item_id === item.id);
-              // If it's in the original scene, it means it's used by the current scene
-              // So we should allow it to be available when removed from current scene
-              return !isInOriginalScene;
-            }
-            return true;
-          }
-          return false;
-        });
-
-        return !isInCurrentScene && !isUsedByOtherScene;
+        return !isInCurrentScene;
       }) || []
     );
-  }, [projectItems.curtain, sceneItems, usedItemsByAddress, mode, scene, originalSceneItems]);
+  }, [projectItems.curtain, sceneItems]);
 
   const removeItemFromScene = useCallback((sceneItemId) => {
     // Always remove from local state only - changes will be saved when user clicks Save
