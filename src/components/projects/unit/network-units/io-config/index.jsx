@@ -8,28 +8,19 @@ import { Separator } from "@/components/ui/separator";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Settings, Download } from "lucide-react";
 import { toast } from "sonner";
-
-// Import network-specific components
 import { NetworkInputConfigItem } from "./network-input-config-item";
 import { NetworkOutputConfigItem } from "./network-output-config-item";
 import { LoadingSkeleton } from "../../shared/loading-skeleton";
-
-// Import dialogs for configuration
 import { InputDetailConfigDialog } from "../../shared/input-config";
 import { LightingOutputConfigDialog } from "../../shared/output-configs/lighting-output-config-dialog";
 import { ACOutputConfigDialog } from "../../shared/output-configs/ac-output-config-dialog";
 import { ProjectItemDialog } from "@/components/projects/lighting/lighting-dialog";
 import { AirconCardDialog } from "@/components/projects/aircon/aircon-card-dialog";
-
-// Import hooks for network I/O configuration
 import { useNetworkIOConfig } from "./hooks/use-network-io-config";
 import { useNetworkInputConfig } from "./hooks/use-network-input-config";
 import { useNetworkOutputConfig } from "./hooks/use-network-output-config";
 import { useProjectDetail } from "@/contexts/project-detail-context";
-
-// Import utility functions
-import { hasOutputConfigChanged } from "../utils/io-config-utils";
-import { hasInputConfigChanged } from "@/utils/io-config-utils";
+import { hasInputConfigChanged, hasOutputConfigChanged } from "@/utils/io-config-utils";
 
 const NetworkIOConfigDialog = ({ open, onOpenChange, item = null }) => {
   const { projectItems, selectedProject, loadTabData, loadedTabs } = useProjectDetail();
@@ -380,7 +371,7 @@ const NetworkIOConfigDialog = ({ open, onOpenChange, item = null }) => {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-6xl! max-h-[90vh] flex flex-col overflow-y-auto">
+      <DialogContent className="max-w-6xl! max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Settings className="h-5 w-5" />
@@ -391,7 +382,7 @@ const NetworkIOConfigDialog = ({ open, onOpenChange, item = null }) => {
           </DialogTitle>
         </DialogHeader>
 
-        <div className="flex-1 overflow-hidden">
+        <div className="">
           {isInitialLoading ? (
             <LoadingSkeleton />
           ) : (

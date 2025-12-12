@@ -194,7 +194,7 @@ export function SequenceDialog({ open, onOpenChange, sequence = null, mode = "cr
 
   return (
     <Dialog open={open} onOpenChange={() => onOpenChange(false)}>
-      <DialogContent className="max-w-4xl! max-h-[90vh] overflow-hidden">
+      <DialogContent className="max-w-4xl! max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>{mode === "edit" ? "Edit Sequence" : "Create Sequence"}</DialogTitle>
           <DialogDescription>

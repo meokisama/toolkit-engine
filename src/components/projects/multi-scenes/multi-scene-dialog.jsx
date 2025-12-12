@@ -344,7 +344,7 @@ export function MultiSceneDialog({ open, onOpenChange, multiScene = null, mode =
 
   return (
     <Dialog open={open} onOpenChange={() => onOpenChange(false)}>
-      <DialogContent className="max-w-4xl! max-h-[90vh] overflow-hidden">
+      <DialogContent className="max-w-4xl! max-h-[90vh] overflow-auto">
         <DialogHeader>
           <DialogTitle>{mode === "edit" ? "Edit Multi-Scene" : "Create Multi-Scene"}</DialogTitle>
           <DialogDescription>
