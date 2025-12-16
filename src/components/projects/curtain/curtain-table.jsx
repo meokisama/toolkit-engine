@@ -44,6 +44,9 @@ export function CurtainTable({ items = [], loading = false }) {
   // Get lighting items for group selection
   const lightingItems = projectItems.lighting || [];
 
+  // Get unit items for source unit filtering
+  const unitItems = projectItems.unit || [];
+
   const handleCellEdit = useCallback((itemId, field, newValue) => {
     const itemChanges = pendingChangesRef.current.get(itemId) || {};
     itemChanges[field] = newValue;
@@ -205,8 +208,8 @@ export function CurtainTable({ items = [], loading = false }) {
 
   // Memoize columns to prevent unnecessary re-renders
   const columns = useMemo(
-    () => createCurtainColumns(handleEdit, handleDelete, handleDuplicate, handleCellEdit, getEffectiveValue, lightingItems),
-    [handleEdit, handleDelete, handleDuplicate, handleCellEdit, getEffectiveValue, lightingItems]
+    () => createCurtainColumns(handleEdit, handleDelete, handleDuplicate, handleCellEdit, getEffectiveValue, lightingItems, unitItems),
+    [handleEdit, handleDelete, handleDuplicate, handleCellEdit, getEffectiveValue, lightingItems, unitItems]
   );
 
   if (loading) {
@@ -246,7 +249,7 @@ export function CurtainTable({ items = [], loading = false }) {
                   hasPendingChanges={pendingChangesCount > 0}
                   saveLoading={saveLoading}
                   onSendAll={handleSendConfig}
-                  sendAllLabel="Send Config"
+                  sendAllLabel="Send All Curtains"
                 />
               )}
               <DataTable

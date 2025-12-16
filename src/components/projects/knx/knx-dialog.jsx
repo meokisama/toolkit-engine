@@ -28,6 +28,7 @@ export function KnxItemDialog({ open, onOpenChange, mode, item }) {
     knx_dimming_group: "",
     knx_value_group: "",
     description: "",
+    source_unit: null,
   });
   const [errors, setErrors] = useState({});
 
@@ -99,6 +100,7 @@ export function KnxItemDialog({ open, onOpenChange, mode, item }) {
           knx_dimming_group: item.knx_dimming_group || "",
           knx_value_group: item.knx_value_group || "",
           description: item.description || "",
+          source_unit: item.source_unit || null,
         });
         // Load RCU Group data for the current item's type
         if (item.type && item.type !== 0) {
@@ -118,11 +120,19 @@ export function KnxItemDialog({ open, onOpenChange, mode, item }) {
           knx_dimming_group: "",
           knx_value_group: "",
           description: "",
+          source_unit: null,
         });
       }
       setErrors({});
     }
   }, [open, mode, item, findNextAvailableKnxAddress]);
+
+  // Load unit data if not already loaded
+  useEffect(() => {
+    if (selectedProject && !loadedTabs.has("unit")) {
+      loadTabData(selectedProject.id, "unit");
+    }
+  }, [selectedProject, loadedTabs, loadTabData]);
 
   const validateForm = () => {
     const newErrors = {};
@@ -300,6 +310,13 @@ export function KnxItemDialog({ open, onOpenChange, mode, item }) {
 
   const knxGroupVisibility = getKnxGroupVisibility(formData.type);
 
+  // Get unit items for source unit selection
+  const unitItems = projectItems.unit || [];
+  const unitOptions = unitItems.map((unit) => ({
+    value: unit.id,
+    label: `${unit.type || "Unknown"}-${unit.ip_address || unit.serial_no || "N/A"}`,
+  }));
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[700px] max-h-[90vh]">
@@ -335,6 +352,40 @@ export function KnxItemDialog({ open, onOpenChange, mode, item }) {
               {errors.address && <p className="text-sm text-red-500">{errors.address}</p>}
             </div>
           </div>
+
+          <div className="grid grid-cols-2 gap-2">
+            <div className="space-y-2">
+              <Label htmlFor="source_unit">Source Unit</Label>
+              <Select
+                value={formData.source_unit?.toString() || "none"}
+                onValueChange={(value) => handleInputChange("source_unit", value === "none" ? null : parseInt(value))}
+              >
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Default" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">Default</SelectItem>
+                  {unitOptions.map((option) => (
+                    <SelectItem key={option.value} value={option.value.toString()}>
+                      {option.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="description">Description</Label>
+              <Input
+                id="description"
+                value={formData.description}
+                onChange={(e) => handleInputChange("description", e.target.value)}
+                placeholder="Enter device description (optional)"
+              />
+              {errors.description && <p className="text-sm text-red-500">{errors.description}</p>}
+            </div>
+          </div>
+
           <div className="grid grid-cols-4 gap-4">
             <div className="space-y-2">
               <Label htmlFor="type">Type</Label>
@@ -449,16 +500,6 @@ export function KnxItemDialog({ open, onOpenChange, mode, item }) {
           {!knxGroupVisibility.allowInput && (
             <p className="text-sm text-muted-foreground italic">RCU Group and KNX Groups are disabled when Type is set to "Disable"</p>
           )}
-          <div className="space-y-2">
-            <Label htmlFor="description">Description</Label>
-            <Input
-              id="description"
-              value={formData.description}
-              onChange={(e) => handleInputChange("description", e.target.value)}
-              placeholder="Enter device description (optional)"
-            />
-            {errors.description && <p className="text-sm text-red-500">{errors.description}</p>}
-          </div>
 
           <div className="grid grid-cols-3 gap-4 py-4">
             {knxGroupVisibility.showSwitch && (

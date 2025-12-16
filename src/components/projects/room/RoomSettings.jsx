@@ -3,6 +3,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Label } from "@/components/ui/label";
 import { RoomGeneralSettings } from "./RoomGeneralSettings";
 import { RoomConfiguration } from "./RoomConfiguration";
 import { useProjectDetail } from "@/contexts/project-detail-context";
@@ -18,6 +20,9 @@ export function RoomSettings() {
   const [isSending, setIsSending] = useState(false);
   const { selectedUnitIds, handleSelectionChange, clearSelection } = useNetworkUnitSelector();
   const networkUnitSelectorRef = useRef(null);
+
+  // Source unit selection state
+  const [selectedSourceUnit, setSelectedSourceUnit] = useState(null); // null = Default
 
   // Room configuration state
   const [roomConfig, setRoomConfig] = useState({
@@ -68,16 +73,18 @@ export function RoomSettings() {
     });
   };
 
-  // Load room data from database
+  // Load room data from database based on selected source unit
   useEffect(() => {
     const loadRoomData = async () => {
       if (!selectedProject) return;
 
       setIsLoading(true);
       try {
-        // Load general config
-        const generalConfig = await window.electronAPI.room.getGeneralConfig(selectedProject.id);
+        // Load general config for selected source unit
+        const generalConfig = await window.electronAPI.room.getGeneralConfig(selectedProject.id, selectedSourceUnit);
+
         if (generalConfig) {
+          // Load existing general config
           setRoomConfig({
             roomMode: generalConfig.room_mode,
             clientMode: generalConfig.client_mode,
@@ -89,32 +96,100 @@ export function RoomSettings() {
             clientIP: generalConfig.client_ip || "",
             clientPort: generalConfig.client_port,
           });
-        }
 
-        // Load all room configs
-        const allRoomConfigs = await window.electronAPI.room.getAllRoomConfigs(selectedProject.id);
-        if (allRoomConfigs && allRoomConfigs.length > 0) {
-          setRoomConfigurations((prev) => {
-            const updated = [...prev];
-            allRoomConfigs.forEach((config) => {
-              const index = config.room_address - 1;
-              if (index >= 0 && index < 5) {
-                updated[index] = {
-                  roomAddress: config.room_address,
-                  occupancyType: config.occupancy_type,
-                  occupancySceneType: config.occupancy_scene_type,
-                  enableWelcomeNight: config.enable_welcome_night || 0,
-                  pirInitTime: config.pir_init_time,
-                  pirVerifyTime: config.pir_verify_time,
-                  unrentPeriod: config.unrent_period,
-                  standbyTime: config.standby_time,
-                  period: config.period,
-                  states: config.states || {},
-                };
-              }
-            });
-            return updated;
+          // Load room configs for this general config
+          if (generalConfig.id) {
+            const allRoomConfigs = await window.electronAPI.room.getAllRoomConfigs(generalConfig.id);
+
+            // Reset room configurations to default
+            const defaultConfigs = Array(5)
+              .fill(null)
+              .map((_, index) => ({
+                roomAddress: index + 1,
+                occupancyType: 0,
+                occupancySceneType: 0,
+                enableWelcomeNight: 0,
+                pirInitTime: 0,
+                pirVerifyTime: 0,
+                unrentPeriod: 0,
+                standbyTime: 15,
+                period: 0,
+                states: {},
+              }));
+
+            // Apply loaded configs
+            if (allRoomConfigs && allRoomConfigs.length > 0) {
+              const updated = [...defaultConfigs];
+              allRoomConfigs.forEach((config) => {
+                const index = config.room_address - 1;
+                if (index >= 0 && index < 5) {
+                  updated[index] = {
+                    roomAddress: config.room_address,
+                    occupancyType: config.occupancy_type,
+                    occupancySceneType: config.occupancy_scene_type,
+                    enableWelcomeNight: config.enable_welcome_night || 0,
+                    pirInitTime: config.pir_init_time,
+                    pirVerifyTime: config.pir_verify_time,
+                    unrentPeriod: config.unrent_period,
+                    standbyTime: config.standby_time,
+                    period: config.period,
+                    states: config.states || {},
+                  };
+                }
+              });
+              setRoomConfigurations(updated);
+            } else {
+              setRoomConfigurations(defaultConfigs);
+            }
+          } else {
+            // No room configs found, use defaults
+            setRoomConfigurations(
+              Array(5)
+                .fill(null)
+                .map((_, index) => ({
+                  roomAddress: index + 1,
+                  occupancyType: 0,
+                  occupancySceneType: 0,
+                  enableWelcomeNight: 0,
+                  pirInitTime: 0,
+                  pirVerifyTime: 0,
+                  unrentPeriod: 0,
+                  standbyTime: 15,
+                  period: 0,
+                  states: {},
+                }))
+            );
+          }
+        } else {
+          // No general config found, use all defaults
+          setRoomConfig({
+            roomMode: 0,
+            clientMode: 0,
+            roomAmount: 1,
+            tcpMode: 0,
+            slaveAmount: 1,
+            port: 5000,
+            slaveIPs: ["", "", "", ""],
+            clientIP: "",
+            clientPort: 8080,
           });
+
+          setRoomConfigurations(
+            Array(5)
+              .fill(null)
+              .map((_, index) => ({
+                roomAddress: index + 1,
+                occupancyType: 0,
+                occupancySceneType: 0,
+                enableWelcomeNight: 0,
+                pirInitTime: 0,
+                pirVerifyTime: 0,
+                unrentPeriod: 0,
+                standbyTime: 15,
+                period: 0,
+                states: {},
+              }))
+          );
         }
       } catch (error) {
         console.error("Error loading room data:", error);
@@ -125,7 +200,7 @@ export function RoomSettings() {
     };
 
     loadRoomData();
-  }, [selectedProject]);
+  }, [selectedProject, selectedSourceUnit]);
 
   // Save room configurations
   const handleSave = async () => {
@@ -133,24 +208,28 @@ export function RoomSettings() {
 
     setIsSaving(true);
     try {
-      // Save general config
-      await window.electronAPI.room.setGeneralConfig(selectedProject.id, {
-        roomMode: roomConfig.roomMode,
-        roomAmount: roomConfig.roomAmount,
-        tcpMode: roomConfig.tcpMode,
-        port: roomConfig.port,
-        slaveAmount: roomConfig.slaveAmount,
-        slaveIPs: roomConfig.slaveIPs,
-        clientMode: roomConfig.clientMode,
-        clientIP: roomConfig.clientIP,
-        clientPort: roomConfig.clientPort,
-      });
+      // Save general config with source_unit
+      await window.electronAPI.room.setGeneralConfig(
+        selectedProject.id,
+        {
+          roomMode: roomConfig.roomMode,
+          roomAmount: roomConfig.roomAmount,
+          tcpMode: roomConfig.tcpMode,
+          port: roomConfig.port,
+          slaveAmount: roomConfig.slaveAmount,
+          slaveIPs: roomConfig.slaveIPs,
+          clientMode: roomConfig.clientMode,
+          clientIP: roomConfig.clientIP,
+          clientPort: roomConfig.clientPort,
+        },
+        selectedSourceUnit
+      );
 
       // Save room configs based on effective room amount
       const effectiveRoomAmount = roomConfig.roomMode === 0 ? roomConfig.roomAmount : 1;
       for (let i = 0; i < effectiveRoomAmount; i++) {
         const config = roomConfigurations[i];
-        await window.electronAPI.room.setRoomConfig(selectedProject.id, config.roomAddress, {
+        await window.electronAPI.room.setRoomConfig(selectedProject.id, selectedSourceUnit, config.roomAddress, {
           occupancyType: config.occupancyType,
           occupancySceneType: config.occupancySceneType,
           enableWelcomeNight: config.enableWelcomeNight,
@@ -163,7 +242,7 @@ export function RoomSettings() {
         });
       }
 
-      toast.success("Room configurations saved successfully");
+      toast.success(`Room configurations saved successfully${selectedSourceUnit ? " for selected unit" : " (Default)"}`);
     } catch (error) {
       console.error("Error saving room data:", error);
       toast.error("Failed to save room configurations");
@@ -268,6 +347,13 @@ export function RoomSettings() {
     }
   }, [selectedProject, loadedTabs, loadTabData]);
 
+  // Load unit data if not already loaded
+  useEffect(() => {
+    if (selectedProject && !loadedTabs.has("unit")) {
+      loadTabData(selectedProject.id, "unit");
+    }
+  }, [selectedProject, loadedTabs, loadTabData]);
+
   // Get available scenes
   const availableScenes = projectItems.scene || [];
 
@@ -315,16 +401,48 @@ export function RoomSettings() {
         </CardContent>
       </Card>
 
-      {/* Action Buttons at bottom */}
-      <div className="flex justify-end gap-2">
-        <Button onClick={() => setIsSendDialogOpen(true)} disabled={isSaving || isSending} variant="outline">
-          <Send className="size-4" />
-          Send Configuration
-        </Button>
-        <Button onClick={handleSave} disabled={isSaving || isSending}>
-          <Save className="size-4" />
-          {isSaving ? "Saving..." : "Save Configurations"}
-        </Button>
+      {/* Source Unit Selector and Action Buttons */}
+      <div className="flex items-center justify-between gap-4">
+        {/* Source Unit Selector */}
+        <div className="flex items-center gap-2">
+          <Label htmlFor="source-unit-selector" className="text-sm font-medium whitespace-nowrap">
+            Unit
+          </Label>
+          <Select
+            value={selectedSourceUnit?.toString() || "default"}
+            onValueChange={(value) => {
+              if (value === "default") {
+                setSelectedSourceUnit(null);
+              } else {
+                setSelectedSourceUnit(parseInt(value));
+              }
+            }}
+          >
+            <SelectTrigger id="source-unit-selector" className="w-60">
+              <SelectValue placeholder="Default" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="default">Default</SelectItem>
+              {(projectItems.unit || []).map((unit) => (
+                <SelectItem key={unit.id} value={unit.id.toString()}>
+                  {unit.type || "Unknown"} - {unit.ip_address || unit.serial_no || "N/A"}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
+        {/* Action Buttons */}
+        <div className="flex gap-2">
+          <Button onClick={() => setIsSendDialogOpen(true)} disabled={isSaving || isSending} variant="outline">
+            <Send className="size-4" />
+            Send Configuration
+          </Button>
+          <Button onClick={handleSave} disabled={isSaving || isSending}>
+            <Save className="size-4" />
+            {isSaving ? "Saving..." : "Save Configurations"}
+          </Button>
+        </div>
       </div>
 
       {/* Send Configuration Dialog */}

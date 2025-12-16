@@ -21,12 +21,14 @@ export const curtainTableSchemas = {
       stop_group_id INTEGER,
       pause_period INTEGER DEFAULT 0,
       transition_period INTEGER DEFAULT 0,
+      source_unit INTEGER,
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
       updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
       FOREIGN KEY (project_id) REFERENCES projects (id) ON DELETE CASCADE,
       FOREIGN KEY (open_group_id) REFERENCES lighting (id) ON DELETE SET NULL,
       FOREIGN KEY (close_group_id) REFERENCES lighting (id) ON DELETE SET NULL,
-      FOREIGN KEY (stop_group_id) REFERENCES lighting (id) ON DELETE SET NULL
+      FOREIGN KEY (stop_group_id) REFERENCES lighting (id) ON DELETE SET NULL,
+      FOREIGN KEY (source_unit) REFERENCES unit (id) ON DELETE SET NULL
     )
   `,
 };
@@ -104,8 +106,8 @@ export const curtainMethods = {
       const object_value = this.getObjectValue(object_type);
 
       const stmt = this.db.prepare(`
-        INSERT INTO curtain (project_id, name, address, description, object_type, object_value, curtain_type, curtain_value, open_group_id, close_group_id, stop_group_id, pause_period, transition_period)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        INSERT INTO curtain (project_id, name, address, description, object_type, object_value, curtain_type, curtain_value, open_group_id, close_group_id, stop_group_id, pause_period, transition_period, source_unit)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       `);
       const result = stmt.run(
         projectId,
@@ -120,7 +122,8 @@ export const curtainMethods = {
         finalCloseGroupId || null,
         finalStopGroupId || null,
         pause_period || 0,
-        transition_period || 0
+        transition_period || 0,
+        itemData.source_unit || null
       );
 
       return this.getProjectItemById(result.lastInsertRowid, "curtain");

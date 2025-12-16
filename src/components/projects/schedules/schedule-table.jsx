@@ -14,7 +14,10 @@ import { toast } from "sonner";
 
 const ScheduleTable = memo(function ScheduleTable({ items = [], loading = false }) {
   const category = "schedule";
-  const { deleteItem, duplicateItem, updateItem } = useProjectDetail();
+  const { deleteItem, duplicateItem, updateItem, projectItems } = useProjectDetail();
+
+  // Get unit items for source unit filtering
+  const unitItems = projectItems?.unit || [];
   const [scheduleSceneCounts, setScheduleSceneCounts] = useState({});
   const [table, setTable] = useState(null);
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -255,7 +258,7 @@ const ScheduleTable = memo(function ScheduleTable({ items = [], loading = false 
 
   // Now columns will be truly stable because all dependencies are stable!
   const columns = useMemo(
-    () => createScheduleColumns(handleEditItem, handleDuplicateItem, handleDeleteItem, handleCellEdit, getEffectiveValue, handleSendSchedule),
+    () => createScheduleColumns(handleEditItem, handleDuplicateItem, handleDeleteItem, handleCellEdit, getEffectiveValue, handleSendSchedule, unitItems),
     [
       handleEditItem,
       handleDuplicateItem,
@@ -263,6 +266,7 @@ const ScheduleTable = memo(function ScheduleTable({ items = [], loading = false 
       handleCellEdit,
       getEffectiveValue, // This is now stable!
       handleSendSchedule,
+      unitItems,
     ]
   );
 

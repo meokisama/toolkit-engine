@@ -340,11 +340,11 @@ export const projectMethods = {
         );
       }
 
-      // Copy room config
-      const roomConfigs = originalItems.room_config || [];
+      // Copy room detail config (with backward compatibility for old room_config name)
+      const roomConfigs = originalItems.room_detail_config || originalItems.room_config || [];
       roomConfigs.forEach((roomConfig) => {
         const stmt = this.db.prepare(`
-          INSERT INTO room_config (
+          INSERT INTO room_detail_config (
             project_id, room_address, occupancy_type, occupancy_scene_type, enable_welcome_night,
             period, pir_init_time, pir_verify_time, unrent_period, standby_time,
             unrent_aircon_active, unrent_aircon_mode, unrent_aircon_fan_speed, unrent_aircon_cool_setpoint, unrent_aircon_heat_setpoint,
@@ -641,8 +641,8 @@ export const projectMethods = {
         .prepare("SELECT * FROM room_general_config WHERE project_id = ?")
         .get(projectId);
 
-      const room_config = this.db
-        .prepare("SELECT * FROM room_config WHERE project_id = ? ORDER BY room_address")
+      const room_detail_config = this.db
+        .prepare("SELECT * FROM room_detail_config WHERE project_id = ? ORDER BY room_address")
         .all(projectId);
 
       // Get DALI configuration
@@ -689,7 +689,7 @@ export const projectMethods = {
         sequence_multi_scenes,
         // Room configuration
         room_general_config,
-        room_config,
+        room_detail_config,
         // DALI configuration
         dali_devices,
         dali_groups,

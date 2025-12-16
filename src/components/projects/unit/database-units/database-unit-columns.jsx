@@ -77,7 +77,7 @@ export const createUnitColumns = (onEdit, onDuplicate, onDelete, onCellEdit, get
           value={effectiveValue}
           type="text"
           onSave={(newValue) => onCellEdit(row.original.id, "serial_no", newValue)}
-          className="text-sm w-full text-center"
+          className="text-sm w-full min-w-36 text-center"
           placeholder="-"
         />
       );
@@ -99,7 +99,7 @@ export const createUnitColumns = (onEdit, onDuplicate, onDelete, onCellEdit, get
           value={effectiveValue}
           type="text"
           onSave={(newValue) => onCellEdit(row.original.id, "ip_address", newValue)}
-          className="text-sm w-full text-center"
+          className="text-sm w-full min-w-30 text-center"
           placeholder="-"
         />
       );
@@ -121,7 +121,7 @@ export const createUnitColumns = (onEdit, onDuplicate, onDelete, onCellEdit, get
           value={effectiveValue}
           type="text"
           onSave={(newValue) => onCellEdit(row.original.id, "id_can", newValue)}
-          className="text-sm w-full text-center"
+          className="text-sm w-full text-center min-w-22"
           placeholder="-"
         />
       );
@@ -351,7 +351,7 @@ export const createNetworkUnitColumns = () => [
     header: ({ column }) => <DataTableColumnHeader column={column} title="Type" />,
     cell: ({ row }) => {
       const type = row.getValue("type");
-      return <Input value={type || ""} readOnly className="font-medium " placeholder="-" />;
+      return <Input value={type || ""} readOnly className="font-medium min-w-40" placeholder="-" />;
     },
     enableSorting: true,
     enableHiding: true,
@@ -364,7 +364,7 @@ export const createNetworkUnitColumns = () => [
     header: ({ column }) => <DataTableColumnHeader column={column} title="Serial No." className="flex items-center justify-center" />,
     cell: ({ row }) => {
       const serialNo = row.getValue("serial_no");
-      return <Input value={serialNo || ""} readOnly className="text-sm text-center" placeholder="-" />;
+      return <Input value={serialNo || ""} readOnly className="text-sm text-center min-w-36" placeholder="-" />;
     },
     enableSorting: true,
     enableHiding: true,
@@ -377,7 +377,7 @@ export const createNetworkUnitColumns = () => [
     header: ({ column }) => <DataTableColumnHeader column={column} title="IP Address" className="justify-center" />,
     cell: ({ row }) => {
       const ipAddress = row.getValue("ip_address");
-      return <Input value={ipAddress || ""} readOnly className="text-sm text-center" placeholder="-" />;
+      return <Input value={ipAddress || ""} readOnly className="text-sm text-center min-w-30" placeholder="-" />;
     },
     enableSorting: true,
     sortingFn: (rowA, rowB) => {
@@ -395,7 +395,7 @@ export const createNetworkUnitColumns = () => [
     header: ({ column }) => <DataTableColumnHeader column={column} title="ID CAN" className="text-center" />,
     cell: ({ row }) => {
       const idCan = row.getValue("id_can");
-      return <Input value={idCan || ""} readOnly className="text-sm text-center" placeholder="-" />;
+      return <Input value={idCan || ""} readOnly className="text-sm text-center min-w-20" placeholder="-" />;
     },
     enableSorting: false,
     enableHiding: true,
@@ -421,7 +421,7 @@ export const createNetworkUnitColumns = () => [
         }
       };
 
-      return <Input value={mode || ""} readOnly className={`text-center  text-xs font-medium ${getTextColor(mode)}`} placeholder="-" />;
+      return <Input value={mode || ""} readOnly className={`text-center min-w-30 text-xs font-medium ${getTextColor(mode)}`} placeholder="-" />;
     },
     enableSorting: true,
     enableHiding: true,

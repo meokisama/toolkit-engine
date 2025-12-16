@@ -5,11 +5,12 @@
 
 // Table creation SQL statements
 export const roomTableSchemas = {
-  // Room General Config Table - stores general room configuration for each project
+  // Room General Config Table - stores general room configuration for each project and unit
   createRoomGeneralConfigTable: `
     CREATE TABLE IF NOT EXISTS room_general_config (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
-      project_id INTEGER NOT NULL UNIQUE,
+      project_id INTEGER NOT NULL,
+      source_unit INTEGER,
       room_mode INTEGER NOT NULL DEFAULT 0,
       room_amount INTEGER NOT NULL DEFAULT 1,
       tcp_mode INTEGER NOT NULL DEFAULT 0,
@@ -21,15 +22,22 @@ export const roomTableSchemas = {
       client_port INTEGER NOT NULL DEFAULT 8080,
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
       updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-      FOREIGN KEY (project_id) REFERENCES projects (id) ON DELETE CASCADE
+      FOREIGN KEY (project_id) REFERENCES projects (id) ON DELETE CASCADE,
+      FOREIGN KEY (source_unit) REFERENCES unit (id) ON DELETE SET NULL
     )
   `,
 
-  // Room Config Table - stores individual room configurations with 7 states
-  createRoomConfigTable: `
-    CREATE TABLE IF NOT EXISTS room_config (
+  // Create unique index for room_general_config to handle NULL source_unit properly
+  createRoomGeneralConfigUniqueIndex: `
+    CREATE UNIQUE INDEX IF NOT EXISTS idx_room_general_config_unique
+    ON room_general_config(project_id, IFNULL(source_unit, 0))
+  `,
+
+  // Room Detail Config Table - stores individual room configurations with 7 states
+  createRoomDetailConfigTable: `
+    CREATE TABLE IF NOT EXISTS room_detail_config (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
-      project_id INTEGER NOT NULL,
+      general_config_id INTEGER NOT NULL,
       room_address INTEGER NOT NULL,
       occupancy_type INTEGER NOT NULL DEFAULT 0,
       occupancy_scene_type INTEGER DEFAULT 0,
@@ -90,8 +98,8 @@ export const roomTableSchemas = {
       out_of_service_scenes TEXT DEFAULT '',
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
       updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-      FOREIGN KEY (project_id) REFERENCES projects (id) ON DELETE CASCADE,
-      UNIQUE(project_id, room_address)
+      FOREIGN KEY (general_config_id) REFERENCES room_general_config (id) ON DELETE CASCADE,
+      UNIQUE(general_config_id, room_address)
     )
   `,
 };
@@ -126,15 +134,18 @@ export const roomMethods = {
   },
 
   /**
-   * Get room general config for a project
+   * Get room general config for a project and source unit
+   * @param {number} projectId - The project ID
+   * @param {number|null} sourceUnit - The source unit ID (null for default)
    */
-  getRoomGeneralConfig(projectId) {
+  getRoomGeneralConfig(projectId, sourceUnit = null) {
     try {
       const stmt = this.db.prepare(`
-        SELECT * FROM room_general_config WHERE project_id = ?
+        SELECT * FROM room_general_config
+        WHERE project_id = ? AND (source_unit IS ? OR (source_unit IS NULL AND ? IS NULL))
       `);
 
-      const config = stmt.get(projectId);
+      const config = stmt.get(projectId, sourceUnit, sourceUnit);
 
       if (config) {
         // Parse slave IPs from string to array
@@ -150,11 +161,37 @@ export const roomMethods = {
   },
 
   /**
-   * Create or update room general config
+   * Get all room general configs for a project (all units)
    */
-  createOrUpdateRoomGeneralConfig(projectId, config) {
+  getAllRoomGeneralConfigs(projectId) {
     try {
-      const existing = this.getRoomGeneralConfig(projectId);
+      const stmt = this.db.prepare(`
+        SELECT * FROM room_general_config WHERE project_id = ?
+        ORDER BY source_unit
+      `);
+
+      const configs = stmt.all(projectId);
+
+      return configs.map((config) => {
+        config.slaveIPs = config.slave_ips ? config.slave_ips.split(",") : [];
+        delete config.slave_ips;
+        return config;
+      });
+    } catch (error) {
+      console.error("Failed to get all room general configs:", error);
+      throw error;
+    }
+  },
+
+  /**
+   * Create or update room general config
+   * @param {number} projectId - The project ID
+   * @param {object} config - The configuration object
+   * @param {number|null} sourceUnit - The source unit ID (null for default)
+   */
+  createOrUpdateRoomGeneralConfig(projectId, config, sourceUnit = null) {
+    try {
+      const existing = this.getRoomGeneralConfig(projectId, sourceUnit);
 
       if (existing) {
         // Update existing
@@ -163,7 +200,7 @@ export const roomMethods = {
           SET room_mode = ?, room_amount = ?, tcp_mode = ?, port = ?,
               slave_amount = ?, slave_ips = ?, client_mode = ?,
               client_ip = ?, client_port = ?, updated_at = CURRENT_TIMESTAMP
-          WHERE project_id = ?
+          WHERE project_id = ? AND (source_unit IS ? OR (source_unit IS NULL AND ? IS NULL))
         `);
 
         stmt.run(
@@ -176,21 +213,24 @@ export const roomMethods = {
           config.clientMode ?? 0,
           config.clientIP ?? "",
           config.clientPort ?? 8080,
-          projectId
+          projectId,
+          sourceUnit,
+          sourceUnit
         );
 
-        return this.getRoomGeneralConfig(projectId);
+        return this.getRoomGeneralConfig(projectId, sourceUnit);
       } else {
         // Create new
         const stmt = this.db.prepare(`
           INSERT INTO room_general_config (
-            project_id, room_mode, room_amount, tcp_mode, port,
+            project_id, source_unit, room_mode, room_amount, tcp_mode, port,
             slave_amount, slave_ips, client_mode, client_ip, client_port
-          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         `);
 
         stmt.run(
           projectId,
+          sourceUnit,
           config.roomMode ?? 0,
           config.roomAmount ?? 1,
           config.tcpMode ?? 0,
@@ -202,7 +242,7 @@ export const roomMethods = {
           config.clientPort ?? 8080
         );
 
-        return this.getRoomGeneralConfig(projectId);
+        return this.getRoomGeneralConfig(projectId, sourceUnit);
       }
     } catch (error) {
       console.error("Failed to create/update room general config:", error);
@@ -211,16 +251,18 @@ export const roomMethods = {
   },
 
   /**
-   * Get room config for a specific room address
+   * Get room detail config for a specific room address
+   * @param {number} generalConfigId - The general config ID
+   * @param {number} roomAddress - The room address (1-5)
    */
-  getRoomConfig(projectId, roomAddress) {
+  getRoomDetailConfig(generalConfigId, roomAddress) {
     try {
       const stmt = this.db.prepare(`
-        SELECT * FROM room_config
-        WHERE project_id = ? AND room_address = ?
+        SELECT * FROM room_detail_config
+        WHERE general_config_id = ? AND room_address = ?
       `);
 
-      const config = stmt.get(projectId, roomAddress);
+      const config = stmt.get(generalConfigId, roomAddress);
 
       if (config) {
         // Parse states from flat columns to nested object
@@ -299,41 +341,70 @@ export const roomMethods = {
   },
 
   /**
-   * Get all room configs for a project
+   * Get all room detail configs for a general config
+   * @param {number} generalConfigId - The general config ID
    */
-  getAllRoomConfigs(projectId) {
+  getAllRoomDetailConfigs(generalConfigId) {
     try {
       const stmt = this.db.prepare(`
-        SELECT * FROM room_config
-        WHERE project_id = ?
+        SELECT * FROM room_detail_config
+        WHERE general_config_id = ?
         ORDER BY room_address
       `);
 
-      const configs = stmt.all(projectId);
+      const configs = stmt.all(generalConfigId);
 
       // Parse states for each config
       return configs.map((config) => {
         const roomAddress = config.room_address;
-        return this.getRoomConfig(projectId, roomAddress);
+        return this.getRoomDetailConfig(generalConfigId, roomAddress);
       });
     } catch (error) {
-      console.error("Failed to get all room configs:", error);
+      console.error("Failed to get all room detail configs:", error);
       throw error;
     }
   },
 
   /**
-   * Create or update room config
+   * Get all room detail configs for a project and source unit
+   * @param {number} projectId - The project ID
+   * @param {number|null} sourceUnit - The source unit ID (null for default)
    */
-  createOrUpdateRoomConfig(projectId, roomAddress, config) {
+  getAllRoomDetailConfigsByProjectAndUnit(projectId, sourceUnit = null) {
     try {
-      const existing = this.getRoomConfig(projectId, roomAddress);
+      // First get the general config
+      const generalConfig = this.getRoomGeneralConfig(projectId, sourceUnit);
+      if (!generalConfig) {
+        return [];
+      }
+
+      // Then get all room detail configs for this general config
+      return this.getAllRoomDetailConfigs(generalConfig.id);
+    } catch (error) {
+      console.error("Failed to get all room detail configs by project and unit:", error);
+      throw error;
+    }
+  },
+
+  /**
+   * Create or update room detail config
+   * @param {number} generalConfigId - The general config ID
+   * @param {number} roomAddress - The room address (1-5)
+   * @param {object} config - The configuration object
+   */
+  createOrUpdateRoomDetailConfig(generalConfigId, roomAddress, config) {
+    try {
+      if (!config) {
+        throw new Error("Config object is required");
+      }
+
+      const existing = this.getRoomDetailConfig(generalConfigId, roomAddress);
       const states = config.states || {};
 
       if (existing) {
         // Update existing
         const stmt = this.db.prepare(`
-          UPDATE room_config
+          UPDATE room_detail_config
           SET occupancy_type = ?, occupancy_scene_type = ?, enable_welcome_night = ?,
               period = ?, pir_init_time = ?, pir_verify_time = ?, unrent_period = ?,
               standby_time = ?,
@@ -366,7 +437,7 @@ export const roomMethods = {
               out_of_service_aircon_heat_setpoint = ?, out_of_service_scene_amount = ?,
               out_of_service_scenes = ?,
               updated_at = CURRENT_TIMESTAMP
-          WHERE project_id = ? AND room_address = ?
+          WHERE general_config_id = ? AND room_address = ?
         `);
 
         stmt.run(
@@ -434,14 +505,14 @@ export const roomMethods = {
           states.OutOfService?.airconHeatSetpoint ?? 20,
           this.getSceneAmount(states.OutOfService?.scenesList),
           this.formatScenesString(states.OutOfService?.scenesList),
-          projectId,
+          generalConfigId,
           roomAddress
         );
       } else {
         // Create new
         const stmt = this.db.prepare(`
-          INSERT INTO room_config (
-            project_id, room_address, occupancy_type, occupancy_scene_type, enable_welcome_night,
+          INSERT INTO room_detail_config (
+            general_config_id, room_address, occupancy_type, occupancy_scene_type, enable_welcome_night,
             period, pir_init_time, pir_verify_time, unrent_period, standby_time,
             unrent_aircon_active, unrent_aircon_mode, unrent_aircon_fan_speed,
             unrent_aircon_cool_setpoint, unrent_aircon_heat_setpoint,
@@ -477,7 +548,7 @@ export const roomMethods = {
         `);
 
         stmt.run(
-          projectId,
+          generalConfigId,
           roomAddress,
           config.occupancyType ?? 0,
           config.occupancySceneType ?? 0,
@@ -546,44 +617,63 @@ export const roomMethods = {
         );
       }
 
-      return this.getRoomConfig(projectId, roomAddress);
+      return this.getRoomDetailConfig(generalConfigId, roomAddress);
     } catch (error) {
-      console.error("Failed to create/update room config:", error);
+      console.error("Failed to create/update room detail config:", error);
       throw error;
     }
   },
 
   /**
-   * Delete room config
+   * Delete room detail config
    */
-  deleteRoomConfig(projectId, roomAddress) {
+  deleteRoomDetailConfig(generalConfigId, roomAddress) {
     try {
       const stmt = this.db.prepare(`
-        DELETE FROM room_config
-        WHERE project_id = ? AND room_address = ?
+        DELETE FROM room_detail_config
+        WHERE general_config_id = ? AND room_address = ?
       `);
 
-      const result = stmt.run(projectId, roomAddress);
+      const result = stmt.run(generalConfigId, roomAddress);
       return { success: true, changes: result.changes };
     } catch (error) {
-      console.error("Failed to delete room config:", error);
+      console.error("Failed to delete room detail config:", error);
       throw error;
     }
   },
 
   /**
-   * Delete all room configs for a project
+   * Delete all room detail configs for a general config
    */
-  deleteAllRoomConfigs(projectId) {
+  deleteAllRoomDetailConfigs(generalConfigId) {
     try {
       const stmt = this.db.prepare(`
-        DELETE FROM room_config WHERE project_id = ?
+        DELETE FROM room_detail_config WHERE general_config_id = ?
       `);
 
-      const result = stmt.run(projectId);
+      const result = stmt.run(generalConfigId);
       return { success: true, changes: result.changes };
     } catch (error) {
-      console.error("Failed to delete all room configs:", error);
+      console.error("Failed to delete all room detail configs:", error);
+      throw error;
+    }
+  },
+
+  /**
+   * Delete room general config and all its room configs
+   */
+  deleteRoomGeneralConfig(projectId, sourceUnit = null) {
+    try {
+      const stmt = this.db.prepare(`
+        DELETE FROM room_general_config
+        WHERE project_id = ? AND (source_unit IS ? OR (source_unit IS NULL AND ? IS NULL))
+      `);
+
+      const result = stmt.run(projectId, sourceUnit, sourceUnit);
+      // Room detail configs will be deleted automatically due to CASCADE
+      return { success: true, changes: result.changes };
+    } catch (error) {
+      console.error("Failed to delete room general config:", error);
       throw error;
     }
   },

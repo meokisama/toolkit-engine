@@ -50,6 +50,9 @@ function KnxTableComponent({ items, loading }) {
 
   const category = "knx";
 
+  // Get unit items for source unit filtering
+  const unitItems = projectItems.unit || [];
+
   const handleCellEdit = useCallback((itemId, field, newValue) => {
     const itemChanges = pendingChangesRef.current.get(itemId) || {};
     itemChanges[field] = newValue;
@@ -239,7 +242,8 @@ function KnxTableComponent({ items, loading }) {
   }, []);
 
   const columns = useMemo(
-    () => createKnxItemsColumns(handleEditItem, handleDuplicateItem, handleDeleteItem, handleCellEdit, getEffectiveValue, projectItems || {}),
+    () =>
+      createKnxItemsColumns(handleEditItem, handleDuplicateItem, handleDeleteItem, handleCellEdit, getEffectiveValue, projectItems || {}, unitItems),
     [
       handleEditItem,
       handleDuplicateItem,
@@ -247,6 +251,7 @@ function KnxTableComponent({ items, loading }) {
       handleCellEdit,
       getEffectiveValue, // This is now stable!
       projectItems,
+      unitItems,
     ]
   );
 
@@ -290,7 +295,7 @@ function KnxTableComponent({ items, loading }) {
                   sendToUnitLabel="Send to Unit"
                   sendToUnitIcon={Send}
                   onSendAll={handleSendAll}
-                  sendAllLabel="Send All to Unit"
+                  sendAllLabel="Send All KNXs"
                   onGenerateFromLighting={handleGenerateFromLighting}
                   onGenerateFromCurtain={handleGenerateFromCurtain}
                   onGenerateFromScene={handleGenerateFromScene}

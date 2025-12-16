@@ -59,6 +59,7 @@ export function MultiSceneDialog({ open, onOpenChange, multiScene = null, mode =
     address: "",
     type: 0,
     description: "",
+    source_unit: null,
   });
   const [selectedSceneIds, setSelectedSceneIds] = useState([]);
   const [addressOrder, setAddressOrder] = useState([]);
@@ -125,6 +126,7 @@ export function MultiSceneDialog({ open, onOpenChange, multiScene = null, mode =
           address: multiScene.address || "",
           type: multiScene.type || 0,
           description: multiScene.description || "",
+          source_unit: multiScene.source_unit || null,
         });
         loadMultiSceneScenes(multiScene.id);
       } else {
@@ -135,6 +137,7 @@ export function MultiSceneDialog({ open, onOpenChange, multiScene = null, mode =
           address: nextAddress !== null ? nextAddress.toString() : "",
           type: 0,
           description: "",
+          source_unit: null,
         });
         setSelectedSceneIds([]);
         setAddressOrder([]);
@@ -144,6 +147,10 @@ export function MultiSceneDialog({ open, onOpenChange, multiScene = null, mode =
       // Load scene data if not already loaded
       if (selectedProject && !loadedTabs.has("scene")) {
         loadTabData(selectedProject.id, "scene");
+      }
+      // Load unit data if not already loaded
+      if (selectedProject && !loadedTabs.has("unit")) {
+        loadTabData(selectedProject.id, "unit");
       }
     }
   }, [open, mode, multiScene, selectedProject, loadedTabs, loadTabData, loadMultiSceneScenes, findNextAvailableMultiSceneAddress]);
@@ -312,6 +319,7 @@ export function MultiSceneDialog({ open, onOpenChange, multiScene = null, mode =
         name: "",
         address: "",
         type: 0,
+        source_unit: null,
         description: "",
       });
       setSelectedSceneIds([]);
@@ -342,9 +350,16 @@ export function MultiSceneDialog({ open, onOpenChange, multiScene = null, mode =
 
   const selectedSceneGroups = groupScenesByAddress(selectedScenes);
 
+  // Get unit items for source unit selection
+  const unitItems = projectItems.unit || [];
+  const unitOptions = unitItems.map((unit) => ({
+    value: unit.id,
+    label: `${unit.type || "Unknown"}-${unit.ip_address || unit.serial_no || "N/A"}`,
+  }));
+
   return (
     <Dialog open={open} onOpenChange={() => onOpenChange(false)}>
-      <DialogContent className="max-w-4xl! max-h-[90vh] overflow-auto">
+      <DialogContent className="max-w-5xl! max-h-[90vh] overflow-auto">
         <DialogHeader>
           <DialogTitle>{mode === "edit" ? "Edit Multi-Scene" : "Create Multi-Scene"}</DialogTitle>
           <DialogDescription>
@@ -353,7 +368,7 @@ export function MultiSceneDialog({ open, onOpenChange, multiScene = null, mode =
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-6">
-          <div className="grid grid-cols-3 gap-4">
+          <div className="grid grid-cols-4 gap-2">
             <div className="space-y-2">
               <Label htmlFor="name">Name *</Label>
               <Input
@@ -389,6 +404,26 @@ export function MultiSceneDialog({ open, onOpenChange, multiScene = null, mode =
                   {CONSTANTS.MULTI_SCENES.TYPES.map((type) => (
                     <SelectItem key={type.value} value={type.value.toString()}>
                       {type.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="source_unit">Source Unit</Label>
+              <Select
+                value={formData.source_unit?.toString() || "none"}
+                onValueChange={(value) => handleInputChange("source_unit", value === "none" ? null : parseInt(value))}
+              >
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Default" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">Default</SelectItem>
+                  {unitOptions.map((option) => (
+                    <SelectItem key={option.value} value={option.value.toString()}>
+                      {option.label}
                     </SelectItem>
                   ))}
                 </SelectContent>

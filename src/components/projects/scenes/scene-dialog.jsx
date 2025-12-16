@@ -1,15 +1,15 @@
 import React, { useState, useEffect, useMemo, useCallback, useRef } from "react";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { useProjectDetail } from "@/contexts/project-detail-context";
 import { OBJECT_TYPES, CONSTANTS } from "@/constants";
+import { AirconPropertiesDialog } from "./aircon-properties-dialog";
+import { ProjectItemDialog } from "../lighting/lighting-dialog";
+import { CurtainDialog } from "../curtain/curtain-dialog";
+import { toast } from "sonner";
+import { SceneBasicInfoForm } from "./scene-basic-info-form";
+import { CurrentSceneItems } from "./current-scene-items";
+import { AvailableItemsTabs } from "./available-items-tabs";
 
 // Create label mappings directly from CONSTANTS.AIRCON
 const AC_POWER_LABELS =
@@ -36,18 +36,13 @@ const AC_SWING_LABELS =
     return acc;
   }, {}) || {};
 
-import { Plus, Trash2, Lightbulb, Wind, Blinds, Sun, Edit, Percent } from "lucide-react";
-import { AirconPropertiesDialog } from "./aircon-properties-dialog";
-import { ProjectItemDialog } from "../lighting/lighting-dialog";
-import { CurtainDialog } from "../curtain/curtain-dialog";
-import { toast } from "sonner";
-
 export function SceneDialog({ open, onOpenChange, scene = null, mode = "create" }) {
   const { selectedProject, projectItems, createItem, updateItem, setActiveTab, loadTabData, loadedTabs } = useProjectDetail();
   const [formData, setFormData] = useState({
     name: "",
     address: "",
     description: "",
+    source_unit: null,
   });
   const [errors, setErrors] = useState({});
   const [sceneItems, setSceneItems] = useState([]);
@@ -136,6 +131,7 @@ export function SceneDialog({ open, onOpenChange, scene = null, mode = "create" 
           name: scene.name || "",
           address: scene.address || "",
           description: scene.description || "",
+          source_unit: scene.source_unit || null,
         });
         loadSceneItems(scene.id);
       } else {
@@ -143,6 +139,7 @@ export function SceneDialog({ open, onOpenChange, scene = null, mode = "create" 
           name: "",
           address: "",
           description: "",
+          source_unit: null,
         });
         setSceneItems([]);
         setOriginalSceneItems([]);
@@ -162,6 +159,10 @@ export function SceneDialog({ open, onOpenChange, scene = null, mode = "create" 
         // Load lighting data if not already loaded
         if (!loadedTabs.has("lighting")) {
           loadTabData(selectedProject.id, "lighting");
+        }
+        // Load unit data if not already loaded
+        if (!loadedTabs.has("unit")) {
+          loadTabData(selectedProject.id, "unit");
         }
       }
     }
@@ -744,6 +745,7 @@ export function SceneDialog({ open, onOpenChange, scene = null, mode = "create" 
         name: "",
         address: "",
         description: "",
+        source_unit: null,
       });
       setSceneItems([]);
       setOriginalSceneItems([]);
@@ -781,6 +783,7 @@ export function SceneDialog({ open, onOpenChange, scene = null, mode = "create" 
         name: scene?.name || "",
         address: scene?.address || "",
         description: scene?.description || "",
+        source_unit: scene?.source_unit || null,
       });
     }
     setErrors({});
@@ -844,127 +847,6 @@ export function SceneDialog({ open, onOpenChange, scene = null, mode = "create" 
     };
   }, []);
 
-  const renderValueControl = useCallback(
-    (sceneItem) => {
-      const options = getValueOptions(sceneItem.object_type, sceneItem.item_type);
-
-      // For lighting items, always use number input for brightness (stored as 0-255)
-      if (sceneItem.item_type === "lighting") {
-        // Value is stored as 0-255, convert to percent for display
-        const current255Value = parseInt(sceneItem.item_value || "255");
-        const currentPercentValue = Math.round((current255Value * 100) / 255);
-
-        const handlePercentChange = (e) => {
-          const inputValue = e.target.value;
-          if (inputValue === "") {
-            updateSceneItemValue(sceneItem.id, "255");
-          } else {
-            const percentValue = Math.min(100, Math.max(0, parseInt(inputValue) || 0));
-            // Convert from percent to 0-255 for storage
-            const value255 = Math.round((percentValue * 255) / 100);
-            updateSceneItemValue(sceneItem.id, value255.toString());
-          }
-        };
-
-        const handle255Change = (e) => {
-          const inputValue = e.target.value;
-          if (inputValue === "") {
-            updateSceneItemValue(sceneItem.id, "255");
-          } else {
-            const value = Math.min(255, Math.max(0, parseInt(inputValue) || 0));
-            // Store directly as 0-255
-            updateSceneItemValue(sceneItem.id, value.toString());
-          }
-        };
-
-        return (
-          <div className="flex items-center gap-2">
-            <div className="relative">
-              <Percent className="h-4 w-4 absolute left-2 top-1/2 -translate-y-1/2 text-muted-foreground" />
-              <Input type="number" min="0" max="100" value={currentPercentValue} onChange={handlePercentChange} className="w-23 pl-8 font-semibold" />
-            </div>
-            <div className="relative">
-              <Sun className="h-4 w-4 absolute left-2 top-1/2 -translate-y-1/2 text-muted-foreground" />
-              <Input type="number" min="0" max="255" value={current255Value} onChange={handle255Change} className="w-23 pl-8 font-semibold" />
-            </div>
-          </div>
-        );
-      }
-
-      // For curtain items, use select dropdown with Open/Close/Stop options
-      if (sceneItem.item_type === "curtain") {
-        const handleCurtainChange = (value) => updateSceneItemValue(sceneItem.id, value);
-
-        return (
-          <Select value={sceneItem.item_value || "1"} onValueChange={handleCurtainChange}>
-            <SelectTrigger className="w-30">
-              <SelectValue placeholder="Select action" />
-            </SelectTrigger>
-            <SelectContent>
-              {options.map((option) => (
-                <SelectItem key={option.value} value={option.value}>
-                  {option.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        );
-      }
-
-      // For aircon temperature, use number input for integer values
-      if (sceneItem.object_type === OBJECT_TYPES.AC_TEMPERATURE.obj_name) {
-        const handleTemperatureChange = (e) => {
-          const inputValue = e.target.value;
-          if (inputValue === "") {
-            updateSceneItemValue(sceneItem.id, "25");
-          } else {
-            const value = Math.min(40, Math.max(0, parseInt(inputValue) || 25));
-            updateSceneItemValue(sceneItem.id, value.toString());
-          }
-        };
-
-        return (
-          <div className="relative">
-            <Input
-              type="number"
-              min="0"
-              max="40"
-              value={sceneItem.item_value || "25"}
-              onChange={handleTemperatureChange}
-              className="w-40 font-semibold"
-              placeholder="25"
-            />
-          </div>
-        );
-      }
-
-      // For other aircon items, use select dropdown
-      if (options.length > 0) {
-        const handleSelectChange = (value) => updateSceneItemValue(sceneItem.id, value);
-
-        return (
-          <Select value={sceneItem.item_value || ""} onValueChange={handleSelectChange}>
-            <SelectTrigger className="w-40">
-              <SelectValue placeholder="Select value" />
-            </SelectTrigger>
-            <SelectContent>
-              {options.map((option) => (
-                <SelectItem key={option.value} value={option.value}>
-                  {option.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        );
-      }
-
-      // Fallback for other items
-      const handleFallbackChange = (e) => updateSceneItemValue(sceneItem.id, e.target.value);
-
-      return <Input type="number" value={sceneItem.item_value || ""} onChange={handleFallbackChange} placeholder="Value" className="w-40" />;
-    },
-    [getValueOptions, updateSceneItemValue]
-  );
 
   return (
     <Dialog open={open} onOpenChange={handleDialogOpenChange}>
@@ -981,55 +863,7 @@ export function SceneDialog({ open, onOpenChange, scene = null, mode = "create" 
         <form onSubmit={handleSubmit}>
           <div className="grid gap-4 py-4">
             {/* Scene Basic Info */}
-            <div className="grid grid-cols-3 items-center gap-4">
-              <div className="flex flex-col gap-2">
-                <Label htmlFor="name" className="text-right pl-1">
-                  Name *
-                </Label>
-                <div className="col-span-5">
-                  <Input
-                    id="name"
-                    value={formData.name}
-                    onChange={(e) => handleInputChange("name", e.target.value)}
-                    placeholder="Enter scene name (max 15 characters)"
-                    className={errors.name ? "border-red-500" : ""}
-                    maxLength={15}
-                    required
-                  />
-                  {errors.name && <p className="text-sm text-red-500 mt-1">{errors.name}</p>}
-                </div>
-              </div>
-
-              <div className="flex flex-col gap-2">
-                <Label htmlFor="address" className="text-right pl-1">
-                  Address <span className="text-red-500">*</span>
-                </Label>
-                <div className="col-span-5">
-                  <Input
-                    id="address"
-                    value={formData.address}
-                    onChange={(e) => handleInputChange("address", e.target.value)}
-                    className={errors.address ? "border-red-500 focus:border-red-500" : ""}
-                    placeholder="Enter integer 1-255 (e.g., 1, 2, 255)"
-                    required
-                  />
-                  {errors.address && <p className="text-sm text-red-500 mt-1">{errors.address}</p>}
-                </div>
-              </div>
-
-              <div className="flex flex-col gap-2">
-                <Label htmlFor="description" className="text-right pl-1">
-                  Description
-                </Label>
-                <Input
-                  id="description"
-                  value={formData.description}
-                  onChange={(e) => handleInputChange("description", e.target.value)}
-                  className="col-span-5"
-                  placeholder="Enter description"
-                />
-              </div>
-            </div>
+            <SceneBasicInfoForm formData={formData} errors={errors} onInputChange={handleInputChange} projectItems={projectItems} />
 
             {/* Scene Items Management */}
             <div className="space-y-4">
@@ -1041,381 +875,36 @@ export function SceneDialog({ open, onOpenChange, scene = null, mode = "create" 
               {/* Two-column layout for Current Items and Add Items */}
               <div className="grid grid-cols-2 gap-4">
                 {/* Current Scene Items - Left Side */}
-                <Card>
-                  <CardHeader className="flex items-center justify-between">
-                    <CardTitle className="text-sm flex items-center gap-2">
-                      Current Items
-                      <Badge variant={sceneItems.length >= 60 ? "destructive" : "secondary"}>{sceneItems.length}/60 items</Badge>
-                    </CardTitle>
-                    <div className="flex items-center gap-2">
-                      {/* All On/Off buttons for lighting items */}
-                      {sceneItems.some((item) => item.item_type === "lighting") && (
-                        <>
-                          <Button type="button" variant="outline" size="sm" onClick={handleAllLightingOn} className="text-xs">
-                            All On
-                          </Button>
-                          <Button type="button" variant="outline" size="sm" onClick={handleAllLightingOff} className="text-xs">
-                            All Off
-                          </Button>
-                          <Popover
-                            open={customBrightnessDialog.open}
-                            onOpenChange={(open) =>
-                              setCustomBrightnessDialog((prev) => ({
-                                ...prev,
-                                open,
-                              }))
-                            }
-                          >
-                            <PopoverTrigger asChild>
-                              <Button type="button" variant="outline" size="sm" className="text-xs">
-                                Custom
-                              </Button>
-                            </PopoverTrigger>
-                            <PopoverContent className="w-90">
-                              <div className="space-y-4">
-                                <div className="grid grid-cols-2 gap-3">
-                                  <div className="space-y-2">
-                                    <Label htmlFor="brightness-percent">Brightness (%)</Label>
-                                    <Input
-                                      id="brightness-percent"
-                                      type="number"
-                                      min={0}
-                                      max={100}
-                                      value={customBrightnessDialog.brightness}
-                                      onChange={(e) => {
-                                        const value = e.target.value;
-                                        if (value === "") {
-                                          setCustomBrightnessDialog((prev) => ({
-                                            ...prev,
-                                            brightness: "",
-                                            brightness255: "",
-                                          }));
-                                          return;
-                                        }
-                                        const numValue = parseInt(value);
-                                        if (!isNaN(numValue)) {
-                                          const clampedValue = Math.min(100, Math.max(0, numValue));
-                                          const value255 = Math.round((clampedValue * 255) / 100);
-                                          setCustomBrightnessDialog((prev) => ({
-                                            ...prev,
-                                            brightness: clampedValue,
-                                            brightness255: value255,
-                                          }));
-                                        }
-                                      }}
-                                      onBlur={(e) => {
-                                        const value = e.target.value;
-                                        if (value === "" || isNaN(parseInt(value))) {
-                                          setCustomBrightnessDialog((prev) => ({
-                                            ...prev,
-                                            brightness: 50,
-                                            brightness255: 128,
-                                          }));
-                                        }
-                                      }}
-                                      placeholder="0-100"
-                                      className="w-full"
-                                    />
-                                  </div>
-                                  <div className="space-y-2">
-                                    <Label htmlFor="brightness-255">Brightness (0-255)</Label>
-                                    <Input
-                                      id="brightness-255"
-                                      type="number"
-                                      min={0}
-                                      max={255}
-                                      value={customBrightnessDialog.brightness255}
-                                      onChange={(e) => {
-                                        const value = e.target.value;
-                                        if (value === "") {
-                                          setCustomBrightnessDialog((prev) => ({
-                                            ...prev,
-                                            brightness: "",
-                                            brightness255: "",
-                                          }));
-                                          return;
-                                        }
-                                        const numValue = parseInt(value);
-                                        if (!isNaN(numValue)) {
-                                          const clampedValue = Math.min(255, Math.max(0, numValue));
-                                          const percentValue = Math.round((clampedValue * 100) / 255);
-                                          setCustomBrightnessDialog((prev) => ({
-                                            ...prev,
-                                            brightness: percentValue,
-                                            brightness255: clampedValue,
-                                          }));
-                                        }
-                                      }}
-                                      onBlur={(e) => {
-                                        const value = e.target.value;
-                                        if (value === "" || isNaN(parseInt(value))) {
-                                          setCustomBrightnessDialog((prev) => ({
-                                            ...prev,
-                                            brightness: 50,
-                                            brightness255: 128,
-                                          }));
-                                        }
-                                      }}
-                                      placeholder="0-255"
-                                      className="w-full"
-                                    />
-                                  </div>
-                                </div>
-                                <p className="text-xs text-muted-foreground">Enter in either format. Values will sync automatically.</p>
-                                <div className="flex justify-end gap-2">
-                                  <Button
-                                    type="button"
-                                    variant="outline"
-                                    size="sm"
-                                    onClick={() =>
-                                      setCustomBrightnessDialog({
-                                        open: false,
-                                        brightness: 50,
-                                        brightness255: 128,
-                                      })
-                                    }
-                                  >
-                                    Cancel
-                                  </Button>
-                                  <Button
-                                    type="button"
-                                    size="sm"
-                                    onClick={handleCustomBrightness}
-                                    disabled={
-                                      customBrightnessDialog.brightness255 === "" ||
-                                      isNaN(parseInt(customBrightnessDialog.brightness255)) ||
-                                      parseInt(customBrightnessDialog.brightness255) < 0 ||
-                                      parseInt(customBrightnessDialog.brightness255) > 255
-                                    }
-                                  >
-                                    Apply
-                                  </Button>
-                                </div>
-                              </div>
-                            </PopoverContent>
-                          </Popover>
-                        </>
-                      )}
-                    </div>
-                  </CardHeader>
-                  <CardContent>
-                    {sceneItems.length > 0 ? (
-                      <div className="space-y-2 max-h-96 overflow-y-auto">
-                        {groupedSceneItems.map((item) => {
-                          // Render aircon group
-                          if (item.type === "aircon-group") {
-                            return (
-                              <div key={`aircon-group-${item.address}`} className="border rounded-lg p-2">
-                                <div className="flex items-center justify-between mb-2">
-                                  <div className="flex items-center gap-2">
-                                    <Wind className="h-4 w-4 text-blue-500" />
-                                    <div>
-                                      <div className="font-medium text-sm">{item.name || `Aircon ${item.address}`}</div>
-                                      <div className="text-xs text-muted-foreground">
-                                        Address: {item.address} | {item.items.length} properties
-                                      </div>
-                                    </div>
-                                  </div>
-                                  <div className="flex items-center gap-1">
-                                    <Button type="button" variant="outline" size="icon" onClick={() => handleEditAirconGroup(item)}>
-                                      <Edit className="h-4 w-4" />
-                                    </Button>
-                                    <Button type="button" variant="outline" size="icon" onClick={() => removeAirconGroupFromScene(item.address)}>
-                                      <Trash2 className="h-4 w-4" />
-                                    </Button>
-                                  </div>
-                                </div>
-                                {/* Show individual aircon properties */}
-                                <div className="space-y-1 ml-6">
-                                  {item.items.map((airconItem) => (
-                                    <div key={airconItem.id} className="flex items-center justify-between text-sm">
-                                      <span className="text-muted-foreground">
-                                        {CONSTANTS.AIRCON.find((item) => item.obj_type === airconItem.object_type)?.label || airconItem.object_type}
-                                      </span>
-                                      <div className="flex items-center gap-2">
-                                        {renderValueControl(airconItem)}
-                                        <Button type="button" variant="ghost" size="sm" onClick={() => removeItemFromScene(airconItem.id)}>
-                                          <Trash2 className="h-3 w-3" />
-                                        </Button>
-                                      </div>
-                                    </div>
-                                  ))}
-                                </div>
-                              </div>
-                            );
-                          }
-
-                          // Render regular items (lighting, curtain)
-                          return (
-                            <div key={item.id} className="flex items-center justify-between p-2 border rounded-lg">
-                              <div className="flex items-center gap-2 min-w-0 flex-1">
-                                {item.item_type === "lighting" && <Lightbulb className="h-4 w-4 text-yellow-500 shrink-0" />}
-                                {item.item_type === "curtain" && <Blinds className="h-4 w-4 text-green-500 shrink-0" />}
-                                <div className="min-w-0 flex-1">
-                                  <div className="font-medium text-sm truncate">{item.item_name || `${item.item_type} ${item.item_address}`}</div>
-                                  <div className="text-xs text-muted-foreground truncate">
-                                    Address: {item.item_address}
-                                    {item.item_description && ` | ${item.item_description}`}
-                                  </div>
-                                </div>
-                              </div>
-                              <div className="flex items-center gap-2 shrink-0">
-                                {(item.object_type || item.item_type === "lighting") && renderValueControl(item)}
-                                <Button type="button" variant="outline" size="icon" onClick={() => removeItemFromScene(item.id)}>
-                                  <Trash2 className="h-4 w-4" />
-                                </Button>
-                              </div>
-                            </div>
-                          );
-                        })}
-                      </div>
-                    ) : (
-                      <div className="text-center text-muted-foreground py-8">
-                        <p className="text-sm">No items in scene yet</p>
-                        <p className="text-xs">Add items from the right panel</p>
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
+                <CurrentSceneItems
+                  sceneItems={sceneItems}
+                  groupedSceneItems={groupedSceneItems}
+                  onAllLightingOn={handleAllLightingOn}
+                  onAllLightingOff={handleAllLightingOff}
+                  customBrightnessDialog={customBrightnessDialog}
+                  setCustomBrightnessDialog={setCustomBrightnessDialog}
+                  onCustomBrightness={handleCustomBrightness}
+                  onEditAirconGroup={handleEditAirconGroup}
+                  onRemoveAirconGroup={removeAirconGroupFromScene}
+                  onRemoveItem={removeItemFromScene}
+                  updateSceneItemValue={updateSceneItemValue}
+                  getValueOptions={getValueOptions}
+                />
 
                 {/* Add Items to Scene - Right Side */}
-                <Card>
-                  <CardHeader>
-                    <div className="flex items-center justify-between">
-                      <CardTitle className="text-sm">Available Items</CardTitle>
-                      <Button type="button" variant="outline" size="sm" onClick={handleAddNewItem} className="text-xs">
-                        <Plus className="h-3 w-3" />
-                        Add new
-                      </Button>
-                    </div>
-                  </CardHeader>
-                  <CardContent>
-                    <Tabs defaultValue="lighting" className="w-full" onValueChange={setCurrentTab}>
-                      <TabsList className="grid w-full grid-cols-3">
-                        <TabsTrigger value="lighting">
-                          <Lightbulb className="h-4 w-4 mr-2" />
-                          Lighting
-                        </TabsTrigger>
-                        <TabsTrigger value="aircon">
-                          <Wind className="h-4 w-4 mr-2" />
-                          Aircon
-                        </TabsTrigger>
-                        <TabsTrigger value="curtain">
-                          <Blinds className="h-4 w-4 mr-2" />
-                          Curtain
-                        </TabsTrigger>
-                      </TabsList>
-
-                      <TabsContent value="lighting" className="space-y-2">
-                        <div className="max-h-80 overflow-y-auto space-y-2 pr-2">
-                          {filteredLightingItems.length > 0 ? (
-                            filteredLightingItems.map((item) => (
-                              <div key={item.id} className="flex items-center justify-between p-2 border rounded-lg">
-                                <div>
-                                  <div className="font-medium text-sm">{item.name || `Group ${item.address}`}</div>
-                                  <div className="text-xs text-muted-foreground">
-                                    Address: {item.address}
-                                    {item.description && ` | ${item.description}`}
-                                  </div>
-                                </div>
-                                <div className="flex items-center gap-1">
-                                  <Button
-                                    type="button"
-                                    variant="outline"
-                                    size="icon"
-                                    onClick={() => handleEditLightingItem(item)}
-                                    className="h-8 w-8"
-                                  >
-                                    <Edit className="h-3 w-3" />
-                                  </Button>
-                                  <Button
-                                    type="button"
-                                    variant="outline"
-                                    size="icon"
-                                    onClick={() => addItemToScene("lighting", item.id, "255")}
-                                    className="h-8 w-8"
-                                  >
-                                    <Plus className="h-4 w-4" />
-                                  </Button>
-                                </div>
-                              </div>
-                            ))
-                          ) : (
-                            <p className="text-sm text-muted-foreground text-center py-4">No lighting items available</p>
-                          )}
-                        </div>
-                      </TabsContent>
-
-                      <TabsContent value="aircon" className="space-y-2">
-                        <div className="max-h-80 overflow-y-auto space-y-2 pr-2">
-                          {filteredAirconCards.length > 0 ? (
-                            filteredAirconCards.map((card) => (
-                              <div key={card.address} className="flex items-center justify-between p-2 border rounded-lg">
-                                <div>
-                                  <div className="font-medium text-sm">{card.name || `Aircon ${card.address}`}</div>
-                                  <div className="text-xs text-muted-foreground">
-                                    Address: {card.address}
-                                    {card.description && ` | ${card.description}`}
-                                  </div>
-                                </div>
-                                <div className="flex items-center gap-1">
-                                  <Button
-                                    type="button"
-                                    variant="outline"
-                                    size="icon"
-                                    onClick={() => handleEditAirconItem(card.item)}
-                                    className="h-8 w-8"
-                                  >
-                                    <Edit className="h-3 w-3" />
-                                  </Button>
-                                  <Button type="button" variant="outline" size="icon" onClick={() => handleAddAirconCard(card)} className="h-8 w-8">
-                                    <Plus className="h-4 w-4" />
-                                  </Button>
-                                </div>
-                              </div>
-                            ))
-                          ) : (
-                            <p className="text-sm text-muted-foreground text-center py-4">No aircon cards available</p>
-                          )}
-                        </div>
-                      </TabsContent>
-
-                      <TabsContent value="curtain" className="space-y-2">
-                        <div className="max-h-80 overflow-y-auto space-y-2 pr-2">
-                          {filteredCurtainItems.length > 0 ? (
-                            filteredCurtainItems.map((item) => (
-                              <div key={item.id} className="flex items-center justify-between p-2 border rounded-lg">
-                                <div>
-                                  <div className="font-medium text-sm">{item.name}</div>
-                                  <div className="text-xs text-muted-foreground">
-                                    Address: {item.address}
-                                    {item.description && ` | ${item.description}`}
-                                  </div>
-                                </div>
-                                <div className="flex items-center gap-1">
-                                  <Button type="button" variant="outline" size="icon" onClick={() => handleEditCurtainItem(item)} className="h-8 w-8">
-                                    <Edit className="h-3 w-3" />
-                                  </Button>
-                                  <Button
-                                    type="button"
-                                    variant="outline"
-                                    size="icon"
-                                    onClick={() => addItemToScene("curtain", item.id, "1")}
-                                    className="h-8 w-8"
-                                  >
-                                    <Plus className="h-4 w-4" />
-                                  </Button>
-                                </div>
-                              </div>
-                            ))
-                          ) : (
-                            <p className="text-sm text-muted-foreground text-center py-4">No curtain items available</p>
-                          )}
-                        </div>
-                      </TabsContent>
-                    </Tabs>
-                  </CardContent>
-                </Card>
+                <AvailableItemsTabs
+                  currentTab={currentTab}
+                  onTabChange={setCurrentTab}
+                  filteredLightingItems={filteredLightingItems}
+                  filteredAirconCards={filteredAirconCards}
+                  filteredCurtainItems={filteredCurtainItems}
+                  onAddNewItem={handleAddNewItem}
+                  onEditLightingItem={handleEditLightingItem}
+                  onEditAirconItem={handleEditAirconItem}
+                  onEditCurtainItem={handleEditCurtainItem}
+                  onAddLightingItem={(itemId) => addItemToScene("lighting", itemId, "255")}
+                  onAddAirconCard={handleAddAirconCard}
+                  onAddCurtainItem={(itemId) => addItemToScene("curtain", itemId, "1")}
+                />
               </div>
             </div>
           </div>

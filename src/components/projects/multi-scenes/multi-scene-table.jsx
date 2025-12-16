@@ -15,7 +15,7 @@ import { toast } from "sonner";
 
 const MultiSceneTable = memo(function MultiSceneTable({ items = [], loading = false }) {
   const category = "multi_scenes";
-  const { deleteItem, duplicateItem, updateItem } = useProjectDetail();
+  const { deleteItem, duplicateItem, updateItem, projectItems } = useProjectDetail();
   const [multiSceneCounts, setMultiSceneCounts] = useState({});
   const [table, setTable] = useState(null);
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -44,6 +44,9 @@ const MultiSceneTable = memo(function MultiSceneTable({ items = [], loading = fa
   // Use ref instead of state to avoid re-renders when pendingChanges update
   const pendingChangesRef = useRef(new Map());
   const [pendingChangesCount, setPendingChangesCount] = useState(0);
+
+  // Get unit items for source unit filtering
+  const unitItems = projectItems?.unit || [];
 
   // Load scene counts for each multi-scene
   const loadMultiSceneCounts = useCallback(async () => {
@@ -239,7 +242,7 @@ const MultiSceneTable = memo(function MultiSceneTable({ items = [], loading = fa
 
   // Now columns will be truly stable because all dependencies are stable!
   const columns = useMemo(
-    () => createMultiSceneColumns(handleEditItem, handleDuplicateItem, handleDeleteItem, handleCellEdit, getEffectiveValue, handleSendToUnit),
+    () => createMultiSceneColumns(handleEditItem, handleDuplicateItem, handleDeleteItem, handleCellEdit, getEffectiveValue, handleSendToUnit, unitItems),
     [
       handleEditItem,
       handleDuplicateItem,
@@ -247,6 +250,7 @@ const MultiSceneTable = memo(function MultiSceneTable({ items = [], loading = fa
       handleCellEdit,
       getEffectiveValue, // This is now stable!
       handleSendToUnit,
+      unitItems,
     ]
   );
 

@@ -647,7 +647,7 @@ export const crudOperations = {
 
       // For KNX, use duplicateKnxItem method
       if (tableName === "knx") {
-        duplicatedItem = this.duplicateKnxItem(originalItem);
+        return this.createProjectItem(originalItem.project_id, this.duplicateKnxItem(originalItem), tableName);
       }
 
       // For multi_scenes, copy type and address fields

@@ -70,7 +70,7 @@ function LightingCombobox({ value, onValueChange, options, placeholder, classNam
 }
 
 export function CurtainDialog({ open, onOpenChange, item = null, mode = "create" }) {
-  const { createItem, updateItem, projectItems } = useProjectDetail();
+  const { createItem, updateItem, projectItems, loadTabData, loadedTabs, selectedProject } = useProjectDetail();
   const [formData, setFormData] = useState({
     name: "",
     address: "",
@@ -83,6 +83,7 @@ export function CurtainDialog({ open, onOpenChange, item = null, mode = "create"
     stop_group_id: null,
     pause_period: 0,
     transition_period: 0,
+    source_unit: null,
   });
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({});
@@ -119,6 +120,13 @@ export function CurtainDialog({ open, onOpenChange, item = null, mode = "create"
     label: item.name ? `${item.name} (${item.address})` : `Group ${item.address}`,
   }));
 
+  // Get unit items for source unit selection
+  const unitItems = projectItems.unit || [];
+  const unitOptions = unitItems.map((unit) => ({
+    value: unit.id,
+    label: `${unit.type || "Unknown"}-${unit.ip_address || unit.serial_no || "N/A"}`,
+  }));
+
   // Reset form when dialog opens/closes or item changes
   useEffect(() => {
     if (open) {
@@ -136,6 +144,7 @@ export function CurtainDialog({ open, onOpenChange, item = null, mode = "create"
           stop_group_id: item.stop_group_id || null,
           pause_period: item.pause_period || 0,
           transition_period: item.transition_period || 0,
+          source_unit: item.source_unit || null,
         });
       } else {
         // For new items, auto-fill the next available address
@@ -152,10 +161,18 @@ export function CurtainDialog({ open, onOpenChange, item = null, mode = "create"
           stop_group_id: null,
           pause_period: 0,
           transition_period: 0,
+          source_unit: null,
         });
       }
     }
   }, [open, item, mode, findNextAvailableCurtainAddress]);
+
+  // Load unit data if not already loaded
+  useEffect(() => {
+    if (selectedProject && !loadedTabs.has("unit")) {
+      loadTabData(selectedProject.id, "unit");
+    }
+  }, [selectedProject, loadedTabs, loadTabData]);
 
   // Helper function to check if curtain type has 3 groups
   const hasThreeGroups = (curtainType) => {
@@ -262,12 +279,36 @@ export function CurtainDialog({ open, onOpenChange, item = null, mode = "create"
           <div className="grid gap-6 py-4 w-full">
             {errors.general && <div className="text-sm text-red-600 bg-red-50 p-2 rounded">{errors.general}</div>}
 
-            <div className="flex flex-col gap-2">
-              <Label htmlFor="name" className="text-right">
-                Name
-              </Label>
-              <Input id="name" value={formData.name} onChange={(e) => handleInputChange("name", e.target.value)} placeholder="Enter curtain name" />
-              {errors.name && <div className="col-span-4 text-sm text-red-600">{errors.name}</div>}
+            <div className="grid grid-cols-2 gap-2">
+              <div className="flex flex-col gap-2">
+                <Label htmlFor="name" className="text-right">
+                  Name
+                </Label>
+                <Input id="name" value={formData.name} onChange={(e) => handleInputChange("name", e.target.value)} placeholder="Enter curtain name" />
+                {errors.name && <div className="col-span-4 text-sm text-red-600">{errors.name}</div>}
+              </div>
+
+              <div className="flex flex-col gap-2">
+                <Label htmlFor="source_unit" className="text-right">
+                  Source Unit
+                </Label>
+                <Select
+                  value={formData.source_unit?.toString() || "none"}
+                  onValueChange={(value) => handleInputChange("source_unit", value === "none" ? null : parseInt(value))}
+                >
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Default" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">Default</SelectItem>
+                    {unitOptions.map((option) => (
+                      <SelectItem key={option.value} value={option.value.toString()}>
+                        {option.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
 
             <div className="flex gap-2">

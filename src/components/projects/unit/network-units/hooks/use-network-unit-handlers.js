@@ -22,7 +22,7 @@ export function useNetworkUnitHandlers({ state, onTransferToDatabase, existingUn
       setSelectedNetworkUnits([]);
 
       if (sortedUnits.length > 0) {
-        toast.success(`Found ${sortedUnits.length} unit(s) on network (sorted by IP)`);
+        toast.success(`Found ${sortedUnits.length} unit(s) on network`);
       } else {
         toast.warning("No units found on network");
       }
@@ -171,9 +171,7 @@ export function useNetworkUnitHandlers({ state, onTransferToDatabase, existingUn
         const unitToTransfer = await readNetworkUnitConfigurations(unit, selectedProject, projectItems, createItem, createdItemsCache);
 
         if (unitToTransfer) {
-          toast.loading("Saving unit to database...", { id: loadingToast });
           await onTransferToDatabase([unitToTransfer]);
-
           toast.success(`Successfully transferred unit ${unit.ip_address} to database`, { id: loadingToast });
         } else {
           toast.dismiss(loadingToast);

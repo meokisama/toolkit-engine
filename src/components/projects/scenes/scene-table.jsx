@@ -16,7 +16,7 @@ import { toast } from "sonner";
 
 const SceneTable = memo(function SceneTable({ items = [], loading = false }) {
   const category = "scene";
-  const { deleteItem, duplicateItem, updateItem, exportItems, importItems, selectedProject } = useProjectDetail();
+  const { deleteItem, duplicateItem, updateItem, exportItems, importItems, selectedProject, projectItems } = useProjectDetail();
   const [sceneItemCounts, setSceneItemCounts] = useState({});
   const [table, setTable] = useState(null);
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -44,6 +44,9 @@ const SceneTable = memo(function SceneTable({ items = [], loading = false }) {
   // Use ref instead of state to avoid re-renders when pendingChanges update
   const pendingChangesRef = useRef(new Map());
   const [pendingChangesCount, setPendingChangesCount] = useState(0);
+
+  // Get unit items for source unit filtering
+  const unitItems = projectItems?.unit || [];
 
   // Load scene item counts only when tab is active and has items
   useEffect(() => {
@@ -274,7 +277,7 @@ const SceneTable = memo(function SceneTable({ items = [], loading = false }) {
 
   // Now columns will be truly stable because all dependencies are stable!
   const columns = useMemo(
-    () => createSceneColumns(handleEditItem, handleDuplicateItem, handleDeleteItem, handleCellEdit, getEffectiveValue, handleSendToUnit),
+    () => createSceneColumns(handleEditItem, handleDuplicateItem, handleDeleteItem, handleCellEdit, getEffectiveValue, handleSendToUnit, unitItems),
     [
       handleEditItem,
       handleDuplicateItem,
@@ -282,6 +285,7 @@ const SceneTable = memo(function SceneTable({ items = [], loading = false }) {
       handleCellEdit,
       getEffectiveValue, // This is now stable!
       handleSendToUnit,
+      unitItems,
     ]
   );
 

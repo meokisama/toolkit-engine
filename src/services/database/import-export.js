@@ -233,11 +233,11 @@ export const importExportOperations = {
         );
       }
 
-      // Import room config
-      const roomConfigs = itemsData.room_config || [];
+      // Import room detail config (with backward compatibility for old room_config name)
+      const roomConfigs = itemsData.room_detail_config || itemsData.room_config || [];
       roomConfigs.forEach((roomConfig) => {
         const stmt = this.db.prepare(`
-          INSERT INTO room_config (
+          INSERT INTO room_detail_config (
             project_id, room_address, occupancy_type, occupancy_scene_type, enable_welcome_night,
             period, pir_init_time, pir_verify_time, unrent_period, standby_time,
             unrent_aircon_active, unrent_aircon_mode, unrent_aircon_fan_speed, unrent_aircon_cool_setpoint, unrent_aircon_heat_setpoint,

@@ -4,9 +4,20 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Copy, Trash2, Send, FileText, Hash, Settings } from "lucide-react";
 import { EditableCell } from "@/components/projects/data-table/editable-cell";
 import { DataTableColumnHeader } from "@/components/projects/data-table/data-table-column-header";
+import { DataTableFilterColumnHeader } from "@/components/projects/data-table/data-table-filter-column-header";
 import { Badge } from "@/components/ui/badge";
 
-export function createSequenceColumns(onEdit, onDuplicate, onDelete, onCellEdit, getEffectiveValue, onSendToUnit) {
+export function createSequenceColumns(onEdit, onDuplicate, onDelete, onCellEdit, getEffectiveValue, onSendToUnit, unitItems = []) {
+  // Create filter options for source unit
+  const sourceUnitFilterOptions = [
+    { value: "all", label: "All" },
+    { value: "default", label: "Default" },
+    ...unitItems.map((unit) => ({
+      value: unit.id.toString(),
+      label: `${unit.type || "Unknown"} (${unit.ip_address || unit.serial_no || "N/A"})`,
+    })),
+  ];
+
   return [
     {
       id: "select",
@@ -36,7 +47,7 @@ export function createSequenceColumns(onEdit, onDuplicate, onDelete, onCellEdit,
             value={effectiveValue || ""}
             onSave={(newValue) => onCellEdit(row.original.id, "name", newValue)}
             placeholder="Enter sequence name"
-            className="font-medium"
+            className="font-medium min-w-40"
             icon={FileText}
           />
         );
@@ -86,6 +97,36 @@ export function createSequenceColumns(onEdit, onDuplicate, onDelete, onCellEdit,
       },
       enableSorting: false,
       enableHiding: true,
+      meta: {
+        className: "w-[12%]",
+      },
+    },
+    {
+      accessorKey: "source_unit",
+      header: ({ column }) => (
+        <DataTableFilterColumnHeader
+          column={column}
+          title="Source Unit"
+          className="text-center justify-center"
+          filterOptions={sourceUnitFilterOptions}
+        />
+      ),
+      cell: ({ row }) => {
+        const sourceUnit = row.getValue("source_unit");
+        const effectiveValue = getEffectiveValue(row.original, "source_unit");
+        const selectedUnit = unitItems.find((u) => u.id === effectiveValue);
+        const displayValue = selectedUnit
+          ? `${selectedUnit.type || "Unknown"} (${selectedUnit.ip_address || selectedUnit.serial_no || "N/A"})`
+          : "Default";
+        return <div className="text-center text-sm px-2 font-medium">{displayValue}</div>;
+      },
+      enableSorting: false,
+      enableHiding: true,
+      filterFn: (row, id, value) => {
+        if (!value || value === "all") return true;
+        if (value === "default") return !row.getValue(id);
+        return row.getValue(id) === parseInt(value);
+      },
       meta: {
         className: "w-[12%]",
       },

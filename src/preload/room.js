@@ -3,15 +3,15 @@ import { ipcRenderer } from "electron";
 // Database Operation
 export const room = {
   // Room general config operations
-  getGeneralConfig: (projectId) => ipcRenderer.invoke("room:getGeneralConfig", projectId),
-  setGeneralConfig: (projectId, config) => ipcRenderer.invoke("room:setGeneralConfig", projectId, config),
+  getGeneralConfig: (projectId, sourceUnit = null) => ipcRenderer.invoke("room:getGeneralConfig", projectId, sourceUnit),
+  setGeneralConfig: (projectId, config, sourceUnit = null) => ipcRenderer.invoke("room:setGeneralConfig", projectId, config, sourceUnit),
+  getAllGeneralConfigs: (projectId) => ipcRenderer.invoke("room:getAllGeneralConfigs", projectId),
+  deleteRoomGeneralConfig: (projectId, sourceUnit = null) => ipcRenderer.invoke("room:deleteRoomGeneralConfig", projectId, sourceUnit),
 
   // Room config operations
-  getRoomConfig: (projectId, roomAddress) => ipcRenderer.invoke("room:getRoomConfig", projectId, roomAddress),
-  getAllRoomConfigs: (projectId) => ipcRenderer.invoke("room:getAllRoomConfigs", projectId),
-  setRoomConfig: (projectId, roomAddress, config) => ipcRenderer.invoke("room:setRoomConfig", projectId, roomAddress, config),
-  deleteRoomConfig: (projectId, roomAddress) => ipcRenderer.invoke("room:deleteRoomConfig", projectId, roomAddress),
-  deleteAllRoomConfigs: (projectId) => ipcRenderer.invoke("room:deleteAllRoomConfigs", projectId),
+  getAllRoomConfigs: (generalConfigId) => ipcRenderer.invoke("room:getAllRoomConfigs", generalConfigId),
+  getAllRoomConfigsByUnit: (projectId, sourceUnit = null) => ipcRenderer.invoke("room:getAllRoomConfigsByUnit", projectId, sourceUnit),
+  setRoomConfig: (projectId, sourceUnit, roomAddress, config) => ipcRenderer.invoke("room:setRoomConfig", projectId, sourceUnit, roomAddress, config),
 };
 
 // Network Operation

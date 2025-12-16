@@ -5,11 +5,11 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Switch } from "@/components/ui/switch";
-import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { TimePicker } from "@/components/custom/time-picker";
-import { Clock, Calendar, CircleCheck, Lightbulb } from "lucide-react";
+import { CircleCheck, Lightbulb } from "lucide-react";
 import { useProjectDetail } from "@/contexts/project-detail-context";
 import { toast } from "sonner";
 import * as CheckboxPrimitive from "@radix-ui/react-checkbox";
@@ -36,6 +36,7 @@ export function ScheduleDialog({ open, onOpenChange, schedule = null, mode = "cr
     time: "",
     days: ALL_DAYS,
     enabled: true,
+    source_unit: null,
   });
   const [timeDate, setTimeDate] = useState(new Date(new Date().setHours(0, 0, 0, 0)));
   const [errors, setErrors] = useState({});
@@ -76,6 +77,7 @@ export function ScheduleDialog({ open, onOpenChange, schedule = null, mode = "cr
           time: schedule.time || "",
           days: parsedDays,
           enabled: schedule.enabled !== undefined ? Boolean(schedule.enabled) : true,
+          source_unit: schedule.source_unit || null,
         });
         setTimeDate(timeStringToDate(schedule.time || ""));
 
@@ -88,6 +90,7 @@ export function ScheduleDialog({ open, onOpenChange, schedule = null, mode = "cr
           time: "",
           days: ALL_DAYS,
           enabled: true,
+          source_unit: null,
         });
         setTimeDate(new Date(new Date().setHours(0, 0, 0, 0)));
         setSelectedSceneIds([]);
@@ -98,6 +101,10 @@ export function ScheduleDialog({ open, onOpenChange, schedule = null, mode = "cr
       // Load scene data if not already loaded
       if (selectedProject && !loadedTabs.has("scene")) {
         loadTabData(selectedProject.id, "scene");
+      }
+      // Load unit data if not already loaded
+      if (selectedProject && !loadedTabs.has("unit")) {
+        loadTabData(selectedProject.id, "unit");
       }
     }
   }, [open, mode, schedule, selectedProject, loadedTabs, loadTabData]);
@@ -245,6 +252,7 @@ export function ScheduleDialog({ open, onOpenChange, schedule = null, mode = "cr
         time: "",
         days: ALL_DAYS,
         enabled: true,
+        source_unit: null,
       });
       setTimeDate(new Date(new Date().setHours(0, 0, 0, 0)));
       setSelectedSceneIds([]);
@@ -275,6 +283,13 @@ export function ScheduleDialog({ open, onOpenChange, schedule = null, mode = "cr
   // Get all available scenes
   const allScenes = projectItems.scene || [];
 
+  // Get unit items for source unit selection
+  const unitItems = projectItems.unit || [];
+  const unitOptions = unitItems.map((unit) => ({
+    value: unit.id,
+    label: `${unit.type || "Unknown"}-${unit.ip_address || unit.serial_no || "N/A"}`,
+  }));
+
   return (
     <Dialog open={open} onOpenChange={handleDialogOpenChange}>
       <DialogContent className="sm:max-w-4xl max-h-[90vh] overflow-y-auto">
@@ -301,13 +316,33 @@ export function ScheduleDialog({ open, onOpenChange, schedule = null, mode = "cr
               </div>
 
               <div className="space-y-2">
+                <Label htmlFor="source_unit">Source Unit</Label>
+                <Select
+                  value={formData.source_unit?.toString() || "none"}
+                  onValueChange={(value) => handleInputChange("source_unit", value === "none" ? null : parseInt(value))}
+                >
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Default" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">Default</SelectItem>
+                    {unitOptions.map((option) => (
+                      <SelectItem key={option.value} value={option.value.toString()}>
+                        {option.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2 -mt-2">
                 <Label htmlFor="description">Description</Label>
-                <Textarea
+                <Input
                   id="description"
                   value={formData.description}
                   onChange={(e) => handleInputChange("description", e.target.value)}
-                  placeholder="Enter description"
-                  rows={6}
+                  placeholder="Enter description (optional)"
+                  className="h-10"
                 />
               </div>
             </div>

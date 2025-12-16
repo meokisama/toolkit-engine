@@ -10,17 +10,28 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { DataTableColumnHeader } from "../data-table/data-table-column-header";
+import { DataTableFilterColumnHeader } from "../data-table/data-table-filter-column-header";
 import { EditableCell } from "../data-table/editable-cell";
 import { EditableSelectCell } from "../data-table/editable-select-cell";
 import { EditableComboboxCell } from "../data-table/editable-combobox-cell";
 import { CURTAIN_TYPES } from "@/constants";
 
-export const createCurtainColumns = (onEdit, onDelete, onDuplicate, onCellEdit, getEffectiveValue, lightingItems = []) => {
+export const createCurtainColumns = (onEdit, onDelete, onDuplicate, onCellEdit, getEffectiveValue, lightingItems = [], unitItems = []) => {
   // Create lighting options for group selection
   const lightingOptions = lightingItems.map((item) => ({
     value: item.id,
     label: item.name ? `${item.name} (${item.address})` : `Group ${item.address}`,
   }));
+
+  // Create filter options for source unit
+  const sourceUnitFilterOptions = [
+    { value: "all", label: "All" },
+    { value: "default", label: "Default" },
+    ...unitItems.map((unit) => ({
+      value: unit.id.toString(),
+      label: `${unit.type || "Unknown"} (${unit.ip_address || unit.serial_no || "N/A"})`,
+    })),
+  ];
 
   const curtainTypeOptions = CURTAIN_TYPES.filter((type) => type.value !== 0).map((type) => ({
     value: type.name,
@@ -57,7 +68,7 @@ export const createCurtainColumns = (onEdit, onDelete, onDuplicate, onCellEdit, 
             value={effectiveValue || `Curtain ${row.original.address}`}
             onSave={(value) => onCellEdit(row.original.id, "name", value)}
             placeholder="No name"
-            className="font-medium"
+            className="font-medium min-w-32"
             icon={Blinds}
           />
         );
@@ -195,7 +206,7 @@ export const createCurtainColumns = (onEdit, onDelete, onDuplicate, onCellEdit, 
     },
     {
       accessorKey: "pause_period",
-      header: ({ column }) => <DataTableColumnHeader column={column} title="Pause" className="text-center" />,
+      header: ({ column }) => <DataTableColumnHeader column={column} title="Pause" className="text-center justify-center w-full" />,
       cell: ({ row }) => {
         const pausePeriod = row.getValue("pause_period");
         const effectiveValue = getEffectiveValue(row.original.id, "pause_period", pausePeriod);
@@ -204,7 +215,7 @@ export const createCurtainColumns = (onEdit, onDelete, onDuplicate, onCellEdit, 
             value={effectiveValue}
             onSave={(value) => onCellEdit(row.original.id, "pause_period", parseInt(value) || 0)}
             placeholder="0"
-            className="text-center"
+            className="text-center min-w-24"
             type="number"
             min="0"
             max="65535"
@@ -228,7 +239,7 @@ export const createCurtainColumns = (onEdit, onDelete, onDuplicate, onCellEdit, 
             value={effectiveValue}
             onSave={(value) => onCellEdit(row.original.id, "transition_period", parseInt(value) || 0)}
             placeholder="0"
-            className="text-center"
+            className="text-center min-w-24"
             type="number"
             min="0"
             max="65535"
@@ -239,6 +250,36 @@ export const createCurtainColumns = (onEdit, onDelete, onDuplicate, onCellEdit, 
       enableHiding: true,
       meta: {
         className: "w-[8%]",
+      },
+    },
+    {
+      accessorKey: "source_unit",
+      header: ({ column }) => (
+        <DataTableFilterColumnHeader
+          column={column}
+          title="Source Unit"
+          className="text-center justify-center"
+          filterOptions={sourceUnitFilterOptions}
+        />
+      ),
+      cell: ({ row }) => {
+        const sourceUnit = row.getValue("source_unit");
+        const effectiveValue = getEffectiveValue(row.original.id, "source_unit", sourceUnit);
+        const selectedUnit = unitItems.find((u) => u.id === effectiveValue);
+        const displayValue = selectedUnit
+          ? `${selectedUnit.type || "Unknown"} (${selectedUnit.ip_address || selectedUnit.serial_no || "N/A"})`
+          : "Default";
+        return <div className="text-center text-sm px-1.5 font-medium">{displayValue}</div>;
+      },
+      enableSorting: false,
+      enableHiding: true,
+      filterFn: (row, id, value) => {
+        if (!value || value === "all") return true;
+        if (value === "default") return !row.getValue(id);
+        return row.getValue(id) === parseInt(value);
+      },
+      meta: {
+        className: "w-[12%]",
       },
     },
     {
@@ -258,7 +299,7 @@ export const createCurtainColumns = (onEdit, onDelete, onDuplicate, onCellEdit, 
       enableSorting: false,
       enableHiding: true,
       meta: {
-        className: "w-[19%]",
+        className: "w-[15%] min-w-50",
       },
     },
     {

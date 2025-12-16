@@ -15,7 +15,10 @@ import { toast } from "sonner";
 
 const SequenceTable = memo(function SequenceTable({ items = [], loading = false }) {
   const category = "sequences";
-  const { deleteItem, duplicateItem, updateItem } = useProjectDetail();
+  const { deleteItem, duplicateItem, updateItem, projectItems } = useProjectDetail();
+
+  // Get unit items for source unit filtering
+  const unitItems = projectItems?.unit || [];
   const [sequenceCounts, setSequenceCounts] = useState({});
   const [table, setTable] = useState(null);
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -239,7 +242,7 @@ const SequenceTable = memo(function SequenceTable({ items = [], loading = false 
 
   // Now columns will be truly stable because all dependencies are stable!
   const columns = useMemo(
-    () => createSequenceColumns(handleEditItem, handleDuplicateItem, handleDeleteItem, handleCellEdit, getEffectiveValue, handleSendToUnit),
+    () => createSequenceColumns(handleEditItem, handleDuplicateItem, handleDeleteItem, handleCellEdit, getEffectiveValue, handleSendToUnit, unitItems),
     [
       handleEditItem,
       handleDuplicateItem,
@@ -247,6 +250,7 @@ const SequenceTable = memo(function SequenceTable({ items = [], loading = false 
       handleCellEdit,
       getEffectiveValue, // This is now stable!
       handleSendToUnit,
+      unitItems,
     ]
   );
 

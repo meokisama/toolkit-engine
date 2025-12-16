@@ -14,9 +14,11 @@ export const scheduleTableSchemas = {
       time TEXT NOT NULL,
       days TEXT NOT NULL,
       enabled BOOLEAN DEFAULT 1,
+      source_unit INTEGER,
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
       updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-      FOREIGN KEY (project_id) REFERENCES projects (id) ON DELETE CASCADE
+      FOREIGN KEY (project_id) REFERENCES projects (id) ON DELETE CASCADE,
+      FOREIGN KEY (source_unit) REFERENCES unit (id) ON DELETE SET NULL
     )
   `,
 };
@@ -47,14 +49,14 @@ export const scheduleMethods = {
       }
 
       const stmt = this.db.prepare(`
-        INSERT INTO schedule (project_id, name, description, time, days, enabled)
-        VALUES (?, ?, ?, ?, ?, ?)
+        INSERT INTO schedule (project_id, name, description, time, days, enabled, source_unit)
+        VALUES (?, ?, ?, ?, ?, ?, ?)
       `);
 
       // Convert boolean to integer for SQLite
       const enabledValue = itemData.enabled !== undefined ? (itemData.enabled ? 1 : 0) : 1;
 
-      const result = stmt.run(projectId, itemData.name, itemData.description, itemData.time, JSON.stringify(itemData.days), enabledValue);
+      const result = stmt.run(projectId, itemData.name, itemData.description, itemData.time, JSON.stringify(itemData.days), enabledValue, itemData.source_unit || null);
 
       // Return the created schedule item
       const getStmt = this.db.prepare("SELECT * FROM schedule WHERE id = ?");
@@ -69,14 +71,14 @@ export const scheduleMethods = {
     try {
       const stmt = this.db.prepare(`
         UPDATE schedule
-        SET name = ?, description = ?, time = ?, days = ?, enabled = ?, updated_at = CURRENT_TIMESTAMP
+        SET name = ?, description = ?, time = ?, days = ?, enabled = ?, source_unit = ?, updated_at = CURRENT_TIMESTAMP
         WHERE id = ?
       `);
 
       // Convert boolean to integer for SQLite
       const enabledValue = itemData.enabled !== undefined ? (itemData.enabled ? 1 : 0) : 1;
 
-      const result = stmt.run(itemData.name, itemData.description, itemData.time, JSON.stringify(itemData.days), enabledValue, id);
+      const result = stmt.run(itemData.name, itemData.description, itemData.time, JSON.stringify(itemData.days), enabledValue, itemData.source_unit || null, id);
 
       if (result.changes === 0) {
         throw new Error("Schedule item not found");
@@ -120,14 +122,14 @@ export const scheduleMethods = {
       // Create duplicate with modified name
       const duplicateName = `${original.name} (Copy)`;
       const createStmt = this.db.prepare(`
-        INSERT INTO schedule (project_id, name, description, time, days, enabled)
-        VALUES (?, ?, ?, ?, ?, ?)
+        INSERT INTO schedule (project_id, name, description, time, days, enabled, source_unit)
+        VALUES (?, ?, ?, ?, ?, ?, ?)
       `);
 
       // Ensure enabled value is properly converted to integer for SQLite
       const enabledValue = original.enabled ? 1 : 0;
 
-      const result = createStmt.run(original.project_id, duplicateName, original.description, original.time, original.days, enabledValue);
+      const result = createStmt.run(original.project_id, duplicateName, original.description, original.time, original.days, enabledValue, original.source_unit || null);
 
       // Get the duplicated schedule item
       const newSchedule = getStmt.get(result.lastInsertRowid);

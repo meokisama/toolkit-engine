@@ -3,6 +3,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { CircleCheck, Layers } from "lucide-react";
@@ -17,6 +18,7 @@ export function SequenceDialog({ open, onOpenChange, sequence = null, mode = "cr
     name: "",
     address: "",
     description: "",
+    source_unit: null,
   });
   const [selectedMultiSceneIds, setSelectedMultiSceneIds] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -67,6 +69,7 @@ export function SequenceDialog({ open, onOpenChange, sequence = null, mode = "cr
           name: sequence.name || "",
           address: sequence.address || "",
           description: sequence.description || "",
+          source_unit: sequence.source_unit || null,
         });
         loadSequenceMultiScenes(sequence.id);
       } else {
@@ -76,6 +79,7 @@ export function SequenceDialog({ open, onOpenChange, sequence = null, mode = "cr
           name: "",
           address: nextAddress !== null ? nextAddress.toString() : "",
           description: "",
+          source_unit: null,
         });
         setSelectedMultiSceneIds([]);
       }
@@ -83,7 +87,7 @@ export function SequenceDialog({ open, onOpenChange, sequence = null, mode = "cr
     }
   }, [open, mode, sequence, loadSequenceMultiScenes, findNextAvailableSequenceAddress]);
 
-  // Load multi-scenes tab data when dialog opens
+  // Load multi-scenes and unit tab data when dialog opens
   useEffect(() => {
     if (open && selectedProject) {
       const loadData = async () => {
@@ -92,6 +96,8 @@ export function SequenceDialog({ open, onOpenChange, sequence = null, mode = "cr
           // Always load multi-scenes data when dialog opens to ensure fresh data
           // This ensures the selection list is populated even if the tab hasn't been visited
           await loadTabData(selectedProject.id, "multi_scenes");
+          // Load unit data if not already loaded
+          await loadTabData(selectedProject.id, "unit");
         } finally {
           setLoadingMultiScenes(false);
         }
@@ -179,6 +185,7 @@ export function SequenceDialog({ open, onOpenChange, sequence = null, mode = "cr
         name: "",
         address: "",
         description: "",
+        source_unit: null,
       });
       setSelectedMultiSceneIds([]);
     } catch (error) {
@@ -192,9 +199,16 @@ export function SequenceDialog({ open, onOpenChange, sequence = null, mode = "cr
 
   const availableMultiScenes = projectItems.multi_scenes || [];
 
+  // Get unit items for source unit selection
+  const unitItems = projectItems.unit || [];
+  const unitOptions = unitItems.map((unit) => ({
+    value: unit.id,
+    label: `${unit.type || "Unknown"}-${unit.ip_address || unit.serial_no || "N/A"}`,
+  }));
+
   return (
     <Dialog open={open} onOpenChange={() => onOpenChange(false)}>
-      <DialogContent className="max-w-4xl! max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-5xl! max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>{mode === "edit" ? "Edit Sequence" : "Create Sequence"}</DialogTitle>
           <DialogDescription>
@@ -211,7 +225,7 @@ export function SequenceDialog({ open, onOpenChange, sequence = null, mode = "cr
         >
           <div className="grid gap-4">
             {/* Basic Information */}
-            <div className="grid grid-cols-3 gap-4">
+            <div className="grid grid-cols-4 gap-2">
               <div className="space-y-2">
                 <Label htmlFor="name">
                   Name <span className="text-red-500">*</span>
@@ -241,6 +255,26 @@ export function SequenceDialog({ open, onOpenChange, sequence = null, mode = "cr
                   className={errors.address ? "border-red-500" : ""}
                 />
                 {errors.address && <p className="text-sm text-red-500">{errors.address}</p>}
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="source_unit">Source Unit</Label>
+                <Select
+                  value={formData.source_unit?.toString() || "none"}
+                  onValueChange={(value) => handleInputChange("source_unit", value === "none" ? null : parseInt(value))}
+                >
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Default" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">Default</SelectItem>
+                    {unitOptions.map((option) => (
+                      <SelectItem key={option.value} value={option.value.toString()}>
+                        {option.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
 
               <div className="space-y-2">

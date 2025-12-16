@@ -12,9 +12,11 @@ export const sequenceTableSchemas = {
       name TEXT NOT NULL,
       address TEXT NOT NULL,
       description TEXT,
+      source_unit INTEGER,
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
       updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-      FOREIGN KEY (project_id) REFERENCES projects (id) ON DELETE CASCADE
+      FOREIGN KEY (project_id) REFERENCES projects (id) ON DELETE CASCADE,
+      FOREIGN KEY (source_unit) REFERENCES unit (id) ON DELETE SET NULL
     )
   `,
 
