@@ -1,8 +1,10 @@
 import React from "react";
 import { toast } from "sonner";
 import { SendItemsDialog } from "@/components/shared/send-items-dialog";
+import { useProjectDetail } from "@/contexts/project-detail-context";
 
 export function SendSequenceDialog({ open, onOpenChange, items = [] }) {
+  const { projectItems } = useProjectDetail();
   const handleLoadSingleSequence = async (sequence) => {
     const sequenceData = await window.electronAPI.sequences.getMultiScenes(sequence.id);
     return sequenceData;
@@ -187,6 +189,7 @@ export function SendSequenceDialog({ open, onOpenChange, items = [] }) {
       onSendSingle={handleSendSingleSequence}
       onSendBulk={handleSendBulkSequences}
       validateSingleItem={handleValidateSingleSequence}
+      projectItems={projectItems}
     />
   );
 }

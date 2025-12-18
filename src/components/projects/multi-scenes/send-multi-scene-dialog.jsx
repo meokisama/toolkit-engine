@@ -1,8 +1,10 @@
 import React from "react";
 import { toast } from "sonner";
 import { SendItemsDialog } from "@/components/shared/send-items-dialog";
+import { useProjectDetail } from "@/contexts/project-detail-context";
 
 export function SendMultiSceneDialog({ open, onOpenChange, items = [] }) {
+  const { projectItems } = useProjectDetail();
   const handleLoadSingleMultiScene = async (multiScene) => {
     const multiSceneData = await window.electronAPI.multiScenes.getScenes(multiScene.id);
     return multiSceneData;
@@ -227,6 +229,7 @@ export function SendMultiSceneDialog({ open, onOpenChange, items = [] }) {
       onSendSingle={handleSendSingleMultiScene}
       onSendBulk={handleSendBulkMultiScenes}
       validateSingleItem={handleValidateSingleMultiScene}
+      projectItems={projectItems}
     />
   );
 }

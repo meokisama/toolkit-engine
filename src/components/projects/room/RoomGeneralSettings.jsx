@@ -3,14 +3,14 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Settings2, LibraryBig, Network, ChevronsLeftRightEllipsis, Share2 } from "lucide-react";
+import { Settings2, LibraryBig, Network, ChevronsLeftRightEllipsis, Share2, Layers } from "lucide-react";
+import { KNXAddressInput } from "@/components/custom/knx-input";
 
 export function RoomGeneralSettings({ config, updateConfig }) {
-  const { roomMode, clientMode, roomAmount, tcpMode, slaveAmount, port, slaveIPs, clientIP, clientPort } = config;
+  const { roomMode, clientMode, roomAmount, tcpMode, slaveAmount, port, slaveIPs, clientIP, clientPort, knxAddress } = config;
 
   // Room mode determines if room amount is shown
   const showRoomAmount = roomMode === 0; // Only for Standalone
-  const effectiveRoomAmount = showRoomAmount ? roomAmount : 1;
 
   // TCP mode determines if slave fields are shown
   const showSlaveFields = tcpMode === 2; // Only for Master
@@ -155,62 +155,80 @@ export function RoomGeneralSettings({ config, updateConfig }) {
       </Card>
 
       <Card>
+        <CardContent className="flex gap-4">
+          {/* KNX Address */}
+          <Label htmlFor="knx-address" className="text-right gap-1">
+            <Layers className="size-4" />
+            KNX Address
+          </Label>
+          <KNXAddressInput
+            id="knx-address"
+            value={knxAddress || ""}
+            onChange={(value) => updateConfig("knxAddress", value || null)}
+            placeholder="0/0/0"
+          />
+        </CardContent>
+      </Card>
+
+      <Card>
         <CardHeader>
           <CardTitle className="text-gray-800 font-extrabold">Client Settings</CardTitle>
           <CardDescription>Configuration of third-party client.</CardDescription>
         </CardHeader>
-        <CardContent className="grid grid-cols-3 gap-2">
-          {/* Client Mode */}
-          <div className="flex flex-col gap-2">
-            <Label htmlFor="client-mode" className="text-right gap-1">
-              <Settings2 className="size-4" />
-              Client Mode
-            </Label>
-            <Select value={clientMode.toString()} onValueChange={(value) => updateConfig("clientMode", parseInt(value))}>
-              <SelectTrigger id="client-mode" className="w-full">
-                <SelectValue placeholder="Select client mode" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="0">None</SelectItem>
-                <SelectItem value="1">Madrix Server</SelectItem>
-                <SelectItem value="2">Salto Server</SelectItem>
-              </SelectContent>
-            </Select>
+        <CardContent className="space-y-4">
+          <div className="grid grid-cols-3 gap-2">
+            {/* Client Mode */}
+            <div className="flex flex-col gap-2">
+              <Label htmlFor="client-mode" className="text-right gap-1">
+                <Settings2 className="size-4" />
+                Client Mode
+              </Label>
+              <Select value={clientMode.toString()} onValueChange={(value) => updateConfig("clientMode", parseInt(value))}>
+                <SelectTrigger id="client-mode" className="w-full">
+                  <SelectValue placeholder="Select client mode" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="0">None</SelectItem>
+                  <SelectItem value="1">Madrix Server</SelectItem>
+                  <SelectItem value="2">Salto Server</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Client IP and Port - Only show when Client Mode is Madrix or Salto */}
+            {showClientFields && (
+              <>
+                <div className="flex flex-col gap-2">
+                  <Label htmlFor="client-ip" className="text-right gap-1">
+                    <Share2 className="size-4" />
+                    Client IP
+                  </Label>
+                  <Input
+                    id="client-ip"
+                    value={clientIP}
+                    onChange={(e) => updateConfig("clientIP", e.target.value)}
+                    placeholder="192.168.1.100"
+                    className="col-span-3"
+                  />
+                </div>
+
+                <div className="flex flex-col gap-2">
+                  <Label htmlFor="client-port" className="text-right gap-1">
+                    <ChevronsLeftRightEllipsis className="size-4" />
+                    Client Port
+                  </Label>
+                  <Input
+                    id="client-port"
+                    type="number"
+                    value={clientPort}
+                    onChange={(e) => updateConfig("clientPort", parseInt(e.target.value) || 0)}
+                    placeholder="8080"
+                    className="col-span-3"
+                  />
+                </div>
+              </>
+            )}
           </div>
-
-          {/* Client IP and Port - Only show when Client Mode is Madrix or Salto */}
-          {showClientFields && (
-            <>
-              <div className="flex flex-col gap-2">
-                <Label htmlFor="client-ip" className="text-right gap-1">
-                  <Share2 className="size-4" />
-                  Client IP
-                </Label>
-                <Input
-                  id="client-ip"
-                  value={clientIP}
-                  onChange={(e) => updateConfig("clientIP", e.target.value)}
-                  placeholder="192.168.1.100"
-                  className="col-span-3"
-                />
-              </div>
-
-              <div className="flex flex-col gap-2">
-                <Label htmlFor="client-port" className="text-right gap-1">
-                  <ChevronsLeftRightEllipsis className="size-4" />
-                  Client Port
-                </Label>
-                <Input
-                  id="client-port"
-                  type="number"
-                  value={clientPort}
-                  onChange={(e) => updateConfig("clientPort", parseInt(e.target.value) || 0)}
-                  placeholder="8080"
-                  className="col-span-3"
-                />
-              </div>
-            </>
-          )}
         </CardContent>
       </Card>
     </div>

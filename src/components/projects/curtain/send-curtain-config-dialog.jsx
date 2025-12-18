@@ -1,8 +1,10 @@
 import React from "react";
 import { toast } from "sonner";
 import { SendItemsDialog } from "@/components/shared/send-items-dialog";
+import { useProjectDetail } from "@/contexts/project-detail-context";
 
 export function SendCurtainConfigDialog({ open, onOpenChange, items = [] }) {
+  const { projectItems } = useProjectDetail();
   const handleLoadSingleCurtain = async (curtain) => {
     // For curtain config, we don't need to load additional data
     // All required data is already in the curtain item
@@ -229,6 +231,7 @@ export function SendCurtainConfigDialog({ open, onOpenChange, items = [] }) {
       onSendSingle={handleSendSingleCurtain}
       onSendBulk={handleSendBulkCurtains}
       validateSingleItem={handleValidateSingleCurtain}
+      projectItems={projectItems}
     />
   );
 }

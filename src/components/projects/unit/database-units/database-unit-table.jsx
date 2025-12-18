@@ -32,7 +32,7 @@ export function UnitTable() {
   const [deleteLoading, setDeleteLoading] = useState(false);
   const [databaseTable, setDatabaseTable] = useState(null);
   const [selectedRowsCount, setSelectedRowsCount] = useState(0);
-  const [columnVisibility, setColumnVisibility] = useState({});
+  const [columnVisibility, setColumnVisibility] = useState({ description: false });
   const [pagination, setPagination] = useState({ pageIndex: 0, pageSize: 10 });
   const [importDialogOpen, setImportDialogOpen] = useState(false);
   const [saveLoading, setSaveLoading] = useState(false);
@@ -302,14 +302,10 @@ export function UnitTable() {
   }, []);
 
   const databaseColumns = useMemo(
-    () => createUnitColumns(handleEditItem, handleDuplicateItem, handleDeleteItem, handleCellEdit, getEffectiveValue, handleIOConfig),
+    () => createUnitColumns(handleCellEdit, getEffectiveValue),
     [
-      handleEditItem,
-      handleDuplicateItem,
-      handleDeleteItem,
       handleCellEdit,
       getEffectiveValue, // This is now stable!
-      handleIOConfig,
     ]
   );
 
@@ -390,6 +386,7 @@ export function UnitTable() {
                       columns={databaseColumns}
                       data={units}
                       initialPagination={pagination}
+                      initialColumnVisibility={columnVisibility}
                       onTableReady={setDatabaseTable}
                       onRowSelectionChange={handleRowSelectionChange}
                       onColumnVisibilityChange={handleColumnVisibilityChange}

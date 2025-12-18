@@ -119,7 +119,7 @@ const MultiSceneTable = memo(function MultiSceneTable({ items = [], loading = fa
     [deleteItem, confirmDialog, loadMultiSceneCounts]
   );
 
-  const handleSendToUnit = useCallback(
+  const handleSendMultiScene = useCallback(
     (item) => {
       // Calculate index based on array position instead of database ID
       const multiSceneIndex = items.findIndex((multiScene) => multiScene.id === item.id);
@@ -242,14 +242,10 @@ const MultiSceneTable = memo(function MultiSceneTable({ items = [], loading = fa
 
   // Now columns will be truly stable because all dependencies are stable!
   const columns = useMemo(
-    () => createMultiSceneColumns(handleEditItem, handleDuplicateItem, handleDeleteItem, handleCellEdit, getEffectiveValue, handleSendToUnit, unitItems),
+    () => createMultiSceneColumns(handleCellEdit, getEffectiveValue, unitItems),
     [
-      handleEditItem,
-      handleDuplicateItem,
-      handleDeleteItem,
       handleCellEdit,
       getEffectiveValue, // This is now stable!
-      handleSendToUnit,
       unitItems,
     ]
   );
@@ -304,6 +300,7 @@ const MultiSceneTable = memo(function MultiSceneTable({ items = [], loading = fa
                 onEdit={handleEditItem}
                 onDuplicate={handleDuplicateItem}
                 onDelete={handleDeleteItem}
+                onSendMultiScene={handleSendMultiScene}
                 enableRowSelection={true}
               />
             </div>

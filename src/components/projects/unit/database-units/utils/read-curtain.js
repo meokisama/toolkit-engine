@@ -4,9 +4,10 @@ import { findOrCreateLightingByAddress, getCurtainTypeName } from "./config-help
  * Read curtain configurations from network unit and create them in database
  * @param {Object} networkUnit - The network unit to read from
  * @param {string} projectId - The project ID to create curtains in
+ * @param {number} unitId - The database unit ID to set as source_unit
  * @returns {Promise<Array>} Created curtains
  */
-export const readCurtainConfigurations = async (networkUnit, projectId) => {
+export const readCurtainConfigurations = async (networkUnit, projectId, unitId) => {
   const createdCurtains = [];
 
   try {
@@ -46,6 +47,7 @@ export const readCurtainConfigurations = async (networkUnit, projectId) => {
             stop_group_id: stopGroup?.id || null,
             pause_period: networkCurtain.pausePeriod || 0,
             transition_period: networkCurtain.transitionPeriod || 0,
+            source_unit: unitId,
           };
 
           const createdCurtain = await window.electronAPI.curtain.create(projectId, curtainData);

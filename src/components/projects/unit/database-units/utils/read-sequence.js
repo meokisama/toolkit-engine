@@ -3,9 +3,10 @@
  * @param {Object} networkUnit - The network unit to read from
  * @param {string} projectId - The project ID to create sequences in
  * @param {Map} multiSceneAddressMap - Map of multi-scene addresses to multi-scene IDs
+ * @param {number} unitId - The database unit ID to set as source_unit
  * @returns {Promise<Array>} Created sequences
  */
-export const readSequenceConfigurations = async (networkUnit, projectId, multiSceneAddressMap) => {
+export const readSequenceConfigurations = async (networkUnit, projectId, multiSceneAddressMap, unitId) => {
   const createdSequences = [];
 
   try {
@@ -32,6 +33,7 @@ export const readSequenceConfigurations = async (networkUnit, projectId, multiSc
             name: `Sequence ${networkSequence.index}`,
             address: networkSequence.address.toString(),
             description: `Transferred from network unit ${networkUnit.ip_address}`,
+            source_unit: unitId,
           };
 
           const createdSequence = await window.electronAPI.sequences.create(projectId, sequenceData);

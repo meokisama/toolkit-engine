@@ -2,8 +2,10 @@ import React from "react";
 import { toast } from "sonner";
 import { SendItemsDialog } from "@/components/shared/send-items-dialog";
 import { CONSTANTS } from "@/constants";
+import { useProjectDetail } from "@/contexts/project-detail-context";
 
 export function SendKnxDialog({ open, onOpenChange, items = [] }) {
+  const { projectItems } = useProjectDetail();
   const handleLoadSingleKnx = async (knx) => {
     // For KNX, we just return the knx data directly since it doesn't have sub-items
     return knx;
@@ -289,6 +291,7 @@ export function SendKnxDialog({ open, onOpenChange, items = [] }) {
       onSendSingle={handleSendSingleKnx}
       onSendBulk={handleSendBulkKnx}
       validateSingleItem={handleValidateSingleKnx}
+      projectItems={projectItems}
     />
   );
 }

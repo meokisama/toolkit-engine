@@ -4,9 +4,10 @@ import { findOrCreateDatabaseItemByNetworkItem, getObjectTypeFromValue } from ".
  * Read scene configurations from network unit and create them in database
  * @param {Object} networkUnit - The network unit to read from
  * @param {string} projectId - The project ID to create scenes in
+ * @param {number} unitId - The database unit ID to set as source_unit
  * @returns {Promise<{createdScenes: Array, sceneAddressMap: Map}>} Created scenes and address mapping
  */
-export const readSceneConfigurations = async (networkUnit, projectId) => {
+export const readSceneConfigurations = async (networkUnit, projectId, unitId) => {
   const createdScenes = [];
   const sceneAddressMap = new Map(); // Map network scene address to database scene ID
 
@@ -36,6 +37,7 @@ export const readSceneConfigurations = async (networkUnit, projectId) => {
               name: networkScene.name || `Scene ${networkScene.index}`,
               address: networkScene.address.toString(),
               description: `Transferred from network unit ${networkUnit.ip_address}`,
+              source_unit: unitId,
             };
 
             const createdScene = await window.electronAPI.scene.create(projectId, sceneData);

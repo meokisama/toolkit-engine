@@ -16,7 +16,7 @@ import { GenerateFromCurtainSheet } from "@/components/projects/knx/sheets/gener
 import { GenerateFromSceneSheet } from "@/components/projects/knx/sheets/generate-scene";
 import { GenerateFromMultiSceneSheet } from "@/components/projects/knx/sheets/generate-multi-scene";
 import { GenerateFromSequenceSheet } from "@/components/projects/knx/sheets/generate-sequence";
-import { Network, Send } from "lucide-react";
+import { Network } from "lucide-react";
 
 function KnxTableComponent({ items, loading }) {
   const { deleteItem, duplicateItem, exportItems, importItems, updateItem, projectItems } = useProjectDetail();
@@ -206,15 +206,16 @@ function KnxTableComponent({ items, loading }) {
     [importItems, category]
   );
 
-  const handleSendToUnit = useCallback((selectedItems) => {
-    setItemsToSend(selectedItems);
-    setSendDialogOpen(true);
-  }, []);
-
   const handleSendAll = useCallback(() => {
     setItemsToSend(items);
     setSendDialogOpen(true);
   }, [items]);
+
+  // Send single KNX item handler
+  const handleSendKnx = useCallback((knxItem) => {
+    setItemsToSend([knxItem]);
+    setSendDialogOpen(true);
+  }, []);
 
   // Handle generate KNX from lighting
   const handleGenerateFromLighting = useCallback(() => {
@@ -243,11 +244,8 @@ function KnxTableComponent({ items, loading }) {
 
   const columns = useMemo(
     () =>
-      createKnxItemsColumns(handleEditItem, handleDuplicateItem, handleDeleteItem, handleCellEdit, getEffectiveValue, projectItems || {}, unitItems),
+      createKnxItemsColumns(handleCellEdit, getEffectiveValue, projectItems || {}, unitItems),
     [
-      handleEditItem,
-      handleDuplicateItem,
-      handleDeleteItem,
       handleCellEdit,
       getEffectiveValue, // This is now stable!
       projectItems,
@@ -291,9 +289,6 @@ function KnxTableComponent({ items, loading }) {
                   onSave={handleSaveChanges}
                   hasPendingChanges={pendingChangesCount > 0}
                   saveLoading={saveLoading}
-                  onSendToUnit={handleSendToUnit}
-                  sendToUnitLabel="Send to Unit"
-                  sendToUnitIcon={Send}
                   onSendAll={handleSendAll}
                   sendAllLabel="Send All KNXs"
                   onGenerateFromLighting={handleGenerateFromLighting}
@@ -316,6 +311,7 @@ function KnxTableComponent({ items, loading }) {
                 onEdit={handleEditItem}
                 onDuplicate={handleDuplicateItem}
                 onDelete={handleDeleteItem}
+                onSendKnx={handleSendKnx}
                 enableRowSelection={true}
               />
             </div>

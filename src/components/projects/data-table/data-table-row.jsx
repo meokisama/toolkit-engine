@@ -52,6 +52,10 @@ export function DataTableRow({
   onSequenceControl,
   onSendSchedule,
   onSendScene,
+  onSendCurtain,
+  onSendKnx,
+  onSendMultiScene,
+  onSendSequence,
   onFirmwareUpdate,
   onTransferToDatabase,
   customRowClass,
@@ -93,6 +97,10 @@ export function DataTableRow({
             onMultiSceneControl ||
             onSendSchedule ||
             onSendScene ||
+            onSendCurtain ||
+            onSendKnx ||
+            onSendMultiScene ||
+            onSendSequence ||
             onFirmwareUpdate ||
             onDelete) && <ContextMenuSeparator />}
         {onIOConfig && (
@@ -112,6 +120,10 @@ export function DataTableRow({
               onMultiSceneControl ||
               onSendSchedule ||
               onSendScene ||
+              onSendCurtain ||
+              onSendKnx ||
+              onSendMultiScene ||
+              onSendSequence ||
               onFirmwareUpdate ||
               onDelete) && <ContextMenuSeparator />}
           </>
@@ -244,6 +256,42 @@ export function DataTableRow({
             <ContextMenuItem onClick={() => onSendScene(item)}>
               <Send className="text-muted-foreground" />
               <span>Send Scene</span>
+            </ContextMenuItem>
+            {!onSendCurtain && onDelete && <ContextMenuSeparator />}
+          </>
+        )}
+        {onSendCurtain && (
+          <>
+            <ContextMenuItem onClick={() => onSendCurtain(item)}>
+              <Send className="text-muted-foreground" />
+              <span>Send Curtain</span>
+            </ContextMenuItem>
+            {!onSendKnx && onDelete && <ContextMenuSeparator />}
+          </>
+        )}
+        {onSendKnx && (
+          <>
+            <ContextMenuItem onClick={() => onSendKnx(item)}>
+              <Send className="text-muted-foreground" />
+              <span>Send KNX</span>
+            </ContextMenuItem>
+            {!onSendMultiScene && !onSendSequence && onDelete && <ContextMenuSeparator />}
+          </>
+        )}
+        {onSendMultiScene && (
+          <>
+            <ContextMenuItem onClick={() => onSendMultiScene(item)}>
+              <Send className="text-muted-foreground" />
+              <span>Send Multi-Scene</span>
+            </ContextMenuItem>
+            {!onSendSequence && onDelete && <ContextMenuSeparator />}
+          </>
+        )}
+        {onSendSequence && (
+          <>
+            <ContextMenuItem onClick={() => onSendSequence(item)}>
+              <Send className="text-muted-foreground" />
+              <span>Send Sequence</span>
             </ContextMenuItem>
             {onDelete && <ContextMenuSeparator />}
           </>

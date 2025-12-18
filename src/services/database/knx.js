@@ -65,22 +65,36 @@ export const knxMethods = {
       throw new Error("KNX address must be between 0 and 511.");
     }
 
-    // Check for duplicate addresses
+    // Check for duplicate addresses within same source_unit
     if (itemId === null) {
       // Creating new item
-      const existingItems = this.db.prepare("SELECT COUNT(*) as count FROM knx WHERE project_id = ? AND address = ?").get(projectId, address);
+      const sourceUnit = itemData.source_unit || null;
+      let existingItems;
+      if (sourceUnit === null) {
+        existingItems = this.db.prepare("SELECT COUNT(*) as count FROM knx WHERE project_id = ? AND address = ? AND source_unit IS NULL").get(projectId, address);
+      } else {
+        existingItems = this.db.prepare("SELECT COUNT(*) as count FROM knx WHERE project_id = ? AND address = ? AND source_unit = ?").get(projectId, address, sourceUnit);
+      }
       if (existingItems.count > 0) {
-        throw new Error(`KNX address ${address} already exists.`);
+        throw new Error(`KNX address ${address} already exists in this source unit.`);
       }
     } else {
       // Updating existing item
       const currentItem = this.getProjectItemById(itemId, "knx");
       if (currentItem && currentItem.address !== address) {
-        const existingItems = this.db
-          .prepare("SELECT COUNT(*) as count FROM knx WHERE project_id = ? AND address = ? AND id != ?")
-          .get(currentItem.project_id, address, itemId);
+        const sourceUnit = itemData.source_unit !== undefined ? itemData.source_unit : currentItem.source_unit;
+        let existingItems;
+        if (sourceUnit === null) {
+          existingItems = this.db
+            .prepare("SELECT COUNT(*) as count FROM knx WHERE project_id = ? AND address = ? AND id != ? AND source_unit IS NULL")
+            .get(currentItem.project_id, address, itemId);
+        } else {
+          existingItems = this.db
+            .prepare("SELECT COUNT(*) as count FROM knx WHERE project_id = ? AND address = ? AND id != ? AND source_unit = ?")
+            .get(currentItem.project_id, address, itemId, sourceUnit);
+        }
         if (existingItems.count > 0) {
-          throw new Error(`KNX address ${address} already exists.`);
+          throw new Error(`KNX address ${address} already exists in this source unit.`);
         }
       }
     }

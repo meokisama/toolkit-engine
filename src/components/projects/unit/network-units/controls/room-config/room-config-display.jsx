@@ -14,6 +14,7 @@ import {
   ThermometerSnowflake,
   ThermometerSun,
   Lightbulb,
+  Layers,
 } from "lucide-react";
 
 const ROOM_MODE_LABELS = {
@@ -165,7 +166,7 @@ export function RoomConfigDisplay({ roomConfig }) {
           </CardTitle>
           <CardDescription>Configuration of third-party client.</CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
               <div className="text-sm font-semibold mb-1 flex items-center gap-1">
@@ -195,6 +196,15 @@ export function RoomConfigDisplay({ roomConfig }) {
                 </div>
               </>
             )}
+          </div>
+
+          {/* KNX Address */}
+          <div>
+            <div className="text-sm font-semibold mb-1 flex items-center gap-1">
+              <Layers className="h-4 w-4" />
+              KNX Address
+            </div>
+            <div className="text-sm font-mono">{roomConfig.generalConfig.knx_address || "0/0/0"}</div>
           </div>
         </CardContent>
       </Card>

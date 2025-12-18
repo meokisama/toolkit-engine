@@ -4,9 +4,10 @@ import { findOrCreateLightingByAddress } from "./config-helpers";
  * Read KNX configurations from network unit and create them in database
  * @param {Object} networkUnit - The network unit to read from
  * @param {string} projectId - The project ID to create KNX configs in
+ * @param {number} unitId - The database unit ID to set as source_unit
  * @returns {Promise<Array>} Created KNX configurations
  */
-export const readKnxConfigurations = async (networkUnit, projectId) => {
+export const readKnxConfigurations = async (networkUnit, projectId, unitId) => {
   const createdKnxConfigs = [];
 
   try {
@@ -44,6 +45,7 @@ export const readKnxConfigurations = async (networkUnit, projectId) => {
             knx_dimming_group: networkKnx.knxDimmingGroup || "",
             knx_value_group: networkKnx.knxValueGroup || "",
             description: `Transferred from network unit ${networkUnit.ip_address}`,
+            source_unit: unitId,
           };
 
           const createdKnx = await window.electronAPI.knx.create(projectId, knxData);

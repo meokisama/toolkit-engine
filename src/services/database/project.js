@@ -322,9 +322,9 @@ export const projectMethods = {
         const stmt = this.db.prepare(`
           INSERT INTO room_general_config (
             project_id, room_mode, room_amount, tcp_mode, port, slave_amount, slave_ips,
-            client_mode, client_ip, client_port
+            client_mode, client_ip, client_port, knx_address
           )
-          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         `);
         stmt.run(
           newProjectId,
@@ -336,7 +336,8 @@ export const projectMethods = {
           roomGeneralConfig.slave_ips,
           roomGeneralConfig.client_mode,
           roomGeneralConfig.client_ip,
-          roomGeneralConfig.client_port
+          roomGeneralConfig.client_port,
+          roomGeneralConfig.knx_address || "0/0/0"
         );
       }
 

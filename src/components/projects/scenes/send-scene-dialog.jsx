@@ -1,8 +1,10 @@
 import React from "react";
 import { toast } from "sonner";
 import { SendItemsDialog } from "@/components/shared/send-items-dialog";
+import { useProjectDetail } from "@/contexts/project-detail-context";
 
 export function SendSceneDialog({ open, onOpenChange, items = [] }) {
+  const { projectItems } = useProjectDetail();
   const handleLoadSingleScene = async (scene) => {
     const sceneItemsData = await window.electronAPI.scene.getItemsWithDetails(scene.id);
     return sceneItemsData;
@@ -197,6 +199,7 @@ export function SendSceneDialog({ open, onOpenChange, items = [] }) {
       onSendSingle={handleSendSingleScene}
       onSendBulk={handleSendBulkScenes}
       validateSingleItem={handleValidateSingleScene}
+      projectItems={projectItems}
     />
   );
 }

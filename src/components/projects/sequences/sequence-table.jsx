@@ -119,7 +119,7 @@ const SequenceTable = memo(function SequenceTable({ items = [], loading = false 
     [deleteItem, confirmDialog, loadSequenceCounts]
   );
 
-  const handleSendToUnit = useCallback(
+  const handleSendSequence = useCallback(
     (item) => {
       // Calculate index based on array position instead of database ID
       const sequenceIndex = items.findIndex((sequence) => sequence.id === item.id);
@@ -242,14 +242,10 @@ const SequenceTable = memo(function SequenceTable({ items = [], loading = false 
 
   // Now columns will be truly stable because all dependencies are stable!
   const columns = useMemo(
-    () => createSequenceColumns(handleEditItem, handleDuplicateItem, handleDeleteItem, handleCellEdit, getEffectiveValue, handleSendToUnit, unitItems),
+    () => createSequenceColumns(handleCellEdit, getEffectiveValue, unitItems),
     [
-      handleEditItem,
-      handleDuplicateItem,
-      handleDeleteItem,
       handleCellEdit,
       getEffectiveValue, // This is now stable!
-      handleSendToUnit,
       unitItems,
     ]
   );
@@ -304,6 +300,7 @@ const SequenceTable = memo(function SequenceTable({ items = [], loading = false 
                 onEdit={handleEditItem}
                 onDuplicate={handleDuplicateItem}
                 onDelete={handleDeleteItem}
+                onSendSequence={handleSendSequence}
                 enableRowSelection={true}
               />
             </div>

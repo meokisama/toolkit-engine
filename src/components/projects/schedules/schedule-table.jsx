@@ -258,14 +258,10 @@ const ScheduleTable = memo(function ScheduleTable({ items = [], loading = false 
 
   // Now columns will be truly stable because all dependencies are stable!
   const columns = useMemo(
-    () => createScheduleColumns(handleEditItem, handleDuplicateItem, handleDeleteItem, handleCellEdit, getEffectiveValue, handleSendSchedule, unitItems),
+    () => createScheduleColumns(handleCellEdit, getEffectiveValue, unitItems),
     [
-      handleEditItem,
-      handleDuplicateItem,
-      handleDeleteItem,
       handleCellEdit,
       getEffectiveValue, // This is now stable!
-      handleSendSchedule,
       unitItems,
     ]
   );

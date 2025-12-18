@@ -1,12 +1,9 @@
 import React, { useState, useCallback, useRef, useEffect } from "react";
-import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Switch } from "@/components/ui/switch";
 import { TimePicker } from "@/components/custom/time-picker";
-import { MoreHorizontal, Edit, Copy, Trash2, Send } from "lucide-react";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { DataTableColumnHeader } from "@/components/projects/data-table/data-table-column-header";
 import { DataTableFilterColumnHeader } from "@/components/projects/data-table/data-table-filter-column-header";
 
@@ -122,7 +119,7 @@ const CompactTimePicker = ({ value, onChange, debounceMs = 300 }) => {
   );
 };
 
-export function createScheduleColumns(onEdit, onDuplicate, onDelete, onCellEdit, getEffectiveValue, onSendSchedule, unitItems = []) {
+export function createScheduleColumns(onCellEdit, getEffectiveValue, unitItems = []) {
   // Create filter options for source unit
   const sourceUnitFilterOptions = [
     { value: "all", label: "All" },
@@ -277,43 +274,6 @@ export function createScheduleColumns(onEdit, onDuplicate, onDelete, onCellEdit,
       },
       enableSorting: false,
       enableHiding: true,
-    },
-    {
-      id: "actions",
-      cell: ({ row }) => {
-        const schedule = row.original;
-
-        return (
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="h-8 w-8 p-0">
-                <span className="sr-only">Open menu</span>
-                <MoreHorizontal className="h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={() => onEdit(schedule)}>
-                <Edit className="mr-2 h-4 w-4" />
-                Edit
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => onDuplicate(schedule.id)}>
-                <Copy className="mr-2 h-4 w-4" />
-                Duplicate
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={() => onSendSchedule(schedule)}>
-                <Send className="mr-2 h-4 w-4" />
-                Send Schedule
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={() => onDelete(schedule)} className="text-destructive">
-                <Trash2 className="mr-2 h-4 w-4" />
-                Delete
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        );
-      },
     },
   ];
 }

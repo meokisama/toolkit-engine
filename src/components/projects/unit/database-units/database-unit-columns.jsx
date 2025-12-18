@@ -1,5 +1,3 @@
-import { Copy, SquarePen, Trash2, MoreHorizontal, Settings } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { DataTableColumnHeader } from "@/components/projects/data-table/data-table-column-header";
@@ -7,7 +5,6 @@ import { EditableCell } from "@/components/projects/data-table/editable-cell";
 import { EditableSelectCell } from "@/components/projects/data-table/editable-select-cell";
 import { EditableComboboxCell } from "@/components/projects/data-table/editable-combobox-cell";
 import { EditableCheckboxCell } from "@/components/projects/data-table/editable-checkbox-cell";
-import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
 import { UNIT_TYPES, UNIT_MODES } from "@/constants";
 import { compareIpAddresses } from "@/utils/ip-utils";
 
@@ -21,7 +18,7 @@ const UNIT_MODE_OPTIONS = UNIT_MODES.map((mode) => ({
   label: mode,
 }));
 
-export const createUnitColumns = (onEdit, onDuplicate, onDelete, onCellEdit, getEffectiveValue, onIOConfig) => [
+export const createUnitColumns = (onCellEdit, getEffectiveValue) => [
   {
     id: "select",
     header: ({ table }) => (
@@ -277,51 +274,6 @@ export const createUnitColumns = (onEdit, onDuplicate, onDelete, onCellEdit, get
     enableHiding: true,
     meta: {
       className: "w-[25%]",
-    },
-  },
-  {
-    id: "actions",
-    header: "",
-    cell: ({ row }) => {
-      const item = row.original;
-
-      return (
-        <div className="flex items-center justify-end">
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon" className="h-8 w-8 p-0" title="More actions">
-                <MoreHorizontal className="h-4 w-4" />
-                <span className="sr-only">More</span>
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent className="w-48" align="end">
-              <DropdownMenuItem onClick={() => onEdit(item)} className="cursor-pointer">
-                <SquarePen className="text-muted-foreground" />
-                <span>Edit</span>
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => onDuplicate(item)} className="cursor-pointer">
-                <Copy className="text-muted-foreground" />
-                <span>Duplicate</span>
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={() => onIOConfig(item)} className="cursor-pointer">
-                <Settings className="text-muted-foreground" />
-                <span>I/O Config</span>
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={() => onDelete(item)} className="cursor-pointer text-red-600 focus:text-red-600">
-                <Trash2 className="text-red-600" />
-                <span>Delete</span>
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
-      );
-    },
-    enableSorting: false,
-    enableHiding: false,
-    meta: {
-      className: "w-[8%]",
     },
   },
 ];

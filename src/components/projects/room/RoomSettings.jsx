@@ -35,6 +35,7 @@ export function RoomSettings() {
     slaveIPs: ["", "", "", ""], // IP addresses for slaves
     clientIP: "",
     clientPort: 8080,
+    knxAddress: null, // KNX address
   });
 
   // Individual room configurations
@@ -95,6 +96,7 @@ export function RoomSettings() {
             slaveIPs: generalConfig.slaveIPs || ["", "", "", ""],
             clientIP: generalConfig.client_ip || "",
             clientPort: generalConfig.client_port,
+            knxAddress: generalConfig.knx_address || null,
           });
 
           // Load room configs for this general config
@@ -172,6 +174,7 @@ export function RoomSettings() {
             slaveIPs: ["", "", "", ""],
             clientIP: "",
             clientPort: 8080,
+            knxAddress: null,
           });
 
           setRoomConfigurations(
@@ -221,6 +224,7 @@ export function RoomSettings() {
           clientMode: roomConfig.clientMode,
           clientIP: roomConfig.clientIP,
           clientPort: roomConfig.clientPort,
+          knxAddress: roomConfig.knxAddress,
         },
         selectedSourceUnit
       );
@@ -278,6 +282,7 @@ export function RoomSettings() {
         slaveIPs: roomConfig.slaveIPs,
         client_ip: roomConfig.clientIP,
         client_port: roomConfig.clientPort,
+        knx_address: roomConfig.knxAddress,
       };
 
       // Prepare room configs for sending

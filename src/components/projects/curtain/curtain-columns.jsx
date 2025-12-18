@@ -1,14 +1,5 @@
-import { MoreHorizontal, Copy, Edit, Trash2, Layers, Blinds } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Layers, Blinds } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import { DataTableColumnHeader } from "../data-table/data-table-column-header";
 import { DataTableFilterColumnHeader } from "../data-table/data-table-filter-column-header";
 import { EditableCell } from "../data-table/editable-cell";
@@ -16,7 +7,7 @@ import { EditableSelectCell } from "../data-table/editable-select-cell";
 import { EditableComboboxCell } from "../data-table/editable-combobox-cell";
 import { CURTAIN_TYPES } from "@/constants";
 
-export const createCurtainColumns = (onEdit, onDelete, onDuplicate, onCellEdit, getEffectiveValue, lightingItems = [], unitItems = []) => {
+export const createCurtainColumns = (onCellEdit, getEffectiveValue, lightingItems = [], unitItems = []) => {
   // Create lighting options for group selection
   const lightingOptions = lightingItems.map((item) => ({
     value: item.id,
@@ -300,40 +291,6 @@ export const createCurtainColumns = (onEdit, onDelete, onDuplicate, onCellEdit, 
       enableHiding: true,
       meta: {
         className: "w-[15%] min-w-50",
-      },
-    },
-    {
-      id: "actions",
-      enableHiding: false,
-      cell: ({ row }) => {
-        const item = row.original;
-
-        return (
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="h-8 w-8 p-0">
-                <span className="sr-only">Open menu</span>
-                <MoreHorizontal className="h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuLabel>Actions</DropdownMenuLabel>
-              <DropdownMenuItem onClick={() => onEdit(item)}>
-                <Edit className="mr-2 h-4 w-4" />
-                Edit
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => onDuplicate(item)}>
-                <Copy className="mr-2 h-4 w-4" />
-                Duplicate
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={() => onDelete(item)} className="text-red-600">
-                <Trash2 className="mr-2 h-4 w-4" />
-                Delete
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        );
       },
     },
   ];

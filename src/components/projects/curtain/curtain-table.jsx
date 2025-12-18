@@ -23,7 +23,7 @@ export function CurtainTable({ items = [], loading = false }) {
   // Table state management
   const [table, setTable] = useState(null);
   const [selectedRowsCount, setSelectedRowsCount] = useState(0);
-  const [columnVisibility, setColumnVisibility] = useState({});
+  const [columnVisibility, setColumnVisibility] = useState({ description: false });
   const [pagination, setPagination] = useState({ pageIndex: 0, pageSize: 10 });
   const [saveLoading, setSaveLoading] = useState(false);
 
@@ -40,6 +40,10 @@ export function CurtainTable({ items = [], loading = false }) {
 
   // Send config state
   const [sendConfigDialogOpen, setSendConfigDialogOpen] = useState(false);
+
+  // Send single curtain state
+  const [sendSingleCurtainDialogOpen, setSendSingleCurtainDialogOpen] = useState(false);
+  const [curtainToSend, setCurtainToSend] = useState(null);
 
   // Get lighting items for group selection
   const lightingItems = projectItems.lighting || [];
@@ -206,10 +210,16 @@ export function CurtainTable({ items = [], loading = false }) {
     setSendConfigDialogOpen(true);
   }, []);
 
+  // Send single curtain handler
+  const handleSendCurtain = useCallback((curtain) => {
+    setCurtainToSend(curtain);
+    setSendSingleCurtainDialogOpen(true);
+  }, []);
+
   // Memoize columns to prevent unnecessary re-renders
   const columns = useMemo(
-    () => createCurtainColumns(handleEdit, handleDelete, handleDuplicate, handleCellEdit, getEffectiveValue, lightingItems, unitItems),
-    [handleEdit, handleDelete, handleDuplicate, handleCellEdit, getEffectiveValue, lightingItems, unitItems]
+    () => createCurtainColumns(handleCellEdit, getEffectiveValue, lightingItems, unitItems),
+    [handleCellEdit, getEffectiveValue, lightingItems, unitItems]
   );
 
   if (loading) {
@@ -257,6 +267,7 @@ export function CurtainTable({ items = [], loading = false }) {
                 columns={columns}
                 data={items}
                 initialPagination={pagination}
+                initialColumnVisibility={columnVisibility}
                 onTableReady={setTable}
                 onRowSelectionChange={handleRowSelectionChange}
                 onColumnVisibilityChange={handleColumnVisibilityChange}
@@ -264,6 +275,7 @@ export function CurtainTable({ items = [], loading = false }) {
                 onEdit={handleEdit}
                 onDuplicate={handleDuplicate}
                 onDelete={handleDelete}
+                onSendCurtain={handleSendCurtain}
                 enableRowSelection={true}
               />
             </div>
@@ -299,6 +311,12 @@ export function CurtainTable({ items = [], loading = false }) {
       <ImportItemsDialog open={importDialogOpen} onOpenChange={setImportDialogOpen} onImport={handleImportConfirm} category={category} />
 
       <SendCurtainConfigDialog open={sendConfigDialogOpen} onOpenChange={setSendConfigDialogOpen} items={items} />
+
+      <SendCurtainConfigDialog
+        open={sendSingleCurtainDialogOpen}
+        onOpenChange={setSendSingleCurtainDialogOpen}
+        items={curtainToSend ? [curtainToSend] : []}
+      />
     </>
   );
 }

@@ -1,5 +1,5 @@
 import { UDP_PORT, PROTOCOL } from "./constants.js";
-import { convertCanIdToInt } from "./utils.js";
+import { convertCanIdToInt, convertKnxAddressToHex, decodeKnxAddressFromHex } from "./utils.js";
 import { sendCommand } from "./command-sender.js";
 
 const MAX_SLAVE = 4;
@@ -194,8 +194,12 @@ async function setRoomConfiguration(unitIp, canId, generalConfig, roomConfigs) {
   data.push(clientPort & 0xff); // Low byte
   data.push((clientPort >> 8) & 0xff); // High byte
 
-  // reserved: 14 bytes
-  data.push(...Array(14).fill(0x00));
+  // knx_address: 2 bytes (from KNX address format a/b/c)
+  const knxAddressBytes = convertKnxAddressToHex(generalConfig.knx_address || "0/0/0");
+  data.push(...knxAddressBytes);
+
+  // reserved: 12 bytes
+  data.push(...Array(12).fill(0x00));
 
   // ROOM_C room[MAX_ROOM]: encode each room configuration
   for (let i = 0; i < MAX_ROOM; i++) {
@@ -386,8 +390,15 @@ async function getRoomConfiguration(unitIp, canId) {
   const clientPort = responseData[pos] | (responseData[pos + 1] << 8);
   pos += 2;
 
-  // Skip reserved 14 bytes
-  pos += 14;
+  // knx_address: 2 bytes
+  const knxAddressBytes = responseData.slice(pos, pos + 2);
+  console.log("KNX Address bytes:", knxAddressBytes, "Hex:", Array.from(knxAddressBytes).map(b => "0x" + b.toString(16).padStart(2, "0")).join(" "));
+  const knxAddress = decodeKnxAddressFromHex(knxAddressBytes);
+  console.log("Decoded KNX Address:", knxAddress);
+  pos += 2;
+
+  // Skip reserved 12 bytes
+  pos += 12;
 
   // ROOM_C room[MAX_ROOM]: decode each room configuration
   const rooms = [];
@@ -412,6 +423,7 @@ async function getRoomConfiguration(unitIp, canId) {
       slaveIPs: ipConfig.slaveIPs,
       client_ip: clientIp,
       client_port: clientPort,
+      knx_address: knxAddress,
     },
     rooms: rooms,
   };

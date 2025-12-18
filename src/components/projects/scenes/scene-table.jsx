@@ -277,14 +277,10 @@ const SceneTable = memo(function SceneTable({ items = [], loading = false }) {
 
   // Now columns will be truly stable because all dependencies are stable!
   const columns = useMemo(
-    () => createSceneColumns(handleEditItem, handleDuplicateItem, handleDeleteItem, handleCellEdit, getEffectiveValue, handleSendToUnit, unitItems),
+    () => createSceneColumns(handleCellEdit, getEffectiveValue, unitItems),
     [
-      handleEditItem,
-      handleDuplicateItem,
-      handleDeleteItem,
       handleCellEdit,
       getEffectiveValue, // This is now stable!
-      handleSendToUnit,
       unitItems,
     ]
   );

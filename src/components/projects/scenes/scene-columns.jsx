@@ -1,13 +1,12 @@
 import React from "react";
-import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { DataTableColumnHeader } from "@/components/projects/data-table/data-table-column-header";
 import { DataTableFilterColumnHeader } from "@/components/projects/data-table/data-table-filter-column-header";
 import { EditableCell } from "@/components/projects/data-table/editable-cell";
-import { Settings, Copy, Trash2, SlidersHorizontal, Layers, FilePen, Send } from "lucide-react";
+import { Layers, SlidersHorizontal, FilePen } from "lucide-react";
 
-export const createSceneColumns = (onEdit, onDuplicate, onDelete, onCellEdit, getEffectiveValue, onSendToUnit, unitItems = []) => {
+export const createSceneColumns = (onCellEdit, getEffectiveValue, unitItems = []) => {
   // Create filter options for source unit
   const sourceUnitFilterOptions = [
     { value: "all", label: "All" },
@@ -155,41 +154,6 @@ export const createSceneColumns = (onEdit, onDuplicate, onDelete, onCellEdit, ge
       enableHiding: true,
       meta: {
         className: "w-[20%]",
-      },
-    },
-    {
-      id: "actions",
-      header: "",
-      cell: ({ row }) => {
-        const item = row.original;
-
-        return (
-          <div className="flex justify-end gap-1">
-            <Button variant="outline" size="icon" onClick={() => onEdit(item)} className="cursor-pointer" title="Manage scene items">
-              <Settings className="h-4 w-4" />
-            </Button>
-            <Button variant="outline" size="icon" onClick={() => onSendToUnit(item)} className="cursor-pointer" title="Send scene to network unit">
-              <Send className="h-4 w-4" />
-            </Button>
-            <Button variant="outline" size="icon" onClick={() => onDuplicate(item)} className="cursor-pointer" title="Duplicate scene">
-              <Copy className="h-4 w-4" />
-            </Button>
-            <Button
-              variant="outline"
-              size="icon"
-              onClick={() => onDelete(item)}
-              className="text-destructive hover:text-destructive cursor-pointer"
-              title="Delete scene"
-            >
-              <Trash2 className="h-4 w-4" />
-            </Button>
-          </div>
-        );
-      },
-      enableSorting: false,
-      enableHiding: false,
-      meta: {
-        className: "w-[8%]",
       },
     },
   ];

@@ -1,12 +1,14 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useMemo } from "react";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { toast } from "sonner";
-import { Send, Loader2, CheckCircle, XCircle } from "lucide-react";
+import { Send, Loader2, CheckCircle, XCircle, Database } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 import { NetworkUnitSelector, useNetworkUnitSelector } from "@/components/shared/network-unit-selector";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Label } from "@/components/ui/label";
 
 export function SendItemsDialog({
   open,
@@ -17,6 +19,7 @@ export function SendItemsDialog({
   onSendSingle,
   onSendBulk,
   validateSingleItem,
+  projectItems = null, // Added to access database units
 }) {
   const { selectedUnitIds, handleSelectionChange, clearSelection } = useNetworkUnitSelector();
   const networkUnitSelectorRef = useRef(null);
@@ -26,28 +29,48 @@ export function SendItemsDialog({
   const [currentItem, setCurrentItem] = useState("");
   const [results, setResults] = useState([]);
   const [showResults, setShowResults] = useState(false);
+  const [selectedSourceUnitId, setSelectedSourceUnitId] = useState("all");
 
-  const isBulkMode = items.length > 1;
+  const databaseUnits = projectItems?.unit || [];
+
+  // Filter items by source unit and add calculated index
+  const filteredItems = useMemo(() => {
+    if (selectedSourceUnitId === "all") {
+      return items.map((item, index) => ({
+        ...item,
+        calculatedIndex: index,
+      }));
+    }
+    const sourceUnitIdNum = parseInt(selectedSourceUnitId);
+    const filtered = items.filter((item) => item.source_unit === sourceUnitIdNum);
+    return filtered.map((item, index) => ({
+      ...item,
+      calculatedIndex: index,
+    }));
+  }, [items, selectedSourceUnitId]);
+
+  const isBulkMode = filteredItems.length > 1;
 
   // Load single item data when dialog opens
   useEffect(() => {
-    if (open && items.length > 0) {
+    if (open && filteredItems.length > 0) {
       if (!isBulkMode && onLoadSingleItem) {
         loadSingleItemData();
       }
       clearSelection();
+      setSelectedSourceUnitId("all");
       setShowResults(false);
       setResults([]);
       setProgress(0);
       setCurrentItem("");
     }
-  }, [open, items, isBulkMode, onLoadSingleItem, clearSelection]);
+  }, [open, filteredItems, isBulkMode, onLoadSingleItem, clearSelection]);
 
   const loadSingleItemData = async () => {
-    if (isBulkMode || !items[0] || !onLoadSingleItem) return;
+    if (isBulkMode || !filteredItems[0] || !onLoadSingleItem) return;
 
     try {
-      const data = await onLoadSingleItem(items[0]);
+      const data = await onLoadSingleItem(filteredItems[0]);
       setSingleItemData(data);
     } catch (error) {
       console.error(`Failed to load ${itemType} data:`, error);
@@ -61,7 +84,7 @@ export function SendItemsDialog({
       return;
     }
 
-    if (items.length === 0) {
+    if (filteredItems.length === 0) {
       toast.error(`No ${itemType}s to send`);
       return;
     }
@@ -97,7 +120,7 @@ export function SendItemsDialog({
     if (!onSendSingle) return;
 
     try {
-      await onSendSingle(items[0], singleItemData, selectedUnits);
+      await onSendSingle(filteredItems[0], singleItemData, selectedUnits);
       onOpenChange(false);
     } catch (error) {
       console.error(`Error sending ${itemType}:`, error);
@@ -109,7 +132,7 @@ export function SendItemsDialog({
     if (!onSendBulk) return;
 
     try {
-      const operationResults = await onSendBulk(items, selectedUnits, (progress, currentItemName) => {
+      const operationResults = await onSendBulk(filteredItems, selectedUnits, (progress, currentItemName) => {
         setProgress(progress);
         setCurrentItem(currentItemName);
       });
@@ -152,16 +175,44 @@ export function SendItemsDialog({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Send className="h-5 w-5" />
-            {isBulkMode ? `Send All ${ItemTypePluralCapitalized} to Network Units` : `Send ${items[0].name} to Network Unit`}
+            {isBulkMode ? `Send All ${ItemTypePluralCapitalized} to Network Units` : `Send ${filteredItems[0]?.name} to Network Unit`}
           </DialogTitle>
           <DialogDescription>
             {isBulkMode
-              ? `Send all ${items.length} ${itemTypePlural} to selected network units.`
-              : `Send ${itemType} "${items[0].name}" configuration to a network unit.`}
+              ? `Send ${filteredItems.length} ${itemTypePlural} (filtered from ${items.length} total) to selected network units.`
+              : `Send ${itemType} "${filteredItems[0]?.name}" configuration to a network unit.`}
           </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-3">
+          {/* Source Unit Filter - Only show in bulk mode and if projectItems is provided */}
+          {isBulkMode && databaseUnits.length > 0 && (
+            <Card>
+              <CardContent className="flex gap-4">
+                <Label className="flex items-center gap-2">
+                  <Database className="h-4 w-4" />
+                  Source Unit Filter
+                </Label>
+                <Select value={selectedSourceUnitId} onValueChange={setSelectedSourceUnitId} disabled={loading}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select source unit" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Units ({items.length} items)</SelectItem>
+                    {databaseUnits.map((unit) => {
+                      const itemCount = items.filter((item) => item.source_unit === unit.id).length;
+                      return (
+                        <SelectItem key={unit.id} value={unit.id.toString()}>
+                          {unit.name || unit.type || "Unnamed Unit"} ({unit.ip_address}) - {itemCount} items
+                        </SelectItem>
+                      );
+                    })}
+                  </SelectContent>
+                </Select>
+              </CardContent>
+            </Card>
+          )}
+
           {/* Network Units */}
           <NetworkUnitSelector
             selectedUnitIds={selectedUnitIds}
@@ -231,15 +282,15 @@ export function SendItemsDialog({
             Cancel
           </Button>
           {!showResults ? (
-            <Button onClick={handleSendItems} disabled={loading || selectedUnitIds.length === 0}>
+            <Button onClick={handleSendItems} disabled={loading || selectedUnitIds.length === 0 || filteredItems.length === 0}>
               {loading && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
               {isBulkMode
                 ? loading
                   ? "Sending..."
-                  : `Send All (${items.length} ${itemTypePlural})`
+                  : `Send All (${filteredItems.length} ${itemTypePlural})`
                 : selectedUnitIds.length === 0
-                ? `Send ${ItemTypeCapitalized}`
-                : `Send ${ItemTypeCapitalized} to ${selectedUnitIds.length} Unit${selectedUnitIds.length !== 1 ? "s" : ""}`}
+                  ? `Send ${ItemTypeCapitalized}`
+                  : `Send ${ItemTypeCapitalized} to ${selectedUnitIds.length} Unit${selectedUnitIds.length !== 1 ? "s" : ""}`}
             </Button>
           ) : (
             <Button onClick={() => onOpenChange(false)}>Close</Button>

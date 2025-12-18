@@ -22,9 +22,6 @@ export function DataTableToolbar({
   saveLoading = false,
   onSendAll,
   sendAllLabel = "Send All",
-  onSendToUnit,
-  sendToUnitLabel = "Send to Unit",
-  sendToUnitIcon: SendToUnitIcon = Send,
   onGenerateFromLighting,
   onGenerateFromCurtain,
   onGenerateFromScene,
@@ -86,13 +83,6 @@ export function DataTableToolbar({
     }
   }, [onSendAll]);
 
-  const handleSendToUnit = useCallback(() => {
-    if (onSendToUnit && hasSelectedRows) {
-      const selectedItems = selectedRows.map((row) => row.original);
-      onSendToUnit(selectedItems);
-    }
-  }, [onSendToUnit, selectedRows, hasSelectedRows]);
-
   return (
     <div className="flex items-center justify-between gap-2">
       <div className="flex flex-1 items-center space-x-2">
@@ -117,18 +107,10 @@ export function DataTableToolbar({
         </div>
 
         {hasSelectedRows && (
-          <>
-            <Button variant="destructive" onClick={handleBulkDelete}>
-              <Trash2 className="h-4 w-4" />
-              <span className="hidden lg:inline">Delete </span>({selectedRowsCount})
-            </Button>
-            {onSendToUnit && category === "knx" && (
-              <Button variant="outline" onClick={handleSendToUnit}>
-                <SendToUnitIcon className="h-4 w-4" />
-                <span className="hidden lg:inline">{sendToUnitLabel}</span>
-              </Button>
-            )}
-          </>
+          <Button variant="destructive" onClick={handleBulkDelete}>
+            <Trash2 className="h-4 w-4" />
+            <span className="hidden lg:inline">Delete </span>({selectedRowsCount})
+          </Button>
         )}
 
         {hasPendingChanges && (

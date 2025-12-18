@@ -1,13 +1,12 @@
 import React from "react";
-import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Copy, Trash2, Send, FileText, Hash, Settings } from "lucide-react";
+import { FileText, Hash } from "lucide-react";
 import { EditableCell } from "@/components/projects/data-table/editable-cell";
 import { DataTableColumnHeader } from "@/components/projects/data-table/data-table-column-header";
 import { DataTableFilterColumnHeader } from "@/components/projects/data-table/data-table-filter-column-header";
 import { Badge } from "@/components/ui/badge";
 
-export function createSequenceColumns(onEdit, onDuplicate, onDelete, onCellEdit, getEffectiveValue, onSendToUnit, unitItems = []) {
+export function createSequenceColumns(onCellEdit, getEffectiveValue, unitItems = []) {
   // Create filter options for source unit
   const sourceUnitFilterOptions = [
     { value: "all", label: "All" },
@@ -149,47 +148,6 @@ export function createSequenceColumns(onEdit, onDuplicate, onDelete, onCellEdit,
       enableHiding: true,
       meta: {
         className: "w-[30%]",
-      },
-    },
-    {
-      id: "actions",
-      header: "",
-      cell: ({ row }) => {
-        const sequence = row.original;
-
-        return (
-          <div className="flex justify-end gap-1">
-            <Button variant="outline" size="icon" onClick={() => onEdit(sequence)} className="cursor-pointer" title="Manage sequence multi-scenes">
-              <Settings className="h-4 w-4" />
-            </Button>
-            <Button
-              variant="outline"
-              size="icon"
-              onClick={() => onSendToUnit(sequence)}
-              className="cursor-pointer"
-              title="Send sequence to network unit"
-            >
-              <Send className="h-4 w-4" />
-            </Button>
-            <Button variant="outline" size="icon" onClick={() => onDuplicate(sequence.id)} className="cursor-pointer" title="Duplicate sequence">
-              <Copy className="h-4 w-4" />
-            </Button>
-            <Button
-              variant="outline"
-              size="icon"
-              onClick={() => onDelete(sequence)}
-              className="text-destructive hover:text-destructive cursor-pointer"
-              title="Delete sequence"
-            >
-              <Trash2 className="h-4 w-4" />
-            </Button>
-          </div>
-        );
-      },
-      enableSorting: false,
-      enableHiding: false,
-      meta: {
-        className: "w-[15%]",
       },
     },
   ];

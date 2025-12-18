@@ -3,9 +3,10 @@
  * @param {Object} networkUnit - The network unit to read from
  * @param {string} projectId - The project ID to create schedules in
  * @param {Map} sceneAddressMap - Map of scene addresses to scene IDs
+ * @param {number} unitId - The database unit ID to set as source_unit
  * @returns {Promise<Array>} Created schedules
  */
-export const readScheduleConfigurations = async (networkUnit, projectId, sceneAddressMap) => {
+export const readScheduleConfigurations = async (networkUnit, projectId, sceneAddressMap, unitId) => {
   const createdSchedules = [];
 
   try {
@@ -42,6 +43,7 @@ export const readScheduleConfigurations = async (networkUnit, projectId, sceneAd
             time: timeString,
             days: enabledDays,
             enabled: networkSchedule.enabled,
+            source_unit: unitId,
           };
 
           const createdSchedule = await window.electronAPI.schedule.create(projectId, scheduleData);

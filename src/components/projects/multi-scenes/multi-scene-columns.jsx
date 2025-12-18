@@ -1,7 +1,6 @@
 import React from "react";
-import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Copy, Trash2, Send, FileText, Hash, Settings } from "lucide-react";
+import { FileText, Hash } from "lucide-react";
 import { CONSTANTS } from "@/constants";
 import { EditableCell } from "@/components/projects/data-table/editable-cell";
 import { EditableSelectCell } from "@/components/projects/data-table/editable-select-cell";
@@ -9,7 +8,7 @@ import { DataTableColumnHeader } from "@/components/projects/data-table/data-tab
 import { DataTableFilterColumnHeader } from "@/components/projects/data-table/data-table-filter-column-header";
 import { Badge } from "@/components/ui/badge";
 
-export function createMultiSceneColumns(onEdit, onDuplicate, onDelete, onCellEdit, getEffectiveValue, onSendToUnit, unitItems = []) {
+export function createMultiSceneColumns(onCellEdit, getEffectiveValue, unitItems = []) {
   // Create filter options for source unit
   const sourceUnitFilterOptions = [
     { value: "all", label: "All" },
@@ -172,47 +171,6 @@ export function createMultiSceneColumns(onEdit, onDuplicate, onDelete, onCellEdi
       },
       enableSorting: true,
       enableHiding: true,
-      meta: {
-        className: "w-[15%]",
-      },
-    },
-    {
-      id: "actions",
-      header: "",
-      cell: ({ row }) => {
-        const multiScene = row.original;
-
-        return (
-          <div className="flex justify-end gap-1">
-            <Button variant="outline" size="icon" onClick={() => onEdit(multiScene)} className="cursor-pointer" title="Edit multi-scene">
-              <Settings className="h-4 w-4" />
-            </Button>
-            <Button
-              variant="outline"
-              size="icon"
-              onClick={() => onSendToUnit(multiScene)}
-              className="cursor-pointer"
-              title="Send multi-scene to network unit"
-            >
-              <Send className="h-4 w-4" />
-            </Button>
-            <Button variant="outline" size="icon" onClick={() => onDuplicate(multiScene.id)} className="cursor-pointer" title="Duplicate multi-scene">
-              <Copy className="h-4 w-4" />
-            </Button>
-            <Button
-              variant="outline"
-              size="icon"
-              onClick={() => onDelete(multiScene)}
-              className="text-destructive hover:text-destructive cursor-pointer"
-              title="Delete multi-scene"
-            >
-              <Trash2 className="h-4 w-4" />
-            </Button>
-          </div>
-        );
-      },
-      enableSorting: false,
-      enableHiding: false,
       meta: {
         className: "w-[15%]",
       },

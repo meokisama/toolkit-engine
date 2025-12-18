@@ -50,6 +50,15 @@ export function registerUnitHandlers(ipcMain, dbService) {
     }
   });
 
+  ipcMain.handle("unit:deleteWithRelatedItems", async (event, id) => {
+    try {
+      return await dbService.deleteUnitAndRelatedItems(id);
+    } catch (error) {
+      console.error("Error deleting unit with related items:", error);
+      throw error;
+    }
+  });
+
   ipcMain.handle("unit:duplicate", async (event, id) => {
     try {
       return await dbService.duplicateUnitItem(id);

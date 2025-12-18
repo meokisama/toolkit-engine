@@ -159,6 +159,72 @@ export const unitMethods = {
     return this.deleteProjectItem(id, "unit");
   },
 
+  /**
+   * Delete all items that have source_unit = unitId, then delete the unit itself
+   * This includes: scenes, schedules, curtains, knx configs, multi-scenes, sequences
+   * @param {number} unitId - The unit ID to delete along with all related items
+   */
+  deleteUnitAndRelatedItems(unitId) {
+    try {
+      console.log(`Deleting unit ${unitId} and all related items...`);
+
+      // Start transaction for atomic operation
+      const transaction = this.db.transaction(() => {
+        // Delete all scenes with source_unit = unitId
+        const deleteScenes = this.db.prepare("DELETE FROM scene WHERE source_unit = ?");
+        const scenesResult = deleteScenes.run(unitId);
+        console.log(`Deleted ${scenesResult.changes} scene(s)`);
+
+        // Delete all schedules with source_unit = unitId
+        const deleteSchedules = this.db.prepare("DELETE FROM schedule WHERE source_unit = ?");
+        const schedulesResult = deleteSchedules.run(unitId);
+        console.log(`Deleted ${schedulesResult.changes} schedule(s)`);
+
+        // Delete all curtains with source_unit = unitId
+        const deleteCurtains = this.db.prepare("DELETE FROM curtain WHERE source_unit = ?");
+        const curtainsResult = deleteCurtains.run(unitId);
+        console.log(`Deleted ${curtainsResult.changes} curtain(s)`);
+
+        // Delete all KNX configs with source_unit = unitId
+        const deleteKnx = this.db.prepare("DELETE FROM knx WHERE source_unit = ?");
+        const knxResult = deleteKnx.run(unitId);
+        console.log(`Deleted ${knxResult.changes} KNX config(s)`);
+
+        // Delete all multi-scenes with source_unit = unitId
+        const deleteMultiScenes = this.db.prepare("DELETE FROM multi_scenes WHERE source_unit = ?");
+        const multiScenesResult = deleteMultiScenes.run(unitId);
+        console.log(`Deleted ${multiScenesResult.changes} multi-scene(s)`);
+
+        // Delete all sequences with source_unit = unitId
+        const deleteSequences = this.db.prepare("DELETE FROM sequences WHERE source_unit = ?");
+        const sequencesResult = deleteSequences.run(unitId);
+        console.log(`Deleted ${sequencesResult.changes} sequence(s)`);
+
+        // Finally, delete the unit itself
+        const deleteUnit = this.db.prepare("DELETE FROM unit WHERE id = ?");
+        const unitResult = deleteUnit.run(unitId);
+        console.log(`Deleted unit: ${unitResult.changes > 0}`);
+
+        return {
+          deletedScenes: scenesResult.changes,
+          deletedSchedules: schedulesResult.changes,
+          deletedCurtains: curtainsResult.changes,
+          deletedKnx: knxResult.changes,
+          deletedMultiScenes: multiScenesResult.changes,
+          deletedSequences: sequencesResult.changes,
+          deletedUnit: unitResult.changes > 0,
+        };
+      });
+
+      const result = transaction();
+      console.log("Successfully deleted unit and all related items:", result);
+      return result;
+    } catch (error) {
+      console.error("Failed to delete unit and related items:", error);
+      throw error;
+    }
+  },
+
   // Unit I/O Configuration methods (JSON-based)
   getUnitInputConfig(unitId, inputIndex) {
     try {

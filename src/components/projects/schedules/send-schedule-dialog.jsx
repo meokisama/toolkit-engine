@@ -1,8 +1,10 @@
 import React from "react";
 import { toast } from "sonner";
 import { SendItemsDialog } from "@/components/shared/send-items-dialog";
+import { useProjectDetail } from "@/contexts/project-detail-context";
 
 export function SendScheduleDialog({ open, onOpenChange, items = [] }) {
+  const { projectItems } = useProjectDetail();
   const handleLoadSingleSchedule = async (schedule) => {
     const data = await window.electronAPI.schedule.getForSending(schedule.id);
     return data;
@@ -195,6 +197,7 @@ export function SendScheduleDialog({ open, onOpenChange, items = [] }) {
       onSendSingle={handleSendSingleSchedule}
       onSendBulk={handleSendBulkSchedules}
       validateSingleItem={handleValidateSingleSchedule}
+      projectItems={projectItems}
     />
   );
 }

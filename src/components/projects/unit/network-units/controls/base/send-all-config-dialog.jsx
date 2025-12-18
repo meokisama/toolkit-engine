@@ -28,6 +28,8 @@ import { useProjectDetail } from "@/contexts/project-detail-context";
 import { NetworkUnitSelector, useNetworkUnitSelector } from "@/components/shared/network-unit-selector";
 import { DatabaseUnitSelector } from "@/components/shared/database-unit-selector";
 import { deleteAllConfigsFromUnits } from "./delete-all-configs-helper";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Label } from "@/components/ui/label";
 
 function SendAllConfigDialogComponent({ open, onOpenChange }) {
   const { selectedProject, projectItems } = useProjectDetail();
@@ -35,6 +37,7 @@ function SendAllConfigDialogComponent({ open, onOpenChange }) {
   const networkUnitSelectorRef = useRef(null);
   const databaseUnitSelectorRef = useRef(null);
   const [selectedDatabaseUnitId, setSelectedDatabaseUnitId] = useState("");
+  const [selectedSourceUnitId, setSelectedSourceUnitId] = useState("all");
   const [configTypes, setConfigTypes] = useState({
     scenes: true,
     schedules: true,
@@ -57,6 +60,7 @@ function SendAllConfigDialogComponent({ open, onOpenChange }) {
     if (open) {
       clearSelection();
       setSelectedDatabaseUnitId("");
+      setSelectedSourceUnitId("all");
       setResults([]);
       setShowResults(false);
       setProgress(0);
@@ -670,45 +674,61 @@ function SendAllConfigDialogComponent({ open, onOpenChange }) {
 
       const configs = {};
 
+      // Helper function to filter items by source unit
+      const filterBySourceUnit = (items) => {
+        if (selectedSourceUnitId === "all") {
+          return items;
+        }
+        const sourceUnitIdNum = parseInt(selectedSourceUnitId);
+        return items.filter((item) => item.source_unit === sourceUnitIdNum);
+      };
+
       if (configTypes.scenes) {
         const scenes = await window.electronAPI.scene.getAll(selectedProject.id);
-        // Add calculated index to scenes (same as manual send)
-        configs.scenes = scenes.map((scene, index) => ({
+        // Filter by source unit, then add calculated index
+        const filteredScenes = filterBySourceUnit(scenes);
+        configs.scenes = filteredScenes.map((scene, index) => ({
           ...scene,
           calculatedIndex: index,
         }));
       }
       if (configTypes.schedules) {
         const schedules = await window.electronAPI.schedule.getAll(selectedProject.id);
-        // Add calculated index to schedules
-        configs.schedules = schedules.map((schedule, index) => ({
+        // Filter by source unit, then add calculated index
+        const filteredSchedules = filterBySourceUnit(schedules);
+        configs.schedules = filteredSchedules.map((schedule, index) => ({
           ...schedule,
           calculatedIndex: index,
         }));
       }
       if (configTypes.multiScenes) {
         const multiScenes = await window.electronAPI.multiScenes.getAll(selectedProject.id);
-        // Add calculated index to multi-scenes
-        configs.multiScenes = multiScenes.map((multiScene, index) => ({
+        // Filter by source unit, then add calculated index
+        const filteredMultiScenes = filterBySourceUnit(multiScenes);
+        configs.multiScenes = filteredMultiScenes.map((multiScene, index) => ({
           ...multiScene,
           calculatedIndex: index,
         }));
       }
       if (configTypes.sequences) {
         const sequences = await window.electronAPI.sequences.getAll(selectedProject.id);
-        // Add calculated index to sequences
-        configs.sequences = sequences.map((sequence, index) => ({
+        // Filter by source unit, then add calculated index
+        const filteredSequences = filterBySourceUnit(sequences);
+        configs.sequences = filteredSequences.map((sequence, index) => ({
           ...sequence,
           calculatedIndex: index,
         }));
       }
       if (configTypes.knx) {
-        configs.knx = await window.electronAPI.knx.getAll(selectedProject.id);
+        const knx = await window.electronAPI.knx.getAll(selectedProject.id);
+        // Filter by source unit (knx doesn't need calculatedIndex)
+        configs.knx = filterBySourceUnit(knx);
       }
       if (configTypes.curtain) {
         const curtains = await window.electronAPI.curtain.getAll(selectedProject.id);
-        // Add calculated index to curtains
-        configs.curtain = curtains.map((curtain, index) => ({
+        // Filter by source unit, then add calculated index
+        const filteredCurtains = filterBySourceUnit(curtains);
+        configs.curtain = filteredCurtains.map((curtain, index) => ({
           ...curtain,
           calculatedIndex: index,
         }));
@@ -1139,23 +1159,39 @@ function SendAllConfigDialogComponent({ open, onOpenChange }) {
               </CardContent>
             </Card>
 
-            {/* Database Unit Selection */}
             <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-sm">
-                  <Database className="h-4 w-4" />
-                  Database Unit Configuration (Optional)
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <DatabaseUnitSelector
-                  value={selectedDatabaseUnitId}
-                  onValueChange={setSelectedDatabaseUnitId}
-                  units={databaseUnits}
-                  disabled={loading}
-                  placeholder="Select a database unit to write its configuration"
-                  ref={databaseUnitSelectorRef}
-                />
+              <CardContent className="grid grid-cols-2 gap-2">
+                {/* Source Unit Selection */}
+                <div className="flex flex-col gap-2">
+                  <Label>Source Unit (Group & Automation)</Label>
+                  <div className="space-y-2">
+                    <Select value={selectedSourceUnitId} onValueChange={setSelectedSourceUnitId} disabled={loading}>
+                      <SelectTrigger className="w-full">
+                        <SelectValue placeholder="Select source unit" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All Units</SelectItem>
+                        {databaseUnits.map((unit) => (
+                          <SelectItem key={unit.id} value={unit.id.toString()}>
+                            {unit.name || unit.type || "Unnamed Unit"} ({unit.ip_address})
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+                {/* Database Unit Selection */}
+                <div className="flex flex-col gap-2">
+                  <Label>Database Unit (RS485 & IO)</Label>
+                  <DatabaseUnitSelector
+                    value={selectedDatabaseUnitId}
+                    onValueChange={setSelectedDatabaseUnitId}
+                    units={databaseUnits}
+                    disabled={loading}
+                    placeholder="Select a database unit"
+                    ref={databaseUnitSelectorRef}
+                  />
+                </div>
               </CardContent>
             </Card>
 

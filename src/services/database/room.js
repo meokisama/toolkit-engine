@@ -20,6 +20,7 @@ export const roomTableSchemas = {
       client_mode INTEGER NOT NULL DEFAULT 0,
       client_ip TEXT,
       client_port INTEGER NOT NULL DEFAULT 8080,
+      knx_address TEXT DEFAULT NULL,
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
       updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
       FOREIGN KEY (project_id) REFERENCES projects (id) ON DELETE CASCADE,
@@ -199,7 +200,7 @@ export const roomMethods = {
           UPDATE room_general_config
           SET room_mode = ?, room_amount = ?, tcp_mode = ?, port = ?,
               slave_amount = ?, slave_ips = ?, client_mode = ?,
-              client_ip = ?, client_port = ?, updated_at = CURRENT_TIMESTAMP
+              client_ip = ?, client_port = ?, knx_address = ?, updated_at = CURRENT_TIMESTAMP
           WHERE project_id = ? AND (source_unit IS ? OR (source_unit IS NULL AND ? IS NULL))
         `);
 
@@ -213,6 +214,7 @@ export const roomMethods = {
           config.clientMode ?? 0,
           config.clientIP ?? "",
           config.clientPort ?? 8080,
+          config.knxAddress || null,
           projectId,
           sourceUnit,
           sourceUnit
@@ -224,8 +226,8 @@ export const roomMethods = {
         const stmt = this.db.prepare(`
           INSERT INTO room_general_config (
             project_id, source_unit, room_mode, room_amount, tcp_mode, port,
-            slave_amount, slave_ips, client_mode, client_ip, client_port
-          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            slave_amount, slave_ips, client_mode, client_ip, client_port, knx_address
+          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         `);
 
         stmt.run(
@@ -239,7 +241,8 @@ export const roomMethods = {
           (config.slaveIPs || []).join(","),
           config.clientMode ?? 0,
           config.clientIP ?? "",
-          config.clientPort ?? 8080
+          config.clientPort ?? 8080,
+          config.knxAddress || null
         );
 
         return this.getRoomGeneralConfig(projectId, sourceUnit);

@@ -27,6 +27,10 @@ export function DataTable({
   onSequenceControl,
   onSendSchedule,
   onSendScene,
+  onSendCurtain,
+  onSendKnx,
+  onSendMultiScene,
+  onSendSequence,
   onFirmwareUpdate,
   onTransferToDatabase,
   initialPagination,
@@ -186,6 +190,10 @@ export function DataTable({
                   onSequenceControl={onSequenceControl}
                   onSendSchedule={onSendSchedule}
                   onSendScene={onSendScene}
+                  onSendCurtain={onSendCurtain}
+                  onSendKnx={onSendKnx}
+                  onSendMultiScene={onSendMultiScene}
+                  onSendSequence={onSendSequence}
                   onFirmwareUpdate={onFirmwareUpdate}
                   onTransferToDatabase={onTransferToDatabase}
                   customRowClass={getRowClassName ? getRowClassName(row.original) : undefined}

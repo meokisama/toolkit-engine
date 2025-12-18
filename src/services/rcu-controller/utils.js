@@ -47,6 +47,28 @@ function convertKnxAddressToHex(knxAddress) {
   }
 }
 
+// Helper function to decode 2-byte hex to KNX address in a/b/c format
+// KNX address format: 5 bit area / 3 bit line / 8 bit device = 16 bits total
+function decodeKnxAddressFromHex(bytes) {
+  if (!Array.isArray(bytes) || bytes.length !== 2) {
+    return "0/0/0"; // Return default for invalid input
+  }
+
+  try {
+    // Combine 2 bytes into 16-bit value (little endian)
+    const combined = bytes[0] | (bytes[1] << 8);
+
+    // Extract parts: area(5 bits), line(3 bits), device(8 bits)
+    const device = combined & 0xff; // Lower 8 bits
+    const line = (combined >> 8) & 0x07; // Next 3 bits
+    const area = (combined >> 11) & 0x1f; // Top 5 bits
+
+    return `${area}/${line}/${device}`;
+  } catch (error) {
+    return "0/0/0"; // Return default for conversion error
+  }
+}
+
 function convertCanIdToInt(canId) {
   if (!canId || typeof canId !== "string") {
     return 0x00000101;
@@ -151,4 +173,4 @@ function calculateCRC(data) {
   return crc & 0xffff;
 }
 
-export { parseResponse, convertKnxAddressToHex, convertCanIdToInt, processResponse, calculateCRC };
+export { parseResponse, convertKnxAddressToHex, decodeKnxAddressFromHex, convertCanIdToInt, processResponse, calculateCRC };

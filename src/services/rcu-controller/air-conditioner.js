@@ -229,7 +229,7 @@ async function getLocalACConfig(unitIp, canId) {
           index: i,
           address: configData[0],
           enable: configData[1] === 1,
-          windowMode: configData[2], // 0: Off, 1: Save energy
+          windowMode: configData[2], // 0: Off, 1: Save energy, 2: Fan
           fanType: configData[3], // 0: on/off, 1: analog
           tempType: configData[4], // 0: thermostat, 1: RCU
           tempUnit: configData[5], // 0: C, 1: F

@@ -3,9 +3,10 @@
  * @param {Object} networkUnit - The network unit to read from
  * @param {string} projectId - The project ID to create multi-scenes in
  * @param {Map} sceneAddressMap - Map of scene addresses to scene IDs
+ * @param {number} unitId - The database unit ID to set as source_unit
  * @returns {Promise<{createdMultiScenes: Array, multiSceneAddressMap: Map}>} Created multi-scenes and address mapping
  */
-export const readMultiSceneConfigurations = async (networkUnit, projectId, sceneAddressMap) => {
+export const readMultiSceneConfigurations = async (networkUnit, projectId, sceneAddressMap, unitId) => {
   const createdMultiScenes = [];
   const multiSceneAddressMap = new Map(); // Map network multi-scene address to database multi-scene ID
 
@@ -34,6 +35,7 @@ export const readMultiSceneConfigurations = async (networkUnit, projectId, scene
             address: networkMultiScene.multiSceneAddress.toString(),
             type: networkMultiScene.multiSceneType || 0,
             description: `Transferred from network unit ${networkUnit.ip_address}`,
+            source_unit: unitId,
           };
 
           const createdMultiScene = await window.electronAPI.multiScenes.create(projectId, multiSceneData);

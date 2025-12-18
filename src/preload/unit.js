@@ -6,6 +6,7 @@ export const unit = {
   create: (projectId, itemData) => ipcRenderer.invoke("unit:create", projectId, itemData),
   update: (id, itemData) => ipcRenderer.invoke("unit:update", id, itemData),
   delete: (id) => ipcRenderer.invoke("unit:delete", id),
+  deleteWithRelatedItems: (id) => ipcRenderer.invoke("unit:deleteWithRelatedItems", id),
   duplicate: (id) => ipcRenderer.invoke("unit:duplicate", id),
   bulkImport: (projectId, items) => ipcRenderer.invoke("unit:bulkImport", projectId, items),
   // Output configuration methods

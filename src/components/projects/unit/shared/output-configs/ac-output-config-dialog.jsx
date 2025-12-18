@@ -14,6 +14,7 @@ import { Thermometer, Settings, Wind, Gauge } from "lucide-react";
 const WINDOWS_MODE_OPTIONS = [
   { value: "0", label: "Off" },
   { value: "1", label: "Save energy" },
+  { value: "2", label: "Fan" },
 ];
 
 const FAN_TYPE_OPTIONS = [

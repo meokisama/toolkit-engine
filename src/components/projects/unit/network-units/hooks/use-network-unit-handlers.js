@@ -54,8 +54,16 @@ export function useNetworkUnitHandlers({ state, onTransferToDatabase, existingUn
         const existingUnit = existingUnits.find((unit) => unit.ip_address === networkUnit.ip_address || unit.serial_no === networkUnit.serial_no);
 
         if (existingUnit) {
-          toast.warning(`Unit ${networkUnit.type} (${networkUnit.ip_address}) already exists in database`);
-          continue;
+          toast.info(`Unit ${networkUnit.type} (${networkUnit.ip_address}) already exists. Deleting old configuration...`);
+          try {
+            // Delete existing unit and all related items (scenes, schedules, curtains, knx, multi-scenes, sequences)
+            await window.electronAPI.unit.deleteWithRelatedItems(existingUnit.id);
+            console.log(`Deleted existing unit ${existingUnit.id} and all related items`);
+          } catch (error) {
+            console.error(`Failed to delete existing unit ${existingUnit.id}:`, error);
+            toast.error(`Failed to delete existing unit ${networkUnit.ip_address}: ${error.message}`);
+            continue;
+          }
         }
 
         // Update progress
@@ -113,8 +121,16 @@ export function useNetworkUnitHandlers({ state, onTransferToDatabase, existingUn
         const existingUnit = existingUnits.find((unit) => unit.ip_address === networkUnit.ip_address || unit.serial_no === networkUnit.serial_no);
 
         if (existingUnit) {
-          toast.warning(`Unit ${networkUnit.type} (${networkUnit.ip_address}) already exists in database`);
-          continue;
+          toast.info(`Unit ${networkUnit.type} (${networkUnit.ip_address}) already exists. Deleting old configuration...`);
+          try {
+            // Delete existing unit and all related items (scenes, schedules, curtains, knx, multi-scenes, sequences)
+            await window.electronAPI.unit.deleteWithRelatedItems(existingUnit.id);
+            console.log(`Deleted existing unit ${existingUnit.id} and all related items`);
+          } catch (error) {
+            console.error(`Failed to delete existing unit ${existingUnit.id}:`, error);
+            toast.error(`Failed to delete existing unit ${networkUnit.ip_address}: ${error.message}`);
+            continue;
+          }
         }
 
         // Update progress
@@ -160,8 +176,16 @@ export function useNetworkUnitHandlers({ state, onTransferToDatabase, existingUn
       );
 
       if (existingUnit) {
-        toast.warning(`Unit ${unit.type} (${unit.ip_address}) already exists in database`);
-        return;
+        toast.info(`Unit ${unit.type} (${unit.ip_address}) already exists. Deleting old configuration...`);
+        try {
+          // Delete existing unit and all related items (scenes, schedules, curtains, knx, multi-scenes, sequences)
+          await window.electronAPI.unit.deleteWithRelatedItems(existingUnit.id);
+          console.log(`Deleted existing unit ${existingUnit.id} and all related items`);
+        } catch (error) {
+          console.error(`Failed to delete existing unit ${existingUnit.id}:`, error);
+          toast.error(`Failed to delete existing unit ${unit.ip_address}: ${error.message}`);
+          return;
+        }
       }
 
       const loadingToast = toast.loading(`Reading configuration from unit ${unit.ip_address}...`);
