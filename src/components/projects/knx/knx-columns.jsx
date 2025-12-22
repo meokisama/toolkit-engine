@@ -49,7 +49,7 @@ export const createKnxItemsColumns = (onCellEdit, getEffectiveValue, projectItem
             value={effectiveValue || ""}
             onSave={(newValue) => onCellEdit(item.id, "name", newValue)}
             placeholder="Enter device name"
-            className="font-medium min-w-30"
+            className="font-medium min-w-40"
           />
         );
       },

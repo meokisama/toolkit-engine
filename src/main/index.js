@@ -10,6 +10,7 @@ import { registerDaliHandlers } from "./dali.js";
 import { registerLightingHandlers } from "./lighting.js";
 import { registerAirconHandlers } from "./aircon.js";
 import { registerCurtainHandlers } from "./curtain.js";
+import { registerDmxHandlers } from "./dmx.js";
 import { registerScheduleHandlers } from "./schedule.js";
 import { registerMultiSceneHandlers } from "./multi-scene.js";
 import { registerKnxHandlers } from "./knx.js";
@@ -34,6 +35,7 @@ export function registerAllHandlers(ipcMain, dbService, rcu, loggerService, netw
   registerLightingHandlers(ipcMain, dbService);
   registerAirconHandlers(ipcMain, dbService, rcu);
   registerCurtainHandlers(ipcMain, dbService, rcu);
+  registerDmxHandlers(ipcMain, dbService);
   registerUnitHandlers(ipcMain, dbService);
   registerKnxHandlers(ipcMain, dbService, rcu, loggerService);
   registerSceneHandlers(ipcMain, dbService, rcu);

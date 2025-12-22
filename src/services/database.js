@@ -28,6 +28,8 @@ import {
   lightingMethods,
   unitTableSchemas,
   unitMethods,
+  dmxTableSchemas,
+  dmxMethods,
   crudOperations,
   importExportOperations,
 } from "./database/index.js";
@@ -51,6 +53,7 @@ class DatabaseService {
     Object.assign(this, airconMethods);
     Object.assign(this, lightingMethods);
     Object.assign(this, unitMethods);
+    Object.assign(this, dmxMethods);
     Object.assign(this, crudOperations);
     Object.assign(this, importExportOperations);
   }
@@ -82,6 +85,7 @@ class DatabaseService {
       this.db.exec(airconTableSchemas.createAirconItemsTable);
       this.db.exec(unitTableSchemas.createUnitTable);
       this.db.exec(curtainTableSchemas.createCurtainTable);
+      this.db.exec(dmxTableSchemas.createDmxTable);
       this.db.exec(knxTableSchemas.createKnxTable);
       this.db.exec(sceneTableSchemas.createSceneTable);
       this.db.exec(sceneTableSchemas.createSceneItemsTable);

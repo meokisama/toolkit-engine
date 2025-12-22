@@ -16,5 +16,6 @@ export { curtainTableSchemas, curtainMethods } from "./curtain.js";
 export { airconTableSchemas, airconMethods } from "./aircon.js";
 export { lightingTableSchemas, lightingMethods } from "./lighting.js";
 export { unitTableSchemas, unitMethods } from "./unit.js";
+export { dmxTableSchemas, dmxMethods } from "./dmx.js";
 export { crudOperations } from "./crud-operations.js";
 export { importExportOperations } from "./import-export.js";

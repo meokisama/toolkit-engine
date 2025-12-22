@@ -13,7 +13,7 @@ export const scene = {
   addItem: (sceneId, itemType, itemId, itemValue, command, objectType) =>
     ipcRenderer.invoke("scene:addItem", sceneId, itemType, itemId, itemValue, command, objectType),
   removeItem: (sceneItemId) => ipcRenderer.invoke("scene:removeItem", sceneItemId),
-  updateItemValue: (sceneItemId, itemValue, command) => ipcRenderer.invoke("scene:updateItemValue", sceneItemId, itemValue, command),
+  updateItemValue: (sceneItemId, itemValue, command, objectType) => ipcRenderer.invoke("scene:updateItemValue", sceneItemId, itemValue, command, objectType),
 };
 
 // Network Operations

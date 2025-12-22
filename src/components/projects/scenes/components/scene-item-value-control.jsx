@@ -7,8 +7,8 @@ import { OBJECT_TYPES } from "@/constants";
 export function SceneItemValueControl({ sceneItem, updateSceneItemValue, getValueOptions }) {
   const options = getValueOptions(sceneItem.object_type, sceneItem.item_type);
 
-  // For lighting items, always use number input for brightness (stored as 0-255)
-  if (sceneItem.item_type === "lighting") {
+  // For lighting and DMX items, always use number input for brightness (stored as 0-255)
+  if (sceneItem.item_type === "lighting" || sceneItem.item_type === "dmx") {
     // Value is stored as 0-255, convert to percent for display
     const current255Value = parseInt(sceneItem.item_value || "255");
     const currentPercentValue = Math.round((current255Value * 100) / 255);

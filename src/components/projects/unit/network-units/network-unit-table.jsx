@@ -5,13 +5,10 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
 import { DataTable } from "@/components/projects/data-table/data-table";
 import { DataTablePagination } from "@/components/projects/data-table/data-table-pagination";
-import { createNetworkUnitColumns } from "../database-units/database-unit-columns";
-
+import { createNetworkUnitColumns } from "./network-unit-columns";
 import { udpScanner } from "@/services/udp";
 import { useProjectDetail } from "@/contexts/project-detail-context";
 import { sortByIpAddress } from "@/utils/ip-utils";
-
-// Import custom hooks
 import { useNetworkUnitState } from "./hooks/use-network-unit-state";
 import { useNetworkUnitHandlers } from "./hooks/use-network-unit-handlers";
 import { LazyDialogRenderer } from "./lazy-dialog-renderer";

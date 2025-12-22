@@ -33,6 +33,7 @@ export function DataTable({
   onSendSequence,
   onFirmwareUpdate,
   onTransferToDatabase,
+  onDmxSceneConfig,
   initialPagination,
   initialColumnVisibility,
   initialSorting = [],
@@ -196,6 +197,7 @@ export function DataTable({
                   onSendSequence={onSendSequence}
                   onFirmwareUpdate={onFirmwareUpdate}
                   onTransferToDatabase={onTransferToDatabase}
+                  onDmxSceneConfig={onDmxSceneConfig}
                   customRowClass={getRowClassName ? getRowClassName(row.original) : undefined}
                 />
               ))

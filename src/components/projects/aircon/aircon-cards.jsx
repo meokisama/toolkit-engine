@@ -117,7 +117,7 @@ function AirconCardsComponent({ cards, loading }) {
 
   return (
     <div className="space-y-4">
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-4">
         {cards.map((card) => (
           <Card key={card.address} className="relative">
             <CardHeader className="pb-3">
@@ -125,7 +125,6 @@ function AirconCardsComponent({ cards, loading }) {
                 <div>
                   <CardTitle className="text-lg font-bold">{card.name && card.name.trim() ? card.name : `Aircon ${card.address}`}</CardTitle>
                   <p className="text-xs text-muted-foreground mt-1">Address: {card.address}</p>
-                  {card.description && <p className="text-sm text-muted-foreground mt-1">{card.description}</p>}
                 </div>
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
@@ -152,14 +151,16 @@ function AirconCardsComponent({ cards, loading }) {
             </CardHeader>
             <CardContent>
               <div className="space-y-2">
-                <div className="text-xs text-muted-foreground mt-2 p-2 bg-blue-50 rounded">Supports: Power, Mode, Fan Speed, Temperature, Swing</div>
+                <div className="text-xs text-muted-foreground p-2 bg-blue-50 rounded">
+                  {card.description && <p className="text-sm text-muted-foreground mt-1">{card.description}</p>}
+                </div>
               </div>
             </CardContent>
           </Card>
         ))}
 
         {/* Add placeholder card for creating new aircon */}
-        <Card className="min-h-60 border-dashed border-2 border-muted-foreground/25 hover:border-muted-foreground/50 transition-colors">
+        <Card className="min-h-40 border-dashed border-2 border-muted-foreground/25 hover:border-muted-foreground/50 transition-colors">
           <CardContent className="flex flex-col items-center justify-center h-full space-y-3">
             <Button onClick={handleCreateCard} variant="default" className="cursor-pointer w-[60%]">
               <Plus className="h-4 w-4" />

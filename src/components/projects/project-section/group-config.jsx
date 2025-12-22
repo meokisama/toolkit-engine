@@ -7,11 +7,12 @@ import { UnitTable } from "@/components/projects/unit/database-units/database-un
 import { AirconCards } from "@/components/projects/aircon/aircon-cards";
 import { CurtainTable } from "@/components/projects/curtain/curtain-table";
 import { KnxTable } from "@/components/projects/knx/knx-table";
+import { DmxTable } from "@/components/projects/dmx/dmx-table";
 import { TabLoadingSkeleton, AirconCardsSkeleton } from "@/components/projects/tab-loading-skeleton";
-import { Lightbulb, Wind, Cpu, Blinds, Network, BedDouble } from "lucide-react";
+import { Lightbulb, Wind, Cpu, Blinds, Network, BedDouble, Palette } from "lucide-react";
 import { RoomSettings } from "@/components/projects/room/RoomSettings";
 
-// Tab config for Group Config (6 tabs: lighting, aircon, curtain, knx, room, unit)
+// Tab config for Group Config (7 tabs: lighting, aircon, curtain, knx, room, dmx, unit)
 const groupConfigTabConfig = {
   lighting: {
     label: "Lighting",
@@ -37,6 +38,11 @@ const groupConfigTabConfig = {
     label: "Room",
     icon: BedDouble,
     description: "Manage room configurations",
+  },
+  dmx: {
+    label: "DMX",
+    icon: Palette,
+    description: "Manage DMX devices and controls",
   },
   unit: {
     label: "Unit",
@@ -106,14 +112,14 @@ export function GroupConfig() {
   return (
     <div className="flex flex-1 flex-col gap-4 p-4 pt-0">
       <Tabs value={activeTab} onValueChange={setActiveTab} className="h-full">
-        <TabsList className="grid w-full grid-cols-6">
+        <TabsList className="flex flex-nowrap justify-start w-full overflow-x-auto overflow-y-hidden">
           {tabEntries.map(([key, config]) => {
             const Icon = config.icon;
             const itemCount = itemCounts[key];
             return (
-              <TabsTrigger key={key} value={key} className="flex items-center justify-center gap-3 cursor-pointer">
+              <TabsTrigger key={key} value={key} className="flex items-center justify-center gap-3 cursor-pointer shrink-0 min-w-40">
                 <Icon className="h-4 w-4" />
-                <span className="hidden sm:inline">{config.label}</span>
+                <span>{config.label}</span>
                 {itemCount > 0 && <span className="bg-amber-200 border border-amber-300 rounded-full px-1.5">{itemCount}</span>}
               </TabsTrigger>
             );
@@ -140,6 +146,7 @@ export function GroupConfig() {
                     {key === "aircon" && <AirconCards cards={airconCards} />}
                     {key === "curtain" && <CurtainTable items={projectItems.curtain} category="curtain" />}
                     {key === "knx" && <KnxTable items={projectItems.knx} category="knx" loading={isTabLoading} />}
+                    {key === "dmx" && <DmxTable items={projectItems.dmx} category="dmx" />}
                     {key === "unit" && <UnitTable items={projectItems.unit} category="unit" />}
                   </CardContent>
                 </Card>

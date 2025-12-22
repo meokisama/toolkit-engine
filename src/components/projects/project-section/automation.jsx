@@ -2,7 +2,7 @@ import React, { useMemo } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent } from "@/components/ui/card";
 import { useProjectDetail } from "@/contexts/project-detail-context";
-import { SceneTable } from "@/components/projects/scenes/scene-table";
+import { SceneTable } from "@/components/projects/scenes/table/scene-table";
 import { ScheduleTable } from "@/components/projects/schedules/schedule-table";
 import { MultiSceneTable } from "@/components/projects/multi-scenes/multi-scene-table";
 import { SequenceTable } from "@/components/projects/sequences/sequence-table";

@@ -142,9 +142,9 @@ export function registerSceneHandlers(ipcMain, dbService, rcu) {
     }
   });
 
-  ipcMain.handle("scene:updateItemValue", async (event, sceneItemId, itemValue, command) => {
+  ipcMain.handle("scene:updateItemValue", async (event, sceneItemId, itemValue, command, objectType) => {
     try {
-      return await dbService.updateSceneItemValue(sceneItemId, itemValue, command);
+      return await dbService.updateSceneItemValue(sceneItemId, itemValue, command, objectType);
     } catch (error) {
       console.error("Error updating scene item value:", error);
       throw error;

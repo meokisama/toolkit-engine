@@ -58,6 +58,7 @@ export function DataTableRow({
   onSendSequence,
   onFirmwareUpdate,
   onTransferToDatabase,
+  onDmxSceneConfig,
   customRowClass,
 }) {
   const item = row.original;
@@ -84,7 +85,13 @@ export function DataTableRow({
             <span>Duplicate</span>
           </ContextMenuItem>
         )}
-        {(onEdit || onDuplicate || onTransferToDatabase) &&
+        {onDmxSceneConfig && (
+          <ContextMenuItem onClick={() => onDmxSceneConfig(item)}>
+            <Palette className="text-muted-foreground" />
+            <span>Configure Colors</span>
+          </ContextMenuItem>
+        )}
+        {(onEdit || onDuplicate || onTransferToDatabase || onDmxSceneConfig) &&
           (onIOConfig ||
             onGroupControl ||
             onAirconControl ||

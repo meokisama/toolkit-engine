@@ -8,9 +8,9 @@ import { DataTable } from "@/components/projects/data-table/data-table";
 import { DataTableToolbar } from "@/components/projects/data-table/data-table-toolbar";
 import { DataTablePagination } from "@/components/projects/data-table/data-table-pagination";
 import { DataTableSkeleton } from "@/components/projects/table-skeleton";
-import { createSceneColumns } from "@/components/projects/scenes/scene-columns";
+import { createSceneColumns } from "@/components/projects/scenes/table/scene-columns";
 import { SlidersHorizontal } from "lucide-react";
-import { SendSceneDialog } from "@/components/projects/scenes/send-scene-dialog";
+import { SendSceneDialog } from "@/components/projects/scenes/dialogs/send-scene-dialog";
 import { ImportCategoryDialog } from "@/components/projects/import-category-dialog";
 import { toast } from "sonner";
 

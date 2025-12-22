@@ -320,7 +320,7 @@ function decodeIpConfig(data, offset = 0) {
   // ip[MAX_SLAVE]: array of IP addresses (4 bytes each)
   const slaveIPs = [];
   for (let i = 0; i < MAX_SLAVE; i++) {
-    const ipBytes = data.slice(pos, pos + 4);
+    const ipBytes = Array.from(data.slice(pos, pos + 4));
     slaveIPs.push(decodeIpAddress(ipBytes));
     pos += 4;
   }
@@ -383,7 +383,7 @@ async function getRoomConfiguration(unitIp, canId) {
   pos += ipConfig.bytesRead;
 
   // client_ip: 4 bytes
-  const clientIp = decodeIpAddress(responseData.slice(pos, pos + 4));
+  const clientIp = decodeIpAddress(Array.from(responseData.slice(pos, pos + 4)));
   pos += 4;
 
   // client_port: UINT16 (little endian)
@@ -391,8 +391,8 @@ async function getRoomConfiguration(unitIp, canId) {
   pos += 2;
 
   // knx_address: 2 bytes
-  const knxAddressBytes = responseData.slice(pos, pos + 2);
-  console.log("KNX Address bytes:", knxAddressBytes, "Hex:", Array.from(knxAddressBytes).map(b => "0x" + b.toString(16).padStart(2, "0")).join(" "));
+  const knxAddressBytes = Array.from(responseData.slice(pos, pos + 2));
+  console.log("KNX Address bytes:", knxAddressBytes, "Hex:", knxAddressBytes.map(b => "0x" + b.toString(16).padStart(2, "0")).join(" "));
   const knxAddress = decodeKnxAddressFromHex(knxAddressBytes);
   console.log("Decoded KNX Address:", knxAddress);
   pos += 2;

@@ -2,7 +2,7 @@ import React from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Plus, Edit, Lightbulb, Wind, Blinds } from "lucide-react";
+import { Plus, Edit, Lightbulb, Wind, Blinds, Palette } from "lucide-react";
 
 export function AvailableItemsTabs({
   currentTab,
@@ -10,13 +10,16 @@ export function AvailableItemsTabs({
   filteredLightingItems,
   filteredAirconCards,
   filteredCurtainItems,
+  filteredDmxCards,
   onAddNewItem,
   onEditLightingItem,
   onEditAirconItem,
   onEditCurtainItem,
+  onEditDmxItem,
   onAddLightingItem,
   onAddAirconCard,
   onAddCurtainItem,
+  onAddDmxCard,
 }) {
   return (
     <Card>
@@ -31,18 +34,22 @@ export function AvailableItemsTabs({
       </CardHeader>
       <CardContent>
         <Tabs defaultValue="lighting" className="w-full" onValueChange={onTabChange}>
-          <TabsList className="grid w-full grid-cols-3">
+          <TabsList className="grid w-full grid-cols-4">
             <TabsTrigger value="lighting">
-              <Lightbulb className="h-4 w-4 mr-2" />
+              <Lightbulb className="h-4 w-4" />
               Lighting
             </TabsTrigger>
             <TabsTrigger value="aircon">
-              <Wind className="h-4 w-4 mr-2" />
+              <Wind className="h-4 w-4" />
               Aircon
             </TabsTrigger>
             <TabsTrigger value="curtain">
-              <Blinds className="h-4 w-4 mr-2" />
+              <Blinds className="h-4 w-4" />
               Curtain
+            </TabsTrigger>
+            <TabsTrigger value="dmx">
+              <Palette className="h-4 w-4" />
+              DMX
             </TabsTrigger>
           </TabsList>
 
@@ -126,6 +133,34 @@ export function AvailableItemsTabs({
                 ))
               ) : (
                 <p className="text-sm text-muted-foreground text-center py-4">No curtain items available</p>
+              )}
+            </div>
+          </TabsContent>
+
+          <TabsContent value="dmx" className="space-y-2">
+            <div className="max-h-80 overflow-y-auto space-y-2 pr-2">
+              {filteredDmxCards.length > 0 ? (
+                filteredDmxCards.map((card) => (
+                  <div key={card.address} className="flex items-center justify-between p-2 border rounded-lg">
+                    <div>
+                      <div className="font-medium text-sm">{card.name || `DMX ${card.address}`}</div>
+                      <div className="text-xs text-muted-foreground">
+                        Address: {card.address}
+                        {card.description && ` | ${card.description}`}
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <Button type="button" variant="outline" size="icon" onClick={() => onEditDmxItem(card.item)} className="h-8 w-8">
+                        <Edit className="h-3 w-3" />
+                      </Button>
+                      <Button type="button" variant="outline" size="icon" onClick={() => onAddDmxCard(card)} className="h-8 w-8">
+                        <Plus className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <p className="text-sm text-muted-foreground text-center py-4">No DMX cards available</p>
               )}
             </div>
           </TabsContent>

@@ -26,6 +26,7 @@ export function ProjectDetailProvider({ children }) {
     unit: [],
     curtain: [],
     knx: [],
+    dmx: [],
     room: [],
     scene: [],
     schedule: [],
@@ -118,7 +119,7 @@ export function ProjectDetailProvider({ children }) {
       setAirconCards(cards);
 
       // Mark all tabs as loaded
-      setLoadedTabs(new Set(["lighting", "aircon", "unit", "curtain", "knx", "room", "scene", "schedule", "multi_scenes", "sequences"]));
+      setLoadedTabs(new Set(["lighting", "aircon", "unit", "curtain", "knx", "dmx", "room", "scene", "schedule", "multi_scenes", "sequences"]));
     } catch (err) {
       console.error("Failed to load project items:", err);
       const errorMessage = err.message || "Failed to load project items";
@@ -152,6 +153,7 @@ export function ProjectDetailProvider({ children }) {
           unit: [],
           curtain: [],
           knx: [],
+          dmx: [],
           room: [],
           scene: [],
           schedule: [],
@@ -170,6 +172,7 @@ export function ProjectDetailProvider({ children }) {
           unit: [],
           curtain: [],
           knx: [],
+          dmx: [],
           room: [],
           scene: [],
           schedule: [],

@@ -3,13 +3,19 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Button } from "@/components/ui/button";
 import { useProjectDetail } from "@/contexts/project-detail-context";
 import { OBJECT_TYPES, CONSTANTS } from "@/constants";
-import { AirconPropertiesDialog } from "./aircon-properties-dialog";
+import { AirconPropertiesDialog } from "./dialogs/aircon-properties-dialog";
+import { DmxPropertiesDialog } from "./dialogs/dmx-properties-dialog";
 import { ProjectItemDialog } from "../lighting/lighting-dialog";
 import { CurtainDialog } from "../curtain/curtain-dialog";
-import { toast } from "sonner";
-import { SceneBasicInfoForm } from "./scene-basic-info-form";
-import { CurrentSceneItems } from "./current-scene-items";
-import { AvailableItemsTabs } from "./available-items-tabs";
+import { DmxDialog } from "../dmx/dmx-dialog";
+import { SceneBasicInfoForm } from "./components/scene-basic-info-form";
+import { CurrentSceneItems } from "./components/current-scene-items";
+import { AvailableItemsTabs } from "./components/available-items-tabs";
+import { useSceneItems } from "./hooks/useSceneItems";
+import { useDmxManagement } from "./hooks/useDmxManagement";
+import { useAirconManagement } from "./hooks/useAirconManagement";
+import { useLightingManagement } from "./hooks/useLightingManagement";
+import { useCurtainManagement } from "./hooks/useCurtainManagement";
 
 // Create label mappings directly from CONSTANTS.AIRCON
 const AC_POWER_LABELS =
@@ -45,52 +51,47 @@ export function SceneDialog({ open, onOpenChange, scene = null, mode = "create" 
     source_unit: null,
   });
   const [errors, setErrors] = useState({});
-  const [sceneItems, setSceneItems] = useState([]);
-  const [originalSceneItems, setOriginalSceneItems] = useState([]); // Store original items for reset
   const [loading, setLoading] = useState(false);
-  const [airconPropertiesDialog, setAirconPropertiesDialog] = useState({
-    open: false,
-    airconCard: null,
-  });
-  const [editAirconPropertiesDialog, setEditAirconPropertiesDialog] = useState({
-    open: false,
-    airconGroup: null,
-  });
-  const [customBrightnessDialog, setCustomBrightnessDialog] = useState({
-    open: false,
-    brightness: 50,
-    brightness255: 128,
-  });
-  const [lightingDialog, setLightingDialog] = useState({
-    open: false,
-  });
-  const [airconDialog, setAirconDialog] = useState({
-    open: false,
-  });
-  const [curtainDialog, setCurtainDialog] = useState({
-    open: false,
-  });
-  const [editLightingDialog, setEditLightingDialog] = useState({
-    open: false,
-    item: null,
-  });
-  const [editAirconDialog, setEditAirconDialog] = useState({
-    open: false,
-    item: null,
-  });
-  const [editCurtainDialog, setEditCurtainDialog] = useState({
-    open: false,
-    item: null,
-  });
-  const [currentTab, setCurrentTab] = useState("lighting"); // Track current active tab
-
-  // Debounce timer for validation
+  const [currentTab, setCurrentTab] = useState("lighting");
   const validationTimeoutRef = useRef(null);
+
+  // Use custom hooks for scene items management
+  const airconHooks = useAirconManagement({ projectItems, sceneItems: [], setSceneItems: () => {}, mode });
+  const sceneItemsHooks = useSceneItems({
+    projectItems,
+    getCommandForAirconItem: airconHooks.getCommandForAirconItem,
+    mode,
+  });
+
+  // Now pass the actual sceneItems to other hooks
+  const dmxHooks = useDmxManagement({
+    projectItems,
+    sceneItems: sceneItemsHooks.sceneItems,
+    setSceneItems: sceneItemsHooks.setSceneItems,
+    mode,
+  });
+
+  const airconManagement = useAirconManagement({
+    projectItems,
+    sceneItems: sceneItemsHooks.sceneItems,
+    setSceneItems: sceneItemsHooks.setSceneItems,
+    mode,
+  });
+
+  const lightingHooks = useLightingManagement({
+    projectItems,
+    sceneItems: sceneItemsHooks.sceneItems,
+  });
+
+  const curtainHooks = useCurtainManagement({
+    projectItems,
+    sceneItems: sceneItemsHooks.sceneItems,
+  });
 
   // Validate address field - memoized
   const validateAddress = useCallback((value) => {
     if (!value.trim()) {
-      return "Address is required for scenes"; // Address is now required for scenes
+      return "Address is required for scenes";
     }
 
     const num = parseInt(value, 10);
@@ -114,16 +115,6 @@ export function SceneDialog({ open, onOpenChange, scene = null, mode = "create" 
     return null;
   }, []);
 
-  const loadSceneItems = useCallback(async (sceneId) => {
-    try {
-      const items = await window.electronAPI.scene.getItemsWithDetails(sceneId);
-      setSceneItems(items);
-      setOriginalSceneItems(items); // Store original items for reset
-    } catch (error) {
-      console.error("Failed to load scene items:", error);
-    }
-  }, []);
-
   useEffect(() => {
     if (open) {
       if (mode === "edit" && scene) {
@@ -133,7 +124,7 @@ export function SceneDialog({ open, onOpenChange, scene = null, mode = "create" 
           description: scene.description || "",
           source_unit: scene.source_unit || null,
         });
-        loadSceneItems(scene.id);
+        sceneItemsHooks.loadSceneItems(scene.id);
       } else {
         setFormData({
           name: "",
@@ -141,40 +132,38 @@ export function SceneDialog({ open, onOpenChange, scene = null, mode = "create" 
           description: "",
           source_unit: null,
         });
-        setSceneItems([]);
-        setOriginalSceneItems([]);
+        sceneItemsHooks.setSceneItems([]);
+        sceneItemsHooks.setOriginalSceneItems([]);
       }
       setErrors({});
 
       // Load required data for scene dialog if not already loaded
       if (selectedProject) {
-        // Load aircon data if not already loaded
         if (!loadedTabs.has("aircon")) {
           loadTabData(selectedProject.id, "aircon");
         }
-        // Load curtain data if not already loaded
         if (!loadedTabs.has("curtain")) {
           loadTabData(selectedProject.id, "curtain");
         }
-        // Load lighting data if not already loaded
         if (!loadedTabs.has("lighting")) {
           loadTabData(selectedProject.id, "lighting");
         }
-        // Load unit data if not already loaded
+        if (!loadedTabs.has("dmx")) {
+          loadTabData(selectedProject.id, "dmx");
+        }
         if (!loadedTabs.has("unit")) {
           loadTabData(selectedProject.id, "unit");
         }
       }
     }
-  }, [open, mode, scene, selectedProject, loadedTabs, loadTabData, loadSceneItems]);
+  }, [open, mode, scene, selectedProject, loadedTabs, loadTabData, sceneItemsHooks.loadSceneItems]);
 
-  // Reload scene items when project data changes (to reflect address updates or item deletions)
+  // Reload scene items when project data changes
   useEffect(() => {
     if (open && mode === "edit" && scene && scene.id) {
-      // Reload scene items when project data changes to reflect any address updates or item deletions
-      loadSceneItems(scene.id);
+      sceneItemsHooks.loadSceneItems(scene.id);
     }
-  }, [open, mode, scene, projectItems.aircon, projectItems.lighting, projectItems.curtain, loadSceneItems]);
+  }, [open, mode, scene, projectItems.aircon, projectItems.lighting, projectItems.curtain, projectItems.dmx, sceneItemsHooks.loadSceneItems]);
 
   // Cleanup timeout on unmount
   useEffect(() => {
@@ -189,14 +178,12 @@ export function SceneDialog({ open, onOpenChange, scene = null, mode = "create" 
     (field, value) => {
       setFormData((prev) => ({ ...prev, [field]: value }));
 
-      // Clear general error when user starts typing
       setErrors((prev) => {
         const newErrors = { ...prev };
         if (newErrors.general) {
           delete newErrors.general;
         }
 
-        // Clear field error immediately when user starts typing
         if (newErrors[field]) {
           delete newErrors[field];
         }
@@ -204,7 +191,6 @@ export function SceneDialog({ open, onOpenChange, scene = null, mode = "create" 
         return newErrors;
       });
 
-      // Debounced validation for address field to prevent lag
       if (field === "address") {
         if (validationTimeoutRef.current) {
           clearTimeout(validationTimeoutRef.current);
@@ -213,498 +199,123 @@ export function SceneDialog({ open, onOpenChange, scene = null, mode = "create" 
         validationTimeoutRef.current = setTimeout(() => {
           const error = validateAddress(value);
           setErrors((prev) => ({ ...prev, address: error }));
-        }, 300); // 300ms debounce
+        }, 300);
       }
     },
     [validateAddress]
-  );
-
-  // Memoize getItemDetails to prevent unnecessary recalculations
-  const getItemDetails = useMemo(() => {
-    return (itemType, itemId) => {
-      const items = projectItems[itemType] || [];
-      return items.find((item) => item.id === itemId);
-    };
-  }, [projectItems]);
-
-  const getCommandForAirconItem = useCallback((objectType, itemValue) => {
-    // For aircon items, we need to find the command based on object_type and value
-    switch (objectType) {
-      case OBJECT_TYPES.AC_POWER.obj_name:
-        return (
-          CONSTANTS.AIRCON.find((item) => item.obj_type === "OBJ_AC_POWER").values.find((item) => item.value.toString() === itemValue)?.command ||
-          null
-        );
-      case OBJECT_TYPES.AC_FAN_SPEED.obj_name:
-        return (
-          CONSTANTS.AIRCON.find((item) => item.obj_type === "OBJ_AC_FAN_SPEED").values.find((item) => item.value.toString() === itemValue)?.command ||
-          null
-        );
-      case OBJECT_TYPES.AC_MODE.obj_name:
-        return (
-          CONSTANTS.AIRCON.find((item) => item.obj_type === "OBJ_AC_MODE").values.find((item) => item.value.toString() === itemValue)?.command || null
-        );
-      case OBJECT_TYPES.AC_SWING.obj_name:
-        return (
-          CONSTANTS.AIRCON.find((item) => item.obj_type === "OBJ_AC_SWING").values.find((item) => item.value.toString() === itemValue)?.command ||
-          null
-        );
-      case OBJECT_TYPES.AC_TEMPERATURE.obj_name:
-        return null; // Temperature doesn't use commands, just direct value
-      default:
-        return null;
-    }
-  }, []);
-
-  const addItemToScene = useCallback(
-    async (itemType, itemId, itemValue = null) => {
-      // Check scene items limit (60 items maximum)
-      if (sceneItems.length >= 60) {
-        toast.error("Maximum 60 items allowed per scene");
-        return;
-      }
-
-      const item = getItemDetails(itemType, itemId);
-      if (!item) return;
-
-      // Get command and object_type for the item
-      let command = null;
-      let objectType = item.object_type;
-
-      // For aircon items, get the command based on object_type and value
-      if (itemType === "aircon" && itemValue !== null) {
-        command = getCommandForAirconItem(item.object_type, itemValue);
-      }
-
-      // Always add to local state only - changes will be saved when user clicks Save
-      const newSceneItem = {
-        id: mode === "edit" ? `temp_${Date.now()}` : Date.now(), // Temporary ID
-        item_type: itemType,
-        item_id: itemId,
-        item_value: itemValue,
-        command: command,
-        object_type: objectType,
-        item_name: item.name,
-        item_address: item.address,
-        item_description: item.description,
-        label: item.label, // Include label for aircon items
-      };
-      setSceneItems((prev) => [...prev, newSceneItem]);
-    },
-    [sceneItems.length, getItemDetails, getCommandForAirconItem, mode]
-  );
-
-  // Add multiple aircon items to scene from a card
-  const addAirconCardToScene = useCallback(
-    async (address, selectedProperties) => {
-      // Check scene items limit (60 items maximum)
-      if (sceneItems.length + selectedProperties.length > 60) {
-        toast.error(`Cannot add ${selectedProperties.length} items. Maximum 60 items allowed per scene (current: ${sceneItems.length})`);
-        return;
-      }
-
-      // Find the single aircon item for this address
-      const airconItem = projectItems.aircon?.find((item) => item.address === address);
-
-      if (!airconItem) return;
-
-      selectedProperties.forEach((property) => {
-        // Create scene item with the aircon item ID but specific object_type and value
-        const newSceneItem = {
-          id: mode === "edit" ? `temp_${Date.now()}_${property.objectType}` : `${Date.now()}_${property.objectType}`,
-          item_type: "aircon",
-          item_id: airconItem.id,
-          item_value: property.value,
-          command: getCommandForAirconItem(property.objectType, property.value),
-          object_type: property.objectType,
-          item_name: airconItem.name,
-          item_address: airconItem.address,
-          item_description: airconItem.description,
-          label: CONSTANTS.AIRCON.find((item) => item.obj_type === property.objectType)?.label || property.objectType,
-        };
-        setSceneItems((prev) => [...prev, newSceneItem]);
-      });
-    },
-    [sceneItems.length, projectItems.aircon, getCommandForAirconItem, mode]
-  );
-
-  // Handle opening aircon properties dialog
-  const handleAddAirconCard = useCallback((airconCard) => {
-    setAirconPropertiesDialog({
-      open: true,
-      airconCard,
-    });
-  }, []);
-
-  // Handle confirming aircon properties selection
-  const handleAirconPropertiesConfirm = useCallback(
-    async (address, selectedProperties) => {
-      await addAirconCardToScene(address, selectedProperties);
-    },
-    [addAirconCardToScene]
-  );
-
-  // Handle opening add new item dialogs
-  const handleOpenLightingDialog = useCallback(() => {
-    setLightingDialog({ open: true });
-  }, []);
-
-  const handleOpenAirconDialog = useCallback(() => {
-    setAirconDialog({ open: true });
-  }, []);
-
-  const handleOpenCurtainDialog = useCallback(() => {
-    setCurtainDialog({ open: true });
-  }, []);
-
-  // Handle closing add new item dialogs
-  const handleCloseLightingDialog = useCallback(
-    (open) => {
-      setLightingDialog({ open });
-      // Reload lighting data when dialog closes after successful creation
-      if (!open && selectedProject) {
-        loadTabData("lighting");
-      }
-    },
-    [selectedProject, loadTabData]
-  );
-
-  const handleCloseAirconDialog = useCallback(
-    (open) => {
-      setAirconDialog({ open });
-      // Reload aircon data when dialog closes after successful creation
-      if (!open && selectedProject) {
-        loadTabData("aircon");
-      }
-    },
-    [selectedProject, loadTabData]
-  );
-
-  const handleCloseCurtainDialog = useCallback(
-    (open) => {
-      setCurtainDialog({ open });
-      // Reload curtain data when dialog closes after successful creation
-      if (!open && selectedProject) {
-        loadTabData("curtain");
-      }
-    },
-    [selectedProject, loadTabData]
   );
 
   // Handle opening dialog based on current tab
   const handleAddNewItem = useCallback(() => {
     switch (currentTab) {
       case "lighting":
-        handleOpenLightingDialog();
+        lightingHooks.handleOpenLightingDialog();
         break;
       case "aircon":
-        handleOpenAirconDialog();
+        airconManagement.handleOpenAirconDialog();
         break;
       case "curtain":
-        handleOpenCurtainDialog();
+        curtainHooks.handleOpenCurtainDialog();
+        break;
+      case "dmx":
+        dmxHooks.handleOpenDmxDialog();
         break;
       default:
         break;
     }
-  }, [currentTab, handleOpenLightingDialog, handleOpenAirconDialog, handleOpenCurtainDialog]);
+  }, [currentTab, lightingHooks, airconManagement, curtainHooks, dmxHooks]);
 
-  // Handle opening edit dialogs
-  const handleEditLightingItem = useCallback((item) => {
-    setEditLightingDialog({ open: true, item });
-  }, []);
-
-  const handleEditAirconItem = useCallback((item) => {
-    setEditAirconDialog({ open: true, item });
-  }, []);
-
-  const handleEditCurtainItem = useCallback((item) => {
-    setEditCurtainDialog({ open: true, item });
-  }, []);
-
-  // Handle closing edit dialogs
-  const handleCloseEditLightingDialog = useCallback(
+  // Handle closing add new item dialogs with data reload
+  const handleCloseLightingDialog = useCallback(
     (open) => {
-      setEditLightingDialog({ open, item: null });
-      // Reload lighting data when dialog closes after successful edit
+      lightingHooks.handleCloseLightingDialog(open);
       if (!open && selectedProject) {
         loadTabData("lighting");
       }
     },
-    [selectedProject, loadTabData]
+    [lightingHooks, selectedProject, loadTabData]
   );
 
-  const handleCloseEditAirconDialog = useCallback(
+  const handleCloseAirconDialog = useCallback(
     (open) => {
-      setEditAirconDialog({ open, item: null });
-      // Reload aircon data when dialog closes after successful edit
+      airconManagement.handleCloseAirconDialog(open);
       if (!open && selectedProject) {
         loadTabData("aircon");
       }
     },
-    [selectedProject, loadTabData]
+    [airconManagement, selectedProject, loadTabData]
   );
 
-  const handleCloseEditCurtainDialog = useCallback(
+  const handleCloseCurtainDialog = useCallback(
     (open) => {
-      setEditCurtainDialog({ open, item: null });
-      // Reload curtain data when dialog closes after successful edit
+      curtainHooks.handleCloseCurtainDialog(open);
       if (!open && selectedProject) {
         loadTabData("curtain");
       }
     },
-    [selectedProject, loadTabData]
+    [curtainHooks, selectedProject, loadTabData]
   );
 
-  // Remove all aircon items from a specific address
-  const removeAirconGroupFromScene = useCallback((address) => {
-    setSceneItems((prev) => prev.filter((item) => !(item.item_type === "aircon" && item.item_address === address)));
-  }, []);
-
-  // Handle opening edit aircon properties dialog
-  const handleEditAirconGroup = useCallback((airconGroup) => {
-    setEditAirconPropertiesDialog({
-      open: true,
-      airconGroup,
-    });
-  }, []);
-
-  // Handle confirming edit aircon properties
-  const handleEditAirconPropertiesConfirm = useCallback(
-    async (address, selectedProperties) => {
-      // Find the single aircon item for this address
-      const airconItem = projectItems.aircon?.find((item) => item.address === address);
-
-      if (!airconItem) return;
-
-      // Update scene items directly to avoid UI flicker
-      setSceneItems((prev) => {
-        // Remove existing aircon items for this address
-        const filteredItems = prev.filter((item) => !(item.item_type === "aircon" && item.item_address === address));
-
-        // Add new selected properties
-        const newAirconItems = selectedProperties.map((property) => ({
-          id: mode === "edit" ? `temp_${Date.now()}_${property.objectType}` : `${Date.now()}_${property.objectType}`,
-          item_type: "aircon",
-          item_id: airconItem.id,
-          item_value: property.value,
-          command: getCommandForAirconItem(property.objectType, property.value),
-          object_type: property.objectType,
-          item_name: airconItem.name,
-          item_address: airconItem.address,
-          item_description: airconItem.description,
-          label: CONSTANTS.AIRCON.find((item) => item.obj_type === property.objectType)?.label || property.objectType,
-        }));
-
-        return [...filteredItems, ...newAirconItems];
-      });
+  const handleCloseDmxDialog = useCallback(
+    (open) => {
+      dmxHooks.handleCloseDmxDialog(open);
+      if (!open && selectedProject) {
+        loadTabData("dmx");
+      }
     },
-    [projectItems.aircon, getCommandForAirconItem, mode]
+    [dmxHooks, selectedProject, loadTabData]
   );
 
-  // Get aircon cards from aircon items - memoized
-  const availableAirconCards = useMemo(() => {
-    if (!projectItems.aircon) return [];
-
-    // Each aircon item is now a single card
-    return projectItems.aircon
-      .map((item) => ({
-        address: item.address,
-        name: item.name,
-        description: item.description,
-        item: item, // Store the single item
-      }))
-      .sort((a, b) => parseInt(a.address) - parseInt(b.address));
-  }, [projectItems.aircon]);
-
-  // Get grouped scene items for display - memoized
-  const groupedSceneItems = useMemo(() => {
-    const grouped = [];
-    const airconGroups = new Map();
-
-    sceneItems.forEach((item) => {
-      if (item.item_type === "aircon") {
-        if (!airconGroups.has(item.item_address)) {
-          airconGroups.set(item.item_address, {
-            type: "aircon-group",
-            address: item.item_address,
-            name: item.item_name,
-            description: item.item_description,
-            items: [],
-          });
-        }
-        airconGroups.get(item.item_address).items.push(item);
-      } else {
-        grouped.push(item);
+  // Handle closing edit dialogs with data reload
+  const handleCloseEditLightingDialog = useCallback(
+    (open) => {
+      lightingHooks.handleCloseEditLightingDialog(open);
+      if (!open && selectedProject) {
+        loadTabData("lighting");
       }
-    });
-
-    // Add aircon groups to the result
-    airconGroups.forEach((group) => {
-      grouped.push(group);
-    });
-
-    return grouped.sort((a, b) => {
-      // Sort by address if both have addresses
-      if (a.address && b.address) {
-        return parseInt(a.address) - parseInt(b.address);
-      }
-      if (a.item_address && b.item_address) {
-        return parseInt(a.item_address) - parseInt(b.item_address);
-      }
-      return 0;
-    });
-  }, [sceneItems]);
-
-  // Memoize filtered data for tabs to avoid recalculation on every render
-  const filteredLightingItems = useMemo(() => {
-    return (
-      projectItems.lighting?.filter((item) => {
-        // Filter out items already in current scene
-        const isInCurrentScene = sceneItems.some((si) => si.item_type === "lighting" && si.item_id === item.id);
-        return !isInCurrentScene;
-      }) || []
-    );
-  }, [projectItems.lighting, sceneItems]);
-
-  const filteredAirconCards = useMemo(() => {
-    return availableAirconCards.filter((card) => {
-      // Filter out cards already in current scene
-      const isInCurrentScene = sceneItems.some((si) => si.item_type === "aircon" && si.item_address === card.address);
-      return !isInCurrentScene;
-    });
-  }, [availableAirconCards, sceneItems]);
-
-  const filteredCurtainItems = useMemo(() => {
-    return (
-      projectItems.curtain?.filter((item) => {
-        // Filter out items already in current scene
-        const isInCurrentScene = sceneItems.some((si) => si.item_type === "curtain" && si.item_id === item.id);
-        return !isInCurrentScene;
-      }) || []
-    );
-  }, [projectItems.curtain, sceneItems]);
-
-  const removeItemFromScene = useCallback((sceneItemId) => {
-    // Always remove from local state only - changes will be saved when user clicks Save
-    setSceneItems((prev) => prev.filter((item) => item.id !== sceneItemId));
-  }, []);
-
-  const updateSceneItemValue = useCallback(
-    (sceneItemId, itemValue) => {
-      // Always update local state only - changes will be saved when user clicks Save
-      setSceneItems((prev) =>
-        prev.map((item) => {
-          if (item.id === sceneItemId) {
-            let command = null;
-            if (item.item_type === "aircon") {
-              command = getCommandForAirconItem(item.object_type, itemValue);
-            }
-            return { ...item, item_value: itemValue, command: command };
-          }
-          return item;
-        })
-      );
     },
-    [getCommandForAirconItem]
+    [lightingHooks, selectedProject, loadTabData]
   );
 
-  // All On: Set all lighting items to 100% brightness (255 in 0-255 scale)
-  const handleAllLightingOn = useCallback(() => {
-    setSceneItems((prev) =>
-      prev.map((item) => {
-        if (item.item_type === "lighting") {
-          return { ...item, item_value: "255" };
-        }
-        return item;
-      })
-    );
-  }, []);
+  const handleCloseEditAirconDialog = useCallback(
+    (open) => {
+      airconManagement.handleCloseEditAirconDialog(open);
+      if (!open && selectedProject) {
+        loadTabData("aircon");
+      }
+    },
+    [airconManagement, selectedProject, loadTabData]
+  );
 
-  // All Off: Set all lighting items to 0% brightness
-  const handleAllLightingOff = useCallback(() => {
-    setSceneItems((prev) =>
-      prev.map((item) => {
-        if (item.item_type === "lighting") {
-          return { ...item, item_value: "0" };
-        }
-        return item;
-      })
-    );
-  }, []);
+  const handleCloseEditCurtainDialog = useCallback(
+    (open) => {
+      curtainHooks.handleCloseEditCurtainDialog(open);
+      if (!open && selectedProject) {
+        loadTabData("curtain");
+      }
+    },
+    [curtainHooks, selectedProject, loadTabData]
+  );
 
-  // Custom: Set all lighting items to custom brightness
-  const handleCustomBrightness = useCallback(() => {
-    const { brightness255 } = customBrightnessDialog;
-
-    // Use the 0-255 value for storage
-    const value255 = parseInt(brightness255);
-    if (isNaN(value255) || value255 < 0 || value255 > 255) {
-      toast.error("Brightness must be between 0 and 255");
-      return;
-    }
-
-    const percentValue = Math.round((value255 * 100) / 255);
-
-    setSceneItems((prev) =>
-      prev.map((item) => {
-        if (item.item_type === "lighting") {
-          return { ...item, item_value: value255.toString() };
-        }
-        return item;
-      })
-    );
-    setCustomBrightnessDialog({
-      open: false,
-      brightness: 50,
-      brightness255: 128,
-    });
-    toast.success(`Set all lighting to ${percentValue}% (${value255}/255) brightness`);
-  }, [customBrightnessDialog]);
-
-  const applySceneItemsChanges = async (sceneId) => {
-    // Compare current sceneItems with originalSceneItems to determine changes
-
-    // Find items to remove (in original but not in current)
-    const itemsToRemove = originalSceneItems.filter((item) => !sceneItems.some((currentItem) => currentItem.id === item.id));
-
-    // Find items to add (in current but not in original, or have temp IDs)
-    const itemsToAdd = sceneItems.filter(
-      (item) => !originalSceneItems.some((originalItem) => originalItem.id === item.id) || item.id.toString().startsWith("temp_")
-    );
-
-    // Find items to update (same ID but different values)
-    const itemsToUpdate = sceneItems.filter((item) => {
-      const originalItem = originalSceneItems.find((orig) => orig.id === item.id);
-      return originalItem && (originalItem.item_value !== item.item_value || originalItem.command !== item.command);
-    });
-
-    // Remove items
-    for (const item of itemsToRemove) {
-      await window.electronAPI.scene.removeItem(item.id);
-    }
-
-    // Add new items
-    for (const item of itemsToAdd) {
-      await window.electronAPI.scene.addItem(sceneId, item.item_type, item.item_id, item.item_value, item.command, item.object_type);
-    }
-
-    // Update existing items
-    for (const item of itemsToUpdate) {
-      await window.electronAPI.scene.updateItemValue(item.id, item.item_value, item.command);
-    }
-  };
+  const handleCloseEditDmxDialog = useCallback(
+    (open) => {
+      dmxHooks.handleCloseEditDmxDialog(open);
+      if (!open && selectedProject) {
+        loadTabData("dmx");
+      }
+    },
+    [dmxHooks, selectedProject, loadTabData]
+  );
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // Validate name
     const nameError = validateName(formData.name);
     if (nameError) {
       setErrors({ name: nameError });
       return;
     }
 
-    // Validate address before submitting
     const addressError = validateAddress(formData.address);
     if (addressError) {
       setErrors({ address: addressError });
@@ -714,17 +325,12 @@ export function SceneDialog({ open, onOpenChange, scene = null, mode = "create" 
     setLoading(true);
     try {
       if (mode === "edit" && scene) {
-        // Update scene basic info
         await updateItem("scene", scene.id, formData);
-
-        // Apply scene items changes
-        await applySceneItemsChanges(scene.id);
+        await sceneItemsHooks.applySceneItemsChanges(scene.id);
       } else {
-        // Create new scene
         const newScene = await createItem("scene", formData);
 
-        // Add all scene items
-        for (const sceneItem of sceneItems) {
+        for (const sceneItem of sceneItemsHooks.sceneItems) {
           await window.electronAPI.scene.addItem(
             newScene.id,
             sceneItem.item_type,
@@ -735,29 +341,25 @@ export function SceneDialog({ open, onOpenChange, scene = null, mode = "create" 
           );
         }
 
-        // Switch to scene tab to show the newly created scene
         setActiveTab("scene");
       }
       onOpenChange(false);
 
-      // Reset form data after successful creation
       setFormData({
         name: "",
         address: "",
         description: "",
         source_unit: null,
       });
-      setSceneItems([]);
-      setOriginalSceneItems([]);
+      sceneItemsHooks.setSceneItems([]);
+      sceneItemsHooks.setOriginalSceneItems([]);
       setErrors({});
     } catch (error) {
       console.error("Failed to save scene:", error);
 
-      // Handle specific error messages
       if (error.message && error.message.includes("already used by another scene")) {
         setErrors({ general: error.message });
       } else if (error.message && error.message.includes("already exists")) {
-        // Extract the clean error message after the last colon
         const cleanMessage = error.message.split(": ").pop();
         setErrors({ address: cleanMessage });
       } else if (error.message && error.message.includes("Address is required")) {
@@ -767,7 +369,6 @@ export function SceneDialog({ open, onOpenChange, scene = null, mode = "create" 
           general: "Maximum 100 scenes allowed per project (indexed 0-99)",
         });
       } else {
-        // Handle other errors generically
         setErrors({ general: "Failed to save scene. Please try again." });
       }
     } finally {
@@ -776,9 +377,8 @@ export function SceneDialog({ open, onOpenChange, scene = null, mode = "create" 
   };
 
   const resetToOriginalState = useCallback(() => {
-    if (mode === "edit" && originalSceneItems.length > 0) {
-      // Reset to original state
-      setSceneItems([...originalSceneItems]);
+    if (mode === "edit" && sceneItemsHooks.originalSceneItems.length > 0) {
+      sceneItemsHooks.setSceneItems([...sceneItemsHooks.originalSceneItems]);
       setFormData({
         name: scene?.name || "",
         address: scene?.address || "",
@@ -787,7 +387,7 @@ export function SceneDialog({ open, onOpenChange, scene = null, mode = "create" 
       });
     }
     setErrors({});
-  }, [mode, originalSceneItems, scene]);
+  }, [mode, sceneItemsHooks.originalSceneItems, scene]);
 
   const handleCancel = useCallback(() => {
     resetToOriginalState();
@@ -797,7 +397,6 @@ export function SceneDialog({ open, onOpenChange, scene = null, mode = "create" 
   const handleDialogOpenChange = useCallback(
     (isOpen) => {
       if (!isOpen) {
-        // When dialog is being closed, reset changes first
         resetToOriginalState();
       }
       onOpenChange(isOpen);
@@ -839,14 +438,12 @@ export function SceneDialog({ open, onOpenChange, scene = null, mode = "create" 
       if (optionsCache[objectType]) {
         return optionsCache[objectType];
       }
-      // For curtain items without specific object type, return curtain values
       if (itemType === "curtain") {
         return optionsCache.curtain;
       }
       return [];
     };
   }, []);
-
 
   return (
     <Dialog open={open} onOpenChange={handleDialogOpenChange}>
@@ -876,17 +473,18 @@ export function SceneDialog({ open, onOpenChange, scene = null, mode = "create" 
               <div className="grid grid-cols-2 gap-4">
                 {/* Current Scene Items - Left Side */}
                 <CurrentSceneItems
-                  sceneItems={sceneItems}
-                  groupedSceneItems={groupedSceneItems}
-                  onAllLightingOn={handleAllLightingOn}
-                  onAllLightingOff={handleAllLightingOff}
-                  customBrightnessDialog={customBrightnessDialog}
-                  setCustomBrightnessDialog={setCustomBrightnessDialog}
-                  onCustomBrightness={handleCustomBrightness}
-                  onEditAirconGroup={handleEditAirconGroup}
-                  onRemoveAirconGroup={removeAirconGroupFromScene}
-                  onRemoveItem={removeItemFromScene}
-                  updateSceneItemValue={updateSceneItemValue}
+                  sceneItems={sceneItemsHooks.sceneItems}
+                  groupedSceneItems={sceneItemsHooks.groupedSceneItems}
+                  onAllLightingOn={sceneItemsHooks.handleAllLightingOn}
+                  onAllLightingOff={sceneItemsHooks.handleAllLightingOff}
+                  customBrightnessDialog={sceneItemsHooks.customBrightnessDialog}
+                  setCustomBrightnessDialog={sceneItemsHooks.setCustomBrightnessDialog}
+                  onCustomBrightness={sceneItemsHooks.handleCustomBrightness}
+                  onEditAirconGroup={airconManagement.handleEditAirconGroup}
+                  onRemoveAirconGroup={airconManagement.removeAirconGroupFromScene}
+                  onEditDmxItem={dmxHooks.handleEditDmxItem}
+                  onRemoveItem={sceneItemsHooks.removeItemFromScene}
+                  updateSceneItemValue={sceneItemsHooks.updateSceneItemValue}
                   getValueOptions={getValueOptions}
                 />
 
@@ -894,16 +492,19 @@ export function SceneDialog({ open, onOpenChange, scene = null, mode = "create" 
                 <AvailableItemsTabs
                   currentTab={currentTab}
                   onTabChange={setCurrentTab}
-                  filteredLightingItems={filteredLightingItems}
-                  filteredAirconCards={filteredAirconCards}
-                  filteredCurtainItems={filteredCurtainItems}
+                  filteredLightingItems={lightingHooks.filteredLightingItems}
+                  filteredAirconCards={airconManagement.filteredAirconCards}
+                  filteredCurtainItems={curtainHooks.filteredCurtainItems}
+                  filteredDmxCards={dmxHooks.filteredDmxCards}
                   onAddNewItem={handleAddNewItem}
-                  onEditLightingItem={handleEditLightingItem}
-                  onEditAirconItem={handleEditAirconItem}
-                  onEditCurtainItem={handleEditCurtainItem}
-                  onAddLightingItem={(itemId) => addItemToScene("lighting", itemId, "255")}
-                  onAddAirconCard={handleAddAirconCard}
-                  onAddCurtainItem={(itemId) => addItemToScene("curtain", itemId, "1")}
+                  onEditLightingItem={lightingHooks.handleEditLightingItem}
+                  onEditAirconItem={airconManagement.handleEditAirconItem}
+                  onEditCurtainItem={curtainHooks.handleEditCurtainItem}
+                  onEditDmxItem={dmxHooks.handleEditDmxItemDialog}
+                  onAddLightingItem={(itemId) => sceneItemsHooks.addItemToScene("lighting", itemId, "255")}
+                  onAddAirconCard={airconManagement.handleAddAirconCard}
+                  onAddCurtainItem={(itemId) => sceneItemsHooks.addItemToScene("curtain", itemId, "1")}
+                  onAddDmxCard={dmxHooks.handleAddDmxCard}
                 />
               </div>
             </div>
@@ -925,50 +526,73 @@ export function SceneDialog({ open, onOpenChange, scene = null, mode = "create" 
 
       {/* Aircon Properties Dialog */}
       <AirconPropertiesDialog
-        open={airconPropertiesDialog.open}
-        onOpenChange={(open) => setAirconPropertiesDialog((prev) => ({ ...prev, open }))}
-        airconCard={airconPropertiesDialog.airconCard}
-        onConfirm={handleAirconPropertiesConfirm}
+        open={airconManagement.airconPropertiesDialog.open}
+        onOpenChange={(open) => airconManagement.setAirconPropertiesDialog((prev) => ({ ...prev, open }))}
+        airconCard={airconManagement.airconPropertiesDialog.airconCard}
+        onConfirm={airconManagement.handleAirconPropertiesConfirm}
       />
 
       {/* Edit Aircon Properties Dialog */}
       <AirconPropertiesDialog
-        open={editAirconPropertiesDialog.open}
-        onOpenChange={(open) => setEditAirconPropertiesDialog((prev) => ({ ...prev, open }))}
-        airconGroup={editAirconPropertiesDialog.airconGroup}
+        open={airconManagement.editAirconPropertiesDialog.open}
+        onOpenChange={(open) => airconManagement.setEditAirconPropertiesDialog((prev) => ({ ...prev, open }))}
+        airconGroup={airconManagement.editAirconPropertiesDialog.airconGroup}
         mode="edit"
-        onConfirm={handleEditAirconPropertiesConfirm}
+        onConfirm={airconManagement.handleEditAirconPropertiesConfirm}
       />
 
       {/* Add New Lighting Dialog */}
-      <ProjectItemDialog open={lightingDialog.open} onOpenChange={handleCloseLightingDialog} category="lighting" mode="create" />
+      <ProjectItemDialog open={lightingHooks.lightingDialog.open} onOpenChange={handleCloseLightingDialog} category="lighting" mode="create" />
 
       {/* Add New Aircon Dialog */}
-      <ProjectItemDialog open={airconDialog.open} onOpenChange={handleCloseAirconDialog} category="aircon" mode="create" />
+      <ProjectItemDialog open={airconManagement.airconDialog.open} onOpenChange={handleCloseAirconDialog} category="aircon" mode="create" />
 
       {/* Add New Curtain Dialog */}
-      <CurtainDialog open={curtainDialog.open} onOpenChange={handleCloseCurtainDialog} mode="create" />
+      <CurtainDialog open={curtainHooks.curtainDialog.open} onOpenChange={handleCloseCurtainDialog} mode="create" />
 
       {/* Edit Lighting Dialog */}
       <ProjectItemDialog
-        open={editLightingDialog.open}
+        open={lightingHooks.editLightingDialog.open}
         onOpenChange={handleCloseEditLightingDialog}
         category="lighting"
-        item={editLightingDialog.item}
+        item={lightingHooks.editLightingDialog.item}
         mode="edit"
       />
 
       {/* Edit Aircon Dialog */}
       <ProjectItemDialog
-        open={editAirconDialog.open}
+        open={airconManagement.editAirconDialog.open}
         onOpenChange={handleCloseEditAirconDialog}
         category="aircon"
-        item={editAirconDialog.item}
+        item={airconManagement.editAirconDialog.item}
         mode="edit"
       />
 
       {/* Edit Curtain Dialog */}
-      <CurtainDialog open={editCurtainDialog.open} onOpenChange={handleCloseEditCurtainDialog} item={editCurtainDialog.item} mode="edit" />
+      <CurtainDialog open={curtainHooks.editCurtainDialog.open} onOpenChange={handleCloseEditCurtainDialog} item={curtainHooks.editCurtainDialog.item} mode="edit" />
+
+      {/* DMX Properties Dialog */}
+      <DmxPropertiesDialog
+        open={dmxHooks.dmxPropertiesDialog.open}
+        onOpenChange={(open) => dmxHooks.setDmxPropertiesDialog((prev) => ({ ...prev, open }))}
+        dmxCard={dmxHooks.dmxPropertiesDialog.dmxCard}
+        onConfirm={dmxHooks.handleDmxPropertiesConfirm}
+      />
+
+      {/* Edit DMX Properties Dialog */}
+      <DmxPropertiesDialog
+        open={dmxHooks.editDmxPropertiesDialog.open}
+        onOpenChange={(open) => dmxHooks.setEditDmxPropertiesDialog((prev) => ({ ...prev, open }))}
+        dmxItem={dmxHooks.editDmxPropertiesDialog.dmxItem}
+        mode="edit"
+        onConfirm={dmxHooks.handleEditDmxPropertiesConfirm}
+      />
+
+      {/* Add New DMX Dialog */}
+      <DmxDialog open={dmxHooks.dmxDialog.open} onOpenChange={handleCloseDmxDialog} mode="create" />
+
+      {/* Edit DMX Dialog */}
+      <DmxDialog open={dmxHooks.editDmxDialog.open} onOpenChange={handleCloseEditDmxDialog} item={dmxHooks.editDmxDialog.item} mode="edit" />
     </Dialog>
   );
 }

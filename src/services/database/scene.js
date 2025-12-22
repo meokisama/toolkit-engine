@@ -132,12 +132,14 @@ export const sceneMethods = {
             WHEN si.item_type = 'lighting' THEN l.name
             WHEN si.item_type = 'aircon' THEN ai.name
             WHEN si.item_type = 'curtain' THEN c.name
+            WHEN si.item_type = 'dmx' THEN d.name
           END as item_name,
           si.item_address,
           CASE
             WHEN si.item_type = 'lighting' THEN l.description
             WHEN si.item_type = 'aircon' THEN ai.description
             WHEN si.item_type = 'curtain' THEN c.description
+            WHEN si.item_type = 'dmx' THEN d.description
           END as item_description,
           CASE
             WHEN si.item_type = 'lighting' THEN l.object_type
@@ -147,12 +149,15 @@ export const sceneMethods = {
           END as object_type,
           CASE
             WHEN si.item_type = 'aircon' THEN ai.label
+            WHEN si.item_type = 'dmx' THEN
+              'Color ' || CAST(REPLACE(REPLACE(si.object_type, 'OBJ_DMX_COLOR', ''), 'DMX_COLOR', '') AS INTEGER)
             ELSE NULL
           END as label
         FROM scene_items si
         LEFT JOIN lighting l ON si.item_type = 'lighting' AND si.item_id = l.id
         LEFT JOIN aircon ai ON si.item_type = 'aircon' AND si.item_id = ai.id
         LEFT JOIN curtain c ON si.item_type = 'curtain' AND si.item_id = c.id
+        LEFT JOIN dmx d ON si.item_type = 'dmx' AND si.item_id = d.id
         WHERE si.scene_id = ?
         ORDER BY si.created_at ASC
       `);
@@ -182,6 +187,9 @@ export const sceneMethods = {
         itemAddress = item?.address;
       } else if (itemType === "curtain") {
         const item = this.db.prepare("SELECT address FROM curtain WHERE id = ?").get(itemId);
+        itemAddress = item?.address;
+      } else if (itemType === "dmx") {
+        const item = this.db.prepare("SELECT address FROM dmx WHERE id = ?").get(itemId);
         itemAddress = item?.address;
       }
 
@@ -219,15 +227,25 @@ export const sceneMethods = {
     }
   },
 
-  updateSceneItemValue(sceneItemId, itemValue, command = null) {
+  updateSceneItemValue(sceneItemId, itemValue, command = null, objectType = null) {
     try {
-      const stmt = this.db.prepare(`
-        UPDATE scene_items
-        SET item_value = ?, command = ?
-        WHERE id = ?
-      `);
+      // Get object_value from objectType if provided
+      const object_value = objectType ? this.getObjectValue(objectType) : null;
 
-      const result = stmt.run(itemValue, command, sceneItemId);
+      // Build dynamic SQL based on what needs to be updated
+      let sql = "UPDATE scene_items SET item_value = ?, command = ?";
+      const params = [itemValue, command];
+
+      if (objectType !== null && objectType !== undefined) {
+        sql += ", object_type = ?, object_value = ?";
+        params.push(objectType, object_value);
+      }
+
+      sql += " WHERE id = ?";
+      params.push(sceneItemId);
+
+      const stmt = this.db.prepare(sql);
+      const result = stmt.run(...params);
 
       if (result.changes === 0) {
         throw new Error("Scene item not found");

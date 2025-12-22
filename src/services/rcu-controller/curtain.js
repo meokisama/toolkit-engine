@@ -192,6 +192,7 @@ async function setCurtainConfig(unitIp, canId, curtainConfig) {
     openGroup & 0xff,
     closeGroup & 0xff,
     stopGroup & 0xff,
+    0x00, // Reserved byte
   ];
 
   // console.log("Sending curtain config:", {
