@@ -206,7 +206,7 @@ export function DataTableRow({
         {(onCurtainControl || onKnxControl || onRoomConfigControl) && (
           <ContextMenuSub>
             <ContextMenuSubTrigger>
-              <Building2 className="text-muted-foreground" />
+              <Network className="text-muted-foreground" />
               <span className="pl-2">RCU</span>
             </ContextMenuSubTrigger>
             <ContextMenuSubContent>
@@ -254,7 +254,6 @@ export function DataTableRow({
                 )}
               </ContextMenuSubContent>
             </ContextMenuSub>
-            <ContextMenuSeparator />
           </>
         )}
         {onSendSchedule && (
