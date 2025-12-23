@@ -149,6 +149,9 @@ function NetworkUnitTableComponent({ onTransferToDatabase, existingUnits = [], o
                 onKnxControl={{
                   onTriggerKnx: handlers.handleTriggerKnx,
                 }}
+                onDmxControl={{
+                  onDmxControl: handlers.handleDmxControl,
+                }}
                 onRoomConfigControl={{
                   onRoomConfigControl: handlers.handleRoomConfigControl,
                 }}

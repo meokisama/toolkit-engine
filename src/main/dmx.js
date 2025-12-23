@@ -16,6 +16,16 @@ export function registerDmxHandlers(ipcMain, dbService, rcu) {
     }
   });
 
+  // Get DMX Color
+  ipcMain.handle("rcu:getDmxColor", async (event, unitIp, canId) => {
+    try {
+      return await rcu.getDmxColor(unitIp, canId);
+    } catch (error) {
+      console.error("Error getting DMX color:", error);
+      throw error;
+    }
+  });
+
   // ==================== Database - DMX Operations ====================
 
   // DMX CRUD operations

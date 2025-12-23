@@ -11,6 +11,7 @@ export const DIALOG_TYPES = {
   BULK_CLOCK_SYNC: "bulkClockSync",
   TRIGGER_CURTAIN: "triggerCurtain",
   TRIGGER_KNX: "triggerKnx",
+  DMX_CONTROL: "dmxControl",
   ROOM_CONFIG_CONTROL: "roomConfigControl",
   TRIGGER_MULTI_SCENE: "triggerMultiScene",
   TRIGGER_SEQUENCE: "triggerSequence",

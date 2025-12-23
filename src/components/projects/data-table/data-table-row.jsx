@@ -47,6 +47,7 @@ export function DataTableRow({
   onClockControl,
   onCurtainControl,
   onKnxControl,
+  onDmxControl,
   onRoomConfigControl,
   onMultiSceneControl,
   onSequenceControl,
@@ -203,7 +204,7 @@ export function DataTableRow({
           </ContextMenuSub>
         )}
         {/* RCU Submenu */}
-        {(onCurtainControl || onKnxControl || onRoomConfigControl) && (
+        {(onCurtainControl || onKnxControl || onDmxControl || onRoomConfigControl) && (
           <ContextMenuSub>
             <ContextMenuSubTrigger>
               <Network className="text-muted-foreground" />
@@ -220,6 +221,12 @@ export function DataTableRow({
                 <ContextMenuItem onClick={() => onKnxControl.onTriggerKnx(item)}>
                   <Network className="text-muted-foreground" />
                   <span>KNX Control</span>
+                </ContextMenuItem>
+              )}
+              {onDmxControl && (
+                <ContextMenuItem onClick={() => onDmxControl.onDmxControl(item)}>
+                  <Palette className="text-muted-foreground" />
+                  <span>DMX Control</span>
                 </ContextMenuItem>
               )}
               {onRoomConfigControl && (

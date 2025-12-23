@@ -1,6 +1,6 @@
 import { UDP_PORT, PROTOCOL } from "./constants.js";
 import { convertCanIdToInt, parseResponse } from "./utils.js";
-import { sendCommand } from "./command-sender.js";
+import { sendCommand, sendCommandMultipleResponses } from "./command-sender.js";
 
 /**
  * Parse color string "R,G,B,W" into array of bytes
@@ -163,4 +163,108 @@ async function setDmxColorBatch(unitIp, canId, dmxItems, totalDeviceCount = 0) {
   return results;
 }
 
-export { setTotalDmxDevice, setDmxColor, setDmxColorBatch };
+/**
+ * Parse DMX color data from response package
+ * @param {Buffer} packageData - Package data buffer
+ * @returns {object} Parsed package with devices array
+ */
+function parseDmxColorPackage(packageData) {
+  const packageIndex = packageData[0];
+  const deviceCount = packageData[1];
+
+  const devices = [];
+
+  // Each device is 64 bytes (16 colors x 4 bytes)
+  for (let i = 0; i < deviceCount; i++) {
+    const offset = 2 + (i * 64);
+    const colors = [];
+
+    // Parse 16 colors for this device
+    for (let j = 0; j < 16; j++) {
+      const colorOffset = offset + (j * 4);
+      const r = packageData[colorOffset];
+      const g = packageData[colorOffset + 1];
+      const b = packageData[colorOffset + 2];
+      const w = packageData[colorOffset + 3];
+
+      colors.push({
+        r,
+        g,
+        b,
+        w,
+        colorString: `${r},${g},${b},${w}`
+      });
+    }
+
+    devices.push({
+      deviceIndex: packageIndex * 16 + i,
+      colors
+    });
+  }
+
+  return {
+    packageIndex,
+    deviceCount,
+    devices
+  };
+}
+
+/**
+ * Get DMX color configuration from unit
+ * @param {string} unitIp - IP address of the unit
+ * @param {string} canId - CAN ID of the unit
+ * @returns {Promise<object[]>} Array of DMX devices with color configurations
+ */
+async function getDmxColor(unitIp, canId) {
+  const idAddress = convertCanIdToInt(canId);
+
+  // Data: 2 bytes [0x00, 0x00]
+  const data = [0x00, 0x00];
+
+  console.log("Getting DMX color configuration:", {
+    unitIp,
+    canId,
+  });
+
+  // Use sendCommandMultipleResponses to receive up to 4 packages
+  const { responses } = await sendCommandMultipleResponses(
+    unitIp,
+    UDP_PORT,
+    idAddress,
+    PROTOCOL.DMX.CMD1,
+    PROTOCOL.DMX.CMD2.GET_DMX_COLOR,
+    data,
+    10000 // 10 second timeout to receive all packages
+  );
+
+  if (!responses || responses.length === 0) {
+    throw new Error("No response received from unit");
+  }
+
+  console.log(`Received ${responses.length} packages from unit`);
+
+  // Parse all packages and combine devices
+  const allDevices = [];
+
+  for (const packageResponse of responses) {
+    try {
+      // Extract data from response
+      const msg = packageResponse.msg;
+      const packetLength = msg[4] | (msg[5] << 8);
+      const dataSection = msg.slice(8, 8 + packetLength - 4); // Exclude cmd1, cmd2, and CRC
+
+      const packageData = parseDmxColorPackage(dataSection);
+      allDevices.push(...packageData.devices);
+
+      console.log(`Package ${packageData.packageIndex}: ${packageData.deviceCount} devices`);
+    } catch (error) {
+      console.warn("Failed to parse package, skipping:", error);
+    }
+  }
+
+  console.log(`Parsed ${allDevices.length} DMX devices from unit`);
+
+  return allDevices;
+}
+
+export { setTotalDmxDevice, setDmxColor, setDmxColorBatch, getDmxColor };

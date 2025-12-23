@@ -70,7 +70,7 @@ export { getCurtainConfig, setCurtain, setCurtainConfig } from "./rcu-controller
 export { setKnxConfig, getKnxConfig, triggerKnx, deleteKnxConfig, deleteAllKnxConfigs } from "./rcu-controller/knx.js";
 
 // Export DMX functions
-export { setTotalDmxDevice, setDmxColor, setDmxColorBatch } from "./rcu-controller/dmx.js";
+export { setTotalDmxDevice, setDmxColor, setDmxColorBatch, getDmxColor } from "./rcu-controller/dmx.js";
 
 // Export delete operations
 export {

@@ -225,6 +225,7 @@ export function useNetworkUnitHandlers({ state, onTransferToDatabase, existingUn
   const handleClockControl = createDialogHandler(DIALOG_TYPES.CLOCK_CONTROL);
   const handleTriggerCurtain = createDialogHandler(DIALOG_TYPES.TRIGGER_CURTAIN);
   const handleTriggerKnx = createDialogHandler(DIALOG_TYPES.TRIGGER_KNX);
+  const handleDmxControl = createDialogHandler(DIALOG_TYPES.DMX_CONTROL);
   const handleRoomConfigControl = createDialogHandler(DIALOG_TYPES.ROOM_CONFIG_CONTROL);
   const handleTriggerMultiScene = createDialogHandler(DIALOG_TYPES.TRIGGER_MULTI_SCENE);
   const handleTriggerSequence = createDialogHandler(DIALOG_TYPES.TRIGGER_SEQUENCE);
@@ -332,6 +333,7 @@ export function useNetworkUnitHandlers({ state, onTransferToDatabase, existingUn
     handleBulkClockSync,
     handleTriggerCurtain,
     handleTriggerKnx,
+    handleDmxControl,
     handleRoomConfigControl,
     handleTriggerMultiScene,
     handleTriggerSequence,

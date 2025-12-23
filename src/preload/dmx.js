@@ -14,4 +14,6 @@ export const dmx = {
 export const dmxController = {
   setDmxColor: (unitIp, canId, dmxItems, totalDeviceCount) =>
     ipcRenderer.invoke("rcu:setDmxColor", unitIp, canId, dmxItems, totalDeviceCount),
+  getDmxColor: (unitIp, canId) =>
+    ipcRenderer.invoke("rcu:getDmxColor", unitIp, canId),
 };

@@ -52,6 +52,12 @@ const TriggerKnxDialog = lazy(() =>
   }))
 );
 
+const DmxControlDialog = lazy(() =>
+  import("./controls/dmx/dmx-control-dialog").then((m) => ({
+    default: m.DmxControlDialog,
+  }))
+);
+
 const RoomConfigControlDialog = lazy(() =>
   import("./controls/room-config/room-config-control-dialog").then((m) => ({
     default: m.RoomConfigControlDialog,
@@ -149,6 +155,10 @@ export function LazyDialogRenderer({ activeDialog, dialogData, dialogState, hand
 
       {activeDialog === DIALOG_TYPES.TRIGGER_KNX && (
         <TriggerKnxDialog open={true} onOpenChange={dialogState.createDialogHandler(DIALOG_TYPES.TRIGGER_KNX)} unit={dialogData} />
+      )}
+
+      {activeDialog === DIALOG_TYPES.DMX_CONTROL && (
+        <DmxControlDialog open={true} onOpenChange={dialogState.createDialogHandler(DIALOG_TYPES.DMX_CONTROL)} unit={dialogData} />
       )}
 
       {activeDialog === DIALOG_TYPES.ROOM_CONFIG_CONTROL && (
