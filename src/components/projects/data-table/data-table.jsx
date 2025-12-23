@@ -29,6 +29,7 @@ export function DataTable({
   onSendScene,
   onSendCurtain,
   onSendKnx,
+  onSendDmx,
   onSendMultiScene,
   onSendSequence,
   onFirmwareUpdate,
@@ -193,6 +194,7 @@ export function DataTable({
                   onSendScene={onSendScene}
                   onSendCurtain={onSendCurtain}
                   onSendKnx={onSendKnx}
+                  onSendDmx={onSendDmx}
                   onSendMultiScene={onSendMultiScene}
                   onSendSequence={onSendSequence}
                   onFirmwareUpdate={onFirmwareUpdate}

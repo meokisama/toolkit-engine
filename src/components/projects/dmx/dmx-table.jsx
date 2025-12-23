@@ -7,6 +7,7 @@ import { DataTablePagination } from "@/components/projects/data-table/data-table
 import { createDmxColumns } from "@/components/projects/dmx/dmx-columns";
 import { DmxDialog } from "@/components/projects/dmx/dmx-dialog";
 import { DmxColorDialog } from "@/components/projects/dmx/dmx-color-dialog";
+import { SendDmxDialog } from "@/components/projects/dmx/send-dmx-dialog";
 import { ConfirmDialog } from "@/components/projects/confirm-dialog";
 import { ImportItemsDialog } from "@/components/projects/import-category-dialog";
 import { useProjectDetail } from "@/contexts/project-detail-context";
@@ -21,6 +22,10 @@ export function DmxTable({ items = [], loading = false }) {
   const [itemToDelete, setItemToDelete] = useState(null);
   const [sceneDialogOpen, setSceneDialogOpen] = useState(false);
   const [sceneEditingItem, setSceneEditingItem] = useState(null);
+
+  // Send DMX state
+  const [sendDialogOpen, setSendDialogOpen] = useState(false);
+  const [itemsToSend, setItemsToSend] = useState([]);
 
   // Table state management
   const [table, setTable] = useState(null);
@@ -196,6 +201,17 @@ export function DmxTable({ items = [], loading = false }) {
     setSceneEditingItem(null);
   };
 
+  // Send handlers
+  const handleSendDmx = useCallback((item) => {
+    setItemsToSend([item]);
+    setSendDialogOpen(true);
+  }, []);
+
+  const handleSendAll = useCallback(() => {
+    setItemsToSend(items);
+    setSendDialogOpen(true);
+  }, [items]);
+
   // Memoize columns to prevent unnecessary re-renders
   const columns = useMemo(
     () => createDmxColumns(handleCellEdit, getEffectiveValue, projectItems?.unit || []),
@@ -238,6 +254,8 @@ export function DmxTable({ items = [], loading = false }) {
                   onSave={handleSaveChanges}
                   hasPendingChanges={pendingChangesCount > 0}
                   saveLoading={saveLoading}
+                  onSendAll={handleSendAll}
+                  sendAllLabel="Send All DMXs"
                 />
               )}
               <DataTable
@@ -254,6 +272,7 @@ export function DmxTable({ items = [], loading = false }) {
                 onDuplicate={handleDuplicate}
                 onDelete={handleDelete}
                 onDmxSceneConfig={handleSceneConfig}
+                onSendDmx={handleSendDmx}
                 enableRowSelection={true}
               />
             </div>
@@ -265,6 +284,8 @@ export function DmxTable({ items = [], loading = false }) {
       <DmxDialog open={dialogOpen} onOpenChange={handleDialogClose} item={editingItem} mode={editingItem ? "edit" : "create"} />
 
       <DmxColorDialog open={sceneDialogOpen} onOpenChange={handleSceneDialogClose} item={sceneEditingItem} />
+
+      <SendDmxDialog open={sendDialogOpen} onOpenChange={setSendDialogOpen} items={itemsToSend} />
 
       <ConfirmDialog
         open={deleteDialogOpen}

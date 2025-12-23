@@ -8,7 +8,7 @@ import { lighting } from "./lighting.js";
 import { aircon, airconController } from "./aircon.js";
 import { unit } from "./unit.js";
 import { curtain, curtainController } from "./curtain.js";
-import { dmx } from "./dmx.js";
+import { dmx, dmxController } from "./dmx.js";
 import { knx, knxController } from "./knx.js";
 import { scene, sceneController } from "./scene.js";
 import { schedule, scheduleController } from "./schedule.js";
@@ -31,6 +31,7 @@ export const electronAPI = {
   curtain,
   curtainController,
   dmx,
+  dmxController,
   knx,
   knxController,
   scene,

@@ -127,7 +127,8 @@ export function DataTableToolbar({
             category === "sequences" ||
             category === "schedule" ||
             category === "curtain" ||
-            category === "knx") && (
+            category === "knx" ||
+            category === "dmx") && (
             <Button variant="outline" onClick={handleSendAll}>
               <Send className="h-4 w-4" />
               <span className="hidden lg:inline">{sendAllLabel}</span>

@@ -131,6 +131,14 @@ const PROTOCOL = {
       TRIGGER_DALI_TYPE8: 14,
     },
   },
+  DMX: {
+    CMD1: 80,
+    CMD2: {
+      SET_TOTAL_DMX_DEVICE: 0,
+      GET_DMX_COLOR: 1,
+      SET_DMX_COLOR: 2,
+    },
+  },
 };
 
 // Error codes mapping based on RCU protocol

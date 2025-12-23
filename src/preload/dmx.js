@@ -9,3 +9,8 @@ export const dmx = {
   duplicate: (id) => ipcRenderer.invoke("dmx:duplicate", id),
   bulkImport: (projectId, items) => ipcRenderer.invoke("dmx:bulkImport", projectId, items),
 };
+
+// Network Operations
+export const dmxController = {
+  setDmxColor: (unitIp, canId, dmxItems, unitType) => ipcRenderer.invoke("rcu:setDmxColor", unitIp, canId, dmxItems, unitType),
+};

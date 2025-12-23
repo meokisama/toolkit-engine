@@ -54,6 +54,7 @@ export function DataTableRow({
   onSendScene,
   onSendCurtain,
   onSendKnx,
+  onSendDmx,
   onSendMultiScene,
   onSendSequence,
   onFirmwareUpdate,
@@ -106,6 +107,7 @@ export function DataTableRow({
             onSendScene ||
             onSendCurtain ||
             onSendKnx ||
+            onSendDmx ||
             onSendMultiScene ||
             onSendSequence ||
             onFirmwareUpdate ||
@@ -129,6 +131,7 @@ export function DataTableRow({
               onSendScene ||
               onSendCurtain ||
               onSendKnx ||
+              onSendDmx ||
               onSendMultiScene ||
               onSendSequence ||
               onFirmwareUpdate ||
@@ -281,6 +284,15 @@ export function DataTableRow({
             <ContextMenuItem onClick={() => onSendKnx(item)}>
               <Send className="text-muted-foreground" />
               <span>Send KNX</span>
+            </ContextMenuItem>
+            {!onSendDmx && !onSendMultiScene && !onSendSequence && onDelete && <ContextMenuSeparator />}
+          </>
+        )}
+        {onSendDmx && (
+          <>
+            <ContextMenuItem onClick={() => onSendDmx(item)}>
+              <Send className="text-muted-foreground" />
+              <span>Send DMX</span>
             </ContextMenuItem>
             {!onSendMultiScene && !onSendSequence && onDelete && <ContextMenuSeparator />}
           </>
