@@ -23,7 +23,7 @@ const FanModes = [
   { value: 4, label: "Off" },
 ];
 
-export const RoomControlDialog = memo(function RoomControlDialog({ room, open, onOpenChange }) {
+export const AirconControlDialog = memo(function AirconControlDialog({ room, open, onOpenChange }) {
   // State management for AC control
   const [loading, setLoading] = useState(false);
   const [acGroup, setAcGroup] = useState(room?.acGroup || 1);

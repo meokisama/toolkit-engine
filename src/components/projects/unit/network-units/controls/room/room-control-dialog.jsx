@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Download, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
-export function RoomConfigControlDialog({ open, onOpenChange, unit }) {
+export function RoomControlDialog({ open, onOpenChange, unit }) {
   const [loading, setLoading] = useState(false);
   const [roomConfig, setRoomConfig] = useState(null);
 
