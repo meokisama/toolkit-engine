@@ -16,6 +16,7 @@ import {
   Lightbulb,
   Layers,
 } from "lucide-react";
+import { Input } from "@/components/ui/input";
 
 const ROOM_MODE_LABELS = {
   0: "Standalone",
@@ -197,15 +198,14 @@ export function RoomConfigDisplay({ roomConfig }) {
               </>
             )}
           </div>
+        </CardContent>
+      </Card>
 
-          {/* KNX Address */}
-          <div>
-            <div className="text-sm font-semibold mb-1 flex items-center gap-1">
-              <Layers className="h-4 w-4" />
-              KNX Address
-            </div>
-            <div className="text-sm font-mono">{roomConfig.generalConfig.knx_address || "0/0/0"}</div>
-          </div>
+      {/* KNX Address */}
+      <Card>
+        <CardContent className="flex gap-4">
+          <div className="font-semibold mb-1 flex items-center gap-1">KNX Address</div>
+          <div className="font-mono">{roomConfig.generalConfig.knx_address || "-/-/-"}</div>
         </CardContent>
       </Card>
 
