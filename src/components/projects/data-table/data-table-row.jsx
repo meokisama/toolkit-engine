@@ -202,6 +202,35 @@ export function DataTableRow({
             </ContextMenuSubContent>
           </ContextMenuSub>
         )}
+        {/* RCU Submenu */}
+        {(onCurtainControl || onKnxControl || onRoomConfigControl) && (
+          <ContextMenuSub>
+            <ContextMenuSubTrigger>
+              <Building2 className="text-muted-foreground" />
+              <span className="pl-2">RCU</span>
+            </ContextMenuSubTrigger>
+            <ContextMenuSubContent>
+              {onCurtainControl && (
+                <ContextMenuItem onClick={() => onCurtainControl.onTriggerCurtain(item)}>
+                  <ChevronsUpDown className="text-muted-foreground" />
+                  <span>Curtain Control</span>
+                </ContextMenuItem>
+              )}
+              {onKnxControl && (
+                <ContextMenuItem onClick={() => onKnxControl.onTriggerKnx(item)}>
+                  <Network className="text-muted-foreground" />
+                  <span>KNX Control</span>
+                </ContextMenuItem>
+              )}
+              {onRoomConfigControl && (
+                <ContextMenuItem onClick={() => onRoomConfigControl.onRoomConfigControl(item)}>
+                  <Building2 className="text-muted-foreground" />
+                  <span>Room Control</span>
+                </ContextMenuItem>
+              )}
+            </ContextMenuSubContent>
+          </ContextMenuSub>
+        )}
         {/* System Submenu */}
         {(onClockControl || onFirmwareUpdate) && (
           <>
@@ -226,30 +255,6 @@ export function DataTableRow({
               </ContextMenuSubContent>
             </ContextMenuSub>
             <ContextMenuSeparator />
-          </>
-        )}
-        {onCurtainControl && (
-          <>
-            <ContextMenuItem onClick={() => onCurtainControl.onTriggerCurtain(item)}>
-              <ChevronsUpDown className="text-muted-foreground" />
-              <span>Curtain Control</span>
-            </ContextMenuItem>
-          </>
-        )}
-        {onKnxControl && (
-          <>
-            <ContextMenuItem onClick={() => onKnxControl.onTriggerKnx(item)}>
-              <Network className="text-muted-foreground" />
-              <span>KNX Control</span>
-            </ContextMenuItem>
-          </>
-        )}
-        {onRoomConfigControl && (
-          <>
-            <ContextMenuItem onClick={() => onRoomConfigControl.onRoomConfigControl(item)}>
-              <Building2 className="text-muted-foreground" />
-              <span>Room Control</span>
-            </ContextMenuItem>
           </>
         )}
         {onSendSchedule && (
