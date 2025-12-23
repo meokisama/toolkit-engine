@@ -1,10 +1,9 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Download, Loader2, Upload, Building2, Thermometer, Hotel, Star } from "lucide-react";
+import { Download, Loader2, Upload, Building2, Thermometer } from "lucide-react";
 import { toast } from "sonner";
 
 const RENT_STATUS_LABELS = {
@@ -104,16 +103,12 @@ export function RoomStatusControl({ unit }) {
         <div className="space-y-4">
           {/* Aircon Mode */}
           <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Thermometer className="h-5 w-5" />
-                General Aircon Mode
-              </CardTitle>
-              <CardDescription>Global air conditioning mode setting</CardDescription>
-            </CardHeader>
             <CardContent>
               <div className="flex items-center gap-4">
-                <Label htmlFor="aircon-mode">Aircon Mode</Label>
+                <Label htmlFor="aircon-mode" className="text-base font-semibold">
+                  <Thermometer className="h-5 w-5" />
+                  Aircon Mode
+                </Label>
                 <Select value={(roomStatus.aircon_mode ?? 0).toString()} onValueChange={handleAirconModeChange}>
                   <SelectTrigger id="aircon-mode" className="w-48">
                     <SelectValue />
@@ -128,76 +123,61 @@ export function RoomStatusControl({ unit }) {
           </Card>
 
           {/* Room Status */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Building2 className="h-5 w-5" />
-                Room Status
-              </CardTitle>
-              <CardDescription>Rent and guest status for each room</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                {roomStatus.rooms.map((room, index) => (
-                  <Card key={index} className="border-2">
-                    <CardHeader className="pb-3">
-                      <CardTitle className="text-sm flex items-center gap-2">
-                        <Building2 className="h-4 w-4" />
-                        Room {index + 1}
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="grid grid-cols-2 gap-4">
-                        <div className="space-y-2">
-                          <Label htmlFor={`rent-status-${index}`} className="flex items-center gap-1">
-                            <Hotel className="h-4 w-4" />
-                            Rent Status
-                          </Label>
-                          <div className="flex items-center gap-2">
-                            <Select
-                              value={(room.rent_status ?? 0).toString()}
-                              onValueChange={(value) => handleRoomStatusChange(index, "rent_status", value)}
-                            >
-                              <SelectTrigger id={`rent-status-${index}`} className="w-full">
-                                <SelectValue />
-                              </SelectTrigger>
-                              <SelectContent>
-                                <SelectItem value="0">Unrent</SelectItem>
-                                <SelectItem value="1">Rent</SelectItem>
-                              </SelectContent>
-                            </Select>
-                            <Badge variant={room.rent_status === 1 ? "default" : "secondary"}>{RENT_STATUS_LABELS[room.rent_status ?? 0]}</Badge>
-                          </div>
-                        </div>
-
-                        <div className="space-y-2">
-                          <Label htmlFor={`guest-status-${index}`} className="flex items-center gap-1">
-                            <Star className="h-4 w-4" />
-                            Guest Status
-                          </Label>
-                          <div className="flex items-center gap-2">
-                            <Select
-                              value={(room.guest_status ?? 0).toString()}
-                              onValueChange={(value) => handleRoomStatusChange(index, "guest_status", value)}
-                            >
-                              <SelectTrigger id={`guest-status-${index}`} className="w-full">
-                                <SelectValue />
-                              </SelectTrigger>
-                              <SelectContent>
-                                <SelectItem value="0">Normal</SelectItem>
-                                <SelectItem value="1">VIP</SelectItem>
-                              </SelectContent>
-                            </Select>
-                            <Badge variant={room.guest_status === 1 ? "default" : "outline"}>{GUEST_STATUS_LABELS[room.guest_status ?? 0]}</Badge>
-                          </div>
-                        </div>
+          <div className="gap-3 grid grid-cols-2 lg:grid-cols-3">
+            {roomStatus.rooms.map((room, index) => (
+              <Card key={index} className="border-2">
+                <CardHeader className="pb-3">
+                  <CardTitle className="flex items-center gap-2">
+                    <Building2 className="h-4 w-4" />
+                    Room {index + 1}
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor={`rent-status-${index}`} className="flex items-center gap-1">
+                        Rent Status
+                      </Label>
+                      <div className="flex items-center gap-2">
+                        <Select
+                          value={(room.rent_status ?? 0).toString()}
+                          onValueChange={(value) => handleRoomStatusChange(index, "rent_status", value)}
+                        >
+                          <SelectTrigger id={`rent-status-${index}`} className="w-full">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="0">Unrent</SelectItem>
+                            <SelectItem value="1">Rent</SelectItem>
+                          </SelectContent>
+                        </Select>
                       </div>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor={`guest-status-${index}`} className="flex items-center gap-1">
+                        Guest Status
+                      </Label>
+                      <div className="flex items-center gap-2">
+                        <Select
+                          value={(room.guest_status ?? 0).toString()}
+                          onValueChange={(value) => handleRoomStatusChange(index, "guest_status", value)}
+                        >
+                          <SelectTrigger id={`guest-status-${index}`} className="w-full">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="0">Normal</SelectItem>
+                            <SelectItem value="1">VIP</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
         </div>
       )}
 

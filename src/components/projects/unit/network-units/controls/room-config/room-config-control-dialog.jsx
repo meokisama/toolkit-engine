@@ -74,7 +74,7 @@ export function RoomConfigControlDialog({ open, onOpenChange, unit }) {
               </div>
 
               {roomConfig && (
-                <ScrollArea className="h-[calc(90vh-250px)] rounded-md border p-4">
+                <ScrollArea className="h-[calc(90vh-250px)] p-4">
                   <RoomConfigDisplay roomConfig={roomConfig} />
                 </ScrollArea>
               )}
@@ -89,7 +89,7 @@ export function RoomConfigControlDialog({ open, onOpenChange, unit }) {
           </TabsContent>
 
           <TabsContent value="status" className="mt-4">
-            <ScrollArea className="h-[calc(90vh-250px)] rounded-md border p-4">
+            <ScrollArea className="h-[calc(90vh-250px)] p-4">
               <RoomStatusControl unit={unit} />
             </ScrollArea>
           </TabsContent>

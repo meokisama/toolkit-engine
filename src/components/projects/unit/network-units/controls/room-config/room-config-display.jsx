@@ -1,21 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import {
-  Settings2,
-  LibraryBig,
-  Network,
-  ChevronsLeftRightEllipsis,
-  Share2,
-  Timer,
-  SlidersVertical,
-  Thermometer,
-  Fan,
-  ThermometerSnowflake,
-  ThermometerSun,
-  Lightbulb,
-  Layers,
-} from "lucide-react";
+import { Settings2, LibraryBig, Network } from "lucide-react";
 import { Input } from "@/components/ui/input";
 
 const ROOM_MODE_LABELS = {
@@ -74,64 +60,37 @@ export function RoomConfigDisplay({ roomConfig }) {
     <div className="space-y-4">
       {/* General Configuration */}
       <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Settings2 className="h-5 w-5" />
-            Room General Settings
-          </CardTitle>
-          <CardDescription>Overview configuration of the room and the room's slaves.</CardDescription>
-        </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <div>
-              <div className="text-sm font-semibold mb-1 flex items-center gap-1">
-                <Settings2 className="h-4 w-4" />
-                Room Mode
-              </div>
-              <Badge variant="outline" className="font-normal">
-                {ROOM_MODE_LABELS[roomConfig.generalConfig.room_mode] || roomConfig.generalConfig.room_mode}
-              </Badge>
+              <div className="text-sm font-semibold mb-1 flex items-center gap-1">Room Mode</div>
+              <Input readOnly value={ROOM_MODE_LABELS[roomConfig.generalConfig.room_mode] || roomConfig.generalConfig.room_mode} />
             </div>
 
             {roomConfig.generalConfig.room_mode === 0 && (
               <div>
-                <div className="text-sm font-semibold mb-1 flex items-center gap-1">
-                  <LibraryBig className="h-4 w-4" />
-                  Room Amount
-                </div>
-                <div className="text-sm">
-                  {roomConfig.generalConfig.room_amount} {roomConfig.generalConfig.room_amount === 1 ? "Room" : "Rooms"}
-                </div>
+                <div className="text-sm font-semibold mb-1 flex items-center gap-1">Room Amount</div>
+                <Input readOnly value={`${roomConfig.generalConfig.room_amount} ${roomConfig.generalConfig.room_amount === 1 ? "Room" : "Rooms"}`} />
               </div>
             )}
 
             <div>
-              <div className="text-sm font-semibold mb-1 flex items-center gap-1">
-                <Network className="h-4 w-4" />
-                TCP Mode
-              </div>
-              <Badge variant="outline" className="font-normal">
-                {TCP_MODE_LABELS[roomConfig.generalConfig.tcp_mode] || roomConfig.generalConfig.tcp_mode}
-              </Badge>
+              <div className="text-sm font-semibold mb-1 flex items-center gap-1">TCP Mode</div>
+              <Input readOnly value={TCP_MODE_LABELS[roomConfig.generalConfig.tcp_mode] || roomConfig.generalConfig.tcp_mode} />
             </div>
 
             <div>
-              <div className="text-sm font-semibold mb-1 flex items-center gap-1">
-                <ChevronsLeftRightEllipsis className="h-4 w-4" />
-                Port
-              </div>
-              <div className="text-sm">{roomConfig.generalConfig.port}</div>
+              <div className="text-sm font-semibold mb-1 flex items-center gap-1">Port</div>
+              <Input readOnly value={roomConfig.generalConfig.port} />
             </div>
 
             {roomConfig.generalConfig.tcp_mode === 2 && (
               <div>
-                <div className="text-sm font-semibold mb-1 flex items-center gap-1">
-                  <LibraryBig className="h-4 w-4" />
-                  Slave Amount
-                </div>
-                <div className="text-sm">
-                  {roomConfig.generalConfig.slave_amount} {roomConfig.generalConfig.slave_amount === 1 ? "Slave" : "Slaves"}
-                </div>
+                <div className="text-sm font-semibold mb-1 flex items-center gap-1">Slave Amount</div>
+                <Input
+                  readOnly
+                  value={`${roomConfig.generalConfig.slave_amount} ${roomConfig.generalConfig.slave_amount === 1 ? "Slave" : "Slaves"}`}
+                />
               </div>
             )}
           </div>
@@ -140,10 +99,7 @@ export function RoomConfigDisplay({ roomConfig }) {
             roomConfig.generalConfig.slaveIPs &&
             roomConfig.generalConfig.slaveIPs.some((ip) => ip && ip !== "0.0.0.0") && (
               <div>
-                <div className="text-sm font-semibold mb-2 flex items-center gap-1">
-                  <Share2 className="h-4 w-4" />
-                  Slave IPs
-                </div>
+                <div className="text-sm font-semibold mb-2 flex items-center gap-1">Slave IPs</div>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
                   {roomConfig.generalConfig.slaveIPs.map((ip, index) =>
                     ip && ip !== "0.0.0.0" ? (
@@ -160,40 +116,22 @@ export function RoomConfigDisplay({ roomConfig }) {
 
       {/* Client Settings */}
       <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Network className="h-5 w-5" />
-            Client Settings
-          </CardTitle>
-          <CardDescription>Configuration of third-party client.</CardDescription>
-        </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
-              <div className="text-sm font-semibold mb-1 flex items-center gap-1">
-                <Settings2 className="h-4 w-4" />
-                Client Mode
-              </div>
-              <Badge variant="outline" className="font-normal">
-                {CLIENT_MODE_LABELS[roomConfig.generalConfig.client_mode] || roomConfig.generalConfig.client_mode}
-              </Badge>
+              <div className="text-sm font-semibold mb-1 flex items-center gap-1">Client Mode</div>
+              <Input readOnly value={CLIENT_MODE_LABELS[roomConfig.generalConfig.client_mode] || roomConfig.generalConfig.client_mode} />
             </div>
 
             {(roomConfig.generalConfig.client_mode === 1 || roomConfig.generalConfig.client_mode === 2) && (
               <>
                 <div>
-                  <div className="text-sm font-semibold mb-1 flex items-center gap-1">
-                    <Share2 className="h-4 w-4" />
-                    Client IP
-                  </div>
-                  <div className="text-sm">{roomConfig.generalConfig.client_ip || "N/A"}</div>
+                  <div className="text-sm font-semibold mb-1 flex items-center gap-1">Client IP</div>
+                  <Input readOnly value={roomConfig.generalConfig.client_ip || "N/A"} />
                 </div>
                 <div>
-                  <div className="text-sm font-semibold mb-1 flex items-center gap-1">
-                    <ChevronsLeftRightEllipsis className="h-4 w-4" />
-                    Client Port
-                  </div>
-                  <div className="text-sm">{roomConfig.generalConfig.client_port || "N/A"}</div>
+                  <div className="text-sm font-semibold mb-1 flex items-center gap-1">Client Port</div>
+                  <Input readOnly value={roomConfig.generalConfig.client_port || "N/A"} />
                 </div>
               </>
             )}
@@ -203,19 +141,15 @@ export function RoomConfigDisplay({ roomConfig }) {
 
       {/* KNX Address */}
       <Card>
-        <CardContent className="flex gap-4">
-          <div className="font-semibold mb-1 flex items-center gap-1">KNX Address</div>
-          <div className="font-mono">{roomConfig.generalConfig.knx_address || "-/-/-"}</div>
+        <CardContent className="gap-4">
+          <div className="text-sm font-semibold mb-1 flex items-center gap-1">KNX Address</div>
+          <Input className="font-mono" readOnly value={roomConfig.generalConfig.knx_address || "-/-/-"} />
         </CardContent>
       </Card>
 
       {/* Room Configurations */}
       {roomConfig.rooms && roomConfig.rooms.length > 0 && (
         <div className="space-y-3">
-          <h3 className="text-lg font-semibold flex items-center gap-2">
-            <LibraryBig className="h-5 w-5" />
-            Room Configurations
-          </h3>
           {roomConfig.rooms.map((room, index) => (
             <Card key={index}>
               <CardHeader>
@@ -228,33 +162,20 @@ export function RoomConfigDisplay({ roomConfig }) {
                 {/* Basic Settings */}
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                   <div>
-                    <div className="text-sm font-semibold mb-1 flex items-center gap-1">
-                      <Settings2 className="h-4 w-4" />
-                      Occupancy Type
-                    </div>
-                    <Badge variant="secondary" className="font-normal">
-                      {OCCUPANCY_TYPE_LABELS[room.occupancy_type] || room.occupancy_type}
-                    </Badge>
+                    <div className="text-sm font-semibold mb-1 flex items-center gap-1">Occupancy Type</div>
+                    <Input readOnly value={OCCUPANCY_TYPE_LABELS[room.occupancy_type] || room.occupancy_type} />
                   </div>
 
                   {(room.occupancy_type === 1 || room.occupancy_type === 2) && (
                     <>
                       <div>
-                        <div className="text-sm font-semibold mb-1 flex items-center gap-1">
-                          <SlidersVertical className="h-4 w-4" />
-                          Occupancy Scene Type
-                        </div>
-                        <Badge variant="outline" className="font-normal">
-                          {OCCUPANCY_SCENE_TYPE_LABELS[room.occupancy_scene_type] || room.occupancy_scene_type}
-                        </Badge>
+                        <div className="text-sm font-semibold mb-1 flex items-center gap-1">Occupancy Scene Type</div>
+                        <Input readOnly value={OCCUPANCY_SCENE_TYPE_LABELS[room.occupancy_scene_type] || room.occupancy_scene_type} />
                       </div>
 
                       <div>
-                        <div className="text-sm font-semibold mb-1 flex items-center gap-1">
-                          <Timer className="h-4 w-4" />
-                          Period
-                        </div>
-                        <div className="text-sm">{room.period}s</div>
+                        <div className="text-sm font-semibold mb-1 flex items-center gap-1">Period (s)</div>
+                        <Input readOnly value={room.period} />
                       </div>
                     </>
                   )}
@@ -262,13 +183,8 @@ export function RoomConfigDisplay({ roomConfig }) {
                   {room.occupancy_type === 2 && (
                     <>
                       <div>
-                        <div className="text-sm font-semibold mb-1 flex items-center gap-1">
-                          <SlidersVertical className="h-4 w-4" />
-                          Welcome Night
-                        </div>
-                        <Badge variant="outline" className="font-normal">
-                          {room.enable_welcome_night ? "Welcome Day/Night" : "Welcome"}
-                        </Badge>
+                        <div className="text-sm font-semibold mb-1 flex items-center gap-1">Welcome Night</div>
+                        <Input readOnly value={room.enable_welcome_night ? "Welcome Day/Night" : "Welcome"} />
                       </div>
                     </>
                   )}
@@ -278,32 +194,20 @@ export function RoomConfigDisplay({ roomConfig }) {
                 {room.occupancy_type === 2 && (
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                     <div>
-                      <div className="text-sm font-semibold mb-1 flex items-center gap-1">
-                        <Timer className="h-4 w-4" />
-                        PIR Init Time
-                      </div>
-                      <div className="text-sm">{room.pir_init_time}s</div>
+                      <div className="text-sm font-semibold mb-1 flex items-center gap-1">PIR Init Time (s)</div>
+                      <Input readOnly value={room.pir_init_time} />
                     </div>
                     <div>
-                      <div className="text-sm font-semibold mb-1 flex items-center gap-1">
-                        <Timer className="h-4 w-4" />
-                        PIR Verify Time
-                      </div>
-                      <div className="text-sm">{room.pir_verify_time}s</div>
+                      <div className="text-sm font-semibold mb-1 flex items-center gap-1">PIR Verify Time (s)</div>
+                      <Input readOnly value={room.pir_verify_time} />
                     </div>
                     <div>
-                      <div className="text-sm font-semibold mb-1 flex items-center gap-1">
-                        <Timer className="h-4 w-4" />
-                        Unrent Period
-                      </div>
-                      <div className="text-sm">{room.unrent_period}s</div>
+                      <div className="text-sm font-semibold mb-1 flex items-center gap-1">Unrent Period (s)</div>
+                      <Input readOnly value={room.unrent_period} />
                     </div>
                     <div>
-                      <div className="text-sm font-semibold mb-1 flex items-center gap-1">
-                        <Timer className="h-4 w-4" />
-                        Standby Time
-                      </div>
-                      <div className="text-sm">{room.standby_time}s</div>
+                      <div className="text-sm font-semibold mb-1 flex items-center gap-1">Standby Time (s)</div>
+                      <Input readOnly value={room.standby_time} />
                     </div>
                   </div>
                 )}
@@ -311,8 +215,6 @@ export function RoomConfigDisplay({ roomConfig }) {
                 {/* Room States */}
                 {room.states && Object.keys(room.states).length > 0 && (
                   <div className="space-y-2">
-                    <div className="text-sm font-semibold">State Configurations</div>
-                    <p className="text-xs text-muted-foreground">Aircon configuration and scenes for room states.</p>
                     <Tabs defaultValue={ROOM_STATES[0]} className="w-full">
                       <TabsList className="grid w-full grid-cols-7">
                         {ROOM_STATES.map((stateName) => (
@@ -326,58 +228,37 @@ export function RoomConfigDisplay({ roomConfig }) {
                         return (
                           <TabsContent key={stateName} value={stateName}>
                             <Card>
-                              <CardContent className="pt-6 space-y-4">
+                              <CardContent className="space-y-4">
                                 {/* Aircon Settings */}
                                 <div>
-                                  <div className="text-sm font-semibold mb-2 flex items-center gap-1">
-                                    <Thermometer className="h-4 w-4" />
-                                    {stateName} Aircon Settings
+                                  <div className="text-sm font-semibold mb-4 flex items-center gap-3">
+                                    <span>1. {stateName} Aircon Settings</span>
+                                    <Badge variant={state.airconActive ? "default" : "secondary"}>{state.airconActive ? "Active" : "Inactive"}</Badge>
                                   </div>
-                                  <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+                                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                                     <div>
-                                      <div className="text-xs text-muted-foreground mb-1">Status</div>
-                                      <Badge variant={state.airconActive ? "default" : "secondary"}>
-                                        {state.airconActive ? "Active" : "Inactive"}
-                                      </Badge>
+                                      <div className="text-sm font-semibold mb-1 flex items-center gap-1">Mode</div>
+                                      <Input readOnly value={AIRCON_MODE_LABELS[state.airconMode] || state.airconMode} />
                                     </div>
                                     <div>
-                                      <div className="text-xs text-muted-foreground mb-1 flex items-center gap-1">
-                                        <Settings2 className="h-3 w-3" />
-                                        Mode
-                                      </div>
-                                      <div className="text-sm">{AIRCON_MODE_LABELS[state.airconMode] || state.airconMode}</div>
+                                      <div className="text-sm font-semibold mb-1 flex items-center gap-1">Fan Speed</div>
+                                      <Input readOnly value={FAN_SPEED_LABELS[state.airconFanSpeed] || state.airconFanSpeed} />
                                     </div>
                                     <div>
-                                      <div className="text-xs text-muted-foreground mb-1 flex items-center gap-1">
-                                        <Fan className="h-3 w-3" />
-                                        Fan Speed
-                                      </div>
-                                      <div className="text-sm">{FAN_SPEED_LABELS[state.airconFanSpeed] || state.airconFanSpeed}</div>
+                                      <div className="text-sm font-semibold mb-1 flex items-center gap-1">Cool Setpoint (°C)</div>
+                                      <Input readOnly value={state.airconCoolSetpoint} />
                                     </div>
                                     <div>
-                                      <div className="text-xs text-muted-foreground mb-1 flex items-center gap-1">
-                                        <ThermometerSnowflake className="h-3 w-3" />
-                                        Cool Setpoint
-                                      </div>
-                                      <div className="text-sm">{state.airconCoolSetpoint}°C</div>
-                                    </div>
-                                    <div>
-                                      <div className="text-xs text-muted-foreground mb-1 flex items-center gap-1">
-                                        <ThermometerSun className="h-3 w-3" />
-                                        Heat Setpoint
-                                      </div>
-                                      <div className="text-sm">{state.airconHeatSetpoint}°C</div>
+                                      <div className="text-sm font-semibold mb-1 flex items-center gap-1">Heat Setpoint (°C)</div>
+                                      <Input readOnly value={state.airconHeatSetpoint} />
                                     </div>
                                   </div>
                                 </div>
 
                                 {/* Scenes List */}
-                                {state.scenesList && state.scenesList.length > 0 && (
-                                  <div>
-                                    <div className="text-sm font-semibold mb-2 flex items-center gap-1">
-                                      <Lightbulb className="h-4 w-4" />
-                                      Selected Scenes
-                                    </div>
+                                <div>
+                                  <div className="text-sm font-semibold mb-2 flex items-center gap-1">2. Selected Scenes</div>
+                                  {state.scenesList && state.scenesList.length > 0 && (
                                     <div className="flex flex-wrap gap-2">
                                       {state.scenesList.map((sceneId, idx) => (
                                         <Badge key={idx} variant="outline">
@@ -385,12 +266,8 @@ export function RoomConfigDisplay({ roomConfig }) {
                                         </Badge>
                                       ))}
                                     </div>
-                                  </div>
-                                )}
-
-                                {(!state.scenesList || state.scenesList.length === 0) && !state.airconActive && (
-                                  <div className="text-center text-muted-foreground py-4 text-sm">No configuration for this state</div>
-                                )}
+                                  )}
+                                </div>
                               </CardContent>
                             </Card>
                           </TabsContent>
