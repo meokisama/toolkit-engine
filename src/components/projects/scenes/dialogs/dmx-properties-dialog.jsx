@@ -79,7 +79,7 @@ export function DmxPropertiesDialog({
 
     // In edit mode, dataSource is a scene item with item_id pointing to the DMX device
     // In add mode, dataSource is the DMX card/device itself
-    const dmxDeviceId = mode === "edit" ? dataSource.item_id : (dataSource.item?.id || dataSource.id);
+    const dmxDeviceId = mode === "edit" ? dataSource.item_id : dataSource.item?.id || dataSource.id;
 
     onConfirm({
       address: dataSource.item_address || dataSource.address,
@@ -105,19 +105,12 @@ export function DmxPropertiesDialog({
       <DialogContent className="sm:max-w-[600px]">
         <DialogHeader>
           <DialogTitle>{mode === "edit" ? "Edit DMX Color" : "Add DMX to Scene"}</DialogTitle>
-          <DialogDescription>
-            {mode === "edit" ? "Modify" : "Select"} the color and brightness you want to control in this scene for{" "}
-            <strong>{dataSource?.name || `DMX ${dataSource?.address}`}</strong>
-          </DialogDescription>
+          <DialogDescription>{mode === "edit" ? "Modify" : "Select"} the color and brightness you want to control in this scene.</DialogDescription>
         </DialogHeader>
 
         <div className="space-y-6 py-4">
           {/* Color Selection */}
           <div className="space-y-3">
-            <Label className="text-sm font-medium flex items-center gap-2">
-              <Palette className="h-4 w-4" />
-              Select Color
-            </Label>
             <RadioGroup
               value={selectedColorIndex?.toString()}
               onValueChange={(value) => setSelectedColorIndex(parseInt(value))}
@@ -125,11 +118,7 @@ export function DmxPropertiesDialog({
             >
               {colors.map((color, index) => (
                 <div key={index} className="relative">
-                  <RadioGroupItem
-                    value={index.toString()}
-                    id={`color-${index}`}
-                    className="peer sr-only"
-                  />
+                  <RadioGroupItem value={index.toString()} id={`color-${index}`} className="peer sr-only" />
                   <Label
                     htmlFor={`color-${index}`}
                     className="flex flex-col items-center gap-2 rounded-lg border-2 border-muted p-3 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary cursor-pointer transition-all"
@@ -156,18 +145,7 @@ export function DmxPropertiesDialog({
                   {brightnessPercent}% ({brightness}/255)
                 </span>
               </div>
-              <Slider
-                value={[brightness]}
-                onValueChange={([value]) => setBrightness(value)}
-                max={255}
-                min={0}
-                step={1}
-                className="w-full"
-              />
-              <div className="flex justify-between text-xs text-muted-foreground">
-                <span>Off (0)</span>
-                <span>Max (255)</span>
-              </div>
+              <Slider value={[brightness]} onValueChange={([value]) => setBrightness(value)} max={255} min={0} step={1} className="w-full" />
             </div>
           )}
         </div>
