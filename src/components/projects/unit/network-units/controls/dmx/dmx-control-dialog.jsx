@@ -3,8 +3,9 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardTitle } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
-import { List, Palette } from "lucide-react";
+import { Palette } from "lucide-react";
 import { toast } from "sonner";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 
 // Initial state for better state management
 const initialState = {
@@ -19,14 +20,26 @@ const initialLoadingState = {
 // Color display component for a single color (RGBW)
 const ColorBox = memo(({ color, sceneIndex }) => (
   <div className="flex flex-col items-center gap-1">
-    <div
-      className="w-12 h-12 rounded border border-gray-300"
-      style={{
-        backgroundColor: `rgb(${color.r}, ${color.g}, ${color.b})`,
-      }}
-      title={`Color ${sceneIndex + 1}: R:${color.r} G:${color.g} B:${color.b} W:${color.w}`}
-    />
-    <span className="text-xs text-muted-foreground">C{sceneIndex + 1}</span>
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <div
+          className="w-12 h-12 rounded border border-gray-300"
+          style={{
+            backgroundColor: `rgb(${color.r}, ${color.g}, ${color.b})`,
+          }}
+          // title={`Color ${sceneIndex + 1}: R:${color.r} G:${color.g} B:${color.b} W:${color.w}`}
+        />
+      </TooltipTrigger>
+      <TooltipContent>
+        <p className="font-bold">
+          <span className="text-red-400">Red:</span> {color.r}, <span className="text-green-400">Green:</span> {color.g},{" "}
+          <span className="text-blue-400">Blue:</span> {color.b}, White: {color.w}
+        </p>
+      </TooltipContent>
+    </Tooltip>
+    <span className="text-xs text-muted-foreground">
+      C{sceneIndex + 1} (W:{color.w})
+    </span>
   </div>
 ));
 
@@ -47,11 +60,6 @@ const DmxDeviceCard = memo(({ device }) => (
           {device.colors.map((color, index) => (
             <ColorBox key={`color-${index}`} color={color} sceneIndex={index} />
           ))}
-        </div>
-
-        {/* Show RGB values for reference */}
-        <div className="text-xs text-muted-foreground mt-2">
-          <p>16 Colors (R,G,B,W format)</p>
         </div>
       </div>
     </CardContent>
@@ -107,7 +115,7 @@ export function DmxControlDialog({ open, onOpenChange, unit }) {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[1200px] max-h-[90vh] overflow-y-auto">
+      <DialogContent className="sm:max-w-[900px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Palette className="h-5 w-5" />
@@ -119,7 +127,7 @@ export function DmxControlDialog({ open, onOpenChange, unit }) {
         </DialogHeader>
 
         {/* DMX Devices Display - Always show ScrollArea */}
-        <ScrollArea className="h-[calc(90vh-250px)] w-full rounded-md border p-4">
+        <ScrollArea className="h-[calc(90vh-250px)] w-full p-4">
           {state.showDmxDevices && state.dmxDevices.length > 0 ? (
             <div className="grid gap-3">
               {state.dmxDevices.map((device, index) => (
@@ -140,13 +148,7 @@ export function DmxControlDialog({ open, onOpenChange, unit }) {
 
         <DialogFooter>
           <div className="flex items-center justify-between w-full">
-            <Button
-              variant="outline"
-              onClick={handleLoadAllDmxDevices}
-              disabled={loadingState.loading}
-              className="flex items-center gap-2"
-            >
-              <List className="h-4 w-4" />
+            <Button variant="outline" onClick={handleLoadAllDmxDevices} disabled={loadingState.loading} className="flex items-center gap-2">
               {loadingState.loading ? "Loading..." : "Load All DMX Devices"}
             </Button>
 

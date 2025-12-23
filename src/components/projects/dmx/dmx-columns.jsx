@@ -3,6 +3,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { DataTableColumnHeader } from "../data-table/data-table-column-header";
 import { DataTableFilterColumnHeader } from "../data-table/data-table-filter-column-header";
 import { EditableCell } from "../data-table/editable-cell";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 
 // Helper function to convert RGB to Hex
 const rgbToHex = (r, g, b) => {
@@ -160,8 +161,21 @@ export const createDmxColumns = (onCellEdit, getEffectiveValue, unitItems = []) 
 
         return (
           <div className="flex items-center gap-2 justify-center">
-            <div className="w-4 h-4 rounded border border-gray-300 shrink-0" style={{ backgroundColor: hexColor }} title={`RGB(${r},${g},${b})`} />
-            <span className="text-xs text-muted-foreground">W:{w}</span>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <div
+                  className="size-5 rounded border border-gray-300 shrink-0"
+                  style={{ backgroundColor: hexColor }}
+                  // title={`RGB(${r},${g},${b})`}
+                />
+              </TooltipTrigger>
+              <TooltipContent>
+                <p className="font-bold">
+                  <span className="text-red-400">Red:</span> {r}, <span className="text-green-400">Green:</span> {g},{" "}
+                  <span className="text-blue-400">Blue:</span> {b}, White: {w}
+                </p>
+              </TooltipContent>
+            </Tooltip>
           </div>
         );
       },

@@ -96,7 +96,7 @@ export function RoomControlDialog({ open, onOpenChange, unit }) {
 
   return (
     <Dialog open={open} onOpenChange={handleDialogOpenChange}>
-      <DialogContent className="sm:max-w-[70vw] max-h-[90vh]">
+      <DialogContent className="sm:max-w-[1100px] max-h-[90vh]">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Building2 className="h-5 w-5" />
