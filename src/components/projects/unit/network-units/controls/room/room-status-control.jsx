@@ -1,70 +1,9 @@
-import { useState } from "react";
-import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Download, Loader2, Upload, Building2, Thermometer } from "lucide-react";
-import { toast } from "sonner";
+import { Building2, Thermometer } from "lucide-react";
 
-const RENT_STATUS_LABELS = {
-  0: "Unrent",
-  1: "Rent",
-};
-
-const GUEST_STATUS_LABELS = {
-  0: "Normal",
-  1: "VIP",
-};
-
-export function RoomStatusControl({ unit }) {
-  const [loading, setLoading] = useState(false);
-  const [sending, setSending] = useState(false);
-  const [roomStatus, setRoomStatus] = useState(null);
-
-  const handleReadStatus = async () => {
-    if (!unit) {
-      toast.error("No unit selected");
-      return;
-    }
-
-    setLoading(true);
-    try {
-      const status = await window.electronAPI.roomController.getRoomStatus(unit.ip_address, unit.id_can);
-
-      setRoomStatus(status);
-      toast.success("Room status read successfully");
-    } catch (error) {
-      console.error("Failed to read room status:", error);
-      toast.error(`Failed to read room status: ${error.message}`);
-      setRoomStatus(null);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleSendStatus = async () => {
-    if (!unit) {
-      toast.error("No unit selected");
-      return;
-    }
-
-    if (!roomStatus) {
-      toast.error("No room status to send");
-      return;
-    }
-
-    setSending(true);
-    try {
-      await window.electronAPI.roomController.setRoomStatus(unit.ip_address, unit.id_can, roomStatus.aircon_mode, roomStatus.rooms);
-
-      toast.success("Room status sent successfully");
-    } catch (error) {
-      console.error("Failed to send room status:", error);
-      toast.error(`Failed to send room status: ${error.message}`);
-    } finally {
-      setSending(false);
-    }
-  };
+export function RoomStatusControl({ roomStatus, setRoomStatus }) {
 
   const handleAirconModeChange = (value) => {
     setRoomStatus({
@@ -87,18 +26,6 @@ export function RoomStatusControl({ unit }) {
 
   return (
     <div className="space-y-4">
-      <div className="flex justify-end gap-2">
-        <Button onClick={handleReadStatus} disabled={loading || sending}>
-          {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
-          {loading ? "Reading..." : "Read Status"}
-        </Button>
-
-        <Button onClick={handleSendStatus} disabled={!roomStatus || loading || sending} variant="default">
-          {sending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
-          {sending ? "Sending..." : "Send Status"}
-        </Button>
-      </div>
-
       {roomStatus && (
         <div className="space-y-4">
           {/* Aircon Mode */}
@@ -181,7 +108,7 @@ export function RoomStatusControl({ unit }) {
         </div>
       )}
 
-      {!roomStatus && !loading && (
+      {!roomStatus && (
         <div className="text-center text-muted-foreground py-8">
           <Building2 className="h-12 w-12 mx-auto mb-4 opacity-50" />
           <p>Click "Read Status" to load room status from the unit</p>

@@ -1,17 +1,23 @@
 import { useState } from "react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Building2, Settings, ActivitySquare } from "lucide-react";
 import { RoomConfigDisplay } from "./room-config-display";
 import { RoomStatusControl } from "./room-status-control";
 import { Button } from "@/components/ui/button";
-import { Download, Loader2 } from "lucide-react";
+import { Download, Loader2, Upload } from "lucide-react";
 import { toast } from "sonner";
 
 export function RoomControlDialog({ open, onOpenChange, unit }) {
+  const [activeTab, setActiveTab] = useState("configuration");
   const [loading, setLoading] = useState(false);
   const [roomConfig, setRoomConfig] = useState(null);
+
+  // Room status states
+  const [loadingStatus, setLoadingStatus] = useState(false);
+  const [sending, setSending] = useState(false);
+  const [roomStatus, setRoomStatus] = useState(null);
 
   const handleReadConfig = async () => {
     if (!unit) {
@@ -34,10 +40,57 @@ export function RoomControlDialog({ open, onOpenChange, unit }) {
     }
   };
 
+  const handleReadStatus = async () => {
+    if (!unit) {
+      toast.error("No unit selected");
+      return;
+    }
+
+    setLoadingStatus(true);
+    try {
+      const status = await window.electronAPI.roomController.getRoomStatus(unit.ip_address, unit.id_can);
+
+      setRoomStatus(status);
+      toast.success("Room status read successfully");
+    } catch (error) {
+      console.error("Failed to read room status:", error);
+      toast.error(`Failed to read room status: ${error.message}`);
+      setRoomStatus(null);
+    } finally {
+      setLoadingStatus(false);
+    }
+  };
+
+  const handleSendStatus = async () => {
+    if (!unit) {
+      toast.error("No unit selected");
+      return;
+    }
+
+    if (!roomStatus) {
+      toast.error("No room status to send");
+      return;
+    }
+
+    setSending(true);
+    try {
+      await window.electronAPI.roomController.setRoomStatus(unit.ip_address, unit.id_can, roomStatus.aircon_mode, roomStatus.rooms);
+
+      toast.success("Room status sent successfully");
+    } catch (error) {
+      console.error("Failed to send room status:", error);
+      toast.error(`Failed to send room status: ${error.message}`);
+    } finally {
+      setSending(false);
+    }
+  };
+
   const handleDialogOpenChange = (newOpen) => {
     onOpenChange(newOpen);
     if (!newOpen) {
       setRoomConfig(null);
+      setRoomStatus(null);
+      setActiveTab("configuration");
     }
   };
 
@@ -52,7 +105,7 @@ export function RoomControlDialog({ open, onOpenChange, unit }) {
           <DialogDescription>Manage room configuration and status for network unit {unit && `${unit.type} (${unit.ip_address})`}</DialogDescription>
         </DialogHeader>
 
-        <Tabs defaultValue="configuration" className="w-full">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <TabsList className="grid w-full grid-cols-2">
             <TabsTrigger value="configuration" className="flex items-center gap-2">
               <Settings className="h-4 w-4" />
@@ -65,35 +118,58 @@ export function RoomControlDialog({ open, onOpenChange, unit }) {
           </TabsList>
 
           <TabsContent value="configuration" className="mt-4">
-            <div className="space-y-4">
-              <div className="flex justify-end">
-                <Button onClick={handleReadConfig} disabled={loading}>
-                  {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
-                  {loading ? "Reading..." : "Read Configuration"}
-                </Button>
+            {roomConfig && (
+              <ScrollArea className="h-[calc(90vh-280px)] p-4">
+                <RoomConfigDisplay roomConfig={roomConfig} />
+              </ScrollArea>
+            )}
+
+            {!roomConfig && !loading && (
+              <div className="text-center text-muted-foreground py-8">
+                <Building2 className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                <p>Click "Read Configuration" to load room settings from the unit</p>
               </div>
-
-              {roomConfig && (
-                <ScrollArea className="h-[calc(90vh-250px)] p-4">
-                  <RoomConfigDisplay roomConfig={roomConfig} />
-                </ScrollArea>
-              )}
-
-              {!roomConfig && !loading && (
-                <div className="text-center text-muted-foreground py-8">
-                  <Building2 className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                  <p>Click "Read Configuration" to load room settings from the unit</p>
-                </div>
-              )}
-            </div>
+            )}
           </TabsContent>
 
           <TabsContent value="status" className="mt-4">
-            <ScrollArea className="h-[calc(90vh-250px)] p-4">
-              <RoomStatusControl unit={unit} />
+            <ScrollArea className="h-[calc(90vh-280px)] p-4">
+              <RoomStatusControl
+                roomStatus={roomStatus}
+                setRoomStatus={setRoomStatus}
+              />
             </ScrollArea>
           </TabsContent>
         </Tabs>
+
+        <DialogFooter className="flex items-center justify-between">
+          <div className="flex gap-2">
+            {activeTab === "configuration" && (
+              <Button onClick={handleReadConfig} disabled={loading}>
+                {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
+                {loading ? "Reading..." : "Read Configuration"}
+              </Button>
+            )}
+
+            {activeTab === "status" && (
+              <>
+                <Button onClick={handleReadStatus} disabled={loadingStatus || sending}>
+                  {loadingStatus ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
+                  {loadingStatus ? "Reading..." : "Read Status"}
+                </Button>
+
+                <Button onClick={handleSendStatus} disabled={!roomStatus || loadingStatus || sending} variant="default">
+                  {sending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
+                  {sending ? "Sending..." : "Send Status"}
+                </Button>
+              </>
+            )}
+          </div>
+
+          <Button variant="outline" onClick={() => handleDialogOpenChange(false)}>
+            Close
+          </Button>
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   );
