@@ -96,7 +96,7 @@ export function RoomControlDialog({ open, onOpenChange, unit }) {
 
   return (
     <Dialog open={open} onOpenChange={handleDialogOpenChange}>
-      <DialogContent className="sm:max-w-[80vw] max-h-[90vh]">
+      <DialogContent className="sm:max-w-[70vw] max-h-[90vh]">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Building2 className="h-5 w-5" />
@@ -117,7 +117,7 @@ export function RoomControlDialog({ open, onOpenChange, unit }) {
             </TabsTrigger>
           </TabsList>
 
-          <TabsContent value="configuration" className="mt-4">
+          <TabsContent value="configuration">
             {roomConfig && (
               <ScrollArea className="h-[calc(90vh-280px)] p-4">
                 <RoomConfigDisplay roomConfig={roomConfig} />
@@ -132,43 +132,40 @@ export function RoomControlDialog({ open, onOpenChange, unit }) {
             )}
           </TabsContent>
 
-          <TabsContent value="status" className="mt-4">
+          <TabsContent value="status">
             <ScrollArea className="h-[calc(90vh-280px)] p-4">
-              <RoomStatusControl
-                roomStatus={roomStatus}
-                setRoomStatus={setRoomStatus}
-              />
+              <RoomStatusControl roomStatus={roomStatus} setRoomStatus={setRoomStatus} />
             </ScrollArea>
           </TabsContent>
         </Tabs>
 
-        <DialogFooter className="flex items-center justify-between">
-          <div className="flex gap-2">
-            {activeTab === "configuration" && (
-              <Button onClick={handleReadConfig} disabled={loading}>
-                {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
-                {loading ? "Reading..." : "Read Configuration"}
-              </Button>
-            )}
-
-            {activeTab === "status" && (
-              <>
-                <Button onClick={handleReadStatus} disabled={loadingStatus || sending}>
-                  {loadingStatus ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
-                  {loadingStatus ? "Reading..." : "Read Status"}
+        <DialogFooter>
+          <div className="flex items-center justify-between w-full">
+            <div className="flex gap-2">
+              {activeTab === "configuration" && (
+                <Button variant="outline" onClick={handleReadConfig} disabled={loading}>
+                  {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
+                  {loading ? "Reading..." : "Read Configuration"}
                 </Button>
+              )}
 
-                <Button onClick={handleSendStatus} disabled={!roomStatus || loadingStatus || sending} variant="default">
-                  {sending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
-                  {sending ? "Sending..." : "Send Status"}
-                </Button>
-              </>
-            )}
+              {activeTab === "status" && (
+                <>
+                  <Button variant="outline" onClick={handleReadStatus} disabled={loadingStatus || sending}>
+                    {loadingStatus ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
+                    {loadingStatus ? "Reading..." : "Read Status"}
+                  </Button>
+
+                  <Button variant="outline" onClick={handleSendStatus} disabled={!roomStatus || loadingStatus || sending}>
+                    {sending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
+                    {sending ? "Sending..." : "Send Status"}
+                  </Button>
+                </>
+              )}
+            </div>
+
+            <Button onClick={() => handleDialogOpenChange(false)}>Close</Button>
           </div>
-
-          <Button variant="outline" onClick={() => handleDialogOpenChange(false)}>
-            Close
-          </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

@@ -4,7 +4,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Building2, Thermometer } from "lucide-react";
 
 export function RoomStatusControl({ roomStatus, setRoomStatus }) {
-
   const handleAirconModeChange = (value) => {
     setRoomStatus({
       ...roomStatus,
@@ -25,7 +24,7 @@ export function RoomStatusControl({ roomStatus, setRoomStatus }) {
   };
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 p-1">
       {roomStatus && (
         <div className="space-y-4">
           {/* Aircon Mode */}

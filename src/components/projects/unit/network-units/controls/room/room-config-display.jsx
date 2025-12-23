@@ -57,7 +57,7 @@ export function RoomConfigDisplay({ roomConfig }) {
   if (!roomConfig) return null;
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 p-1">
       {/* General Configuration */}
       <Card>
         <CardContent className="space-y-4">
@@ -141,9 +141,9 @@ export function RoomConfigDisplay({ roomConfig }) {
 
       {/* KNX Address */}
       <Card>
-        <CardContent className="gap-4">
+        <CardContent className="gap-4 flex">
           <div className="text-sm font-semibold mb-1 flex items-center gap-1">KNX Address</div>
-          <Input className="font-mono" readOnly value={roomConfig.generalConfig.knx_address || "-/-/-"} />
+          <Input className="font-mono w-fit" readOnly value={roomConfig.generalConfig.knx_address || "-/-/-"} />
         </CardContent>
       </Card>
 
