@@ -6,6 +6,9 @@ import { useProjectDetail } from "@/contexts/project-detail-context";
 export function SendDmxDialog({ open, onOpenChange, items = [] }) {
   const { projectItems } = useProjectDetail();
 
+  // Get total DMX device count from database
+  const totalDmxCount = projectItems?.dmx?.length || 0;
+
   const handleLoadSingleDmx = async (dmx) => {
     // For DMX, we just return the dmx data directly
     return dmx;
@@ -57,6 +60,7 @@ export function SendDmxDialog({ open, onOpenChange, items = [] }) {
           unit.ip_address,
           unit.id_can,
           dmxData, // Single DMX item
+          totalDmxCount, // Total DMX devices in database
           unit.type || "Unknown Unit" // Pass unit type for logging
         );
 
@@ -142,6 +146,7 @@ export function SendDmxDialog({ open, onOpenChange, items = [] }) {
             unit.ip_address,
             unit.id_can,
             validDmxConfigs, // Array of DMX items (max 15)
+            totalDmxCount, // Total DMX devices in database
             unit.type || "Unknown Unit"
           );
 

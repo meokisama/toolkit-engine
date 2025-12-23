@@ -7,9 +7,9 @@ export function registerDmxHandlers(ipcMain, dbService, rcu, loggerService) {
   // ==================== RCU Controller - DMX Operations ====================
 
   // Set DMX Color
-  ipcMain.handle("rcu:setDmxColor", async (event, unitIp, canId, dmxItems, unitType) => {
+  ipcMain.handle("rcu:setDmxColor", async (event, unitIp, canId, dmxItems, totalDeviceCount, unitType) => {
     try {
-      return await rcu.setDmxColor(unitIp, canId, dmxItems, loggerService, unitType);
+      return await rcu.setDmxColor(unitIp, canId, dmxItems, totalDeviceCount, loggerService, unitType);
     } catch (error) {
       console.error("Error setting DMX color:", error);
       throw error;
