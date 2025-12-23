@@ -26,14 +26,6 @@ export function SendDmxDialog({ open, onOpenChange, items = [] }) {
       return false;
     }
 
-    // Validate at least one color is configured
-    const hasColors = Array.from({ length: 16 }, (_, i) => `color${i + 1}`).some((colorField) => dmxData[colorField]);
-
-    if (!hasColors) {
-      toast.error("At least one color must be configured");
-      return false;
-    }
-
     return true;
   };
 
@@ -102,10 +94,7 @@ export function SendDmxDialog({ open, onOpenChange, items = [] }) {
       const batch = batches[batchIndex];
       const batchName = `Batch ${batchIndex + 1}/${batches.length} (${batch.length} devices)`;
 
-      onProgress(
-        (completedOperations / totalOperations) * 100,
-        `Sending ${batchName} (${completedOperations}/${totalOperations})`
-      );
+      onProgress((completedOperations / totalOperations) * 100, `Sending ${batchName} (${completedOperations}/${totalOperations})`);
 
       // Validate all items in batch
       const validDmxConfigs = [];
