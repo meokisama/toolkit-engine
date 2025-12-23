@@ -2,7 +2,7 @@ import { useState, useCallback, useEffect, memo } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardTitle } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { List, Palette } from "lucide-react";
 import { toast } from "sonner";
 
@@ -24,9 +24,9 @@ const ColorBox = memo(({ color, sceneIndex }) => (
       style={{
         backgroundColor: `rgb(${color.r}, ${color.g}, ${color.b})`,
       }}
-      title={`Scene ${sceneIndex + 1}: R:${color.r} G:${color.g} B:${color.b} W:${color.w}`}
+      title={`Color ${sceneIndex + 1}: R:${color.r} G:${color.g} B:${color.b} W:${color.w}`}
     />
-    <span className="text-xs text-muted-foreground">S{sceneIndex + 1}</span>
+    <span className="text-xs text-muted-foreground">C{sceneIndex + 1}</span>
   </div>
 ));
 
@@ -51,7 +51,7 @@ const DmxDeviceCard = memo(({ device }) => (
 
         {/* Show RGB values for reference */}
         <div className="text-xs text-muted-foreground mt-2">
-          <p>16 Scene Colors (R,G,B,W format)</p>
+          <p>16 Colors (R,G,B,W format)</p>
         </div>
       </div>
     </CardContent>
@@ -118,44 +118,41 @@ export function DmxControlDialog({ open, onOpenChange, unit }) {
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-6">
-          {/* Load All DMX Devices Section */}
-          <div className="space-y-4">
-            <div className="flex items-center justify-end gap-4">
-              <Button
-                onClick={handleLoadAllDmxDevices}
-                size="lg"
-                disabled={loadingState.loading}
-                className="flex items-center gap-2"
-              >
-                <List className="h-4 w-4" />
-                {loadingState.loading ? "Loading..." : "Load All DMX Devices"}
-              </Button>
+        {/* DMX Devices Display - Always show ScrollArea */}
+        <ScrollArea className="h-[calc(90vh-250px)] w-full rounded-md border p-4">
+          {state.showDmxDevices && state.dmxDevices.length > 0 ? (
+            <div className="grid gap-3">
+              {state.dmxDevices.map((device, index) => (
+                <DmxDeviceCard key={`dmx-device-${device.deviceIndex}-${index}`} device={device} />
+              ))}
             </div>
-          </div>
+          ) : state.showDmxDevices ? (
+            <div className="text-center text-muted-foreground py-8">
+              <p>No DMX devices found.</p>
+              <p className="text-sm">Try loading the DMX device configurations.</p>
+            </div>
+          ) : (
+            <div className="text-center text-muted-foreground py-8">
+              <p>Load DMX device information to see available configurations.</p>
+            </div>
+          )}
+        </ScrollArea>
 
-          {/* DMX Devices Display - Always show ScrollArea */}
-          <div className="space-y-4">
-            <ScrollArea className="h-[500px] w-full rounded-md border p-4">
-              {state.showDmxDevices && state.dmxDevices.length > 0 ? (
-                <div className="grid gap-3">
-                  {state.dmxDevices.map((device, index) => (
-                    <DmxDeviceCard key={`dmx-device-${device.deviceIndex}-${index}`} device={device} />
-                  ))}
-                </div>
-              ) : state.showDmxDevices ? (
-                <div className="text-center text-muted-foreground py-8">
-                  <p>No DMX devices found.</p>
-                  <p className="text-sm">Try loading the DMX device configurations.</p>
-                </div>
-              ) : (
-                <div className="text-center text-muted-foreground py-8">
-                  <p>Load DMX device information to see available configurations.</p>
-                </div>
-              )}
-            </ScrollArea>
+        <DialogFooter>
+          <div className="flex items-center justify-between w-full">
+            <Button
+              variant="outline"
+              onClick={handleLoadAllDmxDevices}
+              disabled={loadingState.loading}
+              className="flex items-center gap-2"
+            >
+              <List className="h-4 w-4" />
+              {loadingState.loading ? "Loading..." : "Load All DMX Devices"}
+            </Button>
+
+            <Button onClick={() => onOpenChange(false)}>Close</Button>
           </div>
-        </div>
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   );
