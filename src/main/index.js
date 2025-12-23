@@ -35,7 +35,7 @@ export function registerAllHandlers(ipcMain, dbService, rcu, loggerService, netw
   registerLightingHandlers(ipcMain, dbService);
   registerAirconHandlers(ipcMain, dbService, rcu);
   registerCurtainHandlers(ipcMain, dbService, rcu);
-  registerDmxHandlers(ipcMain, dbService, rcu, loggerService);
+  registerDmxHandlers(ipcMain, dbService, rcu);
   registerUnitHandlers(ipcMain, dbService);
   registerKnxHandlers(ipcMain, dbService, rcu, loggerService);
   registerSceneHandlers(ipcMain, dbService, rcu);

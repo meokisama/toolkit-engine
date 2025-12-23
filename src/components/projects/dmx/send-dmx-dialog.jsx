@@ -52,8 +52,7 @@ export function SendDmxDialog({ open, onOpenChange, items = [] }) {
           unit.ip_address,
           unit.id_can,
           dmxData, // Single DMX item
-          totalDmxCount, // Total DMX devices in database
-          unit.type || "Unknown Unit" // Pass unit type for logging
+          totalDmxCount // Total DMX devices in database
         );
 
         if (success) {
@@ -135,8 +134,7 @@ export function SendDmxDialog({ open, onOpenChange, items = [] }) {
             unit.ip_address,
             unit.id_can,
             validDmxConfigs, // Array of DMX items (max 15)
-            totalDmxCount, // Total DMX devices in database
-            unit.type || "Unknown Unit"
+            totalDmxCount // Total DMX devices in database
           );
 
           if (success) {

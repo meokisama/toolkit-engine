@@ -3,13 +3,13 @@
  * Xử lý các tương tác với DMX items (RCU Controller và Database)
  */
 
-export function registerDmxHandlers(ipcMain, dbService, rcu, loggerService) {
+export function registerDmxHandlers(ipcMain, dbService, rcu) {
   // ==================== RCU Controller - DMX Operations ====================
 
   // Set DMX Color
-  ipcMain.handle("rcu:setDmxColor", async (event, unitIp, canId, dmxItems, totalDeviceCount, unitType) => {
+  ipcMain.handle("rcu:setDmxColor", async (event, unitIp, canId, dmxItems, totalDeviceCount) => {
     try {
-      return await rcu.setDmxColor(unitIp, canId, dmxItems, totalDeviceCount, loggerService, unitType);
+      return await rcu.setDmxColor(unitIp, canId, dmxItems, totalDeviceCount);
     } catch (error) {
       console.error("Error setting DMX color:", error);
       throw error;

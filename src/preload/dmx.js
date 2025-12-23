@@ -12,6 +12,6 @@ export const dmx = {
 
 // Network Operations
 export const dmxController = {
-  setDmxColor: (unitIp, canId, dmxItems, totalDeviceCount, unitType) =>
-    ipcRenderer.invoke("rcu:setDmxColor", unitIp, canId, dmxItems, totalDeviceCount, unitType),
+  setDmxColor: (unitIp, canId, dmxItems, totalDeviceCount) =>
+    ipcRenderer.invoke("rcu:setDmxColor", unitIp, canId, dmxItems, totalDeviceCount),
 };

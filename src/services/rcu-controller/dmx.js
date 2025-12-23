@@ -80,11 +80,9 @@ async function setTotalDmxDevice(unitIp, canId, deviceCount) {
  * @param {string} canId - CAN ID of the unit
  * @param {object|object[]} dmxItems - Single DMX item or array of DMX items
  * @param {number} totalDeviceCount - Total number of DMX devices in database
- * @param {object} loggerService - Optional logger service for logging
- * @param {string} unitType - Type of unit (for logging)
  * @returns {Promise<boolean>} Success status
  */
-async function setDmxColor(unitIp, canId, dmxItems, totalDeviceCount = 0, loggerService = null, unitType = "Unknown") {
+async function setDmxColor(unitIp, canId, dmxItems, totalDeviceCount = 0) {
   const idAddress = convertCanIdToInt(canId);
 
   // Ensure dmxItems is an array
@@ -99,53 +97,32 @@ async function setDmxColor(unitIp, canId, dmxItems, totalDeviceCount = 0, logger
     throw new Error("Cannot send more than 15 DMX devices in a single packet");
   }
 
-  try {
-    // Step 1: Send SET_TOTAL_DMX_DEVICE command first with TOTAL count from database
-    await setTotalDmxDevice(unitIp, canId, totalDeviceCount);
+  // Step 1: Send SET_TOTAL_DMX_DEVICE command first with TOTAL count from database
+  await setTotalDmxDevice(unitIp, canId, totalDeviceCount);
 
-    // Step 2: Build data array (66 bytes per device)
-    const data = [];
-    items.forEach((item, index) => {
-      const deviceData = buildDmxDeviceData(item, index);
-      data.push(...deviceData);
-    });
+  // Step 2: Build data array (66 bytes per device)
+  const data = [];
+  items.forEach((item, index) => {
+    const deviceData = buildDmxDeviceData(item, index);
+    data.push(...deviceData);
+  });
 
-    console.log("Sending DMX color config:", {
-      unitIp,
-      canId,
-      deviceCount: items.length,
-      dataLength: data.length,
-      expectedLength: items.length * 66,
-    });
+  console.log("Sending DMX color config:", {
+    unitIp,
+    canId,
+    deviceCount: items.length,
+    dataLength: data.length,
+    expectedLength: items.length * 66,
+  });
 
-    // Step 3: Send SET_DMX_COLOR command
-    const response = await sendCommand(unitIp, UDP_PORT, idAddress, PROTOCOL.DMX.CMD1, PROTOCOL.DMX.CMD2.SET_DMX_COLOR, data);
+  // Step 3: Send SET_DMX_COLOR command
+  const response = await sendCommand(unitIp, UDP_PORT, idAddress, PROTOCOL.DMX.CMD1, PROTOCOL.DMX.CMD2.SET_DMX_COLOR, data);
 
-    if (!parseResponse.success(response)) {
-      const error = "Failed to set DMX color configuration";
-
-      // Log error if logger service is available
-      if (loggerService) {
-        loggerService.logDmxSend("SET_COLOR", items, { ip_address: unitIp, id_can: canId, type: unitType }, false, error);
-      }
-
-      throw new Error(error);
-    }
-
-    // Log success if logger service is available
-    if (loggerService) {
-      loggerService.logDmxSend("SET_COLOR", items, { ip_address: unitIp, id_can: canId, type: unitType }, true);
-    }
-
-    return true;
-  } catch (error) {
-    // Log error if logger service is available
-    if (loggerService) {
-      loggerService.logDmxSend("SET_COLOR", items, { ip_address: unitIp, id_can: canId, type: unitType }, false, error.message);
-    }
-
-    throw error;
+  if (!parseResponse.success(response)) {
+    throw new Error("Failed to set DMX color configuration");
   }
+
+  return true;
 }
 
 /**
@@ -154,11 +131,9 @@ async function setDmxColor(unitIp, canId, dmxItems, totalDeviceCount = 0, logger
  * @param {string} canId - CAN ID of the unit
  * @param {object[]} dmxItems - Array of DMX items
  * @param {number} totalDeviceCount - Total number of DMX devices in database
- * @param {object} loggerService - Optional logger service
- * @param {string} unitType - Type of unit
  * @returns {Promise<object>} Result with success count and errors
  */
-async function setDmxColorBatch(unitIp, canId, dmxItems, totalDeviceCount = 0, loggerService = null, unitType = "Unknown") {
+async function setDmxColorBatch(unitIp, canId, dmxItems, totalDeviceCount = 0) {
   const BATCH_SIZE = 15;
   const results = {
     total: dmxItems.length,
@@ -172,7 +147,7 @@ async function setDmxColorBatch(unitIp, canId, dmxItems, totalDeviceCount = 0, l
     const batch = dmxItems.slice(i, i + BATCH_SIZE);
 
     try {
-      await setDmxColor(unitIp, canId, batch, totalDeviceCount, loggerService, unitType);
+      await setDmxColor(unitIp, canId, batch, totalDeviceCount);
       results.success += batch.length;
     } catch (error) {
       results.failed += batch.length;
