@@ -15,6 +15,9 @@ export const scheduleTableSchemas = {
       days TEXT NOT NULL,
       enabled BOOLEAN DEFAULT 1,
       source_unit INTEGER,
+      mode INTEGER DEFAULT 0,
+      interval_time INTEGER,
+      dmx_duration INTEGER,
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
       updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
       FOREIGN KEY (project_id) REFERENCES projects (id) ON DELETE CASCADE,
@@ -49,14 +52,28 @@ export const scheduleMethods = {
       }
 
       const stmt = this.db.prepare(`
-        INSERT INTO schedule (project_id, name, description, time, days, enabled, source_unit)
-        VALUES (?, ?, ?, ?, ?, ?, ?)
+        INSERT INTO schedule (project_id, name, description, time, days, enabled, source_unit, mode, interval_time, dmx_duration)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       `);
 
       // Convert boolean to integer for SQLite
       const enabledValue = itemData.enabled !== undefined ? (itemData.enabled ? 1 : 0) : 1;
+      const modeValue = itemData.mode !== undefined ? itemData.mode : 0;
+      const intervalTimeValue = itemData.interval_time || null;
+      const dmxDurationValue = itemData.dmx_duration || null;
 
-      const result = stmt.run(projectId, itemData.name, itemData.description, itemData.time, JSON.stringify(itemData.days), enabledValue, itemData.source_unit || null);
+      const result = stmt.run(
+        projectId,
+        itemData.name,
+        itemData.description,
+        itemData.time,
+        JSON.stringify(itemData.days),
+        enabledValue,
+        itemData.source_unit || null,
+        modeValue,
+        intervalTimeValue,
+        dmxDurationValue
+      );
 
       // Return the created schedule item
       const getStmt = this.db.prepare("SELECT * FROM schedule WHERE id = ?");
@@ -71,14 +88,28 @@ export const scheduleMethods = {
     try {
       const stmt = this.db.prepare(`
         UPDATE schedule
-        SET name = ?, description = ?, time = ?, days = ?, enabled = ?, source_unit = ?, updated_at = CURRENT_TIMESTAMP
+        SET name = ?, description = ?, time = ?, days = ?, enabled = ?, source_unit = ?, mode = ?, interval_time = ?, dmx_duration = ?, updated_at = CURRENT_TIMESTAMP
         WHERE id = ?
       `);
 
       // Convert boolean to integer for SQLite
       const enabledValue = itemData.enabled !== undefined ? (itemData.enabled ? 1 : 0) : 1;
+      const modeValue = itemData.mode !== undefined ? itemData.mode : 0;
+      const intervalTimeValue = itemData.interval_time || null;
+      const dmxDurationValue = itemData.dmx_duration || null;
 
-      const result = stmt.run(itemData.name, itemData.description, itemData.time, JSON.stringify(itemData.days), enabledValue, itemData.source_unit || null, id);
+      const result = stmt.run(
+        itemData.name,
+        itemData.description,
+        itemData.time,
+        JSON.stringify(itemData.days),
+        enabledValue,
+        itemData.source_unit || null,
+        modeValue,
+        intervalTimeValue,
+        dmxDurationValue,
+        id
+      );
 
       if (result.changes === 0) {
         throw new Error("Schedule item not found");
@@ -122,14 +153,25 @@ export const scheduleMethods = {
       // Create duplicate with modified name
       const duplicateName = `${original.name} (Copy)`;
       const createStmt = this.db.prepare(`
-        INSERT INTO schedule (project_id, name, description, time, days, enabled, source_unit)
-        VALUES (?, ?, ?, ?, ?, ?, ?)
+        INSERT INTO schedule (project_id, name, description, time, days, enabled, source_unit, mode, interval_time, dmx_duration)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       `);
 
       // Ensure enabled value is properly converted to integer for SQLite
       const enabledValue = original.enabled ? 1 : 0;
 
-      const result = createStmt.run(original.project_id, duplicateName, original.description, original.time, original.days, enabledValue, original.source_unit || null);
+      const result = createStmt.run(
+        original.project_id,
+        duplicateName,
+        original.description,
+        original.time,
+        original.days,
+        enabledValue,
+        original.source_unit || null,
+        original.mode || 0,
+        original.interval_time || null,
+        original.dmx_duration || null
+      );
 
       // Get the duplicated schedule item
       const newSchedule = getStmt.get(result.lastInsertRowid);

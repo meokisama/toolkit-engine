@@ -37,6 +37,9 @@ export function ScheduleDialog({ open, onOpenChange, schedule = null, mode = "cr
     days: ALL_DAYS,
     enabled: true,
     source_unit: null,
+    mode: 0,
+    interval_time: null,
+    dmx_duration: null,
   });
   const [timeDate, setTimeDate] = useState(new Date(new Date().setHours(0, 0, 0, 0)));
   const [errors, setErrors] = useState({});
@@ -78,6 +81,9 @@ export function ScheduleDialog({ open, onOpenChange, schedule = null, mode = "cr
           days: parsedDays,
           enabled: schedule.enabled !== undefined ? Boolean(schedule.enabled) : true,
           source_unit: schedule.source_unit || null,
+          mode: schedule.mode !== undefined ? schedule.mode : 0,
+          interval_time: schedule.interval_time || null,
+          dmx_duration: schedule.dmx_duration !== null && schedule.dmx_duration !== undefined ? schedule.dmx_duration : null,
         });
         setTimeDate(timeStringToDate(schedule.time || ""));
 
@@ -91,6 +97,9 @@ export function ScheduleDialog({ open, onOpenChange, schedule = null, mode = "cr
           days: ALL_DAYS,
           enabled: true,
           source_unit: null,
+          mode: 0,
+          interval_time: null,
+          dmx_duration: null,
         });
         setTimeDate(new Date(new Date().setHours(0, 0, 0, 0)));
         setSelectedSceneIds([]);
@@ -253,6 +262,9 @@ export function ScheduleDialog({ open, onOpenChange, schedule = null, mode = "cr
         days: ALL_DAYS,
         enabled: true,
         source_unit: null,
+        mode: 0,
+        interval_time: null,
+        dmx_duration: null,
       });
       setTimeDate(new Date(new Date().setHours(0, 0, 0, 0)));
       setSelectedSceneIds([]);
@@ -345,6 +357,54 @@ export function ScheduleDialog({ open, onOpenChange, schedule = null, mode = "cr
                   className="h-10"
                 />
               </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="mode">Mode</Label>
+                <Select value={formData.mode.toString()} onValueChange={(value) => handleInputChange("mode", parseInt(value))}>
+                  <SelectTrigger className="w-full">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="0">System Time</SelectItem>
+                    <SelectItem value="1">Interval</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {formData.mode === 1 && (
+                <>
+                  <div className="space-y-2">
+                    <Label htmlFor="interval_time">Interval Time (min: 1)</Label>
+                    <Input
+                      id="interval_time"
+                      type="number"
+                      min="1"
+                      value={formData.interval_time || ""}
+                      onChange={(e) => {
+                        const value = parseInt(e.target.value);
+                        handleInputChange("interval_time", value >= 1 ? value : null);
+                      }}
+                      placeholder="Enter interval time"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="dmx_duration">DMX Duration (0-255)</Label>
+                    <Input
+                      id="dmx_duration"
+                      type="number"
+                      min="0"
+                      max="255"
+                      value={formData.dmx_duration !== null && formData.dmx_duration !== undefined ? formData.dmx_duration : ""}
+                      onChange={(e) => {
+                        const value = parseInt(e.target.value);
+                        handleInputChange("dmx_duration", value >= 0 && value <= 255 ? value : null);
+                      }}
+                      placeholder="Enter DMX duration"
+                    />
+                  </div>
+                </>
+              )}
             </div>
 
             {/* Days Selection */}
