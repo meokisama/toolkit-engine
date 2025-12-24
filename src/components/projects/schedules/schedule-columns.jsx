@@ -296,7 +296,6 @@ export function createScheduleColumns(onCellEdit, getEffectiveValue, unitItems =
                   onCellEdit(row.original.id, "interval_time", numValue || null);
                 }
               }}
-              placeholder="Min: 1"
               className="w-24 text-center"
               debounceMs={300}
             />
@@ -332,7 +331,6 @@ export function createScheduleColumns(onCellEdit, getEffectiveValue, unitItems =
                   onCellEdit(row.original.id, "dmx_duration", numValue !== undefined && !isNaN(numValue) ? numValue : null);
                 }
               }}
-              placeholder="0-255"
               className="w-24 text-center"
               debounceMs={300}
             />

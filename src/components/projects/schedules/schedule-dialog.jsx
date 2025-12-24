@@ -374,7 +374,7 @@ export function ScheduleDialog({ open, onOpenChange, schedule = null, mode = "cr
               {formData.mode === 1 && (
                 <>
                   <div className="space-y-2">
-                    <Label htmlFor="interval_time">Interval Time (min: 1)</Label>
+                    <Label htmlFor="interval_time">Interval Time</Label>
                     <Input
                       id="interval_time"
                       type="number"
@@ -384,12 +384,11 @@ export function ScheduleDialog({ open, onOpenChange, schedule = null, mode = "cr
                         const value = parseInt(e.target.value);
                         handleInputChange("interval_time", value >= 1 ? value : null);
                       }}
-                      placeholder="Enter interval time"
                     />
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="dmx_duration">DMX Duration (0-255)</Label>
+                    <Label htmlFor="dmx_duration">DMX Duration</Label>
                     <Input
                       id="dmx_duration"
                       type="number"
@@ -400,7 +399,6 @@ export function ScheduleDialog({ open, onOpenChange, schedule = null, mode = "cr
                         const value = parseInt(e.target.value);
                         handleInputChange("dmx_duration", value >= 0 && value <= 255 ? value : null);
                       }}
-                      placeholder="Enter DMX duration"
                     />
                   </div>
                 </>
