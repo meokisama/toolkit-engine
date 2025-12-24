@@ -238,10 +238,22 @@ export function CurtainDialog({ open, onOpenChange, item = null, mode = "create"
 
     setLoading(true);
     try {
+      // Prepare item data with proper types
+      const itemData = {
+        ...formData,
+        address: parseInt(formData.address),
+        pause_period: parseInt(formData.pause_period) || 0,
+        transition_period: parseInt(formData.transition_period) || 0,
+        open_group_id: formData.open_group_id || null,
+        close_group_id: formData.close_group_id || null,
+        stop_group_id: formData.stop_group_id || null,
+        source_unit: formData.source_unit || null,
+      };
+
       if (mode === "edit" && item) {
-        await updateItem("curtain", item.id, formData);
+        await updateItem("curtain", item.id, itemData);
       } else {
-        await createItem("curtain", formData);
+        await createItem("curtain", itemData);
       }
       onOpenChange(false);
     } catch (error) {

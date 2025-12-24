@@ -92,6 +92,7 @@ function KnxTableComponent({ items, loading }) {
           knx_dimming_group: originalItem.knx_dimming_group || "",
           knx_value_group: originalItem.knx_value_group || "",
           description: originalItem.description || "",
+          source_unit: originalItem.source_unit || null,
           ...changes, // Apply the pending changes on top
         };
 
