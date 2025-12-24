@@ -346,7 +346,7 @@ export function useConfigComparison() {
               unitIp: networkUnit.ip_address,
               canId: networkUnit.id_can,
             });
-            unitWithConfigs.schedules = schedulesResult?.data || [];
+            unitWithConfigs.schedules = schedulesResult?.schedules || [];
             console.log(`Found ${unitWithConfigs.schedules.length} schedules on network unit`);
           } catch (error) {
             console.warn(`Failed to read schedules from ${networkUnit.ip_address}:`, error);
