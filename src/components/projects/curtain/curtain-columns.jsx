@@ -256,7 +256,9 @@ export const createCurtainColumns = (onCellEdit, getEffectiveValue, lightingItem
       cell: ({ row }) => {
         const sourceUnit = row.getValue("source_unit");
         const effectiveValue = getEffectiveValue(row.original.id, "source_unit", sourceUnit);
-        const selectedUnit = unitItems.find((u) => u.id === effectiveValue);
+        // Parse to ensure proper type comparison
+        const effectiveValueInt = effectiveValue ? parseInt(effectiveValue) : null;
+        const selectedUnit = unitItems.find((u) => u.id === effectiveValueInt);
         const displayValue = selectedUnit
           ? `${selectedUnit.type || "Unknown"} (${selectedUnit.ip_address || selectedUnit.serial_no || "N/A"})`
           : "Default";

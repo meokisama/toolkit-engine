@@ -250,8 +250,15 @@ export function CurtainDialog({ open, onOpenChange, item = null, mode = "create"
         source_unit: formData.source_unit || null,
       };
 
+      console.log("Curtain Dialog - Before submit:", {
+        formData_source_unit: formData.source_unit,
+        itemData_source_unit: itemData.source_unit,
+        full_itemData: itemData,
+      });
+
       if (mode === "edit" && item) {
-        await updateItem("curtain", item.id, itemData);
+        const result = await updateItem("curtain", item.id, itemData);
+        console.log("Curtain Dialog - After update:", result);
       } else {
         await createItem("curtain", itemData);
       }
