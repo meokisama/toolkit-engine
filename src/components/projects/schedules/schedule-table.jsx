@@ -183,6 +183,10 @@ const ScheduleTable = memo(function ScheduleTable({ items = [], loading = false 
           time: originalItem.time || "",
           days: parsedDays, // Ensure days is always an array
           enabled: originalItem.enabled !== undefined ? originalItem.enabled : true,
+          source_unit: originalItem.source_unit || null,
+          mode: originalItem.mode !== undefined ? originalItem.mode : 0,
+          interval_time: originalItem.interval_time || null,
+          dmx_duration: originalItem.dmx_duration !== null && originalItem.dmx_duration !== undefined ? originalItem.dmx_duration : null,
           ...changes, // Apply the pending changes on top
         };
 

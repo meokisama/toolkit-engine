@@ -251,12 +251,12 @@ export function createScheduleColumns(onCellEdit, getEffectiveValue, unitItems =
       header: ({ column }) => <DataTableColumnHeader column={column} title="Mode" className="text-center" />,
       cell: ({ row }) => {
         const value = getEffectiveValue(row.original, "mode");
-        const modeValue = value !== undefined ? value : 0;
+        const modeValue = value !== undefined && value !== null ? value : 0;
         return (
           <div className="flex items-center justify-center">
             <Select value={modeValue.toString()} onValueChange={(newValue) => onCellEdit(row.original.id, "mode", parseInt(newValue))}>
               <SelectTrigger className="w-32">
-                <SelectValue />
+                <SelectValue placeholder="Select mode" />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="0">System Time</SelectItem>
