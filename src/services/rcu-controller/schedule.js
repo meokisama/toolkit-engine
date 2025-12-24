@@ -20,13 +20,13 @@ async function setupSchedule(unitIp, canId, scheduleConfig) {
   const data = [
     scheduleIndex,
     enabled ? 1 : 0,
+    sceneAddresses.length, // sceneAmount ngay sau enabled
+    ...sceneAddresses.map((addr) => parseInt(addr) || 0), // sceneAddresses
     ...Array(10).fill(0x00), // Reserve 10 bytes
     ...weekDays.map((day) => (day ? 1 : 0)), // Week days (7 bytes)
     hour,
     minute,
     0, // Second (always 0)
-    sceneAddresses.length,
-    ...sceneAddresses.map((addr) => parseInt(addr) || 0),
   ];
 
   return sendCommand(unitIp, UDP_PORT, idAddress, PROTOCOL.GENERAL.CMD1, PROTOCOL.GENERAL.CMD2.SETUP_SCHEDULE, data);
@@ -69,32 +69,40 @@ async function getScheduleInformation(unitIp, canId, scheduleIndex) {
 
     if (data.length >= 23) {
       // Minimum data length for schedule
-      const scheduleInfo = {
-        scheduleIndex: data[0], // Keep 0-31 range
-        enabled: data[1] === 1,
-        // Skip 10 reserved bytes (positions 2-11)
-        weekDays: [
-          data[12] === 1, // Monday
-          data[13] === 1, // Tuesday
-          data[14] === 1, // Wednesday
-          data[15] === 1, // Thursday
-          data[16] === 1, // Friday
-          data[17] === 1, // Saturday
-          data[18] === 1, // Sunday
-        ],
-        hour: data[19],
-        minute: data[20],
-        second: data[21],
-        sceneAmount: data[22],
-        sceneAddresses: [],
-      };
+      const scheduleIndex = data[0]; // Keep 0-31 range
+      const enabled = data[1] === 1;
+      const sceneAmount = data[2]; // sceneAmount ngay sau enabled
 
-      // Extract scene addresses
-      for (let i = 0; i < scheduleInfo.sceneAmount && i < 32; i++) {
-        if (data.length > 23 + i) {
-          scheduleInfo.sceneAddresses.push(data[23 + i]);
+      // Extract scene addresses (ngay sau sceneAmount)
+      const sceneAddresses = [];
+      for (let i = 0; i < sceneAmount && i < 32; i++) {
+        if (data.length > 3 + i) {
+          sceneAddresses.push(data[3 + i]);
         }
       }
+
+      // Calculate offset for remaining fields (sau sceneAddresses và reserved[10])
+      const offset = 3 + sceneAmount + 10; // scheduleIndex + enabled + sceneAmount + sceneAddresses + reserved[10]
+
+      const scheduleInfo = {
+        scheduleIndex,
+        enabled,
+        sceneAmount,
+        sceneAddresses,
+        // weekDays bắt đầu sau reserved[10]
+        weekDays: [
+          data[offset] === 1,     // Monday
+          data[offset + 1] === 1, // Tuesday
+          data[offset + 2] === 1, // Wednesday
+          data[offset + 3] === 1, // Thursday
+          data[offset + 4] === 1, // Friday
+          data[offset + 5] === 1, // Saturday
+          data[offset + 6] === 1, // Sunday
+        ],
+        hour: data[offset + 7],
+        minute: data[offset + 8],
+        second: data[offset + 9],
+      };
 
       console.log("Parsed schedule info:", scheduleInfo);
 
@@ -144,32 +152,40 @@ async function getAllSchedulesInformation(unitIp, canId) {
 
       if (data.length >= 23) {
         // Minimum data length for schedule
-        const scheduleInfo = {
-          scheduleIndex: data[0], // Keep 0-31 range
-          enabled: data[1] === 1,
-          // Skip 10 reserved bytes (positions 2-11)
-          weekDays: [
-            data[12] === 1, // Monday
-            data[13] === 1, // Tuesday
-            data[14] === 1, // Wednesday
-            data[15] === 1, // Thursday
-            data[16] === 1, // Friday
-            data[17] === 1, // Saturday
-            data[18] === 1, // Sunday
-          ],
-          hour: data[19],
-          minute: data[20],
-          second: data[21],
-          sceneAmount: data[22],
-          sceneAddresses: [],
-        };
+        const scheduleIndex = data[0]; // Keep 0-31 range
+        const enabled = data[1] === 1;
+        const sceneAmount = data[2]; // sceneAmount ngay sau enabled
 
-        // Extract scene addresses
-        for (let i = 0; i < scheduleInfo.sceneAmount && i < 32; i++) {
-          if (data.length > 23 + i) {
-            scheduleInfo.sceneAddresses.push(data[23 + i]);
+        // Extract scene addresses (ngay sau sceneAmount)
+        const sceneAddresses = [];
+        for (let i = 0; i < sceneAmount && i < 32; i++) {
+          if (data.length > 3 + i) {
+            sceneAddresses.push(data[3 + i]);
           }
         }
+
+        // Calculate offset for remaining fields (sau sceneAddresses và reserved[10])
+        const offset = 3 + sceneAmount + 10; // scheduleIndex + enabled + sceneAmount + sceneAddresses + reserved[10]
+
+        const scheduleInfo = {
+          scheduleIndex,
+          enabled,
+          sceneAmount,
+          sceneAddresses,
+          // weekDays bắt đầu sau reserved[10]
+          weekDays: [
+            data[offset] === 1,     // Monday
+            data[offset + 1] === 1, // Tuesday
+            data[offset + 2] === 1, // Wednesday
+            data[offset + 3] === 1, // Thursday
+            data[offset + 4] === 1, // Friday
+            data[offset + 5] === 1, // Saturday
+            data[offset + 6] === 1, // Sunday
+          ],
+          hour: data[offset + 7],
+          minute: data[offset + 8],
+          second: data[offset + 9],
+        };
 
         console.log("Parsed schedule info (all schedules):", scheduleInfo);
         schedules.push(scheduleInfo);
