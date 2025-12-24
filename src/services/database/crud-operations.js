@@ -242,8 +242,8 @@ const tableConfigs = {
     },
     buildUpdateQuery(tableName, itemData, id) {
       return {
-        sql: `UPDATE ${tableName} SET name = ?, address = ?, description = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?`,
-        params: [itemData.name, itemData.address, itemData.description, id],
+        sql: `UPDATE ${tableName} SET name = ?, address = ?, description = ?, source_unit = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?`,
+        params: [itemData.name, itemData.address, itemData.description, itemData.source_unit || null, id],
       };
     },
   },
@@ -277,8 +277,8 @@ const tableConfigs = {
     },
     buildUpdateQuery(tableName, itemData, id) {
       return {
-        sql: `UPDATE ${tableName} SET name = ?, address = ?, type = ?, description = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?`,
-        params: [itemData.name, itemData.address, itemData.type || 0, itemData.description, id],
+        sql: `UPDATE ${tableName} SET name = ?, address = ?, type = ?, description = ?, source_unit = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?`,
+        params: [itemData.name, itemData.address, itemData.type || 0, itemData.description, itemData.source_unit || null, id],
       };
     },
   },
@@ -312,8 +312,8 @@ const tableConfigs = {
     },
     buildUpdateQuery(tableName, itemData, id) {
       return {
-        sql: `UPDATE ${tableName} SET name = ?, address = ?, description = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?`,
-        params: [itemData.name, itemData.address, itemData.description, id],
+        sql: `UPDATE ${tableName} SET name = ?, address = ?, description = ?, source_unit = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?`,
+        params: [itemData.name, itemData.address, itemData.description, itemData.source_unit || null, id],
       };
     },
   },
