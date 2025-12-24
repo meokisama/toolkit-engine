@@ -204,7 +204,7 @@ const tableConfigs = {
     buildUpdateQuery(tableName, itemData, id) {
       const object_value = getObjectValue(itemData.object_type);
       return {
-        sql: `UPDATE ${tableName} SET name = ?, address = ?, description = ?, object_type = ?, object_value = ?, curtain_type = ?, curtain_value = ?, open_group_id = ?, close_group_id = ?, stop_group_id = ?, pause_period = ?, transition_period = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?`,
+        sql: `UPDATE ${tableName} SET name = ?, address = ?, description = ?, object_type = ?, object_value = ?, curtain_type = ?, curtain_value = ?, open_group_id = ?, close_group_id = ?, stop_group_id = ?, pause_period = ?, transition_period = ?, source_unit = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?`,
         params: [
           itemData.name,
           itemData.address,
@@ -218,6 +218,7 @@ const tableConfigs = {
           itemData.stop_group_id || null,
           itemData.pause_period || 0,
           itemData.transition_period || 0,
+          itemData.source_unit || null,
           id,
         ],
       };

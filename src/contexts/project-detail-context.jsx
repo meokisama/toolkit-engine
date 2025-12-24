@@ -237,25 +237,7 @@ export function ProjectDetailProvider({ children }) {
     try {
       // Map category to API name
       const apiName = category === "multi_scenes" ? "multiScenes" : category;
-
-      if (category === "curtain") {
-        console.log("Context updateItem - Before API call:", {
-          category,
-          id,
-          itemData_source_unit: itemData.source_unit,
-          full_itemData: itemData,
-        });
-      }
-
       const updatedItem = await window.electronAPI[apiName].update(id, itemData);
-
-      if (category === "curtain") {
-        console.log("Context updateItem - After API call:", {
-          updatedItem_source_unit: updatedItem.source_unit,
-          full_updatedItem: updatedItem,
-        });
-      }
-
       setProjectItems((prev) => ({
         ...prev,
         [category]: prev[category].map((item) => (item.id === id ? updatedItem : item)),
