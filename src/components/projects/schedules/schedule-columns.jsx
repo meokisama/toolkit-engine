@@ -251,12 +251,15 @@ export function createScheduleColumns(onCellEdit, getEffectiveValue, unitItems =
       header: ({ column }) => <DataTableColumnHeader column={column} title="Mode" className="text-center" />,
       cell: ({ row }) => {
         const value = getEffectiveValue(row.original, "mode");
-        const modeValue = value !== undefined && value !== null ? value : 0;
+        // Ensure mode is a number, default to 0 if null/undefined
+        const modeValue = value !== undefined && value !== null ? Number(value) : 0;
+        const modeLabel = modeValue === 1 ? "Interval" : "System Time";
+
         return (
           <div className="flex items-center justify-center">
             <Select value={modeValue.toString()} onValueChange={(newValue) => onCellEdit(row.original.id, "mode", parseInt(newValue))}>
               <SelectTrigger className="w-32">
-                <SelectValue placeholder="Select mode" />
+                <SelectValue>{modeLabel}</SelectValue>
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="0">System Time</SelectItem>
@@ -278,7 +281,7 @@ export function createScheduleColumns(onCellEdit, getEffectiveValue, unitItems =
       cell: ({ row }) => {
         const mode = getEffectiveValue(row.original, "mode");
         const value = getEffectiveValue(row.original, "interval_time");
-        const isInterval = mode === 1;
+        const isInterval = Number(mode) === 1;
 
         if (!isInterval) {
           return <div className="text-center text-muted-foreground">-</div>;
@@ -286,18 +289,18 @@ export function createScheduleColumns(onCellEdit, getEffectiveValue, unitItems =
 
         return (
           <div className="flex items-center justify-center">
-            <Input
+            <DebouncedInput
               type="number"
-              min="1"
               value={value || ""}
-              onChange={(e) => {
-                const newValue = parseInt(e.target.value);
-                if (newValue >= 1 || e.target.value === "") {
-                  onCellEdit(row.original.id, "interval_time", newValue || null);
+              onChange={(newValue) => {
+                const numValue = parseInt(newValue);
+                if (numValue >= 1 || newValue === "") {
+                  onCellEdit(row.original.id, "interval_time", numValue || null);
                 }
               }}
               placeholder="Min: 1"
               className="w-24 text-center"
+              debounceMs={300}
             />
           </div>
         );
@@ -314,7 +317,7 @@ export function createScheduleColumns(onCellEdit, getEffectiveValue, unitItems =
       cell: ({ row }) => {
         const mode = getEffectiveValue(row.original, "mode");
         const value = getEffectiveValue(row.original, "dmx_duration");
-        const isInterval = mode === 1;
+        const isInterval = Number(mode) === 1;
 
         if (!isInterval) {
           return <div className="text-center text-muted-foreground">-</div>;
@@ -322,19 +325,18 @@ export function createScheduleColumns(onCellEdit, getEffectiveValue, unitItems =
 
         return (
           <div className="flex items-center justify-center">
-            <Input
+            <DebouncedInput
               type="number"
-              min="0"
-              max="255"
               value={value !== null && value !== undefined ? value : ""}
-              onChange={(e) => {
-                const newValue = parseInt(e.target.value);
-                if ((newValue >= 0 && newValue <= 255) || e.target.value === "") {
-                  onCellEdit(row.original.id, "dmx_duration", newValue !== undefined && !isNaN(newValue) ? newValue : null);
+              onChange={(newValue) => {
+                const numValue = parseInt(newValue);
+                if ((numValue >= 0 && numValue <= 255) || newValue === "") {
+                  onCellEdit(row.original.id, "dmx_duration", numValue !== undefined && !isNaN(numValue) ? numValue : null);
                 }
               }}
               placeholder="0-255"
               className="w-24 text-center"
+              debounceMs={300}
             />
           </div>
         );
