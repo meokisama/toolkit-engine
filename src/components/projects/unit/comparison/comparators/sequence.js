@@ -67,20 +67,26 @@ export function compareSequences(databaseSequences, networkSequences) {
       differences.push(`Sequence ${address} Name: DB="${dbSequence.name}", Network="${netSequence.name}"`);
     }
 
-    // Compare sequence multi scenes
+    // Compare sequence multi scenes (ORDER MATTERS - multi-scenes are ordered by multi_scene_order)
+    // Database returns multi-scenes ordered by multi_scene_order ASC
+    // Network returns multiSceneAddresses array in order
     const dbMultiScenes = dbSequence.multiScenes || [];
-    const netMultiScenes = netSequence.multiScenes || [];
+    const netMultiSceneAddresses = netSequence.multiSceneAddresses || [];
 
-    if (dbMultiScenes.length !== netMultiScenes.length) {
-      differences.push(`Sequence ${address} Multi Scene count: DB=${dbMultiScenes.length}, Network=${netMultiScenes.length}`);
+    // Extract multi-scene addresses from database (already ordered by multi_scene_order)
+    const dbMultiSceneAddresses = dbMultiScenes.map((ms) => parseInt(ms.multi_scene_address));
+
+    if (dbMultiSceneAddresses.length !== netMultiSceneAddresses.length) {
+      differences.push(`Sequence ${address} Multi Scene count: DB=${dbMultiSceneAddresses.length}, Network=${netMultiSceneAddresses.length}`);
     } else {
-      for (let i = 0; i < dbMultiScenes.length; i++) {
-        const dbMultiScene = dbMultiScenes[i];
-        const netMultiScene = netMultiScenes[i];
+      // Compare multi-scenes in ORDER (index by index)
+      for (let i = 0; i < dbMultiSceneAddresses.length; i++) {
+        const dbMultiSceneAddr = dbMultiSceneAddresses[i];
+        const netMultiSceneAddr = parseInt(netMultiSceneAddresses[i]);
 
-        if (dbMultiScene.multi_scene_address !== netMultiScene.multi_scene_address) {
+        if (dbMultiSceneAddr !== netMultiSceneAddr) {
           differences.push(
-            `Sequence ${address} Multi Scene ${i + 1} Address: DB=${dbMultiScene.multi_scene_address}, Network=${netMultiScene.multi_scene_address}`
+            `Sequence ${address} Multi Scene ${i + 1} Address: DB=${dbMultiSceneAddr}, Network=${netMultiSceneAddr} (Order matters)`
           );
         }
       }

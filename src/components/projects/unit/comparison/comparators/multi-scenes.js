@@ -74,19 +74,27 @@ export function compareMultiScenes(databaseMultiScenes, networkMultiScenes) {
       }
     });
 
-    // Compare multi scene scenes
+    // Compare multi scene scenes (ORDER MATTERS - scenes are ordered by scene_order)
+    // Database returns scenes ordered by scene_order ASC
+    // Network returns sceneAddresses array in order
     const dbScenes = dbMultiScene.scenes || [];
-    const netScenes = netMultiScene.scenes || [];
+    const netSceneAddresses = netMultiScene.sceneAddresses || [];
 
-    if (dbScenes.length !== netScenes.length) {
-      differences.push(`Multi Scene ${address} Scene count: DB=${dbScenes.length}, Network=${netScenes.length}`);
+    // Extract scene addresses from database scenes (already ordered by scene_order)
+    const dbSceneAddresses = dbScenes.map((s) => parseInt(s.scene_address));
+
+    if (dbSceneAddresses.length !== netSceneAddresses.length) {
+      differences.push(`Multi Scene ${address} Scene count: DB=${dbSceneAddresses.length}, Network=${netSceneAddresses.length}`);
     } else {
-      for (let i = 0; i < dbScenes.length; i++) {
-        const dbScene = dbScenes[i];
-        const netScene = netScenes[i];
+      // Compare scenes in ORDER (index by index)
+      for (let i = 0; i < dbSceneAddresses.length; i++) {
+        const dbSceneAddr = dbSceneAddresses[i];
+        const netSceneAddr = parseInt(netSceneAddresses[i]);
 
-        if (dbScene.scene_address !== netScene.scene_address) {
-          differences.push(`Multi Scene ${address} Scene ${i + 1} Address: DB=${dbScene.scene_address}, Network=${netScene.scene_address}`);
+        if (dbSceneAddr !== netSceneAddr) {
+          differences.push(
+            `Multi Scene ${address} Scene ${i + 1} Address: DB=${dbSceneAddr}, Network=${netSceneAddr} (Order matters)`
+          );
         }
       }
     }

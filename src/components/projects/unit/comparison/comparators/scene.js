@@ -73,34 +73,62 @@ export function compareScenes(databaseScenes, networkScenes) {
 
     if (dbItems.length !== netItems.length) {
       differences.push(`Scene ${address} Item count: DB=${dbItems.length}, Network=${netItems.length}`);
-    } else {
-      // Compare individual scene items
-      for (let i = 0; i < dbItems.length; i++) {
-        const dbItem = dbItems[i];
-        const netItem = netItems[i];
-
-        if (!dbItem && !netItem) continue;
-
-        if (!dbItem || !netItem) {
-          differences.push(`Scene ${address} Item ${i + 1}: Exists in only one unit`);
-          continue;
-        }
-
-        // Compare scene item properties
-        const itemFields = [
-          { name: "object_type", label: "Object Type" },
-          { name: "object_address", label: "Object Address" },
-          { name: "object_value", label: "Object Value" },
-          { name: "delay", label: "Delay" },
-        ];
-
-        itemFields.forEach((field) => {
-          if (dbItem[field.name] !== netItem[field.name]) {
-            differences.push(`Scene ${address} Item ${i + 1} ${field.label}: DB=${dbItem[field.name]}, Network=${netItem[field.name]}`);
-          }
-        });
-      }
     }
+
+    // Create maps for scene items based on unique key: object_value + object_address
+    // This allows comparison regardless of item order
+    const dbItemMap = new Map();
+    const netItemMap = new Map();
+
+    dbItems.forEach((item) => {
+      const key = `${item.object_value || 0}_${item.object_address || item.item_address || 0}`;
+      dbItemMap.set(key, item);
+    });
+
+    netItems.forEach((item) => {
+      const key = `${item.objectValue || 0}_${item.itemAddress || item.object_address || 0}`;
+      netItemMap.set(key, item);
+    });
+
+    // Get all unique item keys
+    const allItemKeys = new Set([...dbItemMap.keys(), ...netItemMap.keys()]);
+
+    // Compare each unique item
+    allItemKeys.forEach((itemKey) => {
+      const dbItem = dbItemMap.get(itemKey);
+      const netItem = netItemMap.get(itemKey);
+
+      if (!dbItem && !netItem) return;
+
+      const [objectValue, objectAddress] = itemKey.split("_");
+
+      if (!dbItem) {
+        differences.push(`Scene ${address} Item (Type=${objectValue}, Addr=${objectAddress}): Only exists in Network unit`);
+        return;
+      }
+
+      if (!netItem) {
+        differences.push(`Scene ${address} Item (Type=${objectValue}, Addr=${objectAddress}): Only exists in Database unit`);
+        return;
+      }
+
+      // Compare item value (both DB and Network store 0-255 for lighting)
+      const dbItemValue = parseFloat(dbItem.item_value || dbItem.object_value || 0);
+      const netItemValue = parseFloat(netItem.itemValue || netItem.item_value || 0);
+
+      if (dbItemValue !== netItemValue) {
+        differences.push(
+          `Scene ${address} Item (Type=${objectValue}, Addr=${objectAddress}) Value: DB=${dbItem.item_value}, Network=${netItem.itemValue}`
+        );
+      }
+
+      // Compare delay if present
+      const dbDelay = dbItem.delay || 0;
+      const netDelay = netItem.delay || 0;
+      if (dbDelay !== netDelay) {
+        differences.push(`Scene ${address} Item (Type=${objectValue}, Addr=${objectAddress}) Delay: DB=${dbDelay}, Network=${netDelay}`);
+      }
+    });
   });
 
   return {

@@ -53,12 +53,8 @@ export const readSceneConfigurations = async (networkUnit, projectId, unitId) =>
                   const { itemType, itemId } = await findOrCreateDatabaseItemByNetworkItem(item, projectId);
 
                   if (itemType && itemId) {
-                    // Convert network item value to database format
-                    let itemValue = item.itemValue;
-                    if (item.objectValue === 1) {
-                      // LIGHTING: Convert from 0-255 to 0-100
-                      itemValue = Math.round((item.itemValue / 255) * 100);
-                    }
+                    // Database stores item values in same format as network (0-255 for lighting)
+                    const itemValue = item.itemValue;
 
                     await window.electronAPI.scene.addItem(
                       createdScene.id,
