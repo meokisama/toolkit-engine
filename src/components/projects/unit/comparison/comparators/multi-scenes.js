@@ -21,17 +21,29 @@ export function compareMultiScenes(databaseMultiScenes, networkMultiScenes) {
   const dbMultiScenes = Array.isArray(databaseMultiScenes) ? databaseMultiScenes : [];
   const netMultiScenes = Array.isArray(networkMultiScenes) ? networkMultiScenes : [];
 
+  // Filter valid multi-scenes (same logic as multi-scene control dialog)
+  // Multi-scene is valid if sceneCount > 0
+  const validDbMultiScenes = dbMultiScenes.filter((multiScene) => {
+    const sceneCount = multiScene.scenes?.length || 0;
+    return sceneCount > 0;
+  });
+
+  const validNetMultiScenes = netMultiScenes.filter((multiScene) => {
+    const sceneCount = multiScene.sceneAddresses?.length || 0;
+    return sceneCount > 0;
+  });
+
   // Create maps for easier comparison by address
   const dbMultiSceneMap = new Map();
   const netMultiSceneMap = new Map();
 
-  dbMultiScenes.forEach((multiScene) => {
+  validDbMultiScenes.forEach((multiScene) => {
     if (multiScene.address !== undefined) {
       dbMultiSceneMap.set(multiScene.address, multiScene);
     }
   });
 
-  networkMultiScenes.forEach((multiScene) => {
+  validNetMultiScenes.forEach((multiScene) => {
     if (multiScene.address !== undefined) {
       netMultiSceneMap.set(multiScene.address, multiScene);
     }
@@ -40,9 +52,9 @@ export function compareMultiScenes(databaseMultiScenes, networkMultiScenes) {
   // Get all unique addresses
   const allAddresses = new Set([...dbMultiSceneMap.keys(), ...netMultiSceneMap.keys()]);
 
-  // Compare multi scene count
-  if (dbMultiScenes.length !== netMultiScenes.length) {
-    differences.push(`Multi Scene count: DB=${dbMultiScenes.length}, Network=${netMultiScenes.length}`);
+  // Compare valid multi scene count
+  if (validDbMultiScenes.length !== validNetMultiScenes.length) {
+    differences.push(`Valid Multi Scene count: DB=${validDbMultiScenes.length}, Network=${validNetMultiScenes.length}`);
   }
 
   // Compare multi scenes by address

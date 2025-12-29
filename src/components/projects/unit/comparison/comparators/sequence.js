@@ -21,17 +21,29 @@ export function compareSequences(databaseSequences, networkSequences) {
   const dbSequences = Array.isArray(databaseSequences) ? databaseSequences : [];
   const netSequences = Array.isArray(networkSequences) ? networkSequences : [];
 
+  // Filter valid sequences (same logic as sequence control dialog)
+  // Sequence is valid if amount > 0 (has multi-scenes)
+  const validDbSequences = dbSequences.filter((sequence) => {
+    const multiSceneCount = sequence.multiScenes?.length || 0;
+    return multiSceneCount > 0;
+  });
+
+  const validNetSequences = netSequences.filter((sequence) => {
+    const multiSceneCount = sequence.multiSceneAddresses?.length || 0;
+    return multiSceneCount > 0;
+  });
+
   // Create maps for easier comparison by address
   const dbSequenceMap = new Map();
   const netSequenceMap = new Map();
 
-  dbSequences.forEach((sequence) => {
+  validDbSequences.forEach((sequence) => {
     if (sequence.address !== undefined) {
       dbSequenceMap.set(sequence.address, sequence);
     }
   });
 
-  netSequences.forEach((sequence) => {
+  validNetSequences.forEach((sequence) => {
     if (sequence.address !== undefined) {
       netSequenceMap.set(sequence.address, sequence);
     }
@@ -40,9 +52,9 @@ export function compareSequences(databaseSequences, networkSequences) {
   // Get all unique addresses
   const allAddresses = new Set([...dbSequenceMap.keys(), ...netSequenceMap.keys()]);
 
-  // Compare sequence count
-  if (dbSequences.length !== netSequences.length) {
-    differences.push(`Sequence count: DB=${dbSequences.length}, Network=${netSequences.length}`);
+  // Compare valid sequence count
+  if (validDbSequences.length !== validNetSequences.length) {
+    differences.push(`Valid Sequence count: DB=${validDbSequences.length}, Network=${validNetSequences.length}`);
   }
 
   // Compare sequences by address

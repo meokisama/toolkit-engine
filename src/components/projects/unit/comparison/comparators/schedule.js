@@ -21,17 +21,29 @@ export function compareSchedules(databaseSchedules, networkSchedules) {
   const dbSchedules = Array.isArray(databaseSchedules) ? databaseSchedules : [];
   const netSchedules = Array.isArray(networkSchedules) ? networkSchedules : [];
 
+  // Filter valid schedules (same logic as schedule control dialog)
+  // Schedule is valid if NOT (enabled === false AND sceneCount === 0)
+  const validDbSchedules = dbSchedules.filter((schedule) => {
+    const sceneCount = schedule.scenes?.length || 0;
+    return !(schedule.enabled === false && sceneCount === 0);
+  });
+
+  const validNetSchedules = netSchedules.filter((schedule) => {
+    const sceneCount = schedule.sceneAddresses?.length || 0;
+    return !(schedule.enabled === false && sceneCount === 0);
+  });
+
   // Create maps for easier comparison by address
   const dbScheduleMap = new Map();
   const netScheduleMap = new Map();
 
-  dbSchedules.forEach((schedule) => {
+  validDbSchedules.forEach((schedule) => {
     if (schedule.address !== undefined) {
       dbScheduleMap.set(schedule.address, schedule);
     }
   });
 
-  netSchedules.forEach((schedule) => {
+  validNetSchedules.forEach((schedule) => {
     if (schedule.address !== undefined) {
       netScheduleMap.set(schedule.address, schedule);
     }
@@ -40,9 +52,9 @@ export function compareSchedules(databaseSchedules, networkSchedules) {
   // Get all unique addresses
   const allAddresses = new Set([...dbScheduleMap.keys(), ...netScheduleMap.keys()]);
 
-  // Compare schedule count
-  if (dbSchedules.length !== netSchedules.length) {
-    differences.push(`Schedule count: DB=${dbSchedules.length}, Network=${netSchedules.length}`);
+  // Compare valid schedule count
+  if (validDbSchedules.length !== validNetSchedules.length) {
+    differences.push(`Valid Schedule count: DB=${validDbSchedules.length}, Network=${validNetSchedules.length}`);
   }
 
   // Compare schedules by address

@@ -21,17 +21,28 @@ export function compareScenes(databaseScenes, networkScenes) {
   const dbScenes = Array.isArray(databaseScenes) ? databaseScenes : [];
   const netScenes = Array.isArray(networkScenes) ? networkScenes : [];
 
+  // Filter valid scenes (same logic as scene control dialog)
+  // Scene is valid if NOT (address === 0 AND itemCount === 0)
+  const validDbScenes = dbScenes.filter((scene) => {
+    const itemCount = scene.items?.length || 0;
+    return !(scene.address === "0" && itemCount === 0);
+  });
+
+  const validNetScenes = netScenes.filter((scene) => {
+    return !(scene.address === 0 && scene.itemCount === 0);
+  });
+
   // Create maps for easier comparison by address
   const dbSceneMap = new Map();
   const netSceneMap = new Map();
 
-  dbScenes.forEach((scene) => {
+  validDbScenes.forEach((scene) => {
     if (scene.address !== undefined) {
       dbSceneMap.set(scene.address, scene);
     }
   });
 
-  netScenes.forEach((scene) => {
+  validNetScenes.forEach((scene) => {
     if (scene.address !== undefined) {
       netSceneMap.set(scene.address, scene);
     }
@@ -40,9 +51,9 @@ export function compareScenes(databaseScenes, networkScenes) {
   // Get all unique addresses
   const allAddresses = new Set([...dbSceneMap.keys(), ...netSceneMap.keys()]);
 
-  // Compare scene count
-  if (dbScenes.length !== netScenes.length) {
-    differences.push(`Scene count: DB=${dbScenes.length}, Network=${netScenes.length}`);
+  // Compare valid scene count
+  if (validDbScenes.length !== validNetScenes.length) {
+    differences.push(`Valid Scene count: DB=${validDbScenes.length}, Network=${validNetScenes.length}`);
   }
 
   // Compare scenes by address
