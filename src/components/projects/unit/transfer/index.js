@@ -16,7 +16,7 @@ export { transferAdvancedConfigurations, readAdvancedConfigurations } from "./se
 // ========== BASIC CONFIG READERS ==========
 
 // RS485 configuration reader
-export { readRS485Configurations, convertRS485ToDbFormat, convertNetworkToDialogFormat } from "./readers/basic/rs485";
+export { readRS485Configurations, convertRS485ToDbFormat, convertNetworkToDialogFormat } from "./readers/rs485";
 
 // I/O configuration reader
 export { readIOConfigurations } from "./readers/basic/io-config";

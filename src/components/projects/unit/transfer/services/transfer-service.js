@@ -1,7 +1,3 @@
-/**
- * Transfer Service - Orchestrates the transfer of configurations from network units to database
- */
-
 import { readCurtainConfigurations } from "../readers/curtain";
 import { readSceneConfigurations } from "../readers/scene";
 import { readScheduleConfigurations } from "../readers/schedule";
