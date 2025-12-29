@@ -1,8 +1,4 @@
 /**
- * Curtain configuration comparator
- */
-
-/**
  * Compare curtain configurations between database and network unit
  * @param {Array} databaseCurtains - Curtains from database unit
  * @param {Array} networkCurtains - Curtains from network unit

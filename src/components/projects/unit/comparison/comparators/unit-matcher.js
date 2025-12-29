@@ -1,8 +1,4 @@
 /**
- * Unit matching utility - finds matching units between database and network
- */
-
-/**
  * Find matching units between database and network based on board type, CAN ID, and IP address
  * @param {Array} databaseUnits - Units from database
  * @param {Array} networkUnits - Units from network

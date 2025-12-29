@@ -1,14 +1,12 @@
-/**
- * Comparison module - centralized exports for config comparison functionality
- */
-
 // Orchestrator exports
 export { compareUnitConfigurations } from "./comparators/orchestrator";
 
 // Comparator exports
-export { compareRS485Config, compareInputConfigs } from "./comparators/basic";
+export { compareRS485Config } from "./comparators/rs485";
+export { compareInputConfigs } from "./comparators/input";
 export { compareOutputConfigs } from "./comparators/output";
-export { compareScenes, compareMultiScenes } from "./comparators/scene";
+export { compareScenes } from "./comparators/scene";
+export { compareMultiScenes } from "./comparators/multi-scenes";
 export { compareSchedules } from "./comparators/schedule";
 export { compareCurtains } from "./comparators/curtain";
 export { compareKnx } from "./comparators/knx";

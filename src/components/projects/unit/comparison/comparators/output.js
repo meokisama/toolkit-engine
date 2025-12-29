@@ -1,8 +1,4 @@
 /**
- * Output configuration comparator - handles lighting, relay, dimmer, and AC outputs
- */
-
-/**
  * Compare output configurations between database and network unit
  * @param {Object} databaseOutputs - Output configs from database unit
  * @param {Object} networkOutputs - Output configs from network unit

@@ -26,32 +26,17 @@ export const transferAdvancedConfigurations = async (networkUnit, importedUnit, 
     // Read curtain configurations FIRST to avoid conflicts with scene auto-creation
     const createdCurtains = await readCurtainConfigurations(networkUnit, projectId, unitId);
 
-    // Add delay between different configuration types
-    await new Promise((resolve) => setTimeout(resolve, 500));
-
     // Read scene configurations (after curtains to avoid auto-creating duplicate curtains)
     const { createdScenes, sceneAddressMap } = await readSceneConfigurations(networkUnit, projectId, unitId);
-
-    // Add delay between different configuration types
-    await new Promise((resolve) => setTimeout(resolve, 500));
 
     // Read schedule configurations
     const createdSchedules = await readScheduleConfigurations(networkUnit, projectId, sceneAddressMap, unitId);
 
-    // Add delay between different configuration types
-    await new Promise((resolve) => setTimeout(resolve, 500));
-
     // Read KNX configurations
     const createdKnxConfigs = await readKnxConfigurations(networkUnit, projectId, unitId);
 
-    // Add delay between different configuration types
-    await new Promise((resolve) => setTimeout(resolve, 500));
-
     // Read Multi-Scene configurations
     const { createdMultiScenes, multiSceneAddressMap } = await readMultiSceneConfigurations(networkUnit, projectId, sceneAddressMap, unitId);
-
-    // Add delay between different configuration types
-    await new Promise((resolve) => setTimeout(resolve, 500));
 
     // Read Sequence configurations
     const createdSequences = await readSequenceConfigurations(networkUnit, projectId, multiSceneAddressMap, unitId);

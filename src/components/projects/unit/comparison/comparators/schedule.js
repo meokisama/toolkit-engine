@@ -1,8 +1,4 @@
 /**
- * Schedule configuration comparator
- */
-
-/**
  * Compare schedule configurations between database and network unit
  * @param {Array} databaseSchedules - Schedules from database unit
  * @param {Array} networkSchedules - Schedules from network unit

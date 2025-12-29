@@ -1,8 +1,4 @@
 /**
- * KNX configuration comparator
- */
-
-/**
  * Compare KNX configurations between database and network unit
  * @param {Array} databaseKnx - KNX configs from database
  * @param {Array} networkKnx - KNX configs from network unit

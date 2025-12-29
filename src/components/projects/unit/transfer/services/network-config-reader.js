@@ -1,9 +1,3 @@
-/**
- * Network Configuration Reader Service
- * Shared service for reading basic configurations (RS485 + I/O) from network units
- * Used by both transfer and comparison modules
- */
-
 import { readRS485Configurations } from "../readers/basic/rs485";
 import { readIOConfigurations } from "../readers/basic/io-config";
 import { autoCreateMissingItems } from "../../../network-units/utils/device-management-utils";
@@ -24,14 +18,7 @@ import { toast } from "sonner";
  * @returns {Promise<Object>} Network unit with rs485_config and input/output configs
  */
 export async function readNetworkUnitBasicConfigurations(networkUnit, options = {}) {
-  const {
-    selectedProject,
-    projectItems,
-    createItem,
-    createdItemsCache,
-    autoCreateItems = true,
-    showToast = true,
-  } = options;
+  const { selectedProject, projectItems, createItem, createdItemsCache, autoCreateItems = true, showToast = true } = options;
 
   try {
     console.log(`Reading basic configurations from network unit: ${networkUnit.ip_address}`);

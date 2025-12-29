@@ -1,10 +1,8 @@
-/**
- * Configuration comparison orchestrator - coordinates all comparison operations
- */
-
-import { compareRS485Config, compareInputConfigs } from "./basic";
+import { compareRS485Config } from "./rs485";
+export { compareInputConfigs } from "./input";
 import { compareOutputConfigs } from "./output";
-import { compareScenes, compareMultiScenes } from "./scene";
+import { compareScenes } from "./scene";
+import { compareMultiScenes } from "./multi-scenes";
 import { compareSchedules } from "./schedule";
 import { compareCurtains } from "./curtain";
 import { compareKnx } from "./knx";

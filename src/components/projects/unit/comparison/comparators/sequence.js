@@ -1,8 +1,4 @@
 /**
- * Sequence configuration comparator
- */
-
-/**
  * Compare sequence configurations between database and network unit
  * @param {Array} databaseSequences - Sequences from database
  * @param {Array} networkSequences - Sequences from network unit
