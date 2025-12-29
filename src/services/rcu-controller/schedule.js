@@ -5,7 +5,7 @@ import { sendCommand, sendCommandMultipleResponses } from "./command-sender.js";
 
 // Setup Schedule function
 async function setupSchedule(unitIp, canId, scheduleConfig) {
-  const { scheduleIndex, enabled, weekDays, hour, minute, sceneAddresses } = scheduleConfig;
+  const { scheduleIndex, enabled, weekDays, hour, minute, sceneAddresses, mode = 0, intervalTime = 0, dmxDuration = 0 } = scheduleConfig;
 
   // Validations
   validators.scheduleIndex(scheduleIndex);
@@ -16,11 +16,31 @@ async function setupSchedule(unitIp, canId, scheduleConfig) {
     throw new Error("Maximum 32 scenes allowed per schedule");
   }
 
+  // Validate new fields
+  if (mode < 0 || mode > 255) {
+    throw new Error("Mode must be between 0 and 255");
+  }
+  if (dmxDuration < 0 || dmxDuration > 255) {
+    throw new Error("DMX duration must be between 0 and 255");
+  }
+  if (intervalTime < 0 || intervalTime > 65535) {
+    throw new Error("Interval time must be between 0 and 65535");
+  }
+
   const idAddress = convertCanIdToInt(canId);
+
+  // Pack interval_time as 2 bytes (little-endian)
+  const intervalTimeLow = intervalTime & 0xFF;
+  const intervalTimeHigh = (intervalTime >> 8) & 0xFF;
+
   const data = [
     scheduleIndex,
     enabled ? 1 : 0,
-    ...Array(10).fill(0x00), // Reserve 10 bytes
+    mode,                    // Position 2: mode (1 byte)
+    dmxDuration,            // Position 3: dmx_duration (1 byte)
+    intervalTimeLow,        // Position 4: interval_time low byte
+    intervalTimeHigh,       // Position 5: interval_time high byte
+    ...Array(6).fill(0x00), // Position 6-11: reserved (6 bytes)
     ...weekDays.map((day) => (day ? 1 : 0)), // Week days (7 bytes)
     hour,
     minute,
@@ -69,10 +89,19 @@ async function getScheduleInformation(unitIp, canId, scheduleIndex) {
 
     if (data.length >= 23) {
       // Minimum data length for schedule
+
+      // Extract new fields from reserved bytes
+      const mode = data[2];
+      const dmxDuration = data[3];
+      const intervalTime = data[4] | (data[5] << 8); // Little-endian: low byte + high byte
+
       const scheduleInfo = {
         scheduleIndex: data[0], // Keep 0-31 range
         enabled: data[1] === 1,
-        // Skip 10 reserved bytes (positions 2-11)
+        mode: mode,
+        dmxDuration: dmxDuration,
+        intervalTime: intervalTime,
+        // Positions 6-11 are still reserved
         weekDays: [
           data[12] === 1, // Monday
           data[13] === 1, // Tuesday
@@ -144,10 +173,19 @@ async function getAllSchedulesInformation(unitIp, canId) {
 
       if (data.length >= 23) {
         // Minimum data length for schedule
+
+        // Extract new fields from reserved bytes
+        const mode = data[2];
+        const dmxDuration = data[3];
+        const intervalTime = data[4] | (data[5] << 8); // Little-endian: low byte + high byte
+
         const scheduleInfo = {
           scheduleIndex: data[0], // Keep 0-31 range
           enabled: data[1] === 1,
-          // Skip 10 reserved bytes (positions 2-11)
+          mode: mode,
+          dmxDuration: dmxDuration,
+          intervalTime: intervalTime,
+          // Positions 6-11 are still reserved
           weekDays: [
             data[12] === 1, // Monday
             data[13] === 1, // Tuesday

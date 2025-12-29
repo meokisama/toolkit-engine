@@ -32,27 +32,12 @@ export function SendSceneDialog({ open, onOpenChange, items = [] }) {
     // Send scene to all selected units
     for (const unit of selectedUnits) {
       try {
-        console.log("Sending scene to unit:", {
-          unitIp: unit.ip_address,
-          canId: unit.id_can,
-          sceneIndex: scene.calculatedIndex ?? 0,
-          sceneName: scene.name,
-          sceneAddress: scene.address,
-          sceneItems: sceneItemsData,
-        });
-
         const response = await window.electronAPI.sceneController.setupScene(unit.ip_address, unit.id_can, {
           sceneIndex: scene.calculatedIndex ?? 0,
           sceneName: scene.name,
           sceneAddress: scene.address,
           sceneItems: sceneItemsData,
         });
-
-        console.log(`Scene sent successfully to ${unit.ip_address}:`, {
-          responseLength: response?.msg?.length,
-          success: response?.result?.success,
-        });
-
         successCount++;
         toast.success(`Scene sent successfully to ${unit.type || "Unknown Unit"} (${unit.ip_address})`);
       } catch (error) {
@@ -81,11 +66,6 @@ export function SendSceneDialog({ open, onOpenChange, items = [] }) {
     onProgress(0, "Deleting existing scenes...");
     for (const unit of selectedUnits) {
       try {
-        console.log("Deleting all scenes from unit:", {
-          unitIp: unit.ip_address,
-          canId: unit.id_can,
-        });
-
         await window.electronAPI.sceneController.deleteAllScenes(unit.ip_address, unit.id_can);
 
         operationResults.push({
@@ -144,15 +124,6 @@ export function SendSceneDialog({ open, onOpenChange, items = [] }) {
       // Send scene to all selected units
       for (const unit of selectedUnits) {
         try {
-          console.log("Sending scene to unit:", {
-            unitIp: unit.ip_address,
-            canId: unit.id_can,
-            sceneIndex: sceneIndex,
-            sceneName: currentSceneData.name,
-            sceneAddress: currentSceneData.address,
-            sceneItems: sceneItemsData,
-          });
-
           const response = await window.electronAPI.sceneController.setupScene(unit.ip_address, unit.id_can, {
             sceneIndex: sceneIndex,
             sceneName: currentSceneData.name,
@@ -165,11 +136,6 @@ export function SendSceneDialog({ open, onOpenChange, items = [] }) {
             unit: `${unit.type || "Unknown Unit"} (${unit.ip_address})`,
             success: true,
             message: "Sent successfully",
-          });
-
-          console.log(`Scene sent successfully to ${unit.ip_address}:`, {
-            responseLength: response?.msg?.length,
-            success: response?.result?.success,
           });
         } catch (error) {
           console.error(`Failed to send scene ${currentSceneData.name} to unit ${unit.ip_address}:`, error);

@@ -36,7 +36,6 @@ function NetworkUnitTableComponent({ onTransferToDatabase, existingUnits = [], o
       // Sort by IP address before setting
       const sortedUnits = sortByIpAddress(cachedUnits);
       state.setNetworkUnits(sortedUnits);
-      console.log(`Auto-loaded ${sortedUnits.length} cached network units (sorted by IP)`);
     }
   }, []);
 
@@ -148,6 +147,9 @@ function NetworkUnitTableComponent({ onTransferToDatabase, existingUnits = [], o
                 }}
                 onKnxControl={{
                   onTriggerKnx: handlers.handleTriggerKnx,
+                }}
+                onDmxControl={{
+                  onDmxControl: handlers.handleDmxControl,
                 }}
                 onRoomConfigControl={{
                   onRoomConfigControl: handlers.handleRoomConfigControl,

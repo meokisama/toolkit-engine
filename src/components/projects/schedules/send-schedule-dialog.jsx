@@ -25,17 +25,6 @@ export function SendScheduleDialog({ open, onOpenChange, items = [] }) {
     // Send schedule to all selected units
     for (const unit of selectedUnits) {
       try {
-        console.log("Sending schedule to unit:", {
-          unitIp: unit.ip_address,
-          canId: unit.id_can,
-          scheduleIndex: schedule.calculatedIndex ?? 0,
-          enabled: scheduleData.enabled,
-          weekDays: scheduleData.parsedDays,
-          hour: scheduleData.hour,
-          minute: scheduleData.minute,
-          sceneAddresses: scheduleData.sceneAddresses,
-        });
-
         await window.electronAPI.schedule.send({
           unitIp: unit.ip_address,
           canId: unit.id_can,
@@ -45,6 +34,9 @@ export function SendScheduleDialog({ open, onOpenChange, items = [] }) {
           hour: scheduleData.hour,
           minute: scheduleData.minute,
           sceneAddresses: scheduleData.sceneAddresses,
+          mode: scheduleData.mode || 0,
+          intervalTime: scheduleData.interval_time || 0,
+          dmxDuration: scheduleData.dmx_duration || 0,
         });
 
         successCount++;
@@ -75,11 +67,6 @@ export function SendScheduleDialog({ open, onOpenChange, items = [] }) {
     onProgress(0, "Deleting existing schedules...");
     for (const unit of selectedUnits) {
       try {
-        console.log("Deleting all schedules from unit:", {
-          unitIp: unit.ip_address,
-          canId: unit.id_can,
-        });
-
         await window.electronAPI.scheduleController.deleteAllSchedules(unit.ip_address, unit.id_can);
 
         operationResults.push({
@@ -120,6 +107,9 @@ export function SendScheduleDialog({ open, onOpenChange, items = [] }) {
           hour: scheduleScenes.hour,
           minute: scheduleScenes.minute,
           sceneAddresses: scheduleScenes.sceneAddresses,
+          mode: scheduleScenes.mode || 0,
+          intervalTime: scheduleScenes.interval_time || 0,
+          dmxDuration: scheduleScenes.dmx_duration || 0,
         };
       } catch (error) {
         console.error(`Failed to load data for schedule ${currentScheduleData.id}:`, error);
@@ -139,17 +129,6 @@ export function SendScheduleDialog({ open, onOpenChange, items = [] }) {
       // Send schedule to all selected units
       for (const unit of selectedUnits) {
         try {
-          console.log("Sending schedule to unit:", {
-            unitIp: unit.ip_address,
-            canId: unit.id_can,
-            scheduleIndex: scheduleIndex,
-            enabled: schedulePayload.enabled,
-            weekDays: schedulePayload.parsedDays,
-            hour: schedulePayload.hour,
-            minute: schedulePayload.minute,
-            sceneAddresses: schedulePayload.sceneAddresses,
-          });
-
           await window.electronAPI.schedule.send({
             unitIp: unit.ip_address,
             canId: unit.id_can,
@@ -159,6 +138,9 @@ export function SendScheduleDialog({ open, onOpenChange, items = [] }) {
             hour: schedulePayload.hour,
             minute: schedulePayload.minute,
             sceneAddresses: schedulePayload.sceneAddresses,
+            mode: schedulePayload.mode,
+            intervalTime: schedulePayload.intervalTime,
+            dmxDuration: schedulePayload.dmxDuration,
           });
 
           operationResults.push({
@@ -167,8 +149,6 @@ export function SendScheduleDialog({ open, onOpenChange, items = [] }) {
             success: true,
             message: "Sent successfully",
           });
-
-          console.log(`Schedule sent successfully to ${unit.ip_address}`);
         } catch (error) {
           console.error(`Failed to send schedule ${currentScheduleData.name} to unit ${unit.ip_address}:`, error);
           operationResults.push({

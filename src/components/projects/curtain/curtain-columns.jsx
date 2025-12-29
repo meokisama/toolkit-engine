@@ -76,11 +76,12 @@ export const createCurtainColumns = (onCellEdit, getEffectiveValue, lightingItem
       cell: ({ row }) => {
         const address = row.getValue("address");
         const effectiveValue = getEffectiveValue(row.original.id, "address", address);
+        const displayValue = effectiveValue ? parseInt(effectiveValue) : effectiveValue;
         return (
           <EditableCell
-            value={effectiveValue}
+            value={displayValue}
             icon={Layers}
-            onSave={(value) => onCellEdit(row.original.id, "address", value)}
+            onSave={(value) => onCellEdit(row.original.id, "address", parseInt(value) || 1)}
             placeholder="1-255"
             className="text-center font-semibold"
             type="number"
@@ -256,7 +257,9 @@ export const createCurtainColumns = (onCellEdit, getEffectiveValue, lightingItem
       cell: ({ row }) => {
         const sourceUnit = row.getValue("source_unit");
         const effectiveValue = getEffectiveValue(row.original.id, "source_unit", sourceUnit);
-        const selectedUnit = unitItems.find((u) => u.id === effectiveValue);
+        // Parse to ensure proper type comparison
+        const effectiveValueInt = effectiveValue ? parseInt(effectiveValue) : null;
+        const selectedUnit = unitItems.find((u) => u.id === effectiveValueInt);
         const displayValue = selectedUnit
           ? `${selectedUnit.type || "Unknown"} (${selectedUnit.ip_address || selectedUnit.serial_no || "N/A"})`
           : "Default";

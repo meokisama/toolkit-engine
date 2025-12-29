@@ -308,13 +308,6 @@ export function RoomSettings() {
       // Send configuration to each selected unit
       for (const unit of selectedUnits) {
         try {
-          console.log("Sending room configuration to unit:", {
-            unitIp: unit.ip_address,
-            canId: unit.id_can,
-            generalConfig,
-            roomConfigs: roomConfigsToSend,
-          });
-
           await window.electronAPI.roomController.setRoomConfiguration(unit.ip_address, unit.id_can, generalConfig, roomConfigsToSend);
 
           successCount++;

@@ -35,27 +35,12 @@ export function SendMultiSceneDialog({ open, onOpenChange, items = [] }) {
     // Send multi-scene to all selected units
     for (const unit of selectedUnits) {
       try {
-        console.log("Sending multi-scene to unit:", {
-          unitIp: unit.ip_address,
-          canId: unit.id_can,
-          multiSceneIndex: multiScene.calculatedIndex ?? 0,
-          multiSceneName: multiScene.name,
-          multiSceneAddress: multiScene.address,
-          multiSceneType: multiScene.type,
-          sceneAddresses: sceneAddresses,
-        });
-
         const response = await window.electronAPI.multiScenesController.setupMultiScene(unit.ip_address, unit.id_can, {
           multiSceneIndex: multiScene.calculatedIndex ?? 0,
           multiSceneName: multiScene.name,
           multiSceneAddress: multiScene.address,
           multiSceneType: multiScene.type,
           sceneAddresses: sceneAddresses,
-        });
-
-        console.log(`Multi-scene sent successfully to ${unit.ip_address}:`, {
-          responseLength: response?.msg?.length,
-          success: response?.result?.success,
         });
 
         successCount++;
@@ -86,11 +71,6 @@ export function SendMultiSceneDialog({ open, onOpenChange, items = [] }) {
     onProgress(0, "Deleting existing multi-scenes...");
     for (const unit of selectedUnits) {
       try {
-        console.log("Deleting all multi-scenes from unit:", {
-          unitIp: unit.ip_address,
-          canId: unit.id_can,
-        });
-
         await window.electronAPI.multiScenesController.deleteAllMultiScenes(unit.ip_address, unit.id_can);
 
         operationResults.push({
@@ -172,16 +152,6 @@ export function SendMultiSceneDialog({ open, onOpenChange, items = [] }) {
       // Send multi-scene to all selected units
       for (const unit of selectedUnits) {
         try {
-          console.log("Sending multi-scene to unit:", {
-            unitIp: unit.ip_address,
-            canId: unit.id_can,
-            multiSceneIndex: multiSceneIndex,
-            multiSceneName: currentMultiScene.name,
-            multiSceneAddress: currentMultiScene.address,
-            multiSceneType: currentMultiScene.type,
-            sceneAddresses: sceneAddresses,
-          });
-
           const response = await window.electronAPI.multiScenesController.setupMultiScene(unit.ip_address, unit.id_can, {
             multiSceneIndex: multiSceneIndex,
             multiSceneName: currentMultiScene.name,
@@ -195,11 +165,6 @@ export function SendMultiSceneDialog({ open, onOpenChange, items = [] }) {
             unit: `${unit.type || "Unknown Unit"} (${unit.ip_address})`,
             success: true,
             message: "Sent successfully",
-          });
-
-          console.log(`Multi-scene sent successfully to ${unit.ip_address}:`, {
-            responseLength: response?.msg?.length,
-            success: response?.result?.success,
           });
         } catch (error) {
           console.error(`Failed to send multi-scene ${currentMultiScene.name} to unit ${unit.ip_address}:`, error);

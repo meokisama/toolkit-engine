@@ -1,14 +1,15 @@
 import React, { useState, useEffect, useRef, useMemo } from "react";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { toast } from "sonner";
-import { Send, Loader2, CheckCircle, XCircle, Database } from "lucide-react";
+import { Send, Loader2, CheckCircle, XCircle, Database, Info } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 import { NetworkUnitSelector, useNetworkUnitSelector } from "@/components/shared/network-unit-selector";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 
 export function SendItemsDialog({
   open,
@@ -240,38 +241,78 @@ export function SendItemsDialog({
           {/* Results for bulk mode */}
           {isBulkMode && showResults && (
             <Card>
-              <CardHeader>
-                <CardTitle className="text-sm flex items-center justify-between">
-                  <span>Send Results</span>
-                  <div className="flex items-center space-x-4 text-sm">
-                    <span className="text-green-600">✓ {results.filter((r) => r.success).length} Success</span>
-                    <span className="text-red-600">✗ {results.filter((r) => !r.success).length} Failed</span>
-                  </div>
-                </CardTitle>
-              </CardHeader>
               <CardContent>
-                <ScrollArea className="h-64">
-                  <div className="space-y-2">
-                    {results.map((result, index) => (
-                      <div
-                        key={index}
-                        className="flex items-center justify-between p-2 rounded border-l-4"
-                        style={{
-                          borderLeftColor: result.success ? "#22c55e" : "#ef4444",
-                        }}
-                      >
-                        <div className="flex-1">
-                          <div className="text-sm font-medium">{result.item || result.scene || result.schedule}</div>
-                          <div className="text-xs text-muted-foreground">{result.unit}</div>
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-medium">Results</span>
+                  <div className="flex items-center gap-4">
+                    <div className="flex items-center gap-1.5 text-green-600">
+                      <CheckCircle className="h-4 w-4" />
+                      <span className="text-sm font-medium">{results.filter((r) => r.success).length}</span>
+                    </div>
+                    <div className="flex items-center gap-1.5 text-red-600">
+                      <XCircle className="h-4 w-4" />
+                      <span className="text-sm font-medium">{results.filter((r) => !r.success).length}</span>
+                    </div>
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <Button variant="ghost" size="icon" className="h-7 w-7">
+                          <Info className="h-4 w-4" />
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-[500px]" align="end">
+                        <div className="space-y-3">
+                          <div className="flex items-center justify-between">
+                            <h4 className="font-medium text-sm">Detailed Results</h4>
+                            <div className="flex items-center gap-3 text-xs">
+                              <div className="flex items-center gap-1 text-green-600">
+                                <CheckCircle className="h-3.5 w-3.5" />
+                                <span>{results.filter((r) => r.success).length}</span>
+                              </div>
+                              <div className="flex items-center gap-1 text-red-600">
+                                <XCircle className="h-3.5 w-3.5" />
+                                <span>{results.filter((r) => !r.success).length}</span>
+                              </div>
+                            </div>
+                          </div>
+                          <ScrollArea className="h-80">
+                            <div className="space-y-1.5 pr-3">
+                              {results.map((result, index) => (
+                                <div
+                                  key={index}
+                                  className={`flex items-start gap-2.5 p-2.5 rounded-md ${
+                                    result.success ? "bg-green-50 dark:bg-green-950/20" : "bg-red-50 dark:bg-red-950/20"
+                                  }`}
+                                >
+                                  {result.success ? (
+                                    <CheckCircle className="h-4 w-4 text-green-600 mt-0.5 shrink-0" />
+                                  ) : (
+                                    <XCircle className="h-4 w-4 text-red-600 mt-0.5 shrink-0" />
+                                  )}
+                                  <div className="flex-1 min-w-0">
+                                    <div className="flex items-baseline gap-2">
+                                      <span className="text-sm font-medium truncate">{result.item || result.scene || result.schedule}</span>
+                                      <span className="text-xs text-muted-foreground">→</span>
+                                      <span className="text-xs text-muted-foreground truncate">{result.unit}</span>
+                                    </div>
+                                    {result.message && (
+                                      <div
+                                        className={`text-xs mt-1 ${
+                                          result.success ? "text-green-700 dark:text-green-400" : "text-red-700 dark:text-red-400"
+                                        }`}
+                                      >
+                                        {result.message}
+                                      </div>
+                                    )}
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          </ScrollArea>
                         </div>
-                        <div className="flex items-center space-x-2">
-                          {result.success ? <CheckCircle className="h-4 w-4 text-green-600" /> : <XCircle className="h-4 w-4 text-red-600" />}
-                          <span className="text-xs">{result.message}</span>
-                        </div>
-                      </div>
-                    ))}
+                      </PopoverContent>
+                    </Popover>
                   </div>
-                </ScrollArea>
+                </div>
               </CardContent>
             </Card>
           )}
@@ -289,8 +330,8 @@ export function SendItemsDialog({
                   ? "Sending..."
                   : `Send All (${filteredItems.length} ${itemTypePlural})`
                 : selectedUnitIds.length === 0
-                  ? `Send ${ItemTypeCapitalized}`
-                  : `Send ${ItemTypeCapitalized} to ${selectedUnitIds.length} Unit${selectedUnitIds.length !== 1 ? "s" : ""}`}
+                ? `Send ${ItemTypeCapitalized}`
+                : `Send ${ItemTypeCapitalized} to ${selectedUnitIds.length} Unit${selectedUnitIds.length !== 1 ? "s" : ""}`}
             </Button>
           ) : (
             <Button onClick={() => onOpenChange(false)}>Close</Button>

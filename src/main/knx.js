@@ -3,13 +3,13 @@
  * Xử lý các tương tác với KNX items (RCU Controller và Database)
  */
 
-export function registerKnxHandlers(ipcMain, dbService, rcu, loggerService) {
+export function registerKnxHandlers(ipcMain, dbService, rcu) {
   // ==================== RCU Controller - KNX Operations ====================
 
   // Set KNX Config
-  ipcMain.handle("rcu:setKnxConfig", async (event, unitIp, canId, knxConfig, unitType) => {
+  ipcMain.handle("rcu:setKnxConfig", async (event, unitIp, canId, knxConfig) => {
     try {
-      return await rcu.setKnxConfig(unitIp, canId, knxConfig, loggerService, unitType);
+      return await rcu.setKnxConfig(unitIp, canId, knxConfig);
     } catch (error) {
       console.error("Error setting KNX config:", error);
       throw error;

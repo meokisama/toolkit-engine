@@ -5,7 +5,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Progress } from "@/components/ui/progress";
-import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import {
   Send,
@@ -18,10 +17,10 @@ import {
   XCircle,
   Loader2,
   List,
-  Database,
   AlertTriangle,
   CheckSquare,
   Square,
+  Info,
 } from "lucide-react";
 import { toast } from "sonner";
 import { useProjectDetail } from "@/contexts/project-detail-context";
@@ -30,6 +29,7 @@ import { DatabaseUnitSelector } from "@/components/shared/database-unit-selector
 import { deleteAllConfigsFromUnits } from "./delete-all-configs-helper";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 
 function SendAllConfigDialogComponent({ open, onOpenChange }) {
   const { selectedProject, projectItems } = useProjectDetail();
@@ -1119,125 +1119,206 @@ function SendAllConfigDialogComponent({ open, onOpenChange }) {
           </DialogDescription>
         </DialogHeader>
 
-        {!showResults ? (
-          <div className="space-y-6">
-            {/* Configuration Types Selection */}
-            <Card>
-              <CardHeader>
-                <div className="flex items-center justify-between">
-                  <CardTitle className="text-sm">Configuration Types</CardTitle>
-                  <div className="flex gap-2">
-                    <Button variant="outline" size="sm" onClick={handleSelectAllConfigTypes} disabled={loading} className="h-7 px-2 text-xs">
-                      <CheckSquare className="h-4 w-4" />
-                      Select All
-                    </Button>
-                    <Button variant="outline" size="sm" onClick={handleSelectNoneConfigTypes} disabled={loading} className="h-7 px-2 text-xs">
-                      <Square className="h-4 w-4" />
-                      Select None
-                    </Button>
-                  </div>
+        <div className="space-y-6">
+          {/* Configuration Types Selection */}
+          <Card>
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-sm">Configuration Types</CardTitle>
+                <div className="flex gap-2">
+                  <Button variant="outline" size="sm" onClick={handleSelectAllConfigTypes} disabled={loading} className="h-7 px-2 text-xs">
+                    <CheckSquare className="h-4 w-4" />
+                    Select All
+                  </Button>
+                  <Button variant="outline" size="sm" onClick={handleSelectNoneConfigTypes} disabled={loading} className="h-7 px-2 text-xs">
+                    <Square className="h-4 w-4" />
+                    Select None
+                  </Button>
                 </div>
-              </CardHeader>
-              <CardContent className="grid grid-cols-6">
-                {Object.entries(configTypeLabels).map(([type, { label }]) => (
-                  <div key={type} className="flex items-center space-x-2">
-                    <Checkbox
-                      id={type}
-                      checked={configTypes[type]}
-                      onCheckedChange={(checked) => handleConfigTypeToggle(type, checked)}
-                      disabled={loading}
-                    />
-                    <label
-                      htmlFor={type}
-                      className="flex items-center gap-2 text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                    >
-                      {/* <Icon className="h-4 w-4" /> */}
-                      {label}
-                    </label>
-                  </div>
-                ))}
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardContent className="grid grid-cols-2 gap-2">
-                {/* Source Unit Selection */}
-                <div className="flex flex-col gap-2">
-                  <Label>Source Unit (Group & Automation)</Label>
-                  <div className="space-y-2">
-                    <Select value={selectedSourceUnitId} onValueChange={setSelectedSourceUnitId} disabled={loading}>
-                      <SelectTrigger className="w-full">
-                        <SelectValue placeholder="Select source unit" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="all">All Units</SelectItem>
-                        {databaseUnits.map((unit) => (
-                          <SelectItem key={unit.id} value={unit.id.toString()}>
-                            {unit.name || unit.type || "Unnamed Unit"} ({unit.ip_address})
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-                {/* Database Unit Selection */}
-                <div className="flex flex-col gap-2">
-                  <Label>Database Unit (RS485 & IO)</Label>
-                  <DatabaseUnitSelector
-                    value={selectedDatabaseUnitId}
-                    onValueChange={setSelectedDatabaseUnitId}
-                    units={databaseUnits}
+              </div>
+            </CardHeader>
+            <CardContent className="grid grid-cols-6">
+              {Object.entries(configTypeLabels).map(([type, { label }]) => (
+                <div key={type} className="flex items-center space-x-2">
+                  <Checkbox
+                    id={type}
+                    checked={configTypes[type]}
+                    onCheckedChange={(checked) => handleConfigTypeToggle(type, checked)}
                     disabled={loading}
-                    placeholder="Select a database unit"
-                    ref={databaseUnitSelectorRef}
                   />
+                  <label
+                    htmlFor={type}
+                    className="flex items-center gap-2 text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                  >
+                    {/* <Icon className="h-4 w-4" /> */}
+                    {label}
+                  </label>
+                </div>
+              ))}
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardContent className="grid grid-cols-2 gap-2">
+              {/* Source Unit Selection */}
+              <div className="flex flex-col gap-2">
+                <Label>Source Unit (Group & Automation)</Label>
+                <div className="space-y-2">
+                  <Select value={selectedSourceUnitId} onValueChange={setSelectedSourceUnitId} disabled={loading}>
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Select source unit" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Units</SelectItem>
+                      {databaseUnits.map((unit) => (
+                        <SelectItem key={unit.id} value={unit.id.toString()}>
+                          {unit.name || unit.type || "Unnamed Unit"} ({unit.ip_address})
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+              {/* Database Unit Selection */}
+              <div className="flex flex-col gap-2">
+                <Label>Database Unit (RS485 & IO)</Label>
+                <DatabaseUnitSelector
+                  value={selectedDatabaseUnitId}
+                  onValueChange={setSelectedDatabaseUnitId}
+                  units={databaseUnits}
+                  disabled={loading}
+                  placeholder="Select a database unit"
+                  ref={databaseUnitSelectorRef}
+                />
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Validation Errors */}
+          {validationErrors.length > 0 && (
+            <Alert variant="destructive">
+              <AlertTriangle className="h-4 w-4" />
+              <AlertDescription>
+                <div className="space-y-1">
+                  {validationErrors.map((error, index) => (
+                    <div key={index}>• {error}</div>
+                  ))}
+                </div>
+              </AlertDescription>
+            </Alert>
+          )}
+
+          {/* Network Units */}
+          <NetworkUnitSelector
+            selectedUnitIds={selectedUnitIds}
+            onSelectionChange={handleSelectionChange}
+            disabled={loading}
+            maxSelection={selectedDatabaseUnitId ? 1 : null}
+            ref={networkUnitSelectorRef}
+          />
+
+          {/* Progress */}
+          {loading && (
+            <Card>
+              <CardContent className="pt-6">
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between text-sm">
+                    <span>{currentOperation}</span>
+                    <span>{Math.round(progress)}%</span>
+                  </div>
+                  <Progress value={progress} className="w-full" />
                 </div>
               </CardContent>
             </Card>
+          )}
 
-            {/* Validation Errors */}
-            {validationErrors.length > 0 && (
-              <Alert variant="destructive">
-                <AlertTriangle className="h-4 w-4" />
-                <AlertDescription>
-                  <div className="space-y-1">
-                    {validationErrors.map((error, index) => (
-                      <div key={index}>• {error}</div>
-                    ))}
-                  </div>
-                </AlertDescription>
-              </Alert>
-            )}
-
-            {/* Network Units */}
-            <NetworkUnitSelector
-              selectedUnitIds={selectedUnitIds}
-              onSelectionChange={handleSelectionChange}
-              disabled={loading}
-              maxSelection={selectedDatabaseUnitId ? 1 : null}
-              ref={networkUnitSelectorRef}
-            />
-
-            {/* Progress */}
-            {loading && (
-              <Card>
-                <CardContent className="pt-6">
-                  <div className="space-y-2">
-                    <div className="flex items-center justify-between text-sm">
-                      <span>{currentOperation}</span>
-                      <span>{Math.round(progress)}%</span>
+          {/* Results Display */}
+          {showResults && (
+            <Card>
+              <CardContent>
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-medium">Results</span>
+                  <div className="flex items-center gap-4">
+                    <div className="flex items-center gap-1.5 text-green-600">
+                      <CheckCircle className="h-4 w-4" />
+                      <span className="text-sm font-medium">{results.filter((r) => r.success).length}</span>
                     </div>
-                    <Progress value={progress} className="w-full" />
+                    <div className="flex items-center gap-1.5 text-red-600">
+                      <XCircle className="h-4 w-4" />
+                      <span className="text-sm font-medium">{results.filter((r) => !r.success).length}</span>
+                    </div>
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <Button variant="ghost" size="icon" className="h-7 w-7">
+                          <Info className="h-4 w-4" />
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-[600px]" align="end">
+                        <div className="space-y-3">
+                          <div className="flex items-center justify-between">
+                            <h4 className="font-medium text-sm">Detailed Results</h4>
+                            <div className="flex items-center gap-3 text-xs">
+                              <div className="flex items-center gap-1 text-green-600">
+                                <CheckCircle className="h-3.5 w-3.5" />
+                                <span>{results.filter((r) => r.success).length}</span>
+                              </div>
+                              <div className="flex items-center gap-1 text-red-600">
+                                <XCircle className="h-3.5 w-3.5" />
+                                <span>{results.filter((r) => !r.success).length}</span>
+                              </div>
+                            </div>
+                          </div>
+                          <ScrollArea className="h-96">
+                            <div className="space-y-1.5 pr-3">
+                              {results.map((result, index) => (
+                                <div
+                                  key={index}
+                                  className={`flex items-start gap-2.5 p-2.5 rounded-md ${
+                                    result.success ? "bg-green-50 dark:bg-green-950/20" : "bg-red-50 dark:bg-red-950/20"
+                                  }`}
+                                >
+                                  {result.success ? (
+                                    <CheckCircle className="h-4 w-4 text-green-600 mt-0.5 shrink-0" />
+                                  ) : (
+                                    <XCircle className="h-4 w-4 text-red-600 mt-0.5 shrink-0" />
+                                  )}
+                                  <div className="flex-1 min-w-0">
+                                    <div className="flex items-baseline gap-2">
+                                      <span className="text-sm font-medium truncate">{result.unit}</span>
+                                      <span className="text-xs text-muted-foreground">→</span>
+                                      <span className="text-xs text-muted-foreground truncate">
+                                        {configTypeLabels[result.configType]?.label || result.configType} ({result.count} items)
+                                      </span>
+                                    </div>
+                                    {result.message && (
+                                      <div
+                                        className={`text-xs mt-1 ${
+                                          result.success ? "text-green-700 dark:text-green-400" : "text-red-700 dark:text-red-400"
+                                        }`}
+                                      >
+                                        {result.message}
+                                      </div>
+                                    )}
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          </ScrollArea>
+                        </div>
+                      </PopoverContent>
+                    </Popover>
                   </div>
-                </CardContent>
-              </Card>
-            )}
+                </div>
+              </CardContent>
+            </Card>
+          )}
 
-            {/* Actions */}
-            <div className="flex justify-end gap-2">
-              <Button variant="outline" onClick={() => onOpenChange(false)} disabled={loading}>
-                Cancel
-              </Button>
+          {/* Actions */}
+          <div className="flex justify-end gap-2">
+            <Button variant="outline" onClick={() => onOpenChange(false)} disabled={loading}>
+              Cancel
+            </Button>
+            {!showResults && (
               <Button
                 onClick={handleSendConfigurations}
                 disabled={loading || selectedUnitIds.length === 0 || (selectedDatabaseUnitId && selectedUnitIds.length !== 1)}
@@ -1254,45 +1335,9 @@ function SendAllConfigDialogComponent({ open, onOpenChange }) {
                   </>
                 )}
               </Button>
-            </div>
+            )}
           </div>
-        ) : (
-          /* Results Display */
-          <div className="space-y-4">
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-sm">Operation Results</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <ScrollArea className="h-[400px]">
-                  <div className="space-y-2">
-                    {results.map((result, index) => (
-                      <div key={index} className="flex items-center justify-between p-3 border rounded-lg">
-                        <div className="flex items-center gap-3">
-                          {result.success ? <CheckCircle className="h-4 w-4 text-green-500" /> : <XCircle className="h-4 w-4 text-red-500" />}
-                          <div>
-                            <div className="font-medium text-sm">{result.unit}</div>
-                            <div className="text-xs text-muted-foreground">
-                              {configTypeLabels[result.configType]?.label} ({result.count} items)
-                            </div>
-                          </div>
-                        </div>
-                        <div className="text-right">
-                          <Badge variant={result.success ? "default" : "destructive"}>{result.success ? "Success" : "Failed"}</Badge>
-                          <div className="text-xs text-muted-foreground mt-1">{result.message}</div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </ScrollArea>
-              </CardContent>
-            </Card>
-
-            <div className="flex justify-end">
-              <Button onClick={() => onOpenChange(false)}>Close</Button>
-            </div>
-          </div>
-        )}
+        </div>
       </DialogContent>
     </Dialog>
   );

@@ -8,9 +8,9 @@ const GroupControlDialog = lazy(() =>
   }))
 );
 
-const RoomControlDialog = lazy(() =>
+const AirconControlDialog = lazy(() =>
   import("./controls/base/ac-control-dialog").then((m) => ({
-    default: m.RoomControlDialog,
+    default: m.AirconControlDialog,
   }))
 );
 
@@ -52,9 +52,15 @@ const TriggerKnxDialog = lazy(() =>
   }))
 );
 
-const RoomConfigControlDialog = lazy(() =>
-  import("./controls/room-config/room-config-control-dialog").then((m) => ({
-    default: m.RoomConfigControlDialog,
+const DmxControlDialog = lazy(() =>
+  import("./controls/dmx/dmx-control-dialog").then((m) => ({
+    default: m.DmxControlDialog,
+  }))
+);
+
+const RoomControlDialog = lazy(() =>
+  import("./controls/room/room-control-dialog").then((m) => ({
+    default: m.RoomControlDialog,
   }))
 );
 
@@ -112,7 +118,7 @@ export function LazyDialogRenderer({ activeDialog, dialogData, dialogState, hand
       )}
 
       {activeDialog === DIALOG_TYPES.AIRCON_CONTROL && (
-        <RoomControlDialog
+        <AirconControlDialog
           room={{
             roomName: dialogData?.type || "Network Unit",
             acGroup: 1,
@@ -151,8 +157,12 @@ export function LazyDialogRenderer({ activeDialog, dialogData, dialogState, hand
         <TriggerKnxDialog open={true} onOpenChange={dialogState.createDialogHandler(DIALOG_TYPES.TRIGGER_KNX)} unit={dialogData} />
       )}
 
+      {activeDialog === DIALOG_TYPES.DMX_CONTROL && (
+        <DmxControlDialog open={true} onOpenChange={dialogState.createDialogHandler(DIALOG_TYPES.DMX_CONTROL)} unit={dialogData} />
+      )}
+
       {activeDialog === DIALOG_TYPES.ROOM_CONFIG_CONTROL && (
-        <RoomConfigControlDialog open={true} onOpenChange={dialogState.createDialogHandler(DIALOG_TYPES.ROOM_CONFIG_CONTROL)} unit={dialogData} />
+        <RoomControlDialog open={true} onOpenChange={dialogState.createDialogHandler(DIALOG_TYPES.ROOM_CONFIG_CONTROL)} unit={dialogData} />
       )}
 
       {activeDialog === DIALOG_TYPES.TRIGGER_MULTI_SCENE && (

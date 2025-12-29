@@ -28,26 +28,11 @@ export function SendSequenceDialog({ open, onOpenChange, items = [] }) {
     // Send sequence to all selected units
     for (const unit of selectedUnits) {
       try {
-        console.log("Sending sequence to unit:", {
-          unitIp: unit.ip_address,
-          canId: unit.id_can,
-          sequenceIndex: sequence.calculatedIndex ?? 0,
-          sequenceName: sequence.name,
-          sequenceAddress: sequence.address,
-          multiSceneAddresses: multiSceneAddresses,
-        });
-
         const response = await window.electronAPI.sequenceController.setupSequence(unit.ip_address, unit.id_can, {
           sequenceIndex: sequence.calculatedIndex ?? 0,
           sequenceAddress: sequence.address,
           multiSceneAddresses: multiSceneAddresses,
         });
-
-        console.log(`Sequence sent successfully to ${unit.ip_address}:`, {
-          responseLength: response?.msg?.length,
-          success: response?.result?.success,
-        });
-
         successCount++;
         toast.success(`Sequence sent successfully to ${unit.type || "Unknown Unit"} (${unit.ip_address})`);
       } catch (error) {
@@ -76,11 +61,6 @@ export function SendSequenceDialog({ open, onOpenChange, items = [] }) {
     onProgress(0, "Deleting existing sequences...");
     for (const unit of selectedUnits) {
       try {
-        console.log("Deleting all sequences from unit:", {
-          unitIp: unit.ip_address,
-          canId: unit.id_can,
-        });
-
         await window.electronAPI.sequenceController.deleteAllSequences(unit.ip_address, unit.id_can);
 
         operationResults.push({
@@ -135,24 +115,10 @@ export function SendSequenceDialog({ open, onOpenChange, items = [] }) {
       // Send sequence to each selected unit
       for (const unit of selectedUnits) {
         try {
-          console.log("Sending sequence to unit:", {
-            unitIp: unit.ip_address,
-            canId: unit.id_can,
-            sequenceIndex: currentSequence.calculatedIndex ?? 0,
-            sequenceName: currentSequence.name,
-            sequenceAddress: currentSequence.address,
-            multiSceneAddresses: multiSceneAddresses,
-          });
-
           const response = await window.electronAPI.sequenceController.setupSequence(unit.ip_address, unit.id_can, {
             sequenceIndex: currentSequence.calculatedIndex ?? 0,
             sequenceAddress: currentSequence.address,
             multiSceneAddresses: multiSceneAddresses,
-          });
-
-          console.log(`Sequence sent successfully to ${unit.ip_address}:`, {
-            responseLength: response?.msg?.length,
-            success: response?.result?.success,
           });
 
           operationResults.push({

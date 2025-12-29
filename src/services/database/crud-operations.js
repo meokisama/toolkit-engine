@@ -204,7 +204,7 @@ const tableConfigs = {
     buildUpdateQuery(tableName, itemData, id) {
       const object_value = getObjectValue(itemData.object_type);
       return {
-        sql: `UPDATE ${tableName} SET name = ?, address = ?, description = ?, object_type = ?, object_value = ?, curtain_type = ?, curtain_value = ?, open_group_id = ?, close_group_id = ?, stop_group_id = ?, pause_period = ?, transition_period = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?`,
+        sql: `UPDATE ${tableName} SET name = ?, address = ?, description = ?, object_type = ?, object_value = ?, curtain_type = ?, curtain_value = ?, open_group_id = ?, close_group_id = ?, stop_group_id = ?, pause_period = ?, transition_period = ?, source_unit = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?`,
         params: [
           itemData.name,
           itemData.address,
@@ -218,6 +218,7 @@ const tableConfigs = {
           itemData.stop_group_id || null,
           itemData.pause_period || 0,
           itemData.transition_period || 0,
+          itemData.source_unit || null,
           id,
         ],
       };
@@ -241,8 +242,8 @@ const tableConfigs = {
     },
     buildUpdateQuery(tableName, itemData, id) {
       return {
-        sql: `UPDATE ${tableName} SET name = ?, address = ?, description = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?`,
-        params: [itemData.name, itemData.address, itemData.description, id],
+        sql: `UPDATE ${tableName} SET name = ?, address = ?, description = ?, source_unit = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?`,
+        params: [itemData.name, itemData.address, itemData.description, itemData.source_unit || null, id],
       };
     },
   },
@@ -276,8 +277,8 @@ const tableConfigs = {
     },
     buildUpdateQuery(tableName, itemData, id) {
       return {
-        sql: `UPDATE ${tableName} SET name = ?, address = ?, type = ?, description = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?`,
-        params: [itemData.name, itemData.address, itemData.type || 0, itemData.description, id],
+        sql: `UPDATE ${tableName} SET name = ?, address = ?, type = ?, description = ?, source_unit = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?`,
+        params: [itemData.name, itemData.address, itemData.type || 0, itemData.description, itemData.source_unit || null, id],
       };
     },
   },
@@ -311,8 +312,8 @@ const tableConfigs = {
     },
     buildUpdateQuery(tableName, itemData, id) {
       return {
-        sql: `UPDATE ${tableName} SET name = ?, address = ?, description = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?`,
-        params: [itemData.name, itemData.address, itemData.description, id],
+        sql: `UPDATE ${tableName} SET name = ?, address = ?, description = ?, source_unit = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?`,
+        params: [itemData.name, itemData.address, itemData.description, itemData.source_unit || null, id],
       };
     },
   },
@@ -327,14 +328,33 @@ const tableConfigs = {
     },
     buildUpdateQuery(tableName, itemData, id) {
       // Build dynamic update query based on itemData fields
-      const allowedFields = ["name", "address", "description", "source_unit",
-        "color1", "color2", "color3", "color4", "color5", "color6", "color7", "color8",
-        "color9", "color10", "color11", "color12", "color13", "color14", "color15", "color16"];
+      const allowedFields = [
+        "name",
+        "address",
+        "description",
+        "source_unit",
+        "color1",
+        "color2",
+        "color3",
+        "color4",
+        "color5",
+        "color6",
+        "color7",
+        "color8",
+        "color9",
+        "color10",
+        "color11",
+        "color12",
+        "color13",
+        "color14",
+        "color15",
+        "color16",
+      ];
 
       const fieldsToUpdate = [];
       const params = [];
 
-      allowedFields.forEach(field => {
+      allowedFields.forEach((field) => {
         if (itemData.hasOwnProperty(field)) {
           fieldsToUpdate.push(`${field} = ?`);
           params.push(itemData[field]);
@@ -492,7 +512,6 @@ export const crudOperations = {
 
         // Update scene items if address changed
         if (currentItem.address !== itemData.address) {
-          console.log(`Updating scene items for curtain ${id}: ${currentItem.address} -> ${itemData.address}`);
           this.updateSceneItemsAddress(id, tableName, itemData.address);
         }
 

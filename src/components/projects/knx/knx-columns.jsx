@@ -290,7 +290,9 @@ export const createKnxItemsColumns = (onCellEdit, getEffectiveValue, projectItem
       cell: ({ row }) => {
         const item = row.original;
         const effectiveValue = getEffectiveValue(item.id, "source_unit", item.source_unit);
-        const selectedUnit = unitItems.find((u) => u.id === effectiveValue);
+        // Parse to ensure proper type comparison
+        const effectiveValueInt = effectiveValue ? parseInt(effectiveValue) : null;
+        const selectedUnit = unitItems.find((u) => u.id === effectiveValueInt);
         const displayValue = selectedUnit
           ? `${selectedUnit.type || "Unknown"} (${selectedUnit.ip_address || selectedUnit.serial_no || "N/A"})`
           : "Default";

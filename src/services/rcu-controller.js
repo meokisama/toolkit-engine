@@ -69,6 +69,9 @@ export { getCurtainConfig, setCurtain, setCurtainConfig } from "./rcu-controller
 // Export KNX functions
 export { setKnxConfig, getKnxConfig, triggerKnx, deleteKnxConfig, deleteAllKnxConfigs } from "./rcu-controller/knx.js";
 
+// Export DMX functions
+export { setTotalDmxDevice, setDmxColor, setDmxColorBatch, getDmxColor } from "./rcu-controller/dmx.js";
+
 // Export delete operations
 export {
   deleteScene,

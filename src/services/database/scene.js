@@ -111,10 +111,7 @@ export const sceneMethods = {
         SET item_address = ?
         WHERE item_id = ? AND item_type = ?
       `);
-
       const result = stmt.run(newAddress, itemId, itemType);
-      console.log(`Updated ${result.changes} scene items with new address ${newAddress} for ${itemType} item ${itemId}`);
-
       return result.changes;
     } catch (error) {
       console.error("Failed to update scene items address:", error);

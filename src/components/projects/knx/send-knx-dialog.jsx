@@ -70,19 +70,6 @@ export function SendKnxDialog({ open, onOpenChange, items = [] }) {
     // Send KNX config to all selected units
     for (const unit of selectedUnits) {
       try {
-        console.log("Sending KNX config to unit:", {
-          unitIp: unit.ip_address,
-          canId: unit.id_can,
-          address: knxData.address,
-          type: knxData.type,
-          factor: knxData.factor || 1,
-          feedback: knxData.feedback || 0,
-          rcuGroup: rcuGroup.address,
-          knxSwitchGroup: knxData.knx_switch_group || "",
-          knxDimmingGroup: knxData.knx_dimming_group || "",
-          knxValueGroup: knxData.knx_value_group || "",
-        });
-
         const success = await window.electronAPI.knxController.setKnxConfig(
           unit.ip_address,
           unit.id_can,
@@ -131,11 +118,6 @@ export function SendKnxDialog({ open, onOpenChange, items = [] }) {
     onProgress(0, "Deleting existing KNX configs...");
     for (const unit of selectedUnits) {
       try {
-        console.log("Deleting all KNX configs from unit:", {
-          unitIp: unit.ip_address,
-          canId: unit.id_can,
-        });
-
         await window.electronAPI.knxController.deleteAllKnxConfigs(unit.ip_address, unit.id_can);
 
         operationResults.push({
@@ -224,19 +206,6 @@ export function SendKnxDialog({ open, onOpenChange, items = [] }) {
       // Send KNX config to all selected units
       for (const unit of selectedUnits) {
         try {
-          console.log("Sending KNX config to unit:", {
-            unitIp: unit.ip_address,
-            canId: unit.id_can,
-            address: knxData.address,
-            type: knxData.type,
-            factor: knxData.factor || 1,
-            feedback: knxData.feedback || 0,
-            rcuGroup: rcuGroup.address,
-            knxSwitchGroup: knxData.knx_switch_group || "",
-            knxDimmingGroup: knxData.knx_dimming_group || "",
-            knxValueGroup: knxData.knx_value_group || "",
-          });
-
           const success = await window.electronAPI.knxController.setKnxConfig(
             unit.ip_address,
             unit.id_can,

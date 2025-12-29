@@ -3,6 +3,7 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Switch } from "@/components/ui/switch";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { TimePicker } from "@/components/custom/time-picker";
 import { DataTableColumnHeader } from "@/components/projects/data-table/data-table-column-header";
 import { DataTableFilterColumnHeader } from "@/components/projects/data-table/data-table-filter-column-header";
@@ -175,7 +176,6 @@ export function createScheduleColumns(onCellEdit, getEffectiveValue, unitItems =
         />
       ),
       cell: ({ row }) => {
-        const sourceUnit = row.getValue("source_unit");
         const effectiveValue = getEffectiveValue(row.original, "source_unit");
         const selectedUnit = unitItems.find((u) => u.id === effectiveValue);
         const displayValue = selectedUnit
@@ -245,6 +245,103 @@ export function createScheduleColumns(onCellEdit, getEffectiveValue, unitItems =
       },
       enableSorting: false,
       enableHiding: true,
+    },
+    {
+      accessorKey: "mode",
+      header: ({ column }) => <DataTableColumnHeader column={column} title="Mode" className="text-center" />,
+      cell: ({ row }) => {
+        const value = getEffectiveValue(row.original, "mode");
+        const modeValue = value !== undefined && value !== null ? Number(value) : 0;
+
+        return (
+          <div className="flex items-center justify-center">
+            <Select value={modeValue.toString()} onValueChange={(newValue) => onCellEdit(row.original.id, "mode", parseInt(newValue))}>
+              <SelectTrigger className="w-32">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="0">System Time</SelectItem>
+                <SelectItem value="1">Interval</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        );
+      },
+      enableSorting: true,
+      enableHiding: true,
+      meta: {
+        className: "w-[12%]",
+      },
+    },
+    {
+      accessorKey: "interval_time",
+      header: ({ column }) => <DataTableColumnHeader column={column} title="Interval Time" className="text-center" />,
+      cell: ({ row }) => {
+        const mode = getEffectiveValue(row.original, "mode");
+        const value = getEffectiveValue(row.original, "interval_time");
+        const isInterval = Number(mode) === 1;
+
+        if (!isInterval) {
+          return <div className="text-center text-muted-foreground">-</div>;
+        }
+
+        return (
+          <div className="flex items-center justify-center">
+            <DebouncedInput
+              type="number"
+              value={value || ""}
+              onChange={(newValue) => {
+                const numValue = parseInt(newValue);
+                if (numValue >= 1 || newValue === "") {
+                  onCellEdit(row.original.id, "interval_time", numValue || null);
+                }
+              }}
+              className="w-24 text-center"
+              debounceMs={300}
+            />
+          </div>
+        );
+      },
+      enableSorting: false,
+      enableHiding: true,
+      meta: {
+        className: "w-[10%]",
+      },
+    },
+    {
+      accessorKey: "dmx_duration",
+      header: ({ column }) => <DataTableColumnHeader column={column} title="DMX Duration" className="text-center" />,
+      cell: ({ row }) => {
+        const mode = getEffectiveValue(row.original, "mode");
+        const value = getEffectiveValue(row.original, "dmx_duration");
+        const isInterval = Number(mode) === 1;
+
+        if (!isInterval) {
+          return <div className="text-center text-muted-foreground">-</div>;
+        }
+
+        return (
+          <div className="flex items-center justify-center">
+            <DebouncedInput
+              type="number"
+              value={value !== null && value !== undefined ? value : ""}
+              onChange={(newValue) => {
+                const numValue = parseInt(newValue);
+                if ((numValue >= 0 && numValue <= 255) || newValue === "") {
+                  onCellEdit(row.original.id, "dmx_duration", numValue !== undefined && !isNaN(numValue) ? numValue : null);
+                }
+              }}
+              className="w-24 text-center"
+              debounceMs={300}
+            />
+          </div>
+        );
+      },
+      enableSorting: false,
+      enableHiding: true,
+      meta: {
+        className: "w-[10%]",
+      },
     },
     {
       accessorKey: "enabled",

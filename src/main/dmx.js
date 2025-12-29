@@ -1,9 +1,31 @@
 /**
  * DMX IPC Handlers
- * Xử lý các tương tác với DMX items (Database)
+ * Xử lý các tương tác với DMX items (RCU Controller và Database)
  */
 
-export function registerDmxHandlers(ipcMain, dbService) {
+export function registerDmxHandlers(ipcMain, dbService, rcu) {
+  // ==================== RCU Controller - DMX Operations ====================
+
+  // Set DMX Color
+  ipcMain.handle("rcu:setDmxColor", async (event, unitIp, canId, dmxItems, totalDeviceCount) => {
+    try {
+      return await rcu.setDmxColor(unitIp, canId, dmxItems, totalDeviceCount);
+    } catch (error) {
+      console.error("Error setting DMX color:", error);
+      throw error;
+    }
+  });
+
+  // Get DMX Color
+  ipcMain.handle("rcu:getDmxColor", async (event, unitIp, canId) => {
+    try {
+      return await rcu.getDmxColor(unitIp, canId);
+    } catch (error) {
+      console.error("Error getting DMX color:", error);
+      throw error;
+    }
+  });
+
   // ==================== Database - DMX Operations ====================
 
   // DMX CRUD operations

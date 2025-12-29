@@ -19,7 +19,7 @@ async function triggerKnx(unitIp, canId, knxAddress) {
 }
 
 // Set KNX Configuration function
-async function setKnxConfig(unitIp, canId, knxConfig, loggerService = null, unitType = "Unknown") {
+async function setKnxConfig(unitIp, canId, knxConfig) {
   const { address, type, factor, feedback, rcuGroup, knxSwitchGroup, knxDimmingGroup, knxValueGroup } = knxConfig;
 
   // Validations
@@ -80,27 +80,11 @@ async function setKnxConfig(unitIp, canId, knxConfig, loggerService = null, unit
 
     if (!parseResponse.success(response)) {
       const error = "Failed to set KNX configuration";
-
-      // Log error if logger service is available
-      if (loggerService) {
-        loggerService.logKnxSend("SET_CONFIG", knxConfig, { ip_address: unitIp, id_can: canId, type: unitType }, false, error);
-      }
-
       throw new Error(error);
-    }
-
-    // Log success if logger service is available
-    if (loggerService) {
-      loggerService.logKnxSend("SET_CONFIG", knxConfig, { ip_address: unitIp, id_can: canId, type: unitType }, true);
     }
 
     return true;
   } catch (error) {
-    // Log error if logger service is available
-    if (loggerService) {
-      loggerService.logKnxSend("SET_CONFIG", knxConfig, { ip_address: unitIp, id_can: canId, type: unitType }, false, error.message);
-    }
-
     throw error;
   }
 }

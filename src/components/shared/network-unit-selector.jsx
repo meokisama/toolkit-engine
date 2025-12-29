@@ -22,7 +22,6 @@ export const NetworkUnitSelector = React.forwardRef(function NetworkUnitSelector
       // Sort by IP address before setting
       const sortedUnits = sortByIpAddress(cachedUnits);
       setNetworkUnits(sortedUnits);
-      console.log(`Auto-loaded ${sortedUnits.length} cached network units (sorted by IP)`);
     } else {
       setNetworkUnits([]);
     }

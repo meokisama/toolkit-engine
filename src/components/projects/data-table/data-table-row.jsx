@@ -47,6 +47,7 @@ export function DataTableRow({
   onClockControl,
   onCurtainControl,
   onKnxControl,
+  onDmxControl,
   onRoomConfigControl,
   onMultiSceneControl,
   onSequenceControl,
@@ -54,6 +55,7 @@ export function DataTableRow({
   onSendScene,
   onSendCurtain,
   onSendKnx,
+  onSendDmx,
   onSendMultiScene,
   onSendSequence,
   onFirmwareUpdate,
@@ -106,6 +108,7 @@ export function DataTableRow({
             onSendScene ||
             onSendCurtain ||
             onSendKnx ||
+            onSendDmx ||
             onSendMultiScene ||
             onSendSequence ||
             onFirmwareUpdate ||
@@ -129,6 +132,7 @@ export function DataTableRow({
               onSendScene ||
               onSendCurtain ||
               onSendKnx ||
+              onSendDmx ||
               onSendMultiScene ||
               onSendSequence ||
               onFirmwareUpdate ||
@@ -199,6 +203,41 @@ export function DataTableRow({
             </ContextMenuSubContent>
           </ContextMenuSub>
         )}
+        {/* RCU Submenu */}
+        {(onCurtainControl || onKnxControl || onDmxControl || onRoomConfigControl) && (
+          <ContextMenuSub>
+            <ContextMenuSubTrigger>
+              <Network className="text-muted-foreground" />
+              <span className="pl-2">RCU</span>
+            </ContextMenuSubTrigger>
+            <ContextMenuSubContent>
+              {onCurtainControl && (
+                <ContextMenuItem onClick={() => onCurtainControl.onTriggerCurtain(item)}>
+                  <ChevronsUpDown className="text-muted-foreground" />
+                  <span>Curtain Control</span>
+                </ContextMenuItem>
+              )}
+              {onKnxControl && (
+                <ContextMenuItem onClick={() => onKnxControl.onTriggerKnx(item)}>
+                  <Network className="text-muted-foreground" />
+                  <span>KNX Control</span>
+                </ContextMenuItem>
+              )}
+              {onDmxControl && (
+                <ContextMenuItem onClick={() => onDmxControl.onDmxControl(item)}>
+                  <Palette className="text-muted-foreground" />
+                  <span>DMX Control</span>
+                </ContextMenuItem>
+              )}
+              {onRoomConfigControl && (
+                <ContextMenuItem onClick={() => onRoomConfigControl.onRoomConfigControl(item)}>
+                  <Building2 className="text-muted-foreground" />
+                  <span>Room Control</span>
+                </ContextMenuItem>
+              )}
+            </ContextMenuSubContent>
+          </ContextMenuSub>
+        )}
         {/* System Submenu */}
         {(onClockControl || onFirmwareUpdate) && (
           <>
@@ -222,31 +261,6 @@ export function DataTableRow({
                 )}
               </ContextMenuSubContent>
             </ContextMenuSub>
-            <ContextMenuSeparator />
-          </>
-        )}
-        {onCurtainControl && (
-          <>
-            <ContextMenuItem onClick={() => onCurtainControl.onTriggerCurtain(item)}>
-              <ChevronsUpDown className="text-muted-foreground" />
-              <span>Curtain Control</span>
-            </ContextMenuItem>
-          </>
-        )}
-        {onKnxControl && (
-          <>
-            <ContextMenuItem onClick={() => onKnxControl.onTriggerKnx(item)}>
-              <Network className="text-muted-foreground" />
-              <span>KNX Control</span>
-            </ContextMenuItem>
-          </>
-        )}
-        {onRoomConfigControl && (
-          <>
-            <ContextMenuItem onClick={() => onRoomConfigControl.onRoomConfigControl(item)}>
-              <Building2 className="text-muted-foreground" />
-              <span>Room Control</span>
-            </ContextMenuItem>
           </>
         )}
         {onSendSchedule && (
@@ -281,6 +295,15 @@ export function DataTableRow({
             <ContextMenuItem onClick={() => onSendKnx(item)}>
               <Send className="text-muted-foreground" />
               <span>Send KNX</span>
+            </ContextMenuItem>
+            {!onSendDmx && !onSendMultiScene && !onSendSequence && onDelete && <ContextMenuSeparator />}
+          </>
+        )}
+        {onSendDmx && (
+          <>
+            <ContextMenuItem onClick={() => onSendDmx(item)}>
+              <Send className="text-muted-foreground" />
+              <span>Send DMX</span>
             </ContextMenuItem>
             {!onSendMultiScene && !onSendSequence && onDelete && <ContextMenuSeparator />}
           </>

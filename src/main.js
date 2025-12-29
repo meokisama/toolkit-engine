@@ -2,7 +2,6 @@ import { app, BrowserWindow, ipcMain } from "electron";
 import path from "node:path";
 import started from "electron-squirrel-startup";
 import DatabaseService from "./services/database.js";
-import LoggerService from "./services/logger.js";
 import * as rcu from "./services/rcu-controller.js";
 import { updateElectronApp } from "update-electron-app";
 import { networkInterfaceService } from "./services/network-interfaces.js";
@@ -17,7 +16,6 @@ if (started) {
 
 // Initialize services
 let dbService;
-let loggerService;
 let mainWindow;
 
 const createWindow = () => {
@@ -55,10 +53,9 @@ const createWindow = () => {
 app.whenReady().then(async () => {
   // Initialize services
   dbService = new DatabaseService();
-  loggerService = new LoggerService();
 
   // Setup IPC handlers
-  registerAllHandlers(ipcMain, dbService, rcu, loggerService, networkInterfaceService);
+  registerAllHandlers(ipcMain, dbService, rcu, networkInterfaceService);
 
   createWindow();
 

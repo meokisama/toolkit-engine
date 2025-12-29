@@ -27,17 +27,16 @@ import { registerDeviceConfigHandlers } from "./device-config.js";
  * @param {Electron.IpcMain} ipcMain - Electron IPC Main instance
  * @param {DatabaseService} dbService - Database service instance
  * @param {Object} rcu - RCU controller service
- * @param {Object} loggerService - Logger service instance
  * @param {Object} networkInterfaceService - Network interface service instance
  */
-export function registerAllHandlers(ipcMain, dbService, rcu, loggerService, networkInterfaceService) {
+export function registerAllHandlers(ipcMain, dbService, rcu, networkInterfaceService) {
   registerProjectHandlers(ipcMain, dbService);
   registerLightingHandlers(ipcMain, dbService);
   registerAirconHandlers(ipcMain, dbService, rcu);
   registerCurtainHandlers(ipcMain, dbService, rcu);
-  registerDmxHandlers(ipcMain, dbService);
+  registerDmxHandlers(ipcMain, dbService, rcu);
   registerUnitHandlers(ipcMain, dbService);
-  registerKnxHandlers(ipcMain, dbService, rcu, loggerService);
+  registerKnxHandlers(ipcMain, dbService, rcu);
   registerSceneHandlers(ipcMain, dbService, rcu);
   registerSequenceHandlers(ipcMain, dbService, rcu);
   registerScheduleHandlers(ipcMain, dbService, rcu);

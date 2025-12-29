@@ -72,8 +72,38 @@ const getObjectTypeInfo = (objectValue) => {
       return { label: "AC Temperature" };
     case OBJECT_TYPES.AC_SWING.obj_value:
       return { label: "AC Swing" };
-    case OBJECT_TYPES.TIMER.obj_value:
-      return { label: "Timer" };
+    case OBJECT_TYPES.DMX_COLOR1.obj_value:
+      return { label: "DMX Color 1" };
+    case OBJECT_TYPES.DMX_COLOR2.obj_value:
+      return { label: "DMX Color 2" };
+    case OBJECT_TYPES.DMX_COLOR3.obj_value:
+      return { label: "DMX Color 3" };
+    case OBJECT_TYPES.DMX_COLOR4.obj_value:
+      return { label: "DMX Color 4" };
+    case OBJECT_TYPES.DMX_COLOR5.obj_value:
+      return { label: "DMX Color 5" };
+    case OBJECT_TYPES.DMX_COLOR6.obj_value:
+      return { label: "DMX Color 6" };
+    case OBJECT_TYPES.DMX_COLOR7.obj_value:
+      return { label: "DMX Color 7" };
+    case OBJECT_TYPES.DMX_COLOR8.obj_value:
+      return { label: "DMX Color 8" };
+    case OBJECT_TYPES.DMX_COLOR9.obj_value:
+      return { label: "DMX Color 9" };
+    case OBJECT_TYPES.DMX_COLOR10.obj_value:
+      return { label: "DMX Color 10" };
+    case OBJECT_TYPES.DMX_COLOR11.obj_value:
+      return { label: "DMX Color 11" };
+    case OBJECT_TYPES.DMX_COLOR12.obj_value:
+      return { label: "DMX Color 12" };
+    case OBJECT_TYPES.DMX_COLOR13.obj_value:
+      return { label: "DMX Color 13" };
+    case OBJECT_TYPES.DMX_COLOR14.obj_value:
+      return { label: "DMX Color 14" };
+    case OBJECT_TYPES.DMX_COLOR15.obj_value:
+      return { label: "DMX Color 15" };
+    case OBJECT_TYPES.DMX_COLOR16.obj_value:
+      return { label: "DMX Color 16" };
     default:
       return { label: `Object ${objectValue}` };
   }
@@ -97,6 +127,23 @@ const getFormattedValue = (objectValue, itemValue) => {
       return `${itemValue} (${percentage}%)`;
     case OBJECT_TYPES.AC_TEMPERATURE.obj_value:
       return `${itemValue} (${itemValue}°C)`;
+    case OBJECT_TYPES.DMX_COLOR1.obj_value:
+    case OBJECT_TYPES.DMX_COLOR2.obj_value:
+    case OBJECT_TYPES.DMX_COLOR3.obj_value:
+    case OBJECT_TYPES.DMX_COLOR4.obj_value:
+    case OBJECT_TYPES.DMX_COLOR5.obj_value:
+    case OBJECT_TYPES.DMX_COLOR6.obj_value:
+    case OBJECT_TYPES.DMX_COLOR7.obj_value:
+    case OBJECT_TYPES.DMX_COLOR8.obj_value:
+    case OBJECT_TYPES.DMX_COLOR9.obj_value:
+    case OBJECT_TYPES.DMX_COLOR10.obj_value:
+    case OBJECT_TYPES.DMX_COLOR11.obj_value:
+    case OBJECT_TYPES.DMX_COLOR12.obj_value:
+    case OBJECT_TYPES.DMX_COLOR13.obj_value:
+    case OBJECT_TYPES.DMX_COLOR14.obj_value:
+    case OBJECT_TYPES.DMX_COLOR15.obj_value:
+    case OBJECT_TYPES.DMX_COLOR16.obj_value:
+      return `${itemValue}`;
     default:
       return `${itemValue} (${percentage}%)`;
   }

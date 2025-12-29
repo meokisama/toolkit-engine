@@ -73,6 +73,17 @@ const ScheduleCard = memo(({ schedule, onDelete, loading, formatTime, formatDays
           <div className="text-sm text-muted-foreground font-light">
             <span className="font-bold">Days:</span> {formatDays(schedule.weekDays)}
           </div>
+          <div className="text-sm text-muted-foreground font-light">
+            <span className="font-bold">Mode:</span> {schedule.mode === 1 ? "Interval" : "System Time"}
+            {schedule.mode === 1 && (
+              <>
+                <span className="mx-1"> | </span>
+                <span className="font-bold">Interval:</span> {schedule.intervalTime}s
+                <span className="mx-1"> | </span>
+                <span className="font-bold">DMX Duration:</span> {schedule.dmxDuration}
+              </>
+            )}
+          </div>
         </CardTitle>
 
         <div className="flex items-center gap-2">
@@ -209,6 +220,9 @@ export function TriggerScheduleDialog({ open, onOpenChange, unit }) {
           weekDays: scheduleData.weekDays || [false, false, false, false, false, false, false],
           sceneCount: scheduleData.sceneAddresses ? scheduleData.sceneAddresses.length : 0,
           sceneAddresses: scheduleData.sceneAddresses || [],
+          mode: scheduleData.mode || 0,
+          intervalTime: scheduleData.intervalTime || 0,
+          dmxDuration: scheduleData.dmxDuration || 0,
         };
 
         setState((prev) => ({
@@ -259,6 +273,9 @@ export function TriggerScheduleDialog({ open, onOpenChange, unit }) {
           weekDays: schedule.weekDays || [false, false, false, false, false, false, false],
           sceneCount: schedule.sceneAddresses ? schedule.sceneAddresses.length : 0,
           sceneAddresses: schedule.sceneAddresses || [],
+          mode: schedule.mode || 0,
+          intervalTime: schedule.intervalTime || 0,
+          dmxDuration: schedule.dmxDuration || 0,
         }));
 
         // Filter out schedules that are disabled and have 0 scenes

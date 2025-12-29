@@ -50,19 +50,6 @@ export function SendCurtainConfigDialog({ open, onOpenChange, items = [] }) {
     // Send curtain config to all selected units
     for (const unit of selectedUnits) {
       try {
-        console.log("Sending curtain config to unit:", {
-          unitIp: unit.ip_address,
-          canId: unit.id_can,
-          index: curtain.calculatedIndex ?? 0,
-          address: parseInt(curtain.address),
-          curtainType: curtainTypeValue,
-          pausePeriod: curtain.pause_period || 0,
-          transitionPeriod: curtain.transition_period || 0,
-          openGroup: parseInt(openGroup.address),
-          closeGroup: parseInt(closeGroup.address),
-          stopGroup: stopGroup ? parseInt(stopGroup.address) : 0,
-        });
-
         const success = await window.electronAPI.curtainController.setCurtainConfig(unit.ip_address, unit.id_can, {
           index: curtain.calculatedIndex ?? 0,
           address: parseInt(curtain.address),
@@ -106,11 +93,6 @@ export function SendCurtainConfigDialog({ open, onOpenChange, items = [] }) {
     onProgress(0, "Deleting existing curtain configs...");
     for (const unit of selectedUnits) {
       try {
-        console.log("Deleting all curtain configs from unit:", {
-          unitIp: unit.ip_address,
-          canId: unit.id_can,
-        });
-
         await window.electronAPI.curtainController.deleteAllCurtains(unit.ip_address, unit.id_can);
 
         operationResults.push({
@@ -169,19 +151,6 @@ export function SendCurtainConfigDialog({ open, onOpenChange, items = [] }) {
       // Send curtain config to all selected units
       for (const unit of selectedUnits) {
         try {
-          console.log("Sending curtain config to unit:", {
-            unitIp: unit.ip_address,
-            canId: unit.id_can,
-            index: curtainIndex,
-            address: parseInt(currentCurtain.address),
-            curtainType: curtainTypeValue,
-            pausePeriod: currentCurtain.pause_period || 0,
-            transitionPeriod: currentCurtain.transition_period || 0,
-            openGroup: parseInt(openGroup.address),
-            closeGroup: parseInt(closeGroup.address),
-            stopGroup: stopGroup ? parseInt(stopGroup.address) : 0,
-          });
-
           const success = await window.electronAPI.curtainController.setCurtainConfig(unit.ip_address, unit.id_can, {
             index: curtainIndex,
             address: parseInt(currentCurtain.address),

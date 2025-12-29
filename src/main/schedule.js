@@ -98,7 +98,7 @@ export function registerScheduleHandlers(ipcMain, dbService, rcu) {
 
   ipcMain.handle("schedule:send", async (event, params) => {
     try {
-      const { unitIp, canId, scheduleIndex, enabled, weekDays, hour, minute, sceneAddresses } = params;
+      const { unitIp, canId, scheduleIndex, enabled, weekDays, hour, minute, sceneAddresses, mode, intervalTime, dmxDuration } = params;
 
       return await rcu.setupSchedule(unitIp, canId, {
         scheduleIndex,
@@ -107,6 +107,9 @@ export function registerScheduleHandlers(ipcMain, dbService, rcu) {
         hour,
         minute,
         sceneAddresses,
+        mode,
+        intervalTime,
+        dmxDuration,
       });
     } catch (error) {
       console.error("Error sending schedule:", error);
