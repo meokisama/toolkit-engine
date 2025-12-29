@@ -1,8 +1,21 @@
-import { getUnitIOSpec } from "@/utils/io-config-utils";
-import { getOutputTypeForIndex, getOutputTypeName, getOutputTypeIndex } from "./output-type-utils";
-import { findOrCreateDeviceByAddress } from "./device-management-utils";
+/**
+ * I/O Configuration Reader
+ * Reads input and output configurations from network units and converts to database format
+ */
 
-// Helper function to read I/O configurations from network unit
+import { getUnitIOSpec } from "@/utils/io-config-utils";
+import { getOutputTypeForIndex, getOutputTypeName, getOutputTypeIndex } from "../../../network-units/utils/output-type-utils";
+import { findOrCreateDeviceByAddress } from "../../../network-units/utils/device-management-utils";
+
+/**
+ * Read I/O configurations from network unit
+ * @param {Object} networkUnit - Network unit to read from
+ * @param {Object} selectedProject - Selected project
+ * @param {Object} projectItems - All project items
+ * @param {Function} createItem - Function to create new items
+ * @param {Object} createdItemsCache - Cache for created items
+ * @returns {Promise<Object>} Object with input_configs and output_configs
+ */
 export async function readIOConfigurations(networkUnit, selectedProject, projectItems, createItem, createdItemsCache) {
   const ioSpec = getUnitIOSpec(networkUnit.type);
   if (!ioSpec) {
