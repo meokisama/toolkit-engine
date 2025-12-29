@@ -1,19 +1,23 @@
-import { readCurtainConfigurations } from "./read-curtain";
-import { readSceneConfigurations } from "./read-scene";
-import { readScheduleConfigurations } from "./read-schedule";
-import { readKnxConfigurations } from "./read-knx";
-import { readMultiSceneConfigurations } from "./read-multi-scene";
-import { readSequenceConfigurations } from "./read-sequence";
+/**
+ * Transfer Service - Orchestrates the transfer of configurations from network units to database
+ */
+
+import { readCurtainConfigurations } from "../readers/curtain";
+import { readSceneConfigurations } from "../readers/scene";
+import { readScheduleConfigurations } from "../readers/schedule";
+import { readKnxConfigurations } from "../readers/knx";
+import { readMultiSceneConfigurations } from "../readers/multi-scene";
+import { readSequenceConfigurations } from "../readers/sequence";
 
 /**
- * Read all advanced configurations from network unit and create them in database
- * This is the main orchestrator function that calls all specific configuration readers
+ * Transfer all advanced configurations from network unit to database
+ * This is the main orchestrator function that coordinates all configuration readers
  * @param {Object} networkUnit - The network unit to read from
  * @param {Object} importedUnit - The imported unit in database
  * @param {string} projectId - The project ID
- * @returns {Promise<void>}
+ * @returns {Promise<Object>} Summary of transferred configurations
  */
-export const readAdvancedConfigurations = async (networkUnit, importedUnit, projectId) => {
+export const transferAdvancedConfigurations = async (networkUnit, importedUnit, projectId) => {
   try {
     console.log(`Reading advanced configurations for unit ${networkUnit.ip_address}...`);
 
@@ -63,10 +67,15 @@ export const readAdvancedConfigurations = async (networkUnit, importedUnit, proj
     };
 
     const totalConfigs = Object.values(configSummary).reduce((sum, count) => sum + count, 0);
-    console.log(`Advanced configurations read successfully for unit ${networkUnit.ip_address}:`, configSummary);
+    console.log(`Advanced configurations transferred successfully for unit ${networkUnit.ip_address}:`, configSummary);
     console.log(`Total configurations created: ${totalConfigs}`);
+
+    return { configSummary, totalConfigs };
   } catch (error) {
-    console.error(`Failed to read advanced configurations for unit ${networkUnit.ip_address}:`, error);
+    console.error(`Failed to transfer advanced configurations for unit ${networkUnit.ip_address}:`, error);
     throw error;
   }
 };
+
+// Alias for backward compatibility
+export const readAdvancedConfigurations = transferAdvancedConfigurations;

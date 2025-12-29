@@ -17,7 +17,7 @@ import { ComparisonDifferencesDialog, useConfigComparison } from "../comparison"
 import { toast } from "sonner";
 import { createDefaultRS485Config } from "@/utils/rs485-utils";
 import { createDefaultInputConfigs, createDefaultOutputConfigs } from "@/utils/io-config-utils";
-import { readAdvancedConfigurations } from "./utils";
+import { readAdvancedConfigurations } from "../transfer";
 
 export function UnitTable() {
   const category = "unit";

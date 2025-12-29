@@ -1,4 +1,4 @@
-import { findOrCreateDatabaseItemByNetworkItem, getObjectTypeFromValue } from "./config-helpers";
+import { findOrCreateDatabaseItemByNetworkItem, getObjectTypeFromValue } from "../utils/config-helpers";
 
 /**
  * Read scene configurations from network unit and create them in database

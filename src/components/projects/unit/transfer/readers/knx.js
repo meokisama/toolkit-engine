@@ -1,4 +1,4 @@
-import { findOrCreateLightingByAddress } from "./config-helpers";
+import { findOrCreateLightingByAddress } from "../utils/config-helpers";
 
 /**
  * Read KNX configurations from network unit and create them in database
