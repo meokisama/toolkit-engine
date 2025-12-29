@@ -2,13 +2,13 @@
  * Configuration comparison orchestrator - coordinates all comparison operations
  */
 
-import { compareRS485Config, compareInputConfigs } from "./comparators/basic-comparator";
-import { compareOutputConfigs } from "./comparators/output-comparator";
-import { compareScenes, compareMultiScenes } from "./comparators/scene-comparator";
-import { compareSchedules } from "./comparators/schedule-comparator";
-import { compareCurtains } from "./comparators/curtain-comparator";
-import { compareKnx } from "./comparators/knx-comparator";
-import { compareSequences } from "./comparators/sequence-comparator";
+import { compareRS485Config, compareInputConfigs } from "./basic";
+import { compareOutputConfigs } from "./output";
+import { compareScenes, compareMultiScenes } from "./scene";
+import { compareSchedules } from "./schedule";
+import { compareCurtains } from "./curtain";
+import { compareKnx } from "./knx";
+import { compareSequences } from "./sequence";
 
 /**
  * Compare all configurations between a database unit and network unit

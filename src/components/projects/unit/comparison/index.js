@@ -3,16 +3,16 @@
  */
 
 // Orchestrator exports
-export { compareUnitConfigurations } from "./orchestrator";
+export { compareUnitConfigurations } from "./comparators/orchestrator";
 
 // Comparator exports
-export { compareRS485Config, compareInputConfigs } from "./comparators/basic-comparator";
-export { compareOutputConfigs } from "./comparators/output-comparator";
-export { compareScenes, compareMultiScenes } from "./comparators/scene-comparator";
-export { compareSchedules } from "./comparators/schedule-comparator";
-export { compareCurtains } from "./comparators/curtain-comparator";
-export { compareKnx } from "./comparators/knx-comparator";
-export { compareSequences } from "./comparators/sequence-comparator";
+export { compareRS485Config, compareInputConfigs } from "./comparators/basic";
+export { compareOutputConfigs } from "./comparators/output";
+export { compareScenes, compareMultiScenes } from "./comparators/scene";
+export { compareSchedules } from "./comparators/schedule";
+export { compareCurtains } from "./comparators/curtain";
+export { compareKnx } from "./comparators/knx";
+export { compareSequences } from "./comparators/sequence";
 export { findMatchingUnits } from "./comparators/unit-matcher";
 
 // Service exports

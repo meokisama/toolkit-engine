@@ -1,7 +1,7 @@
 import { useState, useCallback, useRef } from "react";
 import { toast } from "sonner";
 import { findMatchingUnits } from "./comparators/unit-matcher";
-import { compareUnitConfigurations } from "./orchestrator";
+import { compareUnitConfigurations } from "./comparators/orchestrator";
 import { readNetworkUnitConfigurations } from "./services/network-config-service";
 import { getDatabaseConfigurations } from "./services/database-config-service";
 import { getNetworkUnitCacheKey } from "./utils/unit-key-utils";
