@@ -3,7 +3,7 @@
  */
 
 // Orchestrator exports
-export { compareUnitConfigurations } from "./config-orchestrator";
+export { compareUnitConfigurations } from "./orchestrator";
 
 // Comparator exports
 export { compareRS485Config, compareInputConfigs } from "./comparators/basic-comparator";
@@ -25,7 +25,7 @@ export { convertNetworkToDialogFormat } from "./utils/network-format-converter";
 export { getNetworkUnitCacheKey, getDatabaseUnitKey, getNetworkUnitKey } from "./utils/unit-key-utils";
 
 // Hook exports
-export { useConfigComparison } from "./use-config-comparison";
+export { useConfigComparison } from "./use-comparison";
 
 // Component exports
-export { ComparisonDifferencesDialog } from "./comparison-differences-dialog";
+export { ComparisonDifferencesDialog } from "./comparison-dialog";
