@@ -5,16 +5,18 @@
 
 /**
  * Get database configurations for a project (scenes, schedules, curtains, knx, multi scenes, sequences)
+ * Filters scenes, schedules, multi-scenes, and sequences by source_unit to only include items
+ * that belong to the specified database unit.
  * @param {Object} databaseUnit - Database unit object
  * @param {number} projectId - Project ID
  * @returns {Object} Database configurations with scenes, schedules, curtains, knx, multiScenes, sequences
  */
 export async function getDatabaseConfigurations(databaseUnit, projectId) {
   try {
-    console.log(`Loading database configurations for project ${projectId}`);
+    console.log(`Loading database configurations for project ${projectId}, unit ${databaseUnit.id} (${databaseUnit.type} - ${databaseUnit.ip_address})`);
 
     // Load all database configurations in parallel
-    const [scenes, schedules, curtains, knx, multiScenes, sequences] = await Promise.all([
+    const [allScenes, allSchedules, curtains, knx, allMultiScenes, allSequences] = await Promise.all([
       window.electronAPI.scene.getAll(projectId),
       window.electronAPI.schedule.getAll(projectId),
       window.electronAPI.curtain.getAll(projectId),
@@ -22,6 +24,13 @@ export async function getDatabaseConfigurations(databaseUnit, projectId) {
       window.electronAPI.multiScenes.getAll(projectId),
       window.electronAPI.sequences.getAll(projectId),
     ]);
+
+    // Filter scenes, schedules, multi-scenes, and sequences by source_unit
+    // Only include items where source_unit matches the current database unit
+    const scenes = allScenes.filter((item) => item.source_unit === databaseUnit.id);
+    const schedules = allSchedules.filter((item) => item.source_unit === databaseUnit.id);
+    const multiScenes = allMultiScenes.filter((item) => item.source_unit === databaseUnit.id);
+    const sequences = allSequences.filter((item) => item.source_unit === databaseUnit.id);
 
     // For scenes, we need to get scene items as well
     const scenesWithItems = await Promise.all(
@@ -75,7 +84,7 @@ export async function getDatabaseConfigurations(databaseUnit, projectId) {
       })
     );
 
-    console.log(`Loaded database configurations:`, {
+    console.log(`Loaded database configurations for unit ${databaseUnit.id} (filtered by source_unit):`, {
       scenes: scenesWithItems.length,
       schedules: schedulesWithScenes.length,
       curtains: curtains.length,
