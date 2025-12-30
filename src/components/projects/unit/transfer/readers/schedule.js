@@ -30,7 +30,7 @@ export const readScheduleConfigurations = async (networkUnit, projectId, sceneAd
 
           // Convert weekDays array to days string format for database
           const daysArray = networkSchedule.weekDays || [false, false, false, false, false, false, false];
-          const dayNames = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
+          const dayNames = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"];
           const enabledDays = dayNames.filter((_, index) => daysArray[index]);
 
           // Format time as HH:MM
