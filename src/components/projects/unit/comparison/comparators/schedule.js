@@ -78,17 +78,13 @@ export function compareSchedules(databaseSchedules, networkSchedules) {
       return;
     }
 
-    // Compare schedule properties
-    const scheduleFields = [
-      { name: "name", label: "Name" },
-      { name: "enabled", label: "Enabled" },
-    ];
+    // Compare enabled status (database stores as 0/1, network as true/false)
+    const dbEnabled = Boolean(dbSchedule.enabled);
+    const netEnabled = Boolean(netSchedule.enabled);
 
-    scheduleFields.forEach((field) => {
-      if (dbSchedule[field.name] !== netSchedule[field.name]) {
-        differences.push(`Schedule ${scheduleIndex} ${field.label}: DB="${dbSchedule[field.name]}", Network="${netSchedule[field.name]}"`);
-      }
-    });
+    if (dbEnabled !== netEnabled) {
+      differences.push(`Schedule ${scheduleIndex} Enabled: DB=${dbEnabled}, Network=${netEnabled}`);
+    }
 
     // Compare time (database stores as "HH:MM", network has hour and minute)
     if (dbSchedule.time) {
