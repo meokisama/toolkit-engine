@@ -140,7 +140,7 @@ export const useIOConfig = (item, open) => {
             multiGroupConfig: savedConfig?.multi_group_config || [],
             rlcConfig: {
               ramp: savedConfig?.rlc_config?.ramp || 0,
-              preset: savedConfig?.rlc_config?.preset || 100,
+              preset: savedConfig?.rlc_config?.preset || 255,
               ledStatus: savedConfig?.rlc_config?.ledStatus || 0,
               autoMode: savedConfig?.rlc_config?.autoMode || 0,
               delayOff: savedConfig?.rlc_config?.delayOff || 0,
@@ -245,7 +245,7 @@ export const useIOConfig = (item, open) => {
             multi_group_config: multiGroupConfig.multiGroupConfig || [],
             rlc_config: {
               ramp: multiGroupConfig.ramp || rlcConfig.ramp || 0,
-              preset: multiGroupConfig.preset || rlcConfig.preset || 100,
+              preset: multiGroupConfig.preset || rlcConfig.preset || 255,
               ledStatus: multiGroupConfig.led_status || rlcConfig.ledStatus || 0,
               autoMode: multiGroupConfig.auto_mode || rlcConfig.autoMode || 0,
               delayOff: multiGroupConfig.delay_off || rlcConfig.delayOff || 0,
