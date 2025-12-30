@@ -45,9 +45,9 @@ export function compareKnx(databaseKnx, networkKnx) {
   // Get all unique addresses
   const allAddresses = new Set([...dbKnxMap.keys(), ...netKnxMap.keys()]);
 
-  // Compare KNX count (using filtered arrays)
+  // Compare valid KNX count
   if (validDbKnx.length !== validNetKnx.length) {
-    differences.push(`KNX count: DB=${validDbKnx.length}, Network=${validNetKnx.length}`);
+    differences.push(`Valid KNX count: DB=${validDbKnx.length}, Network=${validNetKnx.length}`);
   }
 
   // Compare KNX configs by address

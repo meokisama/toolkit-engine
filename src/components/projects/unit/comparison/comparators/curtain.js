@@ -21,8 +21,8 @@ export function compareCurtains(databaseCurtains, networkCurtains) {
   const dbCurtains = Array.isArray(databaseCurtains) ? databaseCurtains : [];
   const netCurtains = Array.isArray(networkCurtains) ? networkCurtains : [];
 
-  // Filter out disabled curtains (type = 0) from both database and network
-  // This matches the behavior for other disabled configurations
+  // Filter out invalid curtains (type = 0) from both database and network
+  // This matches the behavior in Curtain Control dialog
   const validDbCurtains = dbCurtains.filter((curtain) => curtain.type !== 0);
   const validNetCurtains = netCurtains.filter((curtain) => curtain.type !== 0);
 
@@ -45,9 +45,9 @@ export function compareCurtains(databaseCurtains, networkCurtains) {
   // Get all unique addresses
   const allAddresses = new Set([...dbCurtainMap.keys(), ...netCurtainMap.keys()]);
 
-  // Compare curtain count (using filtered arrays)
+  // Compare valid curtain count
   if (validDbCurtains.length !== validNetCurtains.length) {
-    differences.push(`Curtain count: DB=${validDbCurtains.length}, Network=${validNetCurtains.length}`);
+    differences.push(`Valid Curtain count: DB=${validDbCurtains.length}, Network=${validNetCurtains.length}`);
   }
 
   // Compare curtains by address
