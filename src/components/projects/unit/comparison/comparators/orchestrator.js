@@ -1,5 +1,5 @@
 import { compareRS485Config } from "./rs485";
-export { compareInputConfigs } from "./input";
+import { compareInputConfigs } from "./input";
 import { compareOutputConfigs } from "./output";
 import { compareScenes } from "./scene";
 import { compareMultiScenes } from "./multi-scenes";
