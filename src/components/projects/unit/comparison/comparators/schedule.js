@@ -33,44 +33,48 @@ export function compareSchedules(databaseSchedules, networkSchedules) {
     return !(schedule.enabled === false && sceneCount === 0);
   });
 
-  // Create maps for easier comparison by address
+  // Create maps for easier comparison by schedule index
   const dbScheduleMap = new Map();
   const netScheduleMap = new Map();
 
   validDbSchedules.forEach((schedule) => {
-    if (schedule.address !== undefined) {
-      dbScheduleMap.set(schedule.address, schedule);
+    // Extract schedule index from name pattern "Schedule {number}"
+    const match = schedule.name?.match(/Schedule (\d+)/);
+    if (match) {
+      const scheduleIndex = parseInt(match[1]);
+      dbScheduleMap.set(scheduleIndex, schedule);
     }
   });
 
   validNetSchedules.forEach((schedule) => {
-    if (schedule.address !== undefined) {
-      netScheduleMap.set(schedule.address, schedule);
+    // Network schedules use scheduleIndex field
+    if (schedule.scheduleIndex !== undefined) {
+      netScheduleMap.set(schedule.scheduleIndex, schedule);
     }
   });
 
-  // Get all unique addresses
-  const allAddresses = new Set([...dbScheduleMap.keys(), ...netScheduleMap.keys()]);
+  // Get all unique schedule indices
+  const allIndices = new Set([...dbScheduleMap.keys(), ...netScheduleMap.keys()]);
 
   // Compare valid schedule count
   if (validDbSchedules.length !== validNetSchedules.length) {
     differences.push(`Valid Schedule count: DB=${validDbSchedules.length}, Network=${validNetSchedules.length}`);
   }
 
-  // Compare schedules by address
-  allAddresses.forEach((address) => {
-    const dbSchedule = dbScheduleMap.get(address);
-    const netSchedule = netScheduleMap.get(address);
+  // Compare schedules by schedule index
+  allIndices.forEach((scheduleIndex) => {
+    const dbSchedule = dbScheduleMap.get(scheduleIndex);
+    const netSchedule = netScheduleMap.get(scheduleIndex);
 
     if (!dbSchedule && !netSchedule) return;
 
     if (!dbSchedule) {
-      differences.push(`Schedule Address ${address}: Only exists in Network unit`);
+      differences.push(`Schedule ${scheduleIndex}: Only exists in Network unit`);
       return;
     }
 
     if (!netSchedule) {
-      differences.push(`Schedule Address ${address}: Only exists in Database unit`);
+      differences.push(`Schedule ${scheduleIndex}: Only exists in Database unit`);
       return;
     }
 
@@ -82,7 +86,7 @@ export function compareSchedules(databaseSchedules, networkSchedules) {
 
     scheduleFields.forEach((field) => {
       if (dbSchedule[field.name] !== netSchedule[field.name]) {
-        differences.push(`Schedule ${address} ${field.label}: DB="${dbSchedule[field.name]}", Network="${netSchedule[field.name]}"`);
+        differences.push(`Schedule ${scheduleIndex} ${field.label}: DB="${dbSchedule[field.name]}", Network="${netSchedule[field.name]}"`);
       }
     });
 
@@ -93,14 +97,14 @@ export function compareSchedules(databaseSchedules, networkSchedules) {
       const netMinute = netSchedule.minute || 0;
 
       if (dbHour !== netHour || dbMinute !== netMinute) {
-        differences.push(`Schedule ${address} Time: DB="${dbSchedule.time}", Network="${String(netHour).padStart(2, "0")}:${String(netMinute).padStart(2, "0")}"`);
+        differences.push(`Schedule ${scheduleIndex} Time: DB="${dbSchedule.time}", Network="${String(netHour).padStart(2, "0")}:${String(netMinute).padStart(2, "0")}"`);
       }
     }
 
     // Compare days of week
-    // Database stores as JSON array of day names, network stores as boolean array
+    // Database stores as JSON array of day names ["monday", "tuesday", ...], network stores as boolean array
     try {
-      const dbDays = dbSchedule.days_of_week || dbSchedule.days || [];
+      const dbDays = dbSchedule.days || [];
       const dbDaysArray = typeof dbDays === "string" ? JSON.parse(dbDays) : dbDays;
       const netDaysArray = netSchedule.weekDays || [];
 
@@ -108,21 +112,22 @@ export function compareSchedules(databaseSchedules, networkSchedules) {
       const dayNamesLower = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"];
 
       // Convert database day names to boolean array
-      const dbDaysBoolArray = dayNames.map((day, index) =>
-        dbDaysArray.some((d) => d.toLowerCase() === dayNamesLower[index])
+      // Database has array like ["monday", "friday"] -> convert to [true, false, false, false, true, false, false]
+      const dbDaysBoolArray = dayNamesLower.map((dayName) =>
+        dbDaysArray.some((d) => d.toLowerCase() === dayName)
       );
 
       // Compare the boolean arrays
       if (JSON.stringify(dbDaysBoolArray) !== JSON.stringify(netDaysArray)) {
         const dbDaysStr = dayNames.filter((_, i) => dbDaysBoolArray[i]).join(", ");
         const netDaysStr = dayNames.filter((_, i) => netDaysArray[i]).join(", ");
-        differences.push(`Schedule ${address} Days: DB="${dbDaysStr}", Network="${netDaysStr}"`);
+        differences.push(`Schedule ${scheduleIndex} Days: DB="${dbDaysStr}", Network="${netDaysStr}"`);
       }
     } catch (error) {
-      console.error(`Failed to compare days for schedule ${address}:`, error);
+      console.error(`Failed to compare days for schedule ${scheduleIndex}:`, error);
     }
 
-    // Compare schedule scenes as a SET (order doesn't matter in schedule)
+    // Compare schedule scenes - only check count and if equal, check if addresses match
     const dbScenes = dbSchedule.scenes || [];
     const netScenes = netSchedule.sceneAddresses || [];
 
@@ -131,14 +136,18 @@ export function compareSchedules(databaseSchedules, networkSchedules) {
     const netSceneAddresses = netScenes.map((s) => parseInt(s)).sort((a, b) => a - b);
 
     if (dbSceneAddresses.length !== netSceneAddresses.length) {
-      differences.push(`Schedule ${address} Scene count: DB=${dbSceneAddresses.length}, Network=${netSceneAddresses.length}`);
-    } else {
-      // Compare sorted arrays
-      for (let i = 0; i < dbSceneAddresses.length; i++) {
-        if (dbSceneAddresses[i] !== netSceneAddresses[i]) {
-          differences.push(`Schedule ${address} Scenes: DB=[${dbSceneAddresses.join(", ")}], Network=[${netSceneAddresses.join(", ")}]`);
-          break;
-        }
+      differences.push(`Schedule ${scheduleIndex} Scene count: DB=${dbSceneAddresses.length}, Network=${netSceneAddresses.length}`);
+    } else if (dbSceneAddresses.length > 0) {
+      // If counts are equal, check if all scene addresses are the same
+      const dbAddressesSet = new Set(dbSceneAddresses);
+      const netAddressesSet = new Set(netSceneAddresses);
+
+      // Check if all addresses match (as sets, order doesn't matter)
+      const allMatch = dbSceneAddresses.every((addr) => netAddressesSet.has(addr)) &&
+                       netSceneAddresses.every((addr) => dbAddressesSet.has(addr));
+
+      if (!allMatch) {
+        differences.push(`Schedule ${scheduleIndex} Scenes: DB=[${dbSceneAddresses.join(", ")}], Network=[${netSceneAddresses.join(", ")}]`);
       }
     }
   });
