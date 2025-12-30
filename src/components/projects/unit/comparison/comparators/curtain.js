@@ -25,7 +25,10 @@ export function compareCurtains(databaseCurtains, networkCurtains) {
   // This matches the behavior in Curtain Control dialog
   // Database uses 'type', Network uses 'curtainType'
   const validDbCurtains = dbCurtains.filter((curtain) => curtain.type !== 0);
-  const validNetCurtains = netCurtains.filter((curtain) => (curtain.curtainType || curtain.type) !== 0);
+  const validNetCurtains = netCurtains.filter((curtain) => {
+    const type = curtain.curtainType !== undefined ? curtain.curtainType : curtain.type;
+    return type !== 0;
+  });
 
   // Create maps for easier comparison by address
   const dbCurtainMap = new Map();
@@ -71,7 +74,7 @@ export function compareCurtains(databaseCurtains, networkCurtains) {
     // Compare curtain properties (skip name as it's not meaningful for comparison)
     // Database uses 'type', Network uses 'curtainType'
     const dbType = dbCurtain.type;
-    const netType = netCurtain.curtainType || netCurtain.type;
+    const netType = netCurtain.curtainType !== undefined ? netCurtain.curtainType : netCurtain.type;
 
     if (dbType !== netType) {
       differences.push(`Curtain ${address} Type: DB=${dbType}, Network=${netType}`);
