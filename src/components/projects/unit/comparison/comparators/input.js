@@ -32,6 +32,15 @@ export function compareInputConfigs(databaseInputs, networkInputs) {
       continue;
     }
 
+    // Skip detailed comparison if both inputs are unused (function_value = 0)
+    const dbFunctionValue = dbInput.function_value || 0;
+    const netFunctionValue = netInput.function_value || 0;
+
+    if (dbFunctionValue === 0 && netFunctionValue === 0) {
+      // Both inputs are unused, skip detailed comparison
+      continue;
+    }
+
     // Compare input properties based on actual structure from transfer function
     const fieldsToCompare = [
       { name: "index", label: "Index" },

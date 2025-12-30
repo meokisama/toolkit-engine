@@ -98,7 +98,7 @@ export const useNetworkInputConfig = (item, projectItems, refreshInputConfigs = 
     // Use config from local state (passed from parent)
     const localConfig = currentInputConfig || {
       ramp: 0,
-      preset: 100,
+      preset: 255,
       led_status: 0,
       auto_mode: 0,
       auto_time: 0,
@@ -110,7 +110,7 @@ export const useNetworkInputConfig = (item, projectItems, refreshInputConfigs = 
     // Convert local config to dialog format
     const convertedConfig = {
       ramp: localConfig.rlcConfig?.ramp ?? localConfig.ramp ?? 0,
-      preset: localConfig.rlcConfig?.preset ?? localConfig.preset ?? 100,
+      preset: localConfig.rlcConfig?.preset ?? localConfig.preset ?? 255,
       led_status: localConfig.rlcConfig?.ledStatus ?? localConfig.led_status ?? 0,
       auto_mode: localConfig.rlcConfig?.autoMode ?? localConfig.auto_mode ?? 0,
       auto_time: 0,

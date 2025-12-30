@@ -23,8 +23,9 @@ export function compareCurtains(databaseCurtains, networkCurtains) {
 
   // Filter out invalid curtains (type = 0) from both database and network
   // This matches the behavior in Curtain Control dialog
+  // Database uses 'type', Network uses 'curtainType'
   const validDbCurtains = dbCurtains.filter((curtain) => curtain.type !== 0);
-  const validNetCurtains = netCurtains.filter((curtain) => curtain.type !== 0);
+  const validNetCurtains = netCurtains.filter((curtain) => (curtain.curtainType || curtain.type) !== 0);
 
   // Create maps for easier comparison by address
   const dbCurtainMap = new Map();
@@ -68,16 +69,18 @@ export function compareCurtains(databaseCurtains, networkCurtains) {
     }
 
     // Compare curtain properties (skip name as it's not meaningful for comparison)
-    const fieldsToCompare = [
-      { name: "type", label: "Type" },
-      { name: "runtime", label: "Runtime" },
-    ];
+    // Database uses 'type', Network uses 'curtainType'
+    const dbType = dbCurtain.type;
+    const netType = netCurtain.curtainType || netCurtain.type;
 
-    fieldsToCompare.forEach((field) => {
-      if (dbCurtain[field.name] !== netCurtain[field.name]) {
-        differences.push(`Curtain ${address} ${field.label}: DB=${dbCurtain[field.name]}, Network=${netCurtain[field.name]}`);
-      }
-    });
+    if (dbType !== netType) {
+      differences.push(`Curtain ${address} Type: DB=${dbType}, Network=${netType}`);
+    }
+
+    // Compare runtime
+    if (dbCurtain.runtime !== netCurtain.runtime) {
+      differences.push(`Curtain ${address} Runtime: DB=${dbCurtain.runtime}, Network=${netCurtain.runtime}`);
+    }
   });
 
   return {

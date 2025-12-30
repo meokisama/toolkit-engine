@@ -58,7 +58,7 @@ export function InputDetailConfigDialog({
     // Ensure consistent property names
     return {
       ramp: initialRlcOptions.ramp || 0,
-      preset: initialRlcOptions.preset || 100,
+      preset: initialRlcOptions.preset || 255,
       ledStatus: initialRlcOptions.ledStatus || initialRlcOptions.led_status || 0,
       autoMode: initialRlcOptions.autoMode || initialRlcOptions.auto_mode || 0,
       delayOff: initialRlcOptions.delayOff || initialRlcOptions.delay_off || 0,

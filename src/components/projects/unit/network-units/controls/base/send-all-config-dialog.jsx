@@ -411,7 +411,7 @@ function SendAllConfigDialogComponent({ open, onOpenChange }) {
             functionValue: input.function_value || 0, // Use functionValue for compatibility
             lightingId: input.lighting_id,
             ramp: input.rlc_config?.ramp || 0,
-            preset: input.rlc_config?.preset || 100,
+            preset: input.rlc_config?.preset || 255,
             ledStatus: input.rlc_config?.ledStatus || 0, // Use ledStatus for compatibility
             autoMode: input.rlc_config?.autoMode || 0, // Use autoMode for compatibility
             delayOff: input.rlc_config?.delayOff || 0, // Use delayOff for compatibility
