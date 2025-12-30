@@ -4,8 +4,8 @@
  */
 
 import { getUnitIOSpec } from "@/utils/io-config-utils";
-import { getOutputTypeForIndex, getOutputTypeName, getOutputTypeIndex } from "../../../network-units/utils/output-type-utils";
-import { findOrCreateDeviceByAddress } from "../../../network-units/utils/device-management-utils";
+import { getOutputTypeForIndex, getOutputTypeName, getOutputTypeIndex } from "@/components/projects/unit/network-units/utils/output-type-utils";
+import { findOrCreateDeviceByAddress } from "@/components/projects/unit/network-units/utils/device-management-utils";
 
 /**
  * Read I/O configurations from network unit

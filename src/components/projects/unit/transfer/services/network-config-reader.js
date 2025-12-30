@@ -1,6 +1,6 @@
 import { readRS485Configurations } from "../readers/rs485";
 import { readIOConfigurations } from "../readers/io-config";
-import { autoCreateMissingItems } from "../../../network-units/utils/device-management-utils";
+import { autoCreateMissingItems } from "@/components/projects/unit/network-units/utils/device-management-utils";
 import { toast } from "sonner";
 
 /**

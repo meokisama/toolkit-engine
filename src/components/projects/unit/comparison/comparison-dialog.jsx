@@ -27,54 +27,6 @@ export function ComparisonDifferencesDialog({ open, onOpenChange, comparisonSumm
         </DialogHeader>
 
         <div className="space-y-4">
-          {/* Summary Cards */}
-          <div className="grid grid-cols-4 gap-4">
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium">Total Matches</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{totalMatches}</div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium flex items-center gap-1">
-                  <CheckCircle className="h-4 w-4 text-green-500" />
-                  Identical
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold text-green-600">{identicalCount}</div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium flex items-center gap-1">
-                  <XCircle className="h-4 w-4 text-red-500" />
-                  Different
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold text-red-600">{differentCount}</div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium flex items-center gap-1">
-                  <AlertTriangle className="h-4 w-4 text-yellow-500" />
-                  Errors
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold text-yellow-600">{errorCount}</div>
-              </CardContent>
-            </Card>
-          </div>
-
           {/* Differences Details */}
           {allDifferences.length > 0 && (
             <div>
