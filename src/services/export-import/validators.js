@@ -1,32 +1,6 @@
 // Validation functions for export/import operations
 
 export class Validators {
-  // Validate project import data
-  static validateProjectImportData(data) {
-    if (!data || typeof data !== "object") return false;
-    if (!data.project || typeof data.project !== "object") return false;
-    if (!data.project.name || typeof data.project.name !== "string") return false;
-    if (!data.items || typeof data.items !== "object") return false;
-
-    // Check if items has valid categories
-    const validCategories = ["lighting", "aircon", "unit", "curtain", "knx", "scene", "schedule", "multi_scenes", "sequences"];
-    for (const category of validCategories) {
-      if (data.items[category] && !Array.isArray(data.items[category])) {
-        return false;
-      }
-    }
-
-    // Check if relationship tables are valid arrays (optional)
-    const relationshipTables = ["scene_items", "scene_address_items", "schedule_scenes", "multi_scene_scenes", "sequence_multi_scenes"];
-    for (const table of relationshipTables) {
-      if (data.items[table] && !Array.isArray(data.items[table])) {
-        return false;
-      }
-    }
-
-    return true;
-  }
-
   // Validate CSV headers based on category
   static validateCSVHeaders(headers, category) {
     let expectedHeaders;

@@ -5,21 +5,6 @@
 import { exportImportService as modularService } from "./export-import/index.js";
 
 class ExportImportService {
-  // Export project to JSON
-  async exportProject(project, projectItems) {
-    return modularService.exportProject(project, projectItems);
-  }
-
-  // Import project from JSON file
-  async importProjectFromFile() {
-    return modularService.importProjectFromFile();
-  }
-
-  // Validate project import data
-  validateProjectImportData(data) {
-    return modularService.validateProjectImportData(data);
-  }
-
   // Export project items to CSV
   async exportItemsToCSV(items, category, projectName) {
     return modularService.exportItemsToCSV(items, category, projectName);

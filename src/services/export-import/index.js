@@ -1,28 +1,10 @@
 // Export/Import service for projects and project items
-import { ProjectExporter } from "./project-export.js";
-import { ProjectImporter } from "./project-import.js";
 import { CSVExporter } from "./csv-export.js";
 import { CSVImporter } from "./csv-import.js";
 import { CSVParser } from "./csv-parser.js";
 import { CSVTemplateGenerator } from "./csv-template.js";
-import { Validators } from "./validators.js";
 
 class ExportImportService {
-  // Export project to JSON
-  async exportProject(project, projectItems) {
-    return ProjectExporter.exportProject(project, projectItems);
-  }
-
-  // Import project from JSON file
-  async importProjectFromFile() {
-    return ProjectImporter.importProjectFromFile();
-  }
-
-  // Validate project import data
-  validateProjectImportData(data) {
-    return Validators.validateProjectImportData(data);
-  }
-
   // Export project items to CSV
   async exportItemsToCSV(items, category, projectName) {
     return CSVExporter.exportItemsToCSV(items, category, projectName);
