@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from "react";
 import { toast } from "sonner";
+import { exportImportService } from "@/services/export-import";
 
 const ProjectContext = createContext();
 
@@ -77,6 +78,60 @@ export function ProjectProvider({ children }) {
     }
   }, []);
 
+  // Duplicate project - memoized to prevent recreating on every render
+  const duplicateProject = useCallback(async (id) => {
+    try {
+      const duplicatedProject = await window.electronAPI.projects.duplicate(id);
+      setProjects((prev) => [duplicatedProject, ...prev]);
+      toast.success("Project duplicated successfully");
+      return duplicatedProject;
+    } catch (err) {
+      console.error("Failed to duplicate project:", err);
+      const errorMessage = err.message || "Failed to duplicate project";
+      toast.error(errorMessage);
+      throw err;
+    }
+  }, []);
+
+  // Export project - memoized to prevent recreating on every render
+  const exportProject = useCallback(
+    async (id) => {
+      try {
+        const project = projects.find((p) => p.id === id);
+        if (!project) {
+          toast.error("Project not found");
+          return false;
+        }
+
+        const projectItems = await window.electronAPI.projects.getAllItems(id);
+        return await exportImportService.exportProject(project, projectItems);
+      } catch (err) {
+        console.error("Failed to export project:", err);
+        const errorMessage = err.message || "Failed to export project";
+        toast.error(errorMessage);
+        return false;
+      }
+    },
+    [projects]
+  );
+
+  // Import project - memoized to prevent recreating on every render
+  const importProject = useCallback(async (projectData, itemsData) => {
+    try {
+      const result = await window.electronAPI.projects.import(projectData, itemsData);
+      setProjects((prev) => [result.project, ...prev]);
+
+      const totalItems = Object.values(result.importedCounts).reduce((sum, count) => sum + count, 0);
+      toast.success(`Project imported successfully with ${totalItems} items`);
+      return result.project;
+    } catch (err) {
+      console.error("Failed to import project:", err);
+      const errorMessage = err.message || "Failed to import project";
+      toast.error(errorMessage);
+      throw err;
+    }
+  }, []);
+
   // Get project by ID - memoized to prevent recreating on every render
   const getProjectById = useCallback(
     (id) => {
@@ -100,6 +155,9 @@ export function ProjectProvider({ children }) {
       createProject,
       updateProject,
       deleteProject,
+      duplicateProject,
+      exportProject,
+      importProject,
       getProjectById,
     }),
     [
@@ -110,6 +168,9 @@ export function ProjectProvider({ children }) {
       createProject,
       updateProject,
       deleteProject,
+      duplicateProject,
+      exportProject,
+      importProject,
       getProjectById,
     ]
   );

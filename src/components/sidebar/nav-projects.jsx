@@ -1,5 +1,5 @@
 import React, { useState, useCallback } from "react";
-import { Folder, SquarePen, Trash2, Plus, ChevronRight, Library, Workflow, Home, Eclipse } from "lucide-react";
+import { Folder, SquarePen, Trash2, Copy, Plus, Download, Upload, ChevronRight, Library, Workflow, Home, Eclipse } from "lucide-react";
 import { ContextMenu, ContextMenuContent, ContextMenuItem, ContextMenuSeparator, ContextMenuTrigger } from "@/components/ui/context-menu";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import {
@@ -20,10 +20,11 @@ import { useProjects } from "@/contexts/project-context";
 import { useProjectDetail } from "@/contexts/project-detail-context";
 import { ProjectDialog } from "@/components/projects/project-dialog";
 import { ConfirmDialog } from "@/components/projects/confirm-dialog";
+import { ImportDialog } from "@/components/projects/import-project-dialog";
 
 export function NavProjects() {
   const { isMobile } = useSidebar();
-  const { projects, loading, deleteProject } = useProjects();
+  const { projects, loading, deleteProject, duplicateProject, exportProject, importProject } = useProjects();
   const { selectProjectSection, selectedProject, activeSection } = useProjectDetail();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingProject, setEditingProject] = useState(null);
@@ -31,6 +32,7 @@ export function NavProjects() {
   const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
   const [projectToDelete, setProjectToDelete] = useState(null);
   const [deleteLoading, setDeleteLoading] = useState(false);
+  const [importDialogOpen, setImportDialogOpen] = useState(false);
   const [expandedProjects, setExpandedProjects] = useState(new Set());
 
   // Memoize handlers to prevent unnecessary rerenders
@@ -46,10 +48,49 @@ export function NavProjects() {
     setDialogOpen(true);
   }, []);
 
+  const handleDuplicateProject = useCallback(
+    async (project) => {
+      try {
+        await duplicateProject(project.id);
+      } catch (error) {
+        console.error("Failed to duplicate project:", error);
+      }
+    },
+    [duplicateProject]
+  );
+
   const handleDeleteProject = useCallback((project) => {
     setProjectToDelete(project);
     setConfirmDialogOpen(true);
   }, []);
+
+  const handleExportProject = useCallback(
+    async (project) => {
+      try {
+        await exportProject(project.id);
+      } catch (error) {
+        console.error("Failed to export project:", error);
+      }
+    },
+    [exportProject]
+  );
+
+  const handleImportProject = useCallback(() => {
+    setImportDialogOpen(true);
+  }, []);
+
+  const handleImportConfirm = useCallback(
+    async (projectData, itemsData) => {
+      try {
+        const newProject = await importProject(projectData, itemsData);
+        // Optionally select the newly imported project
+        selectProjectSection(newProject, "group-config");
+      } catch (error) {
+        console.error("Failed to import project:", error);
+      }
+    },
+    [importProject, selectProjectSection]
+  );
 
   // Toggle project expansion
   const toggleProject = useCallback((projectId) => {
@@ -136,6 +177,19 @@ export function NavProjects() {
                               <SquarePen className="text-muted-foreground" />
                               <span>Edit Project</span>
                             </ContextMenuItem>
+                            <ContextMenuItem onClick={() => handleDuplicateProject(project)} className="cursor-pointer">
+                              <Copy className="text-muted-foreground" />
+                              <span>Duplicate Project</span>
+                            </ContextMenuItem>
+                            <ContextMenuSeparator />
+                            <ContextMenuItem onClick={() => handleExportProject(project)} className="cursor-pointer">
+                              <Download className="text-muted-foreground" />
+                              <span>Export Project</span>
+                            </ContextMenuItem>
+                            <ContextMenuItem onClick={handleImportProject} className="cursor-pointer">
+                              <Upload className="text-muted-foreground" />
+                              <span>Import Project</span>
+                            </ContextMenuItem>
                             <ContextMenuSeparator />
                             <ContextMenuItem onClick={() => handleDeleteProject(project)} className="cursor-pointer" variant="destructive">
                               <Trash2 />
@@ -202,6 +256,11 @@ export function NavProjects() {
             <Plus className="text-muted-foreground" />
             <span>Add Project</span>
           </ContextMenuItem>
+          <ContextMenuSeparator />
+          <ContextMenuItem onClick={handleImportProject} className="cursor-pointer">
+            <Upload className="text-muted-foreground" />
+            <span>Import Project</span>
+          </ContextMenuItem>
         </ContextMenuContent>
       </ContextMenu>
 
@@ -218,6 +277,8 @@ export function NavProjects() {
         onConfirm={confirmDeleteProject}
         loading={deleteLoading}
       />
+
+      <ImportDialog open={importDialogOpen} onOpenChange={setImportDialogOpen} onImport={handleImportConfirm} />
     </>
   );
 }
