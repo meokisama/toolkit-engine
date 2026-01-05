@@ -7,18 +7,17 @@ import { UnitDialog } from "./database-unit-dialog";
 import { IOConfigDialog } from "./io-config";
 import { ConfirmDialog } from "@/components/projects/confirm-dialog";
 import { ImportItemsDialog } from "@/components/projects/import-category-dialog";
-import { ComparisonDifferencesDialog } from "../shared/comparison-differences-dialog";
 import { DataTable } from "@/components/projects/data-table/data-table";
 import { DataTableToolbar } from "@/components/projects/data-table/data-table-toolbar";
 import { DataTablePagination } from "@/components/projects/data-table/data-table-pagination";
 import { DataTableSkeleton } from "@/components/projects/table-skeleton";
 import { createUnitColumns } from "./database-unit-columns";
 import { NetworkUnitTable } from "../network-units/network-unit-table";
-import { useConfigComparison } from "@/hooks/use-config-comparison";
+import { ComparisonDifferencesDialog, useConfigComparison } from "../comparison";
 import { toast } from "sonner";
 import { createDefaultRS485Config } from "@/utils/rs485-utils";
 import { createDefaultInputConfigs, createDefaultOutputConfigs } from "@/utils/io-config-utils";
-import { readAdvancedConfigurations } from "./utils";
+import { readAdvancedConfigurations } from "../transfer";
 
 export function UnitTable() {
   const category = "unit";

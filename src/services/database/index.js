@@ -1,8 +1,3 @@
-/**
- * Database Module Index
- * Exports all database modules and their table schemas
- */
-
 export { projectTableSchemas, projectMethods } from "./project.js";
 export { sceneTableSchemas, sceneMethods } from "./scene.js";
 export { scheduleTableSchemas, scheduleMethods } from "./schedule.js";

@@ -1,8 +1,21 @@
-import { getUnitIOSpec } from "@/utils/io-config-utils";
-import { getOutputTypeForIndex, getOutputTypeName, getOutputTypeIndex } from "./output-type-utils";
-import { findOrCreateDeviceByAddress } from "./device-management-utils";
+/**
+ * I/O Configuration Reader
+ * Reads input and output configurations from network units and converts to database format
+ */
 
-// Helper function to read I/O configurations from network unit
+import { getUnitIOSpec } from "@/utils/io-config-utils";
+import { getOutputTypeForIndex, getOutputTypeName, getOutputTypeIndex } from "@/components/projects/unit/network-units/utils/output-type-utils";
+import { findOrCreateDeviceByAddress } from "@/components/projects/unit/network-units/utils/device-management-utils";
+
+/**
+ * Read I/O configurations from network unit
+ * @param {Object} networkUnit - Network unit to read from
+ * @param {Object} selectedProject - Selected project
+ * @param {Object} projectItems - All project items
+ * @param {Function} createItem - Function to create new items
+ * @param {Object} createdItemsCache - Cache for created items
+ * @returns {Promise<Object>} Object with input_configs and output_configs
+ */
 export async function readIOConfigurations(networkUnit, selectedProject, projectItems, createItem, createdItemsCache) {
   const ioSpec = getUnitIOSpec(networkUnit.type);
   if (!ioSpec) {
@@ -179,6 +192,11 @@ export async function readIOConfigurations(networkUnit, selectedProject, project
           valveHeatCloseGroup: acConfig?.valveHeatCloseGroup || 0,
           windowBypass: acConfig?.windowBypass || 0,
           setPointOffset: acConfig?.setPointOffset || 0,
+          windowOpenAction: acConfig?.windowOpenAction || 0,
+          windowOpenCoolSetPoint: acConfig?.windowOpenCoolSetPoint || 0,
+          windowOpenHeatSetPoint: acConfig?.windowOpenHeatSetPoint || 0,
+          windowDelay: acConfig?.windowDelay || 0,
+          roomAddress: acConfig?.roomAddress || 0,
           unoccupyPower: acConfig?.unoccupyPower || 0,
           occupyPower: acConfig?.occupyPower || 0,
           standbyPower: acConfig?.standbyPower || 0,

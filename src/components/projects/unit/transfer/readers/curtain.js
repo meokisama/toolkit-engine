@@ -1,4 +1,4 @@
-import { findOrCreateLightingByAddress, getCurtainTypeName } from "./config-helpers";
+import { findOrCreateLightingByAddress, getCurtainTypeName } from "../utils/config-helpers";
 
 /**
  * Read curtain configurations from network unit and create them in database

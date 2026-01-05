@@ -1,8 +1,3 @@
-/**
- * Lighting Database Module
- * Contains all table schemas and methods related to lighting devices
- */
-
 // Table creation SQL statements
 export const lightingTableSchemas = {
   createLightingTable: `

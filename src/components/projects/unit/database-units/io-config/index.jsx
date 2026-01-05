@@ -277,7 +277,7 @@ const IOConfigDialogComponent = ({ open, onOpenChange, item = null }) => {
                               multiGroupConfig: multiGroupConfigs[config.index]?.multiGroupConfig || [],
                               rlcConfig: {
                                 ramp: multiGroupConfigs[config.index]?.ramp || rlcConfigs[config.index]?.ramp || 0,
-                                preset: multiGroupConfigs[config.index]?.preset || rlcConfigs[config.index]?.preset || 100,
+                                preset: multiGroupConfigs[config.index]?.preset || rlcConfigs[config.index]?.preset || 255,
                                 ledStatus: multiGroupConfigs[config.index]?.led_status || rlcConfigs[config.index]?.ledStatus || 0,
                                 autoMode: multiGroupConfigs[config.index]?.auto_mode || rlcConfigs[config.index]?.autoMode || 0,
                                 delayOff: multiGroupConfigs[config.index]?.delay_off || rlcConfigs[config.index]?.delayOff || 0,
@@ -383,7 +383,7 @@ const IOConfigDialogComponent = ({ open, onOpenChange, item = null }) => {
           currentInputDetailInput?.config
             ? {
                 ramp: currentInputDetailInput.config.ramp || 0,
-                preset: currentInputDetailInput.config.preset || 100,
+                preset: currentInputDetailInput.config.preset || 255,
                 ledStatus: currentInputDetailInput.config.led_status || 0,
                 autoMode: currentInputDetailInput.config.auto_mode || 0,
                 delayOff: currentInputDetailInput.config.delay_off || 0,

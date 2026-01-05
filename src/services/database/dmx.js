@@ -1,8 +1,3 @@
-/**
- * DMX Database Module
- * Contains all table schemas and methods related to DMX devices
- */
-
 // Table creation SQL statements
 export const dmxTableSchemas = {
   createDmxTable: `

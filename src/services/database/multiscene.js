@@ -1,8 +1,3 @@
-/**
- * Multi-Scene Database Module
- * Contains all table schemas and methods related to multi-scenes
- */
-
 // Table creation SQL statements
 export const multisceneTableSchemas = {
   createMultiScenesTable: `

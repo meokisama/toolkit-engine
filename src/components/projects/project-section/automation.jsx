@@ -34,7 +34,7 @@ const scenesSchedulesTabConfig = {
 };
 
 export function ScenesSchedules() {
-  const { selectedProject, activeTab, setActiveTab, projectItems, loading, tabLoading, loadedTabs } = useProjectDetail();
+  const { selectedProject, activeTab, setActiveTab, projectItems, tabLoading, loadedTabs } = useProjectDetail();
 
   // Memoize tab entries to prevent recreating on every render
   const tabEntries = useMemo(() => Object.entries(scenesSchedulesTabConfig), []);

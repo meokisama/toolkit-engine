@@ -1,8 +1,3 @@
-/**
- * DALI Database Module
- * Contains all table schemas and methods related to DALI devices, groups, and scenes
- */
-
 // Table creation SQL statements
 export const daliTableSchemas = {
   // DALI Device Mapping Table - stores 64 fixed addresses (0-63)

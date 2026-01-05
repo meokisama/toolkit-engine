@@ -6,7 +6,6 @@ export const projects = {
   create: (projectData) => ipcRenderer.invoke("projects:create", projectData),
   update: (id, projectData) => ipcRenderer.invoke("projects:update", id, projectData),
   delete: (id) => ipcRenderer.invoke("projects:delete", id),
-  duplicate: (id) => ipcRenderer.invoke("projects:duplicate", id),
   getAllItems: (projectId) => ipcRenderer.invoke("projects:getAllItems", projectId),
   import: (projectData, itemsData) => ipcRenderer.invoke("projects:import", projectData, itemsData),
 };

@@ -1,8 +1,3 @@
-/**
- * Scene Database Module
- * Contains all table schemas and methods related to scenes, multi-scenes, and scene items
- */
-
 // Table creation SQL statements
 export const sceneTableSchemas = {
   createSceneTable: `
@@ -81,7 +76,7 @@ export const sceneMethods = {
         // Get original scene items
         const originalSceneItems = this.getSceneItemsWithDetails(id);
 
-        // Duplicate scene items - addItemToScene will handle scene_address_items automatically
+        // Duplicate scene items
         for (const sceneItem of originalSceneItems) {
           this.addItemToScene(
             duplicatedScene.id,

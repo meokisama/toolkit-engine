@@ -1,8 +1,3 @@
-/**
- * Aircon Database Module
- * Contains all table schemas and methods related to air conditioner devices
- */
-
 // Table creation SQL statements
 export const airconTableSchemas = {
   createAirconItemsTable: `

@@ -1,8 +1,3 @@
-/**
- * Sequence Database Module
- * Contains all table schemas and methods related to sequences
- */
-
 // Table creation SQL statements
 export const sequenceTableSchemas = {
   createSequencesTable: `

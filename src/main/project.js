@@ -56,16 +56,6 @@ export function registerProjectHandlers(ipcMain, dbService) {
     }
   });
 
-  // Duplicate project
-  ipcMain.handle("projects:duplicate", async (event, id) => {
-    try {
-      return await dbService.duplicateProject(id);
-    } catch (error) {
-      console.error("Error duplicating project:", error);
-      throw error;
-    }
-  });
-
   // Get all project items in one call (optimized)
   ipcMain.handle("projects:getAllItems", async (event, projectId) => {
     try {

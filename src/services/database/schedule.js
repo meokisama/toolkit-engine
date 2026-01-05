@@ -1,8 +1,3 @@
-/**
- * Schedule Database Module
- * Contains all table schemas and methods related to schedules
- */
-
 // Table creation SQL statements
 export const scheduleTableSchemas = {
   createScheduleTable: `

@@ -52,7 +52,7 @@ const groupConfigTabConfig = {
 };
 
 export function GroupConfig() {
-  const { selectedProject, activeTab, setActiveTab, projectItems, airconCards, loading, tabLoading, loadedTabs, loadTabData } = useProjectDetail();
+  const { selectedProject, activeTab, setActiveTab, projectItems, airconCards, tabLoading, loadedTabs, loadTabData } = useProjectDetail();
 
   // Load all required data for KNX tab when it becomes active
   const loadKnxRequiredData = useCallback(async () => {

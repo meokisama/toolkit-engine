@@ -1,5 +1,14 @@
-// Helper function to convert network RS485 format to database format
-export function convertNetworkToDialogFormat(networkConfig) {
+/**
+ * RS485 Configuration Reader
+ * Reads RS485 configurations from network units and converts to database format
+ */
+
+/**
+ * Convert network RS485 format to database format
+ * @param {Object} networkConfig - RS485 config from network unit
+ * @returns {Object|null} RS485 config in database format
+ */
+export function convertRS485ToDbFormat(networkConfig) {
   if (!networkConfig) return null;
 
   return {
@@ -19,7 +28,11 @@ export function convertNetworkToDialogFormat(networkConfig) {
   };
 }
 
-// Helper function to read RS485 configurations from network unit
+/**
+ * Read RS485 configurations from network unit (both CH1 and CH2)
+ * @param {Object} networkUnit - Network unit to read from
+ * @returns {Promise<Array|null>} Array of [CH1Config, CH2Config] or null on error
+ */
 export async function readRS485Configurations(networkUnit) {
   try {
     console.log("Reading RS485 configurations...");
@@ -42,7 +55,7 @@ export async function readRS485Configurations(networkUnit) {
     });
 
     // Convert to database format
-    const rs485Config = [convertNetworkToDialogFormat(ch1Config), convertNetworkToDialogFormat(ch2Config)];
+    const rs485Config = [convertRS485ToDbFormat(ch1Config), convertRS485ToDbFormat(ch2Config)];
 
     // Add delay after RS485 config read
     await new Promise((resolve) => setTimeout(resolve, 500));
@@ -54,3 +67,6 @@ export async function readRS485Configurations(networkUnit) {
     return null;
   }
 }
+
+// Legacy alias for backward compatibility
+export const convertNetworkToDialogFormat = convertRS485ToDbFormat;

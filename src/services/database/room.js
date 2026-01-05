@@ -1,8 +1,3 @@
-/**
- * Room Configuration Database Module
- * Contains all table schemas and methods related to room configurations
- */
-
 // Table creation SQL statements
 export const roomTableSchemas = {
   // Room General Config Table - stores general room configuration for each project and unit

@@ -449,6 +449,11 @@ export const crudOperations = {
       const validator = new ValidationHelper(this.db);
       const config = tableConfigs[tableName];
 
+      // Special handling for unit (uses createUnitItem)
+      if (tableName === "unit") {
+        return this.createUnitItem(projectId, itemData);
+      }
+
       // Special handling for curtain (uses createCurtainItem)
       if (tableName === "curtain") {
         return this.createCurtainItem(projectId, itemData);
@@ -497,6 +502,11 @@ export const crudOperations = {
       }
 
       const config = tableConfigs[tableName];
+
+      // Special handling for unit
+      if (tableName === "unit") {
+        return this.updateUnitItem(id, itemData);
+      }
 
       // Special handling for curtain
       if (tableName === "curtain") {
@@ -581,28 +591,8 @@ export const crudOperations = {
   deleteProjectItem(id, tableName) {
     try {
       const transaction = this.db.transaction(() => {
-        // For tables with scene integration, remove from scene_items and scene_address_items
+        // For tables with scene integration, remove from scene_items
         if (TABLES_WITH_SCENE_INTEGRATION.includes(tableName)) {
-          const sceneItems = this.db
-            .prepare(
-              `
-              SELECT si.*, s.project_id, s.address
-              FROM scene_items si
-              JOIN scene s ON si.scene_id = s.id
-              WHERE si.item_type = ? AND si.item_id = ?
-            `
-            )
-            .all(tableName, id);
-
-          const deleteAddressItemStmt = this.db.prepare(`
-            DELETE FROM scene_address_items
-            WHERE project_id = ? AND address = ? AND item_type = ? AND item_id = ?
-          `);
-
-          for (const sceneItem of sceneItems) {
-            deleteAddressItemStmt.run(sceneItem.project_id, sceneItem.address, sceneItem.item_type, sceneItem.item_id);
-          }
-
           const deleteSceneItemStmt = this.db.prepare(`DELETE FROM scene_items WHERE item_type = ? AND item_id = ?`);
           deleteSceneItemStmt.run(tableName, id);
         }
@@ -664,6 +654,11 @@ export const crudOperations = {
         duplicatedItem.stop_group_id = originalItem.stop_group_id || null;
         duplicatedItem.pause_period = originalItem.pause_period || 0;
         duplicatedItem.transition_period = originalItem.transition_period || 0;
+      }
+
+      // Special handling for unit
+      if (tableName === "unit") {
+        return this.duplicateUnitItem(id);
       }
 
       // Special handling for KNX

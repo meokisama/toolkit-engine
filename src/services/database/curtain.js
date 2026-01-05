@@ -1,8 +1,3 @@
-/**
- * Curtain Database Module
- * Contains all table schemas and methods related to curtain devices
- */
-
 // Table creation SQL statements
 export const curtainTableSchemas = {
   createCurtainTable: `

@@ -1,8 +1,3 @@
-/**
- * Unit Database Module
- * Contains all table schemas and methods related to unit devices and their I/O configurations
- */
-
 // Table creation SQL statements
 export const unitTableSchemas = {
   createUnitTable: `

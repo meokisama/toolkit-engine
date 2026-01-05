@@ -34,7 +34,6 @@ export function ProjectDetailProvider({ children }) {
     sequences: [],
   });
   const [airconCards, setAirconCards] = useState([]);
-  const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
   // Track which tabs have been loaded to avoid re-loading
@@ -93,40 +92,6 @@ export function ProjectDetailProvider({ children }) {
       toast.error(errorMessage);
     } finally {
       setTabLoading((prev) => ({ ...prev, [tabName]: false }));
-    }
-  }, []);
-
-  // Load all items for a project (for initial load or refresh) - memoized
-  const loadProjectItems = useCallback(async (projectId) => {
-    if (!projectId) return;
-
-    try {
-      setLoading(true);
-      setError(null);
-
-      // Use optimized single API call instead of 5 separate calls
-      const projectItems = await window.electronAPI.projects.getAllItems(projectId);
-
-      setProjectItems(projectItems);
-
-      // Create aircon cards from items (each item is now a card)
-      const cards = (projectItems.aircon || []).map((item) => ({
-        address: item.address,
-        name: item.name,
-        description: item.description,
-        item: item,
-      }));
-      setAirconCards(cards);
-
-      // Mark all tabs as loaded
-      setLoadedTabs(new Set(["lighting", "aircon", "unit", "curtain", "knx", "dmx", "room", "scene", "schedule", "multi_scenes", "sequences"]));
-    } catch (err) {
-      console.error("Failed to load project items:", err);
-      const errorMessage = err.message || "Failed to load project items";
-      setError(errorMessage);
-      toast.error(errorMessage);
-    } finally {
-      setLoading(false);
     }
   }, []);
 
@@ -518,8 +483,6 @@ export function ProjectDetailProvider({ children }) {
     [selectedProject, projectItems.aircon]
   );
 
-  // Note: loadProjectItems is called directly in selectProject, no need for useEffect
-
   // Memoize context value to prevent unnecessary rerenders
   const value = useMemo(
     () => ({
@@ -530,13 +493,11 @@ export function ProjectDetailProvider({ children }) {
       setActiveTab: handleTabChange,
       projectItems,
       airconCards,
-      loading,
       tabLoading,
       loadedTabs,
       error,
       selectProject,
       selectProjectSection,
-      loadProjectItems,
       loadTabData,
       createItem,
       updateItem,
@@ -556,13 +517,11 @@ export function ProjectDetailProvider({ children }) {
       handleTabChange,
       projectItems,
       airconCards,
-      loading,
       tabLoading,
       loadedTabs,
       error,
       selectProject,
       selectProjectSection,
-      loadProjectItems,
       loadTabData,
       createItem,
       updateItem,

@@ -1,9 +1,42 @@
 // CSV import functionality
 import { toast } from "sonner";
-import { Validators } from "./validators.js";
 import { CSVParser } from "./csv-parser.js";
 
 export class CSVImporter {
+  // Validate CSV headers based on category
+  static validateCSVHeaders(headers, category) {
+    let expectedHeaders;
+
+    if (category === "unit") {
+      expectedHeaders = ["type", "serial_no", "ip_address", "id_can", "mode", "firmware_version", "description"];
+    } else if (category === "curtain") {
+      expectedHeaders = ["name", "address", "description", "object_type", "curtain_type", "open_group", "close_group", "stop_group"];
+    } else if (category === "aircon") {
+      expectedHeaders = ["name", "address", "description"];
+    } else if (category === "scene") {
+      const sceneHeaders = ["SCENE NAME", "ITEM NAME", "TYPE", "ADDRESS", "VALUE"];
+      return sceneHeaders.every((header) => headers.some((h) => h.toUpperCase() === header));
+    } else {
+      expectedHeaders = ["name", "address", "description", "object_type"];
+    }
+
+    return expectedHeaders.every((header) => headers.includes(header));
+  }
+
+  // Validate item based on category
+  static validateItem(item, category) {
+    if (category === "unit") {
+      return item.type && item.type.trim();
+    } else if (category === "aircon") {
+      if (!item.address || !item.address.trim()) return false;
+      // Validate address is positive integer
+      const addressNum = parseInt(item.address.trim());
+      return !isNaN(addressNum) && addressNum > 0;
+    } else {
+      return item.address && item.address.trim();
+    }
+  }
+
   // Import items from CSV file
   static async importItemsFromCSV(category, sceneImportType = null) {
     return new Promise((resolve, reject) => {
@@ -68,7 +101,7 @@ export class CSVImporter {
     }
 
     // Validate headers based on category
-    if (!Validators.validateCSVHeaders(headers, category)) {
+    if (!this.validateCSVHeaders(headers, category)) {
       throw new Error(`Invalid CSV headers for ${category} items`);
     }
 
@@ -82,7 +115,7 @@ export class CSVImporter {
       });
 
       // Validate required fields based on category
-      if (Validators.validateItem(item, category)) {
+      if (this.validateItem(item, category)) {
         items.push(item);
       }
     }

@@ -1,11 +1,3 @@
-/**
- * Helper functions for reading and processing network unit configurations
- */
-
-/**
- * Find or create database item by network item
- * Maps network object types to database item types and creates items if needed
- */
 export const findOrCreateDatabaseItemByNetworkItem = async (networkItem, projectId) => {
   try {
     const objectValue = networkItem.objectValue;

@@ -1,8 +1,3 @@
-/**
- * Zigbee Database Module
- * Contains all table schemas and methods related to Zigbee devices
- */
-
 // Table creation SQL statements
 export const zigbeeTableSchemas = {
   createZigbeeDevicesTable: `

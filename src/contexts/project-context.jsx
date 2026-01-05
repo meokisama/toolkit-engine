@@ -78,21 +78,6 @@ export function ProjectProvider({ children }) {
     }
   }, []);
 
-  // Duplicate project - memoized to prevent recreating on every render
-  const duplicateProject = useCallback(async (id) => {
-    try {
-      const duplicatedProject = await window.electronAPI.projects.duplicate(id);
-      setProjects((prev) => [duplicatedProject, ...prev]);
-      toast.success("Project duplicated successfully");
-      return duplicatedProject;
-    } catch (err) {
-      console.error("Failed to duplicate project:", err);
-      const errorMessage = err.message || "Failed to duplicate project";
-      toast.error(errorMessage);
-      throw err;
-    }
-  }, []);
-
   // Export project - memoized to prevent recreating on every render
   const exportProject = useCallback(
     async (id) => {
@@ -155,7 +140,6 @@ export function ProjectProvider({ children }) {
       createProject,
       updateProject,
       deleteProject,
-      duplicateProject,
       exportProject,
       importProject,
       getProjectById,
@@ -168,7 +152,6 @@ export function ProjectProvider({ children }) {
       createProject,
       updateProject,
       deleteProject,
-      duplicateProject,
       exportProject,
       importProject,
       getProjectById,

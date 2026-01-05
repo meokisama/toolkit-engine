@@ -412,6 +412,3 @@ class UDPNetworkScanner {
 
 // Export singleton instance
 export const udpScanner = new UDPNetworkScanner();
-
-// Export class for testing
-export { UDPNetworkScanner };

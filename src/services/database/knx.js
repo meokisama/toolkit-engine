@@ -1,8 +1,3 @@
-/**
- * KNX Database Module
- * Contains all table schemas and methods related to KNX items
- */
-
 // Table creation SQL statements
 export const knxTableSchemas = {
   createKnxTable: `
@@ -71,9 +66,13 @@ export const knxMethods = {
       const sourceUnit = itemData.source_unit || null;
       let existingItems;
       if (sourceUnit === null) {
-        existingItems = this.db.prepare("SELECT COUNT(*) as count FROM knx WHERE project_id = ? AND address = ? AND source_unit IS NULL").get(projectId, address);
+        existingItems = this.db
+          .prepare("SELECT COUNT(*) as count FROM knx WHERE project_id = ? AND address = ? AND source_unit IS NULL")
+          .get(projectId, address);
       } else {
-        existingItems = this.db.prepare("SELECT COUNT(*) as count FROM knx WHERE project_id = ? AND address = ? AND source_unit = ?").get(projectId, address, sourceUnit);
+        existingItems = this.db
+          .prepare("SELECT COUNT(*) as count FROM knx WHERE project_id = ? AND address = ? AND source_unit = ?")
+          .get(projectId, address, sourceUnit);
       }
       if (existingItems.count > 0) {
         throw new Error(`KNX address ${address} already exists in this source unit.`);

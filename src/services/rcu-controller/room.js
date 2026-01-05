@@ -1,10 +1,67 @@
 import { UDP_PORT, PROTOCOL } from "./constants.js";
-import { convertCanIdToInt, convertKnxAddressToHex, decodeKnxAddressFromHex } from "./utils.js";
+import { convertCanIdToInt } from "./utils.js";
 import { sendCommand } from "./command-sender.js";
 
 const MAX_SLAVE = 4;
 const MAX_ROOM = 5;
 const MAX_SCENE_ITEM = 20;
+
+/**
+ * Helper function to convert KNX address from a/b/c format to 2-byte hex for Room
+ * KNX address format for Room: 4 bit area / 4 bit line / 8 bit device = 16 bits total
+ * @param {string} knxAddress - KNX address in format "a/b/c"
+ * @returns {number[]} - Array of 2 bytes [low byte, high byte]
+ */
+function convertKnxAddressToHexForRoom(knxAddress) {
+  if (!knxAddress || typeof knxAddress !== "string") {
+    return [0x00, 0x00]; // Return 2 bytes of 0x00 for empty/invalid address
+  }
+
+  const parts = knxAddress.split("/");
+  if (parts.length !== 3) {
+    return [0x00, 0x00]; // Return 2 bytes of 0x00 for invalid format
+  }
+
+  try {
+    const area = parseInt(parts[0]) & 0x0f; // 4 bits (0-15)
+    const line = parseInt(parts[1]) & 0x0f; // 4 bits (0-15)
+    const device = parseInt(parts[2]) & 0xff; // 8 bits (0-255)
+
+    // Combine into 16-bit value: area(4) + line(4) + device(8)
+    const combined = (area << 12) | (line << 8) | device;
+
+    // Return as 2 bytes: low byte, high byte
+    return [combined & 0xff, (combined >> 8) & 0xff];
+  } catch (error) {
+    return [0x00, 0x00]; // Return 2 bytes of 0x00 for conversion error
+  }
+}
+
+/**
+ * Helper function to decode 2-byte hex to KNX address in a/b/c format for Room
+ * KNX address format for Room: 4 bit area / 4 bit line / 8 bit device = 16 bits total
+ * @param {number[]} bytes - Array of 2 bytes [low byte, high byte]
+ * @returns {string} - KNX address in format "a/b/c"
+ */
+function decodeKnxAddressFromHexForRoom(bytes) {
+  if (!Array.isArray(bytes) || bytes.length !== 2) {
+    return "0/0/0"; // Return default for invalid input
+  }
+
+  try {
+    // Combine 2 bytes into 16-bit value (little endian)
+    const combined = bytes[0] | (bytes[1] << 8);
+
+    // Extract parts: area(4 bits), line(4 bits), device(8 bits)
+    const device = combined & 0xff; // Lower 8 bits
+    const line = (combined >> 8) & 0x0f; // Next 4 bits
+    const area = (combined >> 12) & 0x0f; // Top 4 bits
+
+    return `${area}/${line}/${device}`;
+  } catch (error) {
+    return "0/0/0"; // Return default for conversion error
+  }
+}
 
 /**
  * Parse IP address string to 4-byte array
@@ -194,8 +251,8 @@ async function setRoomConfiguration(unitIp, canId, generalConfig, roomConfigs) {
   data.push(clientPort & 0xff); // Low byte
   data.push((clientPort >> 8) & 0xff); // High byte
 
-  // knx_address: 2 bytes (from KNX address format a/b/c)
-  const knxAddressBytes = convertKnxAddressToHex(generalConfig.knx_address || "0/0/0");
+  // knx_address: 2 bytes (from KNX address format a/b/c - using 4-4-8 format for Room)
+  const knxAddressBytes = convertKnxAddressToHexForRoom(generalConfig.knx_address || "0/0/0");
   data.push(...knxAddressBytes);
 
   // reserved: 12 bytes
@@ -390,10 +447,10 @@ async function getRoomConfiguration(unitIp, canId) {
   const clientPort = responseData[pos] | (responseData[pos + 1] << 8);
   pos += 2;
 
-  // knx_address: 2 bytes
+  // knx_address: 2 bytes (using 4-4-8 format for Room)
   const knxAddressBytes = Array.from(responseData.slice(pos, pos + 2));
   console.log("KNX Address bytes:", knxAddressBytes, "Hex:", knxAddressBytes.map(b => "0x" + b.toString(16).padStart(2, "0")).join(" "));
-  const knxAddress = decodeKnxAddressFromHex(knxAddressBytes);
+  const knxAddress = decodeKnxAddressFromHexForRoom(knxAddressBytes);
   console.log("Decoded KNX Address:", knxAddress);
   pos += 2;
 

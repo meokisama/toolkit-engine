@@ -75,7 +75,7 @@ export const useInputConfig = (item, setInputConfigs = null, open = true) => {
           // Convert database format to internal format
           newInputDetailConfigs[config.index] = {
             ramp: config.rlc_config?.ramp || 0,
-            preset: config.rlc_config?.preset || 100,
+            preset: config.rlc_config?.preset || 255,
             led_status: config.rlc_config?.ledStatus || 0,
             auto_mode: config.rlc_config?.autoMode || 0,
             auto_time: 0,
@@ -170,7 +170,7 @@ export const useInputConfig = (item, setInputConfigs = null, open = true) => {
         isLoading: true,
         config: multiGroupConfigs[inputIndex] || {
           ramp: 0,
-          preset: 100,
+          preset: 255,
           led_status: 0,
           auto_mode: 0,
           auto_time: 0,
@@ -193,7 +193,7 @@ export const useInputConfig = (item, setInputConfigs = null, open = true) => {
             // Convert database format to network unit format for consistency
             const convertedConfig = {
               ramp: result.rlc_config?.ramp || 0,
-              preset: result.rlc_config?.preset || 100,
+              preset: result.rlc_config?.preset || 255,
               led_status: result.rlc_config?.ledStatus || 0,
               auto_mode: result.rlc_config?.autoMode || 0,
               auto_time: 0, // Auto time not supported yet
@@ -254,7 +254,7 @@ export const useInputConfig = (item, setInputConfigs = null, open = true) => {
         // Update local state with the same format as network units
         const updatedConfig = {
           ramp: rlcOptions.ramp || 0,
-          preset: rlcOptions.preset || 100,
+          preset: rlcOptions.preset || 255,
           led_status: rlcOptions.ledStatus || 0,
           auto_mode: rlcOptions.autoMode || 0,
           auto_time: 0, // Auto time not supported yet
