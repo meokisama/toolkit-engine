@@ -7,6 +7,16 @@ import { EditableSelectCell } from "@/components/projects/data-table/editable-se
 import { EditableComboboxCell } from "@/components/projects/data-table/editable-combobox-cell";
 import { CONSTANTS } from "@/constants";
 
+// KNX Address validation helper - validates format a/b/c
+const validateKnxAddress = (address) => {
+  if (!address || address.trim() === "") {
+    return true; // Empty is valid (optional field)
+  }
+
+  const knxAddressPattern = /^(\d{1,2})\/(\d{1,2})\/(\d{1,3})$/;
+  return knxAddressPattern.test(address);
+};
+
 export const createKnxItemsColumns = (onCellEdit, getEffectiveValue, projectItems = {}, unitItems = []) => {
   // Create filter options for source unit
   const sourceUnitFilterOptions = [
@@ -221,9 +231,13 @@ export const createKnxItemsColumns = (onCellEdit, getEffectiveValue, projectItem
         return (
           <EditableCell
             value={effectiveValue || ""}
-            onSave={() => {}} // No-op function since editing is disabled
+            onSave={(newValue) => {
+              if (validateKnxAddress(newValue)) {
+                onCellEdit(item.id, "knx_switch_group", newValue);
+              }
+            }}
             placeholder="-"
-            disabled={true}
+            disabled={false}
             className="text-center font-mono min-w-30"
           />
         );
@@ -243,9 +257,13 @@ export const createKnxItemsColumns = (onCellEdit, getEffectiveValue, projectItem
         return (
           <EditableCell
             value={effectiveValue || ""}
-            onSave={() => {}} // No-op function since editing is disabled
+            onSave={(newValue) => {
+              if (validateKnxAddress(newValue)) {
+                onCellEdit(item.id, "knx_dimming_group", newValue);
+              }
+            }}
             placeholder="-"
-            disabled={true}
+            disabled={false}
             className="text-center font-mono min-w-30"
           />
         );
@@ -265,9 +283,13 @@ export const createKnxItemsColumns = (onCellEdit, getEffectiveValue, projectItem
         return (
           <EditableCell
             value={effectiveValue || ""}
-            onSave={() => {}} // No-op function since editing is disabled
+            onSave={(newValue) => {
+              if (validateKnxAddress(newValue)) {
+                onCellEdit(item.id, "knx_value_group", newValue);
+              }
+            }}
             placeholder="-"
-            disabled={true}
+            disabled={false}
             className="text-center font-mono min-w-30"
           />
         );
@@ -287,7 +309,11 @@ export const createKnxItemsColumns = (onCellEdit, getEffectiveValue, projectItem
         return (
           <EditableCell
             value={effectiveValue || ""}
-            onSave={() => {}} // No-op function since editing is disabled
+            onSave={(newValue) => {
+              if (validateKnxAddress(newValue)) {
+                onCellEdit(item.id, "knx_status_group", newValue);
+              }
+            }}
             placeholder="-"
             disabled={false}
             className="text-center font-mono min-w-30"
