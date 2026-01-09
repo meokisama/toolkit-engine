@@ -69,7 +69,7 @@ export function createSequenceColumns(onCellEdit, getEffectiveValue, unitItems =
               onCellEdit(row.original.id, "address", newValue.toString());
             }}
             placeholder="1-255"
-            className="text-center w-full"
+            className="pl-10 w-full"
             icon={Hash}
             type="number"
             min="1"

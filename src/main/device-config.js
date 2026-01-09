@@ -1,8 +1,3 @@
-/**
- * Device Configuration IPC Handlers
- * Xử lý các tương tác với RCU device configuration (Clock, Network Unit Edit, Hardware Config)
- */
-
 export function registerDeviceConfigHandlers(ipcMain, rcu) {
   // ==================== Clock Control ====================
 

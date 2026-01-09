@@ -1,8 +1,3 @@
-/**
- * DALI IPC Handlers
- * Xử lý các tương tác với DALI devices, groups và scenes (RCU Controller và Database)
- */
-
 export function registerDaliHandlers(ipcMain, dbService, rcu) {
   // ==================== RCU Controller - DALI Operations ====================
 

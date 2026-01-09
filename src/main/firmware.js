@@ -1,8 +1,3 @@
-/**
- * Firmware IPC Handlers
- * Xử lý các tương tác với firmware update
- */
-
 export function registerFirmwareHandlers(ipcMain, rcu) {
   // ==================== Firmware Update ====================
 

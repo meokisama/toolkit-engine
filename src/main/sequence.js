@@ -1,8 +1,3 @@
-/**
- * Sequence IPC Handlers
- * Xử lý các tương tác với sequence items (RCU Controller và Database)
- */
-
 export function registerSequenceHandlers(ipcMain, dbService, rcu) {
   // ==================== RCU Controller - Sequence Operations ====================
 

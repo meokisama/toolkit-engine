@@ -1,8 +1,3 @@
-/**
- * Room IPC Handlers
- * Xử lý các tương tác với room configuration (RCU Controller và Database)
- */
-
 export function registerRoomHandlers(ipcMain, dbService, rcu) {
   // ==================== RCU Controller - Room Configuration ====================
 
@@ -107,17 +102,21 @@ export function registerRoomHandlers(ipcMain, dbService, rcu) {
       if (!generalConfig) {
         // Create a default general config if not exists
         console.log("General config not found, creating default config for unit:", sourceUnit);
-        generalConfig = await dbService.createOrUpdateRoomGeneralConfig(projectId, {
-          roomMode: 0,
-          roomAmount: 1,
-          tcpMode: 0,
-          port: 5000,
-          slaveAmount: 1,
-          slaveIPs: ["", "", "", ""],
-          clientMode: 0,
-          clientIP: "",
-          clientPort: 8080,
-        }, sourceUnit);
+        generalConfig = await dbService.createOrUpdateRoomGeneralConfig(
+          projectId,
+          {
+            roomMode: 0,
+            roomAmount: 1,
+            tcpMode: 0,
+            port: 5000,
+            slaveAmount: 1,
+            slaveIPs: ["", "", "", ""],
+            clientMode: 0,
+            clientIP: "",
+            clientPort: 8080,
+          },
+          sourceUnit
+        );
       }
 
       if (!generalConfig || !generalConfig.id) {

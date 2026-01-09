@@ -1,8 +1,3 @@
-/**
- * Project IPC Handlers
- * Xử lý các tương tác với projects (Database operations)
- */
-
 export function registerProjectHandlers(ipcMain, dbService) {
   // ==================== Database - Project Operations ====================
 

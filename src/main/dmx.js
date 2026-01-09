@@ -1,8 +1,3 @@
-/**
- * DMX IPC Handlers
- * Xử lý các tương tác với DMX items (RCU Controller và Database)
- */
-
 export function registerDmxHandlers(ipcMain, dbService, rcu) {
   // ==================== RCU Controller - DMX Operations ====================
 

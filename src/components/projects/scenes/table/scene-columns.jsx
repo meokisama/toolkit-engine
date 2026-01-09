@@ -71,7 +71,7 @@ export const createSceneColumns = (onCellEdit, getEffectiveValue, unitItems = []
             value={effectiveValue}
             type="number"
             onSave={(newValue) => onCellEdit(row.original.id, "address", newValue)}
-            className="text-center font-bold"
+            className="pl-10 font-bold"
             icon={Layers}
           />
         );

@@ -1,8 +1,3 @@
-/**
- * Network IPC Handlers
- * Xử lý các tương tác với network interfaces và UDP scanning
- */
-
 import dgram from "dgram";
 
 export function registerNetworkHandlers(ipcMain, networkInterfaceService) {

@@ -1,8 +1,3 @@
-/**
- * KNX IPC Handlers
- * Xử lý các tương tác với KNX items (RCU Controller và Database)
- */
-
 export function registerKnxHandlers(ipcMain, dbService, rcu) {
   // ==================== RCU Controller - KNX Operations ====================
 

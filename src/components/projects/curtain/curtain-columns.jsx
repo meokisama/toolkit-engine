@@ -83,7 +83,7 @@ export const createCurtainColumns = (onCellEdit, getEffectiveValue, lightingItem
             icon={Layers}
             onSave={(value) => onCellEdit(row.original.id, "address", parseInt(value) || 1)}
             placeholder="1-255"
-            className="text-center font-semibold"
+            className="pl-10 font-bold"
             type="number"
             min="1"
             max="255"
@@ -115,6 +115,7 @@ export const createCurtainColumns = (onCellEdit, getEffectiveValue, lightingItem
                 onCellEdit(row.original.id, "curtain_value", selectedType.value);
               }
             }}
+            className="w-full"
             placeholder="Select type"
           />
         );

@@ -121,6 +121,11 @@
   }
   body {
     @apply bg-background text-foreground font-inter;
+    /* Hide Number Input default arrow */
+    input[type="number"]::-webkit-inner-spin-button,
+    input[type="number"]::-webkit-outer-spin-button {
+      @apply appearance-none;
+    }
   }
 }
 
@@ -141,11 +146,11 @@
 
 /* Handle */
 ::-webkit-scrollbar-thumb {
-  background: #888;
+  background: #a0a0a0;
   border-radius: 5px;
 }
 
 /* Handle on hover */
 ::-webkit-scrollbar-thumb:hover {
-  background: #555;
+  background: #727272;
 }

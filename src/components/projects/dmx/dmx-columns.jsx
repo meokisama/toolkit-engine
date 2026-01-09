@@ -85,7 +85,7 @@ export const createDmxColumns = (onCellEdit, getEffectiveValue, unitItems = []) 
             icon={Layers}
             onSave={(value) => onCellEdit(row.original.id, "address", value)}
             placeholder="Enter address"
-            className="text-center font-semibold"
+            className="pl-10 font-bold"
           />
         );
       },

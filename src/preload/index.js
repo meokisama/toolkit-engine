@@ -1,8 +1,3 @@
-/**
- * Preload API Exports
- * Tập hợp tất cả các API modules
- */
-
 import { projects } from "./projects.js";
 import { lighting } from "./lighting.js";
 import { aircon, airconController } from "./aircon.js";

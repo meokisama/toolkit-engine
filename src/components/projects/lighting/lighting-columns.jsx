@@ -75,7 +75,7 @@ export const createProjectItemsColumns = (onEdit, onDuplicate, onDelete, onCellE
         <EditableCell
           value={effectiveValue}
           type="number"
-          className="text-center font-semibold"
+          className="pl-10 font-bold"
           onSave={handleAddressSave}
           displayValue={effectiveValue ? effectiveValue : "-"}
           icon={Layers}
