@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect } from "react";
-import { getInputFunctionByValue } from "@/constants";
+import { getInputFunctionByValue, getInputDisplayName } from "@/constants";
 import { toast } from "sonner";
 
 // Helper function to determine if unit is a network unit
@@ -164,7 +164,7 @@ export const useInputConfig = (item, setInputConfigs = null, open = true) => {
       // Set initial state with loading
       setCurrentInputDetailInput({
         index: inputIndex,
-        name: `Input ${inputIndex + 1}`,
+        name: getInputDisplayName(item?.type, inputIndex),
         functionName: inputFunction.label,
         functionValue: functionValue,
         isLoading: true,
@@ -294,7 +294,7 @@ export const useInputConfig = (item, setInputConfigs = null, open = true) => {
               )
             );
           }
-          toast.success(`Input ${currentInputDetailInput.index + 1} configuration updated`);
+          toast.success(`${currentInputDetailInput.name} configuration updated`);
         }
 
         return true;

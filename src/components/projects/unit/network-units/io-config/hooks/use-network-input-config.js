@@ -1,6 +1,6 @@
 import { useState, useCallback, useEffect } from "react";
 import { toast } from "sonner";
-import { getInputFunctionByValue } from "@/constants";
+import { getInputFunctionByValue, getInputDisplayName } from "@/constants";
 
 export const useNetworkInputConfig = (item, projectItems, refreshInputConfigs = null, setInputConfigs = null) => {
   const [multiGroupConfigs, setInputDetailConfigs] = useState({});
@@ -122,7 +122,7 @@ export const useNetworkInputConfig = (item, projectItems, refreshInputConfigs = 
     // Set state immediately from local config (no loading needed)
     setCurrentInputDetailInput({
       index: inputIndex,
-      name: `Input ${inputIndex + 1}`,
+      name: getInputDisplayName(item?.type, inputIndex),
       functionName: functionName,
       functionValue: functionValue,
       isLoading: false,
@@ -248,7 +248,7 @@ export const useNetworkInputConfig = (item, projectItems, refreshInputConfigs = 
           inputConfig: inputConfigData,
         });
 
-        toast.success(`Input ${inputIndex + 1} lighting association updated successfully`);
+        toast.success(`${getInputDisplayName(item?.type, inputIndex)} lighting association updated successfully`);
 
         // Refresh input configurations in the main dialog
         if (refreshInputConfigs) {
@@ -293,7 +293,7 @@ export const useNetworkInputConfig = (item, projectItems, refreshInputConfigs = 
             );
           }
 
-          toast.success(`Input ${inputIndex + 1} turned ${newValue === 255 ? "on" : "off"}`);
+          toast.success(`${getInputDisplayName(item?.type, inputIndex)} turned ${newValue === 255 ? "on" : "off"}`);
         }
       } catch (error) {
         console.error(`Failed to toggle input ${inputIndex} state:`, error);

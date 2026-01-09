@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo, useCallback, useRef, startTransition } from "react";
 import { getUnitIOSpec, getOutputTypes, createDefaultInputConfigs, createDefaultOutputConfigs } from "@/utils/io-config-utils";
+import { getInputDisplayName } from "@/constants";
 import { useAutoRefresh } from "./use-auto-refresh";
 
 export const useNetworkIOConfig = (item, open, childDialogOpen = false) => {
@@ -377,7 +378,7 @@ export const useNetworkIOConfig = (item, open, childDialogOpen = false) => {
         index: input.index,
         function: input.function_value || 0,
         lightingId: input.lighting_id,
-        name: `Input ${index + 1}`,
+        name: getInputDisplayName(item.type, index),
         brightness: 0,
         isActive: false,
         functionValue: 0, // Default function, will be updated from unit
