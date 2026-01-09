@@ -106,7 +106,15 @@ export const createCurtainColumns = (onCellEdit, getEffectiveValue, lightingItem
           <EditableSelectCell
             value={effectiveValue}
             options={curtainTypeOptions}
-            onSave={(value) => onCellEdit(row.original.id, "curtain_type", value)}
+            onSave={(value) => {
+              // Update curtain_type
+              onCellEdit(row.original.id, "curtain_type", value);
+              // Also update curtain_value based on the selected type
+              const selectedType = CURTAIN_TYPES.find((type) => type.name === value);
+              if (selectedType) {
+                onCellEdit(row.original.id, "curtain_value", selectedType.value);
+              }
+            }}
             placeholder="Select type"
           />
         );
