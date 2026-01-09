@@ -146,17 +146,32 @@ export const useInputConfig = (item, setInputConfigs = null, open = true) => {
           }
 
           // Clear multiGroupConfigs and rlcConfigs for this input when function type changes
-          setInputDetailConfigs((prev) => {
-            const updated = { ...prev };
-            delete updated[inputIndex];
-            return updated;
-          });
+          // Set to empty config instead of deleting to prevent loading old data from database
+          setInputDetailConfigs((prev) => ({
+            ...prev,
+            [inputIndex]: {
+              ramp: 0,
+              preset: 255,
+              led_status: 0,
+              auto_mode: 0,
+              auto_time: 0,
+              delay_off: 0,
+              delay_on: 0,
+              multiGroupConfig: [],
+            },
+          }));
 
-          setRlcConfigs((prev) => {
-            const updated = { ...prev };
-            delete updated[inputIndex];
-            return updated;
-          });
+          setRlcConfigs((prev) => ({
+            ...prev,
+            [inputIndex]: {
+              ramp: 0,
+              preset: 255,
+              ledStatus: 0,
+              autoMode: 0,
+              delayOff: 0,
+              delayOn: 0,
+            },
+          }));
 
           // No toast message for local state changes - save confirmation will come when Save button is clicked
         } else {

@@ -83,11 +83,20 @@ export const useNetworkInputConfig = (item, projectItems, refreshInputConfigs = 
         }
 
         // Clear multiGroupConfigs for this input when function type changes
-        setInputDetailConfigs((prev) => {
-          const updated = { ...prev };
-          delete updated[inputIndex];
-          return updated;
-        });
+        // Set to empty config instead of deleting to prevent loading old data
+        setInputDetailConfigs((prev) => ({
+          ...prev,
+          [inputIndex]: {
+            ramp: 0,
+            preset: 255,
+            led_status: 0,
+            auto_mode: 0,
+            auto_time: 0,
+            delay_off: 0,
+            delay_on: 0,
+            multiGroupConfig: [],
+          },
+        }));
       } catch (error) {
         console.error(`Failed to update input ${inputIndex} function:`, error);
         toast.error(`Failed to update input function: ${error.message}`);
