@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -33,8 +33,8 @@ export function KnxItemDialog({ open, onOpenChange, mode, item }) {
   });
   const [errors, setErrors] = useState({});
 
-  // Function to find next available KNX address
-  const findNextAvailableKnxAddress = useCallback(() => {
+  // Function to find next available KNX address - stable function that doesn't cause re-renders
+  const findNextAvailableKnxAddress = () => {
     if (!projectItems.knx || projectItems.knx.length === 0) {
       return 0; // Start from 0 if no KNX items exist
     }
@@ -56,7 +56,7 @@ export function KnxItemDialog({ open, onOpenChange, mode, item }) {
 
     // Make sure we don't exceed the maximum address
     return nextAddress <= 511 ? nextAddress : null;
-  }, [projectItems.knx]);
+  };
 
   // Load RCU Group data based on KNX type
   const loadRcuGroupDataForType = useCallback(
@@ -128,7 +128,8 @@ export function KnxItemDialog({ open, onOpenChange, mode, item }) {
       }
       setErrors({});
     }
-  }, [open, mode, item, findNextAvailableKnxAddress]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, mode, item]);
 
   // Load unit data if not already loaded
   useEffect(() => {
@@ -262,16 +263,11 @@ export function KnxItemDialog({ open, onOpenChange, mode, item }) {
     }
   };
 
-  // State to store current RCU group items
-  const [rcuGroupItems, setRcuGroupItems] = useState([]);
-
-  // Update RCU group items when type or projectItems change
-  useEffect(() => {
+  // Compute RCU group items based on current type - use useMemo to avoid unnecessary re-computation
+  const rcuGroupItems = useMemo(() => {
     const typeValue = parseInt(formData.type);
     const typeConfig = CONSTANTS.KNX.KNX_OUTPUT_TYPES.find((t) => t.value === typeValue);
-    const items = typeConfig?.resource ? projectItems?.[typeConfig.resource] || [] : [];
-
-    setRcuGroupItems(items);
+    return typeConfig?.resource ? projectItems?.[typeConfig.resource] || [] : [];
   }, [formData.type, projectItems]);
 
   // Determine which KNX group fields to show based on type
@@ -462,13 +458,13 @@ export function KnxItemDialog({ open, onOpenChange, mode, item }) {
                       {rcuDataLoading
                         ? "Loading..."
                         : formData.rcu_group_id
-                          ? (() => {
-                              const selectedItem = rcuGroupItems.find((item) => item.id === formData.rcu_group_id);
-                              return selectedItem
-                                ? `${selectedItem.name || `Group ${selectedItem.address}`} (Address: ${selectedItem.address})`
-                                : "Select group...";
-                            })()
-                          : "Select group..."}
+                        ? (() => {
+                            const selectedItem = rcuGroupItems.find((item) => item.id === formData.rcu_group_id);
+                            return selectedItem
+                              ? `${selectedItem.name || `Group ${selectedItem.address}`} (Address: ${selectedItem.address})`
+                              : "Select group...";
+                          })()
+                        : "Select group..."}
                     </span>
                     <ChevronsUpDown className="h-4 w-4 shrink-0 opacity-50" />
                   </Button>
@@ -526,6 +522,7 @@ export function KnxItemDialog({ open, onOpenChange, mode, item }) {
                   placeholder="0/0/1"
                   error={!!errors.knx_switch_group}
                   disabled={!knxGroupVisibility.allowInput}
+                  debounceMs={0}
                 />
                 {errors.knx_switch_group && <p className="text-sm text-red-500">{errors.knx_switch_group}</p>}
               </div>
@@ -542,6 +539,7 @@ export function KnxItemDialog({ open, onOpenChange, mode, item }) {
                   placeholder="0/0/2"
                   error={!!errors.knx_dimming_group}
                   disabled={!knxGroupVisibility.allowInput}
+                  debounceMs={0}
                 />
                 {errors.knx_dimming_group && <p className="text-sm text-red-500">{errors.knx_dimming_group}</p>}
               </div>
@@ -559,6 +557,7 @@ export function KnxItemDialog({ open, onOpenChange, mode, item }) {
                   placeholder="0/0/3"
                   error={!!errors.knx_value_group}
                   disabled={!knxGroupVisibility.allowInput}
+                  debounceMs={0}
                 />
                 {errors.knx_value_group && <p className="text-sm text-red-500">{errors.knx_value_group}</p>}
               </div>
@@ -575,6 +574,7 @@ export function KnxItemDialog({ open, onOpenChange, mode, item }) {
                   placeholder="0/0/4"
                   error={!!errors.knx_status_group}
                   disabled={!knxGroupVisibility.allowInput}
+                  debounceMs={0}
                 />
                 {errors.knx_status_group && <p className="text-sm text-red-500">{errors.knx_status_group}</p>}
               </div>
