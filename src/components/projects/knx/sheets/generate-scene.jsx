@@ -187,7 +187,7 @@ export function GenerateFromSceneSheet({ open, onOpenChange }) {
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent side="left" className="sm:max-w-[800px] w-full max-w-[90vw] p-4 pb-0">
+      <SheetContent side="left" className="sm:max-w-[900px] w-full max-w-[90vw] p-4 pb-0">
         <SheetHeader>
           <SheetTitle className="flex items-center gap-2">
             <Play className="h-5 w-5" />

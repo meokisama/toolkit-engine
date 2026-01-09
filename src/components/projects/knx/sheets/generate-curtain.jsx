@@ -188,7 +188,7 @@ export function GenerateFromCurtainSheet({ open, onOpenChange }) {
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent side="left" className="sm:max-w-[1000px] w-full max-w-[90vw] p-4 pb-0">
+      <SheetContent side="left" className="sm:max-w-[1100px] w-full max-w-[90vw] p-4 pb-0">
         <SheetHeader>
           <SheetTitle className="flex items-center gap-2">
             <Blinds className="h-5 w-5" />
