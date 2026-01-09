@@ -81,6 +81,13 @@ export const useNetworkInputConfig = (item, projectItems, refreshInputConfigs = 
             )
           );
         }
+
+        // Clear multiGroupConfigs for this input when function type changes
+        setInputDetailConfigs((prev) => {
+          const updated = { ...prev };
+          delete updated[inputIndex];
+          return updated;
+        });
       } catch (error) {
         console.error(`Failed to update input ${inputIndex} function:`, error);
         toast.error(`Failed to update input function: ${error.message}`);

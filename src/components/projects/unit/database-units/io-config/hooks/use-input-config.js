@@ -144,6 +144,20 @@ export const useInputConfig = (item, setInputConfigs = null, open = true) => {
               )
             );
           }
+
+          // Clear multiGroupConfigs and rlcConfigs for this input when function type changes
+          setInputDetailConfigs((prev) => {
+            const updated = { ...prev };
+            delete updated[inputIndex];
+            return updated;
+          });
+
+          setRlcConfigs((prev) => {
+            const updated = { ...prev };
+            delete updated[inputIndex];
+            return updated;
+          });
+
           // No toast message for local state changes - save confirmation will come when Save button is clicked
         } else {
           toast.info("Network unit - use multi-group config to send to unit");
