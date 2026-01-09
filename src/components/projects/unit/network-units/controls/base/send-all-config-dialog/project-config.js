@@ -247,6 +247,7 @@ export const sendConfigToUnit = async (unit, configType, configData, selectedPro
                 knxSwitchGroup: knx.knx_switch_group || "",
                 knxDimmingGroup: knx.knx_dimming_group || "",
                 knxValueGroup: knx.knx_value_group || "",
+                knxStatusGroup: knx.knx_status_group || "",
               },
               unit.type || "Unknown Unit" // Pass unit type for logging
             );

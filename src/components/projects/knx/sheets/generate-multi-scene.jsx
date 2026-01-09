@@ -65,6 +65,7 @@ export function GenerateFromMultiSceneSheet({ open, onOpenChange }) {
           factor: 1,
           feedback: 0,
           knx_switch_group: "", // Single KNX address for multi scene trigger
+          knx_status_group: "",
         };
       });
 

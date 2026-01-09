@@ -75,6 +75,7 @@ export function compareKnx(databaseKnx, networkKnx) {
       { name: "knx_switch_group", label: "KNX Switch Group" },
       { name: "knx_dimming_group", label: "KNX Dimming Group" },
       { name: "knx_value_group", label: "KNX Value Group" },
+      { name: "knx_status_group", label: "KNX Status Group" },
     ];
 
     knxFields.forEach((field) => {
@@ -91,6 +92,9 @@ export function compareKnx(databaseKnx, networkKnx) {
       }
       if (field.name === "knx_value_group" && netValue === undefined) {
         netValue = netKnxConfig.knxValueGroup;
+      }
+      if (field.name === "knx_status_group" && netValue === undefined) {
+        netValue = netKnxConfig.knxStatusGroup;
       }
 
       // For KNX group fields, treat null and empty string as equivalent

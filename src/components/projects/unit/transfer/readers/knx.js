@@ -44,6 +44,7 @@ export const readKnxConfigurations = async (networkUnit, projectId, unitId) => {
             knx_switch_group: networkKnx.knxSwitchGroup || "",
             knx_dimming_group: networkKnx.knxDimmingGroup || "",
             knx_value_group: networkKnx.knxValueGroup || "",
+            knx_status_group: networkKnx.knxStatusGroup || "",
             description: `Transferred from network unit ${networkUnit.ip_address}`,
             source_unit: unitId,
           };

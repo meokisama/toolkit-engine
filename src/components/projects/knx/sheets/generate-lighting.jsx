@@ -68,6 +68,7 @@ export function GenerateFromLightingSheet({ open, onOpenChange }) {
           knx_switch_group: "",
           knx_dimming_group: "",
           knx_value_group: "",
+          knx_status_group: "",
         };
       });
 

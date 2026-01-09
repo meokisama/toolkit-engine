@@ -240,7 +240,30 @@ class DatabaseService {
         console.log("Migration 3 completed successfully");
       }
 
-      // Add future migrations here with if (currentVersion < 4), etc.
+      // Migration 4: Add knx_status_group column to knx table
+      if (currentVersion < 4) {
+        console.log("Running migration 4: Adding knx_status_group column to knx table...");
+
+        // Helper function to check if column exists
+        const columnExists = (tableName, columnName) => {
+          const columns = this.db.pragma(`table_info(${tableName})`);
+          return columns.some((col) => col.name === columnName);
+        };
+
+        // Add knx_status_group column to knx table
+        if (!columnExists("knx", "knx_status_group")) {
+          this.db.exec(`
+            ALTER TABLE knx ADD COLUMN knx_status_group TEXT;
+          `);
+          console.log("Added knx_status_group column to knx table");
+        }
+
+        // Update database version
+        this.db.pragma("user_version = 4");
+        console.log("Migration 4 completed successfully");
+      }
+
+      // Add future migrations here with if (currentVersion < 5), etc.
     } catch (error) {
       console.error("Failed to run migrations:", error);
       throw error;

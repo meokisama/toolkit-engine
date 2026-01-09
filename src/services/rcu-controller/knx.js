@@ -20,7 +20,7 @@ async function triggerKnx(unitIp, canId, knxAddress) {
 
 // Set KNX Configuration function
 async function setKnxConfig(unitIp, canId, knxConfig) {
-  const { address, type, factor, feedback, rcuGroup, knxSwitchGroup, knxDimmingGroup, knxValueGroup } = knxConfig;
+  const { address, type, factor, feedback, rcuGroup, knxSwitchGroup, knxDimmingGroup, knxValueGroup, knxStatusGroup } = knxConfig;
 
   // Validations
   validators.knxAddress(address);
@@ -47,6 +47,7 @@ async function setKnxConfig(unitIp, canId, knxConfig) {
   const switchGroupBytes = convertKnxAddressToHex(knxSwitchGroup);
   const dimmingGroupBytes = convertKnxAddressToHex(knxDimmingGroup);
   const valueGroupBytes = convertKnxAddressToHex(knxValueGroup);
+  const statusGroupBytes = convertKnxAddressToHex(knxStatusGroup);
 
   const data = [
     address & 0xff, // KNX Address low byte
@@ -55,7 +56,6 @@ async function setKnxConfig(unitIp, canId, knxConfig) {
     factor & 0xff, // Factor (1 byte)
     feedback & 0xff, // FeedBack (1 byte)
     0x00, // memValueFlag (1 byte, always 0x00)
-    0x00, // Reserve (1 byte, always 0x00)
     rcuGroup & 0xff, // rcu_group_value (1 byte)
     switchGroupBytes[0], // KNX switch group low byte
     switchGroupBytes[1], // KNX switch group high byte
@@ -63,6 +63,8 @@ async function setKnxConfig(unitIp, canId, knxConfig) {
     dimmingGroupBytes[1], // KNX dimming group high byte
     valueGroupBytes[0], // KNX value group low byte
     valueGroupBytes[1], // KNX value group high byte
+    statusGroupBytes[0], // KNX status group low byte
+    statusGroupBytes[1], // KNX status group high byte
   ];
 
   console.log("Sending KNX config:", {
@@ -73,6 +75,7 @@ async function setKnxConfig(unitIp, canId, knxConfig) {
     switchGroupHex: `0x${switchGroupBytes[1].toString(16).padStart(2, "0")}${switchGroupBytes[0].toString(16).padStart(2, "0")}`,
     dimmingGroupHex: `0x${dimmingGroupBytes[1].toString(16).padStart(2, "0")}${dimmingGroupBytes[0].toString(16).padStart(2, "0")}`,
     valueGroupHex: `0x${valueGroupBytes[1].toString(16).padStart(2, "0")}${valueGroupBytes[0].toString(16).padStart(2, "0")}`,
+    statusGroupHex: `0x${statusGroupBytes[1].toString(16).padStart(2, "0")}${statusGroupBytes[0].toString(16).padStart(2, "0")}`,
   });
 
   try {
@@ -199,7 +202,7 @@ async function getKnxConfig(unitIp, canId, knxAddress = null) {
 
 // Helper function to parse KNX configuration response
 function parseKnxConfigResponse(data) {
-  if (!data || data.length < 14) {
+  if (!data || data.length < 16) {
     console.warn("Invalid KNX config response data length:", data?.length);
     return null;
   }
@@ -214,16 +217,17 @@ function parseKnxConfigResponse(data) {
     const factor = data[3];
     const feedback = data[4];
     const memValueFlag = data[5]; // Should be 0x00
-    const reserve = data[6]; // Should be 0x00
-    const rcuGroup = data[7];
+    const rcuGroup = data[6];
 
     // Parse KNX group addresses (2 bytes each, little endian)
-    const switchGroupLow = data[8];
-    const switchGroupHigh = data[9];
-    const dimmingGroupLow = data[10];
-    const dimmingGroupHigh = data[11];
-    const valueGroupLow = data[12];
-    const valueGroupHigh = data[13];
+    const switchGroupLow = data[7];
+    const switchGroupHigh = data[8];
+    const dimmingGroupLow = data[9];
+    const dimmingGroupHigh = data[10];
+    const valueGroupLow = data[11];
+    const valueGroupHigh = data[12];
+    const statusGroupLow = data[13];
+    const statusGroupHigh = data[14];
 
     // Convert 2-byte hex back to a/b/c format
     const convertHexToKnxAddress = (lowByte, highByte) => {
@@ -240,6 +244,7 @@ function parseKnxConfigResponse(data) {
     const knxSwitchGroup = convertHexToKnxAddress(switchGroupLow, switchGroupHigh);
     const knxDimmingGroup = convertHexToKnxAddress(dimmingGroupLow, dimmingGroupHigh);
     const knxValueGroup = convertHexToKnxAddress(valueGroupLow, valueGroupHigh);
+    const knxStatusGroup = convertHexToKnxAddress(statusGroupLow, statusGroupHigh);
 
     return {
       address,
@@ -247,11 +252,11 @@ function parseKnxConfigResponse(data) {
       factor,
       feedback,
       memValueFlag,
-      reserve,
       rcuGroup,
       knxSwitchGroup,
       knxDimmingGroup,
       knxValueGroup,
+      knxStatusGroup,
     };
   } catch (error) {
     console.error("Error parsing KNX config response:", error);

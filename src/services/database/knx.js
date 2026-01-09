@@ -14,6 +14,7 @@ export const knxTableSchemas = {
       knx_switch_group TEXT,
       knx_dimming_group TEXT,
       knx_value_group TEXT,
+      knx_status_group TEXT,
       description TEXT,
       source_unit INTEGER,
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
@@ -107,7 +108,7 @@ export const knxMethods = {
 
   // Create KNX item in createProjectItem
   createKnxItemInline(projectId, itemData) {
-    const { name, address, type, factor, feedback, rcu_group_id, knx_switch_group, knx_dimming_group, knx_value_group, description } = itemData;
+    const { name, address, type, factor, feedback, rcu_group_id, knx_switch_group, knx_dimming_group, knx_value_group, knx_status_group, description } = itemData;
 
     // Determine rcu_group_type based on KNX type
     let rcu_group_type = null;
@@ -116,8 +117,8 @@ export const knxMethods = {
     }
 
     const stmt = this.db.prepare(`
-      INSERT INTO knx (project_id, name, address, type, factor, feedback, rcu_group_id, rcu_group_type, knx_switch_group, knx_dimming_group, knx_value_group, description, source_unit)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      INSERT INTO knx (project_id, name, address, type, factor, feedback, rcu_group_id, rcu_group_type, knx_switch_group, knx_dimming_group, knx_value_group, knx_status_group, description, source_unit)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `);
     const result = stmt.run(
       projectId,
@@ -131,6 +132,7 @@ export const knxMethods = {
       knx_switch_group || null,
       knx_dimming_group || null,
       knx_value_group || null,
+      knx_status_group || null,
       description,
       itemData.source_unit || null
     );
@@ -139,7 +141,7 @@ export const knxMethods = {
 
   // Update KNX item in updateProjectItem
   updateKnxItemInline(id, itemData) {
-    const { name, address, type, factor, feedback, rcu_group_id, knx_switch_group, knx_dimming_group, knx_value_group, description } = itemData;
+    const { name, address, type, factor, feedback, rcu_group_id, knx_switch_group, knx_dimming_group, knx_value_group, knx_status_group, description } = itemData;
 
     // Determine rcu_group_type based on KNX type
     let rcu_group_type = null;
@@ -149,7 +151,7 @@ export const knxMethods = {
 
     const stmt = this.db.prepare(`
       UPDATE knx
-      SET name = ?, address = ?, type = ?, factor = ?, feedback = ?, rcu_group_id = ?, rcu_group_type = ?, knx_switch_group = ?, knx_dimming_group = ?, knx_value_group = ?, description = ?, source_unit = ?, updated_at = CURRENT_TIMESTAMP
+      SET name = ?, address = ?, type = ?, factor = ?, feedback = ?, rcu_group_id = ?, rcu_group_type = ?, knx_switch_group = ?, knx_dimming_group = ?, knx_value_group = ?, knx_status_group = ?, description = ?, source_unit = ?, updated_at = CURRENT_TIMESTAMP
       WHERE id = ?
     `);
     const result = stmt.run(
@@ -163,6 +165,7 @@ export const knxMethods = {
       knx_switch_group || null,
       knx_dimming_group || null,
       knx_value_group || null,
+      knx_status_group || null,
       description,
       itemData.source_unit || null,
       id
@@ -204,6 +207,7 @@ export const knxMethods = {
       duplicatedItem.knx_switch_group = originalItem.knx_switch_group || null;
       duplicatedItem.knx_dimming_group = originalItem.knx_dimming_group || null;
       duplicatedItem.knx_value_group = originalItem.knx_value_group || null;
+      duplicatedItem.knx_status_group = originalItem.knx_status_group || null;
     }
 
     return duplicatedItem;
@@ -224,6 +228,7 @@ export const knxMethods = {
         knx_switch_group,
         knx_dimming_group,
         knx_value_group,
+        knx_status_group,
         description,
       } = itemData;
 
@@ -246,8 +251,8 @@ export const knxMethods = {
       }
 
       const stmt = this.db.prepare(`
-        INSERT INTO knx (project_id, name, address, type, factor, feedback, rcu_group_id, rcu_group_type, knx_switch_group, knx_dimming_group, knx_value_group, description, source_unit)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        INSERT INTO knx (project_id, name, address, type, factor, feedback, rcu_group_id, rcu_group_type, knx_switch_group, knx_dimming_group, knx_value_group, knx_status_group, description, source_unit)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       `);
       const result = stmt.run(
         projectId,
@@ -261,6 +266,7 @@ export const knxMethods = {
         knx_switch_group || null,
         knx_dimming_group || null,
         knx_value_group || null,
+        knx_status_group || null,
         description,
         itemData.source_unit || null
       );

@@ -278,6 +278,28 @@ export const createKnxItemsColumns = (onCellEdit, getEffectiveValue, projectItem
       },
     },
     {
+      accessorKey: "knx_status_group",
+      header: ({ column }) => <DataTableColumnHeader column={column} title="Status Group" />,
+      cell: ({ row }) => {
+        const item = row.original;
+        const effectiveValue = getEffectiveValue(item.id, "knx_status_group", item.knx_status_group);
+
+        return (
+          <EditableCell
+            value={effectiveValue || ""}
+            onSave={() => {}} // No-op function since editing is disabled
+            placeholder="-"
+            disabled={false}
+            className="text-center font-mono min-w-30"
+          />
+        );
+      },
+      enableSorting: false,
+      meta: {
+        className: "w-[10%]",
+      },
+    },
+    {
       accessorKey: "source_unit",
       header: ({ column }) => (
         <DataTableFilterColumnHeader

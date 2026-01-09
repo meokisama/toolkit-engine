@@ -66,6 +66,7 @@ export function GenerateFromCurtainSheet({ open, onOpenChange }) {
           feedback: 0,
           knx_switch_group: "", // For open/close control
           knx_dimming_group: "", // For stop control
+          knx_status_group: "",
         };
       });
 

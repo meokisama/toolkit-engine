@@ -27,6 +27,7 @@ export function KnxItemDialog({ open, onOpenChange, mode, item }) {
     knx_switch_group: "",
     knx_dimming_group: "",
     knx_value_group: "",
+    knx_status_group: "",
     description: "",
     source_unit: null,
   });
@@ -99,6 +100,7 @@ export function KnxItemDialog({ open, onOpenChange, mode, item }) {
           knx_switch_group: item.knx_switch_group || "",
           knx_dimming_group: item.knx_dimming_group || "",
           knx_value_group: item.knx_value_group || "",
+          knx_status_group: item.knx_status_group || "",
           description: item.description || "",
           source_unit: item.source_unit || null,
         });
@@ -119,6 +121,7 @@ export function KnxItemDialog({ open, onOpenChange, mode, item }) {
           knx_switch_group: "",
           knx_dimming_group: "",
           knx_value_group: "",
+          knx_status_group: "",
           description: "",
           source_unit: null,
         });
@@ -166,6 +169,11 @@ export function KnxItemDialog({ open, onOpenChange, mode, item }) {
 
     if (visibility.showValue && formData.knx_value_group && !knxAddressPattern.test(formData.knx_value_group)) {
       newErrors.knx_value_group = "Invalid KNX address format. Use a/b/c";
+    }
+
+    // Status group is always visible and should be validated if provided
+    if (formData.knx_status_group && !knxAddressPattern.test(formData.knx_status_group)) {
+      newErrors.knx_status_group = "Invalid KNX address format. Use a/b/c";
     }
 
     setErrors(newErrors);
@@ -218,11 +226,12 @@ export function KnxItemDialog({ open, onOpenChange, mode, item }) {
       if (field === "type") {
         const visibility = getKnxGroupVisibility(value);
         if (!visibility.allowInput) {
-          // Disable type - clear all KNX groups and RCU group
+          // Disable type - clear all KNX groups and RCU group (but keep status group)
           newData.knx_switch_group = "";
           newData.knx_dimming_group = "";
           newData.knx_value_group = "";
           newData.rcu_group_id = null;
+          // Note: knx_status_group is always visible, so we don't clear it
         } else {
           // Clear fields that are not visible for this type
           if (!visibility.showSwitch) newData.knx_switch_group = "";
@@ -550,6 +559,20 @@ export function KnxItemDialog({ open, onOpenChange, mode, item }) {
                 {errors.knx_value_group && <p className="text-sm text-red-500">{errors.knx_value_group}</p>}
               </div>
             )}
+          </div>
+
+          {/* Status Group - Always visible */}
+          <div className="space-y-2">
+            <Label htmlFor="knx_status_group">
+              KNX Status Group <span className="text-muted-foreground font-light italic">(Always visible)</span>
+            </Label>
+            <KNXAddressInput
+              value={formData.knx_status_group}
+              onChange={(value) => handleInputChange("knx_status_group", value)}
+              placeholder="0/0/4"
+              error={!!errors.knx_status_group}
+            />
+            {errors.knx_status_group && <p className="text-sm text-red-500">{errors.knx_status_group}</p>}
           </div>
 
           {errors.submit && <div className="text-sm text-red-500 bg-red-50 p-2 rounded">{errors.submit}</div>}

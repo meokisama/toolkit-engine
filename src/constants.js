@@ -587,8 +587,8 @@ export const CONSTANTS = {
 
     KNX_FEEDBACK_TYPES: [
       { value: 0, name: "KNX_FB_DISABLE", label: "Disable" },
-      { value: 1, name: "KNX_FB_ACTIVE", label: "Active" },
-      { value: 2, name: "KNX_FB_PASSIVE", label: "Passive" },
+      { value: 1, name: "KNX_FB_PASSIVE", label: "Passive" },
+      { value: 2, name: "KNX_FB_ACTIVE", label: "Active" },
     ],
   },
 
