@@ -76,6 +76,16 @@ export const useNetworkInputConfig = (item, projectItems, refreshInputConfigs = 
                 ? {
                     ...config,
                     functionValue: parseInt(functionValue) || 0,
+                    // Clear multiGroupConfig and rlcConfig when function type changes
+                    multiGroupConfig: [],
+                    rlcConfig: {
+                      ramp: 0,
+                      preset: 255,
+                      ledStatus: 0,
+                      autoMode: 0,
+                      delayOff: 0,
+                      delayOn: 0,
+                    },
                   }
                 : config
             )
@@ -111,8 +121,9 @@ export const useNetworkInputConfig = (item, projectItems, refreshInputConfigs = 
     const functionInfo = getInputFunctionByValue(parseInt(functionValue));
     const functionName = functionInfo?.name || "UNKNOWN";
 
-    // Use config from local state (passed from parent)
-    const localConfig = currentInputConfig || {
+    // Use config from local state (passed from parent) or cached config
+    const cachedConfig = multiGroupConfigs[inputIndex];
+    const localConfig = currentInputConfig || cachedConfig || {
       ramp: 0,
       preset: 255,
       led_status: 0,
@@ -152,7 +163,7 @@ export const useNetworkInputConfig = (item, projectItems, refreshInputConfigs = 
       ...prev,
       [inputIndex]: convertedConfig,
     }));
-  }, []);
+  }, [multiGroupConfigs, item?.type]);
 
   // Handle saving multi-group configuration - LOCAL STATE ONLY (no send to unit)
   const handleSaveInputDetailConfig = useCallback(
@@ -219,7 +230,19 @@ export const useNetworkInputConfig = (item, projectItems, refreshInputConfigs = 
         // Update cached config
         setInputDetailConfigs((prev) => ({
           ...prev,
-          [currentInputDetailInput.index]: data,
+          [currentInputDetailInput.index]: {
+            ramp: rlcOptions.ramp ?? 0,
+            preset: rlcOptions.preset ?? 255,
+            led_status: ledStatus,
+            auto_mode: rlcOptions.autoMode || false,
+            auto_time: 0,
+            delay_off: delayOffSeconds,
+            delay_on: rlcOptions.delayOn ?? 0,
+            multiGroupConfig: groups.map((group) => ({
+              groupId: parseInt(group.groupId) || 0,
+              presetBrightness: parseInt(group.presetBrightness) ?? 255,
+            })),
+          },
         }));
 
         return true;
