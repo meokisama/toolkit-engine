@@ -156,6 +156,18 @@ export const getTabToLoadForFunction = (functionValue) => {
  * Get available items from projectItems based on function type
  */
 export const getAvailableItemsForFunction = (functionValue, projectItems) => {
+  // Check if function is Door Switch (31) or Motion Sensor (32) - Room Controls
+  if (functionValue === 31 || functionValue === 32) {
+    // Return fixed list of 5 rooms
+    return [
+      { id: "room-1", name: "Room 1", address: "1" },
+      { id: "room-2", name: "Room 2", address: "2" },
+      { id: "room-3", name: "Room 3", address: "3" },
+      { id: "room-4", name: "Room 4", address: "4" },
+      { id: "room-5", name: "Room 5", address: "5" },
+    ];
+  }
+
   const groupType = getGroupTypeFromFunction(functionValue);
 
   switch (groupType) {
