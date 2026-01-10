@@ -20,6 +20,24 @@ export const useNetworkIOConfig = (item, open, childDialogOpen = false) => {
   const outputStatesRef = useRef([]);
   const isInitializingRef = useRef(false); // Track if currently initializing to prevent duplicate calls
 
+  // Wrapper function to sync ref whenever state is updated
+  const setInputConfigsAndSync = useCallback((updater) => {
+    setInputConfigs((prev) => {
+      const newValue = typeof updater === 'function' ? updater(prev) : updater;
+      inputStatesRef.current = newValue; // Sync ref with new state
+      return newValue;
+    });
+  }, []);
+
+  // Wrapper function to sync output ref whenever state is updated
+  const setOutputConfigsAndSync = useCallback((updater) => {
+    setOutputConfigs((prev) => {
+      const newValue = typeof updater === 'function' ? updater(prev) : updater;
+      outputStatesRef.current = newValue; // Sync ref with new state
+      return newValue;
+    });
+  }, []);
+
   // Get I/O specifications for the unit - memoized
   const ioSpec = useMemo(() => {
     return item?.type ? getUnitIOSpec(item.type) : null;
@@ -61,10 +79,10 @@ export const useNetworkIOConfig = (item, open, childDialogOpen = false) => {
         });
 
         if (hasChanges) {
-          inputStatesRef.current = updatedInputs;
           // Use startTransition to batch updates and reduce UI lag (React 18+)
+          // Ref will be auto-synced by setInputConfigsAndSync wrapper
           startTransition(() => {
-            setInputConfigs([...updatedInputs]);
+            setInputConfigsAndSync([...updatedInputs]);
           });
         }
       }
@@ -143,10 +161,8 @@ export const useNetworkIOConfig = (item, open, childDialogOpen = false) => {
           return config;
         });
 
-        // Update ref first to ensure consistency
-        outputStatesRef.current = updatedOutputs;
-        // Then update state
-        setOutputConfigs([...updatedOutputs]);
+        // Ref will be auto-synced by setOutputConfigsAndSync wrapper
+        setOutputConfigsAndSync([...updatedOutputs]);
 
         return true;
       } else {
@@ -190,10 +206,10 @@ export const useNetworkIOConfig = (item, open, childDialogOpen = false) => {
         });
 
         if (hasChanges) {
-          outputStatesRef.current = updatedOutputs;
           // Use startTransition to batch updates and reduce UI lag (React 18+)
+          // Ref will be auto-synced by setOutputConfigsAndSync wrapper
           startTransition(() => {
-            setOutputConfigs([...updatedOutputs]);
+            setOutputConfigsAndSync([...updatedOutputs]);
           });
         }
       }
@@ -243,8 +259,8 @@ export const useNetworkIOConfig = (item, open, childDialogOpen = false) => {
             : input;
         });
 
-        inputStatesRef.current = updatedInputs;
-        setInputConfigs([...updatedInputs]);
+        // Ref will be auto-synced by setInputConfigsAndSync wrapper
+        setInputConfigsAndSync([...updatedInputs]);
 
         // Store original input configs for change detection (only on first load)
         if (!originalInputConfigsSet) {
@@ -319,8 +335,8 @@ export const useNetworkIOConfig = (item, open, childDialogOpen = false) => {
         };
       });
 
-      outputStatesRef.current = updatedOutputs;
-      setOutputConfigs([...updatedOutputs]);
+      // Ref will be auto-synced by setOutputConfigsAndSync wrapper
+      setOutputConfigsAndSync([...updatedOutputs]);
 
       return true;
     } catch (error) {
@@ -413,10 +429,10 @@ export const useNetworkIOConfig = (item, open, childDialogOpen = false) => {
         brightness: 0,
       }));
 
-      setInputConfigs(inputs);
-      setOutputConfigs(outputs);
-      inputStatesRef.current = inputs;
-      outputStatesRef.current = outputs;
+      // Ref will be auto-synced by setInputConfigsAndSync wrapper
+      setInputConfigsAndSync(inputs);
+      // Ref will be auto-synced by setOutputConfigsAndSync wrapper
+      setOutputConfigsAndSync(outputs);
 
       // Load inputs first
       await readInputConfigsFromUnit();
@@ -820,8 +836,8 @@ export const useNetworkIOConfig = (item, open, childDialogOpen = false) => {
     outputConfigs,
     originalInputConfigs,
     originalOutputConfigs,
-    setInputConfigs,
-    setOutputConfigs,
+    setInputConfigs: setInputConfigsAndSync, // Use wrapper to auto-sync ref
+    setOutputConfigs: setOutputConfigsAndSync, // Use wrapper to auto-sync ref
     ioSpec,
     outputTypes,
     loading,
