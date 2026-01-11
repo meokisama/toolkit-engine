@@ -73,7 +73,7 @@ export function createMultiSceneColumns(onCellEdit, getEffectiveValue, unitItems
               }}
               placeholder="0-255"
               type="number"
-              className="text-center font-semibold w-full"
+              className="pl-10 font-bold w-full"
               icon={Hash}
             />
           </div>

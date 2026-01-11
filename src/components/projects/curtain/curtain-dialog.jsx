@@ -241,7 +241,6 @@ export function CurtainDialog({ open, onOpenChange, item = null, mode = "create"
       // Prepare item data with proper types
       const itemData = {
         ...formData,
-        address: parseInt(formData.address),
         pause_period: parseInt(formData.pause_period) || 0,
         transition_period: parseInt(formData.transition_period) || 0,
         open_group_id: formData.open_group_id || null,

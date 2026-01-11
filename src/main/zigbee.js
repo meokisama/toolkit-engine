@@ -1,8 +1,3 @@
-/**
- * Zigbee IPC Handlers
- * Xử lý các tương tác với Zigbee devices (RCU Controller và Database)
- */
-
 export function registerZigbeeHandlers(ipcMain, dbService, rcu) {
   // ==================== RCU Controller - Zigbee Operations ====================
 

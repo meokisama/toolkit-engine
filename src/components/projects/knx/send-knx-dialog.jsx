@@ -82,6 +82,7 @@ export function SendKnxDialog({ open, onOpenChange, items = [] }) {
             knxSwitchGroup: knxData.knx_switch_group || "",
             knxDimmingGroup: knxData.knx_dimming_group || "",
             knxValueGroup: knxData.knx_value_group || "",
+            knxStatusGroup: knxData.knx_status_group || "",
           },
           unit.type || "Unknown Unit" // Pass unit type for logging
         );
@@ -218,6 +219,7 @@ export function SendKnxDialog({ open, onOpenChange, items = [] }) {
               knxSwitchGroup: knxData.knx_switch_group || "",
               knxDimmingGroup: knxData.knx_dimming_group || "",
               knxValueGroup: knxData.knx_value_group || "",
+              knxStatusGroup: knxData.knx_status_group || "",
             },
             unit.type || "Unknown Unit" // Pass unit type for logging
           );

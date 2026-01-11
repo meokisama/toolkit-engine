@@ -1,8 +1,3 @@
-/**
- * Scene IPC Handlers
- * Xử lý các tương tác với scene items (RCU Controller và Database)
- */
-
 export function registerSceneHandlers(ipcMain, dbService, rcu) {
   // ==================== RCU Controller - Scene Operations ====================
 

@@ -1,8 +1,3 @@
-/**
- * Schedule IPC Handlers
- * Xử lý các tương tác với schedule items và schedule-scene relationships
- */
-
 export function registerScheduleHandlers(ipcMain, dbService, rcu) {
   // Schedule CRUD operations
   ipcMain.handle("schedule:getAll", async (event, projectId) => {

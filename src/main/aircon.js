@@ -1,8 +1,3 @@
-/**
- * Aircon IPC Handlers
- * Xử lý các tương tác với aircon items và cards (RCU Controller và Database)
- */
-
 export function registerAirconHandlers(ipcMain, dbService, rcu) {
   // ==================== RCU Controller - Air Conditioner Operations ====================
 

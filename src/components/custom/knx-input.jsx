@@ -31,32 +31,41 @@ export const KNXAddressInput = ({
 
   // Debounce timeout ref
   const debounceTimeoutRef = useRef(null);
+  const latestValueRef = useRef(null);
 
   // Debounced onChange function
   const debouncedOnChange = useCallback(
     (fullAddress) => {
+      latestValueRef.current = fullAddress;
+
       if (debounceMs > 0) {
         if (debounceTimeoutRef.current) {
           clearTimeout(debounceTimeoutRef.current);
         }
         debounceTimeoutRef.current = setTimeout(() => {
           onChange?.(fullAddress);
+          latestValueRef.current = null;
         }, debounceMs);
       } else {
         onChange?.(fullAddress);
+        latestValueRef.current = null;
       }
     },
     [onChange, debounceMs]
   );
 
-  // Cleanup timeout on unmount
+  // Cleanup timeout on unmount and flush pending changes
   useEffect(() => {
     return () => {
       if (debounceTimeoutRef.current) {
         clearTimeout(debounceTimeoutRef.current);
+        // Flush pending change before unmount
+        if (latestValueRef.current) {
+          onChange?.(latestValueRef.current);
+        }
       }
     };
-  }, []);
+  }, [onChange]);
 
   // Sync external value changes
   useEffect(() => {
@@ -67,11 +76,14 @@ export const KNXAddressInput = ({
       device: parts[2] || "",
     };
 
-    // Only update if values actually changed to prevent infinite loops
-    if (JSON.stringify(newValues) !== JSON.stringify(values)) {
-      setValues(newValues);
-    }
-  }, [value]); // Remove values dependency to prevent infinite loop
+    // Compare current internal state with new external value
+    setValues((prevValues) => {
+      const hasChanged =
+        prevValues.area !== newValues.area || prevValues.line !== newValues.line || prevValues.device !== newValues.device;
+
+      return hasChanged ? newValues : prevValues;
+    });
+  }, [value]);
 
   const updateValue = useCallback(
     (field, newValue) => {

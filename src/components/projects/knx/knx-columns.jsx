@@ -7,6 +7,16 @@ import { EditableSelectCell } from "@/components/projects/data-table/editable-se
 import { EditableComboboxCell } from "@/components/projects/data-table/editable-combobox-cell";
 import { CONSTANTS } from "@/constants";
 
+// KNX Address validation helper - validates format a/b/c
+const validateKnxAddress = (address) => {
+  if (!address || address.trim() === "") {
+    return true; // Empty is valid (optional field)
+  }
+
+  const knxAddressPattern = /^(\d{1,2})\/(\d{1,2})\/(\d{1,3})$/;
+  return knxAddressPattern.test(address);
+};
+
 export const createKnxItemsColumns = (onCellEdit, getEffectiveValue, projectItems = {}, unitItems = []) => {
   // Create filter options for source unit
   const sourceUnitFilterOptions = [
@@ -77,7 +87,7 @@ export const createKnxItemsColumns = (onCellEdit, getEffectiveValue, projectItem
               }}
               placeholder="0-511"
               type="number"
-              className="text-center font-bold"
+              className="pl-10 font-bold"
             />
           </div>
         );
@@ -213,7 +223,7 @@ export const createKnxItemsColumns = (onCellEdit, getEffectiveValue, projectItem
     },
     {
       accessorKey: "knx_switch_group",
-      header: ({ column }) => <DataTableColumnHeader column={column} title="Switch Group" />,
+      header: ({ column }) => <DataTableColumnHeader column={column} title="Switch Group" className="text-center" />,
       cell: ({ row }) => {
         const item = row.original;
         const effectiveValue = getEffectiveValue(item.id, "knx_switch_group", item.knx_switch_group);
@@ -221,10 +231,14 @@ export const createKnxItemsColumns = (onCellEdit, getEffectiveValue, projectItem
         return (
           <EditableCell
             value={effectiveValue || ""}
-            onSave={() => {}} // No-op function since editing is disabled
+            onSave={(newValue) => {
+              if (validateKnxAddress(newValue)) {
+                onCellEdit(item.id, "knx_switch_group", newValue);
+              }
+            }}
             placeholder="-"
-            disabled={true}
-            className="text-center font-mono min-w-30"
+            disabled={false}
+            className="text-center font-mono min-w-20"
           />
         );
       },
@@ -235,7 +249,7 @@ export const createKnxItemsColumns = (onCellEdit, getEffectiveValue, projectItem
     },
     {
       accessorKey: "knx_dimming_group",
-      header: ({ column }) => <DataTableColumnHeader column={column} title="Dimming Group" />,
+      header: ({ column }) => <DataTableColumnHeader column={column} title="Dimming Group" className="text-center" />,
       cell: ({ row }) => {
         const item = row.original;
         const effectiveValue = getEffectiveValue(item.id, "knx_dimming_group", item.knx_dimming_group);
@@ -243,10 +257,14 @@ export const createKnxItemsColumns = (onCellEdit, getEffectiveValue, projectItem
         return (
           <EditableCell
             value={effectiveValue || ""}
-            onSave={() => {}} // No-op function since editing is disabled
+            onSave={(newValue) => {
+              if (validateKnxAddress(newValue)) {
+                onCellEdit(item.id, "knx_dimming_group", newValue);
+              }
+            }}
             placeholder="-"
-            disabled={true}
-            className="text-center font-mono min-w-30"
+            disabled={false}
+            className="text-center font-mono min-w-20"
           />
         );
       },
@@ -257,7 +275,7 @@ export const createKnxItemsColumns = (onCellEdit, getEffectiveValue, projectItem
     },
     {
       accessorKey: "knx_value_group",
-      header: ({ column }) => <DataTableColumnHeader column={column} title="Value Group" />,
+      header: ({ column }) => <DataTableColumnHeader column={column} title="Value Group" className="text-center" />,
       cell: ({ row }) => {
         const item = row.original;
         const effectiveValue = getEffectiveValue(item.id, "knx_value_group", item.knx_value_group);
@@ -265,10 +283,40 @@ export const createKnxItemsColumns = (onCellEdit, getEffectiveValue, projectItem
         return (
           <EditableCell
             value={effectiveValue || ""}
-            onSave={() => {}} // No-op function since editing is disabled
+            onSave={(newValue) => {
+              if (validateKnxAddress(newValue)) {
+                onCellEdit(item.id, "knx_value_group", newValue);
+              }
+            }}
             placeholder="-"
-            disabled={true}
-            className="text-center font-mono min-w-30"
+            disabled={false}
+            className="text-center font-mono min-w-20"
+          />
+        );
+      },
+      enableSorting: false,
+      meta: {
+        className: "w-[10%]",
+      },
+    },
+    {
+      accessorKey: "knx_status_group",
+      header: ({ column }) => <DataTableColumnHeader column={column} title="Status Group" className="text-center" />,
+      cell: ({ row }) => {
+        const item = row.original;
+        const effectiveValue = getEffectiveValue(item.id, "knx_status_group", item.knx_status_group);
+
+        return (
+          <EditableCell
+            value={effectiveValue || ""}
+            onSave={(newValue) => {
+              if (validateKnxAddress(newValue)) {
+                onCellEdit(item.id, "knx_status_group", newValue);
+              }
+            }}
+            placeholder="-"
+            disabled={false}
+            className="text-center font-mono min-w-20"
           />
         );
       },

@@ -1,8 +1,3 @@
-/**
- * Curtain IPC Handlers
- * Xử lý các tương tác với curtain items (RCU Controller và Database)
- */
-
 export function registerCurtainHandlers(ipcMain, dbService, rcu) {
   // ==================== RCU Controller - Curtain Operations ====================
 

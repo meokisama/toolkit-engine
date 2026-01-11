@@ -3,7 +3,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { RoomStateConfiguration } from "./RoomStateConfiguration";
+import { RoomStateConfiguration } from "./room-state-configuration";
 import { LibraryBig, Settings2, SlidersVertical, Timer } from "lucide-react";
 
 const ROOM_STATES = ["Unrent", "Unoccupy", "Checkin", "Welcome", "WelcomeNight", "Staff", "OutOfService"];
@@ -53,18 +53,7 @@ export function RoomConfiguration({ roomIndex, config, updateConfig, availableSc
                 <LibraryBig className="size-4" />
                 Room Address
               </Label>
-              <Select value={roomAddress.toString()} onValueChange={(value) => handleFieldUpdate("roomAddress", parseInt(value))}>
-                <SelectTrigger id={`room-${roomIndex}-address`} className="w-full">
-                  <SelectValue placeholder="Select room address" />
-                </SelectTrigger>
-                <SelectContent>
-                  {[1, 2, 3, 4, 5].map((num) => (
-                    <SelectItem key={num} value={num.toString()}>
-                      {num}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <Input id={`room-${roomIndex}-address`} type="number" value={roomAddress} readOnly className="w-full" />
             </div>
 
             {/* Occupancy Type */}

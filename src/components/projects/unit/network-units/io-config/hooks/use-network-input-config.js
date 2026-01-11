@@ -1,6 +1,6 @@
 import { useState, useCallback, useEffect } from "react";
 import { toast } from "sonner";
-import { getInputFunctionByValue } from "@/constants";
+import { getInputFunctionByValue, getInputDisplayName } from "@/constants";
 
 export const useNetworkInputConfig = (item, projectItems, refreshInputConfigs = null, setInputConfigs = null) => {
   const [multiGroupConfigs, setInputDetailConfigs] = useState({});
@@ -76,11 +76,37 @@ export const useNetworkInputConfig = (item, projectItems, refreshInputConfigs = 
                 ? {
                     ...config,
                     functionValue: parseInt(functionValue) || 0,
+                    // Clear multiGroupConfig and rlcConfig when function type changes
+                    multiGroupConfig: [],
+                    rlcConfig: {
+                      ramp: 0,
+                      preset: 255,
+                      ledStatus: 0,
+                      autoMode: 0,
+                      delayOff: 0,
+                      delayOn: 0,
+                    },
                   }
                 : config
             )
           );
         }
+
+        // Clear multiGroupConfigs for this input when function type changes
+        // Set to empty config instead of deleting to prevent loading old data
+        setInputDetailConfigs((prev) => ({
+          ...prev,
+          [inputIndex]: {
+            ramp: 0,
+            preset: 255,
+            led_status: 0,
+            auto_mode: 0,
+            auto_time: 0,
+            delay_off: 0,
+            delay_on: 0,
+            multiGroupConfig: [],
+          },
+        }));
       } catch (error) {
         console.error(`Failed to update input ${inputIndex} function:`, error);
         toast.error(`Failed to update input function: ${error.message}`);
@@ -95,8 +121,9 @@ export const useNetworkInputConfig = (item, projectItems, refreshInputConfigs = 
     const functionInfo = getInputFunctionByValue(parseInt(functionValue));
     const functionName = functionInfo?.name || "UNKNOWN";
 
-    // Use config from local state (passed from parent)
-    const localConfig = currentInputConfig || {
+    // Use config from local state (passed from parent) or cached config
+    const cachedConfig = multiGroupConfigs[inputIndex];
+    const localConfig = currentInputConfig || cachedConfig || {
       ramp: 0,
       preset: 255,
       led_status: 0,
@@ -122,7 +149,7 @@ export const useNetworkInputConfig = (item, projectItems, refreshInputConfigs = 
     // Set state immediately from local config (no loading needed)
     setCurrentInputDetailInput({
       index: inputIndex,
-      name: `Input ${inputIndex + 1}`,
+      name: getInputDisplayName(item?.type, inputIndex),
       functionName: functionName,
       functionValue: functionValue,
       isLoading: false,
@@ -136,7 +163,7 @@ export const useNetworkInputConfig = (item, projectItems, refreshInputConfigs = 
       ...prev,
       [inputIndex]: convertedConfig,
     }));
-  }, []);
+  }, [multiGroupConfigs, item?.type]);
 
   // Handle saving multi-group configuration - LOCAL STATE ONLY (no send to unit)
   const handleSaveInputDetailConfig = useCallback(
@@ -203,7 +230,19 @@ export const useNetworkInputConfig = (item, projectItems, refreshInputConfigs = 
         // Update cached config
         setInputDetailConfigs((prev) => ({
           ...prev,
-          [currentInputDetailInput.index]: data,
+          [currentInputDetailInput.index]: {
+            ramp: rlcOptions.ramp ?? 0,
+            preset: rlcOptions.preset ?? 255,
+            led_status: ledStatus,
+            auto_mode: rlcOptions.autoMode || false,
+            auto_time: 0,
+            delay_off: delayOffSeconds,
+            delay_on: rlcOptions.delayOn ?? 0,
+            multiGroupConfig: groups.map((group) => ({
+              groupId: parseInt(group.groupId) || 0,
+              presetBrightness: parseInt(group.presetBrightness) ?? 255,
+            })),
+          },
         }));
 
         return true;
@@ -248,7 +287,7 @@ export const useNetworkInputConfig = (item, projectItems, refreshInputConfigs = 
           inputConfig: inputConfigData,
         });
 
-        toast.success(`Input ${inputIndex + 1} lighting association updated successfully`);
+        toast.success(`${getInputDisplayName(item?.type, inputIndex)} lighting association updated successfully`);
 
         // Refresh input configurations in the main dialog
         if (refreshInputConfigs) {
@@ -293,7 +332,7 @@ export const useNetworkInputConfig = (item, projectItems, refreshInputConfigs = 
             );
           }
 
-          toast.success(`Input ${inputIndex + 1} turned ${newValue === 255 ? "on" : "off"}`);
+          toast.success(`${getInputDisplayName(item?.type, inputIndex)} turned ${newValue === 255 ? "on" : "off"}`);
         }
       } catch (error) {
         console.error(`Failed to toggle input ${inputIndex} state:`, error);

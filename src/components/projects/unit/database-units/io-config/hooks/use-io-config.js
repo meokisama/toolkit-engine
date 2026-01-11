@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo, useCallback } from "react";
-import { getUnitIOSpec, getOutputTypes } from "@/constants";
+import { getUnitIOSpec, getOutputTypes, getInputDisplayName } from "@/constants";
 import { cloneIOConfig } from "@/utils/io-config-utils";
 
 export const useIOConfig = (item, open) => {
@@ -38,19 +38,19 @@ export const useIOConfig = (item, open) => {
 
   // Memoize input/output configurations initialization
   const initialInputConfigs = useMemo(() => {
-    if (!ioSpec) return [];
+    if (!ioSpec || !item?.type) return [];
 
     const inputs = [];
     for (let i = 0; i < ioSpec.inputs; i++) {
       inputs.push({
         index: i,
-        name: `Input ${i + 1}`,
+        name: getInputDisplayName(item.type, i),
         lightingId: null,
         functionValue: 0, // Default to "Unused"
       });
     }
     return inputs;
-  }, [ioSpec]);
+  }, [ioSpec, item?.type]);
 
   const initialOutputConfigs = useMemo(() => {
     if (!ioSpec || !outputTypes.length) return [];

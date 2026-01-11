@@ -65,6 +65,7 @@ export function GenerateFromMultiSceneSheet({ open, onOpenChange }) {
           factor: 1,
           feedback: 0,
           knx_switch_group: "", // Single KNX address for multi scene trigger
+          knx_status_group: "",
         };
       });
 
@@ -139,6 +140,7 @@ export function GenerateFromMultiSceneSheet({ open, onOpenChange }) {
           knx_switch_group: knxItemData.knx_switch_group,
           knx_dimming_group: "", // Not used for multi scene
           knx_value_group: "", // Not used for multi scene
+          knx_status_group: knxItemData.knx_status_group,
           description: `Generated from multi scene: ${multiSceneItem.name || multiSceneItem.address}`,
         };
 
@@ -185,7 +187,7 @@ export function GenerateFromMultiSceneSheet({ open, onOpenChange }) {
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent side="left" className="sm:max-w-[800px] w-full max-w-[90vw] p-4 pb-0">
+      <SheetContent side="left" className="sm:max-w-[900px] w-full max-w-[90vw] p-4 pb-0">
         <SheetHeader>
           <SheetTitle className="flex items-center gap-2">
             <Layers className="h-5 w-5" />
@@ -197,14 +199,17 @@ export function GenerateFromMultiSceneSheet({ open, onOpenChange }) {
         <div className="space-y-4">
           {/* Header row */}
           <div className="flex gap-2 p-3 bg-muted/50 rounded-lg font-medium text-sm">
-            <div className="w-[8%] flex items-center justify-center">
+            <div className="w-[6%] flex items-center justify-center">
               <Checkbox checked={selectedCount === totalCount && totalCount > 0} onCheckedChange={handleSelectAll} />
             </div>
-            <div className="w-[30%]">Multi Scene</div>
-            <div className="w-[12%] flex items-center justify-center">Factor</div>
-            <div className="w-[15%] flex items-center justify-center">Feedback</div>
-            <div className="w-[35%] flex items-center justify-center gap-1">
-              KNX Trigger <span className="font-light">(Address)</span>
+            <div className="w-[24%]">Multi Scene</div>
+            <div className="w-[10%] flex items-center justify-center">Factor</div>
+            <div className="w-[12%] flex items-center justify-center">Feedback</div>
+            <div className="w-[24%] flex items-center justify-center gap-1">
+              KNX Trigger <span className="font-light">(Addr 1)</span>
+            </div>
+            <div className="w-[24%] flex items-center justify-center gap-1">
+              KNX Status <span className="font-light">(Addr 2)</span>
             </div>
           </div>
 
@@ -221,12 +226,12 @@ export function GenerateFromMultiSceneSheet({ open, onOpenChange }) {
                     className={`flex gap-2 p-3 border rounded-lg items-center ${isSelected ? "border-gray-600/30 bg-gray-100/50" : "border-border"}`}
                   >
                     {/* Select checkbox */}
-                    <div className="w-[8%] flex items-center justify-center">
+                    <div className="w-[6%] flex items-center justify-center">
                       <Checkbox checked={isSelected} onCheckedChange={(checked) => handleItemSelect(item.id, checked)} />
                     </div>
 
                     {/* Multi Scene item info */}
-                    <div className="w-[30%]">
+                    <div className="w-[24%]">
                       <div className="flex items-center gap-2">
                         <span className="truncate">
                           {item.name || `Multi Scene ${item.address}`} <span className="font-light">({item.address})</span>
@@ -235,7 +240,7 @@ export function GenerateFromMultiSceneSheet({ open, onOpenChange }) {
                     </div>
 
                     {/* Factor */}
-                    <div className="w-[12%]">
+                    <div className="w-[10%]">
                       <Input
                         type="number"
                         min="1"
@@ -247,7 +252,7 @@ export function GenerateFromMultiSceneSheet({ open, onOpenChange }) {
                     </div>
 
                     {/* Feedback */}
-                    <div className="w-[15%]">
+                    <div className="w-[12%]">
                       <Select
                         value={itemKnxData.feedback?.toString() || "0"}
                         onValueChange={(value) => handleKnxDataChange(item.id, "feedback", parseInt(value))}
@@ -264,11 +269,22 @@ export function GenerateFromMultiSceneSheet({ open, onOpenChange }) {
                     </div>
 
                     {/* KNX Trigger */}
-                    <div className="w-[35%] flex items-center justify-center">
+                    <div className="w-[24%] flex items-center justify-center">
                       <KNXAddressInput
                         value={itemKnxData.knx_switch_group || ""}
                         onChange={(value) => handleKnxDataChange(item.id, "knx_switch_group", value)}
                         placeholder="0/0/1"
+                        className="h-8"
+                        disabled={!isSelected}
+                      />
+                    </div>
+
+                    {/* KNX Status */}
+                    <div className="w-[24%] flex items-center justify-center">
+                      <KNXAddressInput
+                        value={itemKnxData.knx_status_group || ""}
+                        onChange={(value) => handleKnxDataChange(item.id, "knx_status_group", value)}
+                        placeholder="0/0/2"
                         className="h-8"
                         disabled={!isSelected}
                       />

@@ -70,6 +70,9 @@ const KnxConfigCard = memo(({ knxConfig, onDelete, onTrigger, loading, formatKnx
                   <span className="font-bold">Value Group:</span> {knxConfig.knxValueGroup}
                 </p>
               )}
+              <p>
+                <span className="font-bold">Status Group:</span> {knxConfig.knxStatusGroup || "-"}
+              </p>
             </div>
           </div>
         </CardTitle>
@@ -186,6 +189,7 @@ export function KnxControlDialog({ open, onOpenChange, unit }) {
           knxSwitchGroup: result.knxSwitchGroup || "",
           knxDimmingGroup: result.knxDimmingGroup || "",
           knxValueGroup: result.knxValueGroup || "",
+          knxStatusGroup: result.knxStatusGroup || "",
         };
 
         setState((prev) => ({
@@ -230,6 +234,7 @@ export function KnxControlDialog({ open, onOpenChange, unit }) {
           knxSwitchGroup: config.knxSwitchGroup || "",
           knxDimmingGroup: config.knxDimmingGroup || "",
           knxValueGroup: config.knxValueGroup || "",
+          knxStatusGroup: config.knxStatusGroup || "",
         }));
 
         setState((prev) => ({

@@ -1,8 +1,3 @@
-/**
- * Unit IPC Handlers
- * Xử lý các tương tác với unit items và I/O configurations
- */
-
 export function registerUnitHandlers(ipcMain, dbService) {
   // Unit CRUD operations
   ipcMain.handle("unit:getAll", async (event, projectId) => {

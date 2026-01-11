@@ -91,6 +91,7 @@ function KnxTableComponent({ items, loading }) {
           knx_switch_group: originalItem.knx_switch_group || "",
           knx_dimming_group: originalItem.knx_dimming_group || "",
           knx_value_group: originalItem.knx_value_group || "",
+          knx_status_group: originalItem.knx_status_group || "",
           description: originalItem.description || "",
           source_unit: originalItem.source_unit || null,
           ...changes, // Apply the pending changes on top

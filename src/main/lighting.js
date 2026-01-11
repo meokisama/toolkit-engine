@@ -1,8 +1,3 @@
-/**
- * Lighting IPC Handlers
- * Xử lý các tương tác với lighting items
- */
-
 export function registerLightingHandlers(ipcMain, dbService) {
   // Lighting CRUD operations
   ipcMain.handle("lighting:getAll", async (event, projectId) => {

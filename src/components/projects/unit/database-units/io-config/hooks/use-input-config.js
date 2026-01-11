@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect } from "react";
-import { getInputFunctionByValue } from "@/constants";
+import { getInputFunctionByValue, getInputDisplayName } from "@/constants";
 import { toast } from "sonner";
 
 // Helper function to determine if unit is a network unit
@@ -144,6 +144,35 @@ export const useInputConfig = (item, setInputConfigs = null, open = true) => {
               )
             );
           }
+
+          // Clear multiGroupConfigs and rlcConfigs for this input when function type changes
+          // Set to empty config instead of deleting to prevent loading old data from database
+          setInputDetailConfigs((prev) => ({
+            ...prev,
+            [inputIndex]: {
+              ramp: 0,
+              preset: 255,
+              led_status: 0,
+              auto_mode: 0,
+              auto_time: 0,
+              delay_off: 0,
+              delay_on: 0,
+              multiGroupConfig: [],
+            },
+          }));
+
+          setRlcConfigs((prev) => ({
+            ...prev,
+            [inputIndex]: {
+              ramp: 0,
+              preset: 255,
+              ledStatus: 0,
+              autoMode: 0,
+              delayOff: 0,
+              delayOn: 0,
+            },
+          }));
+
           // No toast message for local state changes - save confirmation will come when Save button is clicked
         } else {
           toast.info("Network unit - use multi-group config to send to unit");
@@ -164,7 +193,7 @@ export const useInputConfig = (item, setInputConfigs = null, open = true) => {
       // Set initial state with loading
       setCurrentInputDetailInput({
         index: inputIndex,
-        name: `Input ${inputIndex + 1}`,
+        name: getInputDisplayName(item?.type, inputIndex),
         functionName: inputFunction.label,
         functionValue: functionValue,
         isLoading: true,
@@ -294,7 +323,7 @@ export const useInputConfig = (item, setInputConfigs = null, open = true) => {
               )
             );
           }
-          toast.success(`Input ${currentInputDetailInput.index + 1} configuration updated`);
+          toast.success(`${currentInputDetailInput.name} configuration updated`);
         }
 
         return true;

@@ -68,6 +68,7 @@ export function GenerateFromLightingSheet({ open, onOpenChange }) {
           knx_switch_group: "",
           knx_dimming_group: "",
           knx_value_group: "",
+          knx_status_group: "",
         };
       });
 
@@ -171,6 +172,7 @@ export function GenerateFromLightingSheet({ open, onOpenChange }) {
           knx_switch_group: knxItemData.knx_switch_group,
           knx_dimming_group: knxItemData.knx_dimming_group,
           knx_value_group: knxItemData.knx_value_group,
+          knx_status_group: knxItemData.knx_status_group,
           description: `Generated from lighting: ${lightingItem.name || lightingItem.address}`,
         };
 
@@ -217,7 +219,7 @@ export function GenerateFromLightingSheet({ open, onOpenChange }) {
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent side="left" className="sm:max-w-[1200px] w-full max-w-[90vw] p-4 pb-0">
+      <SheetContent side="left" className="sm:max-w-[1300px] w-full max-w-[90vw] p-4 pb-0">
         <SheetHeader>
           <SheetTitle className="flex items-center gap-2">
             <Lightbulb className="h-5 w-5" />
@@ -240,21 +242,24 @@ export function GenerateFromLightingSheet({ open, onOpenChange }) {
 
           {/* Header row */}
           <div className="flex gap-2 p-3 bg-muted/50 rounded-lg font-medium text-sm">
-            <div className="w-[5%] flex items-center justify-center">
+            <div className="w-[4%] flex items-center justify-center">
               <Checkbox checked={selectedCount === totalCount && totalCount > 0} onCheckedChange={handleSelectAll} />
             </div>
-            <div className="w-[15%]">Lighting</div>
-            <div className="w-[10%] flex items-center justify-center">Type</div>
-            <div className="w-[5%] flex items-center justify-center">Factor</div>
-            <div className="w-[10%] flex items-center justify-center">Feedback</div>
-            <div className="w-[18%] flex items-center justify-center gap-1">
+            <div className="w-[12%]">Lighting</div>
+            <div className="w-[8%] flex items-center justify-center">Type</div>
+            <div className="w-[4%] flex items-center justify-center">Factor</div>
+            <div className="w-[8%] flex items-center justify-center">Feedback</div>
+            <div className="w-[16%] flex items-center justify-center gap-1">
               KNX Switch <span className="font-light">(Addr 1)</span>
             </div>
-            <div className="w-[18%] flex items-center justify-center gap-1">
+            <div className="w-[16%] flex items-center justify-center gap-1">
               KNX Dimming <span className="font-light">(Addr 2)</span>
             </div>
-            <div className="w-[18%] flex items-center justify-center gap-1">
+            <div className="w-[16%] flex items-center justify-center gap-1">
               KNX Value <span className="font-light">(Addr 3)</span>
+            </div>
+            <div className="w-[16%] flex items-center justify-center gap-1">
+              KNX Status <span className="font-light">(Addr 4)</span>
             </div>
           </div>
 
@@ -272,12 +277,12 @@ export function GenerateFromLightingSheet({ open, onOpenChange }) {
                     className={`flex gap-2 p-3 border rounded-lg items-center ${isSelected ? "border-gray-600/30 bg-gray-100/50" : "border-border"}`}
                   >
                     {/* Select checkbox */}
-                    <div className="w-[5%] flex items-center justify-center">
+                    <div className="w-[4%] flex items-center justify-center">
                       <Checkbox checked={isSelected} onCheckedChange={(checked) => handleItemSelect(item.id, checked)} />
                     </div>
 
                     {/* Lighting item info */}
-                    <div className="w-[15%]">
+                    <div className="w-[12%]">
                       <div className="flex items-center gap-2">
                         <span className="truncate">
                           {item.name || `Lighting ${item.address}`} <span className="font-light">({item.address})</span>
@@ -286,7 +291,7 @@ export function GenerateFromLightingSheet({ open, onOpenChange }) {
                     </div>
 
                     {/* Type */}
-                    <div className="w-[10%]">
+                    <div className="w-[8%]">
                       <Select
                         value={itemKnxData.type?.toString() || "2"}
                         onValueChange={(value) => handleKnxDataChange(item.id, "type", parseInt(value))}
@@ -303,7 +308,7 @@ export function GenerateFromLightingSheet({ open, onOpenChange }) {
                     </div>
 
                     {/* Factor */}
-                    <div className="w-[5%]">
+                    <div className="w-[4%]">
                       <Input
                         type="number"
                         min="1"
@@ -315,7 +320,7 @@ export function GenerateFromLightingSheet({ open, onOpenChange }) {
                     </div>
 
                     {/* Feedback */}
-                    <div className="w-[10%]">
+                    <div className="w-[8%]">
                       <Select
                         value={itemKnxData.feedback?.toString() || "0"}
                         onValueChange={(value) => handleKnxDataChange(item.id, "feedback", parseInt(value))}
@@ -332,7 +337,7 @@ export function GenerateFromLightingSheet({ open, onOpenChange }) {
                     </div>
 
                     {/* KNX Switch */}
-                    <div className="w-[18%] flex items-center justify-center">
+                    <div className="w-[16%] flex items-center justify-center">
                       <KNXAddressInput
                         value={itemKnxData.knx_switch_group || ""}
                         onChange={(value) => handleKnxDataChange(item.id, "knx_switch_group", value)}
@@ -343,7 +348,7 @@ export function GenerateFromLightingSheet({ open, onOpenChange }) {
                     </div>
 
                     {/* KNX Dimming */}
-                    <div className="w-[18%] flex items-center justify-center">
+                    <div className="w-[16%] flex items-center justify-center">
                       <KNXAddressInput
                         value={itemKnxData.knx_dimming_group || ""}
                         onChange={(value) => handleKnxDataChange(item.id, "knx_dimming_group", value)}
@@ -354,13 +359,24 @@ export function GenerateFromLightingSheet({ open, onOpenChange }) {
                     </div>
 
                     {/* KNX Value */}
-                    <div className="w-[18%] flex items-center justify-center">
+                    <div className="w-[16%] flex items-center justify-center">
                       <KNXAddressInput
                         value={itemKnxData.knx_value_group || ""}
                         onChange={(value) => handleKnxDataChange(item.id, "knx_value_group", value)}
                         placeholder="0/0/3"
                         className="h-8"
                         disabled={!isSelected || !visibility.showValue}
+                      />
+                    </div>
+
+                    {/* KNX Status */}
+                    <div className="w-[16%] flex items-center justify-center">
+                      <KNXAddressInput
+                        value={itemKnxData.knx_status_group || ""}
+                        onChange={(value) => handleKnxDataChange(item.id, "knx_status_group", value)}
+                        placeholder="0/0/4"
+                        className="h-8"
+                        disabled={!isSelected}
                       />
                     </div>
                   </div>

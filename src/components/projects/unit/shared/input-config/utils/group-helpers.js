@@ -23,6 +23,7 @@ export const getGroupTypeFromFunction = (functionValue) => {
         case "CURTAIN":
           return "curtain";
         case "ROOM":
+          return "room";
         case "LIGHTING":
         default:
           return "lighting";
@@ -51,6 +52,8 @@ export const getGroupTypeLabel = (functionValue) => {
       return "Sequence";
     case "curtain":
       return "Curtain";
+    case "room":
+      return "Room";
     case "lighting":
     default:
       return "Lighting";
@@ -99,6 +102,10 @@ export const createGroupByType = async (address, functionValue, selectedProject,
           curtain_value: 3,
         };
         break;
+      case "room":
+        // Room auto-creation not supported - rooms are fixed (1-5)
+        console.warn(`Auto-creation not supported for room groups (rooms are fixed 1-5)`);
+        return null;
       case "multi-scene":
         // Multi-scene auto-creation not supported due to complex structure
         console.warn(`Auto-creation not supported for multi-scene groups`);
@@ -146,6 +153,8 @@ export const getTabToLoadForFunction = (functionValue) => {
       return "sequences";
     case "curtain":
       return "curtain";
+    case "room":
+      return null; // Rooms don't need to load from database (fixed list)
     case "lighting":
     default:
       return "lighting";
@@ -169,6 +178,15 @@ export const getAvailableItemsForFunction = (functionValue, projectItems) => {
       return projectItems?.sequences || [];
     case "curtain":
       return projectItems?.curtain || [];
+    case "room":
+      // Return fixed list of 5 rooms for Room Controls (Door Switch, Motion Sensor)
+      return [
+        { id: "room-1", name: "Room 1", address: "1" },
+        { id: "room-2", name: "Room 2", address: "2" },
+        { id: "room-3", name: "Room 3", address: "3" },
+        { id: "room-4", name: "Room 4", address: "4" },
+        { id: "room-5", name: "Room 5", address: "5" },
+      ];
     case "lighting":
     default:
       return projectItems?.lighting || [];

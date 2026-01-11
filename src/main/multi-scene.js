@@ -1,8 +1,3 @@
-/**
- * Multi-Scene IPC Handlers
- * Xử lý các tương tác với multi-scene items (RCU Controller và Database)
- */
-
 export function registerMultiSceneHandlers(ipcMain, dbService, rcu) {
   // ==================== RCU Controller - Multi-Scene Operations ====================
 

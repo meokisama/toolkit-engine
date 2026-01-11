@@ -1,8 +1,3 @@
-/**
- * Main IPC Handlers
- * Tập hợp tất cả các handlers cho các module khác nhau
- */
-
 import { registerProjectHandlers } from "./project.js";
 import { registerSceneHandlers } from "./scene.js";
 import { registerSequenceHandlers } from "./sequence.js";

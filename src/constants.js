@@ -33,6 +33,7 @@ export const CONSTANTS = {
         name: "Room Logic Controller",
         barcode: "8930000000019",
         inputs: 48,
+        groupedInputs: true,
         outputs: {
           relay: 32,
           dimmer: 6,
@@ -221,6 +222,7 @@ export const CONSTANTS = {
         name: "RCU-30IN-10RL",
         barcode: "8930000210036",
         inputs: 30,
+        groupedInputs: true,
         outputs: {
           relay: 10,
           dimmer: 0,
@@ -239,6 +241,7 @@ export const CONSTANTS = {
         name: "RCU-48IN-16RL",
         barcode: "8930000210043",
         inputs: 48,
+        groupedInputs: true,
         outputs: {
           relay: 16,
           dimmer: 0,
@@ -257,6 +260,7 @@ export const CONSTANTS = {
         name: "RCU-48IN-16RL-4AO",
         barcode: "8930000210050",
         inputs: 48,
+        groupedInputs: true,
         outputs: {
           relay: 16,
           dimmer: 0,
@@ -275,6 +279,7 @@ export const CONSTANTS = {
         name: "RCU-48IN-16RL-4AI",
         barcode: "8930000210067",
         inputs: 48,
+        groupedInputs: true,
         outputs: {
           relay: 16,
           dimmer: 0,
@@ -293,6 +298,7 @@ export const CONSTANTS = {
         name: "RCU-48IN-16RL-K",
         barcode: "8930000210074",
         inputs: 48,
+        groupedInputs: true,
         outputs: {
           relay: 16,
           dimmer: 0,
@@ -311,6 +317,7 @@ export const CONSTANTS = {
         name: "RCU-48IN-16RL-DL",
         barcode: "8930000210081",
         inputs: 48,
+        groupedInputs: true,
         outputs: {
           relay: 16,
           dimmer: 0,
@@ -526,6 +533,7 @@ export const CONSTANTS = {
         inputFunctions: {
           default: "ALL", // All inputs: Full function list
         },
+        groupedInputs: true,
       },
       {
         name: "GNT-ETH2KDL",
@@ -587,8 +595,8 @@ export const CONSTANTS = {
 
     KNX_FEEDBACK_TYPES: [
       { value: 0, name: "KNX_FB_DISABLE", label: "Disable" },
-      { value: 1, name: "KNX_FB_ACTIVE", label: "Active" },
-      { value: 2, name: "KNX_FB_PASSIVE", label: "Passive" },
+      { value: 1, name: "KNX_FB_PASSIVE", label: "Passive" },
+      { value: 2, name: "KNX_FB_ACTIVE", label: "Active" },
     ],
   },
 
@@ -1084,4 +1092,42 @@ export const getRlcOptionsConfig = (functionName, unitType = null) => {
   }
 
   return config;
+};
+
+/**
+ * Check if a unit has grouped inputs (displays inputs in groups of 3)
+ * @param {string} unitType - The type of unit
+ * @returns {boolean} True if unit has grouped inputs
+ */
+export const hasGroupedInputs = (unitType) => {
+  const unit = CONSTANTS.UNIT.TYPES.find((u) => u.name === unitType);
+  return unit ? unit.groupedInputs === true : false;
+};
+
+/**
+ * Get input display name, with grouped naming if applicable
+ * @param {string} unitType - The type of unit
+ * @param {number} inputIndex - The input index (0-based)
+ * @returns {string} The input display name
+ *
+ * For grouped inputs (48IN and 30IN units):
+ * - Input 0, 1, 2 => Input 1.1, 1.2, 1.3
+ * - Input 3, 4, 5 => Input 2.1, 2.2, 2.3
+ * - etc.
+ *
+ * For non-grouped inputs:
+ * - Input 0 => Input 1
+ * - Input 1 => Input 2
+ * - etc.
+ */
+export const getInputDisplayName = (unitType, inputIndex) => {
+  if (hasGroupedInputs(unitType)) {
+    // Group inputs in sets of 3
+    const groupNumber = Math.floor(inputIndex / 3) + 1;
+    const subNumber = (inputIndex % 3) + 1;
+    return `Input ${groupNumber}.${subNumber}`;
+  } else {
+    // Standard sequential numbering
+    return `Input ${inputIndex + 1}`;
+  }
 };

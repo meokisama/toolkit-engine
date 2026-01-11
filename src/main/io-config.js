@@ -1,8 +1,3 @@
-/**
- * I/O Configuration IPC Handlers
- * Xử lý các tương tác với RCU I/O Control và Output Configuration
- */
-
 export function registerIOConfigHandlers(ipcMain, rcu) {
   // ==================== RCU Group Control ====================
 
