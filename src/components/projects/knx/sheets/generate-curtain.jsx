@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetFooter } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -73,30 +73,32 @@ export function GenerateFromCurtainSheet({ open, onOpenChange }) {
       setKnxData(initialKnxData);
       setSelectedItems(new Set());
     }
-  }, [open, projectItems.curtain, findAvailableKnxAddresses]);
+  }, [open, projectItems.curtain]);
 
   // Handle item selection
-  const handleItemSelect = (itemId, checked) => {
-    const newSelected = new Set(selectedItems);
-    if (checked) {
-      newSelected.add(itemId);
-    } else {
-      newSelected.delete(itemId);
-    }
-    setSelectedItems(newSelected);
-  };
+  const handleItemSelect = useCallback((itemId, checked) => {
+    setSelectedItems((prevSelected) => {
+      const newSelected = new Set(prevSelected);
+      if (checked) {
+        newSelected.add(itemId);
+      } else {
+        newSelected.delete(itemId);
+      }
+      return newSelected;
+    });
+  }, []);
 
   // Handle select all
-  const handleSelectAll = (checked) => {
+  const handleSelectAll = useCallback((checked) => {
     if (checked) {
       setSelectedItems(new Set(curtainItems.map((item) => item.id)));
     } else {
       setSelectedItems(new Set());
     }
-  };
+  }, [curtainItems]);
 
   // Handle KNX data change
-  const handleKnxDataChange = (itemId, field, value) => {
+  const handleKnxDataChange = useCallback((itemId, field, value) => {
     setKnxData((prev) => ({
       ...prev,
       [itemId]: {
@@ -104,10 +106,10 @@ export function GenerateFromCurtainSheet({ open, onOpenChange }) {
         [field]: value,
       },
     }));
-  };
+  }, []);
 
   // Handle create KNX items
-  const handleCreate = async () => {
+  const handleCreate = useCallback(async () => {
     const selectedItemsList = Array.from(selectedItems);
 
     if (selectedItemsList.length === 0) {
@@ -181,7 +183,7 @@ export function GenerateFromCurtainSheet({ open, onOpenChange }) {
     } finally {
       setLoading(false);
     }
-  };
+  }, [selectedItems, curtainItems, knxData, findAvailableKnxAddresses, createItem, onOpenChange]);
 
   const selectedCount = selectedItems.size;
   const totalCount = curtainItems.length;

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetFooter } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -75,30 +75,32 @@ export function GenerateFromLightingSheet({ open, onOpenChange }) {
       setKnxData(initialKnxData);
       setSelectedItems(new Set());
     }
-  }, [open, projectItems.lighting, findAvailableKnxAddresses]);
+  }, [open, projectItems.lighting]);
 
   // Handle item selection
-  const handleItemSelect = (itemId, checked) => {
-    const newSelected = new Set(selectedItems);
-    if (checked) {
-      newSelected.add(itemId);
-    } else {
-      newSelected.delete(itemId);
-    }
-    setSelectedItems(newSelected);
-  };
+  const handleItemSelect = useCallback((itemId, checked) => {
+    setSelectedItems((prevSelected) => {
+      const newSelected = new Set(prevSelected);
+      if (checked) {
+        newSelected.add(itemId);
+      } else {
+        newSelected.delete(itemId);
+      }
+      return newSelected;
+    });
+  }, []);
 
   // Handle select all
-  const handleSelectAll = (checked) => {
+  const handleSelectAll = useCallback((checked) => {
     if (checked) {
       setSelectedItems(new Set(lightingItems.map((item) => item.id)));
     } else {
       setSelectedItems(new Set());
     }
-  };
+  }, [lightingItems]);
 
   // Handle KNX data change
-  const handleKnxDataChange = (itemId, field, value) => {
+  const handleKnxDataChange = useCallback((itemId, field, value) => {
     setKnxData((prev) => ({
       ...prev,
       [itemId]: {
@@ -106,27 +108,29 @@ export function GenerateFromLightingSheet({ open, onOpenChange }) {
         [field]: value,
       },
     }));
-  };
+  }, []);
 
   // Handle type change for all items
-  const handleSetAllType = (type) => {
-    const newKnxData = { ...knxData };
-    lightingItems.forEach((item) => {
-      if (newKnxData[item.id]) {
-        newKnxData[item.id].type = type;
-        // Clear fields that are not visible for this type
-        if (type === 1) {
-          // Switch
-          newKnxData[item.id].knx_dimming_group = "";
-          newKnxData[item.id].knx_value_group = "";
+  const handleSetAllType = useCallback((type) => {
+    setKnxData((prevKnxData) => {
+      const newKnxData = { ...prevKnxData };
+      lightingItems.forEach((item) => {
+        if (newKnxData[item.id]) {
+          newKnxData[item.id] = { ...newKnxData[item.id], type };
+          // Clear fields that are not visible for this type
+          if (type === 1) {
+            // Switch
+            newKnxData[item.id].knx_dimming_group = "";
+            newKnxData[item.id].knx_value_group = "";
+          }
         }
-      }
+      });
+      return newKnxData;
     });
-    setKnxData(newKnxData);
-  };
+  }, [lightingItems]);
 
-  // Get KNX group visibility based on type
-  const getKnxGroupVisibility = (type) => {
+  // Get KNX group visibility based on type - memoized
+  const getKnxGroupVisibility = useCallback((type) => {
     const typeValue = parseInt(type);
 
     if (typeValue === 2) {
@@ -136,10 +140,10 @@ export function GenerateFromLightingSheet({ open, onOpenChange }) {
 
     // Switch or others - switch only
     return { showSwitch: true, showDimming: false, showValue: false };
-  };
+  }, []);
 
   // Handle create KNX items
-  const handleCreate = async () => {
+  const handleCreate = useCallback(async () => {
     const selectedItemsList = Array.from(selectedItems);
 
     if (selectedItemsList.length === 0) {
@@ -212,7 +216,7 @@ export function GenerateFromLightingSheet({ open, onOpenChange }) {
     } finally {
       setLoading(false);
     }
-  };
+  }, [selectedItems, lightingItems, knxData, findAvailableKnxAddresses, createItem, onOpenChange]);
 
   const selectedCount = selectedItems.size;
   const totalCount = lightingItems.length;

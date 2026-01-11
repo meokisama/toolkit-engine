@@ -60,12 +60,12 @@ export const KNXAddressInput = ({
       if (debounceTimeoutRef.current) {
         clearTimeout(debounceTimeoutRef.current);
         // Flush pending change before unmount
-        if (latestValueRef.current) {
-          onChange?.(latestValueRef.current);
+        if (latestValueRef.current && onChange) {
+          onChange(latestValueRef.current);
         }
       }
     };
-  }, [onChange]);
+  }, []); // Empty dependency - only run on mount/unmount
 
   // Sync external value changes
   useEffect(() => {
