@@ -6,6 +6,12 @@ import * as rcu from "./services/rcu-controller.js";
 import { updateElectronApp } from "update-electron-app";
 import { networkInterfaceService } from "./services/network-interfaces.js";
 import { registerAllHandlers } from "./main/index.js";
+import log from "electron-log/main";
+
+// Custom log file path
+log.transports.file.resolvePathFn = () => path.join(app.getPath("documents"), "Toolkit Engine/Logs/main.log");
+// Override console functions to write all log to file
+Object.assign(console, log.functions);
 
 updateElectronApp();
 
