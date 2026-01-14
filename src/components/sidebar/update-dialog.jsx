@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { RefreshCw, Download, CheckCircle2, XCircle, Loader2, ArrowRight } from "lucide-react";
+import noko from "@/assets/noko-tan.gif";
 
 const STATUS = {
   IDLE: "idle",
@@ -178,8 +179,8 @@ export function UpdateDialog({ open, onOpenChange }) {
               <DialogTitle>Downloading Update</DialogTitle>
               <DialogDescription>Please wait while we download the update...</DialogDescription>
             </DialogHeader>
-            <div className="flex flex-col items-center justify-center gap-4 py-8">
-              <Loader2 className="size-8 animate-spin text-primary" />
+            <div className="flex flex-col items-center justify-center gap-4 pb-8">
+              <img src={noko} className="w-30" />
               <p className="text-sm text-muted-foreground">Downloading v{updateInfo?.latestVersion}...</p>
             </div>
           </>
@@ -193,11 +194,10 @@ export function UpdateDialog({ open, onOpenChange }) {
                 <CheckCircle2 className="size-5 text-green-500" />
                 Update Ready
               </DialogTitle>
-              <DialogDescription>The update has been downloaded. Restart the app to apply the update.</DialogDescription>
+              <DialogDescription>
+                Version <span className="font-bold">{updateInfo?.latestVersion}</span> has been downloaded. Restart the app to apply the update.
+              </DialogDescription>
             </DialogHeader>
-            <div className="flex items-center justify-center py-4">
-              <Badge className="text-base px-4 py-2">v{updateInfo?.latestVersion}</Badge>
-            </div>
             <DialogFooter>
               <Button onClick={installUpdate}>Restart</Button>
             </DialogFooter>
