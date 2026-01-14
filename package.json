@@ -1,7 +1,7 @@
 {
   "name": "toolkit-engine",
   "productName": "GNT Toolkit Engine",
-  "version": "0.2.12",
+  "version": "0.2.15",
   "description": "Professional automation and control toolkit for smart building management",
   "main": ".vite/build/main.js",
   "scripts": {
