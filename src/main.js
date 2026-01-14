@@ -8,8 +8,16 @@ import { networkInterfaceService } from "./services/network-interfaces.js";
 import { registerAllHandlers } from "./main/index.js";
 import log from "electron-log/main";
 
+// Initialize the logger to be available in renderer process
+log.initialize();
 // Custom log file path
-log.transports.file.resolvePathFn = () => path.join(app.getPath("documents"), "Toolkit Engine/Logs/main.log");
+log.transports.file.resolvePathFn = () => {
+  const now = new Date();
+  const dd = String(now.getDate()).padStart(2, "0");
+  const mm = String(now.getMonth() + 1).padStart(2, "0");
+  const yyyy = now.getFullYear();
+  return path.join(app.getPath("documents"), "Toolkit Engine", "Logs", `${dd}-${mm}-${yyyy}.log`);
+};
 // Override console functions to write all log to file
 Object.assign(console, log.functions);
 
