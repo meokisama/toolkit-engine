@@ -16,6 +16,7 @@ import { ioController } from "./io-config.js";
 import { zigbee, zigbeeController } from "./zigbee.js";
 import { room, roomController } from "./room.js";
 import { deviceController } from "./device-config.js";
+import { updater } from "./updater.js";
 
 export const electronAPI = {
   projects,
@@ -48,4 +49,5 @@ export const electronAPI = {
   room,
   roomController,
   deviceController,
+  updater,
 };

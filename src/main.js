@@ -3,7 +3,6 @@ import path from "node:path";
 import started from "electron-squirrel-startup";
 import DatabaseService from "./services/database.js";
 import * as rcu from "./services/rcu-controller.js";
-import { updateElectronApp } from "update-electron-app";
 import { networkInterfaceService } from "./services/network-interfaces.js";
 import { registerAllHandlers } from "./main/index.js";
 import log from "electron-log/main";
@@ -20,8 +19,6 @@ log.transports.file.resolvePathFn = () => {
 };
 // Override console functions to write all log to file
 Object.assign(console, log.functions);
-
-updateElectronApp();
 
 // Handle creating/removing shortcuts on Windows when installing/uninstalling.
 if (started) {
