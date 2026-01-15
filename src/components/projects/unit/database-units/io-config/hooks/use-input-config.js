@@ -3,13 +3,22 @@ import { getInputFunctionByValue, getInputDisplayName } from "@/constants";
 import { toast } from "sonner";
 import log from "electron-log/renderer";
 
-// Helper function to determine if unit is a network unit
-// Network units don't have database ID, database units have ID
-const isNetworkUnit = (unit) => {
-  return !unit?.id; // Network units don't have database ID
+// Constants
+const DEFAULT_RLC_CONFIG = {
+  ramp: 0,
+  preset: 255,
+  ledDisplay: 0,
+  nightlight: false,
+  backlight: false,
+  autoMode: false,
+  delayOff: 0,
+  multiGroupConfig: [],
 };
 
-// Note: Network unit logic has been moved to use-network-input-config.js
+// Helpers
+const isNetworkUnit = (unit) => !unit?.id;
+const mergeRlcConfig = (config) => ({ ...DEFAULT_RLC_CONFIG, ...config });
+const updateConfigAtIndex = (prev, index, updates) => prev.map((cfg) => (cfg.index === index ? { ...cfg, ...updates } : cfg));
 
 export const useInputConfig = (item, setInputConfigs = null, open = true) => {
   const [multiGroupConfigs, setInputDetailConfigs] = useState({});
@@ -18,7 +27,7 @@ export const useInputConfig = (item, setInputConfigs = null, open = true) => {
   const [currentInputDetailInput, setCurrentInputDetailInput] = useState(null);
   const [loadingInputConfig, setLoadingInputConfig] = useState(false);
 
-  // Reset state when dialog closes to clear any unsaved changes
+  // Reset state when dialog closes
   useEffect(() => {
     if (!open) {
       setInputDetailConfigs({});
@@ -29,26 +38,15 @@ export const useInputConfig = (item, setInputConfigs = null, open = true) => {
     }
   }, [open]);
 
-  // Function to reload input config from database
+  // Reload input config from database
   const reloadInputConfig = useCallback(
     async (inputIndex) => {
       if (!item?.id || isNetworkUnit(item)) return;
 
       try {
         const actualConfig = await window.electronAPI.unit.getInputConfig(item.id, inputIndex);
-
         if (actualConfig && setInputConfigs) {
-          setInputConfigs((prev) =>
-            prev.map((config) =>
-              config.index === inputIndex
-                ? {
-                    ...config,
-                    functionValue: actualConfig.function_value || 0,
-                    lightingId: actualConfig.lighting_id,
-                  }
-                : config
-            )
-          );
+          setInputConfigs((prev) => updateConfigAtIndex(prev, inputIndex, { functionValue: actualConfig.function_value || 0, lightingId: actualConfig.lighting_id }));
         }
       } catch (error) {
         log.error("Failed to reload input config:", error);
@@ -57,67 +55,41 @@ export const useInputConfig = (item, setInputConfigs = null, open = true) => {
     [item?.id, setInputConfigs]
   );
 
-  // Function to load all Multiple Group & RLC configurations from database
+  // Load all configs from database
   const loadAllInputDetailConfigs = useCallback(async () => {
     if (!item?.id || isNetworkUnit(item)) return;
 
     try {
-      // Load from JSON structure instead of separate table
       const unit = await window.electronAPI.unit.getById(item.id);
-      if (!unit || !unit.input_configs) return;
+      if (!unit?.input_configs?.inputs) return;
 
-      const inputConfigs = unit.input_configs;
-      const newInputDetailConfigs = {};
+      const newDetailConfigs = {};
       const newRlcConfigs = {};
 
-      (inputConfigs.inputs || []).forEach((config) => {
-        // Load all configs, not just those with multi-group data
-        if (config.rlc_config || (config.multi_group_config && config.multi_group_config.length > 0)) {
-          // Convert database format to internal format
-          newInputDetailConfigs[config.index] = {
-            ramp: config.rlc_config?.ramp || 0,
-            preset: config.rlc_config?.preset || 255,
-            ledDisplay: config.rlc_config?.ledDisplay || 0,
-            nightlight: config.rlc_config?.nightlight || false,
-            backlight: config.rlc_config?.backlight || false,
-            autoMode: config.rlc_config?.autoMode || false,
-            delayOff: config.rlc_config?.delayOff || 0,
-            multiGroupConfig: config.multi_group_config || [],
-          };
-
-          newRlcConfigs[config.index] = config.rlc_config || {};
+      unit.input_configs.inputs.forEach((cfg) => {
+        if (cfg.rlc_config || cfg.multi_group_config?.length > 0) {
+          newDetailConfigs[cfg.index] = mergeRlcConfig({ ...cfg.rlc_config, multiGroupConfig: cfg.multi_group_config || [] });
+          newRlcConfigs[cfg.index] = cfg.rlc_config || {};
         }
       });
-      setInputDetailConfigs(newInputDetailConfigs);
+
+      setInputDetailConfigs(newDetailConfigs);
       setRlcConfigs(newRlcConfigs);
     } catch (error) {
       log.error("Failed to load all Multiple Group & RLC configs:", error);
     }
   }, [item?.id]);
 
+  // Handle lighting change
   const handleInputLightingChange = useCallback(
     async (inputIndex, lightingId) => {
+      if (isNetworkUnit(item)) {
+        toast.info("Network unit - use multi-group config to send to unit");
+        return;
+      }
+
       try {
-        // For database units, only update local state - don't save to database yet
-        // The save will happen when user clicks the Save button
-        if (!isNetworkUnit(item)) {
-          // Update local state immediately to reflect the change in UI
-          if (setInputConfigs) {
-            setInputConfigs((prevConfigs) =>
-              prevConfigs.map((config) =>
-                config.index === inputIndex
-                  ? {
-                      ...config,
-                      lightingId: lightingId,
-                    }
-                  : config
-              )
-            );
-          }
-          // No toast message for local state changes - save confirmation will come when Save button is clicked
-        } else {
-          toast.info("Network unit - use multi-group config to send to unit");
-        }
+        setInputConfigs?.((prev) => updateConfigAtIndex(prev, inputIndex, { lightingId }));
       } catch (error) {
         log.error("Failed to update input lighting:", error);
         toast.error("Failed to update input lighting: " + error.message);
@@ -126,59 +98,21 @@ export const useInputConfig = (item, setInputConfigs = null, open = true) => {
     [item, setInputConfigs]
   );
 
+  // Handle function change
   const handleInputFunctionChange = useCallback(
     async (inputIndex, functionValue) => {
+      if (isNetworkUnit(item)) {
+        toast.info("Network unit - use multi-group config to send to unit");
+        return;
+      }
+
       try {
-        // For database units, only update local state - don't save to database yet
-        // The save will happen when user clicks the Save button
-        if (!isNetworkUnit(item)) {
-          // Update local state immediately to reflect the change in UI
-          if (setInputConfigs) {
-            setInputConfigs((prevConfigs) =>
-              prevConfigs.map((config) =>
-                config.index === inputIndex
-                  ? {
-                      ...config,
-                      functionValue: parseInt(functionValue) || 0,
-                    }
-                  : config
-              )
-            );
-          }
+        setInputConfigs?.((prev) => updateConfigAtIndex(prev, inputIndex, { functionValue: parseInt(functionValue) || 0 }));
 
-          // Clear multiGroupConfigs and rlcConfigs for this input when function type changes
-          // Set to empty config instead of deleting to prevent loading old data from database
-          setInputDetailConfigs((prev) => ({
-            ...prev,
-            [inputIndex]: {
-              ramp: 0,
-              preset: 255,
-              ledDisplay: 0,
-              nightlight: false,
-              backlight: false,
-              autoMode: false,
-              delayOff: 0,
-              multiGroupConfig: [],
-            },
-          }));
-
-          setRlcConfigs((prev) => ({
-            ...prev,
-            [inputIndex]: {
-              ramp: 0,
-              preset: 255,
-              ledDisplay: 0,
-              nightlight: false,
-              backlight: false,
-              autoMode: false,
-              delayOff: 0,
-            },
-          }));
-
-          // No toast message for local state changes - save confirmation will come when Save button is clicked
-        } else {
-          toast.info("Network unit - use multi-group config to send to unit");
-        }
+        // Clear configs for this input
+        const emptyConfig = { ...DEFAULT_RLC_CONFIG };
+        setInputDetailConfigs((prev) => ({ ...prev, [inputIndex]: emptyConfig }));
+        setRlcConfigs((prev) => ({ ...prev, [inputIndex]: emptyConfig }));
       } catch (error) {
         log.error("Failed to update input function:", error);
         toast.error("Failed to update input function: " + error.message);
@@ -187,162 +121,78 @@ export const useInputConfig = (item, setInputConfigs = null, open = true) => {
     [item, setInputConfigs]
   );
 
+  // Open input detail config dialog
   const handleOpenInputDetailConfig = useCallback(
     async (inputIndex, functionValue) => {
       const inputFunction = getInputFunctionByValue(functionValue);
       if (!inputFunction) return;
 
-      // Set initial state with loading
+      const defaultConfig = multiGroupConfigs[inputIndex] || DEFAULT_RLC_CONFIG;
+
       setCurrentInputDetailInput({
         index: inputIndex,
         name: getInputDisplayName(item?.type, inputIndex),
         functionName: inputFunction.label,
-        functionValue: functionValue,
+        functionValue,
         isLoading: true,
-        config: multiGroupConfigs[inputIndex] || {
-          ramp: 0,
-          preset: 255,
-          ledDisplay: 0,
-          nightlight: false,
-          backlight: false,
-          autoMode: false,
-          delayOff: 0,
-          multiGroupConfig: [],
-        },
+        config: defaultConfig,
       });
-
       setInputDetailDialogOpen(true);
 
       try {
-        let cachedConfig = multiGroupConfigs[inputIndex];
+        let config = multiGroupConfigs[inputIndex];
 
-        if (!cachedConfig) {
-          // Load fresh config from database
+        if (!config) {
           const result = await window.electronAPI.unit.getInputConfig(item.id, inputIndex);
-
           if (result) {
-            // Convert database format to internal format
-            const convertedConfig = {
-              ramp: result.rlc_config?.ramp || 0,
-              preset: result.rlc_config?.preset || 255,
-              ledDisplay: result.rlc_config?.ledDisplay || 0,
-              nightlight: result.rlc_config?.nightlight || false,
-              backlight: result.rlc_config?.backlight || false,
-              autoMode: result.rlc_config?.autoMode || false,
-              delayOff: result.rlc_config?.delayOff || 0,
-              multiGroupConfig: result.multi_group_config || [],
-            };
-
-            // Cache the converted config
-            setInputDetailConfigs((prev) => ({
-              ...prev,
-              [inputIndex]: convertedConfig,
-            }));
-
-            // Update current input with actual config from database
-            setCurrentInputDetailInput((prev) => ({
-              ...prev,
-              isLoading: false,
-              config: convertedConfig,
-            }));
-          } else {
-            // No config found, use defaults
-            setCurrentInputDetailInput((prev) => ({
-              ...prev,
-              isLoading: false,
-            }));
+            config = mergeRlcConfig({ ...result.rlc_config, multiGroupConfig: result.multi_group_config || [] });
+            setInputDetailConfigs((prev) => ({ ...prev, [inputIndex]: config }));
           }
-        } else {
-          // Use cached config
-          setCurrentInputDetailInput((prev) => ({
-            ...prev,
-            isLoading: false,
-            config: cachedConfig,
-          }));
         }
+
+        setCurrentInputDetailInput((prev) => ({ ...prev, isLoading: false, config: config || defaultConfig }));
       } catch (error) {
         log.error("Failed to load input config:", error);
-        setCurrentInputDetailInput((prev) => ({
-          ...prev,
-          isLoading: false,
-        }));
+        setCurrentInputDetailInput((prev) => ({ ...prev, isLoading: false }));
       }
     },
-    [multiGroupConfigs, item?.id]
+    [multiGroupConfigs, item?.id, item?.type]
   );
 
+  // Save input detail config
   const handleSaveInputDetailConfig = useCallback(
     async (data) => {
-      if (!currentInputDetailInput) {
-        return false;
-      }
+      if (!currentInputDetailInput) return false;
 
       try {
-        const groups = data.groups || [];
-        const rlcOptions = data.rlcOptions || {};
-        const inputType = data.inputType;
+        const { groups = [], rlcOptions = {}, inputType } = data;
 
-        // Update local state with the same format
-        const updatedConfig = {
-          ramp: rlcOptions.ramp || 0,
-          preset: rlcOptions.preset || 255,
-          ledDisplay: rlcOptions.ledDisplay || 0,
-          nightlight: rlcOptions.nightlight || false,
-          backlight: rlcOptions.backlight || false,
-          autoMode: rlcOptions.autoMode || false,
-          delayOff: rlcOptions.delayOff || 0,
-          multiGroupConfig: groups.map((group) => ({
-            groupId: parseInt(group.groupId) || 0,
-            presetBrightness: parseInt(group.presetBrightness) ?? 255,
-          })),
-        };
-
-        setInputDetailConfigs((prev) => ({
-          ...prev,
-          [currentInputDetailInput.index]: updatedConfig,
-        }));
-
-        // Check if this is a network unit or database unit
-        const isNetworkUnitFlag = isNetworkUnit(item);
-
-        if (isNetworkUnitFlag) {
-          toast.info("Network unit - use network-specific configuration dialog");
-          return false;
-        } else {
-          // For database units, only update local state - don't save to database yet
-          // The save will happen when user clicks the main Save button
-
-          // Update the input config in local state if function type changed
-          if (inputType !== undefined && setInputConfigs) {
-            setInputConfigs((prevConfigs) =>
-              prevConfigs.map((config) =>
-                config.index === currentInputDetailInput.index
-                  ? {
-                      ...config,
-                      functionValue: parseInt(inputType) || 0,
-                    }
-                  : config
-              )
-            );
-          }
-          toast.success(`${currentInputDetailInput.name} configuration updated`);
-        }
-
-        return true;
-      } catch (error) {
-        log.error(" Failed to save input config:", error);
-        log.error("Error details:", {
-          message: error.message,
-          stack: error.stack,
-          currentInputDetailInput,
-          item,
+        const updatedConfig = mergeRlcConfig({
+          ...rlcOptions,
+          multiGroupConfig: groups.map((g) => ({ groupId: parseInt(g.groupId) || 0, presetBrightness: parseInt(g.presetBrightness) ?? 255 })),
         });
 
+        setInputDetailConfigs((prev) => ({ ...prev, [currentInputDetailInput.index]: updatedConfig }));
+
+        if (isNetworkUnit(item)) {
+          toast.info("Network unit - use network-specific configuration dialog");
+          return false;
+        }
+
+        // Update function type if changed
+        if (inputType !== undefined && setInputConfigs) {
+          setInputConfigs((prev) => updateConfigAtIndex(prev, currentInputDetailInput.index, { functionValue: parseInt(inputType) || 0 }));
+        }
+
+        toast.success(`${currentInputDetailInput.name} configuration updated`);
+        return true;
+      } catch (error) {
+        log.error("Failed to save input config:", error);
         toast.error(`Failed to save input configuration: ${error.message}`);
         return false;
       }
     },
-    [currentInputDetailInput, item, reloadInputConfig]
+    [currentInputDetailInput, item, setInputConfigs]
   );
 
   return {

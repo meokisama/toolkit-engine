@@ -2,136 +2,70 @@ import { useState, useCallback, useRef, useEffect } from "react";
 import { calculateDelaySeconds, parseDelaySeconds } from "@/constants";
 import { timeToDate, dateToTimeComponents, validateDelayOffTime } from "../utils/time-helpers";
 
+// Constants
+const DEFAULT_DELAY = { hours: 0, minutes: 0, seconds: 0 };
+const DEFAULT_RLC_OPTIONS = {
+  ramp: 0,
+  preset: 255,
+  ledDisplay: 0,
+  nightlight: false,
+  backlight: false,
+  autoMode: false,
+  delayOff: DEFAULT_DELAY,
+};
+
 export const useRlcOptions = (initialRlcOptions = {}) => {
-  // RLC Options state
-  const [rlcOptions, setRlcOptions] = useState({
-    ramp: 0,
-    preset: 255,
-    ledDisplay: 0,
-    nightlight: false,
-    backlight: false,
-    autoMode: false,
-    delayOff: {
-      hours: 0,
-      minutes: 0,
-      seconds: 0,
-    },
-  });
+  const [rlcOptions, setRlcOptions] = useState(DEFAULT_RLC_OPTIONS);
+  const [delayOffTime, setDelayOffTime] = useState(timeToDate(0, 0, 0));
+  const debounceRef = useRef(null);
 
-  // Time picker state for delay off - local state for immediate UI updates
-  const [delayOffTime, setDelayOffTime] = useState(new Date(new Date().setHours(0, 0, 0, 0)));
-
-  // Debounce timeout ref for time picker
-  const timePickerDebounceRef = useRef(null);
-
-  // Initialize RLC options from initialRlcOptions
-  // Backend already parses ledStatus into individual fields (ledDisplay, nightlight, backlight)
+  // Initialize from props - backend already parses ledStatus into individual fields
   useEffect(() => {
-    if (initialRlcOptions && Object.keys(initialRlcOptions).length > 0) {
-      // Parse delay off time - handle both formats
-      const delaySeconds = initialRlcOptions.delayOff || initialRlcOptions.delay_off || 0;
-      const delayTime = parseDelaySeconds(delaySeconds);
+    if (!initialRlcOptions || Object.keys(initialRlcOptions).length === 0) return;
 
-      // Read LED options directly from backend (already parsed)
-      setRlcOptions({
-        ramp: initialRlcOptions.ramp ?? 0,
-        preset: initialRlcOptions.preset ?? 255,
-        ledDisplay: initialRlcOptions.ledDisplay ?? 0,
-        nightlight: initialRlcOptions.nightlight ?? false,
-        backlight: initialRlcOptions.backlight ?? false,
-        autoMode: initialRlcOptions.autoMode ?? initialRlcOptions.auto_mode ?? false,
-        delayOff: delayTime,
-      });
+    const delaySeconds = initialRlcOptions.delayOff || initialRlcOptions.delay_off || 0;
+    const delayTime = parseDelaySeconds(delaySeconds);
 
-      // Set time picker state
-      setDelayOffTime(timeToDate(delayTime.hours, delayTime.minutes, delayTime.seconds));
-    }
+    setRlcOptions({
+      ramp: initialRlcOptions.ramp ?? 0,
+      preset: initialRlcOptions.preset ?? 255,
+      ledDisplay: initialRlcOptions.ledDisplay ?? 0,
+      nightlight: initialRlcOptions.nightlight ?? false,
+      backlight: initialRlcOptions.backlight ?? false,
+      autoMode: initialRlcOptions.autoMode ?? initialRlcOptions.auto_mode ?? false,
+      delayOff: delayTime,
+    });
+    setDelayOffTime(timeToDate(delayTime.hours, delayTime.minutes, delayTime.seconds));
   }, [initialRlcOptions]);
 
-  // RLC Options handlers
+  // Cleanup debounce on unmount
+  useEffect(() => () => debounceRef.current && clearTimeout(debounceRef.current), []);
+
   const handleRlcOptionChange = useCallback((field, value) => {
-    setRlcOptions((prev) => ({
-      ...prev,
-      [field]: value,
-    }));
+    setRlcOptions((prev) => ({ ...prev, [field]: value }));
   }, []);
 
-  // Debounced function to update rlcOptions
-  const updateDelayOffOptions = useCallback((hours, minutes, seconds) => {
-    const validated = validateDelayOffTime(hours, minutes, seconds);
+  const handleDelayOffTimeChange = useCallback((newDate) => {
+    setDelayOffTime(newDate);
 
-    setRlcOptions((prev) => ({
-      ...prev,
-      delayOff: validated,
-    }));
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+
+    debounceRef.current = setTimeout(() => {
+      const { hours, minutes, seconds } = dateToTimeComponents(newDate);
+      setRlcOptions((prev) => ({ ...prev, delayOff: validateDelayOffTime(hours, minutes, seconds) }));
+    }, 300);
   }, []);
 
-  // Time picker handler for delay off with debouncing
-  const handleDelayOffTimeChange = useCallback(
-    (newDate) => {
-      // Update local state immediately for responsive UI
-      setDelayOffTime(newDate);
-
-      // Clear existing timeout
-      if (timePickerDebounceRef.current) {
-        clearTimeout(timePickerDebounceRef.current);
-      }
-
-      // Debounce the rlcOptions update
-      timePickerDebounceRef.current = setTimeout(() => {
-        const { hours, minutes, seconds } = dateToTimeComponents(newDate);
-        updateDelayOffOptions(hours, minutes, seconds);
-      }, 300); // 300ms debounce delay
-    },
-    [updateDelayOffOptions]
-  );
-
-  // Reset RLC options to default
   const resetRlcOptions = useCallback(() => {
-    setRlcOptions({
-      ramp: 0,
-      preset: 255,
-      ledDisplay: 0,
-      nightlight: false,
-      backlight: false,
-      autoMode: false,
-      delayOff: { hours: 0, minutes: 0, seconds: 0 },
-    });
+    setRlcOptions(DEFAULT_RLC_OPTIONS);
     setDelayOffTime(timeToDate(0, 0, 0));
   }, []);
 
-  // Get final RLC options for saving
-  // Returns individual fields - backend will handle byte calculation
+  // Returns individual fields - backend handles byte calculation
   const getFinalRlcOptions = useCallback(() => {
-    // Calculate delay off in seconds
-    const delayOffSeconds = calculateDelaySeconds(rlcOptions.delayOff.hours, rlcOptions.delayOff.minutes, rlcOptions.delayOff.seconds);
-
-    return {
-      ramp: rlcOptions.ramp,
-      preset: rlcOptions.preset,
-      ledDisplay: rlcOptions.ledDisplay,
-      nightlight: rlcOptions.nightlight,
-      backlight: rlcOptions.backlight,
-      autoMode: rlcOptions.autoMode,
-      delayOff: delayOffSeconds,
-    };
+    const { delayOff, ...rest } = rlcOptions;
+    return { ...rest, delayOff: calculateDelaySeconds(delayOff.hours, delayOff.minutes, delayOff.seconds) };
   }, [rlcOptions]);
 
-  // Cleanup timeout on unmount
-  useEffect(() => {
-    return () => {
-      if (timePickerDebounceRef.current) {
-        clearTimeout(timePickerDebounceRef.current);
-      }
-    };
-  }, []);
-
-  return {
-    rlcOptions,
-    delayOffTime,
-    handleRlcOptionChange,
-    handleDelayOffTimeChange,
-    resetRlcOptions,
-    getFinalRlcOptions,
-  };
+  return { rlcOptions, delayOffTime, handleRlcOptionChange, handleDelayOffTimeChange, resetRlcOptions, getFinalRlcOptions };
 };
