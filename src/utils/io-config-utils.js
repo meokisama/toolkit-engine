@@ -45,7 +45,9 @@ export const createDefaultInputConfigs = (unitType) => {
       rlc_config: {
         ramp: 0,
         preset: 255,
-        ledStatus: 0,
+        ledDisplay: 0,
+      nightlight: false,
+      backlight: false,
         autoMode: 0,
         delayOff: 0,
         delayOn: 0,
@@ -322,22 +324,11 @@ export const hasInputConfigChanged = (originalInput, currentInput) => {
   const rlcComparisons = [
     { orig: originalRlc.ramp || 0, curr: currentRlc.ramp || 0 },
     { orig: originalRlc.preset || 100, curr: currentRlc.preset || 100 },
-    {
-      orig: originalRlc.ledStatus || originalRlc.led_status || 0,
-      curr: currentRlc.ledStatus || currentRlc.led_status || 0,
-    },
-    {
-      orig: originalRlc.autoMode || originalRlc.auto_mode || 0,
-      curr: currentRlc.autoMode || currentRlc.auto_mode || 0,
-    },
-    {
-      orig: originalRlc.delayOff || originalRlc.delay_off || 0,
-      curr: currentRlc.delayOff || currentRlc.delay_off || 0,
-    },
-    {
-      orig: originalRlc.delayOn || originalRlc.delay_on || 0,
-      curr: currentRlc.delayOn || currentRlc.delay_on || 0,
-    },
+    { orig: originalRlc.ledDisplay || 0, curr: currentRlc.ledDisplay || 0 },
+    { orig: originalRlc.nightlight || false, curr: currentRlc.nightlight || false },
+    { orig: originalRlc.backlight || false, curr: currentRlc.backlight || false },
+    { orig: originalRlc.autoMode || false, curr: currentRlc.autoMode || false },
+    { orig: originalRlc.delayOff || 0, curr: currentRlc.delayOff || 0 },
   ];
 
   for (const comparison of rlcComparisons) {

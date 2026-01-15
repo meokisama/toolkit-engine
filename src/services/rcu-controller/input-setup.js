@@ -33,7 +33,15 @@ function buildInputConfigData(inputConfig) {
   const inputType = parseInt(inputConfig.inputType) || 0;
   const ramp = parseInt(inputConfig.ramp) ?? 0;
   const preset = parseInt(inputConfig.preset) ?? 255;
-  const ledStatus = parseInt(inputConfig.ledStatus) || 0;
+
+  // Calculate ledStatus byte from individual LED options (frontend sends these separately)
+  const ledDisplay = parseInt(inputConfig.ledDisplay) || 0;
+  const nightlight = inputConfig.nightlight ? true : false;
+  const backlight = inputConfig.backlight ? true : false;
+  let ledStatus = ledDisplay & 0x03; // Display mode in bits 0-1
+  if (nightlight) ledStatus |= 0x10; // Nightlight flag in bit 4
+  if (backlight) ledStatus |= 0x20; // Backlight flag in bit 5
+
   const autoMode = inputConfig.autoMode ? 1 : 0; // Boolean conversion
 
   // Byte 0 - Input number (0-based)

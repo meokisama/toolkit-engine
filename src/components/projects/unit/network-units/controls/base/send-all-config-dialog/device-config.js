@@ -84,8 +84,10 @@ export const writeIOConfiguration = async (unitIp, canId, ioConfig) => {
           inputType: parseInt(input.functionValue) || 0,
           ramp: parseInt(input.ramp) ?? 0,
           preset: parseInt(input.preset) ?? 255,
-          ledStatus: parseInt(input.ledStatus) || 0,
-          autoMode: input.autoMode || false,
+          ledDisplay: parseInt(input.ledDisplay) || 0,
+          nightlight: input.nightlight ?? false,
+          backlight: input.backlight ?? false,
+          autoMode: input.autoMode ?? false,
           delayOff: parseInt(input.delayOff) ?? 0,
           groups: input.groups || [],
         }));

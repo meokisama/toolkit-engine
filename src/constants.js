@@ -1044,25 +1044,6 @@ export function parseDelaySeconds(totalSeconds) {
   return { hours, minutes, seconds };
 }
 
-export function calculateLedStatus(displayMode, nightlight, backlight) {
-  let status = displayMode;
-  if (nightlight) status += 16; // NIGHTLIGHT flag
-  if (backlight) status += 32; // BACKLIGHT flag
-  return status;
-}
-
-export function parseLedStatus(ledStatus) {
-  const backlight = ledStatus >= 32;
-  let remaining = backlight ? ledStatus - 32 : ledStatus;
-
-  const nightlight = remaining >= 16;
-  remaining = nightlight ? remaining - 16 : remaining;
-
-  const displayMode = remaining;
-
-  return { displayMode, nightlight, backlight };
-}
-
 export const getRlcOptionsConfig = (functionName, unitType = null) => {
   // Simplified RLC options configuration
   const config = {

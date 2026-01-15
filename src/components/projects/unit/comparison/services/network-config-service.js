@@ -195,10 +195,11 @@ async function readIOConfigsForComparison(networkUnit, unitWithConfigs) {
             rlc_config: {
               ramp: unitConfig.ramp ?? 0,
               preset: unitConfig.preset ?? 255,
-              ledStatus: unitConfig.ledStatus?.raw || 0,
-              autoMode: unitConfig.autoMode || 0,
+              ledDisplay: unitConfig.ledDisplay ?? 0,
+              nightlight: unitConfig.nightlight ?? false,
+              backlight: unitConfig.backlight ?? false,
+              autoMode: unitConfig.autoMode ?? false,
               delayOff: unitConfig.delayOff ?? 0,
-              delayOn: unitConfig.delayOn ?? 0,
             },
           });
         } else {
@@ -210,10 +211,11 @@ async function readIOConfigsForComparison(networkUnit, unitWithConfigs) {
             rlc_config: {
               ramp: 0,
               preset: 255,
-              ledStatus: 0,
-              autoMode: 0,
+              ledDisplay: 0,
+              nightlight: false,
+              backlight: false,
+              autoMode: false,
               delayOff: 0,
-              delayOn: 0,
             },
           });
         }

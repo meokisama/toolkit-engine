@@ -54,14 +54,15 @@ export function InputDetailConfigDialog({
   const initialRlcOptionsFormatted = React.useMemo(() => {
     if (!initialRlcOptions || typeof initialRlcOptions !== "object") return {};
 
-    // Ensure consistent property names
+    // Ensure consistent property names - use individual LED fields
     return {
-      ramp: initialRlcOptions.ramp || 0,
-      preset: initialRlcOptions.preset || 255,
-      ledStatus: initialRlcOptions.ledStatus || initialRlcOptions.led_status || 0,
-      autoMode: initialRlcOptions.autoMode || initialRlcOptions.auto_mode || 0,
-      delayOff: initialRlcOptions.delayOff || initialRlcOptions.delay_off || 0,
-      delayOn: initialRlcOptions.delayOn || initialRlcOptions.delay_on || 0,
+      ramp: initialRlcOptions.ramp ?? 0,
+      preset: initialRlcOptions.preset ?? 255,
+      ledDisplay: initialRlcOptions.ledDisplay ?? 0,
+      nightlight: initialRlcOptions.nightlight ?? false,
+      backlight: initialRlcOptions.backlight ?? false,
+      autoMode: initialRlcOptions.autoMode ?? initialRlcOptions.auto_mode ?? false,
+      delayOff: initialRlcOptions.delayOff ?? initialRlcOptions.delay_off ?? 0,
     };
   }, [initialRlcOptions]);
 

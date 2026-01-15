@@ -239,26 +239,20 @@ export const useNetworkIOConfig = (item, open, childDialogOpen = false) => {
           if (!unitConfig) {
             log.warn(`No config found for input index ${index}`);
           }
-          // Extract ledStatus raw value - handle both object and number formats
-          const getLedStatusValue = (ledStatus) => {
-            if (ledStatus === null || ledStatus === undefined) return 0;
-            if (typeof ledStatus === "number") return ledStatus;
-            if (typeof ledStatus === "object" && ledStatus.raw !== undefined) return ledStatus.raw;
-            return 0;
-          };
 
           return unitConfig
             ? {
                 ...input,
                 functionValue: unitConfig.inputType || 0,
-                // Update rlcConfig with data from unit
+                // Update rlcConfig with data from unit - using individual LED fields
                 rlcConfig: {
                   ramp: unitConfig.ramp ?? 0,
                   preset: unitConfig.preset ?? 255,
-                  ledStatus: getLedStatusValue(unitConfig.ledStatus),
+                  ledDisplay: unitConfig.ledDisplay ?? 0,
+                  nightlight: unitConfig.nightlight ?? false,
+                  backlight: unitConfig.backlight ?? false,
                   autoMode: unitConfig.autoMode || false,
                   delayOff: unitConfig.delayOff ?? 0,
-                  delayOn: unitConfig.delayOn ?? 0,
                 },
                 // Update multiGroupConfig with groups from unit
                 multiGroupConfig:
@@ -285,10 +279,11 @@ export const useNetworkIOConfig = (item, open, childDialogOpen = false) => {
             rlcConfig: input.rlcConfig || {
               ramp: 0,
               preset: 255,
-              ledStatus: 0,
-              autoMode: 0,
+              ledDisplay: 0,
+              nightlight: false,
+              backlight: false,
+              autoMode: false,
               delayOff: 0,
-              delayOn: 0,
             },
           }));
           setOriginalInputConfigs(originalConfigs);
@@ -411,22 +406,16 @@ export const useNetworkIOConfig = (item, open, childDialogOpen = false) => {
         brightness: 0,
         isActive: false,
         functionValue: 0, // Default function, will be updated from unit
-        ramp: input.rlc_config?.ramp ?? 0,
-        preset: input.rlc_config?.preset ?? 255,
-        led_status: input.rlc_config?.ledStatus || 0,
-        auto_mode: input.rlc_config?.autoMode || 0,
-        auto_time: 0,
-        delay_off: input.rlc_config?.delayOff ?? 0,
-        delay_on: input.rlc_config?.delayOn ?? 0,
         multiGroupConfig: input.multi_group_config || [],
         // Add rlcConfig object for consistency with change detection
         rlcConfig: {
           ramp: input.rlc_config?.ramp ?? 0,
           preset: input.rlc_config?.preset ?? 255,
-          ledStatus: input.rlc_config?.ledStatus || 0,
-          autoMode: input.rlc_config?.autoMode || 0,
+          ledDisplay: input.rlc_config?.ledDisplay ?? 0,
+          nightlight: input.rlc_config?.nightlight ?? false,
+          backlight: input.rlc_config?.backlight ?? false,
+          autoMode: input.rlc_config?.autoMode ?? false,
           delayOff: input.rlc_config?.delayOff ?? 0,
-          delayOn: input.rlc_config?.delayOn ?? 0,
         },
       }));
 
@@ -788,22 +777,17 @@ export const useNetworkIOConfig = (item, open, childDialogOpen = false) => {
 
     try {
       setLoading(true);
-      // Helper to extract ledStatus raw value - handle both object and number formats
-      const getLedStatusValue = (ledStatus) => {
-        if (ledStatus === null || ledStatus === undefined) return 0;
-        if (typeof ledStatus === "number") return ledStatus;
-        if (typeof ledStatus === "object" && ledStatus.raw !== undefined) return ledStatus.raw;
-        return 0;
-      };
 
-      // Prepare all input configurations
+      // Prepare all input configurations - send individual LED fields, backend will calculate byte
       const inputConfigsData = inputConfigs.map((config) => ({
         inputNumber: config.index,
         inputType: config.functionValue || 0,
         ramp: config.rlcConfig?.ramp ?? 0,
         preset: config.rlcConfig?.preset ?? 255,
-        ledStatus: getLedStatusValue(config.rlcConfig?.ledStatus),
-        autoMode: config.rlcConfig?.autoMode || false,
+        ledDisplay: config.rlcConfig?.ledDisplay ?? 0,
+        nightlight: config.rlcConfig?.nightlight ?? false,
+        backlight: config.rlcConfig?.backlight ?? false,
+        autoMode: config.rlcConfig?.autoMode ?? false,
         delayOff: config.rlcConfig?.delayOff ?? 0,
         groups: (config.multiGroupConfig || []).map((group) => ({
           groupId: parseInt(group.groupId) || 0,
@@ -829,10 +813,11 @@ export const useNetworkIOConfig = (item, open, childDialogOpen = false) => {
           rlcConfig: input.rlcConfig || {
             ramp: 0,
             preset: 255,
-            ledStatus: 0,
-            autoMode: 0,
+            ledDisplay: 0,
+            nightlight: false,
+            backlight: false,
+            autoMode: false,
             delayOff: 0,
-            delayOn: 0,
           },
         }));
         setOriginalInputConfigs(newOriginalConfigs);

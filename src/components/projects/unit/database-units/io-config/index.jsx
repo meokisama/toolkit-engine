@@ -289,10 +289,11 @@ const IOConfigDialogComponent = ({ open, onOpenChange, item = null }) => {
                               rlcConfig: {
                                 ramp: multiGroupConfigs[config.index]?.ramp || rlcConfigs[config.index]?.ramp || 0,
                                 preset: multiGroupConfigs[config.index]?.preset || rlcConfigs[config.index]?.preset || 255,
-                                ledStatus: multiGroupConfigs[config.index]?.led_status || rlcConfigs[config.index]?.ledStatus || 0,
-                                autoMode: multiGroupConfigs[config.index]?.auto_mode || rlcConfigs[config.index]?.autoMode || 0,
-                                delayOff: multiGroupConfigs[config.index]?.delay_off || rlcConfigs[config.index]?.delayOff || 0,
-                                delayOn: multiGroupConfigs[config.index]?.delay_on || rlcConfigs[config.index]?.delayOn || 0,
+                                ledDisplay: multiGroupConfigs[config.index]?.ledDisplay || rlcConfigs[config.index]?.ledDisplay || 0,
+                                nightlight: multiGroupConfigs[config.index]?.nightlight || rlcConfigs[config.index]?.nightlight || false,
+                                backlight: multiGroupConfigs[config.index]?.backlight || rlcConfigs[config.index]?.backlight || false,
+                                autoMode: multiGroupConfigs[config.index]?.autoMode || rlcConfigs[config.index]?.autoMode || false,
+                                delayOff: multiGroupConfigs[config.index]?.delayOff || rlcConfigs[config.index]?.delayOff || 0,
                               },
                             };
 
@@ -395,10 +396,11 @@ const IOConfigDialogComponent = ({ open, onOpenChange, item = null }) => {
             ? {
                 ramp: currentInputDetailInput.config.ramp || 0,
                 preset: currentInputDetailInput.config.preset || 255,
-                ledStatus: currentInputDetailInput.config.led_status || 0,
-                autoMode: currentInputDetailInput.config.auto_mode || 0,
-                delayOff: currentInputDetailInput.config.delay_off || 0,
-                delayOn: currentInputDetailInput.config.delay_on || 0,
+                ledDisplay: currentInputDetailInput.config.ledDisplay || 0,
+                nightlight: currentInputDetailInput.config.nightlight || false,
+                backlight: currentInputDetailInput.config.backlight || false,
+                autoMode: currentInputDetailInput.config.autoMode || false,
+                delayOff: currentInputDetailInput.config.delayOff || 0,
               }
             : {}
         }

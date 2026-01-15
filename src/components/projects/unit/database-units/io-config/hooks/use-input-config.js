@@ -77,11 +77,11 @@ export const useInputConfig = (item, setInputConfigs = null, open = true) => {
           newInputDetailConfigs[config.index] = {
             ramp: config.rlc_config?.ramp || 0,
             preset: config.rlc_config?.preset || 255,
-            led_status: config.rlc_config?.ledStatus || 0,
-            auto_mode: config.rlc_config?.autoMode || 0,
-            auto_time: 0,
-            delay_off: config.rlc_config?.delayOff || 0,
-            delay_on: config.rlc_config?.delayOn || 0,
+            ledDisplay: config.rlc_config?.ledDisplay || 0,
+            nightlight: config.rlc_config?.nightlight || false,
+            backlight: config.rlc_config?.backlight || false,
+            autoMode: config.rlc_config?.autoMode || false,
+            delayOff: config.rlc_config?.delayOff || 0,
             multiGroupConfig: config.multi_group_config || [],
           };
 
@@ -153,11 +153,11 @@ export const useInputConfig = (item, setInputConfigs = null, open = true) => {
             [inputIndex]: {
               ramp: 0,
               preset: 255,
-              led_status: 0,
-              auto_mode: 0,
-              auto_time: 0,
-              delay_off: 0,
-              delay_on: 0,
+              ledDisplay: 0,
+              nightlight: false,
+              backlight: false,
+              autoMode: false,
+              delayOff: 0,
               multiGroupConfig: [],
             },
           }));
@@ -167,10 +167,11 @@ export const useInputConfig = (item, setInputConfigs = null, open = true) => {
             [inputIndex]: {
               ramp: 0,
               preset: 255,
-              ledStatus: 0,
-              autoMode: 0,
+              ledDisplay: 0,
+              nightlight: false,
+              backlight: false,
+              autoMode: false,
               delayOff: 0,
-              delayOn: 0,
             },
           }));
 
@@ -201,11 +202,11 @@ export const useInputConfig = (item, setInputConfigs = null, open = true) => {
         config: multiGroupConfigs[inputIndex] || {
           ramp: 0,
           preset: 255,
-          led_status: 0,
-          auto_mode: 0,
-          auto_time: 0,
-          delay_off: 0,
-          delay_on: 0,
+          ledDisplay: 0,
+          nightlight: false,
+          backlight: false,
+          autoMode: false,
+          delayOff: 0,
           multiGroupConfig: [],
         },
       });
@@ -220,15 +221,15 @@ export const useInputConfig = (item, setInputConfigs = null, open = true) => {
           const result = await window.electronAPI.unit.getInputConfig(item.id, inputIndex);
 
           if (result) {
-            // Convert database format to network unit format for consistency
+            // Convert database format to internal format
             const convertedConfig = {
               ramp: result.rlc_config?.ramp || 0,
               preset: result.rlc_config?.preset || 255,
-              led_status: result.rlc_config?.ledStatus || 0,
-              auto_mode: result.rlc_config?.autoMode || 0,
-              auto_time: 0, // Auto time not supported yet
-              delay_off: result.rlc_config?.delayOff || 0,
-              delay_on: result.rlc_config?.delayOn || 0,
+              ledDisplay: result.rlc_config?.ledDisplay || 0,
+              nightlight: result.rlc_config?.nightlight || false,
+              backlight: result.rlc_config?.backlight || false,
+              autoMode: result.rlc_config?.autoMode || false,
+              delayOff: result.rlc_config?.delayOff || 0,
               multiGroupConfig: result.multi_group_config || [],
             };
 
@@ -281,15 +282,15 @@ export const useInputConfig = (item, setInputConfigs = null, open = true) => {
         const rlcOptions = data.rlcOptions || {};
         const inputType = data.inputType;
 
-        // Update local state with the same format as network units
+        // Update local state with the same format
         const updatedConfig = {
           ramp: rlcOptions.ramp || 0,
           preset: rlcOptions.preset || 255,
-          led_status: rlcOptions.ledStatus || 0,
-          auto_mode: rlcOptions.autoMode || 0,
-          auto_time: 0, // Auto time not supported yet
-          delay_off: rlcOptions.delayOff || 0,
-          delay_on: rlcOptions.delayOn || 0,
+          ledDisplay: rlcOptions.ledDisplay || 0,
+          nightlight: rlcOptions.nightlight || false,
+          backlight: rlcOptions.backlight || false,
+          autoMode: rlcOptions.autoMode || false,
+          delayOff: rlcOptions.delayOff || 0,
           multiGroupConfig: groups.map((group) => ({
             groupId: parseInt(group.groupId) || 0,
             presetBrightness: parseInt(group.presetBrightness) ?? 255,

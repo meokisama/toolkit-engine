@@ -82,10 +82,11 @@ export const useNetworkInputConfig = (item, projectItems, refreshInputConfigs = 
                     rlcConfig: {
                       ramp: 0,
                       preset: 255,
-                      ledStatus: 0,
-                      autoMode: 0,
+                      ledDisplay: 0,
+                      nightlight: false,
+                      backlight: false,
+                      autoMode: false,
                       delayOff: 0,
-                      delayOn: 0,
                     },
                   }
                 : config
@@ -100,11 +101,11 @@ export const useNetworkInputConfig = (item, projectItems, refreshInputConfigs = 
           [inputIndex]: {
             ramp: 0,
             preset: 255,
-            led_status: 0,
-            auto_mode: 0,
-            auto_time: 0,
-            delay_off: 0,
-            delay_on: 0,
+            ledDisplay: 0,
+            nightlight: false,
+            backlight: false,
+            autoMode: false,
+            delayOff: 0,
             multiGroupConfig: [],
           },
         }));
@@ -129,23 +130,23 @@ export const useNetworkInputConfig = (item, projectItems, refreshInputConfigs = 
         cachedConfig || {
           ramp: 0,
           preset: 255,
-          led_status: 0,
-          auto_mode: 0,
-          auto_time: 0,
-          delay_off: 0,
-          delay_on: 0,
+          ledDisplay: 0,
+          nightlight: false,
+          backlight: false,
+          autoMode: false,
+          delayOff: 0,
           multiGroupConfig: [],
         };
 
-      // Convert local config to dialog format
+      // Convert local config to dialog format - read fields directly (backend already parsed)
       const convertedConfig = {
         ramp: localConfig.rlcConfig?.ramp ?? localConfig.ramp ?? 0,
         preset: localConfig.rlcConfig?.preset ?? localConfig.preset ?? 255,
-        led_status: localConfig.rlcConfig?.ledStatus ?? localConfig.led_status ?? 0,
-        auto_mode: localConfig.rlcConfig?.autoMode ?? localConfig.auto_mode ?? 0,
-        auto_time: 0,
-        delay_off: localConfig.rlcConfig?.delayOff ?? localConfig.delay_off ?? 0,
-        delay_on: localConfig.rlcConfig?.delayOn ?? localConfig.delay_on ?? 0,
+        ledDisplay: localConfig.rlcConfig?.ledDisplay ?? localConfig.ledDisplay ?? 0,
+        nightlight: localConfig.rlcConfig?.nightlight ?? localConfig.nightlight ?? false,
+        backlight: localConfig.rlcConfig?.backlight ?? localConfig.backlight ?? false,
+        autoMode: localConfig.rlcConfig?.autoMode ?? localConfig.autoMode ?? false,
+        delayOff: localConfig.rlcConfig?.delayOff ?? localConfig.delayOff ?? 0,
         multiGroupConfig: localConfig.multiGroupConfig || [],
       };
 
@@ -182,31 +183,13 @@ export const useNetworkInputConfig = (item, projectItems, refreshInputConfigs = 
         const rlcOptions = data.rlcOptions || {};
         const inputType = data.inputType;
 
-        // Calculate delayOff in seconds
-        let delayOffSeconds = 0;
-        if (rlcOptions.delayOff && typeof rlcOptions.delayOff === "object") {
-          delayOffSeconds = (rlcOptions.delayOff.hours || 0) * 3600 + (rlcOptions.delayOff.minutes || 0) * 60 + (rlcOptions.delayOff.seconds || 0);
-        } else if (typeof rlcOptions.delayOff === "number") {
-          delayOffSeconds = rlcOptions.delayOff;
-        }
-
-        // Calculate LED status byte from individual flags
-        let ledStatus = 0;
-        if (rlcOptions.ledStatus !== undefined) {
-          ledStatus = rlcOptions.ledStatus;
-        } else {
-          // Calculate from individual components
-          const displayMode = rlcOptions.ledDisplay || 0;
-          const nightlight = rlcOptions.nightlight ? 1 : 0;
-          const backlight = rlcOptions.backlight ? 1 : 0;
-
-          // LED Status byte format: [7:4] Display Mode, [3] Reserved, [2] Nightlight, [1] Backlight, [0] Reserved
-          ledStatus = (displayMode << 4) | (nightlight << 2) | (backlight << 1);
-        }
+        // Get delayOff - already in seconds from getFinalRlcOptions
+        const delayOffSeconds = typeof rlcOptions.delayOff === "number" ? rlcOptions.delayOff : 0;
 
         const currentInputType = inputType !== undefined ? inputType : currentInputDetailInput.functionValue || 0;
 
         // Update local state only - changes will be sent when user clicks Save button
+        // Store individual LED fields - backend will handle byte calculation
         if (setInputConfigs) {
           setInputConfigs((prevConfigs) =>
             prevConfigs.map((config) =>
@@ -221,10 +204,11 @@ export const useNetworkInputConfig = (item, projectItems, refreshInputConfigs = 
                     rlcConfig: {
                       ramp: rlcOptions.ramp ?? 0,
                       preset: rlcOptions.preset ?? 255,
-                      ledStatus: ledStatus,
-                      autoMode: rlcOptions.autoMode || false,
+                      ledDisplay: rlcOptions.ledDisplay ?? 0,
+                      nightlight: rlcOptions.nightlight ?? false,
+                      backlight: rlcOptions.backlight ?? false,
+                      autoMode: rlcOptions.autoMode ?? false,
                       delayOff: delayOffSeconds,
-                      delayOn: rlcOptions.delayOn ?? 0,
                     },
                   }
                 : config
@@ -238,11 +222,11 @@ export const useNetworkInputConfig = (item, projectItems, refreshInputConfigs = 
           [currentInputDetailInput.index]: {
             ramp: rlcOptions.ramp ?? 0,
             preset: rlcOptions.preset ?? 255,
-            led_status: ledStatus,
-            auto_mode: rlcOptions.autoMode || false,
-            auto_time: 0,
-            delay_off: delayOffSeconds,
-            delay_on: rlcOptions.delayOn ?? 0,
+            ledDisplay: rlcOptions.ledDisplay ?? 0,
+            nightlight: rlcOptions.nightlight ?? false,
+            backlight: rlcOptions.backlight ?? false,
+            autoMode: rlcOptions.autoMode ?? false,
+            delayOff: delayOffSeconds,
             multiGroupConfig: groups.map((group) => ({
               groupId: parseInt(group.groupId) || 0,
               presetBrightness: parseInt(group.presetBrightness) ?? 255,
@@ -278,8 +262,10 @@ export const useNetworkInputConfig = (item, projectItems, refreshInputConfigs = 
           inputType: currentConfig.inputType || 0,
           ramp: currentConfig.ramp ?? 0,
           preset: currentConfig.preset ?? 255,
-          ledStatus: currentConfig.ledStatus || 0,
-          autoMode: currentConfig.autoMode || false,
+          ledDisplay: currentConfig.ledDisplay ?? 0,
+          nightlight: currentConfig.nightlight ?? false,
+          backlight: currentConfig.backlight ?? false,
+          autoMode: currentConfig.autoMode ?? false,
           delayOff: currentConfig.delayOff ?? 0,
           groups: lightingId ? [{ groupId: lightingId, presetBrightness: 255 }] : [],
         };

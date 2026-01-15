@@ -181,12 +181,10 @@ function parseInputConfigResponse(msg, inputIndex) {
     inputType: inputType,
     ramp: ramp,
     preset: preset,
-    ledStatus: {
-      displayMode: displayMode,
-      nightlight: nightlight,
-      backlight: backlight,
-      raw: ledStatus,
-    },
+    // LED options parsed from ledStatus byte - frontend just reads these directly
+    ledDisplay: displayMode,
+    nightlight: nightlight,
+    backlight: backlight,
     autoMode: autoMode,
     delayOff: delayOff,
     delayOn: delayOn,

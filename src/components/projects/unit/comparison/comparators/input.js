@@ -92,10 +92,11 @@ export function compareInputConfigs(databaseInputs, networkInputs) {
     const rlcFields = [
       { name: "ramp", label: "Ramp" },
       { name: "preset", label: "Preset" },
-      { name: "ledStatus", label: "LED Status" },
+      { name: "ledDisplay", label: "LED Display" },
+      { name: "nightlight", label: "Nightlight" },
+      { name: "backlight", label: "Backlight" },
       { name: "autoMode", label: "Auto Mode" },
       { name: "delayOff", label: "Delay Off" },
-      { name: "delayOn", label: "Delay On" },
     ];
 
     rlcFields.forEach((field) => {

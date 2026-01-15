@@ -1,5 +1,5 @@
 import { useState, useCallback, useRef, useEffect } from "react";
-import { calculateDelaySeconds, parseDelaySeconds, calculateLedStatus, parseLedStatus } from "@/constants";
+import { calculateDelaySeconds, parseDelaySeconds } from "@/constants";
 import { timeToDate, dateToTimeComponents, validateDelayOffTime } from "../utils/time-helpers";
 
 export const useRlcOptions = (initialRlcOptions = {}) => {
@@ -25,42 +25,20 @@ export const useRlcOptions = (initialRlcOptions = {}) => {
   const timePickerDebounceRef = useRef(null);
 
   // Initialize RLC options from initialRlcOptions
+  // Backend already parses ledStatus into individual fields (ledDisplay, nightlight, backlight)
   useEffect(() => {
     if (initialRlcOptions && Object.keys(initialRlcOptions).length > 0) {
       // Parse delay off time - handle both formats
       const delaySeconds = initialRlcOptions.delayOff || initialRlcOptions.delay_off || 0;
       const delayTime = parseDelaySeconds(delaySeconds);
 
-      // Handle ledStatus - it can be a number or an object with raw property
-      let ledStatusValue = 0;
-
-      // Check for led_status (network format) first
-      if (initialRlcOptions.led_status !== undefined) {
-        ledStatusValue = initialRlcOptions.led_status;
-      } else if (typeof initialRlcOptions.ledStatus === "number") {
-        ledStatusValue = initialRlcOptions.ledStatus;
-      } else if (initialRlcOptions.ledStatus && typeof initialRlcOptions.ledStatus === "object") {
-        // If it's already parsed object from service, use the raw value
-        if (initialRlcOptions.ledStatus.raw !== undefined) {
-          ledStatusValue = initialRlcOptions.ledStatus.raw;
-        } else {
-          // If it's an object with individual properties, calculate the raw value
-          ledStatusValue = calculateLedStatus(
-            initialRlcOptions.ledStatus.displayMode || 0,
-            initialRlcOptions.ledStatus.nightlight || false,
-            initialRlcOptions.ledStatus.backlight || false
-          );
-        }
-      }
-
-      const ledStatusParsed = parseLedStatus(ledStatusValue);
-
+      // Read LED options directly from backend (already parsed)
       setRlcOptions({
         ramp: initialRlcOptions.ramp ?? 0,
         preset: initialRlcOptions.preset ?? 255,
-        ledDisplay: ledStatusParsed.displayMode,
-        nightlight: ledStatusParsed.nightlight,
-        backlight: ledStatusParsed.backlight,
+        ledDisplay: initialRlcOptions.ledDisplay ?? 0,
+        nightlight: initialRlcOptions.nightlight ?? false,
+        backlight: initialRlcOptions.backlight ?? false,
         autoMode: initialRlcOptions.autoMode ?? initialRlcOptions.auto_mode ?? false,
         delayOff: delayTime,
       });
@@ -123,17 +101,17 @@ export const useRlcOptions = (initialRlcOptions = {}) => {
   }, []);
 
   // Get final RLC options for saving
+  // Returns individual fields - backend will handle byte calculation
   const getFinalRlcOptions = useCallback(() => {
-    // Calculate LED status from display mode and flags
-    const ledStatus = calculateLedStatus(rlcOptions.ledDisplay, rlcOptions.nightlight, rlcOptions.backlight);
-
     // Calculate delay off in seconds
     const delayOffSeconds = calculateDelaySeconds(rlcOptions.delayOff.hours, rlcOptions.delayOff.minutes, rlcOptions.delayOff.seconds);
 
     return {
       ramp: rlcOptions.ramp,
       preset: rlcOptions.preset,
-      ledStatus: ledStatus,
+      ledDisplay: rlcOptions.ledDisplay,
+      nightlight: rlcOptions.nightlight,
+      backlight: rlcOptions.backlight,
       autoMode: rlcOptions.autoMode,
       delayOff: delayOffSeconds,
     };

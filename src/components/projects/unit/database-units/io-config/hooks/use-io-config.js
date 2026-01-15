@@ -142,10 +142,11 @@ export const useIOConfig = (item, open) => {
             rlcConfig: {
               ramp: savedConfig?.rlc_config?.ramp || 0,
               preset: savedConfig?.rlc_config?.preset || 255,
-              ledStatus: savedConfig?.rlc_config?.ledStatus || 0,
-              autoMode: savedConfig?.rlc_config?.autoMode || 0,
+              ledDisplay: savedConfig?.rlc_config?.ledDisplay || 0,
+              nightlight: savedConfig?.rlc_config?.nightlight || false,
+              backlight: savedConfig?.rlc_config?.backlight || false,
+              autoMode: savedConfig?.rlc_config?.autoMode || false,
               delayOff: savedConfig?.rlc_config?.delayOff || 0,
-              delayOn: savedConfig?.rlc_config?.delayOn || 0,
             },
           };
         });
@@ -247,10 +248,11 @@ export const useIOConfig = (item, open) => {
             rlc_config: {
               ramp: multiGroupConfig.ramp || rlcConfig.ramp || 0,
               preset: multiGroupConfig.preset || rlcConfig.preset || 255,
-              ledStatus: multiGroupConfig.led_status || rlcConfig.ledStatus || 0,
-              autoMode: multiGroupConfig.auto_mode || rlcConfig.autoMode || 0,
-              delayOff: multiGroupConfig.delay_off || rlcConfig.delayOff || 0,
-              delayOn: multiGroupConfig.delay_on || rlcConfig.delayOn || 0,
+              ledDisplay: multiGroupConfig.ledDisplay || rlcConfig.ledDisplay || 0,
+              nightlight: multiGroupConfig.nightlight || rlcConfig.nightlight || false,
+              backlight: multiGroupConfig.backlight || rlcConfig.backlight || false,
+              autoMode: multiGroupConfig.autoMode || rlcConfig.autoMode || false,
+              delayOff: multiGroupConfig.delayOff || rlcConfig.delayOff || 0,
             },
           });
         }
