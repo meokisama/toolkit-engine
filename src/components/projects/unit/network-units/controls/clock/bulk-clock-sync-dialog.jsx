@@ -13,6 +13,7 @@ import { RefreshCw, Monitor, Edit3, CalendarIcon, Clock, CheckCircle, XCircle } 
 import { format } from "date-fns";
 import { toast } from "sonner";
 import { NetworkUnitSelector, useNetworkUnitSelector } from "@/components/shared/network-unit-selector";
+import log from "electron-log/renderer";
 
 export function BulkClockSyncDialog({ open, onOpenChange }) {
   const { selectedUnitIds, handleSelectionChange, clearSelection } = useNetworkUnitSelector();
@@ -103,7 +104,7 @@ export function BulkClockSyncDialog({ open, onOpenChange }) {
         const currentProgress = ((i + 1) / unitsToSync.length) * 100;
 
         try {
-          console.log("Syncing clock to unit:", {
+          log.info("Syncing clock to unit:", {
             unitIp: unit.ip_address,
             canId: unit.id_can,
             clockData,
@@ -122,7 +123,7 @@ export function BulkClockSyncDialog({ open, onOpenChange }) {
             message: "Clock synced successfully",
           });
         } catch (error) {
-          console.error(`Failed to sync clock for unit ${unit.ip_address}:`, error);
+          log.error(`Failed to sync clock for unit ${unit.ip_address}:`, error);
           results.push({
             unit,
             status: "error",
@@ -150,7 +151,7 @@ export function BulkClockSyncDialog({ open, onOpenChange }) {
         toast.warning(`Clock synced to ${successCount} units, ${errorCount} failed`);
       }
     } catch (error) {
-      console.error("Bulk clock sync failed:", error);
+      log.error("Bulk clock sync failed:", error);
       toast.error(`Bulk clock sync failed: ${error.message}`);
     } finally {
       setLoading(false);

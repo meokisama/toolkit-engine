@@ -1,4 +1,5 @@
 import { findOrCreateLightingByAddress } from "../utils/config-helpers";
+import log from "electron-log/renderer";
 
 /**
  * Read KNX configurations from network unit and create them in database
@@ -11,7 +12,7 @@ export const readKnxConfigurations = async (networkUnit, projectId, unitId) => {
   const createdKnxConfigs = [];
 
   try {
-    console.log("Reading KNX configurations...");
+    log.info("Reading KNX configurations...");
 
     const result = await window.electronAPI.knxController.getKnxConfig({
       unitIp: networkUnit.ip_address,
@@ -20,13 +21,13 @@ export const readKnxConfigurations = async (networkUnit, projectId, unitId) => {
     });
 
     if (result?.knxConfigs && result.knxConfigs.length > 0) {
-      console.log(`Found ${result.knxConfigs.length} KNX configs on network unit`);
+      log.info(`Found ${result.knxConfigs.length} KNX configs on network unit`);
 
       for (const networkKnx of result.knxConfigs) {
         try {
           // Only process KNX configs with valid type (not 0)
           if (networkKnx.type === 0) {
-            console.log(`Skipping KNX address ${networkKnx.address}: invalid type`);
+            log.info(`Skipping KNX address ${networkKnx.address}: invalid type`);
             continue;
           }
 
@@ -52,21 +53,21 @@ export const readKnxConfigurations = async (networkUnit, projectId, unitId) => {
           const createdKnx = await window.electronAPI.knx.create(projectId, knxData);
 
           createdKnxConfigs.push(createdKnx);
-          console.log(`Created KNX config: ${createdKnx.name} (ID: ${createdKnx.id})`);
+          log.info(`Created KNX config: ${createdKnx.name} (ID: ${createdKnx.id})`);
 
           // Add delay between KNX reads
           await new Promise((resolve) => setTimeout(resolve, 300));
         } catch (error) {
-          console.error(`Failed to process KNX address ${networkKnx.address}:`, error);
+          log.error(`Failed to process KNX address ${networkKnx.address}:`, error);
           // Continue with other KNX configs
         }
       }
     }
 
-    console.log(`Successfully created ${createdKnxConfigs.length} KNX configs`);
+    log.info(`Successfully created ${createdKnxConfigs.length} KNX configs`);
     return createdKnxConfigs;
   } catch (error) {
-    console.error("Failed to read KNX configurations:", error);
+    log.error("Failed to read KNX configurations:", error);
     return createdKnxConfigs;
   }
 };

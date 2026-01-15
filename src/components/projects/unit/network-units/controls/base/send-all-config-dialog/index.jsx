@@ -15,7 +15,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Label } from "@/components/ui/label";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { ScrollArea } from "@/components/ui/scroll-area";
-
+import log from "electron-log/renderer";
 // Import our modular functions
 import { configTypeLabels, defaultConfigTypes } from "./constants";
 import { validateWriteConfiguration } from "./validation";
@@ -219,7 +219,7 @@ function SendAllConfigDialogComponent({ open, onOpenChange }) {
         toast.warning(`${successCount}/${totalCount} operations completed successfully`);
       }
     } catch (error) {
-      console.error("Failed to send configurations:", error);
+      log.error("Failed to send configurations:", error);
       toast.error(`Failed to send configurations: ${error.message}`);
     } finally {
       setLoading(false);

@@ -9,6 +9,7 @@ import { toast } from "sonner";
 import { CONSTANTS } from "@/constants";
 import { DeleteKnxDialog } from "./delete-knx-popover";
 import { useProjectDetail } from "@/contexts/project-detail-context";
+import log from "electron-log/renderer";
 
 // Initial state for better state management
 const initialState = {
@@ -200,7 +201,7 @@ export function KnxControlDialog({ open, onOpenChange, unit }) {
         toast.success(`KNX address ${address} configuration loaded successfully`);
       }
     } catch (error) {
-      console.error("Failed to load KNX configuration:", error);
+      log.error("Failed to load KNX configuration:", error);
       toast.error(`Failed to load KNX configuration: ${error.message}`);
     } finally {
       setLoadingState((prev) => ({ ...prev, loadingInfo: false }));
@@ -257,7 +258,7 @@ export function KnxControlDialog({ open, onOpenChange, unit }) {
         toast.info("No KNX configurations found on this unit");
       }
     } catch (error) {
-      console.error("Failed to load all KNX configurations:", error);
+      log.error("Failed to load all KNX configurations:", error);
       toast.error(`Failed to load all KNX configurations: ${error.message}`);
     } finally {
       setLoadingState((prev) => ({ ...prev, loadingAllConfigs: false }));
@@ -290,7 +291,7 @@ export function KnxControlDialog({ open, onOpenChange, unit }) {
           throw new Error("Unit returned failure response");
         }
       } catch (error) {
-        console.error("Failed to delete KNX configuration:", error);
+        log.error("Failed to delete KNX configuration:", error);
         toast.error(`Failed to delete KNX configuration: ${error.message}`);
       } finally {
         setLoadingState((prev) => ({ ...prev, loading: false }));
@@ -316,7 +317,7 @@ export function KnxControlDialog({ open, onOpenChange, unit }) {
 
         toast.success(`KNX address ${knxAddress} triggered successfully`);
       } catch (error) {
-        console.error("Failed to trigger KNX:", error);
+        log.error("Failed to trigger KNX:", error);
         toast.error(`Failed to trigger KNX: ${error.message}`);
       } finally {
         setLoadingState((prev) => ({ ...prev, loading: false }));

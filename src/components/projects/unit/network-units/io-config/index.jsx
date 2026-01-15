@@ -21,6 +21,7 @@ import { useNetworkInputConfig } from "./hooks/use-network-input-config";
 import { useNetworkOutputConfig } from "./hooks/use-network-output-config";
 import { useProjectDetail } from "@/contexts/project-detail-context";
 import { hasInputConfigChanged, hasOutputConfigChanged } from "@/utils/io-config-utils";
+import log from "electron-log/renderer";
 
 const NetworkIOConfigDialog = ({ open, onOpenChange, item = null }) => {
   const { projectItems, selectedProject, loadTabData, loadedTabs } = useProjectDetail();
@@ -80,7 +81,7 @@ const NetworkIOConfigDialog = ({ open, onOpenChange, item = null }) => {
 
     return outputConfigs.some((config) => {
       const original = originalOutputConfigs.find((orig) => orig.index === config.index);
-      return hasOutputConfigChanged(config, original, 'network');
+      return hasOutputConfigChanged(config, original, "network");
     });
   }, [outputConfigs, originalOutputConfigs, configsLoaded]);
 
@@ -197,7 +198,7 @@ const NetworkIOConfigDialog = ({ open, onOpenChange, item = null }) => {
         }
       } catch (error) {
         // Command failed with error - revert UI to original state
-        console.error("Toggle output failed:", error);
+        log.error("Toggle output failed:", error);
         setOutputConfigs((prevConfigs) =>
           prevConfigs.map((config) =>
             config.index === outputIndex
@@ -219,7 +220,7 @@ const NetworkIOConfigDialog = ({ open, onOpenChange, item = null }) => {
     try {
       await readInputConfigsFromUnit();
     } catch (error) {
-      console.error("Failed to read input configurations:", error);
+      log.error("Failed to read input configurations:", error);
     }
   }, [readInputConfigsFromUnit]);
 
@@ -267,7 +268,7 @@ const NetworkIOConfigDialog = ({ open, onOpenChange, item = null }) => {
         toast.error(`Failed to save configurations: ${errors.join(", ")}`);
       }
     } catch (error) {
-      console.error("Failed to save configurations:", error);
+      log.error("Failed to save configurations:", error);
       toast.error(`Failed to save: ${error.message}`);
     }
   }, [hasPendingInputChanges, hasPendingOutputChanges, saveAllInputConfigs, saveAllOutputConfigs, inputConfigs.length, outputConfigs.length]);
@@ -320,7 +321,7 @@ const NetworkIOConfigDialog = ({ open, onOpenChange, item = null }) => {
           }
         }
       } catch (error) {
-        console.error(`Error adding missing ${type} address:`, error);
+        log.error(`Error adding missing ${type} address:`, error);
         toast.error(`Error adding ${type} address: ${error.message}`);
       }
     },

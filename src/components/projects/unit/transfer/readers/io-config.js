@@ -1,3 +1,4 @@
+import log from "electron-log/renderer";
 /**
  * I/O Configuration Reader
  * Reads input and output configurations from network units and converts to database format
@@ -73,13 +74,13 @@ export async function readIOConfigurations(networkUnit, selectedProject, project
     // Add delay after input config read
     await new Promise((resolve) => setTimeout(resolve, 500));
   } catch (error) {
-    console.error("Failed to read input configurations:", error);
+    log.error("Failed to read input configurations:", error);
   }
 
   // Read output configurations and assignments sequentially to avoid UDP conflicts
   try {
     // Read output assignments first
-    console.log("Reading output assignments...");
+    log.info("Reading output assignments...");
     const assignResponse = await window.electronAPI.ioController.getOutputAssign({
       unitIp: networkUnit.ip_address,
       canId: networkUnit.id_can,
@@ -89,14 +90,14 @@ export async function readIOConfigurations(networkUnit, selectedProject, project
     await new Promise((resolve) => setTimeout(resolve, 300));
 
     // Read output configurations second
-    console.log("Reading output configurations...");
+    log.info("Reading output configurations...");
     const configResponse = await window.electronAPI.ioController.getOutputConfig(networkUnit.ip_address, networkUnit.id_can);
 
     // Add delay between output reads
     await new Promise((resolve) => setTimeout(resolve, 300));
 
     // Read AC configurations third for aircon address mapping
-    console.log("Reading AC configurations...");
+    log.info("Reading AC configurations...");
     const acConfigResponse = await window.electronAPI.ioController.getLocalACConfig(networkUnit.ip_address, networkUnit.id_can);
 
     // Create output configs for all outputs, whether we have network data or not
@@ -273,7 +274,7 @@ export async function readIOConfigurations(networkUnit, selectedProject, project
         config: configData,
       };
 
-      console.log(`Creating output config for index ${i}:`, {
+      log.info(`Creating output config for index ${i}:`, {
         index: i,
         type: outputType,
         name: outputConfig.name,
@@ -318,7 +319,7 @@ export async function readIOConfigurations(networkUnit, selectedProject, project
       outputConfigs.outputs.push(outputConfig);
     }
   } catch (error) {
-    console.error("Failed to read output configurations:", error);
+    log.error("Failed to read output configurations:", error);
   }
 
   const result = {
@@ -326,7 +327,7 @@ export async function readIOConfigurations(networkUnit, selectedProject, project
     output_configs: outputConfigs.outputs.length > 0 ? outputConfigs : null,
   };
 
-  console.log("Final I/O configs result:", {
+  log.info("Final I/O configs result:", {
     unitIp: networkUnit.ip_address,
     inputConfigsCount: inputConfigs.inputs.length,
     outputConfigsCount: outputConfigs.outputs.length,

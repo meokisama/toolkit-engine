@@ -9,6 +9,7 @@ import { Loader2, Wifi, CheckCircle, XCircle } from "lucide-react";
 import { toast } from "sonner";
 import { useProjectDetail } from "@/contexts/project-detail-context";
 import { NetworkUnitSelector, useNetworkUnitSelector } from "@/components/shared/network-unit-selector";
+import log from "electron-log/renderer";
 
 export function AddZigbeeDeviceDialog({ open, onOpenChange, onDevicesAdded }) {
   const { selectedProject } = useProjectDetail();
@@ -82,7 +83,7 @@ export function AddZigbeeDeviceDialog({ open, onOpenChange, onDevicesAdded }) {
                   success: true,
                 });
               } catch (error) {
-                console.error("Failed to save device:", error);
+                log.error("Failed to save device:", error);
                 allDevices.push({
                   ...deviceData,
                   unitName: unit.type || "Unit",
@@ -97,7 +98,7 @@ export function AddZigbeeDeviceDialog({ open, onOpenChange, onDevicesAdded }) {
             toast.info(`No devices found on ${unit.type || "Unit"} (${unit.ip_address})`);
           }
         } catch (error) {
-          console.error(`Failed to scan unit ${unit.ip_address}:`, error);
+          log.error(`Failed to scan unit ${unit.ip_address}:`, error);
           toast.error(`Failed to scan ${unit.type || "Unit"} (${unit.ip_address})`);
         }
 
@@ -115,7 +116,7 @@ export function AddZigbeeDeviceDialog({ open, onOpenChange, onDevicesAdded }) {
         }
       }
     } catch (error) {
-      console.error("Failed to scan devices:", error);
+      log.error("Failed to scan devices:", error);
       toast.error(`Failed to scan devices: ${error.message}`);
     } finally {
       setLoading(false);

@@ -1,6 +1,7 @@
 import { useState, useCallback, useMemo } from "react";
 import { updateGroupValue } from "../utils/validation-helpers";
 import { createGroupByType, getAvailableItemsForFunction } from "../utils/group-helpers";
+import log from "electron-log/renderer";
 
 export const useInputDetail = (initialGroups = [], currentInputType, projectItems, selectedProject, createItem) => {
   const [selectedGroups, setSelectedGroups] = useState([]);
@@ -92,10 +93,10 @@ export const useInputDetail = (initialGroups = [], currentInputType, projectItem
             try {
               const newItem = await autoCreateGroupByType(groupToRemove.groupAddress);
               if (newItem) {
-                console.log(`Auto-created group ${groupToRemove.groupAddress} when removed from selected groups`);
+                log.info(`Auto-created group ${groupToRemove.groupAddress} when removed from selected groups`);
               }
             } catch (error) {
-              console.error(`Failed to auto-create group when removing:`, error);
+              log.error(`Failed to auto-create group when removing:`, error);
             }
           }, 0);
         }

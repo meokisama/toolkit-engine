@@ -7,6 +7,7 @@ import { Network, Scan, Wifi, CircleCheck, Loader2, CheckSquare, Square } from "
 import { toast } from "sonner";
 import { udpScanner } from "@/services/udp";
 import { sortByIpAddress } from "@/utils/ip-utils";
+import log from "electron-log/renderer";
 
 export const NetworkUnitSelector = React.forwardRef(function NetworkUnitSelector(
   { selectedUnitIds = [], onSelectionChange, disabled = false, className = "", title = "Units", height = "h-60", maxSelection = null },
@@ -49,7 +50,7 @@ export const NetworkUnitSelector = React.forwardRef(function NetworkUnitSelector
         toast.warning("No units found on network");
       }
     } catch (error) {
-      console.error("Failed to scan network:", error);
+      log.error("Failed to scan network:", error);
       toast.error("Failed to scan network: " + error.message);
     } finally {
       setScanLoading(false);

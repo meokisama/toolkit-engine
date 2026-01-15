@@ -10,6 +10,7 @@ import { Calendar as CalendarComponent } from "@/components/ui/calendar";
 import { TimePicker } from "@/components/custom/time-picker";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { format } from "date-fns";
+import log from "electron-log/renderer";
 
 export function ClockControlDialog({ open, onOpenChange, unit }) {
   const [loading, setLoading] = useState(false);
@@ -49,7 +50,7 @@ export function ClockControlDialog({ open, onOpenChange, unit }) {
 
     setLoading(true);
     try {
-      console.log("Getting clock from unit:", {
+      log.info("Getting clock from unit:", {
         unitIp: unit.ip_address,
         canId: unit.id_can,
       });
@@ -62,7 +63,7 @@ export function ClockControlDialog({ open, onOpenChange, unit }) {
       setUnitClock(result);
       toast.success("Clock retrieved successfully from unit");
     } catch (error) {
-      console.error("Failed to get clock:", error);
+      log.error("Failed to get clock:", error);
       toast.error(`Failed to get clock: ${error.message}`);
       setUnitClock(null);
     } finally {
@@ -105,7 +106,7 @@ export function ClockControlDialog({ open, onOpenChange, unit }) {
         };
       }
 
-      console.log("Syncing clock to unit:", {
+      log.info("Syncing clock to unit:", {
         unitIp: unit.ip_address,
         canId: unit.id_can,
         clockData,
@@ -125,7 +126,7 @@ export function ClockControlDialog({ open, onOpenChange, unit }) {
         handleGetClock();
       }, 500);
     } catch (error) {
-      console.error("Failed to sync clock:", error);
+      log.error("Failed to sync clock:", error);
       toast.error(`Failed to sync clock: ${error.message}`);
     } finally {
       setLoading(false);

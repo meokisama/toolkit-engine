@@ -5,7 +5,7 @@ import { compareUnitConfigurations } from "./comparators/orchestrator";
 import { readNetworkUnitConfigurations } from "./services/network-config-service";
 import { getDatabaseConfigurations } from "./services/database-config-service";
 import { getNetworkUnitCacheKey } from "./utils/unit-key-utils";
-
+import log from "electron-log/renderer";
 /**
  * Hook for managing configuration comparison between database and network units
  */
@@ -45,7 +45,7 @@ export function useConfigComparison() {
         return;
       }
 
-      console.log(`Found ${matchingUnits.length} matching units for comparison`);
+      log.info(`Found ${matchingUnits.length} matching units for comparison`);
 
       const results = new Map();
 
@@ -78,7 +78,7 @@ export function useConfigComparison() {
           results.set(`db_${databaseUnit.id}`, resultData);
           results.set(`net_${getNetworkUnitCacheKey(networkUnit)}`, resultData);
         } catch (error) {
-          console.error(`Failed to compare unit ${networkUnit.ip_address}:`, error);
+          log.error(`Failed to compare unit ${networkUnit.ip_address}:`, error);
 
           // Store error result
           const errorResult = {
@@ -130,7 +130,7 @@ export function useConfigComparison() {
         id: loadingToast,
       });
     } catch (error) {
-      console.error("Failed to compare configurations:", error);
+      log.error("Failed to compare configurations:", error);
       toast.error(`Failed to compare configurations: ${error.message}`, {
         id: loadingToast,
       });

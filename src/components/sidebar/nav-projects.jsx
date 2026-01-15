@@ -21,6 +21,7 @@ import { useProjectDetail } from "@/contexts/project-detail-context";
 import { ProjectDialog } from "@/components/projects/project-dialog";
 import { ConfirmDialog } from "@/components/projects/confirm-dialog";
 import { ImportDialog } from "@/components/projects/import-project-dialog";
+import log from "electron-log/renderer";
 
 export function NavProjects() {
   const { isMobile } = useSidebar();
@@ -58,7 +59,7 @@ export function NavProjects() {
       try {
         await exportProject(project.id);
       } catch (error) {
-        console.error("Failed to export project:", error);
+        log.error("Failed to export project:", error);
       }
     },
     [exportProject]
@@ -75,7 +76,7 @@ export function NavProjects() {
         // Optionally select the newly imported project
         selectProjectSection(newProject, "group-config");
       } catch (error) {
-        console.error("Failed to import project:", error);
+        log.error("Failed to import project:", error);
       }
     },
     [importProject, selectProjectSection]
@@ -122,7 +123,7 @@ export function NavProjects() {
       setConfirmDialogOpen(false);
       setProjectToDelete(null);
     } catch (error) {
-      console.error("Failed to delete project:", error);
+      log.error("Failed to delete project:", error);
     } finally {
       setDeleteLoading(false);
     }

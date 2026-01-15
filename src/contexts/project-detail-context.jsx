@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useCallback, useMemo } from "react";
 import { toast } from "sonner";
 import { exportImportService } from "@/services/export-import";
+import log from "electron-log/renderer";
 
 function capitalizeFirstLetter(str) {
   return str.charAt(0).toUpperCase() + str.slice(1);
@@ -86,7 +87,7 @@ export function ProjectDetailProvider({ children }) {
       // Mark tab as loaded
       setLoadedTabs((prev) => new Set([...prev, tabName]));
     } catch (err) {
-      console.error(`Failed to load ${tabName} items:`, err);
+      log.error(`Failed to load ${tabName} items:`, err);
       const errorMessage = err.message || `Failed to load ${tabName} items`;
       setError(errorMessage);
       toast.error(errorMessage);
@@ -189,7 +190,7 @@ export function ProjectDetailProvider({ children }) {
         toast.success(`${capitalizeFirstLetter(category)} item created successfully`);
         return newItem;
       } catch (err) {
-        console.error(`Failed to create ${category} item:`, err);
+        log.error(`Failed to create ${category} item:`, err);
         const errorMessage = err.message || `Failed to create ${category} item`;
         toast.error(errorMessage);
         throw err;
@@ -210,7 +211,7 @@ export function ProjectDetailProvider({ children }) {
       toast.success(`${capitalizeFirstLetter(category)} item updated successfully`);
       return updatedItem;
     } catch (err) {
-      console.error(`Failed to update ${category} item:`, err);
+      log.error(`Failed to update ${category} item:`, err);
       const errorMessage = err.message || `Failed to update ${category} item`;
       toast.error(errorMessage);
       throw err;
@@ -228,7 +229,7 @@ export function ProjectDetailProvider({ children }) {
       }));
       toast.success(`${capitalizeFirstLetter(category)} item deleted successfully`);
     } catch (err) {
-      console.error(`Failed to delete ${category} item:`, err);
+      log.error(`Failed to delete ${category} item:`, err);
       const errorMessage = err.message || `Failed to delete ${category} item`;
       toast.error(errorMessage);
       throw err;
@@ -247,7 +248,7 @@ export function ProjectDetailProvider({ children }) {
       toast.success(`${capitalizeFirstLetter(category)} item duplicated successfully`);
       return duplicatedItem;
     } catch (err) {
-      console.error(`Failed to duplicate ${category} item:`, err);
+      log.error(`Failed to duplicate ${category} item:`, err);
       const errorMessage = err.message || `Failed to duplicate ${category} item`;
       toast.error(errorMessage);
       throw err;
@@ -266,7 +267,7 @@ export function ProjectDetailProvider({ children }) {
         const items = projectItems[category] || [];
         return await exportImportService.exportItemsToCSV(items, category, selectedProject.name);
       } catch (err) {
-        console.error(`Failed to export ${category} items:`, err);
+        log.error(`Failed to export ${category} items:`, err);
         const errorMessage = err.message || `Failed to export ${category} items`;
         toast.error(errorMessage);
         return false;
@@ -322,7 +323,7 @@ export function ProjectDetailProvider({ children }) {
 
         return importedItems;
       } catch (err) {
-        console.error(`Failed to import ${category} items:`, err);
+        log.error(`Failed to import ${category} items:`, err);
         const errorMessage = err.message || `Failed to import ${category} items`;
         toast.error(errorMessage);
         throw err;
@@ -357,7 +358,7 @@ export function ProjectDetailProvider({ children }) {
         toast.success("Aircon card created successfully");
         return newItems;
       } catch (err) {
-        console.error("Failed to create aircon card:", err);
+        log.error("Failed to create aircon card:", err);
         const errorMessage = err.message || "Failed to create aircon card";
         toast.error(errorMessage);
         throw err;
@@ -380,7 +381,7 @@ export function ProjectDetailProvider({ children }) {
 
       toast.success("Aircon card deleted successfully");
     } catch (err) {
-      console.error("Failed to delete aircon card:", err);
+      log.error("Failed to delete aircon card:", err);
       const errorMessage = err.message || "Failed to delete aircon card";
       toast.error(errorMessage);
       throw err;
@@ -409,7 +410,7 @@ export function ProjectDetailProvider({ children }) {
       toast.success("Aircon card duplicated successfully");
       return duplicatedItems;
     } catch (err) {
-      console.error("Failed to duplicate aircon card:", err);
+      log.error("Failed to duplicate aircon card:", err);
       const errorMessage = err.message || "Failed to duplicate aircon card";
       toast.error(errorMessage);
       throw err;
@@ -425,7 +426,7 @@ export function ProjectDetailProvider({ children }) {
         const originalAddress = originalCard ? originalCard.address : cardData.address;
         const itemsToUpdate = projectItems.aircon.filter((item) => item.address === originalAddress);
 
-        console.log("Updating aircon card:", {
+        log.info("Updating aircon card:", {
           originalAddress,
           newAddress: cardData.address,
           itemsToUpdate: itemsToUpdate.length,
@@ -474,7 +475,7 @@ export function ProjectDetailProvider({ children }) {
         toast.success("Aircon card updated successfully");
         return updatedItems;
       } catch (err) {
-        console.error("Failed to update aircon card:", err);
+        log.error("Failed to update aircon card:", err);
         const errorMessage = err.message || "Failed to update aircon card";
         toast.error(errorMessage);
         throw err;

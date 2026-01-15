@@ -10,6 +10,7 @@ import { useProjectDetail } from "@/contexts/project-detail-context";
 import { KNXAddressInput } from "@/components/custom/knx-input";
 import { Sun, Lightbulb } from "lucide-react";
 import { toast } from "sonner";
+import log from "electron-log/renderer";
 
 export function GenerateFromLightingSheet({ open, onOpenChange }) {
   const { projectItems, createItem } = useProjectDetail();
@@ -91,13 +92,16 @@ export function GenerateFromLightingSheet({ open, onOpenChange }) {
   }, []);
 
   // Handle select all
-  const handleSelectAll = useCallback((checked) => {
-    if (checked) {
-      setSelectedItems(new Set(lightingItems.map((item) => item.id)));
-    } else {
-      setSelectedItems(new Set());
-    }
-  }, [lightingItems]);
+  const handleSelectAll = useCallback(
+    (checked) => {
+      if (checked) {
+        setSelectedItems(new Set(lightingItems.map((item) => item.id)));
+      } else {
+        setSelectedItems(new Set());
+      }
+    },
+    [lightingItems]
+  );
 
   // Handle KNX data change
   const handleKnxDataChange = useCallback((itemId, field, value) => {
@@ -111,23 +115,26 @@ export function GenerateFromLightingSheet({ open, onOpenChange }) {
   }, []);
 
   // Handle type change for all items
-  const handleSetAllType = useCallback((type) => {
-    setKnxData((prevKnxData) => {
-      const newKnxData = { ...prevKnxData };
-      lightingItems.forEach((item) => {
-        if (newKnxData[item.id]) {
-          newKnxData[item.id] = { ...newKnxData[item.id], type };
-          // Clear fields that are not visible for this type
-          if (type === 1) {
-            // Switch
-            newKnxData[item.id].knx_dimming_group = "";
-            newKnxData[item.id].knx_value_group = "";
+  const handleSetAllType = useCallback(
+    (type) => {
+      setKnxData((prevKnxData) => {
+        const newKnxData = { ...prevKnxData };
+        lightingItems.forEach((item) => {
+          if (newKnxData[item.id]) {
+            newKnxData[item.id] = { ...newKnxData[item.id], type };
+            // Clear fields that are not visible for this type
+            if (type === 1) {
+              // Switch
+              newKnxData[item.id].knx_dimming_group = "";
+              newKnxData[item.id].knx_value_group = "";
+            }
           }
-        }
+        });
+        return newKnxData;
       });
-      return newKnxData;
-    });
-  }, [lightingItems]);
+    },
+    [lightingItems]
+  );
 
   // Get KNX group visibility based on type - memoized
   const getKnxGroupVisibility = useCallback((type) => {
@@ -196,7 +203,7 @@ export function GenerateFromLightingSheet({ open, onOpenChange }) {
           successCount++;
         } else {
           errorCount++;
-          console.error(`Failed to create KNX item for lighting ${selectedItemsList[index]}:`, result.reason);
+          log.error(`Failed to create KNX item for lighting ${selectedItemsList[index]}:`, result.reason);
         }
       });
 
@@ -211,7 +218,7 @@ export function GenerateFromLightingSheet({ open, onOpenChange }) {
         onOpenChange(false);
       }
     } catch (error) {
-      console.error("Failed to create KNX items:", error);
+      log.error("Failed to create KNX items:", error);
       toast.error("Failed to create KNX items");
     } finally {
       setLoading(false);

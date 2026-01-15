@@ -19,6 +19,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import log from "electron-log/renderer";
 
 // Memoized utility functions for better performance
 const formatTime = (hour, minute) => {
@@ -78,8 +79,7 @@ const ScheduleCard = memo(({ schedule, onDelete, loading, formatTime, formatDays
             {schedule.mode === 1 && (
               <>
                 <span className="mx-1"> | </span>
-                <span className="font-bold">Interval:</span> {schedule.intervalTime}s
-                <span className="mx-1"> | </span>
+                <span className="font-bold">Interval:</span> {schedule.intervalTime}s<span className="mx-1"> | </span>
                 <span className="font-bold">DMX Duration:</span> {schedule.dmxDuration}
               </>
             )}
@@ -197,7 +197,7 @@ export function TriggerScheduleDialog({ open, onOpenChange, unit }) {
 
     setLoadingState((prev) => ({ ...prev, loadingInfo: true }));
     try {
-      console.log("Loading schedule information:", {
+      log.info("Loading schedule information:", {
         unitIp: unit.ip_address,
         canId: unit.id_can,
         scheduleIndex: index,
@@ -233,7 +233,7 @@ export function TriggerScheduleDialog({ open, onOpenChange, unit }) {
         toast.success(`Schedule ${index} information loaded successfully`);
       }
     } catch (error) {
-      console.error("Failed to load schedule information:", error);
+      log.error("Failed to load schedule information:", error);
       toast.error(`Failed to load schedule information: ${error.message}`);
       setState((prev) => ({
         ...prev,
@@ -253,7 +253,7 @@ export function TriggerScheduleDialog({ open, onOpenChange, unit }) {
 
     setLoadingState((prev) => ({ ...prev, loadingAllSchedules: true }));
     try {
-      console.log("Loading all schedules information:", {
+      log.info("Loading all schedules information:", {
         unitIp: unit.ip_address,
         canId: unit.id_can,
       });
@@ -307,7 +307,7 @@ export function TriggerScheduleDialog({ open, onOpenChange, unit }) {
         toast.info("No schedules found");
       }
     } catch (error) {
-      console.error("Failed to load all schedules:", error);
+      log.error("Failed to load all schedules:", error);
       toast.error(`Failed to load all schedules: ${error.message}`);
       setState((prev) => ({
         ...prev,
@@ -338,7 +338,7 @@ export function TriggerScheduleDialog({ open, onOpenChange, unit }) {
 
     setLoadingState((prev) => ({ ...prev, loading: true }));
     try {
-      console.log("Deleting schedule from card:", {
+      log.info("Deleting schedule from card:", {
         unitIp: unit.ip_address,
         canId: unit.id_can,
         scheduleIndex: state.deleteConfirmDialog.scheduleIndex, // Keep 0-31 range
@@ -361,7 +361,7 @@ export function TriggerScheduleDialog({ open, onOpenChange, unit }) {
       // Optionally refresh the schedules list
       // You could call handleLoadAllSchedules() here if needed
     } catch (error) {
-      console.error("Failed to delete schedule:", error);
+      log.error("Failed to delete schedule:", error);
       toast.error(`Failed to delete schedule: ${error.message}`);
     } finally {
       setLoadingState((prev) => ({ ...prev, loading: false }));

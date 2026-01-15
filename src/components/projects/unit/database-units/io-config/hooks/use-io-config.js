@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo, useCallback } from "react";
 import { getUnitIOSpec, getOutputTypes, getInputDisplayName } from "@/constants";
 import { cloneIOConfig } from "@/utils/io-config-utils";
+import log from "electron-log/renderer";
 
 export const useIOConfig = (item, open) => {
   const [inputConfigs, setInputConfigs] = useState([]);
@@ -181,7 +182,7 @@ export const useIOConfig = (item, open) => {
         });
         setOriginalOutputConfigs(originalOutputs);
       } catch (error) {
-        console.error("Failed to initialize I/O config:", error);
+        log.error("Failed to initialize I/O config:", error);
       } finally {
         setIsInitialLoading(false);
       }
@@ -218,7 +219,7 @@ export const useIOConfig = (item, open) => {
         return updatedInputConfigs;
       });
     } catch (error) {
-      console.error("Failed to reload input configs:", error);
+      log.error("Failed to reload input configs:", error);
     }
   }, [item?.id, ioSpec]);
 
@@ -282,7 +283,7 @@ export const useIOConfig = (item, open) => {
 
         return true;
       } catch (error) {
-        console.error("Failed to save I/O configuration:", error);
+        log.error("Failed to save I/O configuration:", error);
         return false;
       } finally {
         setLoading(false);

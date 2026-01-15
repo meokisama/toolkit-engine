@@ -6,6 +6,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { Palette } from "lucide-react";
 import { toast } from "sonner";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import log from "electron-log/renderer";
 
 // Initial state for better state management
 const initialState = {
@@ -106,7 +107,7 @@ export function DmxControlDialog({ open, onOpenChange, unit }) {
         toast.info("No DMX devices found on this unit");
       }
     } catch (error) {
-      console.error("Failed to load DMX devices:", error);
+      log.error("Failed to load DMX devices:", error);
       toast.error(`Failed to load DMX devices: ${error.message}`);
     } finally {
       setLoadingState((prev) => ({ ...prev, loading: false }));

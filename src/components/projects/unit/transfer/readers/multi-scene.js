@@ -1,3 +1,4 @@
+import log from "electron-log/renderer";
 /**
  * Read Multi-Scene configurations from network unit and create them in database
  * @param {Object} networkUnit - The network unit to read from
@@ -11,7 +12,7 @@ export const readMultiSceneConfigurations = async (networkUnit, projectId, scene
   const multiSceneAddressMap = new Map(); // Map network multi-scene address to database multi-scene ID
 
   try {
-    console.log("Reading Multi-Scene configurations...");
+    log.info("Reading Multi-Scene configurations...");
 
     const result = await window.electronAPI.multiScenesController.getAllMultiScenesInformation({
       unitIp: networkUnit.ip_address,
@@ -19,13 +20,13 @@ export const readMultiSceneConfigurations = async (networkUnit, projectId, scene
     });
 
     if (result?.multiScenes && result.multiScenes.length > 0) {
-      console.log(`Found ${result.multiScenes.length} multi-scenes on network unit`);
+      log.info(`Found ${result.multiScenes.length} multi-scenes on network unit`);
 
       for (const networkMultiScene of result.multiScenes) {
         try {
           // Only process multi-scenes with scenes
           if (!networkMultiScene.sceneAddresses || networkMultiScene.sceneAddresses.length === 0) {
-            console.log(`Skipping multi-scene ${networkMultiScene.multiSceneIndex}: no scenes`);
+            log.info(`Skipping multi-scene ${networkMultiScene.multiSceneIndex}: no scenes`);
             continue;
           }
 
@@ -55,32 +56,32 @@ export const readMultiSceneConfigurations = async (networkUnit, projectId, scene
                   i // scene_order
                 );
               } catch (error) {
-                console.error(`Failed to add scene ${sceneId} to multi-scene ${createdMultiScene.id}:`, error);
+                log.error(`Failed to add scene ${sceneId} to multi-scene ${createdMultiScene.id}:`, error);
                 // Continue with other scenes
               }
             } else {
-              console.warn(`Scene with address ${sceneAddress} not found in created scenes`);
+              log.warn(`Scene with address ${sceneAddress} not found in created scenes`);
             }
           }
 
           createdMultiScenes.push(createdMultiScene);
-          console.log(
+          log.info(
             `Created multi-scene: ${createdMultiScene.name} (ID: ${createdMultiScene.id}) with ${networkMultiScene.sceneAddresses.length} scenes`
           );
 
           // Add delay between multi-scene reads
           await new Promise((resolve) => setTimeout(resolve, 300));
         } catch (error) {
-          console.error(`Failed to process multi-scene ${networkMultiScene.multiSceneIndex}:`, error);
+          log.error(`Failed to process multi-scene ${networkMultiScene.multiSceneIndex}:`, error);
           // Continue with other multi-scenes
         }
       }
     }
 
-    console.log(`Successfully created ${createdMultiScenes.length} multi-scenes`);
+    log.info(`Successfully created ${createdMultiScenes.length} multi-scenes`);
     return { createdMultiScenes, multiSceneAddressMap };
   } catch (error) {
-    console.error("Failed to read Multi-Scene configurations:", error);
+    log.error("Failed to read Multi-Scene configurations:", error);
     return { createdMultiScenes, multiSceneAddressMap };
   }
 };

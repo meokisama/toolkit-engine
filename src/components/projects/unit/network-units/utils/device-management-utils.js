@@ -1,3 +1,5 @@
+import log from "electron-log/renderer";
+
 // Helper function to find existing device by address or create new one
 export async function findOrCreateDeviceByAddress(address, outputType, selectedProject, projectItems, createItem, createdItemsCache) {
   if (!selectedProject?.id || !address) {
@@ -24,11 +26,11 @@ export async function findOrCreateDeviceByAddress(address, outputType, selectedP
         const allAirconItems = await window.electronAPI.aircon.getAll(selectedProject.id);
         const existingInDB = allAirconItems.find((item) => item.address === addressStr);
         if (existingInDB) {
-          console.log(`Found existing aircon in database with address ${addressStr}:`, existingInDB);
+          log.info(`Found existing aircon in database with address ${addressStr}:`, existingInDB);
           return existingInDB.id;
         }
       } catch (dbError) {
-        console.warn("Failed to check database for existing aircon items:", dbError);
+        log.warn("Failed to check database for existing aircon items:", dbError);
       }
 
       // Create new aircon item
@@ -44,7 +46,7 @@ export async function findOrCreateDeviceByAddress(address, outputType, selectedP
       // Cache the created item
       createdItemsCache.current.aircon.set(addressStr, createdItem);
 
-      console.log(`Created new aircon item with address ${addressStr}:`, createdItem);
+      log.info(`Created new aircon item with address ${addressStr}:`, createdItem);
       return createdItem.id;
     } else {
       // Check cache first
@@ -63,11 +65,11 @@ export async function findOrCreateDeviceByAddress(address, outputType, selectedP
         const allLightingItems = await window.electronAPI.lighting.getAll(selectedProject.id);
         const existingInDB = allLightingItems.find((item) => item.address === addressStr);
         if (existingInDB) {
-          console.log(`Found existing lighting in database with address ${addressStr}:`, existingInDB);
+          log.info(`Found existing lighting in database with address ${addressStr}:`, existingInDB);
           return existingInDB.id;
         }
       } catch (dbError) {
-        console.warn("Failed to check database for existing lighting items:", dbError);
+        log.warn("Failed to check database for existing lighting items:", dbError);
       }
 
       // Create new lighting item
@@ -84,11 +86,11 @@ export async function findOrCreateDeviceByAddress(address, outputType, selectedP
       // Cache the created item
       createdItemsCache.current.lighting.set(addressStr, createdItem);
 
-      console.log(`Created new lighting item with address ${addressStr}:`, createdItem);
+      log.info(`Created new lighting item with address ${addressStr}:`, createdItem);
       return createdItem.id;
     }
   } catch (error) {
-    console.error(`Failed to find or create device for address ${address}:`, error);
+    log.error(`Failed to find or create device for address ${address}:`, error);
     return null;
   }
 }
@@ -141,7 +143,7 @@ export async function autoCreateMissingItems(ioConfigs, selectedProject, project
           // Check if aircon item exists
           const exists = existingAircon.some((item) => item.address === address);
           if (!exists) {
-            console.log(`Auto-creating aircon item for address ${address}`);
+            log.info(`Auto-creating aircon item for address ${address}`);
             const newAirconItem = {
               name: `Aircon ${address}`,
               address: address,
@@ -156,7 +158,7 @@ export async function autoCreateMissingItems(ioConfigs, selectedProject, project
           // Check if curtain item exists
           const exists = existingCurtain.some((item) => item.address === address);
           if (!exists) {
-            console.log(`Auto-creating curtain item for address ${address}`);
+            log.info(`Auto-creating curtain item for address ${address}`);
             const newCurtainItem = {
               name: `Curtain ${address}`,
               address: address,
@@ -177,7 +179,7 @@ export async function autoCreateMissingItems(ioConfigs, selectedProject, project
           }
         }
       } catch (error) {
-        console.error(`Failed to auto-create ${output.type} item for address ${address}:`, error);
+        log.error(`Failed to auto-create ${output.type} item for address ${address}:`, error);
         // Continue with other items even if one fails
       }
     }
@@ -186,7 +188,7 @@ export async function autoCreateMissingItems(ioConfigs, selectedProject, project
   // Create all collected lighting items
   for (const address of lightingAddressesToCreate) {
     try {
-      console.log(`Auto-creating lighting item for address ${address}`);
+      log.info(`Auto-creating lighting item for address ${address}`);
       const newLightingItem = {
         name: `Group ${address}`,
         address: address,
@@ -201,13 +203,13 @@ export async function autoCreateMissingItems(ioConfigs, selectedProject, project
       // Add small delay between creations to avoid overwhelming the system
       await new Promise((resolve) => setTimeout(resolve, 100));
     } catch (error) {
-      console.error(`Failed to auto-create lighting item for address ${address}:`, error);
+      log.error(`Failed to auto-create lighting item for address ${address}:`, error);
       // Continue with other items even if one fails
     }
   }
 
   if (lightingAddressesToCreate.size > 0) {
-    console.log(`Auto-created ${lightingAddressesToCreate.size} lighting items from network unit configurations`);
+    log.info(`Auto-created ${lightingAddressesToCreate.size} lighting items from network unit configurations`);
   }
 
   return lightingAddressesToCreate.size;

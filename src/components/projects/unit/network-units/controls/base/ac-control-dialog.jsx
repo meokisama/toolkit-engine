@@ -7,6 +7,7 @@ import CircularSlider from "@fseehawer/react-circular-slider";
 import { Switch } from "@/components/ui/switch";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
+import log from "electron-log/renderer";
 
 const ACModes = [
   { value: 0, label: "Cool", icon: <Thermometer className="h-5 w-5" /> },
@@ -88,7 +89,7 @@ export const AirconControlDialog = memo(function AirconControlDialog({ room, ope
         ...newSettings,
       }));
     } catch (error) {
-      console.error("Failed to fetch AC status:", error);
+      log.error("Failed to fetch AC status:", error);
       toast.error(`Failed to fetch AC status: ${error.message}`);
     } finally {
       setLoading(false);
@@ -126,7 +127,7 @@ export const AirconControlDialog = memo(function AirconControlDialog({ room, ope
         ...newSettings,
       }));
     } catch (error) {
-      console.error("Auto refresh failed:", error);
+      log.error("Auto refresh failed:", error);
       // Don't show toast for auto refresh errors to avoid spam
     }
   }, [room, acGroup]);
@@ -146,7 +147,7 @@ export const AirconControlDialog = memo(function AirconControlDialog({ room, ope
         });
         toast.success(`Đã ${power ? "bật" : "tắt"} điều hòa`);
       } catch (error) {
-        console.error("Failed to set power mode:", error);
+        log.error("Failed to set power mode:", error);
         toast.error(`Lỗi khi ${power ? "bật" : "tắt"} điều hòa: ${error.message}`);
         // Revert the change on error
         setControlSettings((prev) => ({ ...prev, power: !power }));
@@ -173,7 +174,7 @@ export const AirconControlDialog = memo(function AirconControlDialog({ room, ope
         const modeNames = ["Cool", "Heat", "Ventilation", "Dry"];
         toast.success(`Đã chuyển sang chế độ ${modeNames[acMode] || acMode}`);
       } catch (error) {
-        console.error("Failed to set AC mode:", error);
+        log.error("Failed to set AC mode:", error);
         toast.error(`Lỗi khi đổi chế độ điều hòa: ${error.message}`);
         // Revert the change on error
         setControlSettings((prev) => ({
@@ -203,7 +204,7 @@ export const AirconControlDialog = memo(function AirconControlDialog({ room, ope
         const fanNames = ["Low", "Med", "High", "Auto", "Off"];
         toast.success(`Đã chuyển tốc độ quạt sang ${fanNames[fanMode] || fanMode}`);
       } catch (error) {
-        console.error("Failed to set fan mode:", error);
+        log.error("Failed to set fan mode:", error);
         toast.error(`Lỗi khi đổi tốc độ quạt: ${error.message}`);
         // Revert the change on error
         setControlSettings((prev) => ({ ...prev, fanMode: 3 })); // Default to Auto
@@ -229,7 +230,7 @@ export const AirconControlDialog = memo(function AirconControlDialog({ room, ope
         });
         toast.success(`Đã đặt nhiệt độ ${temperature}°C`);
       } catch (error) {
-        console.error("Failed to set temperature:", error);
+        log.error("Failed to set temperature:", error);
         toast.error(`Lỗi khi đặt nhiệt độ: ${error.message}`);
       } finally {
         setLoadingStates((prev) => ({ ...prev, temperature: false }));
@@ -400,8 +401,8 @@ export const AirconControlDialog = memo(function AirconControlDialog({ room, ope
                     {loading || loadingStates.temperature
                       ? "..."
                       : controlSettings.setpoint !== undefined
-                      ? controlSettings.setpoint.toFixed(1)
-                      : "--"}
+                        ? controlSettings.setpoint.toFixed(1)
+                        : "--"}
                   </div>
                   <div className="text-lg text-gray-500 mt-2 font-medium ">
                     <span className="text-center bg-gray-50 px-3 py-1 rounded-md shadow-inner">

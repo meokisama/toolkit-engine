@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import log from "electron-log/renderer";
 
 /**
  * Parse indices string that supports:
@@ -94,14 +95,14 @@ export function BaseDeleteDialog({ open, onOpenChange, unit, asPopover = false, 
     setLoading(true);
     try {
       if (deleteMode === "all") {
-        console.log(`Deleting all ${entityName.toLowerCase()} from unit:`, {
+        log.info(`Deleting all ${entityName.toLowerCase()} from unit:`, {
           unitIp: unit.ip_address,
           canId: unit.id_can,
         });
 
         const response = await apiMethods.deleteAll(unit.ip_address, unit.id_can);
 
-        console.log(`All ${entityName.toLowerCase()} deleted successfully:`, {
+        log.info(`All ${entityName.toLowerCase()} deleted successfully:`, {
           responseLength: response?.msg?.length,
           success: response?.result?.success,
         });
@@ -120,7 +121,7 @@ export function BaseDeleteDialog({ open, onOpenChange, unit, asPopover = false, 
         let successCount = 0;
         let errorCount = 0;
 
-        console.log(`Deleting ${entityName.toLowerCase()}:`, {
+        log.info(`Deleting ${entityName.toLowerCase()}:`, {
           unitIp: unit.ip_address,
           canId: unit.id_can,
           indices: indicesToDelete,
@@ -135,7 +136,7 @@ export function BaseDeleteDialog({ open, onOpenChange, unit, asPopover = false, 
             });
             successCount++;
           } catch (error) {
-            console.error(`Failed to delete ${entityNameSingular.toLowerCase()} ${index}:`, error);
+            log.error(`Failed to delete ${entityNameSingular.toLowerCase()} ${index}:`, error);
             errorCount++;
           }
         }
@@ -151,7 +152,7 @@ export function BaseDeleteDialog({ open, onOpenChange, unit, asPopover = false, 
         }
       }
     } catch (error) {
-      console.error(`Failed to delete ${entityName.toLowerCase()}:`, error);
+      log.error(`Failed to delete ${entityName.toLowerCase()}:`, error);
       toast.error(`Failed to delete ${entityName.toLowerCase()}: ${error.message}`);
     } finally {
       setLoading(false);

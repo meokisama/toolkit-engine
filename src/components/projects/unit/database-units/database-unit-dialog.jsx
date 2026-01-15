@@ -12,6 +12,7 @@ import { RS485ConfigDialog } from "../shared/output-configs/rs485-config-dialog"
 import { Settings } from "lucide-react";
 import { supportsRS485, getUnitTypeConstraints, getModeConstraints, createDefaultRS485Config } from "@/utils/rs485-utils";
 import { createDefaultInputConfigs, createDefaultOutputConfigs } from "@/utils/io-config-utils";
+import log from "electron-log/renderer";
 
 export function UnitDialog({ open, onOpenChange, item = null, mode = "create" }) {
   const { createItem, updateItem } = useProjectDetail();
@@ -257,7 +258,7 @@ export function UnitDialog({ open, onOpenChange, item = null, mode = "create" })
       }
       onOpenChange(false);
     } catch (error) {
-      console.error("Failed to save unit:", error);
+      log.error("Failed to save unit:", error);
     } finally {
       setLoading(false);
     }

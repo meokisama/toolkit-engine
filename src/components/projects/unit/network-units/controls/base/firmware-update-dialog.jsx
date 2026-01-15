@@ -9,6 +9,7 @@ import { Upload, AlertTriangle, CheckCircle, X, Monitor } from "lucide-react";
 import { toast } from "sonner";
 import { CONSTANTS } from "@/constants";
 import { NetworkUnitSelector, useNetworkUnitSelector } from "@/components/shared/network-unit-selector";
+import log from "electron-log/renderer";
 
 // Helper function to get barcode from unit type
 const getUnitBarcode = (unitType) => {
@@ -124,7 +125,7 @@ function FirmwareUpdateDialogComponent({ open, onOpenChange, onFirmwareUpdate, t
 
           toast.success(`Firmware updated successfully for ${unit.ip_address}/${unit.id_can}`);
         } catch (error) {
-          console.error(`Firmware update failed for ${unit.ip_address}/${unit.id_can}:`, error);
+          log.error(`Firmware update failed for ${unit.ip_address}/${unit.id_can}:`, error);
 
           results.push({
             unit: `${unit.ip_address}/${unit.id_can}`,
@@ -146,7 +147,7 @@ function FirmwareUpdateDialogComponent({ open, onOpenChange, onFirmwareUpdate, t
         onFirmwareUpdate(results);
       }
     } catch (error) {
-      console.error("Firmware update error:", error);
+      log.error("Firmware update error:", error);
       setCurrentStatus("Firmware update failed");
       toast.error(`Firmware update failed: ${error.message}`);
     } finally {

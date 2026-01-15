@@ -12,6 +12,7 @@ import { MultiSceneDialog } from "@/components/projects/multi-scenes/multi-scene
 import { SendMultiSceneDialog } from "@/components/projects/multi-scenes/send-multi-scene-dialog";
 import { Layers } from "lucide-react";
 import { toast } from "sonner";
+import log from "electron-log/renderer";
 
 const MultiSceneTable = memo(function MultiSceneTable({ items = [], loading = false }) {
   const category = "multi_scenes";
@@ -57,13 +58,13 @@ const MultiSceneTable = memo(function MultiSceneTable({ items = [], loading = fa
           const scenes = await window.electronAPI.multiScenes.getScenes(multiScene.id);
           counts[multiScene.id] = scenes.length;
         } catch (error) {
-          console.error(`Failed to load scene count for multi-scene ${multiScene.id}:`, error);
+          log.error(`Failed to load scene count for multi-scene ${multiScene.id}:`, error);
           counts[multiScene.id] = 0;
         }
       }
       setMultiSceneCounts(counts);
     } catch (error) {
-      console.error("Failed to load multi-scene counts:", error);
+      log.error("Failed to load multi-scene counts:", error);
     }
   }, [items]);
 
@@ -92,7 +93,7 @@ const MultiSceneTable = memo(function MultiSceneTable({ items = [], loading = fa
         // Reload scene counts after duplication
         setTimeout(loadMultiSceneCounts, 100);
       } catch (error) {
-        console.error("Failed to duplicate multi-scene:", error);
+        log.error("Failed to duplicate multi-scene:", error);
       }
     },
     [duplicateItem, loadMultiSceneCounts]
@@ -111,7 +112,7 @@ const MultiSceneTable = memo(function MultiSceneTable({ items = [], loading = fa
             // Reload scene counts after deletion
             setTimeout(loadMultiSceneCounts, 100);
           } catch (error) {
-            console.error("Failed to delete multi-scene:", error);
+            log.error("Failed to delete multi-scene:", error);
           }
         },
       });
@@ -171,7 +172,7 @@ const MultiSceneTable = memo(function MultiSceneTable({ items = [], loading = fa
             toast.success(`Successfully deleted ${selectedItems.length} multi-scene(s)`);
             setConfirmDialog({ ...confirmDialog, open: false });
           } catch (error) {
-            console.error("Failed to delete multi-scenes:", error);
+            log.error("Failed to delete multi-scenes:", error);
             toast.error("Failed to delete multi-scenes");
           }
         },
@@ -196,7 +197,7 @@ const MultiSceneTable = memo(function MultiSceneTable({ items = [], loading = fa
       setPendingChangesCount(0);
       toast.success("Changes saved successfully");
     } catch (error) {
-      console.error("Failed to save changes:", error);
+      log.error("Failed to save changes:", error);
       const errorMessage = error.message || "Failed to save changes";
       toast.error(errorMessage);
     } finally {

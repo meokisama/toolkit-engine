@@ -8,6 +8,7 @@ import { toast } from "sonner";
 import { useProjectDetail } from "@/contexts/project-detail-context";
 import { NetworkUnitSelector, useNetworkUnitSelector } from "@/components/shared/network-unit-selector";
 import { CONSTANTS } from "@/constants";
+import log from "electron-log/renderer";
 
 const EXPLORE_TIMEOUT_MS = 200000; // 200 seconds
 const DEVICE_TYPE_LABELS = CONSTANTS.ZIGBEE.DEVICE_TYPE.reduce((acc, item) => {
@@ -168,7 +169,7 @@ export function ExploreZigbeeDeviceDialog({ open, onOpenChange, onDevicesAdded }
 
             toast.success(`New device added: ${device.ieee_address}`);
           } catch (error) {
-            console.error("Failed to save device:", error);
+            log.error("Failed to save device:", error);
             savedDevices.push({
               ...deviceData,
               success: false,
@@ -197,7 +198,7 @@ export function ExploreZigbeeDeviceDialog({ open, onOpenChange, onDevicesAdded }
         toast.info("No devices found");
       }
     } catch (error) {
-      console.error("Failed to explore Zigbee network:", error);
+      log.error("Failed to explore Zigbee network:", error);
       toast.error(`Failed to explore network: ${error.message}`);
     } finally {
       handleStopExploring();

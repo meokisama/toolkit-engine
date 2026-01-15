@@ -17,6 +17,7 @@ import * as CheckboxPrimitive from "@radix-ui/react-checkbox";
 import { useProjectDetail } from "@/contexts/project-detail-context";
 import { CONSTANTS } from "@/constants";
 import { toast } from "sonner";
+import log from "electron-log/renderer";
 
 // Sortable Address Item Component
 function SortableAddressItem({ address, scenes, onRemove }) {
@@ -110,7 +111,7 @@ export function MultiSceneDialog({ open, onOpenChange, multiScene = null, mode =
         }
         setAddressOrder(addresses);
       } catch (error) {
-        console.error("Failed to load multi-scene scenes:", error);
+        log.error("Failed to load multi-scene scenes:", error);
         toast.error("Failed to load multi-scene scenes");
       }
     },
@@ -325,7 +326,7 @@ export function MultiSceneDialog({ open, onOpenChange, multiScene = null, mode =
       setSelectedSceneIds([]);
       setAddressOrder([]);
     } catch (error) {
-      console.error("Failed to save multi-scene:", error);
+      log.error("Failed to save multi-scene:", error);
       const errorMessage = error.message || "Failed to save multi-scene";
       toast.error(errorMessage);
     } finally {

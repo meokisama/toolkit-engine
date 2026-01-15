@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo, useCallback } from "react";
-import { getInputFunctions, getInputFunctionByValue, INPUT_TYPES } from "@/constants";
+import { getInputFunctions, INPUT_TYPES } from "@/constants";
 import { getTabToLoadForFunction } from "../utils/group-helpers";
+import log from "electron-log/renderer";
 
 export const useInputType = (
   functionValue,
@@ -81,7 +82,7 @@ export const useInputType = (
       const isCurrentTypeAvailable = availableInputFunctions.some((func) => func.value === currentInputType);
 
       if (!isCurrentTypeAvailable) {
-        console.warn(`Current input type ${currentInputType} not available for unit type ${unitType}. Resetting to Unused.`);
+        log.warn(`Current input type ${currentInputType} not available for unit type ${unitType}. Resetting to Unused.`);
         setCurrentInputType(0); // Reset to "Unused"
       }
     }

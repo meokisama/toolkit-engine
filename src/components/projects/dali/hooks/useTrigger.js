@@ -1,6 +1,7 @@
 import { useState, useCallback, useRef, useEffect } from "react";
 import { useDali } from "@/contexts/dali-context";
 import { toast } from "sonner";
+import log from "electron-log/renderer";
 
 /**
  * Custom hook for handling DALI trigger logic with debounce
@@ -46,7 +47,7 @@ export function useTrigger({ type, id }) {
             });
           }
         } catch (error) {
-          console.error(`Failed to trigger ${type}:`, error);
+          log.error(`Failed to trigger ${type}:`, error);
           toast.error(`Failed to trigger ${type}: ${error.message}`);
         }
       }, 300);
@@ -71,7 +72,7 @@ export function useTrigger({ type, id }) {
         });
         toast.success(`Scene ${id} triggered`);
       } catch (error) {
-        console.error("Failed to trigger scene:", error);
+        log.error("Failed to trigger scene:", error);
         toast.error(`Failed to trigger scene: ${error.message}`);
       }
     },

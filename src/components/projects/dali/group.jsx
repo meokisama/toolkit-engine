@@ -13,6 +13,7 @@ import { useDaliDevices } from "./hooks/useDaliDevices";
 import { useEditableName } from "./hooks/useEditableName";
 import { DALI_GROUP_COUNT } from "./utils/constants";
 import { TriggerGroupButton, TriggerDeviceButton } from "./trigger-buttons";
+import log from "electron-log/renderer";
 
 export function Group({ isActive }) {
   const { selectedProject } = useProjectDetail();
@@ -62,7 +63,7 @@ export function Group({ isActive }) {
           })
         );
       } catch (error) {
-        console.error("Failed to load group data:", error);
+        log.error("Failed to load group data:", error);
         toast.error("Failed to load group data");
       } finally {
         setLoading(false);
@@ -83,7 +84,7 @@ export function Group({ isActive }) {
 
         toast.success("Group name updated");
       } catch (error) {
-        console.error("Failed to update group name:", error);
+        log.error("Failed to update group name:", error);
         toast.error("Failed to update group name");
       }
     },
@@ -114,7 +115,7 @@ export function Group({ isActive }) {
 
         toast.success("Group RCU address updated");
       } catch (error) {
-        console.error("Failed to update group lighting address:", error);
+        log.error("Failed to update group lighting address:", error);
         toast.error("Failed to update group RCU address");
       }
     },
@@ -159,7 +160,7 @@ export function Group({ isActive }) {
               toast.success("Device added to group");
             })
             .catch((error) => {
-              console.error("Failed to add device to group:", error);
+              log.error("Failed to add device to group:", error);
               toast.error("Failed to add device to group");
             });
 
@@ -194,7 +195,7 @@ export function Group({ isActive }) {
           toast.success("Device removed from group");
         })
         .catch((error) => {
-          console.error("Failed to remove device from group:", error);
+          log.error("Failed to remove device from group:", error);
           toast.error("Failed to remove device from group");
         });
 

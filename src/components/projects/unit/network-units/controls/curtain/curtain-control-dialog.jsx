@@ -9,6 +9,7 @@ import { toast } from "sonner";
 import { CONSTANTS } from "@/constants";
 import { DeleteCurtainDialog } from "./delete-curtain-popover";
 import { useProjectDetail } from "@/contexts/project-detail-context";
+import log from "electron-log/renderer";
 
 // Initial state for better state management
 const initialState = {
@@ -166,7 +167,7 @@ export function CurtainControlDialog({ open, onOpenChange, unit }) {
 
     setLoadingState((prev) => ({ ...prev, loadingInfo: true }));
     try {
-      console.log("Loading curtain information:", {
+      log.info("Loading curtain information:", {
         unitIp: unit.ip_address,
         canId: unit.id_can,
         curtainIndex: index,
@@ -199,7 +200,7 @@ export function CurtainControlDialog({ open, onOpenChange, unit }) {
         toast.success(`Curtain index ${index} information loaded successfully`);
       }
     } catch (error) {
-      console.error("Failed to load curtain information:", error);
+      log.error("Failed to load curtain information:", error);
       toast.error(`Failed to load curtain information: ${error.message}`);
     } finally {
       setLoadingState((prev) => ({ ...prev, loadingInfo: false }));
@@ -214,7 +215,7 @@ export function CurtainControlDialog({ open, onOpenChange, unit }) {
 
     setLoadingState((prev) => ({ ...prev, loadingAllCurtains: true }));
     try {
-      console.log("Loading all curtains information:", {
+      log.info("Loading all curtains information:", {
         unitIp: unit.ip_address,
         canId: unit.id_can,
       });
@@ -260,7 +261,7 @@ export function CurtainControlDialog({ open, onOpenChange, unit }) {
         toast.info("No curtains found on this unit");
       }
     } catch (error) {
-      console.error("Failed to load all curtains:", error);
+      log.error("Failed to load all curtains:", error);
       toast.error(`Failed to load all curtains: ${error.message}`);
     } finally {
       setLoadingState((prev) => ({ ...prev, loadingAllCurtains: false }));
@@ -277,7 +278,7 @@ export function CurtainControlDialog({ open, onOpenChange, unit }) {
       setLoadingState((prev) => ({ ...prev, loading: true }));
       try {
         const valueLabel = CONSTANTS.CURTAIN.VALUES.find((v) => v.value === value)?.label || value;
-        console.log("Controlling curtain:", {
+        log.info("Controlling curtain:", {
           unitIp: unit.ip_address,
           canId: unit.id_can,
           curtainAddress,
@@ -298,7 +299,7 @@ export function CurtainControlDialog({ open, onOpenChange, unit }) {
           throw new Error("Unit returned failure response");
         }
       } catch (error) {
-        console.error("Failed to control curtain:", error);
+        log.error("Failed to control curtain:", error);
         toast.error(`Failed to control curtain: ${error.message}`);
       } finally {
         setLoadingState((prev) => ({ ...prev, loading: false }));
@@ -316,7 +317,7 @@ export function CurtainControlDialog({ open, onOpenChange, unit }) {
 
       setLoadingState((prev) => ({ ...prev, loading: true }));
       try {
-        console.log("Deleting curtain from card:", {
+        log.info("Deleting curtain from card:", {
           unitIp: unit.ip_address,
           canId: unit.id_can,
           curtainIndex,
@@ -339,7 +340,7 @@ export function CurtainControlDialog({ open, onOpenChange, unit }) {
           throw new Error("Unit returned failure response");
         }
       } catch (error) {
-        console.error("Failed to delete curtain:", error);
+        log.error("Failed to delete curtain:", error);
         toast.error(`Failed to delete curtain: ${error.message}`);
       } finally {
         setLoadingState((prev) => ({ ...prev, loading: false }));

@@ -13,6 +13,7 @@ import { CircleCheck, Lightbulb } from "lucide-react";
 import { useProjectDetail } from "@/contexts/project-detail-context";
 import { toast } from "sonner";
 import * as CheckboxPrimitive from "@radix-ui/react-checkbox";
+import log from "electron-log/renderer";
 
 const DAYS_OF_WEEK = [
   { key: "monday", label: "Monday" },
@@ -124,7 +125,7 @@ export function ScheduleDialog({ open, onOpenChange, schedule = null, mode = "cr
       setSelectedSceneIds(scenes.map((scene) => scene.scene_id));
       setOriginalScheduleScenes([...scenes]);
     } catch (error) {
-      console.error("Failed to load schedule scenes:", error);
+      log.error("Failed to load schedule scenes:", error);
       setSelectedSceneIds([]);
       setOriginalScheduleScenes([]);
     }
@@ -271,7 +272,7 @@ export function ScheduleDialog({ open, onOpenChange, schedule = null, mode = "cr
       setOriginalScheduleScenes([]);
       toast.success(mode === "edit" ? "Schedule updated successfully" : "Schedule created successfully");
     } catch (error) {
-      console.error("Failed to save schedule:", error);
+      log.error("Failed to save schedule:", error);
       if (error.message && error.message.includes("Maximum 32 schedules allowed")) {
         toast.error("Maximum 32 schedules allowed per project");
       } else {

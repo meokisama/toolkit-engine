@@ -11,6 +11,7 @@ import { DataTablePagination } from "@/components/projects/data-table/data-table
 import { DataTableSkeleton } from "@/components/projects/table-skeleton";
 import { createScheduleColumns } from "./schedule-columns";
 import { toast } from "sonner";
+import log from "electron-log/renderer";
 
 const ScheduleTable = memo(function ScheduleTable({ items = [], loading = false }) {
   const category = "schedule";
@@ -61,7 +62,7 @@ const ScheduleTable = memo(function ScheduleTable({ items = [], loading = false 
           const scenes = await window.electronAPI.schedule.getScenesWithDetails(schedule.id);
           counts[schedule.id] = scenes.length;
         } catch (error) {
-          console.error(`Failed to load scene count for schedule ${schedule.id}:`, error);
+          log.error(`Failed to load scene count for schedule ${schedule.id}:`, error);
           counts[schedule.id] = 0;
         }
       }
@@ -91,7 +92,7 @@ const ScheduleTable = memo(function ScheduleTable({ items = [], loading = false 
         await duplicateItem(category, id);
         toast.success("Schedule duplicated successfully");
       } catch (error) {
-        console.error("Failed to duplicate schedule:", error);
+        log.error("Failed to duplicate schedule:", error);
         toast.error("Failed to duplicate schedule");
       }
     },
@@ -109,7 +110,7 @@ const ScheduleTable = memo(function ScheduleTable({ items = [], loading = false 
             await deleteItem(category, item.id);
             toast.success("Schedule deleted successfully");
           } catch (error) {
-            console.error("Failed to delete schedule:", error);
+            log.error("Failed to delete schedule:", error);
             toast.error("Failed to delete schedule");
           }
           setConfirmDialog({ ...confirmDialog, open: false });
@@ -198,7 +199,7 @@ const ScheduleTable = memo(function ScheduleTable({ items = [], loading = false 
       setPendingChangesCount(0);
       toast.success("Changes saved successfully");
     } catch (error) {
-      console.error("Failed to save changes:", error);
+      log.error("Failed to save changes:", error);
       toast.error("Failed to save changes");
     } finally {
       setSaveLoading(false);
@@ -222,7 +223,7 @@ const ScheduleTable = memo(function ScheduleTable({ items = [], loading = false 
       table?.resetRowSelection();
       toast.success(`${itemsToDelete.length} schedule(s) deleted successfully`);
     } catch (error) {
-      console.error("Failed to delete schedules:", error);
+      log.error("Failed to delete schedules:", error);
       toast.error("Failed to delete schedules");
     } finally {
       setBulkDeleteLoading(false);

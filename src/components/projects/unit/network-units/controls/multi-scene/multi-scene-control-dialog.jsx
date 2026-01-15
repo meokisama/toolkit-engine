@@ -11,6 +11,7 @@ import { toast } from "sonner";
 import { DeleteMultiSceneDialog } from "./delete-multi-scene-popover";
 import { CONSTANTS } from "@/constants";
 import { useProjectDetail } from "@/contexts/project-detail-context";
+import log from "electron-log/renderer";
 
 // Helper function to get multi-scene type label
 const getMultiSceneTypeLabel = (type) => {
@@ -200,7 +201,7 @@ export function TriggerMultiSceneDialog({ open, onOpenChange, unit }) {
 
     setLoadingState((prev) => ({ ...prev, loadingInfo: true }));
     try {
-      console.log("Loading multi-scene information:", {
+      log.info("Loading multi-scene information:", {
         unitIp: unit.ip_address,
         canId: unit.id_can,
         multiSceneIndex: index,
@@ -231,7 +232,7 @@ export function TriggerMultiSceneDialog({ open, onOpenChange, unit }) {
         toast.success(`Multi-Scene ${index} information loaded successfully`);
       }
     } catch (error) {
-      console.error("Failed to load multi-scene information:", error);
+      log.error("Failed to load multi-scene information:", error);
       toast.error(`Failed to load multi-scene information: ${error.message}`);
       setState((prev) => ({
         ...prev,
@@ -251,7 +252,7 @@ export function TriggerMultiSceneDialog({ open, onOpenChange, unit }) {
 
     setLoadingState((prev) => ({ ...prev, loadingAllMultiScenes: true }));
     try {
-      console.log("Loading all multi-scenes information:", {
+      log.info("Loading all multi-scenes information:", {
         unitIp: unit.ip_address,
         canId: unit.id_can,
       });
@@ -297,7 +298,7 @@ export function TriggerMultiSceneDialog({ open, onOpenChange, unit }) {
         toast.info("No multi-scenes found on unit");
       }
     } catch (error) {
-      console.error("Failed to load all multi-scenes information:", error);
+      log.error("Failed to load all multi-scenes information:", error);
       toast.error(`Failed to load all multi-scenes information: ${error.message}`);
       setState((prev) => ({
         ...prev,
@@ -318,7 +319,7 @@ export function TriggerMultiSceneDialog({ open, onOpenChange, unit }) {
 
       setLoadingState((prev) => ({ ...prev, loading: true }));
       try {
-        console.log("Triggering multi-scene from card:", {
+        log.info("Triggering multi-scene from card:", {
           unitIp: unit.ip_address,
           canId: unit.id_can,
           multiSceneIndex,
@@ -333,7 +334,7 @@ export function TriggerMultiSceneDialog({ open, onOpenChange, unit }) {
 
         toast.success(`Multi-Scene ${multiSceneIndex} triggered successfully`);
       } catch (error) {
-        console.error("Failed to trigger multi-scene:", error);
+        log.error("Failed to trigger multi-scene:", error);
         toast.error(`Failed to trigger multi-scene: ${error.message}`);
       } finally {
         setLoadingState((prev) => ({ ...prev, loading: false }));
@@ -361,7 +362,7 @@ export function TriggerMultiSceneDialog({ open, onOpenChange, unit }) {
 
     setLoadingState((prev) => ({ ...prev, loading: true }));
     try {
-      console.log("Deleting multi-scene from card:", {
+      log.info("Deleting multi-scene from card:", {
         unitIp: unit.ip_address,
         canId: unit.id_can,
         multiSceneIndex: state.deleteConfirmDialog.multiSceneIndex,
@@ -384,7 +385,7 @@ export function TriggerMultiSceneDialog({ open, onOpenChange, unit }) {
       // Optionally refresh the multi-scenes list
       // You could call handleLoadAllMultiScenes() here if needed
     } catch (error) {
-      console.error("Failed to delete multi-scene:", error);
+      log.error("Failed to delete multi-scene:", error);
       toast.error(`Failed to delete multi-scene: ${error.message}`);
     } finally {
       setLoadingState((prev) => ({ ...prev, loading: false }));

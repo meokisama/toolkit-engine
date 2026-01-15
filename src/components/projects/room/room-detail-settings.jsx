@@ -11,6 +11,7 @@ import { useProjectDetail } from "@/contexts/project-detail-context";
 import { toast } from "sonner";
 import { Save, Send, Loader2 } from "lucide-react";
 import { NetworkUnitSelector, useNetworkUnitSelector } from "@/components/shared/network-unit-selector";
+import log from "electron-log/renderer";
 
 export function RoomSettings() {
   const { selectedProject, projectItems, loadTabData, loadedTabs } = useProjectDetail();
@@ -195,7 +196,7 @@ export function RoomSettings() {
           );
         }
       } catch (error) {
-        console.error("Error loading room data:", error);
+        log.error("Error loading room data:", error);
         toast.error("Failed to load room configurations");
       } finally {
         setIsLoading(false);
@@ -248,7 +249,7 @@ export function RoomSettings() {
 
       toast.success(`Room configurations saved successfully${selectedSourceUnit ? " for selected unit" : " (Default)"}`);
     } catch (error) {
-      console.error("Error saving room data:", error);
+      log.error("Error saving room data:", error);
       toast.error("Failed to save room configurations");
     } finally {
       setIsSaving(false);
@@ -314,7 +315,7 @@ export function RoomSettings() {
           toast.success(`Configuration sent successfully to ${unit.type || "Unknown Unit"} (${unit.ip_address})`);
         } catch (error) {
           errorCount++;
-          console.error(`Failed to send configuration to unit ${unit.ip_address}:`, error);
+          log.error(`Failed to send configuration to unit ${unit.ip_address}:`, error);
           toast.error(`Failed to send configuration to ${unit.type || "Unknown Unit"} (${unit.ip_address}): ${error.message}`);
         }
       }
@@ -328,7 +329,7 @@ export function RoomSettings() {
         clearSelection();
       }
     } catch (error) {
-      console.error("Error sending room configuration:", error);
+      log.error("Error sending room configuration:", error);
       toast.error("Failed to send room configuration");
     } finally {
       setIsSending(false);

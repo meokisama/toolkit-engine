@@ -10,6 +10,7 @@ import { Check, ChevronsUpDown } from "lucide-react";
 import { useProjectDetail } from "@/contexts/project-detail-context";
 import { OBJECT_TYPES, CURTAIN_TYPES } from "@/constants";
 import { cn } from "@/lib/utils";
+import log from "electron-log/renderer";
 
 // Helper component for combobox
 function LightingCombobox({ value, onValueChange, options, placeholder, className }) {
@@ -256,7 +257,7 @@ export function CurtainDialog({ open, onOpenChange, item = null, mode = "create"
       }
       onOpenChange(false);
     } catch (error) {
-      console.error("Failed to save curtain item:", error);
+      log.error("Failed to save curtain item:", error);
 
       // Handle duplicate address error specifically
       if (error.message && error.message.includes("already exists")) {

@@ -4,6 +4,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useProjects } from "@/contexts/project-context";
+import log from "electron-log/renderer";
 
 export function ProjectDialog({ open, onOpenChange, project = null, mode = "create" }) {
   const { createProject, updateProject } = useProjects();
@@ -46,7 +47,7 @@ export function ProjectDialog({ open, onOpenChange, project = null, mode = "crea
       }
       onOpenChange(false);
     } catch (error) {
-      console.error("Failed to save project:", error);
+      log.error("Failed to save project:", error);
     } finally {
       setLoading(false);
     }

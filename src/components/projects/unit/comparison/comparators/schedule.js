@@ -1,3 +1,4 @@
+import log from "electron-log/renderer";
 /**
  * Compare schedule configurations between database and network unit
  * @param {Array} databaseSchedules - Schedules from database unit
@@ -93,7 +94,9 @@ export function compareSchedules(databaseSchedules, networkSchedules) {
       const netMinute = netSchedule.minute || 0;
 
       if (dbHour !== netHour || dbMinute !== netMinute) {
-        differences.push(`Schedule ${scheduleIndex} Time: DB="${dbSchedule.time}", Network="${String(netHour).padStart(2, "0")}:${String(netMinute).padStart(2, "0")}"`);
+        differences.push(
+          `Schedule ${scheduleIndex} Time: DB="${dbSchedule.time}", Network="${String(netHour).padStart(2, "0")}:${String(netMinute).padStart(2, "0")}"`
+        );
       }
     }
 
@@ -109,9 +112,7 @@ export function compareSchedules(databaseSchedules, networkSchedules) {
 
       // Convert database day names to boolean array
       // Database has array like ["monday", "friday"] -> convert to [true, false, false, false, true, false, false]
-      const dbDaysBoolArray = dayNamesLower.map((dayName) =>
-        dbDaysArray.some((d) => d.toLowerCase() === dayName)
-      );
+      const dbDaysBoolArray = dayNamesLower.map((dayName) => dbDaysArray.some((d) => d.toLowerCase() === dayName));
 
       // Compare the boolean arrays
       if (JSON.stringify(dbDaysBoolArray) !== JSON.stringify(netDaysArray)) {
@@ -120,7 +121,7 @@ export function compareSchedules(databaseSchedules, networkSchedules) {
         differences.push(`Schedule ${scheduleIndex} Days: DB="${dbDaysStr}", Network="${netDaysStr}"`);
       }
     } catch (error) {
-      console.error(`Failed to compare days for schedule ${scheduleIndex}:`, error);
+      log.error(`Failed to compare days for schedule ${scheduleIndex}:`, error);
     }
 
     // Compare schedule scenes - only check count and if equal, check if addresses match
@@ -139,8 +140,7 @@ export function compareSchedules(databaseSchedules, networkSchedules) {
       const netAddressesSet = new Set(netSceneAddresses);
 
       // Check if all addresses match (as sets, order doesn't matter)
-      const allMatch = dbSceneAddresses.every((addr) => netAddressesSet.has(addr)) &&
-                       netSceneAddresses.every((addr) => dbAddressesSet.has(addr));
+      const allMatch = dbSceneAddresses.every((addr) => netAddressesSet.has(addr)) && netSceneAddresses.every((addr) => dbAddressesSet.has(addr));
 
       if (!allMatch) {
         differences.push(`Schedule ${scheduleIndex} Scenes: DB=[${dbSceneAddresses.join(", ")}], Network=[${netSceneAddresses.join(", ")}]`);

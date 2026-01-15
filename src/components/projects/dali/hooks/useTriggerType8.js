@@ -1,6 +1,7 @@
 import { useState, useCallback, useRef, useEffect } from "react";
 import { useDali } from "@/contexts/dali-context";
 import { toast } from "sonner";
+import log from "electron-log/renderer";
 
 /**
  * Custom hook for handling DALI Type 8 device trigger logic with debounce
@@ -101,7 +102,7 @@ export function useTriggerType8({ address, index, colorFeature, open }) {
         colorData: colorData,
       });
     } catch (error) {
-      console.error("Failed to trigger Type 8 device:", error);
+      log.error("Failed to trigger Type 8 device:", error);
       toast.error(`Failed to trigger Type 8 device: ${error.message}`);
     }
   }, [selectedGateway, index, address, colorFeature, brightness, colorTemperature, rgbColor, whiteValue]);

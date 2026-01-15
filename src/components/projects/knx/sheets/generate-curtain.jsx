@@ -10,6 +10,7 @@ import { useProjectDetail } from "@/contexts/project-detail-context";
 import { KNXAddressInput } from "@/components/custom/knx-input";
 import { Blinds } from "lucide-react";
 import { toast } from "sonner";
+import log from "electron-log/renderer";
 
 export function GenerateFromCurtainSheet({ open, onOpenChange }) {
   const { projectItems, createItem } = useProjectDetail();
@@ -89,13 +90,16 @@ export function GenerateFromCurtainSheet({ open, onOpenChange }) {
   }, []);
 
   // Handle select all
-  const handleSelectAll = useCallback((checked) => {
-    if (checked) {
-      setSelectedItems(new Set(curtainItems.map((item) => item.id)));
-    } else {
-      setSelectedItems(new Set());
-    }
-  }, [curtainItems]);
+  const handleSelectAll = useCallback(
+    (checked) => {
+      if (checked) {
+        setSelectedItems(new Set(curtainItems.map((item) => item.id)));
+      } else {
+        setSelectedItems(new Set());
+      }
+    },
+    [curtainItems]
+  );
 
   // Handle KNX data change
   const handleKnxDataChange = useCallback((itemId, field, value) => {
@@ -163,7 +167,7 @@ export function GenerateFromCurtainSheet({ open, onOpenChange }) {
           successCount++;
         } else {
           errorCount++;
-          console.error(`Failed to create KNX item for curtain ${selectedItemsList[index]}:`, result.reason);
+          log.error(`Failed to create KNX item for curtain ${selectedItemsList[index]}:`, result.reason);
         }
       });
 
@@ -178,7 +182,7 @@ export function GenerateFromCurtainSheet({ open, onOpenChange }) {
         onOpenChange(false);
       }
     } catch (error) {
-      console.error("Failed to create KNX items:", error);
+      log.error("Failed to create KNX items:", error);
       toast.error("Failed to create KNX items");
     } finally {
       setLoading(false);

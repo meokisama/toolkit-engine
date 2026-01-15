@@ -1,6 +1,7 @@
 import { useState, useCallback, useEffect } from "react";
 import { getInputFunctionByValue, getInputDisplayName } from "@/constants";
 import { toast } from "sonner";
+import log from "electron-log/renderer";
 
 // Helper function to determine if unit is a network unit
 // Network units don't have database ID, database units have ID
@@ -50,7 +51,7 @@ export const useInputConfig = (item, setInputConfigs = null, open = true) => {
           );
         }
       } catch (error) {
-        console.error("Failed to reload input config:", error);
+        log.error("Failed to reload input config:", error);
       }
     },
     [item?.id, setInputConfigs]
@@ -90,7 +91,7 @@ export const useInputConfig = (item, setInputConfigs = null, open = true) => {
       setInputDetailConfigs(newInputDetailConfigs);
       setRlcConfigs(newRlcConfigs);
     } catch (error) {
-      console.error("Failed to load all Multiple Group & RLC configs:", error);
+      log.error("Failed to load all Multiple Group & RLC configs:", error);
     }
   }, [item?.id]);
 
@@ -118,7 +119,7 @@ export const useInputConfig = (item, setInputConfigs = null, open = true) => {
           toast.info("Network unit - use multi-group config to send to unit");
         }
       } catch (error) {
-        console.error("Failed to update input lighting:", error);
+        log.error("Failed to update input lighting:", error);
         toast.error("Failed to update input lighting: " + error.message);
       }
     },
@@ -178,7 +179,7 @@ export const useInputConfig = (item, setInputConfigs = null, open = true) => {
           toast.info("Network unit - use multi-group config to send to unit");
         }
       } catch (error) {
-        console.error("Failed to update input function:", error);
+        log.error("Failed to update input function:", error);
         toast.error("Failed to update input function: " + error.message);
       }
     },
@@ -259,7 +260,7 @@ export const useInputConfig = (item, setInputConfigs = null, open = true) => {
           }));
         }
       } catch (error) {
-        console.error("Failed to load input config:", error);
+        log.error("Failed to load input config:", error);
         setCurrentInputDetailInput((prev) => ({
           ...prev,
           isLoading: false,
@@ -328,8 +329,8 @@ export const useInputConfig = (item, setInputConfigs = null, open = true) => {
 
         return true;
       } catch (error) {
-        console.error(" Failed to save input config:", error);
-        console.error("Error details:", {
+        log.error(" Failed to save input config:", error);
+        log.error("Error details:", {
           message: error.message,
           stack: error.stack,
           currentInputDetailInput,

@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useProjectDetail } from "@/contexts/project-detail-context";
+import log from "electron-log/renderer";
 
 export function AirconCardDialog({ open, onOpenChange, mode = "create", card = null }) {
   const { selectedProject, createAirconCard, updateAirconCard } = useProjectDetail();
@@ -94,7 +95,7 @@ export function AirconCardDialog({ open, onOpenChange, mode = "create", card = n
       }
       onOpenChange(false);
     } catch (error) {
-      console.error(`Failed to ${mode} aircon card:`, error);
+      log.error(`Failed to ${mode} aircon card:`, error);
 
       // Handle specific error messages
       if (error.message && error.message.includes("already exists")) {

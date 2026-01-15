@@ -4,6 +4,7 @@ import { readScheduleConfigurations } from "../readers/schedule";
 import { readKnxConfigurations } from "../readers/knx";
 import { readMultiSceneConfigurations } from "../readers/multi-scene";
 import { readSequenceConfigurations } from "../readers/sequence";
+import log from "electron-log/renderer";
 
 /**
  * Transfer all advanced configurations from network unit to database
@@ -15,7 +16,7 @@ import { readSequenceConfigurations } from "../readers/sequence";
  */
 export const transferAdvancedConfigurations = async (networkUnit, importedUnit, projectId) => {
   try {
-    console.log(`Reading advanced configurations for unit ${networkUnit.ip_address}...`);
+    log.info(`Reading advanced configurations for unit ${networkUnit.ip_address}...`);
 
     const unitId = importedUnit.id;
 
@@ -48,12 +49,12 @@ export const transferAdvancedConfigurations = async (networkUnit, importedUnit, 
     };
 
     const totalConfigs = Object.values(configSummary).reduce((sum, count) => sum + count, 0);
-    console.log(`Advanced configurations transferred successfully for unit ${networkUnit.ip_address}:`, configSummary);
-    console.log(`Total configurations created: ${totalConfigs}`);
+    log.info(`Advanced configurations transferred successfully for unit ${networkUnit.ip_address}:`, configSummary);
+    log.info(`Total configurations created: ${totalConfigs}`);
 
     return { configSummary, totalConfigs };
   } catch (error) {
-    console.error(`Failed to transfer advanced configurations for unit ${networkUnit.ip_address}:`, error);
+    log.error(`Failed to transfer advanced configurations for unit ${networkUnit.ip_address}:`, error);
     throw error;
   }
 };

@@ -1,3 +1,5 @@
+import log from "electron-log/renderer";
+
 /**
  * Helper functions for deleting all configurations before sending new ones
  * Used by send-all-config-dialog.jsx
@@ -17,7 +19,7 @@ export async function deleteAllConfigsFromUnit(unit, configTypes, onProgress) {
 
   for (const configType of configTypes) {
     try {
-      console.log(`Deleting all ${configType} from unit:`, {
+      log.info(`Deleting all ${configType} from unit:`, {
         unitIp: unit.ip_address,
         canId: unit.id_can,
       });
@@ -38,7 +40,7 @@ export async function deleteAllConfigsFromUnit(unit, configTypes, onProgress) {
         onProgress((completedOperations / totalOperations) * 100, `Deleting existing ${configType}...`);
       }
     } catch (error) {
-      console.error(`Failed to delete existing ${configType} from unit ${unit.ip_address}:`, error);
+      log.error(`Failed to delete existing ${configType} from unit ${unit.ip_address}:`, error);
       operationResults.push({
         unit: `${unit.type || "Unknown Unit"} (${unit.ip_address})`,
         configType: `Delete All ${getConfigTypeLabel(configType)}`,

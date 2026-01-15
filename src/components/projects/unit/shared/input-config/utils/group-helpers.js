@@ -1,4 +1,5 @@
 import { INPUT_TYPES } from "@/constants";
+import log from "electron-log/renderer";
 
 /**
  * Helper function to determine group type based on input function using INPUT_TYPES
@@ -104,15 +105,15 @@ export const createGroupByType = async (address, functionValue, selectedProject,
         break;
       case "room":
         // Room auto-creation not supported - rooms are fixed (1-5)
-        console.warn(`Auto-creation not supported for room groups (rooms are fixed 1-5)`);
+        log.warn(`Auto-creation not supported for room groups (rooms are fixed 1-5)`);
         return null;
       case "multi-scene":
         // Multi-scene auto-creation not supported due to complex structure
-        console.warn(`Auto-creation not supported for multi-scene groups`);
+        log.warn(`Auto-creation not supported for multi-scene groups`);
         return null;
       case "sequence":
         // Sequence auto-creation not supported due to complex structure
-        console.warn(`Auto-creation not supported for sequence groups`);
+        log.warn(`Auto-creation not supported for sequence groups`);
         return null;
       case "lighting":
       default:
@@ -128,10 +129,10 @@ export const createGroupByType = async (address, functionValue, selectedProject,
     }
 
     const newItem = await createItem(category, newItemData);
-    console.log(`Auto-created ${groupType} group:`, newItem);
+    log.info(`Auto-created ${groupType} group:`, newItem);
     return newItem;
   } catch (error) {
-    console.error(`Failed to auto-create group ${address}:`, error);
+    log.error(`Failed to auto-create group ${address}:`, error);
     return null;
   }
 };

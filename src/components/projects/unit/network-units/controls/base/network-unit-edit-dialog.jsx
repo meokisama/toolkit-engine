@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { toast } from "sonner";
 import { Loader2, Cable } from "lucide-react";
 import { NetworkRS485ConfigDialog } from "../rs485/network-rs485-config-dialog";
+import log from "electron-log/renderer";
 
 export function NetworkUnitEditDialog({ open, onOpenChange, unit, onUnitUpdated }) {
   const [formData, setFormData] = useState({
@@ -163,7 +164,7 @@ export function NetworkUnitEditDialog({ open, onOpenChange, unit, onUnitUpdated 
       toast.success("Network unit updated successfully");
       onOpenChange(false);
     } catch (error) {
-      console.error("Failed to update network unit:", error);
+      log.error("Failed to update network unit:", error);
       toast.error(`Failed to update network unit: ${error.message}`);
     } finally {
       setLoading(false);

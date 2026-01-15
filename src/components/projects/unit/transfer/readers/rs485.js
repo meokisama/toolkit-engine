@@ -1,3 +1,4 @@
+import log from "electron-log/renderer";
 /**
  * RS485 Configuration Reader
  * Reads RS485 configurations from network units and converts to database format
@@ -35,10 +36,10 @@ export function convertRS485ToDbFormat(networkConfig) {
  */
 export async function readRS485Configurations(networkUnit) {
   try {
-    console.log("Reading RS485 configurations...");
+    log.info("Reading RS485 configurations...");
 
     // Read CH1 configuration first
-    console.log("Reading RS485 CH1 configuration...");
+    log.info("Reading RS485 CH1 configuration...");
     const ch1Config = await window.electronAPI.deviceController.getRS485CH1Config({
       unitIp: networkUnit.ip_address,
       canId: networkUnit.id_can,
@@ -48,7 +49,7 @@ export async function readRS485Configurations(networkUnit) {
     await new Promise((resolve) => setTimeout(resolve, 300));
 
     // Read CH2 configuration second
-    console.log("Reading RS485 CH2 configuration...");
+    log.info("Reading RS485 CH2 configuration...");
     const ch2Config = await window.electronAPI.deviceController.getRS485CH2Config({
       unitIp: networkUnit.ip_address,
       canId: networkUnit.id_can,
@@ -59,11 +60,11 @@ export async function readRS485Configurations(networkUnit) {
 
     // Add delay after RS485 config read
     await new Promise((resolve) => setTimeout(resolve, 500));
-    console.log("RS485 configurations read successfully");
+    log.info("RS485 configurations read successfully");
 
     return rs485Config;
   } catch (error) {
-    console.error("Failed to read RS485 configurations:", error);
+    log.error("Failed to read RS485 configurations:", error);
     return null;
   }
 }

@@ -2,6 +2,7 @@ import React from "react";
 import { toast } from "sonner";
 import { SendItemsDialog } from "@/components/shared/send-items-dialog";
 import { useProjectDetail } from "@/contexts/project-detail-context";
+import log from "electron-log/renderer";
 
 export function SendDmxDialog({ open, onOpenChange, items = [] }) {
   const { projectItems } = useProjectDetail();
@@ -56,7 +57,7 @@ export function SendDmxDialog({ open, onOpenChange, items = [] }) {
         }
       } catch (error) {
         errorCount++;
-        console.error(`Failed to send DMX config to unit ${unit.ip_address}:`, error);
+        log.error(`Failed to send DMX config to unit ${unit.ip_address}:`, error);
         toast.error(`Failed to send DMX config to ${unit.type || "Unknown Unit"} (${unit.ip_address}): ${error.message}`);
       }
     }
@@ -138,7 +139,7 @@ export function SendDmxDialog({ open, onOpenChange, items = [] }) {
             throw new Error("Unit returned failure response");
           }
         } catch (error) {
-          console.error(`Failed to send DMX batch to unit ${unit.ip_address}:`, error);
+          log.error(`Failed to send DMX batch to unit ${unit.ip_address}:`, error);
 
           // Mark all items in batch as failed for this unit
           for (const dmx of validDmxConfigs) {

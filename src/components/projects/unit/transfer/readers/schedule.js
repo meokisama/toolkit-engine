@@ -1,3 +1,4 @@
+import log from "electron-log/renderer";
 /**
  * Read schedule configurations from network unit and create them in database
  * @param {Object} networkUnit - The network unit to read from
@@ -10,7 +11,7 @@ export const readScheduleConfigurations = async (networkUnit, projectId, sceneAd
   const createdSchedules = [];
 
   try {
-    console.log("Reading schedule configurations...");
+    log.info("Reading schedule configurations...");
 
     const result = await window.electronAPI.scheduleController.getAllSchedulesInformation({
       unitIp: networkUnit.ip_address,
@@ -18,13 +19,13 @@ export const readScheduleConfigurations = async (networkUnit, projectId, sceneAd
     });
 
     if (result?.data && result.data.length > 0) {
-      console.log(`Found ${result.data.length} schedules on network unit`);
+      log.info(`Found ${result.data.length} schedules on network unit`);
 
       for (const networkSchedule of result.data) {
         try {
           // Only process schedules with scenes
           if (!networkSchedule.sceneAddresses || networkSchedule.sceneAddresses.length === 0) {
-            console.log(`Skipping schedule ${networkSchedule.scheduleIndex}: no scenes`);
+            log.info(`Skipping schedule ${networkSchedule.scheduleIndex}: no scenes`);
             continue;
           }
 
@@ -55,30 +56,30 @@ export const readScheduleConfigurations = async (networkUnit, projectId, sceneAd
               try {
                 await window.electronAPI.schedule.addScene(createdSchedule.id, sceneId);
               } catch (error) {
-                console.error(`Failed to add scene ${sceneId} to schedule ${createdSchedule.id}:`, error);
+                log.error(`Failed to add scene ${sceneId} to schedule ${createdSchedule.id}:`, error);
                 // Continue with other scenes
               }
             } else {
-              console.warn(`Scene with address ${sceneAddress} not found in created scenes`);
+              log.warn(`Scene with address ${sceneAddress} not found in created scenes`);
             }
           }
 
           createdSchedules.push(createdSchedule);
-          console.log(`Created schedule: ${createdSchedule.name} (ID: ${createdSchedule.id}) with ${networkSchedule.sceneAddresses.length} scenes`);
+          log.info(`Created schedule: ${createdSchedule.name} (ID: ${createdSchedule.id}) with ${networkSchedule.sceneAddresses.length} scenes`);
 
           // Add delay between schedule reads
           await new Promise((resolve) => setTimeout(resolve, 300));
         } catch (error) {
-          console.error(`Failed to process schedule ${networkSchedule.scheduleIndex}:`, error);
+          log.error(`Failed to process schedule ${networkSchedule.scheduleIndex}:`, error);
           // Continue with other schedules
         }
       }
     }
 
-    console.log(`Successfully created ${createdSchedules.length} schedules`);
+    log.info(`Successfully created ${createdSchedules.length} schedules`);
     return createdSchedules;
   } catch (error) {
-    console.error("Failed to read schedule configurations:", error);
+    log.error("Failed to read schedule configurations:", error);
     return createdSchedules;
   }
 };

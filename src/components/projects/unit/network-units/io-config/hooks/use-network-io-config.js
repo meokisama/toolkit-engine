@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo, useCallback, useRef, startTransition } fr
 import { getUnitIOSpec, getOutputTypes, createDefaultInputConfigs, createDefaultOutputConfigs } from "@/utils/io-config-utils";
 import { getInputDisplayName } from "@/constants";
 import { useAutoRefresh } from "./use-auto-refresh";
+import log from "electron-log/renderer";
 
 export const useNetworkIOConfig = (item, open, childDialogOpen = false) => {
   const [inputConfigs, setInputConfigs] = useState([]);
@@ -23,7 +24,7 @@ export const useNetworkIOConfig = (item, open, childDialogOpen = false) => {
   // Wrapper function to sync ref whenever state is updated
   const setInputConfigsAndSync = useCallback((updater) => {
     setInputConfigs((prev) => {
-      const newValue = typeof updater === 'function' ? updater(prev) : updater;
+      const newValue = typeof updater === "function" ? updater(prev) : updater;
       inputStatesRef.current = newValue; // Sync ref with new state
       return newValue;
     });
@@ -32,7 +33,7 @@ export const useNetworkIOConfig = (item, open, childDialogOpen = false) => {
   // Wrapper function to sync output ref whenever state is updated
   const setOutputConfigsAndSync = useCallback((updater) => {
     setOutputConfigs((prev) => {
-      const newValue = typeof updater === 'function' ? updater(prev) : updater;
+      const newValue = typeof updater === "function" ? updater(prev) : updater;
       outputStatesRef.current = newValue; // Sync ref with new state
       return newValue;
     });
@@ -87,7 +88,7 @@ export const useNetworkIOConfig = (item, open, childDialogOpen = false) => {
         }
       }
     } catch (error) {
-      console.error(" Background input state read failed:", error.message);
+      log.error(" Background input state read failed:", error.message);
     }
   }, [item?.ip_address, item?.id_can]);
 
@@ -169,7 +170,7 @@ export const useNetworkIOConfig = (item, open, childDialogOpen = false) => {
         return false;
       }
     } catch (error) {
-      console.error("Failed to read aircon configs from unit:", error.message);
+      log.error("Failed to read aircon configs from unit:", error.message);
       return false;
     }
   }, [item?.ip_address, item?.id_can]);
@@ -214,7 +215,7 @@ export const useNetworkIOConfig = (item, open, childDialogOpen = false) => {
         }
       }
     } catch (error) {
-      console.error(" Background output state read failed:", error.message);
+      log.error(" Background output state read failed:", error.message);
     }
   }, [item?.ip_address, item?.id_can]);
 
@@ -285,7 +286,7 @@ export const useNetworkIOConfig = (item, open, childDialogOpen = false) => {
         return true;
       }
     } catch (error) {
-      console.error("Failed to read input configs from unit:", error.message);
+      log.error("Failed to read input configs from unit:", error.message);
     }
 
     return false;
@@ -340,7 +341,7 @@ export const useNetworkIOConfig = (item, open, childDialogOpen = false) => {
 
       return true;
     } catch (error) {
-      console.error("Failed to read output configurations from unit:", error.message);
+      log.error("Failed to read output configurations from unit:", error.message);
     }
 
     return false;
@@ -355,7 +356,7 @@ export const useNetworkIOConfig = (item, open, childDialogOpen = false) => {
       // Step 2: Read output states
       await readOutputStatesBackground();
     } catch (error) {
-      console.warn(" Sequential state read failed:", error.message);
+      log.warn("Sequential state read failed:", error.message);
     }
   }, [readInputStatesBackground, readOutputStatesBackground]);
 
@@ -680,14 +681,14 @@ export const useNetworkIOConfig = (item, open, childDialogOpen = false) => {
           await window.electronAPI.ioController.setLocalACConfig(item.ip_address, item.id_can, acConfigs);
 
           totalSuccessCount += acOutputs.length;
-          console.log(`✓ Saved ${acOutputs.length} AC outputs`);
+          log.info(`✓ Saved ${acOutputs.length} AC outputs`);
         } catch (error) {
           totalFailCount += acOutputs.length;
           allErrors.push({
             type: "AC outputs",
             error: error instanceof Error ? error.message : String(error),
           });
-          console.error("Failed to save AC outputs:", error);
+          log.error("Failed to save AC outputs:", error);
         }
       }
 
@@ -705,7 +706,7 @@ export const useNetworkIOConfig = (item, open, childDialogOpen = false) => {
           const lightingSuccess = result.overallSuccess;
           if (lightingSuccess) {
             totalSuccessCount += lightingOutputs.length;
-            console.log(`✓ Saved ${lightingOutputs.length} lighting outputs in batch mode`);
+            log.info(`✓ Saved ${lightingOutputs.length} lighting outputs in batch mode`);
           } else {
             // Count partial successes
             const successfulOps = [result.assignments?.success, result.delayOff?.success, result.delayOn?.success, result.configs?.success].filter(
@@ -714,7 +715,7 @@ export const useNetworkIOConfig = (item, open, childDialogOpen = false) => {
 
             if (successfulOps > 0) {
               totalSuccessCount += lightingOutputs.length;
-              console.warn(`⚠ Partially saved lighting outputs: ${successfulOps}/4 operations succeeded`);
+              log.warn(`Partially saved lighting outputs: ${successfulOps}/4 operations succeeded`);
             } else {
               totalFailCount += lightingOutputs.length;
             }
@@ -742,7 +743,7 @@ export const useNetworkIOConfig = (item, open, childDialogOpen = false) => {
             type: "Lighting outputs (batch)",
             error: error instanceof Error ? error.message : String(error),
           });
-          console.error("Failed to save lighting outputs:", error);
+          log.error("Failed to save lighting outputs:", error);
         }
       }
 
@@ -756,7 +757,7 @@ export const useNetworkIOConfig = (item, open, childDialogOpen = false) => {
       };
     } catch (error) {
       setLoading(false);
-      console.error("Failed to save output configurations:", error);
+      log.error("Failed to save output configurations:", error);
       return {
         success: false,
         error: error instanceof Error ? error.message : String(error),
@@ -823,7 +824,7 @@ export const useNetworkIOConfig = (item, open, childDialogOpen = false) => {
       return result;
     } catch (error) {
       setLoading(false);
-      console.error("Failed to save input configurations:", error);
+      log.error("Failed to save input configurations:", error);
       return {
         success: false,
         error: error instanceof Error ? error.message : String(error),

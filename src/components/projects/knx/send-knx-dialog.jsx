@@ -3,6 +3,7 @@ import { toast } from "sonner";
 import { SendItemsDialog } from "@/components/shared/send-items-dialog";
 import { CONSTANTS } from "@/constants";
 import { useProjectDetail } from "@/contexts/project-detail-context";
+import log from "electron-log/renderer";
 
 export function SendKnxDialog({ open, onOpenChange, items = [] }) {
   const { projectItems } = useProjectDetail();
@@ -95,7 +96,7 @@ export function SendKnxDialog({ open, onOpenChange, items = [] }) {
         }
       } catch (error) {
         errorCount++;
-        console.error(`Failed to send KNX config to unit ${unit.ip_address}:`, error);
+        log.error(`Failed to send KNX config to unit ${unit.ip_address}:`, error);
         toast.error(`Failed to send KNX config to ${unit.type || "Unknown Unit"} (${unit.ip_address}): ${error.message}`);
       }
     }
@@ -131,7 +132,7 @@ export function SendKnxDialog({ open, onOpenChange, items = [] }) {
         completedOperations++;
         onProgress((completedOperations / totalOperations) * 100, "Deleting existing KNX configs...");
       } catch (error) {
-        console.error(`Failed to delete existing KNX configs from unit ${unit.ip_address}:`, error);
+        log.error(`Failed to delete existing KNX configs from unit ${unit.ip_address}:`, error);
         operationResults.push({
           scene: "Delete All KNX Configs",
           unit: `${unit.type || "Unknown Unit"} (${unit.ip_address})`,
@@ -235,7 +236,7 @@ export function SendKnxDialog({ open, onOpenChange, items = [] }) {
             throw new Error("Unit returned failure response");
           }
         } catch (error) {
-          console.error(`Failed to send KNX config ${currentKnx.name} to unit ${unit.ip_address}:`, error);
+          log.error(`Failed to send KNX config ${currentKnx.name} to unit ${unit.ip_address}:`, error);
           operationResults.push({
             scene: currentKnx.name,
             unit: `${unit.type || "Unknown Unit"} (${unit.ip_address})`,

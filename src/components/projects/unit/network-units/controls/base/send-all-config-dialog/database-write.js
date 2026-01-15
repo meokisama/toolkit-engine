@@ -1,5 +1,5 @@
 import { changeIpAddress, changeCanId, changeHardwareConfig, writeIOConfiguration, writeRS485Configuration } from "./device-config";
-
+import log from "electron-log/renderer";
 /**
  * Write database unit configuration to network unit
  * @param {Object} databaseUnit - Database unit object
@@ -25,7 +25,7 @@ export const writeDatabaseConfigToUnit = async (databaseUnit, networkUnit, setCu
     setProgress((prev) => prev + 15);
 
     // Use new JSON structure
-    console.log("Database unit I/O configs:", {
+    log.info("Database unit I/O configs:", {
       input_configs: databaseUnit.input_configs,
       output_configs: databaseUnit.output_configs,
     });
@@ -60,7 +60,7 @@ export const writeDatabaseConfigToUnit = async (databaseUnit, networkUnit, setCu
         })),
       };
 
-      console.log("Detailed I/O config prepared:", {
+      log.info("Detailed I/O config prepared:", {
         inputsCount: detailedIOConfig.inputs?.length || 0,
         outputsCount: detailedIOConfig.outputs?.length || 0,
         inputs: detailedIOConfig.inputs,
@@ -71,7 +71,7 @@ export const writeDatabaseConfigToUnit = async (databaseUnit, networkUnit, setCu
       // No additional processing needed for new structure
 
       // Process output configurations - data is already prepared above
-      console.log("Starting output configuration processing...", {
+      log.info("Starting output configuration processing...", {
         hasOutputs: detailedIOConfig.outputs && Array.isArray(detailedIOConfig.outputs),
         outputsCount: detailedIOConfig.outputs?.length || 0,
       });
@@ -142,7 +142,7 @@ export const writeDatabaseConfigToUnit = async (databaseUnit, networkUnit, setCu
               if (detailedConfig.device_id) {
                 const deviceId = parseInt(detailedConfig.device_id);
 
-                console.log(`Processing output ${output.index}:`, {
+                log.info(`Processing output ${output.index}:`, {
                   deviceId,
                   deviceType: detailedConfig.device_type,
                   lightingItemsCount: lightingItems.length,
@@ -216,13 +216,13 @@ export const writeDatabaseConfigToUnit = async (databaseUnit, networkUnit, setCu
                   const lightingItem = lightingItems.find((item) => item.id === deviceId);
                   if (lightingItem) {
                     lightingAddress = parseInt(lightingItem.address) || 0;
-                    console.log(`Found lighting item for output ${output.index}:`, {
+                    log.info(`Found lighting item for output ${output.index}:`, {
                       lightingItemId: lightingItem.id,
                       lightingItemAddress: lightingItem.address,
                       lightingAddress,
                     });
                   } else {
-                    console.log(`No lighting item found for deviceId ${deviceId} in output ${output.index}`);
+                    log.info(`No lighting item found for deviceId ${deviceId} in output ${output.index}`);
                   }
                 }
               }
@@ -262,7 +262,7 @@ export const writeDatabaseConfigToUnit = async (databaseUnit, networkUnit, setCu
           // Add AC configs to detailed I/O config
           detailedIOConfig.acConfigs = acConfigs;
         } catch (error) {
-          console.warn("Failed to load detailed output configurations:", error);
+          log.warn("Failed to load detailed output configurations:", error);
         }
       }
 
@@ -271,7 +271,7 @@ export const writeDatabaseConfigToUnit = async (databaseUnit, networkUnit, setCu
     }
 
     // 4. Write RS485 configuration if exists
-    console.log("Database unit RS485 config check:", {
+    log.info("Database unit RS485 config check:", {
       hasRS485Config: !!databaseUnit.rs485_config,
       rs485ConfigType: typeof databaseUnit.rs485_config,
       rs485ConfigLength: Array.isArray(databaseUnit.rs485_config) ? databaseUnit.rs485_config.length : "not array",
@@ -283,7 +283,7 @@ export const writeDatabaseConfigToUnit = async (databaseUnit, networkUnit, setCu
       await writeRS485Configuration(currentIp, currentCanId, databaseUnit.rs485_config);
       setProgress((prev) => prev + 10);
     } else {
-      console.log("No RS485 configuration found in database unit, skipping RS485 config write");
+      log.info("No RS485 configuration found in database unit, skipping RS485 config write");
     }
 
     // 5. Write IP and CAN ID changes last (to avoid communication issues)
@@ -303,7 +303,7 @@ export const writeDatabaseConfigToUnit = async (databaseUnit, networkUnit, setCu
 
     return { success: true };
   } catch (error) {
-    console.error("Failed to write database configuration:", error);
+    log.error("Failed to write database configuration:", error);
     return { success: false, error: error.message };
   }
 };

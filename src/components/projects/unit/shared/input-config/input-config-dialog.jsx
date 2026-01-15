@@ -2,7 +2,7 @@ import React, { useState, useCallback } from "react";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Settings } from "lucide-react";
-
+import log from "electron-log/renderer";
 // Import components
 import { InputTypeSelector } from "./components/input-type-selector";
 import { RlcOptionsSection } from "./components/rlc-options-section";
@@ -24,7 +24,6 @@ import { getGroupTypeLabel, getGroupTypeFromFunction } from "./utils/group-helpe
 
 import { useProjectDetail } from "@/contexts/project-detail-context";
 import { getRlcOptionsConfig, getInputFunctionByValue } from "@/constants";
-import { Separator } from "@/components/ui/separator";
 
 export function InputDetailConfigDialog({
   open,
@@ -243,7 +242,7 @@ export function InputDetailConfigDialog({
 
       handleClose();
     } catch (onSaveError) {
-      console.error("InputDetailConfigDialog - Error in onSave:", onSaveError);
+      log.error("InputDetailConfigDialog - Error in onSave:", onSaveError);
     }
   }, [getTransformedSaveData, onSave, handleClose]);
 

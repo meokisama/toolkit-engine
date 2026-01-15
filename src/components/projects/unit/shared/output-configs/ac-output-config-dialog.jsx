@@ -9,6 +9,7 @@ import { Combobox } from "@/components/custom/combobox";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Thermometer, Settings, Wind, Gauge } from "lucide-react";
+import log from "electron-log/renderer";
 
 // Configuration options based on WinForms implementation
 const WINDOWS_MODE_OPTIONS = [
@@ -249,7 +250,7 @@ const ACOutputConfigDialogComponent = ({
       await onSave(configToSave);
       handleClose();
     } catch (error) {
-      console.error("Failed to save AC output configuration:", error);
+      log.error("Failed to save AC output configuration:", error);
     } finally {
       setLoading(false);
     }

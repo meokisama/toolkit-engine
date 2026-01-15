@@ -4,6 +4,7 @@ import { udpScanner } from "@/services/udp";
 import { sortByIpAddress } from "@/utils/ip-utils";
 import { readNetworkUnitConfigurations } from "../utils/config-reader";
 import { DIALOG_TYPES } from "./use-dialog-state";
+import log from "electron-log/renderer";
 
 export function useNetworkUnitHandlers({ state, onTransferToDatabase, existingUnits, selectedProject, projectItems, createItem }) {
   const { setNetworkUnits, setSelectedNetworkUnits, setScanLoading, networkTable, dialogState, createdItemsCache } = state;
@@ -27,7 +28,7 @@ export function useNetworkUnitHandlers({ state, onTransferToDatabase, existingUn
         toast.warning("No units found on network");
       }
     } catch (error) {
-      console.error("Failed to scan network:", error);
+      log.error("Failed to scan network:", error);
       toast.error("Failed to scan network: " + error.message);
     } finally {
       setScanLoading(false);
@@ -58,9 +59,9 @@ export function useNetworkUnitHandlers({ state, onTransferToDatabase, existingUn
           try {
             // Delete existing unit and all related items (scenes, schedules, curtains, knx, multi-scenes, sequences)
             await window.electronAPI.unit.deleteWithRelatedItems(existingUnit.id);
-            console.log(`Deleted existing unit ${existingUnit.id} and all related items`);
+            log.info(`Deleted existing unit ${existingUnit.id} and all related items`);
           } catch (error) {
-            console.error(`Failed to delete existing unit ${existingUnit.id}:`, error);
+            log.error(`Failed to delete existing unit ${existingUnit.id}:`, error);
             toast.error(`Failed to delete existing unit ${networkUnit.ip_address}: ${error.message}`);
             continue;
           }
@@ -97,7 +98,7 @@ export function useNetworkUnitHandlers({ state, onTransferToDatabase, existingUn
         toast.dismiss(loadingToast);
       }
     } catch (error) {
-      console.error("Failed to transfer selected network units to database:", error);
+      log.error("Failed to transfer selected network units to database:", error);
       toast.error("Failed to transfer selected units to database: " + error.message, { id: loadingToast });
     }
   };
@@ -125,9 +126,9 @@ export function useNetworkUnitHandlers({ state, onTransferToDatabase, existingUn
           try {
             // Delete existing unit and all related items (scenes, schedules, curtains, knx, multi-scenes, sequences)
             await window.electronAPI.unit.deleteWithRelatedItems(existingUnit.id);
-            console.log(`Deleted existing unit ${existingUnit.id} and all related items`);
+            log.info(`Deleted existing unit ${existingUnit.id} and all related items`);
           } catch (error) {
-            console.error(`Failed to delete existing unit ${existingUnit.id}:`, error);
+            log.error(`Failed to delete existing unit ${existingUnit.id}:`, error);
             toast.error(`Failed to delete existing unit ${networkUnit.ip_address}: ${error.message}`);
             continue;
           }
@@ -163,7 +164,7 @@ export function useNetworkUnitHandlers({ state, onTransferToDatabase, existingUn
         toast.dismiss(loadingToast);
       }
     } catch (error) {
-      console.error("Failed to transfer all network units to database:", error);
+      log.error("Failed to transfer all network units to database:", error);
       toast.error("Failed to transfer all units to database: " + error.message, { id: loadingToast });
     }
   };
@@ -180,9 +181,9 @@ export function useNetworkUnitHandlers({ state, onTransferToDatabase, existingUn
         try {
           // Delete existing unit and all related items (scenes, schedules, curtains, knx, multi-scenes, sequences)
           await window.electronAPI.unit.deleteWithRelatedItems(existingUnit.id);
-          console.log(`Deleted existing unit ${existingUnit.id} and all related items`);
+          log.info(`Deleted existing unit ${existingUnit.id} and all related items`);
         } catch (error) {
-          console.error(`Failed to delete existing unit ${existingUnit.id}:`, error);
+          log.error(`Failed to delete existing unit ${existingUnit.id}:`, error);
           toast.error(`Failed to delete existing unit ${unit.ip_address}: ${error.message}`);
           return;
         }
@@ -201,7 +202,7 @@ export function useNetworkUnitHandlers({ state, onTransferToDatabase, existingUn
           toast.dismiss(loadingToast);
         }
       } catch (error) {
-        console.error("Failed to transfer unit to database:", error);
+        log.error("Failed to transfer unit to database:", error);
         toast.error(`Failed to transfer unit ${unit.ip_address} to database: ${error.message}`, { id: loadingToast });
       }
     },
@@ -245,11 +246,11 @@ export function useNetworkUnitHandlers({ state, onTransferToDatabase, existingUn
         await window.electronAPI.ioController.setGroupState(params);
       } else {
         // Fallback for development/testing
-        console.log("Group control command:", params);
+        log.info("Group control command:", params);
         await new Promise((resolve) => setTimeout(resolve, 1000)); // Simulate delay
       }
     } catch (error) {
-      console.error("Group control failed:", error);
+      log.error("Group control failed:", error);
       throw error;
     }
   };
@@ -289,7 +290,7 @@ export function useNetworkUnitHandlers({ state, onTransferToDatabase, existingUn
             try {
               return networkTable.getRow(id);
             } catch (error) {
-              console.warn(`Could not get row with id ${id}:`, error);
+              log.warn(`Could not get row with id ${id}:`, error);
               return null;
             }
           })

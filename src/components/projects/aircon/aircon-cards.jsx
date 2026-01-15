@@ -7,6 +7,7 @@ import { useProjectDetail } from "@/contexts/project-detail-context";
 import { AirconCardDialog } from "@/components/projects/aircon/aircon-card-dialog";
 import { ConfirmDialog } from "@/components/projects/confirm-dialog";
 import { ImportItemsDialog } from "@/components/projects/import-category-dialog";
+import log from "electron-log/renderer";
 
 // Memoized component to prevent unnecessary rerenders
 function AirconCardsComponent({ cards, loading }) {
@@ -42,7 +43,7 @@ function AirconCardsComponent({ cards, loading }) {
       setConfirmDialogOpen(false);
       setCardToDelete(null);
     } catch (error) {
-      console.error("Failed to delete aircon card:", error);
+      log.error("Failed to delete aircon card:", error);
     } finally {
       setDeleteLoading(false);
     }
@@ -55,7 +56,7 @@ function AirconCardsComponent({ cards, loading }) {
       try {
         await duplicateAirconCard(selectedProject.id, address);
       } catch (error) {
-        console.error("Failed to duplicate aircon card:", error);
+        log.error("Failed to duplicate aircon card:", error);
       }
     },
     [selectedProject, duplicateAirconCard]
@@ -65,7 +66,7 @@ function AirconCardsComponent({ cards, loading }) {
     try {
       await exportItems("aircon");
     } catch (error) {
-      console.error("Failed to export aircon cards:", error);
+      log.error("Failed to export aircon cards:", error);
     }
   }, [exportItems]);
 
@@ -79,7 +80,7 @@ function AirconCardsComponent({ cards, loading }) {
         await importItems("aircon", items);
         setImportDialogOpen(false);
       } catch (error) {
-        console.error("Failed to import aircon cards:", error);
+        log.error("Failed to import aircon cards:", error);
       }
     },
     [importItems]

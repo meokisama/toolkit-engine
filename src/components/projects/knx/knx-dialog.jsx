@@ -11,6 +11,7 @@ import { cn } from "@/lib/utils";
 import { useProjectDetail } from "@/contexts/project-detail-context";
 import { CONSTANTS } from "@/constants";
 import { KNXAddressInput } from "@/components/custom/knx-input";
+import log from "electron-log/renderer";
 
 export function KnxItemDialog({ open, onOpenChange, mode, item }) {
   const { createItem, updateItem, selectedProject, projectItems, loadedTabs, loadTabData } = useProjectDetail();
@@ -76,7 +77,7 @@ export function KnxItemDialog({ open, onOpenChange, mode, item }) {
         try {
           await loadTabData(selectedProject.id, tabToLoad);
         } catch (error) {
-          console.error(`Failed to load ${tabToLoad} data:`, error);
+          log.error(`Failed to load ${tabToLoad} data:`, error);
         } finally {
           setRcuDataLoading(false);
         }
@@ -206,7 +207,7 @@ export function KnxItemDialog({ open, onOpenChange, mode, item }) {
 
       onOpenChange(false);
     } catch (error) {
-      console.error("Failed to save KNX device:", error);
+      log.error("Failed to save KNX device:", error);
       if (error.message.includes("already exists")) {
         setErrors({ address: "This address is already in use" });
       } else {
@@ -458,13 +459,13 @@ export function KnxItemDialog({ open, onOpenChange, mode, item }) {
                       {rcuDataLoading
                         ? "Loading..."
                         : formData.rcu_group_id
-                        ? (() => {
-                            const selectedItem = rcuGroupItems.find((item) => item.id === formData.rcu_group_id);
-                            return selectedItem
-                              ? `${selectedItem.name || `Group ${selectedItem.address}`} (Address: ${selectedItem.address})`
-                              : "Select group...";
-                          })()
-                        : "Select group..."}
+                          ? (() => {
+                              const selectedItem = rcuGroupItems.find((item) => item.id === formData.rcu_group_id);
+                              return selectedItem
+                                ? `${selectedItem.name || `Group ${selectedItem.address}`} (Address: ${selectedItem.address})`
+                                : "Select group...";
+                            })()
+                          : "Select group..."}
                     </span>
                     <ChevronsUpDown className="h-4 w-4 shrink-0 opacity-50" />
                   </Button>

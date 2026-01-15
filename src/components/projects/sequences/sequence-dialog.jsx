@@ -10,6 +10,7 @@ import { CircleCheck, Layers } from "lucide-react";
 import * as CheckboxPrimitive from "@radix-ui/react-checkbox";
 import { useProjectDetail } from "@/contexts/project-detail-context";
 import { toast } from "sonner";
+import log from "electron-log/renderer";
 
 export function SequenceDialog({ open, onOpenChange, sequence = null, mode = "create" }) {
   const { projectItems, createItem, updateItem, setActiveTab, loadTabData, selectedProject } = useProjectDetail();
@@ -57,7 +58,7 @@ export function SequenceDialog({ open, onOpenChange, sequence = null, mode = "cr
       const multiSceneIds = multiScenes.map((ms) => ms.multi_scene_id);
       setSelectedMultiSceneIds(multiSceneIds);
     } catch (error) {
-      console.error("Failed to load sequence multi-scenes:", error);
+      log.error("Failed to load sequence multi-scenes:", error);
     }
   }, []);
 
@@ -189,7 +190,7 @@ export function SequenceDialog({ open, onOpenChange, sequence = null, mode = "cr
       });
       setSelectedMultiSceneIds([]);
     } catch (error) {
-      console.error("Failed to save sequence:", error);
+      log.error("Failed to save sequence:", error);
       const errorMessage = error.message || "Failed to save sequence";
       toast.error(errorMessage);
     } finally {

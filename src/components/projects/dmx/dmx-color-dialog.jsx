@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { RgbColorPicker } from "react-colorful";
 import { useProjectDetail } from "@/contexts/project-detail-context";
+import log from "electron-log/renderer";
 
 /**
  * DMX Color Configuration Dialog
@@ -62,7 +63,7 @@ export function DmxColorDialog({ open, onOpenChange, item = null }) {
       await updateItem("dmx", item.id, colorData);
       onOpenChange(false);
     } catch (error) {
-      console.error("Failed to save DMX colors:", error);
+      log.error("Failed to save DMX colors:", error);
     } finally {
       setLoading(false);
     }

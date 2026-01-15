@@ -10,6 +10,7 @@ import { NetworkUnitSelector, useNetworkUnitSelector } from "@/components/shared
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import log from "electron-log/renderer";
 
 export function SendItemsDialog({
   open,
@@ -74,7 +75,7 @@ export function SendItemsDialog({
       const data = await onLoadSingleItem(filteredItems[0]);
       setSingleItemData(data);
     } catch (error) {
-      console.error(`Failed to load ${itemType} data:`, error);
+      log.error(`Failed to load ${itemType} data:`, error);
       toast.error(`Failed to load ${itemType} data`);
     }
   };
@@ -110,7 +111,7 @@ export function SendItemsDialog({
         await handleSingleSend(selectedUnits);
       }
     } catch (error) {
-      console.error(`Error sending ${itemType}s:`, error);
+      log.error(`Error sending ${itemType}s:`, error);
       toast.error(`Error sending ${itemType}s: ${error.message}`);
     } finally {
       setLoading(false);
@@ -124,7 +125,7 @@ export function SendItemsDialog({
       await onSendSingle(filteredItems[0], singleItemData, selectedUnits);
       onOpenChange(false);
     } catch (error) {
-      console.error(`Error sending ${itemType}:`, error);
+      log.error(`Error sending ${itemType}:`, error);
       toast.error(`Error sending ${itemType}: ${error.message}`);
     }
   };
@@ -150,7 +151,7 @@ export function SendItemsDialog({
         toast.warning(`Bulk send completed with ${successCount} successes and ${failCount} failures`);
       }
     } catch (error) {
-      console.error(`Bulk send failed:`, error);
+      log.error(`Bulk send failed:`, error);
       const errorMessage = error.message || "Bulk send operation failed";
       toast.error(errorMessage);
     } finally {
@@ -330,8 +331,8 @@ export function SendItemsDialog({
                   ? "Sending..."
                   : `Send All (${filteredItems.length} ${itemTypePlural})`
                 : selectedUnitIds.length === 0
-                ? `Send ${ItemTypeCapitalized}`
-                : `Send ${ItemTypeCapitalized} to ${selectedUnitIds.length} Unit${selectedUnitIds.length !== 1 ? "s" : ""}`}
+                  ? `Send ${ItemTypeCapitalized}`
+                  : `Send ${ItemTypeCapitalized} to ${selectedUnitIds.length} Unit${selectedUnitIds.length !== 1 ? "s" : ""}`}
             </Button>
           ) : (
             <Button onClick={() => onOpenChange(false)}>Close</Button>

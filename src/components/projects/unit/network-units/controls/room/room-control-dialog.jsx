@@ -8,6 +8,7 @@ import { RoomStatusControl } from "./room-status-control";
 import { Button } from "@/components/ui/button";
 import { Download, Loader2, Upload } from "lucide-react";
 import { toast } from "sonner";
+import log from "electron-log/renderer";
 
 export function RoomControlDialog({ open, onOpenChange, unit }) {
   const [activeTab, setActiveTab] = useState("configuration");
@@ -32,7 +33,7 @@ export function RoomControlDialog({ open, onOpenChange, unit }) {
       setRoomConfig(config);
       toast.success("Room configuration read successfully");
     } catch (error) {
-      console.error("Failed to read room configuration:", error);
+      log.error("Failed to read room configuration:", error);
       toast.error(`Failed to read room configuration: ${error.message}`);
       setRoomConfig(null);
     } finally {
@@ -53,7 +54,7 @@ export function RoomControlDialog({ open, onOpenChange, unit }) {
       setRoomStatus(status);
       toast.success("Room status read successfully");
     } catch (error) {
-      console.error("Failed to read room status:", error);
+      log.error("Failed to read room status:", error);
       toast.error(`Failed to read room status: ${error.message}`);
       setRoomStatus(null);
     } finally {
@@ -78,7 +79,7 @@ export function RoomControlDialog({ open, onOpenChange, unit }) {
 
       toast.success("Room status sent successfully");
     } catch (error) {
-      console.error("Failed to send room status:", error);
+      log.error("Failed to send room status:", error);
       toast.error(`Failed to send room status: ${error.message}`);
     } finally {
       setSending(false);

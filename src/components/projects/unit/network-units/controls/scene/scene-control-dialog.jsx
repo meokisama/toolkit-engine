@@ -21,6 +21,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { OBJECT_TYPES, CONSTANTS } from "@/constants";
+import log from "electron-log/renderer";
 
 // Create label mappings directly from CONSTANTS.AIRCON
 const AC_POWER_LABELS =
@@ -373,7 +374,7 @@ export function TriggerSceneDialog({ open, onOpenChange, unit }) {
 
     setLoadingState((prev) => ({ ...prev, loadingInfo: true }));
     try {
-      console.log("Loading scene information:", {
+      log.info("Loading scene information:", {
         unitIp: unit.ip_address,
         canId: unit.id_can,
         sceneIndex: protocolIndex,
@@ -403,7 +404,7 @@ export function TriggerSceneDialog({ open, onOpenChange, unit }) {
         toast.success(`Scene ${index} information loaded successfully`);
       }
     } catch (error) {
-      console.error("Failed to load scene information:", error);
+      log.error("Failed to load scene information:", error);
       toast.error(`Failed to load scene information: ${error.message}`);
       setState((prev) => ({
         ...prev,
@@ -423,7 +424,7 @@ export function TriggerSceneDialog({ open, onOpenChange, unit }) {
 
     setLoadingState((prev) => ({ ...prev, loadingAllScenes: true }));
     try {
-      console.log("Loading all scenes information:", {
+      log.info("Loading all scenes information:", {
         unitIp: unit.ip_address,
         canId: unit.id_can,
       });
@@ -463,7 +464,7 @@ export function TriggerSceneDialog({ open, onOpenChange, unit }) {
         toast.info("No scenes found");
       }
     } catch (error) {
-      console.error("Failed to load all scenes:", error);
+      log.error("Failed to load all scenes:", error);
       toast.error(`Failed to load all scenes: ${error.message}`);
       setState((prev) => ({
         ...prev,
@@ -484,7 +485,7 @@ export function TriggerSceneDialog({ open, onOpenChange, unit }) {
 
       setLoadingState((prev) => ({ ...prev, loading: true }));
       try {
-        console.log("Triggering scene from card:", {
+        log.info("Triggering scene from card:", {
           unitIp: unit.ip_address,
           canId: unit.id_can,
           sceneIndex,
@@ -500,7 +501,7 @@ export function TriggerSceneDialog({ open, onOpenChange, unit }) {
 
         toast.success(`Scene ${sceneIndex} triggered successfully`);
       } catch (error) {
-        console.error("Failed to trigger scene:", error);
+        log.error("Failed to trigger scene:", error);
         toast.error(`Failed to trigger scene: ${error.message}`);
       } finally {
         setLoadingState((prev) => ({ ...prev, loading: false }));
@@ -528,7 +529,7 @@ export function TriggerSceneDialog({ open, onOpenChange, unit }) {
 
     setLoadingState((prev) => ({ ...prev, loading: true }));
     try {
-      console.log("Deleting scene from card:", {
+      log.info("Deleting scene from card:", {
         unitIp: unit.ip_address,
         canId: unit.id_can,
         sceneIndex: state.deleteConfirmDialog.sceneIndex,
@@ -547,7 +548,7 @@ export function TriggerSceneDialog({ open, onOpenChange, unit }) {
       // Optionally refresh the scenes list
       // You could call handleLoadAllScenes() here if needed
     } catch (error) {
-      console.error("Failed to delete scene:", error);
+      log.error("Failed to delete scene:", error);
       toast.error(`Failed to delete scene: ${error.message}`);
     } finally {
       setLoadingState((prev) => ({ ...prev, loading: false }));
@@ -569,7 +570,7 @@ export function TriggerSceneDialog({ open, onOpenChange, unit }) {
         },
       }));
       try {
-        console.log("Loading scene details:", {
+        log.info("Loading scene details:", {
           unitIp: unit.ip_address,
           canId: unit.id_can,
           sceneIndex,
@@ -590,7 +591,7 @@ export function TriggerSceneDialog({ open, onOpenChange, unit }) {
           toast.success(`Scene ${sceneIndex} details loaded successfully`);
         }
       } catch (error) {
-        console.error("Failed to load scene details:", error);
+        log.error("Failed to load scene details:", error);
         toast.error(`Failed to load scene details: ${error.message}`);
       } finally {
         setLoadingState((prev) => ({

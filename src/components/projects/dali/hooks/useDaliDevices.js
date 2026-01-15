@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import { DALI_DEVICE_COUNT } from "../utils/constants";
+import log from "electron-log/renderer";
 
 /**
  * Custom hook to load and manage DALI devices for a project
@@ -45,7 +46,7 @@ export function useDaliDevices(selectedProject, isActive) {
           })
         );
       } catch (error) {
-        console.error("Failed to load DALI devices:", error);
+        log.error("Failed to load DALI devices:", error);
         toast.error("Failed to load DALI devices");
       } finally {
         setLoading(false);

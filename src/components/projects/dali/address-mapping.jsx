@@ -22,6 +22,7 @@ import { useDali } from "@/contexts/dali-context";
 import { toast } from "sonner";
 import { DALI_DEVICE_COUNT } from "./utils/constants";
 import { TriggerDeviceButton } from "./trigger-buttons";
+import log from "electron-log/renderer";
 
 export function AddressMapping({ isActive }) {
   const { selectedProject } = useProjectDetail();
@@ -151,7 +152,7 @@ export function AddressMapping({ isActive }) {
           prev.filter((scanned) => !dbDevices.some((db) => db.mapped_device_index !== null && db.mapped_device_index === scanned.index))
         );
       } catch (error) {
-        console.error("Failed to load DALI devices:", error);
+        log.error("Failed to load DALI devices:", error);
         toast.error("Failed to load DALI devices");
       }
     };
@@ -201,7 +202,7 @@ export function AddressMapping({ isActive }) {
                 toast.success("Device mapped successfully");
               })
               .catch((error) => {
-                console.error("Failed to map device:", error);
+                log.error("Failed to map device:", error);
                 toast.error("Failed to map device");
               });
 
@@ -238,7 +239,7 @@ export function AddressMapping({ isActive }) {
               toast.success("Device unmapped successfully");
             })
             .catch((error) => {
-              console.error("Failed to unmap device:", error);
+              log.error("Failed to unmap device:", error);
               toast.error("Failed to unmap device");
             });
 
@@ -335,7 +336,7 @@ export function AddressMapping({ isActive }) {
           toast.warning(`${commissioningType} Commissioning completed but no success packet received`);
         }
       } catch (error) {
-        console.error("Commissioning failed:", error);
+        log.error("Commissioning failed:", error);
         toast.error(`Commissioning failed: ${error.message}`);
       } finally {
         setScanning(false);
@@ -380,7 +381,7 @@ export function AddressMapping({ isActive }) {
         toast.warning("Scan completed but no success packet received");
       }
     } catch (error) {
-      console.error("Scan failed:", error);
+      log.error("Scan failed:", error);
       toast.error(`Scan failed: ${error.message}`);
     } finally {
       setScanning(false);
@@ -416,7 +417,7 @@ export function AddressMapping({ isActive }) {
         toast.warning(`Fixed ${result.successCount}/${result.totalAddresses} conflict address(es). Some addresses failed.`);
       }
     } catch (error) {
-      console.error("Fix conflicts failed:", error);
+      log.error("Fix conflicts failed:", error);
       toast.error(`Fix conflicts failed: ${error.message}`);
     } finally {
       setFixingConflicts(false);
@@ -437,7 +438,7 @@ export function AddressMapping({ isActive }) {
       });
       toast.success("Broadcast ON sent successfully");
     } catch (error) {
-      console.error("Broadcast ON failed:", error);
+      log.error("Broadcast ON failed:", error);
       toast.error(`Broadcast ON failed: ${error.message}`);
     }
   }, [selectedGateway]);
@@ -456,7 +457,7 @@ export function AddressMapping({ isActive }) {
       });
       toast.success("Broadcast OFF sent successfully");
     } catch (error) {
-      console.error("Broadcast OFF failed:", error);
+      log.error("Broadcast OFF failed:", error);
       toast.error(`Broadcast OFF failed: ${error.message}`);
     }
   }, [selectedGateway]);
@@ -656,7 +657,7 @@ const FixedDeviceSlot = memo(function FixedDeviceSlot({ device, onUnmap }) {
       );
       toast.success("Device RCU address updated");
     } catch (error) {
-      console.error("Failed to update device lighting address:", error);
+      log.error("Failed to update device lighting address:", error);
       toast.error("Failed to update device RCU address");
     }
   }, [selectedProject, device.address, device.mappedDevice, lightingAddress]);

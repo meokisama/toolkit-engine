@@ -5,6 +5,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Upload, FileText, AlertCircle, CheckCircle, Download, Info } from "lucide-react";
 import { toast } from "sonner";
 import { exportImportService } from "@/services/export-import";
+import log from "electron-log/renderer";
 
 export function ImportItemsDialog({ open, onOpenChange, onImport, category, onConfirm }) {
   const [importData, setImportData] = useState(null);
@@ -39,14 +40,14 @@ export function ImportItemsDialog({ open, onOpenChange, onImport, category, onCo
           setImportData(items);
           toast.success(`${items.length} items loaded successfully`);
         } catch (error) {
-          console.error("Failed to read file:", error);
+          log.error("Failed to read file:", error);
           toast.error(error.message || "Failed to read CSV file");
         }
       };
 
       input.click();
     } catch (error) {
-      console.error("File selection failed:", error);
+      log.error("File selection failed:", error);
       toast.error("Failed to select file");
     }
   };
@@ -140,7 +141,7 @@ export function ImportItemsDialog({ open, onOpenChange, onImport, category, onCo
       }
       handleClose();
     } catch (error) {
-      console.error("Import failed:", error);
+      log.error("Import failed:", error);
       toast.error(`Failed to import ${category} items`);
     } finally {
       setLoading(false);
@@ -158,7 +159,7 @@ export function ImportItemsDialog({ open, onOpenChange, onImport, category, onCo
       exportImportService.downloadSceneTemplate1();
       toast.success("Template 1 (Vertical Format) downloaded successfully");
     } catch (error) {
-      console.error("Failed to download template 1:", error);
+      log.error("Failed to download template 1:", error);
       toast.error("Failed to download template 1");
     }
   };
@@ -168,7 +169,7 @@ export function ImportItemsDialog({ open, onOpenChange, onImport, category, onCo
       exportImportService.downloadSceneTemplate2();
       toast.success("Template 2 (Horizontal Format) downloaded successfully");
     } catch (error) {
-      console.error("Failed to download template 2:", error);
+      log.error("Failed to download template 2:", error);
       toast.error("Failed to download template 2");
     }
   };
@@ -198,8 +199,8 @@ export function ImportItemsDialog({ open, onOpenChange, onImport, category, onCo
             {category === "aircon"
               ? "Import aircon cards from a CSV file. Each row will create a card with 5 items (Power, Mode, Fan Speed, Temperature, Swing)."
               : category === "scene"
-              ? "Import scenes from a CSV file. Each scene can contain multiple items with their settings."
-              : `Import ${category} items from a CSV file. The CSV file should have the correct headers.`}
+                ? "Import scenes from a CSV file. Each scene can contain multiple items with their settings."
+                : `Import ${category} items from a CSV file. The CSV file should have the correct headers.`}
           </DialogDescription>
         </DialogHeader>
 
@@ -344,10 +345,10 @@ export function ImportItemsDialog({ open, onOpenChange, onImport, category, onCo
                 {loading
                   ? "Importing..."
                   : category === "aircon"
-                  ? `Import ${importData.length} Cards`
-                  : category === "scene"
-                  ? `Import ${importData.length} Scenes`
-                  : `Import ${importData.length} Items`}
+                    ? `Import ${importData.length} Cards`
+                    : category === "scene"
+                      ? `Import ${importData.length} Scenes`
+                      : `Import ${importData.length} Items`}
               </Button>
             </>
           )}

@@ -11,6 +11,7 @@ import { LightingOutputConfigDialog } from "../../shared/output-configs/lighting
 import { ACOutputConfigDialog } from "../../shared/output-configs/ac-output-config-dialog";
 import { ProjectItemDialog } from "@/components/projects/lighting/lighting-dialog";
 import { AirconCardDialog } from "@/components/projects/aircon/aircon-card-dialog";
+import log from "electron-log/renderer";
 
 // Import optimized components and hooks
 import { InputConfigItem } from "./input-config-item";
@@ -27,8 +28,18 @@ const IOConfigDialogComponent = ({ open, onOpenChange, item = null }) => {
   const { projectItems, updateItem, selectedProject, loadTabData, loadedTabs } = useProjectDetail();
 
   // Use custom hooks for better organization
-  const { inputConfigs, outputConfigs, setInputConfigs, setOutputConfigs, originalInputConfigs, originalOutputConfigs, ioSpec, loading, isInitialLoading, saveConfig } =
-    useIOConfig(item, open);
+  const {
+    inputConfigs,
+    outputConfigs,
+    setInputConfigs,
+    setOutputConfigs,
+    originalInputConfigs,
+    originalOutputConfigs,
+    ioSpec,
+    loading,
+    isInitialLoading,
+    saveConfig,
+  } = useIOConfig(item, open);
 
   const {
     multiGroupConfigs,
@@ -208,8 +219,8 @@ const IOConfigDialogComponent = ({ open, onOpenChange, item = null }) => {
         // No need to duplicate the logic here
         return success;
       } catch (error) {
-        console.error(" IOConfigDialog - Failed to save multi-group configuration:", error);
-        console.error(" IOConfigDialog - Error stack:", error.stack);
+        log.error(" IOConfigDialog - Failed to save multi-group configuration:", error);
+        log.error(" IOConfigDialog - Error stack:", error.stack);
         toast.error("Failed to save configuration: " + error.message);
         return false;
       }
@@ -225,10 +236,10 @@ const IOConfigDialogComponent = ({ open, onOpenChange, item = null }) => {
   useEffect(() => {
     if (process.env.NODE_ENV === "development") {
       if (hasLargeInputList) {
-        console.warn(`IOConfigDialog: Large input list detected (${inputConfigs.length} items). Consider pagination.`);
+        log.warn(`IOConfigDialog: Large input list detected (${inputConfigs.length} items). Consider pagination.`);
       }
       if (hasLargeOutputList) {
-        console.warn(`IOConfigDialog: Large output list detected (${outputConfigs.length} items). Consider pagination.`);
+        log.warn(`IOConfigDialog: Large output list detected (${outputConfigs.length} items). Consider pagination.`);
       }
     }
   }, [hasLargeInputList, hasLargeOutputList, inputConfigs.length, outputConfigs.length]);

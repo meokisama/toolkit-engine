@@ -1,3 +1,5 @@
+import log from "electron-log/renderer";
+
 export const findOrCreateDatabaseItemByNetworkItem = async (networkItem, projectId) => {
   try {
     const objectValue = networkItem.objectValue;
@@ -59,7 +61,7 @@ export const findOrCreateDatabaseItemByNetworkItem = async (networkItem, project
       return { itemType, itemId: createdItem.id };
     }
   } catch (error) {
-    console.error("Error finding or creating database item:", error);
+    log.error("Error finding or creating database item:", error);
     return { itemType: null, itemId: null };
   }
 };
@@ -92,7 +94,7 @@ export const findOrCreateLightingByAddress = async (address, projectId) => {
       return createdItem;
     }
   } catch (error) {
-    console.error(`Error finding or creating lighting with address ${address}:`, error);
+    log.error(`Error finding or creating lighting with address ${address}:`, error);
     return null;
   }
 };

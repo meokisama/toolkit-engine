@@ -1,6 +1,6 @@
 import { useState, useMemo, useCallback } from "react";
 import { toast } from "sonner";
-import { CONSTANTS } from "@/constants";
+import log from "electron-log/renderer";
 
 export function useSceneItems({ projectItems, getCommandForAirconItem, mode }) {
   const [sceneItems, setSceneItems] = useState([]);
@@ -17,7 +17,7 @@ export function useSceneItems({ projectItems, getCommandForAirconItem, mode }) {
       setSceneItems(items);
       setOriginalSceneItems(items);
     } catch (error) {
-      console.error("Failed to load scene items:", error);
+      log.error("Failed to load scene items:", error);
     }
   }, []);
 
@@ -176,7 +176,10 @@ export function useSceneItems({ projectItems, getCommandForAirconItem, mode }) {
     );
     const itemsToUpdate = sceneItems.filter((item) => {
       const originalItem = originalSceneItems.find((orig) => orig.id === item.id);
-      return originalItem && (originalItem.item_value !== item.item_value || originalItem.command !== item.command || originalItem.object_type !== item.object_type);
+      return (
+        originalItem &&
+        (originalItem.item_value !== item.item_value || originalItem.command !== item.command || originalItem.object_type !== item.object_type)
+      );
     });
 
     for (const item of itemsToRemove) {

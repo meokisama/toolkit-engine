@@ -1,3 +1,4 @@
+import log from "electron-log/renderer";
 /**
  * Change IP address of a device
  */
@@ -69,7 +70,7 @@ export const changeHardwareConfig = async (unitIp, canId, config) => {
  */
 export const writeIOConfiguration = async (unitIp, canId, ioConfig) => {
   if (!ioConfig) {
-    console.log("No I/O config provided, skipping");
+    log.info("No I/O config provided, skipping");
     return;
   }
 
@@ -90,7 +91,7 @@ export const writeIOConfiguration = async (unitIp, canId, ioConfig) => {
         }));
 
       if (inputConfigsData.length > 0) {
-        console.log(`Sending ${inputConfigsData.length} input configurations in batch mode to ${unitIp}`);
+        log.info(`Sending ${inputConfigsData.length} input configurations in batch mode to ${unitIp}`);
         const result = await window.electronAPI.ioController.setupBatchInputConfigs({
           unitIp: unitIp,
           canId: canId,
@@ -99,9 +100,9 @@ export const writeIOConfiguration = async (unitIp, canId, ioConfig) => {
         });
 
         if (result.success) {
-          console.log(`✓ Successfully sent ${result.successCount} input configs in batch mode`);
+          log.info(`✓ Successfully sent ${result.successCount} input configs in batch mode`);
         } else {
-          console.warn(`⚠ Batch input config send partially failed: ${result.successCount}/${inputConfigsData.length} succeeded`);
+          log.warn(`⚠ Batch input config send partially failed: ${result.successCount}/${inputConfigsData.length} succeeded`);
         }
       }
     }
@@ -112,7 +113,7 @@ export const writeIOConfiguration = async (unitIp, canId, ioConfig) => {
       const lightingOutputs = ioConfig.outputs.filter((output) => output && output.deviceType !== "aircon");
 
       if (lightingOutputs.length > 0) {
-        console.log(`Sending ${lightingOutputs.length} lighting output configurations in batch mode to ${unitIp}`);
+        log.info(`Sending ${lightingOutputs.length} lighting output configurations in batch mode to ${unitIp}`);
         const result = await window.electronAPI.ioController.setupBatchLightingOutputs({
           unitIp: unitIp,
           canId: canId,
@@ -121,20 +122,20 @@ export const writeIOConfiguration = async (unitIp, canId, ioConfig) => {
         });
 
         if (result.overallSuccess) {
-          console.log(`✓ Successfully sent lighting output configs in batch mode`);
+          log.info(`✓ Successfully sent lighting output configs in batch mode`);
         } else {
-          console.warn(`Batch lighting output config send partially failed`);
+          log.warn(`Batch lighting output config send partially failed`);
           if (result.assignments && !result.assignments.success) {
-            console.error(`  - Assignments error: ${result.assignments.error}`);
+            log.error(`  - Assignments error: ${result.assignments.error}`);
           }
           if (result.delayOff && !result.delayOff.success) {
-            console.error(`  - Delay off errors:`, result.delayOff.errors);
+            log.error(`  - Delay off errors:`, result.delayOff.errors);
           }
           if (result.delayOn && !result.delayOn.success) {
-            console.error(`  - Delay on errors:`, result.delayOn.errors);
+            log.error(`  - Delay on errors:`, result.delayOn.errors);
           }
           if (result.configs && !result.configs.success) {
-            console.error(`  - Config errors:`, result.configs.errors);
+            log.error(`  - Config errors:`, result.configs.errors);
           }
         }
       }
@@ -142,12 +143,12 @@ export const writeIOConfiguration = async (unitIp, canId, ioConfig) => {
 
     // Write AC configurations
     if (ioConfig.acConfigs && Array.isArray(ioConfig.acConfigs)) {
-      console.log(`Sending AC configurations to ${unitIp}:`, ioConfig.acConfigs);
+      log.info(`Sending AC configurations to ${unitIp}:`, ioConfig.acConfigs);
       await window.electronAPI.ioController.setLocalACConfig(unitIp, canId, ioConfig.acConfigs);
-      console.log(`✓ AC configurations sent successfully to ${unitIp}`);
+      log.info(`✓ AC configurations sent successfully to ${unitIp}`);
     }
   } catch (error) {
-    console.error("Failed to write I/O configuration:", error);
+    log.error("Failed to write I/O configuration:", error);
     throw error;
   }
 };
@@ -180,17 +181,17 @@ export const writeRS485Configuration = async (unitIp, canId, rs485Config) => {
   if (!rs485Config || !Array.isArray(rs485Config)) return;
 
   try {
-    console.log(`Writing RS485 configuration to ${unitIp}:`, rs485Config);
+    log.info(`Writing RS485 configuration to ${unitIp}:`, rs485Config);
 
     // RS485 configuration is typically an array of 2 configurations (RS485-1 and RS485-2)
     for (let portIndex = 0; portIndex < rs485Config.length; portIndex++) {
       const config = rs485Config[portIndex];
       if (config) {
-        console.log(`Writing RS485 CH${portIndex + 1} config:`, config);
+        log.info(`Writing RS485 CH${portIndex + 1} config:`, config);
 
         // Convert database format to network format
         const networkConfig = convertDatabaseToNetworkRS485Format(config);
-        console.log(`Converted RS485 CH${portIndex + 1} config:`, networkConfig);
+        log.info(`Converted RS485 CH${portIndex + 1} config:`, networkConfig);
 
         if (portIndex === 0) {
           // RS485 CH1
@@ -213,9 +214,9 @@ export const writeRS485Configuration = async (unitIp, canId, rs485Config) => {
       }
     }
 
-    console.log(`RS485 configuration written successfully to ${unitIp}`);
+    log.info(`RS485 configuration written successfully to ${unitIp}`);
   } catch (error) {
-    console.error("Failed to write RS485 configuration:", error);
+    log.error("Failed to write RS485 configuration:", error);
     throw error;
   }
 };

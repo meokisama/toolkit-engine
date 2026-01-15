@@ -12,6 +12,7 @@ import { useEditableName } from "./hooks/useEditableName";
 import { DALI_SCENE_COUNT, BRIGHTNESS_MAX } from "./utils/constants";
 import { TriggerSceneButton, TriggerDeviceButton } from "./trigger-buttons";
 import { DeviceSceneControl } from "./device-scene-control";
+import log from "electron-log/renderer";
 
 export function Scene({ isActive }) {
   const { selectedProject } = useProjectDetail();
@@ -71,7 +72,7 @@ export function Scene({ isActive }) {
           })
         );
       } catch (error) {
-        console.error("Failed to load scene data:", error);
+        log.error("Failed to load scene data:", error);
         toast.error("Failed to load scene data");
       } finally {
         setLoading(false);
@@ -92,7 +93,7 @@ export function Scene({ isActive }) {
 
         toast.success("Scene name updated");
       } catch (error) {
-        console.error("Failed to update scene name:", error);
+        log.error("Failed to update scene name:", error);
         toast.error("Failed to update scene name");
       }
     },
@@ -119,7 +120,7 @@ export function Scene({ isActive }) {
         if (isCurrentlyActive) {
           // Delete from database when unchecking
           window.electronAPI.dali.deleteDaliSceneDevice(selectedProject.id, selectedSceneId, deviceAddress).catch((error) => {
-            console.error("Failed to remove device from scene:", error);
+            log.error("Failed to remove device from scene:", error);
             toast.error("Failed to remove device from scene");
           });
         } else {
@@ -127,7 +128,7 @@ export function Scene({ isActive }) {
           window.electronAPI.dali
             .upsertDaliSceneDevice(selectedProject.id, selectedSceneId, deviceAddress, true, brightness, colorTemp, r, g, b, w)
             .catch((error) => {
-              console.error("Failed to add device to scene:", error);
+              log.error("Failed to add device to scene:", error);
               toast.error("Failed to add device to scene");
             });
         }
@@ -189,7 +190,7 @@ export function Scene({ isActive }) {
           w ?? null
         )
         .catch((error) => {
-          console.error("Failed to update device values:", error);
+          log.error("Failed to update device values:", error);
           toast.error("Failed to update device values");
         });
 

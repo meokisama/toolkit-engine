@@ -17,6 +17,7 @@ import { GenerateFromSceneSheet } from "@/components/projects/knx/sheets/generat
 import { GenerateFromMultiSceneSheet } from "@/components/projects/knx/sheets/generate-multi-scene";
 import { GenerateFromSequenceSheet } from "@/components/projects/knx/sheets/generate-sequence";
 import { Network } from "lucide-react";
+import log from "electron-log/renderer";
 
 function KnxTableComponent({ items, loading }) {
   const { deleteItem, duplicateItem, exportItems, importItems, updateItem, projectItems } = useProjectDetail();
@@ -102,7 +103,7 @@ function KnxTableComponent({ items, loading }) {
       pendingChangesRef.current.clear();
       setPendingChangesCount(0);
     } catch (error) {
-      console.error("Failed to save changes:", error);
+      log.error("Failed to save changes:", error);
     } finally {
       setSaveLoading(false);
     }
@@ -125,7 +126,7 @@ function KnxTableComponent({ items, loading }) {
       try {
         await duplicateItem(category, item.id);
       } catch (error) {
-        console.error("Failed to duplicate item:", error);
+        log.error("Failed to duplicate item:", error);
       }
     },
     [duplicateItem, category]
@@ -145,7 +146,7 @@ function KnxTableComponent({ items, loading }) {
       setConfirmDialogOpen(false);
       setItemToDelete(null);
     } catch (error) {
-      console.error("Failed to delete item:", error);
+      log.error("Failed to delete item:", error);
     } finally {
       setDeleteLoading(false);
     }
@@ -166,7 +167,7 @@ function KnxTableComponent({ items, loading }) {
       setItemsToDelete([]);
       table?.resetRowSelection();
     } catch (error) {
-      console.error("Failed to delete items:", error);
+      log.error("Failed to delete items:", error);
     } finally {
       setBulkDeleteLoading(false);
     }
@@ -188,7 +189,7 @@ function KnxTableComponent({ items, loading }) {
     try {
       await exportItems(category);
     } catch (error) {
-      console.error("Failed to export items:", error);
+      log.error("Failed to export items:", error);
     }
   }, [exportItems, category]);
 
@@ -202,7 +203,7 @@ function KnxTableComponent({ items, loading }) {
         await importItems(category, items);
         setImportDialogOpen(false);
       } catch (error) {
-        console.error("Failed to import items:", error);
+        log.error("Failed to import items:", error);
       }
     },
     [importItems, category]
@@ -245,8 +246,7 @@ function KnxTableComponent({ items, loading }) {
   }, []);
 
   const columns = useMemo(
-    () =>
-      createKnxItemsColumns(handleCellEdit, getEffectiveValue, projectItems || {}, unitItems),
+    () => createKnxItemsColumns(handleCellEdit, getEffectiveValue, projectItems || {}, unitItems),
     [
       handleCellEdit,
       getEffectiveValue, // This is now stable!

@@ -5,7 +5,7 @@ import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { OBJECT_TYPES } from "@/constants";
-import { Palette } from "lucide-react";
+import log from "electron-log/renderer";
 
 /**
  * DMX Properties Dialog
@@ -73,7 +73,7 @@ export function DmxPropertiesDialog({
     const objectTypeName = OBJECT_TYPES[colorObjType]?.obj_name;
 
     if (!objectTypeName) {
-      console.error("Invalid color index:", selectedColorIndex);
+      log.error("Invalid color index:", selectedColorIndex);
       return;
     }
 

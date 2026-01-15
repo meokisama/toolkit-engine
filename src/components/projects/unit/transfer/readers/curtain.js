@@ -1,4 +1,5 @@
 import { findOrCreateLightingByAddress, getCurtainTypeName } from "../utils/config-helpers";
+import log from "electron-log/renderer";
 
 /**
  * Read curtain configurations from network unit and create them in database
@@ -61,13 +62,13 @@ export const readCurtainConfigurations = async (networkUnit, projectId, unitId) 
         }
       }
     } else {
-      console.log("No curtains found on network unit or invalid result structure");
+      log.info("No curtains found on network unit or invalid result structure");
     }
 
-    console.log(`Successfully created ${createdCurtains.length} curtains`);
+    log.info(`Successfully created ${createdCurtains.length} curtains`);
     return createdCurtains;
   } catch (error) {
-    console.error("Failed to read curtain configurations:", error);
+    log.error("Failed to read curtain configurations:", error);
     return createdCurtains;
   }
 };

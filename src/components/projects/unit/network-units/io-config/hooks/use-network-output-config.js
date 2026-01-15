@@ -1,5 +1,6 @@
 import { useState, useCallback, useEffect } from "react";
 import { toast } from "sonner";
+import log from "electron-log/renderer";
 
 export const useNetworkOutputConfig = (
   item,
@@ -31,7 +32,7 @@ export const useNetworkOutputConfig = (
     try {
       await readAirconConfigsFromUnit();
     } catch (error) {
-      console.error("Failed to load and map aircon configs:", error);
+      log.error("Failed to load and map aircon configs:", error);
       toast.error("Failed to load aircon configurations");
     }
   }, [readAirconConfigsFromUnit]);
@@ -61,7 +62,7 @@ export const useNetworkOutputConfig = (
             if (airconItem) {
               airconAddress = parseInt(airconItem.address) || 0;
             } else {
-              console.error(`Aircon item with ID ${deviceId} not found`);
+              log.error(`Aircon item with ID ${deviceId} not found`);
             }
           }
 
@@ -89,7 +90,7 @@ export const useNetworkOutputConfig = (
             if (lightingItem) {
               lightingAddress = parseInt(lightingItem.address) || 0;
             } else {
-              console.error(`Lighting item with ID ${deviceId} not found`);
+              log.error(`Lighting item with ID ${deviceId} not found`);
             }
           }
 
@@ -109,7 +110,7 @@ export const useNetworkOutputConfig = (
           }
         }
       } catch (error) {
-        console.error("Failed to update output assignment:", error);
+        log.error("Failed to update output assignment:", error);
         toast.error(`Failed to update output assignment: ${error.message}`);
       }
     },
@@ -301,7 +302,7 @@ export const useNetworkOutputConfig = (
 
         return true;
       } catch (error) {
-        console.error("Failed to save output configuration:", error);
+        log.error("Failed to save output configuration:", error);
         const errorMessage = error instanceof Error ? error.message : "Failed to save output configuration";
         toast.error(errorMessage);
         return false;
@@ -336,18 +337,18 @@ export const useNetworkOutputConfig = (
             outputConfig?.type === "ac"
               ? "AC"
               : outputConfig?.type === "relay"
-              ? "Relay"
-              : outputConfig?.type === "dimmer"
-              ? "Dimmer"
-              : outputConfig?.type === "ao"
-              ? "AO"
-              : "Output";
+                ? "Relay"
+                : outputConfig?.type === "dimmer"
+                  ? "Dimmer"
+                  : outputConfig?.type === "ao"
+                    ? "AO"
+                    : "Output";
 
           toast.success(`${typeLabel} ${typeIndex} ${currentState ? "turned off" : "turned on"}`);
           return true;
         }
       } catch (error) {
-        console.error("Failed to toggle output state:", error);
+        log.error("Failed to toggle output state:", error);
 
         // Calculate the correct index within the type for error toast message
         const outputConfig = outputConfigs.find((config) => config.index === outputIndex);
@@ -356,12 +357,12 @@ export const useNetworkOutputConfig = (
           outputConfig?.type === "ac"
             ? "AC"
             : outputConfig?.type === "relay"
-            ? "Relay"
-            : outputConfig?.type === "dimmer"
-            ? "Dimmer"
-            : outputConfig?.type === "ao"
-            ? "AO"
-            : "Output";
+              ? "Relay"
+              : outputConfig?.type === "dimmer"
+                ? "Dimmer"
+                : outputConfig?.type === "ao"
+                  ? "AO"
+                  : "Output";
 
         toast.error(`Failed to toggle ${typeLabel} ${typeIndex}: ${error.message}`);
         return false;

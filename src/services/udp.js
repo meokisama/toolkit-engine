@@ -1,5 +1,6 @@
 import { CONSTANTS } from "@/constants";
 import { sortByIpAddress } from "@/utils/ip-utils";
+import log from "electron-log/renderer";
 
 const { UDP_CONFIG, TYPES } = CONSTANTS.UNIT;
 
@@ -195,7 +196,7 @@ class UDPNetworkScanner {
 
       return result;
     } catch (error) {
-      console.error("Error parsing UDP response:", error);
+      log.error("Error parsing UDP response:", error);
       return null;
     }
   }
@@ -214,7 +215,7 @@ class UDPNetworkScanner {
   async getNetworkUnits(forceScan = false, includeSlaves = true) {
     // Return cached results if available and not forcing scan
     if (!forceScan && this.isCacheValid()) {
-      console.log("Returning cached network units");
+      log.info("Returning cached network units");
       return this.scanResults;
     }
 
@@ -236,12 +237,12 @@ class UDPNetworkScanner {
     }
 
     this.isScanning = true;
-    console.log("Starting multi-interface network scan...");
+    log.info("Starting multi-interface network scan...");
 
     try {
       // Check if simulate mode is enabled (takes priority)
       if (this.useSimulatedScan) {
-        console.log("Using simulated scan mode (forced by flag)");
+        log.info("Using simulated scan mode (forced by flag)");
         await this.simulateScan();
         this.scanResults = sortByIpAddress(this.scanResults);
       }
@@ -251,7 +252,7 @@ class UDPNetworkScanner {
         const interfaces = await window.electronAPI.networkInterfaces.getAll(true); // Force refresh
         const broadcastAddresses = interfaces.map((iface) => iface.broadcast);
 
-        console.log(`Scanning on ${broadcastAddresses.length} network interfaces:`, broadcastAddresses);
+        log.info(`Scanning on ${broadcastAddresses.length} network interfaces:`, broadcastAddresses);
 
         // Use Electron IPC for UDP operations with multi-interface support
         const results = await window.electronAPI.scanUDPNetwork({
@@ -299,11 +300,11 @@ class UDPNetworkScanner {
 
       // Update cache timestamp
       this.lastScanTime = Date.now();
-      console.log(`Multi-interface network scan completed. Found ${this.scanResults.length} unique units (sorted by IP)`);
+      log.info(`Multi-interface network scan completed. Found ${this.scanResults.length} unique units (sorted by IP)`);
 
       return this.scanResults;
     } catch (error) {
-      console.error("Multi-interface network scan failed:", error);
+      log.error("Multi-interface network scan failed:", error);
       throw error;
     } finally {
       this.isScanning = false;
@@ -316,7 +317,7 @@ class UDPNetworkScanner {
    * The key is proper deduplication by IP+CAN ID combination instead of just IP
    */
   async scanNetworkWithSlaves() {
-    console.log("Starting enhanced network scan with slave unit discovery...");
+    log.info("Starting enhanced network scan with slave unit discovery...");
 
     // Perform broadcast scan - this should return all units including slaves
     // The RLC Core logic shows that all units (master and slaves) respond to broadcast
@@ -336,15 +337,15 @@ class UDPNetworkScanner {
       if (units.length > 1) {
         const masters = units.filter((u) => u.mode === "Master");
         const slaves = units.filter((u) => u.mode === "Slave");
-        console.log(`IP ${ip}: ${masters.length} master(s), ${slaves.length} slave(s)`);
+        log.info(`IP ${ip}: ${masters.length} master(s), ${slaves.length} slave(s)`);
 
         slaves.forEach((slave) => {
-          console.log(`  - Slave: ${slave.type} (CAN ID: ${slave.id_can})`);
+          log.info(`  - Slave: ${slave.type} (CAN ID: ${slave.id_can})`);
         });
       }
     });
 
-    console.log(`Enhanced scan completed. Found ${allResults.length} total units`);
+    log.info(`Enhanced scan completed. Found ${allResults.length} total units`);
 
     return allResults;
   }

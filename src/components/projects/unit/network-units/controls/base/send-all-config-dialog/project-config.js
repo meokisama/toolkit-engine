@@ -1,3 +1,4 @@
+import log from "electron-log/renderer";
 /**
  * Get project configurations based on selected config types and source unit
  * @param {Object} selectedProject - Selected project object
@@ -75,7 +76,7 @@ export const getProjectConfigurations = async (selectedProject, configTypes, sel
 
     return configs;
   } catch (error) {
-    console.error("Failed to get project configurations:", error);
+    log.error("Failed to get project configurations:", error);
     throw error;
   }
 };
@@ -98,7 +99,7 @@ export const sendConfigToUnit = async (unit, configType, configData, selectedPro
           try {
             sceneItems = await window.electronAPI.scene.getItemsWithDetails(scene.id);
           } catch (error) {
-            console.error(`Failed to load items for scene ${scene.id}:`, error);
+            log.error(`Failed to load items for scene ${scene.id}:`, error);
             // Skip scenes without items
             continue;
           }
@@ -126,7 +127,7 @@ export const sendConfigToUnit = async (unit, configType, configData, selectedPro
           try {
             scheduleData = await window.electronAPI.schedule.getForSending(schedule.id);
           } catch (error) {
-            console.error(`Failed to load data for schedule ${schedule.id}:`, error);
+            log.error(`Failed to load data for schedule ${schedule.id}:`, error);
             // Skip schedules without data
             continue;
           }
@@ -151,7 +152,7 @@ export const sendConfigToUnit = async (unit, configType, configData, selectedPro
           try {
             multiSceneScenes = await window.electronAPI.multiScenes.getScenes(multiScene.id);
           } catch (error) {
-            console.error(`Failed to load scenes for multi-scene ${multiScene.id}:`, error);
+            log.error(`Failed to load scenes for multi-scene ${multiScene.id}:`, error);
             // Skip multi-scenes without scenes
             continue;
           }
@@ -176,7 +177,7 @@ export const sendConfigToUnit = async (unit, configType, configData, selectedPro
           try {
             sequenceMultiScenes = await window.electronAPI.sequences.getMultiScenes(sequence.id);
           } catch (error) {
-            console.error(`Failed to load multi-scenes for sequence ${sequence.id}:`, error);
+            log.error(`Failed to load multi-scenes for sequence ${sequence.id}:`, error);
             // Skip sequences without multi-scenes
             continue;
           }
@@ -289,7 +290,7 @@ export const sendConfigToUnit = async (unit, configType, configData, selectedPro
 
     return { success: true };
   } catch (error) {
-    console.error(`Failed to send ${configType} to unit ${unit.ip_address}:`, error);
+    log.error(`Failed to send ${configType} to unit ${unit.ip_address}:`, error);
     return { success: false, error: error.message };
   }
 };

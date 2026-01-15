@@ -8,6 +8,7 @@ import { Blinds, Loader2, Pencil, ChevronUp, ChevronDown } from "lucide-react";
 import { toast } from "sonner";
 import { CONSTANTS } from "@/constants";
 import { ZigbeeDeviceCardWrapper } from "./zigbee-device-card-wrapper";
+import log from "electron-log/renderer";
 
 export function ZigbeeCurtainCard({ device, onRemove }) {
   const [loadingEndpoints, setLoadingEndpoints] = useState({});
@@ -111,7 +112,7 @@ export function ZigbeeCurtainCard({ device, onRemove }) {
         toast.error(`Failed to control curtain ${endpoint.index}`);
       }
     } catch (error) {
-      console.error("Failed to send command:", error);
+      log.error("Failed to send command:", error);
       toast.error(`Error: ${error.message}`);
     } finally {
       setLoadingEndpoints((prev) => ({ ...prev, [key]: false }));
@@ -138,7 +139,7 @@ export function ZigbeeCurtainCard({ device, onRemove }) {
       toast.success("Name updated successfully");
       setEditEndpointDialogOpen(false);
     } catch (error) {
-      console.error("Failed to update name:", error);
+      log.error("Failed to update name:", error);
       toast.error("Failed to update name");
     }
   };

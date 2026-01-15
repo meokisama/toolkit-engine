@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useProjectDetail } from "@/contexts/project-detail-context";
 import { OBJECT_TYPES } from "@/constants";
+import log from "electron-log/renderer";
 
 const categoryLabels = {
   lighting: "Lighting",
@@ -111,7 +112,7 @@ export function ProjectItemDialog({ open, onOpenChange, category, item = null, m
       }
       onOpenChange(false);
     } catch (error) {
-      console.error("Failed to save item:", error);
+      log.error("Failed to save item:", error);
 
       // Handle duplicate address error specifically
       if (error.message && error.message.includes("already exists")) {

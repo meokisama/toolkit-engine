@@ -12,6 +12,7 @@ import { ConfirmDialog } from "@/components/projects/confirm-dialog";
 import { ImportItemsDialog } from "@/components/projects/import-category-dialog";
 import { useProjectDetail } from "@/contexts/project-detail-context";
 import { TableSkeleton } from "@/components/projects/table-skeleton";
+import log from "electron-log/renderer";
 
 export function DmxTable({ items = [], loading = false }) {
   const category = "dmx";
@@ -75,7 +76,7 @@ export function DmxTable({ items = [], loading = false }) {
       pendingChangesRef.current.clear();
       setPendingChangesCount(0);
     } catch (error) {
-      console.error("Failed to save changes:", error);
+      log.error("Failed to save changes:", error);
     } finally {
       setSaveLoading(false);
     }
@@ -96,7 +97,7 @@ export function DmxTable({ items = [], loading = false }) {
       try {
         await duplicateItem(category, item.id);
       } catch (error) {
-        console.error("Failed to duplicate DMX item:", error);
+        log.error("Failed to duplicate DMX item:", error);
       }
     },
     [duplicateItem]
@@ -109,7 +110,7 @@ export function DmxTable({ items = [], loading = false }) {
         setDeleteDialogOpen(false);
         setItemToDelete(null);
       } catch (error) {
-        console.error("Failed to delete DMX item:", error);
+        log.error("Failed to delete DMX item:", error);
       }
     }
   };
@@ -155,7 +156,7 @@ export function DmxTable({ items = [], loading = false }) {
         table?.resetRowSelection();
       }, 100);
     } catch (error) {
-      console.error("Failed to delete DMX items:", error);
+      log.error("Failed to delete DMX items:", error);
     } finally {
       setBulkDeleteLoading(false);
     }
@@ -166,7 +167,7 @@ export function DmxTable({ items = [], loading = false }) {
     try {
       await exportItems(category);
     } catch (error) {
-      console.error("Failed to export DMX items:", error);
+      log.error("Failed to export DMX items:", error);
     }
   }, [exportItems]);
 
@@ -180,7 +181,7 @@ export function DmxTable({ items = [], loading = false }) {
         await importItems(category, items);
         setImportDialogOpen(false);
       } catch (error) {
-        console.error("Failed to import DMX items:", error);
+        log.error("Failed to import DMX items:", error);
       }
     },
     [importItems]

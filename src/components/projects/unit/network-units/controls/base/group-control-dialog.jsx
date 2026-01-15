@@ -1,5 +1,3 @@
-"use client";
-
 import { useState, useCallback, useEffect, useRef, memo } from "react";
 import { Settings2, Loader2, Power, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -14,6 +12,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { toast } from "sonner";
 import lightOn from "@/assets/light-on.png";
 import lightOff from "@/assets/light-off.png";
+import log from "electron-log/renderer";
 
 const GroupCard = memo(({ state, onSwitchToggle, onSliderChange, loading }) => {
   return (
@@ -107,7 +106,7 @@ export function GroupControlDialog({ open, onOpenChange, unit }) {
             value = data[stateIndex];
           }
 
-          console.log(`Group ${groupNum}: index=${stateIndex}, value=${value}`);
+          log.info(`Group ${groupNum}: index=${stateIndex}, value=${value}`);
 
           states.push({
             group: groupNum,
@@ -118,7 +117,7 @@ export function GroupControlDialog({ open, onOpenChange, unit }) {
 
         // If no valid data found, try alternative parsing
         if (states.every((s) => s.value === 0) && data.length > 9) {
-          console.log("Trying alternative parsing method...");
+          log.info("Trying alternative parsing method...");
           for (let groupNum = fromGroup; groupNum <= toGroup; groupNum++) {
             const altIndex = 8 + (groupNum - 1);
             let value = 0;
@@ -128,7 +127,7 @@ export function GroupControlDialog({ open, onOpenChange, unit }) {
             }
 
             states[groupNum - fromGroup].value = value;
-            console.log(`Alt Group ${groupNum}: index=${altIndex}, value=${value}`);
+            log.info(`Alt Group ${groupNum}: index=${altIndex}, value=${value}`);
           }
         }
       }
@@ -136,7 +135,7 @@ export function GroupControlDialog({ open, onOpenChange, unit }) {
       setGroupStates(states);
       toast.success(`Retrieved states for groups ${fromGroup}-${toGroup}`);
     } catch (error) {
-      console.error("Failed to get group states:", error);
+      log.error("Failed to get group states:", error);
       toast.error("Failed to get group states: " + error.message);
     } finally {
       setGetStateLoading(false);
@@ -207,7 +206,7 @@ export function GroupControlDialog({ open, onOpenChange, unit }) {
       }
     } catch (error) {
       // Silently fail for auto refresh to avoid spam
-      console.error("Auto refresh failed:", error);
+      log.error("Auto refresh failed:", error);
     }
   }, [unit, groupStates]);
 
@@ -229,7 +228,7 @@ export function GroupControlDialog({ open, onOpenChange, unit }) {
 
         toast.success(`Group ${groupNum} turned ${isOn ? "on" : "off"}`);
       } catch (error) {
-        console.error("Failed to toggle group:", error);
+        log.error("Failed to toggle group:", error);
         toast.error(`Failed to toggle group ${groupNum}: ${error.message}`);
 
         // Revert local state on error
@@ -263,7 +262,7 @@ export function GroupControlDialog({ open, onOpenChange, unit }) {
 
           toast.success(`Group ${groupNum} set to ${newValue[0]} (${Math.round((newValue[0] * 100) / 255)}%)`);
         } catch (error) {
-          console.error("Failed to set group value:", error);
+          log.error("Failed to set group value:", error);
           toast.error(`Failed to set group ${groupNum}: ${error.message}`);
         }
       }, 500);

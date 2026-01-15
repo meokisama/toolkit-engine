@@ -1,5 +1,6 @@
 import { useState, useCallback } from "react";
 import { toast } from "sonner";
+import log from "electron-log/renderer";
 
 // Helper function to determine if unit is a network unit
 // Network units don't have database ID, database units have ID
@@ -67,7 +68,7 @@ export const useOutputConfig = (item, setOutputConfigs) => {
           isLoading: false,
         }));
       } catch (error) {
-        console.error("Failed to load output config:", error);
+        log.error("Failed to load output config:", error);
         setCurrentOutputConfig((prev) => ({
           ...prev,
           config: {},
@@ -99,7 +100,7 @@ export const useOutputConfig = (item, setOutputConfigs) => {
 
         toast.success(`Output ${currentOutputConfig.index + 1} configuration saved successfully`);
       } catch (error) {
-        console.error("Failed to save output config:", error);
+        log.error("Failed to save output config:", error);
         toast.error("Failed to save output configuration");
       }
     },
@@ -125,7 +126,7 @@ export const useOutputConfig = (item, setOutputConfigs) => {
       });
       setOutputConfigurations(newOutputConfigurations);
     } catch (error) {
-      console.error("Failed to load all output configs:", error);
+      log.error("Failed to load all output configs:", error);
     }
   }, [item?.id]);
 

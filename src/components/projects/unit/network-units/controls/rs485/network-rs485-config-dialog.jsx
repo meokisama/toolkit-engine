@@ -13,6 +13,7 @@ import { CONSTANTS } from "@/constants";
 import { useProjectDetail } from "@/contexts/project-detail-context";
 import { isSlaveType, isNoneType } from "@/utils/rs485-utils";
 import { toast } from "sonner";
+import log from "electron-log/renderer";
 
 const { RS485 } = CONSTANTS;
 
@@ -93,7 +94,7 @@ export function NetworkRS485ConfigDialog({ open, onOpenChange, unit }) {
           throw new Error("Failed to create aircon item");
         }
       } catch (error) {
-        console.error(`Error adding missing aircon address:`, error);
+        log.error(`Error adding missing aircon address:`, error);
         toast.error(`Error adding aircon address: ${error.message}`);
       }
     },
@@ -106,16 +107,16 @@ export function NetworkRS485ConfigDialog({ open, onOpenChange, unit }) {
 
     setLoading(true);
     try {
-      console.log("Loading RS485 configurations from unit:", unit.ip_address);
+      log.info("Loading RS485 configurations from unit:", unit.ip_address);
 
       // Load CH1 and CH2 configurations sequentially to avoid conflicts
-      console.log("Loading RS485 CH1 configuration...");
+      log.info("Loading RS485 CH1 configuration...");
       const ch1Config = await window.electronAPI.deviceController.getRS485CH1Config({
         unitIp: unit.ip_address,
         canId: unit.id_can,
       });
 
-      console.log("Loading RS485 CH2 configuration...");
+      log.info("Loading RS485 CH2 configuration...");
       const ch2Config = await window.electronAPI.deviceController.getRS485CH2Config({
         unitIp: unit.ip_address,
         canId: unit.id_can,
@@ -127,7 +128,7 @@ export function NetworkRS485ConfigDialog({ open, onOpenChange, unit }) {
       setRS485Configs(configs);
       toast.success("RS485 configurations loaded successfully");
     } catch (error) {
-      console.error("Failed to load RS485 configurations:", error);
+      log.error("Failed to load RS485 configurations:", error);
       toast.error(`Failed to load RS485 configurations: ${error.message}`);
 
       // Set default configurations on error
@@ -258,13 +259,13 @@ export function NetworkRS485ConfigDialog({ open, onOpenChange, unit }) {
 
     setSaving(true);
     try {
-      console.log("Saving RS485 configurations to unit:", unit.ip_address);
+      log.info("Saving RS485 configurations to unit:", unit.ip_address);
 
       // Convert dialog format to network format and save both channels sequentially
       const ch1Config = convertDialogToNetworkFormat(rs485Configs[0]);
       const ch2Config = convertDialogToNetworkFormat(rs485Configs[1]);
 
-      console.log("Saving RS485 CH1 configuration...");
+      log.info("Saving RS485 CH1 configuration...");
       await window.electronAPI.deviceController.setRS485CH1Config({
         unitIp: unit.ip_address,
         canId: unit.id_can,
@@ -274,7 +275,7 @@ export function NetworkRS485ConfigDialog({ open, onOpenChange, unit }) {
       // Add delay between RS485 channel writes to avoid conflicts
       await new Promise((resolve) => setTimeout(resolve, 500));
 
-      console.log("Saving RS485 CH2 configuration...");
+      log.info("Saving RS485 CH2 configuration...");
       await window.electronAPI.deviceController.setRS485CH2Config({
         unitIp: unit.ip_address,
         canId: unit.id_can,
@@ -284,7 +285,7 @@ export function NetworkRS485ConfigDialog({ open, onOpenChange, unit }) {
       toast.success("RS485 configurations saved successfully");
       onOpenChange(false);
     } catch (error) {
-      console.error("Failed to save RS485 configurations:", error);
+      log.error("Failed to save RS485 configurations:", error);
       toast.error(`Failed to save RS485 configurations: ${error.message}`);
     } finally {
       setSaving(false);

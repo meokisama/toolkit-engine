@@ -14,6 +14,7 @@ import { ZigbeeSwitchCard } from "../zigbee/zigbee-switch-card";
 import { ZigbeeCurtainCard } from "../zigbee/zigbee-curtain-card";
 import { ZigbeeMotionSensorCard } from "../zigbee/zigbee-motion-sensor-card";
 import { ZigbeeDoorContactCard } from "../zigbee/zigbee-door-contact-card";
+import log from "electron-log/renderer";
 
 export function Smarthome() {
   const { selectedProject } = useProjectDetail();
@@ -61,7 +62,7 @@ export function Smarthome() {
       const devicesData = await window.electronAPI.zigbee.getDevices(selectedProject.id);
       setDevices(devicesData);
     } catch (error) {
-      console.error("Failed to load zigbee devices:", error);
+      log.error("Failed to load zigbee devices:", error);
       toast.error("Failed to load devices");
     } finally {
       setLoading(false);
@@ -101,7 +102,7 @@ export function Smarthome() {
         unitMap.get(unitKey).devices.push(device);
       });
 
-      console.log(`Found ${unitMap.size} unique units to refresh`);
+      log.info(`Found ${unitMap.size} unique units to refresh`);
 
       let totalUpdated = 0;
       let totalDeleted = 0;
@@ -110,7 +111,7 @@ export function Smarthome() {
       // 3. For each unit, send getZigbeeDevices command
       for (const unitData of unitMap.values()) {
         try {
-          console.log(`Refreshing devices from unit ${unitData.unit_ip} (CAN ID: ${unitData.unit_can_id})`);
+          log.info(`Refreshing devices from unit ${unitData.unit_ip} (CAN ID: ${unitData.unit_can_id})`);
 
           let response;
           try {
@@ -119,12 +120,12 @@ export function Smarthome() {
               canId: unitData.unit_can_id,
             });
           } catch (connectionError) {
-            console.error(`Connection error to unit ${unitData.unit_ip}:`, connectionError);
+            log.error(`Connection error to unit ${unitData.unit_ip}:`, connectionError);
             response = { success: false };
           }
 
           if (!response.success || !response.devices) {
-            console.warn(`Failed to get devices from unit ${unitData.unit_ip}`);
+            log.warn(`Failed to get devices from unit ${unitData.unit_ip}`);
 
             // Set all devices from this unit to offline
             for (const dbDevice of unitData.devices) {
@@ -132,9 +133,9 @@ export function Smarthome() {
                 await window.electronAPI.zigbee.updateDevice(dbDevice.id, {
                   status: 0, // Offline
                 });
-                console.log(`Set device ${dbDevice.ieee_address} to offline (unit unreachable)`);
+                log.info(`Set device ${dbDevice.ieee_address} to offline (unit unreachable)`);
               } catch (updateError) {
-                console.error(`Failed to update device ${dbDevice.ieee_address} to offline:`, updateError);
+                log.error(`Failed to update device ${dbDevice.ieee_address} to offline:`, updateError);
               }
             }
 
@@ -142,7 +143,7 @@ export function Smarthome() {
             continue;
           }
 
-          console.log(`Received ${response.devices.length} devices from unit ${unitData.unit_ip}`);
+          log.info(`Received ${response.devices.length} devices from unit ${unitData.unit_ip}`);
 
           // 4. Update or create devices from unit response
           for (const receivedDevice of response.devices) {
@@ -171,7 +172,7 @@ export function Smarthome() {
 
                 totalUpdated++;
               } catch (updateError) {
-                console.error(`Failed to update device ${receivedDevice.ieee_address}:`, updateError);
+                log.error(`Failed to update device ${receivedDevice.ieee_address}:`, updateError);
                 totalErrors++;
               }
             } else {
@@ -200,10 +201,10 @@ export function Smarthome() {
 
                 await window.electronAPI.zigbee.createDevice(selectedProject.id, newDeviceData);
 
-                console.log(`Created new device ${receivedDevice.ieee_address} from unit ${unitData.unit_ip}`);
+                log.info(`Created new device ${receivedDevice.ieee_address} from unit ${unitData.unit_ip}`);
                 totalUpdated++;
               } catch (createError) {
-                console.error(`Failed to create device ${receivedDevice.ieee_address}:`, createError);
+                log.error(`Failed to create device ${receivedDevice.ieee_address}:`, createError);
                 totalErrors++;
               }
             }
@@ -220,15 +221,15 @@ export function Smarthome() {
           for (const deviceToDelete of devicesToDelete) {
             try {
               await window.electronAPI.zigbee.deleteDevice(deviceToDelete.id);
-              console.log(`Deleted device ${deviceToDelete.ieee_address} (no longer exists on unit ${unitData.unit_ip})`);
+              log.info(`Deleted device ${deviceToDelete.ieee_address} (no longer exists on unit ${unitData.unit_ip})`);
               totalDeleted++;
             } catch (deleteError) {
-              console.error(`Failed to delete device ${deviceToDelete.ieee_address}:`, deleteError);
+              log.error(`Failed to delete device ${deviceToDelete.ieee_address}:`, deleteError);
               totalErrors++;
             }
           }
         } catch (unitError) {
-          console.error(`Error refreshing unit ${unitData.unit_ip}:`, unitError);
+          log.error(`Error refreshing unit ${unitData.unit_ip}:`, unitError);
           totalErrors++;
         }
       }
@@ -255,7 +256,7 @@ export function Smarthome() {
         }
       }
     } catch (error) {
-      console.error("Failed to refresh devices:", error);
+      log.error("Failed to refresh devices:", error);
       if (!silent) {
         toast.error(error.message || "Failed to refresh devices");
       }
@@ -291,7 +292,7 @@ export function Smarthome() {
       // 3. Reload the devices list
       await loadDevices();
     } catch (error) {
-      console.error("Failed to remove device:", error);
+      log.error("Failed to remove device:", error);
       throw error;
     }
   };

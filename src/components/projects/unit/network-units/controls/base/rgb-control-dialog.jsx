@@ -9,6 +9,7 @@ import { HexAlphaColorPicker } from "react-colorful";
 import { Palette, Loader2, Send, Sun } from "lucide-react";
 import { toast } from "sonner";
 import { CONSTANTS } from "@/constants";
+import log from "electron-log/renderer";
 
 const rgbToHex = (r, g, b, a = 255) => {
   return (
@@ -238,7 +239,7 @@ const RGBControlDialog = ({ open, onOpenChange, unit }) => {
 
       toast.success(`RGBA color sent successfully!\nR:${actualColor.r} G:${actualColor.g} B:${actualColor.b} A:${actualColor.a} (${brightness}%)`);
     } catch (error) {
-      console.error("Failed to send RGBA color:", error);
+      log.error("Failed to send RGBA color:", error);
       toast.error(`Failed to send RGBA color: ${error.message}`);
     } finally {
       setSendingColor(false);

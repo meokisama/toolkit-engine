@@ -1,3 +1,4 @@
+import log from "electron-log/renderer";
 /**
  * Utility for resolving device addresses from device IDs
  */
@@ -28,7 +29,7 @@ export async function getAddressFromDeviceId(deviceId, deviceType, projectItems 
 
     return null;
   } catch (error) {
-    console.warn(`Failed to get address for device ${deviceId}:`, error);
+    log.warn(`Failed to get address for device ${deviceId}:`, error);
     return null;
   }
 }

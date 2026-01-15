@@ -126,11 +126,6 @@ export function UpdateDialog({ open, onOpenChange }) {
               </DialogTitle>
               <DialogDescription>You are running the latest version of the application.</DialogDescription>
             </DialogHeader>
-            <div className="flex items-center justify-center py-4">
-              <Badge variant="outline" className="text-base px-4 py-2">
-                v{updateInfo?.currentVersion}
-              </Badge>
-            </div>
             <DialogFooter>
               <Button variant="outline" onClick={() => onOpenChange(false)}>
                 Close

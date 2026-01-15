@@ -11,6 +11,7 @@ import { DmxTable } from "@/components/projects/dmx/dmx-table";
 import { TabLoadingSkeleton, AirconCardsSkeleton } from "@/components/projects/tab-loading-skeleton";
 import { Lightbulb, Wind, Cpu, Blinds, Network, BedDouble, Palette } from "lucide-react";
 import { RoomSettings } from "@/components/projects/room/room-detail-settings";
+import log from "electron-log/renderer";
 
 // Tab config for Group Config (7 tabs: lighting, aircon, curtain, knx, room, dmx, unit)
 const groupConfigTabConfig = {
@@ -68,7 +69,7 @@ export function GroupConfig() {
       try {
         await Promise.all(loadPromises);
       } catch (error) {
-        console.error("Failed to load required data for KNX tab:", error);
+        log.error("Failed to load required data for KNX tab:", error);
       }
     }
   }, [selectedProject, loadedTabs, loadTabData]);

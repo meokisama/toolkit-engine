@@ -9,6 +9,7 @@ import { Power, DoorClosed, Loader2, Book } from "lucide-react";
 import { toast } from "sonner";
 import { CONSTANTS } from "@/constants";
 import lightOn from "@/assets/light-on.png";
+import log from "electron-log/renderer";
 
 export function AssignEndpointAddressDialog({ open, onOpenChange, devices, onSaved }) {
   const { selectedProject } = useProjectDetail();
@@ -45,7 +46,7 @@ export function AssignEndpointAddressDialog({ open, onOpenChange, devices, onSav
       setLightingItems(lighting);
       setCurtainItems(curtain);
     } catch (error) {
-      console.error("Failed to load items:", error);
+      log.error("Failed to load items:", error);
       toast.error("Failed to load lighting/curtain items");
     } finally {
       setLoading(false);
@@ -138,7 +139,7 @@ export function AssignEndpointAddressDialog({ open, onOpenChange, devices, onSav
           const totalDevices = unitData.devices.length;
           const batchCount = Math.ceil(totalDevices / batchSize);
 
-          console.log(`Unit ${unitData.unitIp}: ${totalDevices} devices, will send ${batchCount} batch(es)`);
+          log.info(`Unit ${unitData.unitIp}: ${totalDevices} devices, will send ${batchCount} batch(es)`);
 
           // Send each batch
           for (let i = 0; i < batchCount; i++) {
@@ -146,7 +147,7 @@ export function AssignEndpointAddressDialog({ open, onOpenChange, devices, onSav
             const end = Math.min(start + batchSize, totalDevices);
             const batch = unitData.devices.slice(start, end);
 
-            console.log(`Sending batch ${i + 1}/${batchCount} to unit ${unitData.unitIp} (${batch.length} devices)`);
+            log.info(`Sending batch ${i + 1}/${batchCount} to unit ${unitData.unitIp} (${batch.length} devices)`);
 
             const result = await window.electronAPI.zigbeeController.setupZigbeeDevice({
               unitIp: unitData.unitIp,
@@ -155,13 +156,13 @@ export function AssignEndpointAddressDialog({ open, onOpenChange, devices, onSav
             });
 
             if (!result.success) {
-              console.error(`Failed to setup batch ${i + 1}/${batchCount} for unit ${unitData.unitIp}`);
+              log.error(`Failed to setup batch ${i + 1}/${batchCount} for unit ${unitData.unitIp}`);
               setupErrors++;
               break; // Stop sending remaining batches for this unit if one fails
             }
           }
         } catch (error) {
-          console.error(`Error setting up unit ${unitData.unitIp}:`, error);
+          log.error(`Error setting up unit ${unitData.unitIp}:`, error);
           setupErrors++;
         }
       }
@@ -177,7 +178,7 @@ export function AssignEndpointAddressDialog({ open, onOpenChange, devices, onSav
       }
       onOpenChange(false);
     } catch (error) {
-      console.error("Failed to update addresses:", error);
+      log.error("Failed to update addresses:", error);
       toast.error("Failed to update addresses");
     } finally {
       setLoading(false);

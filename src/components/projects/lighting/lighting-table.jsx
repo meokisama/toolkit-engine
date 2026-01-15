@@ -11,6 +11,7 @@ import { DataTableSkeleton } from "@/components/projects/table-skeleton";
 import { createProjectItemsColumns } from "@/components/projects/lighting/lighting-columns";
 import { ImportItemsDialog } from "@/components/projects/import-category-dialog";
 import { Lightbulb } from "lucide-react";
+import log from "electron-log/renderer";
 
 // Memoized component to prevent unnecessary rerenders
 function ProjectItemsTableComponent({ category, items, loading }) {
@@ -67,7 +68,7 @@ function ProjectItemsTableComponent({ category, items, loading }) {
       pendingChangesRef.current.clear();
       setPendingChangesCount(0);
     } catch (error) {
-      console.error("Failed to save changes:", error);
+      log.error("Failed to save changes:", error);
     } finally {
       setSaveLoading(false);
     }
@@ -96,7 +97,7 @@ function ProjectItemsTableComponent({ category, items, loading }) {
       try {
         await duplicateItem(category, item.id);
       } catch (error) {
-        console.error("Failed to duplicate item:", error);
+        log.error("Failed to duplicate item:", error);
       }
     },
     [duplicateItem, category]
@@ -111,7 +112,7 @@ function ProjectItemsTableComponent({ category, items, loading }) {
       setConfirmDialogOpen(false);
       setItemToDelete(null);
     } catch (error) {
-      console.error("Failed to delete item:", error);
+      log.error("Failed to delete item:", error);
     } finally {
       setDeleteLoading(false);
     }
@@ -136,7 +137,7 @@ function ProjectItemsTableComponent({ category, items, loading }) {
         table?.resetRowSelection();
       }, 100);
     } catch (error) {
-      console.error("Failed to delete items:", error);
+      log.error("Failed to delete items:", error);
     } finally {
       setBulkDeleteLoading(false);
     }
@@ -161,7 +162,7 @@ function ProjectItemsTableComponent({ category, items, loading }) {
     try {
       await exportItems(category);
     } catch (error) {
-      console.error("Failed to export items:", error);
+      log.error("Failed to export items:", error);
     }
   }, [exportItems, category]);
 
@@ -175,7 +176,7 @@ function ProjectItemsTableComponent({ category, items, loading }) {
         await importItems(category, items);
         setImportDialogOpen(false);
       } catch (error) {
-        console.error("Failed to import items:", error);
+        log.error("Failed to import items:", error);
       }
     },
     [importItems, category]

@@ -2,6 +2,7 @@ import React from "react";
 import { toast } from "sonner";
 import { SendItemsDialog } from "@/components/shared/send-items-dialog";
 import { useProjectDetail } from "@/contexts/project-detail-context";
+import log from "electron-log/renderer";
 
 export function SendScheduleDialog({ open, onOpenChange, items = [] }) {
   const { projectItems } = useProjectDetail();
@@ -43,7 +44,7 @@ export function SendScheduleDialog({ open, onOpenChange, items = [] }) {
         toast.success(`Schedule sent successfully to ${unit.type || unit.unit_type} (${unit.ip_address})`);
       } catch (error) {
         errorCount++;
-        console.error(`Failed to send schedule to ${unit.ip_address}:`, error);
+        log.error(`Failed to send schedule to ${unit.ip_address}:`, error);
         toast.error(`Failed to send schedule to ${unit.type || unit.unit_type} (${unit.ip_address}): ${error.message}`);
       }
     }
@@ -79,7 +80,7 @@ export function SendScheduleDialog({ open, onOpenChange, items = [] }) {
         completedOperations++;
         onProgress((completedOperations / totalOperations) * 100, "Deleting existing schedules...");
       } catch (error) {
-        console.error(`Failed to delete existing schedules from unit ${unit.ip_address}:`, error);
+        log.error(`Failed to delete existing schedules from unit ${unit.ip_address}:`, error);
         operationResults.push({
           scene: "Delete All Schedules",
           unit: `${unit.type || "Unknown Unit"} (${unit.ip_address})`,
@@ -112,7 +113,7 @@ export function SendScheduleDialog({ open, onOpenChange, items = [] }) {
           dmxDuration: scheduleScenes.dmx_duration || 0,
         };
       } catch (error) {
-        console.error(`Failed to load data for schedule ${currentScheduleData.id}:`, error);
+        log.error(`Failed to load data for schedule ${currentScheduleData.id}:`, error);
         // Skip schedules without data
         completedOperations += selectedUnits.length;
         onProgress((completedOperations / totalOperations) * 100, "");
@@ -150,7 +151,7 @@ export function SendScheduleDialog({ open, onOpenChange, items = [] }) {
             message: "Sent successfully",
           });
         } catch (error) {
-          console.error(`Failed to send schedule ${currentScheduleData.name} to unit ${unit.ip_address}:`, error);
+          log.error(`Failed to send schedule ${currentScheduleData.name} to unit ${unit.ip_address}:`, error);
           operationResults.push({
             schedule: currentScheduleData.name,
             unit: `${unit.type || unit.unit_type || "Unknown Unit"} (${unit.ip_address})`,

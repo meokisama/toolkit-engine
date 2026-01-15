@@ -18,6 +18,7 @@ import { toast } from "sonner";
 import { createDefaultRS485Config } from "@/utils/rs485-utils";
 import { createDefaultInputConfigs, createDefaultOutputConfigs } from "@/utils/io-config-utils";
 import { readAdvancedConfigurations } from "../transfer";
+import log from "electron-log/renderer";
 
 export function UnitTable() {
   const category = "unit";
@@ -106,7 +107,7 @@ export function UnitTable() {
       pendingChangesRef.current.clear();
       setPendingChangesCount(0);
     } catch (error) {
-      console.error("Failed to save changes:", error);
+      log.error("Failed to save changes:", error);
     } finally {
       setSaveLoading(false);
     }
@@ -128,7 +129,7 @@ export function UnitTable() {
     try {
       await duplicateItem(category, item.id);
     } catch (error) {
-      console.error("Failed to duplicate unit:", error);
+      log.error("Failed to duplicate unit:", error);
     }
   };
 
@@ -146,7 +147,7 @@ export function UnitTable() {
       setConfirmDialogOpen(false);
       setItemToDelete(null);
     } catch (error) {
-      console.error("Failed to delete unit:", error);
+      log.error("Failed to delete unit:", error);
     } finally {
       setDeleteLoading(false);
     }
@@ -161,7 +162,7 @@ export function UnitTable() {
         databaseTable.resetRowSelection();
       }
     } catch (error) {
-      console.error("Failed to bulk delete units:", error);
+      log.error("Failed to bulk delete units:", error);
     }
   };
 
@@ -175,7 +176,7 @@ export function UnitTable() {
       const unitsWithAdvancedConfigs = unitsToTransfer.filter((unit) => unit.readAdvancedConfigs);
 
       if (unitsWithAdvancedConfigs.length > 0) {
-        console.log(`Reading advanced configurations for ${unitsWithAdvancedConfigs.length} units...`);
+        log.info(`Reading advanced configurations for ${unitsWithAdvancedConfigs.length} units...`);
 
         for (let i = 0; i < unitsWithAdvancedConfigs.length; i++) {
           const networkUnit = unitsWithAdvancedConfigs[i];
@@ -185,7 +186,7 @@ export function UnitTable() {
             try {
               await readAdvancedConfigurations(networkUnit, importedUnit, selectedProject.id);
             } catch (error) {
-              console.error(`Failed to read advanced configurations for unit ${networkUnit.ip_address}:`, error);
+              log.error(`Failed to read advanced configurations for unit ${networkUnit.ip_address}:`, error);
               // Continue with other units
             }
           }
@@ -194,7 +195,7 @@ export function UnitTable() {
 
       toast.success(`Successfully transferred ${unitsToTransfer.length} unit(s) with configurations to database`);
     } catch (error) {
-      console.error("Failed to transfer units to database:", error);
+      log.error("Failed to transfer units to database:", error);
       throw error; // Re-throw to let NetworkUnitTable handle the error display
     }
   };
@@ -203,7 +204,7 @@ export function UnitTable() {
     try {
       await exportItems(category);
     } catch (error) {
-      console.error("Failed to export unit items:", error);
+      log.error("Failed to export unit items:", error);
     }
   };
 
@@ -222,14 +223,14 @@ export function UnitTable() {
     try {
       // Load aircon data if not already loaded (needed for device_id to address mapping)
       if (selectedProject && !loadedTabs.has("aircon")) {
-        console.log("Loading aircon data for comparison...");
+        log.info("Loading aircon data for comparison...");
         toast.info("Loading aircon data...");
 
         try {
           await loadTabData(selectedProject.id, "aircon");
-          console.log("Aircon data loaded successfully");
+          log.info("Aircon data loaded successfully");
         } catch (loadError) {
-          console.error("Failed to load aircon data:", loadError);
+          log.error("Failed to load aircon data:", loadError);
           toast.error("Failed to load aircon data for comparison");
           return;
         }
@@ -244,16 +245,16 @@ export function UnitTable() {
             ...projectItems,
             aircon: freshAirconItems,
           };
-          console.log("Fresh aircon data loaded:", {
+          log.info("Fresh aircon data loaded:", {
             airconCount: freshAirconItems.length,
           });
         } catch (error) {
-          console.error("Failed to get fresh aircon data:", error);
+          log.error("Failed to get fresh aircon data:", error);
           // Continue with existing projectItems
         }
       }
 
-      console.log("Starting comparison with projectItems:", {
+      log.info("Starting comparison with projectItems:", {
         airconCount: freshProjectItems.aircon?.length || 0,
         lightingCount: freshProjectItems.lighting?.length || 0,
       });
@@ -261,7 +262,7 @@ export function UnitTable() {
       // Pass fresh projectItems for device_id to address lookup
       await compareConfigurations(units, networkUnits, freshProjectItems);
     } catch (error) {
-      console.error("Failed to compare configurations:", error);
+      log.error("Failed to compare configurations:", error);
       toast.error(`Failed to compare configurations: ${error.message}`);
     }
   }, [units, networkUnits, compareConfigurations, projectItems, selectedProject, loadedTabs, loadTabData]);
@@ -275,7 +276,7 @@ export function UnitTable() {
       await importItems(category, items);
       setImportDialogOpen(false);
     } catch (error) {
-      console.error("Failed to import unit items:", error);
+      log.error("Failed to import unit items:", error);
     }
   };
 

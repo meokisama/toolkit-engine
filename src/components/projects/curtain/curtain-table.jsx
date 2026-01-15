@@ -11,6 +11,7 @@ import { ConfirmDialog } from "@/components/projects/confirm-dialog";
 import { ImportItemsDialog } from "@/components/projects/import-category-dialog";
 import { useProjectDetail } from "@/contexts/project-detail-context";
 import { TableSkeleton } from "@/components/projects/table-skeleton";
+import log from "electron-log/renderer";
 
 export function CurtainTable({ items = [], loading = false }) {
   const category = "curtain";
@@ -81,7 +82,7 @@ export function CurtainTable({ items = [], loading = false }) {
       pendingChangesRef.current.clear();
       setPendingChangesCount(0);
     } catch (error) {
-      console.error("Failed to save changes:", error);
+      log.error("Failed to save changes:", error);
     } finally {
       setSaveLoading(false);
     }
@@ -102,7 +103,7 @@ export function CurtainTable({ items = [], loading = false }) {
       try {
         await duplicateItem(category, item.id);
       } catch (error) {
-        console.error("Failed to duplicate curtain item:", error);
+        log.error("Failed to duplicate curtain item:", error);
       }
     },
     [duplicateItem]
@@ -112,7 +113,7 @@ export function CurtainTable({ items = [], loading = false }) {
     try {
       await updateItem(category, id, data);
     } catch (error) {
-      console.error("Failed to update curtain item:", error);
+      log.error("Failed to update curtain item:", error);
     }
   };
 
@@ -123,7 +124,7 @@ export function CurtainTable({ items = [], loading = false }) {
         setDeleteDialogOpen(false);
         setItemToDelete(null);
       } catch (error) {
-        console.error("Failed to delete curtain item:", error);
+        log.error("Failed to delete curtain item:", error);
       }
     }
   };
@@ -169,7 +170,7 @@ export function CurtainTable({ items = [], loading = false }) {
         table?.resetRowSelection();
       }, 100);
     } catch (error) {
-      console.error("Failed to delete curtain items:", error);
+      log.error("Failed to delete curtain items:", error);
     } finally {
       setBulkDeleteLoading(false);
     }
@@ -180,7 +181,7 @@ export function CurtainTable({ items = [], loading = false }) {
     try {
       await exportItems(category);
     } catch (error) {
-      console.error("Failed to export curtain items:", error);
+      log.error("Failed to export curtain items:", error);
     }
   }, [exportItems]);
 
@@ -194,7 +195,7 @@ export function CurtainTable({ items = [], loading = false }) {
         await importItems(category, items);
         setImportDialogOpen(false);
       } catch (error) {
-        console.error("Failed to import curtain items:", error);
+        log.error("Failed to import curtain items:", error);
       }
     },
     [importItems]

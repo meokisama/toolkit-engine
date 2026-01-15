@@ -5,6 +5,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { AlertTriangle, Loader2 } from "lucide-react";
 import { toast } from "sonner";
+import log from "electron-log/renderer";
 
 export function FactoryResetZigbeeDialog({ open, onOpenChange, devices, projectId, onSuccess }) {
   const [loading, setLoading] = useState(false);
@@ -55,9 +56,9 @@ export function FactoryResetZigbeeDialog({ open, onOpenChange, devices, projectI
         if (projectId) {
           try {
             await window.electronAPI.zigbee.deleteAllDevicesForUnit(projectId, unitIp);
-            console.log(`Deleted all Zigbee devices for unit ${unitIp} from database`);
+            log.info(`Deleted all Zigbee devices for unit ${unitIp} from database`);
           } catch (dbError) {
-            console.error("Failed to delete devices from database:", dbError);
+            log.error("Failed to delete devices from database:", dbError);
             toast.warning(`Factory reset successful but failed to delete devices from database: ${dbError.message}`);
           }
         }
@@ -74,7 +75,7 @@ export function FactoryResetZigbeeDialog({ open, onOpenChange, devices, projectI
         toast.error("Failed to factory reset Zigbee coordinator");
       }
     } catch (error) {
-      console.error("Failed to factory reset:", error);
+      log.error("Failed to factory reset:", error);
       toast.error(`Error: ${error.message}`);
     } finally {
       setLoading(false);

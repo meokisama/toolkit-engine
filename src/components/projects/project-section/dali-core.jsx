@@ -15,6 +15,7 @@ import { Group } from "@/components/projects/dali/group";
 import { Scene } from "@/components/projects/dali/scene";
 import { SelectGatewayDialog } from "@/components/projects/dali/select-gateway-dialog";
 import { toast } from "sonner";
+import log from "electron-log/renderer";
 
 export function DaliCore() {
   const { selectedProject } = useProjectDetail();
@@ -85,7 +86,7 @@ export function DaliCore() {
         }
       }
 
-      console.log("Initial:", addressMapping);
+      log.info("Initial:", addressMapping);
 
       // Apply swap operations for each mapped device
       dbDevices.forEach((device, index) => {
@@ -99,12 +100,12 @@ export function DaliCore() {
             [addressMapping[currentPos], addressMapping[targetPos]] = [addressMapping[targetPos], addressMapping[currentPos]];
             [deviceTracker[currentPos], deviceTracker[targetPos]] = [deviceTracker[targetPos], deviceTracker[currentPos]];
 
-            console.log(`Swap ${index}: device ${device.address} from pos ${currentPos} to pos ${targetPos}`, addressMapping);
+            log.info(`Swap ${index}: device ${device.address} from pos ${currentPos} to pos ${targetPos}`, addressMapping);
           }
         }
       });
 
-      console.log("Final:", addressMapping);
+      log.info("Final:", addressMapping);
 
       // Send address mapping to gateway
       await window.electronAPI.daliController.sendAddressMapping({
@@ -153,7 +154,7 @@ export function DaliCore() {
       // Reload to reflect changes
       // window.location.reload();
     } catch (error) {
-      console.error("Failed to send address mapping:", error);
+      log.error("Failed to send address mapping:", error);
       toast.error(`Failed to send address mapping: ${error.message}`);
     } finally {
       setSending(false);
@@ -212,8 +213,8 @@ export function DaliCore() {
         rcuMapping[64 + i] = groupData?.lighting_group_address ?? 100 + i;
       }
 
-      console.log("RCU Mapping (devices 0-63):", rcuMapping.slice(0, 64));
-      console.log("RCU Mapping (groups 0-15):", rcuMapping.slice(64, 80));
+      log.info("RCU Mapping (devices 0-63):", rcuMapping.slice(0, 64));
+      log.info("RCU Mapping (groups 0-15):", rcuMapping.slice(64, 80));
 
       // Send RCU mapping to gateway
       await window.electronAPI.daliController.sendMappingRCU({
@@ -224,7 +225,7 @@ export function DaliCore() {
 
       toast.success("RCU mapping sent successfully!");
     } catch (error) {
-      console.error("Failed to send RCU mapping:", error);
+      log.error("Failed to send RCU mapping:", error);
       toast.error(`Failed to send RCU mapping: ${error.message}`);
     } finally {
       setSending(false);
@@ -254,7 +255,7 @@ export function DaliCore() {
 
       toast.success(`Group & Scene configuration sent successfully! Configured ${result.deviceCount} device(s) (${result.totalBytes} bytes)`);
     } catch (error) {
-      console.error("Failed to send Group & Scene configuration:", error);
+      log.error("Failed to send Group & Scene configuration:", error);
       toast.error(`Failed to send Group & Scene configuration: ${error.message}`);
     } finally {
       setSending(false);
@@ -283,7 +284,7 @@ export function DaliCore() {
 
       toast.success("All DALI configuration reset successfully!");
     } catch (error) {
-      console.error("Failed to reset DALI configuration:", error);
+      log.error("Failed to reset DALI configuration:", error);
       toast.error(`Failed to reset configuration: ${error.message}`);
     } finally {
       setSending(false);
@@ -305,7 +306,7 @@ export function DaliCore() {
       toast.success(`Cleared ${result.cleared} address mapping(s)`);
       // window.location.reload();
     } catch (error) {
-      console.error("Failed to clear address mappings:", error);
+      log.error("Failed to clear address mappings:", error);
       toast.error(`Failed to clear address mappings: ${error.message}`);
     } finally {
       setClearing(false);
@@ -327,7 +328,7 @@ export function DaliCore() {
       toast.success(`Cleared ${result.clearedRelationships} group relationship(s) and ${result.clearedMetadata} group(s)`);
       // window.location.reload();
     } catch (error) {
-      console.error("Failed to clear groups:", error);
+      log.error("Failed to clear groups:", error);
       toast.error(`Failed to clear groups: ${error.message}`);
     } finally {
       setClearing(false);
@@ -349,7 +350,7 @@ export function DaliCore() {
       toast.success(`Cleared ${result.clearedDevices} scene device(s) and ${result.clearedMetadata} scene(s)`);
       // window.location.reload();
     } catch (error) {
-      console.error("Failed to clear scenes:", error);
+      log.error("Failed to clear scenes:", error);
       toast.error(`Failed to clear scenes: ${error.message}`);
     } finally {
       setClearing(false);
@@ -372,7 +373,7 @@ export function DaliCore() {
       toast.success("Cleared scanned devices from local storage");
       // window.location.reload();
     } catch (error) {
-      console.error("Failed to clear scanned devices:", error);
+      log.error("Failed to clear scanned devices:", error);
       toast.error(`Failed to clear scanned devices: ${error.message}`);
     } finally {
       setClearing(false);
@@ -402,7 +403,7 @@ export function DaliCore() {
       // Optionally refresh the current view
       // window.location.reload();
     } catch (error) {
-      console.error("Failed to clear configurations:", error);
+      log.error("Failed to clear configurations:", error);
       toast.error(`Failed to clear configurations: ${error.message}`);
     } finally {
       setClearing(false);
@@ -492,7 +493,7 @@ export function DaliCore() {
       setDeleteMode("all");
       setDeleteAddressInput("");
     } catch (error) {
-      console.error("Failed to delete address:", error);
+      log.error("Failed to delete address:", error);
       toast.error(`Failed to delete address: ${error.message}`);
     } finally {
       setSending(false);

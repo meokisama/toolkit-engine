@@ -1,3 +1,5 @@
+import log from "electron-log/renderer";
+
 /**
  * Compare output configurations between database and network unit
  * @param {Object} databaseOutputs - Output configs from database unit
@@ -59,7 +61,7 @@ export function compareOutputConfigs(databaseOutputs, networkOutputs, projectIte
 
         // Debug logging for AC outputs
         if (dbOutput.type === "ac") {
-          console.log(`AC Output ${i + 1} device_id lookup:`, {
+          log.info(`AC Output ${i + 1} device_id lookup:`, {
             device_id: dbOutput.device_id,
             deviceType,
             availableItems: projectItems[deviceType]?.length || 0,

@@ -10,6 +10,7 @@ import lightOn from "@/assets/light-on.png";
 import lightOff from "@/assets/light-off.png";
 import { CONSTANTS } from "@/constants";
 import { ZigbeeDeviceCardWrapper } from "./zigbee-device-card-wrapper";
+import log from "electron-log/renderer";
 
 export function ZigbeeSwitchCard({ device, onRemove }) {
   const [loadingEndpoints, setLoadingEndpoints] = useState({});
@@ -115,7 +116,7 @@ export function ZigbeeSwitchCard({ device, onRemove }) {
         toast.error(`Failed to control switch ${endpoint.index}`);
       }
     } catch (error) {
-      console.error("Failed to send command:", error);
+      log.error("Failed to send command:", error);
       toast.error(`Error: ${error.message}`);
     } finally {
       setLoadingEndpoints((prev) => ({ ...prev, [key]: false }));
@@ -142,7 +143,7 @@ export function ZigbeeSwitchCard({ device, onRemove }) {
       toast.success("Name updated successfully");
       setEditEndpointDialogOpen(false);
     } catch (error) {
-      console.error("Failed to update name:", error);
+      log.error("Failed to update name:", error);
       toast.error("Failed to update name");
     }
   };

@@ -1,4 +1,4 @@
-// Helper functions for I/O configuration
+import log from "electron-log/renderer";
 
 /**
  * Get output icon based on type
@@ -67,6 +67,6 @@ export const checkPerformanceThreshold = (items, threshold = 50) => {
  */
 export const logPerformanceWarning = (type, count, threshold = 50) => {
   if (process.env.NODE_ENV === "development" && count > threshold) {
-    console.warn(`IOConfigDialog: Large ${type} list detected (${count} items). Consider pagination.`);
+    log.warn(`IOConfigDialog: Large ${type} list detected (${count} items). Consider pagination.`);
   }
 };

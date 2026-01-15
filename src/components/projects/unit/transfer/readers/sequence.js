@@ -1,3 +1,4 @@
+import log from "electron-log/renderer";
 /**
  * Read Sequence configurations from network unit and create them in database
  * @param {Object} networkUnit - The network unit to read from
@@ -10,7 +11,7 @@ export const readSequenceConfigurations = async (networkUnit, projectId, multiSc
   const createdSequences = [];
 
   try {
-    console.log("Reading Sequence configurations...");
+    log.info("Reading Sequence configurations...");
 
     const result = await window.electronAPI.sequenceController.getAllSequencesInformation({
       unitIp: networkUnit.ip_address,
@@ -18,13 +19,13 @@ export const readSequenceConfigurations = async (networkUnit, projectId, multiSc
     });
 
     if (result?.sequences && result.sequences.length > 0) {
-      console.log(`Found ${result.sequences.length} sequences on network unit`);
+      log.info(`Found ${result.sequences.length} sequences on network unit`);
 
       for (const networkSequence of result.sequences) {
         try {
           // Only process sequences with multi-scenes
           if (!networkSequence.multiSceneAddresses || networkSequence.multiSceneAddresses.length === 0) {
-            console.log(`Skipping sequence ${networkSequence.index}: no multi-scenes`);
+            log.info(`Skipping sequence ${networkSequence.index}: no multi-scenes`);
             continue;
           }
 
@@ -50,32 +51,32 @@ export const readSequenceConfigurations = async (networkUnit, projectId, multiSc
                   i // multi_scene_order
                 );
               } catch (error) {
-                console.error(`Failed to add multi-scene ${multiSceneId} to sequence ${createdSequence.id}:`, error);
+                log.error(`Failed to add multi-scene ${multiSceneId} to sequence ${createdSequence.id}:`, error);
                 // Continue with other multi-scenes
               }
             } else {
-              console.warn(`Multi-scene with address ${multiSceneAddress} not found in created multi-scenes`);
+              log.warn(`Multi-scene with address ${multiSceneAddress} not found in created multi-scenes`);
             }
           }
 
           createdSequences.push(createdSequence);
-          console.log(
+          log.info(
             `Created sequence: ${createdSequence.name} (ID: ${createdSequence.id}) with ${networkSequence.multiSceneAddresses.length} multi-scenes`
           );
 
           // Add delay between sequence reads
           await new Promise((resolve) => setTimeout(resolve, 300));
         } catch (error) {
-          console.error(`Failed to process sequence ${networkSequence.index}:`, error);
+          log.error(`Failed to process sequence ${networkSequence.index}:`, error);
           // Continue with other sequences
         }
       }
     }
 
-    console.log(`Successfully created ${createdSequences.length} sequences`);
+    log.info(`Successfully created ${createdSequences.length} sequences`);
     return createdSequences;
   } catch (error) {
-    console.error("Failed to read Sequence configurations:", error);
+    log.error("Failed to read Sequence configurations:", error);
     return createdSequences;
   }
 };

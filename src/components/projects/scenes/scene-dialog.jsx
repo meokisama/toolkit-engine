@@ -16,6 +16,7 @@ import { useDmxManagement } from "./hooks/useDmxManagement";
 import { useAirconManagement } from "./hooks/useAirconManagement";
 import { useLightingManagement } from "./hooks/useLightingManagement";
 import { useCurtainManagement } from "./hooks/useCurtainManagement";
+import log from "electron-log/renderer";
 
 // Create label mappings directly from CONSTANTS.AIRCON
 const AC_POWER_LABELS =
@@ -355,7 +356,7 @@ export function SceneDialog({ open, onOpenChange, scene = null, mode = "create" 
       sceneItemsHooks.setOriginalSceneItems([]);
       setErrors({});
     } catch (error) {
-      console.error("Failed to save scene:", error);
+      log.error("Failed to save scene:", error);
 
       if (error.message && error.message.includes("already used by another scene")) {
         setErrors({ general: error.message });
@@ -569,7 +570,12 @@ export function SceneDialog({ open, onOpenChange, scene = null, mode = "create" 
       />
 
       {/* Edit Curtain Dialog */}
-      <CurtainDialog open={curtainHooks.editCurtainDialog.open} onOpenChange={handleCloseEditCurtainDialog} item={curtainHooks.editCurtainDialog.item} mode="edit" />
+      <CurtainDialog
+        open={curtainHooks.editCurtainDialog.open}
+        onOpenChange={handleCloseEditCurtainDialog}
+        item={curtainHooks.editCurtainDialog.item}
+        mode="edit"
+      />
 
       {/* DMX Properties Dialog */}
       <DmxPropertiesDialog

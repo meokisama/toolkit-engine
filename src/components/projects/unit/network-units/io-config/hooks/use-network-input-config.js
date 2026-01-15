@@ -1,6 +1,7 @@
 import { useState, useCallback, useEffect } from "react";
 import { toast } from "sonner";
 import { getInputFunctionByValue, getInputDisplayName } from "@/constants";
+import log from "electron-log/renderer";
 
 export const useNetworkInputConfig = (item, projectItems, refreshInputConfigs = null, setInputConfigs = null) => {
   const [multiGroupConfigs, setInputDetailConfigs] = useState({});
@@ -54,7 +55,7 @@ export const useNetworkInputConfig = (item, projectItems, refreshInputConfigs = 
           throw new Error("No input configurations received from unit");
         }
       } catch (error) {
-        console.error("Failed to read input config from unit:", error);
+        log.error("Failed to read input config from unit:", error);
         toast.error(`Failed to read input configuration: ${error.message}`);
         return null;
       } finally {
@@ -108,7 +109,7 @@ export const useNetworkInputConfig = (item, projectItems, refreshInputConfigs = 
           },
         }));
       } catch (error) {
-        console.error(`Failed to update input ${inputIndex} function:`, error);
+        log.error(`Failed to update input ${inputIndex} function:`, error);
         toast.error(`Failed to update input function: ${error.message}`);
       }
     },
@@ -116,54 +117,58 @@ export const useNetworkInputConfig = (item, projectItems, refreshInputConfigs = 
   );
 
   // Handle opening multi-group configuration - READ FROM LOCAL STATE
-  const handleOpenInputDetailConfig = useCallback(async (inputIndex, functionValue, currentInputConfig) => {
-    // Get function name from constants
-    const functionInfo = getInputFunctionByValue(parseInt(functionValue));
-    const functionName = functionInfo?.name || "UNKNOWN";
+  const handleOpenInputDetailConfig = useCallback(
+    async (inputIndex, functionValue, currentInputConfig) => {
+      // Get function name from constants
+      const functionInfo = getInputFunctionByValue(parseInt(functionValue));
+      const functionName = functionInfo?.name || "UNKNOWN";
 
-    // Use config from local state (passed from parent) or cached config
-    const cachedConfig = multiGroupConfigs[inputIndex];
-    const localConfig = currentInputConfig || cachedConfig || {
-      ramp: 0,
-      preset: 255,
-      led_status: 0,
-      auto_mode: 0,
-      auto_time: 0,
-      delay_off: 0,
-      delay_on: 0,
-      multiGroupConfig: [],
-    };
+      // Use config from local state (passed from parent) or cached config
+      const cachedConfig = multiGroupConfigs[inputIndex];
+      const localConfig = currentInputConfig ||
+        cachedConfig || {
+          ramp: 0,
+          preset: 255,
+          led_status: 0,
+          auto_mode: 0,
+          auto_time: 0,
+          delay_off: 0,
+          delay_on: 0,
+          multiGroupConfig: [],
+        };
 
-    // Convert local config to dialog format
-    const convertedConfig = {
-      ramp: localConfig.rlcConfig?.ramp ?? localConfig.ramp ?? 0,
-      preset: localConfig.rlcConfig?.preset ?? localConfig.preset ?? 255,
-      led_status: localConfig.rlcConfig?.ledStatus ?? localConfig.led_status ?? 0,
-      auto_mode: localConfig.rlcConfig?.autoMode ?? localConfig.auto_mode ?? 0,
-      auto_time: 0,
-      delay_off: localConfig.rlcConfig?.delayOff ?? localConfig.delay_off ?? 0,
-      delay_on: localConfig.rlcConfig?.delayOn ?? localConfig.delay_on ?? 0,
-      multiGroupConfig: localConfig.multiGroupConfig || [],
-    };
+      // Convert local config to dialog format
+      const convertedConfig = {
+        ramp: localConfig.rlcConfig?.ramp ?? localConfig.ramp ?? 0,
+        preset: localConfig.rlcConfig?.preset ?? localConfig.preset ?? 255,
+        led_status: localConfig.rlcConfig?.ledStatus ?? localConfig.led_status ?? 0,
+        auto_mode: localConfig.rlcConfig?.autoMode ?? localConfig.auto_mode ?? 0,
+        auto_time: 0,
+        delay_off: localConfig.rlcConfig?.delayOff ?? localConfig.delay_off ?? 0,
+        delay_on: localConfig.rlcConfig?.delayOn ?? localConfig.delay_on ?? 0,
+        multiGroupConfig: localConfig.multiGroupConfig || [],
+      };
 
-    // Set state immediately from local config (no loading needed)
-    setCurrentInputDetailInput({
-      index: inputIndex,
-      name: getInputDisplayName(item?.type, inputIndex),
-      functionName: functionName,
-      functionValue: functionValue,
-      isLoading: false,
-      config: convertedConfig,
-    });
+      // Set state immediately from local config (no loading needed)
+      setCurrentInputDetailInput({
+        index: inputIndex,
+        name: getInputDisplayName(item?.type, inputIndex),
+        functionName: functionName,
+        functionValue: functionValue,
+        isLoading: false,
+        config: convertedConfig,
+      });
 
-    setInputDetailDialogOpen(true);
+      setInputDetailDialogOpen(true);
 
-    // Cache the config
-    setInputDetailConfigs((prev) => ({
-      ...prev,
-      [inputIndex]: convertedConfig,
-    }));
-  }, [multiGroupConfigs, item?.type]);
+      // Cache the config
+      setInputDetailConfigs((prev) => ({
+        ...prev,
+        [inputIndex]: convertedConfig,
+      }));
+    },
+    [multiGroupConfigs, item?.type]
+  );
 
   // Handle saving multi-group configuration - LOCAL STATE ONLY (no send to unit)
   const handleSaveInputDetailConfig = useCallback(
@@ -247,7 +252,7 @@ export const useNetworkInputConfig = (item, projectItems, refreshInputConfigs = 
 
         return true;
       } catch (error) {
-        console.error(" Failed to save multi-group configuration:", error);
+        log.error(" Failed to save multi-group configuration:", error);
         toast.error(`Failed to save configuration: ${error.message}`);
         return false;
       }
@@ -294,11 +299,11 @@ export const useNetworkInputConfig = (item, projectItems, refreshInputConfigs = 
           try {
             await refreshInputConfigs();
           } catch (refreshError) {
-            console.warn("⚠️ Failed to refresh input configurations:", refreshError);
+            log.warn("Failed to refresh input configurations:", refreshError);
           }
         }
       } catch (error) {
-        console.error(`Failed to update input ${inputIndex} lighting association:`, error);
+        log.error(`Failed to update input ${inputIndex} lighting association:`, error);
         toast.error(`Failed to update lighting association: ${error.message}`);
       }
     },
@@ -335,7 +340,7 @@ export const useNetworkInputConfig = (item, projectItems, refreshInputConfigs = 
           toast.success(`${getInputDisplayName(item?.type, inputIndex)} turned ${newValue === 255 ? "on" : "off"}`);
         }
       } catch (error) {
-        console.error(`Failed to toggle input ${inputIndex} state:`, error);
+        log.error(`Failed to toggle input ${inputIndex} state:`, error);
         toast.error(`Failed to toggle input state: ${error.message}`);
       }
     },

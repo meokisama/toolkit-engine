@@ -1,3 +1,4 @@
+import log from "electron-log/renderer";
 /**
  * Service for loading database configurations for a unit
  * Extracted from use-config-comparison.js
@@ -12,7 +13,7 @@
  */
 export async function getDatabaseConfigurations(databaseUnit, projectId) {
   try {
-    console.log(`Loading database configurations for project ${projectId}, unit ${databaseUnit.id} (${databaseUnit.type} - ${databaseUnit.ip_address})`);
+    log.info(`Loading database configurations for project ${projectId}, unit ${databaseUnit.id} (${databaseUnit.type} - ${databaseUnit.ip_address})`);
 
     // Load all database configurations in parallel
     const [allScenes, allSchedules, allCurtains, allKnx, allMultiScenes, allSequences] = await Promise.all([
@@ -40,7 +41,7 @@ export async function getDatabaseConfigurations(databaseUnit, projectId) {
           const items = await window.electronAPI.scenes.getItems(scene.id);
           return { ...scene, items };
         } catch (error) {
-          console.warn(`Failed to load items for scene ${scene.id}:`, error);
+          log.warn(`Failed to load items for scene ${scene.id}:`, error);
           return { ...scene, items: [] };
         }
       })
@@ -53,7 +54,7 @@ export async function getDatabaseConfigurations(databaseUnit, projectId) {
           const scenes = await window.electronAPI.schedules.getScenes(schedule.id);
           return { ...schedule, scenes };
         } catch (error) {
-          console.warn(`Failed to load scenes for schedule ${schedule.id}:`, error);
+          log.warn(`Failed to load scenes for schedule ${schedule.id}:`, error);
           return { ...schedule, scenes: [] };
         }
       })
@@ -66,7 +67,7 @@ export async function getDatabaseConfigurations(databaseUnit, projectId) {
           const scenes = await window.electronAPI.multiScenes.getScenes(multiScene.id);
           return { ...multiScene, scenes };
         } catch (error) {
-          console.warn(`Failed to load scenes for multi scene ${multiScene.id}:`, error);
+          log.warn(`Failed to load scenes for multi scene ${multiScene.id}:`, error);
           return { ...multiScene, scenes: [] };
         }
       })
@@ -79,13 +80,13 @@ export async function getDatabaseConfigurations(databaseUnit, projectId) {
           const multiScenes = await window.electronAPI.sequences.getMultiScenes(sequence.id);
           return { ...sequence, multiScenes };
         } catch (error) {
-          console.warn(`Failed to load multi scenes for sequence ${sequence.id}:`, error);
+          log.warn(`Failed to load multi scenes for sequence ${sequence.id}:`, error);
           return { ...sequence, multiScenes: [] };
         }
       })
     );
 
-    console.log(`Loaded database configurations for unit ${databaseUnit.id} (filtered by source_unit):`, {
+    log.info(`Loaded database configurations for unit ${databaseUnit.id} (filtered by source_unit):`, {
       scenes: scenesWithItems.length,
       schedules: schedulesWithScenes.length,
       curtains: curtains.length,
@@ -103,7 +104,7 @@ export async function getDatabaseConfigurations(databaseUnit, projectId) {
       sequences: sequencesWithMultiScenes,
     };
   } catch (error) {
-    console.error(`Failed to load database configurations for project ${projectId}:`, error);
+    log.error(`Failed to load database configurations for project ${projectId}:`, error);
     return {
       scenes: [],
       schedules: [],

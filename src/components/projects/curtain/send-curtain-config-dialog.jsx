@@ -2,6 +2,7 @@ import React from "react";
 import { toast } from "sonner";
 import { SendItemsDialog } from "@/components/shared/send-items-dialog";
 import { useProjectDetail } from "@/contexts/project-detail-context";
+import log from "electron-log/renderer";
 
 export function SendCurtainConfigDialog({ open, onOpenChange, items = [] }) {
   const { projectItems } = useProjectDetail();
@@ -69,7 +70,7 @@ export function SendCurtainConfigDialog({ open, onOpenChange, items = [] }) {
         }
       } catch (error) {
         errorCount++;
-        console.error(`Failed to send curtain config to unit ${unit.ip_address}:`, error);
+        log.error(`Failed to send curtain config to unit ${unit.ip_address}:`, error);
         toast.error(`Failed to send curtain config to ${unit.type || "Unknown Unit"} (${unit.ip_address}): ${error.message}`);
       }
     }
@@ -105,7 +106,7 @@ export function SendCurtainConfigDialog({ open, onOpenChange, items = [] }) {
         completedOperations++;
         onProgress((completedOperations / totalOperations) * 100, "Deleting existing configs...");
       } catch (error) {
-        console.error(`Failed to delete existing curtain configs from unit ${unit.ip_address}:`, error);
+        log.error(`Failed to delete existing curtain configs from unit ${unit.ip_address}:`, error);
         operationResults.push({
           scene: "Delete All Configs",
           unit: `${unit.type || "Unknown Unit"} (${unit.ip_address})`,
@@ -173,7 +174,7 @@ export function SendCurtainConfigDialog({ open, onOpenChange, items = [] }) {
             throw new Error("Unit returned failure response");
           }
         } catch (error) {
-          console.error(`Failed to send curtain config ${currentCurtain.name} to unit ${unit.ip_address}:`, error);
+          log.error(`Failed to send curtain config ${currentCurtain.name} to unit ${unit.ip_address}:`, error);
           operationResults.push({
             scene: currentCurtain.name,
             unit: `${unit.type || "Unknown Unit"} (${unit.ip_address})`,

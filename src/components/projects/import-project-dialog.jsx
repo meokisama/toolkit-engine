@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Upload, FileText, AlertCircle } from "lucide-react";
 import { toast } from "sonner";
+import log from "electron-log/renderer";
 
 export function ImportDialog({ open, onOpenChange, onImport }) {
   const [importData, setImportData] = useState(null);
@@ -38,7 +39,7 @@ export function ImportDialog({ open, onOpenChange, onImport }) {
           setProjectDescription(data.project.description || "");
           toast.success("Project file loaded successfully");
         } catch (error) {
-          console.error("Failed to read file:", error);
+          log.error("Failed to read file:", error);
           const errorMessage = error.message || "Failed to read project file";
           toast.error(errorMessage);
         }
@@ -46,7 +47,7 @@ export function ImportDialog({ open, onOpenChange, onImport }) {
 
       input.click();
     } catch (error) {
-      console.error("File selection failed:", error);
+      log.error("File selection failed:", error);
       const errorMessage = error.message || "Failed to select file";
       toast.error(errorMessage);
     }
@@ -90,7 +91,7 @@ export function ImportDialog({ open, onOpenChange, onImport }) {
       await onImport(projectData, importData.items);
       handleClose();
     } catch (error) {
-      console.error("Import failed:", error);
+      log.error("Import failed:", error);
       const errorMessage = error.message || "Failed to import project";
       toast.error(errorMessage);
     } finally {

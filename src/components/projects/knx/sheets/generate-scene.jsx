@@ -10,6 +10,7 @@ import { useProjectDetail } from "@/contexts/project-detail-context";
 import { KNXAddressInput } from "@/components/custom/knx-input";
 import { Play } from "lucide-react";
 import { toast } from "sonner";
+import log from "electron-log/renderer";
 
 export function GenerateFromSceneSheet({ open, onOpenChange }) {
   const { projectItems, createItem } = useProjectDetail();
@@ -88,13 +89,16 @@ export function GenerateFromSceneSheet({ open, onOpenChange }) {
   }, []);
 
   // Handle select all
-  const handleSelectAll = useCallback((checked) => {
-    if (checked) {
-      setSelectedItems(new Set(sceneItems.map((item) => item.id)));
-    } else {
-      setSelectedItems(new Set());
-    }
-  }, [sceneItems]);
+  const handleSelectAll = useCallback(
+    (checked) => {
+      if (checked) {
+        setSelectedItems(new Set(sceneItems.map((item) => item.id)));
+      } else {
+        setSelectedItems(new Set());
+      }
+    },
+    [sceneItems]
+  );
 
   // Handle KNX data change
   const handleKnxDataChange = useCallback((itemId, field, value) => {
@@ -162,7 +166,7 @@ export function GenerateFromSceneSheet({ open, onOpenChange }) {
           successCount++;
         } else {
           errorCount++;
-          console.error(`Failed to create KNX item for scene ${selectedItemsList[index]}:`, result.reason);
+          log.error(`Failed to create KNX item for scene ${selectedItemsList[index]}:`, result.reason);
         }
       });
 
@@ -177,7 +181,7 @@ export function GenerateFromSceneSheet({ open, onOpenChange }) {
         onOpenChange(false);
       }
     } catch (error) {
-      console.error("Failed to create KNX items:", error);
+      log.error("Failed to create KNX items:", error);
       toast.error("Failed to create KNX items");
     } finally {
       setLoading(false);

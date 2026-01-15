@@ -1,4 +1,5 @@
 import { readNetworkUnitBasicConfigurations } from "../../transfer/services/network-config-reader";
+import log from "electron-log/renderer";
 
 /**
  * Read all configurations from a network unit for comparison
@@ -16,7 +17,7 @@ export async function readNetworkUnitConfigurations(networkUnit, networkConfigCa
   }
 
   try {
-    console.log(`Reading configurations from network unit: ${networkUnit.ip_address}`);
+    log.info(`Reading configurations from network unit: ${networkUnit.ip_address}`);
 
     // Read basic configurations (RS485 + I/O) using shared service
     const unitWithBasicConfigs = await readNetworkUnitBasicConfigurations(networkUnit, {
@@ -34,14 +35,14 @@ export async function readNetworkUnitConfigurations(networkUnit, networkConfigCa
     try {
       await readIOConfigsForComparison(networkUnit, unitWithConfigs);
     } catch (error) {
-      console.warn(`Failed to read I/O configs from ${networkUnit.ip_address}:`, error);
+      log.warn(`Failed to read I/O configs from ${networkUnit.ip_address}:`, error);
       unitWithConfigs.input_configs = null;
       unitWithConfigs.output_configs = null;
     }
 
     // Read advanced configurations (scenes, schedules, curtains, knx, multi scenes, sequences)
     try {
-      console.log("Reading advanced configurations...");
+      log.info("Reading advanced configurations...");
 
       // Read scenes
       try {
@@ -50,9 +51,9 @@ export async function readNetworkUnitConfigurations(networkUnit, networkConfigCa
           canId: networkUnit.id_can,
         });
         unitWithConfigs.scenes = scenesResult?.scenes || [];
-        console.log(`Found ${unitWithConfigs.scenes.length} scenes on network unit`);
+        log.info(`Found ${unitWithConfigs.scenes.length} scenes on network unit`);
       } catch (error) {
-        console.warn(`Failed to read scenes from ${networkUnit.ip_address}:`, error);
+        log.warn(`Failed to read scenes from ${networkUnit.ip_address}:`, error);
         unitWithConfigs.scenes = [];
       }
 
@@ -66,9 +67,9 @@ export async function readNetworkUnitConfigurations(networkUnit, networkConfigCa
           canId: networkUnit.id_can,
         });
         unitWithConfigs.schedules = schedulesResult?.data || [];
-        console.log(`Found ${unitWithConfigs.schedules.length} schedules on network unit`);
+        log.info(`Found ${unitWithConfigs.schedules.length} schedules on network unit`);
       } catch (error) {
-        console.warn(`Failed to read schedules from ${networkUnit.ip_address}:`, error);
+        log.warn(`Failed to read schedules from ${networkUnit.ip_address}:`, error);
         unitWithConfigs.schedules = [];
       }
 
@@ -83,9 +84,9 @@ export async function readNetworkUnitConfigurations(networkUnit, networkConfigCa
           curtainIndex: null, // Get all curtains
         });
         unitWithConfigs.curtains = curtainsResult?.curtains || [];
-        console.log(`Found ${unitWithConfigs.curtains.length} curtains on network unit`);
+        log.info(`Found ${unitWithConfigs.curtains.length} curtains on network unit`);
       } catch (error) {
-        console.warn(`Failed to read curtains from ${networkUnit.ip_address}:`, error);
+        log.warn(`Failed to read curtains from ${networkUnit.ip_address}:`, error);
         unitWithConfigs.curtains = [];
       }
 
@@ -100,9 +101,9 @@ export async function readNetworkUnitConfigurations(networkUnit, networkConfigCa
           knxAddress: null, // Get all KNX configs
         });
         unitWithConfigs.knxConfigs = knxResult?.knxConfigs || [];
-        console.log(`Found ${unitWithConfigs.knxConfigs.length} KNX configs on network unit`);
+        log.info(`Found ${unitWithConfigs.knxConfigs.length} KNX configs on network unit`);
       } catch (error) {
-        console.warn(`Failed to read KNX configs from ${networkUnit.ip_address}:`, error);
+        log.warn(`Failed to read KNX configs from ${networkUnit.ip_address}:`, error);
         unitWithConfigs.knxConfigs = [];
       }
 
@@ -116,9 +117,9 @@ export async function readNetworkUnitConfigurations(networkUnit, networkConfigCa
           canId: networkUnit.id_can,
         });
         unitWithConfigs.multiScenes = multiScenesResult?.multiScenes || [];
-        console.log(`Found ${unitWithConfigs.multiScenes.length} multi scenes on network unit`);
+        log.info(`Found ${unitWithConfigs.multiScenes.length} multi scenes on network unit`);
       } catch (error) {
-        console.warn(`Failed to read multi scenes from ${networkUnit.ip_address}:`, error);
+        log.warn(`Failed to read multi scenes from ${networkUnit.ip_address}:`, error);
         unitWithConfigs.multiScenes = [];
       }
 
@@ -132,13 +133,13 @@ export async function readNetworkUnitConfigurations(networkUnit, networkConfigCa
           canId: networkUnit.id_can,
         });
         unitWithConfigs.sequences = sequencesResult?.sequences || [];
-        console.log(`Found ${unitWithConfigs.sequences.length} sequences on network unit`);
+        log.info(`Found ${unitWithConfigs.sequences.length} sequences on network unit`);
       } catch (error) {
-        console.warn(`Failed to read sequences from ${networkUnit.ip_address}:`, error);
+        log.warn(`Failed to read sequences from ${networkUnit.ip_address}:`, error);
         unitWithConfigs.sequences = [];
       }
     } catch (error) {
-      console.warn(`Failed to read advanced configurations from ${networkUnit.ip_address}:`, error);
+      log.warn(`Failed to read advanced configurations from ${networkUnit.ip_address}:`, error);
       // Set default empty arrays for all advanced configs
       unitWithConfigs.scenes = [];
       unitWithConfigs.schedules = [];
@@ -153,7 +154,7 @@ export async function readNetworkUnitConfigurations(networkUnit, networkConfigCa
 
     return unitWithConfigs;
   } catch (error) {
-    console.error(`Failed to read configurations from network unit ${networkUnit.ip_address}:`, error);
+    log.error(`Failed to read configurations from network unit ${networkUnit.ip_address}:`, error);
     throw error;
   }
 }
@@ -224,7 +225,7 @@ async function readIOConfigsForComparison(networkUnit, unitWithConfigs) {
     // Add delay after input config read
     await new Promise((resolve) => setTimeout(resolve, 500));
   } catch (error) {
-    console.warn(`Failed to read input configs from ${networkUnit.ip_address}:`, error);
+    log.warn(`Failed to read input configs from ${networkUnit.ip_address}:`, error);
     unitWithConfigs.input_configs = null;
   }
 
@@ -344,7 +345,7 @@ async function readIOConfigsForComparison(networkUnit, unitWithConfigs) {
 
     unitWithConfigs.output_configs = outputConfigs;
   } catch (error) {
-    console.warn(`Failed to read output configs from ${networkUnit.ip_address}:`, error);
+    log.warn(`Failed to read output configs from ${networkUnit.ip_address}:`, error);
     unitWithConfigs.output_configs = null;
   }
 }

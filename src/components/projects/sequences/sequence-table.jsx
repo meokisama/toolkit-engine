@@ -12,6 +12,7 @@ import { SequenceDialog } from "@/components/projects/sequences/sequence-dialog"
 import { SendSequenceDialog } from "@/components/projects/sequences/send-sequence-dialog";
 import { ListOrdered } from "lucide-react";
 import { toast } from "sonner";
+import log from "electron-log/renderer";
 
 const SequenceTable = memo(function SequenceTable({ items = [], loading = false }) {
   const category = "sequences";
@@ -57,13 +58,13 @@ const SequenceTable = memo(function SequenceTable({ items = [], loading = false 
           const multiScenes = await window.electronAPI.sequences.getMultiScenes(sequence.id);
           counts[sequence.id] = multiScenes.length;
         } catch (error) {
-          console.error(`Failed to load multi-scene count for sequence ${sequence.id}:`, error);
+          log.error(`Failed to load multi-scene count for sequence ${sequence.id}:`, error);
           counts[sequence.id] = 0;
         }
       }
       setSequenceCounts(counts);
     } catch (error) {
-      console.error("Failed to load sequence counts:", error);
+      log.error("Failed to load sequence counts:", error);
     }
   }, [items]);
 
@@ -92,7 +93,7 @@ const SequenceTable = memo(function SequenceTable({ items = [], loading = false 
         // Reload multi-scene counts after duplication
         setTimeout(loadSequenceCounts, 100);
       } catch (error) {
-        console.error("Failed to duplicate sequence:", error);
+        log.error("Failed to duplicate sequence:", error);
       }
     },
     [duplicateItem, loadSequenceCounts]
@@ -111,7 +112,7 @@ const SequenceTable = memo(function SequenceTable({ items = [], loading = false 
             // Reload multi-scene counts after deletion
             setTimeout(loadSequenceCounts, 100);
           } catch (error) {
-            console.error("Failed to delete sequence:", error);
+            log.error("Failed to delete sequence:", error);
           }
         },
       });
@@ -171,7 +172,7 @@ const SequenceTable = memo(function SequenceTable({ items = [], loading = false 
             toast.success(`Successfully deleted ${selectedItems.length} sequence(s)`);
             setConfirmDialog({ ...confirmDialog, open: false });
           } catch (error) {
-            console.error("Failed to delete sequences:", error);
+            log.error("Failed to delete sequences:", error);
             toast.error("Failed to delete sequences");
           }
         },
@@ -196,7 +197,7 @@ const SequenceTable = memo(function SequenceTable({ items = [], loading = false 
       setPendingChangesCount(0);
       toast.success("Changes saved successfully");
     } catch (error) {
-      console.error("Failed to save changes:", error);
+      log.error("Failed to save changes:", error);
       const errorMessage = error.message || "Failed to save changes";
       toast.error(errorMessage);
     } finally {

@@ -8,6 +8,7 @@ import { MoreVertical, Trash2, Loader2, Pencil, Wifi, WifiOff, Signal, MonitorCo
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
+import log from "electron-log/renderer";
 
 /**
  * Shared wrapper component for all Zigbee device cards
@@ -31,7 +32,7 @@ export function ZigbeeDeviceCardWrapper({ device, onRemove, icon: Icon, title, s
       toast.success("Device removed successfully");
       setRemoveDialogOpen(false);
     } catch (error) {
-      console.error("Failed to remove device:", error);
+      log.error("Failed to remove device:", error);
       toast.error("Failed to remove device");
     } finally {
       setIsRemoving(false);
@@ -52,7 +53,7 @@ export function ZigbeeDeviceCardWrapper({ device, onRemove, icon: Icon, title, s
       toast.success("Name updated successfully");
       setEditDialogOpen(false);
     } catch (error) {
-      console.error("Failed to update name:", error);
+      log.error("Failed to update name:", error);
       toast.error("Failed to update name");
     }
   };

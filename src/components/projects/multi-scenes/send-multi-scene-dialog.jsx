@@ -2,6 +2,7 @@ import React from "react";
 import { toast } from "sonner";
 import { SendItemsDialog } from "@/components/shared/send-items-dialog";
 import { useProjectDetail } from "@/contexts/project-detail-context";
+import log from "electron-log/renderer";
 
 export function SendMultiSceneDialog({ open, onOpenChange, items = [] }) {
   const { projectItems } = useProjectDetail();
@@ -47,7 +48,7 @@ export function SendMultiSceneDialog({ open, onOpenChange, items = [] }) {
         toast.success(`Multi-scene sent successfully to ${unit.type || "Unknown Unit"} (${unit.ip_address})`);
       } catch (error) {
         errorCount++;
-        console.error(`Failed to send multi-scene to unit ${unit.ip_address}:`, error);
+        log.error(`Failed to send multi-scene to unit ${unit.ip_address}:`, error);
         toast.error(`Failed to send multi-scene to ${unit.type || "Unknown Unit"} (${unit.ip_address}): ${error.message}`);
       }
     }
@@ -83,7 +84,7 @@ export function SendMultiSceneDialog({ open, onOpenChange, items = [] }) {
         completedOperations++;
         onProgress((completedOperations / totalOperations) * 100, "Deleting existing multi-scenes...");
       } catch (error) {
-        console.error(`Failed to delete existing multi-scenes from unit ${unit.ip_address}:`, error);
+        log.error(`Failed to delete existing multi-scenes from unit ${unit.ip_address}:`, error);
         operationResults.push({
           scene: "Delete All Multi-Scenes",
           unit: `${unit.type || "Unknown Unit"} (${unit.ip_address})`,
@@ -107,7 +108,7 @@ export function SendMultiSceneDialog({ open, onOpenChange, items = [] }) {
       try {
         multiSceneData = await window.electronAPI.multiScenes.getScenes(currentMultiScene.id);
       } catch (error) {
-        console.error(`Failed to load multi-scene data for ${currentMultiScene.name}:`, error);
+        log.error(`Failed to load multi-scene data for ${currentMultiScene.name}:`, error);
         // Add error for all units for this multi-scene
         for (const unit of selectedUnits) {
           operationResults.push({
@@ -124,7 +125,7 @@ export function SendMultiSceneDialog({ open, onOpenChange, items = [] }) {
 
       // Validate multi-scene data
       if (!multiSceneData || multiSceneData.length === 0) {
-        console.error(`Multi-scene ${currentMultiScene.name} has no scenes`);
+        log.error(`Multi-scene ${currentMultiScene.name} has no scenes`);
         // Add error for all units for this multi-scene
         for (const unit of selectedUnits) {
           operationResults.push({
@@ -167,7 +168,7 @@ export function SendMultiSceneDialog({ open, onOpenChange, items = [] }) {
             message: "Sent successfully",
           });
         } catch (error) {
-          console.error(`Failed to send multi-scene ${currentMultiScene.name} to unit ${unit.ip_address}:`, error);
+          log.error(`Failed to send multi-scene ${currentMultiScene.name} to unit ${unit.ip_address}:`, error);
           operationResults.push({
             scene: currentMultiScene.name,
             unit: `${unit.type || "Unknown Unit"} (${unit.ip_address})`,

@@ -8,6 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { TimePicker } from "@/components/custom/time-picker";
 import { Lightbulb, Clock, Timer, Zap } from "lucide-react";
+import log from "electron-log/renderer";
 
 // Validation ranges for different input types
 const VALIDATION_RANGES = {
@@ -222,7 +223,7 @@ const LightingOutputConfigDialogComponent = ({
       await onSave(config);
       handleClose();
     } catch (error) {
-      console.error("Failed to save lighting output configuration:", error);
+      log.error("Failed to save lighting output configuration:", error);
     } finally {
       setLoading(false);
     }

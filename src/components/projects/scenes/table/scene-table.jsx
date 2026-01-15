@@ -13,6 +13,7 @@ import { SlidersHorizontal } from "lucide-react";
 import { SendSceneDialog } from "@/components/projects/scenes/dialogs/send-scene-dialog";
 import { ImportCategoryDialog } from "@/components/projects/import-category-dialog";
 import { toast } from "sonner";
+import log from "electron-log/renderer";
 
 const SceneTable = memo(function SceneTable({ items = [], loading = false }) {
   const category = "scene";
@@ -57,7 +58,7 @@ const SceneTable = memo(function SceneTable({ items = [], loading = false }) {
           const sceneItems = await window.electronAPI.scene.getItemsWithDetails(scene.id);
           counts[scene.id] = sceneItems.length;
         } catch (error) {
-          console.error(`Failed to load items for scene ${scene.id}:`, error);
+          log.error(`Failed to load items for scene ${scene.id}:`, error);
           counts[scene.id] = 0;
         }
       }
@@ -82,7 +83,7 @@ const SceneTable = memo(function SceneTable({ items = [], loading = false }) {
           const sceneItems = await window.electronAPI.scene.getItemsWithDetails(scene.id);
           counts[scene.id] = sceneItems.length;
         } catch (error) {
-          console.error(`Failed to load items for scene ${scene.id}:`, error);
+          log.error(`Failed to load items for scene ${scene.id}:`, error);
           counts[scene.id] = 0;
         }
       }
@@ -122,7 +123,7 @@ const SceneTable = memo(function SceneTable({ items = [], loading = false }) {
       pendingChangesRef.current.clear();
       setPendingChangesCount(0);
     } catch (error) {
-      console.error("Failed to save changes:", error);
+      log.error("Failed to save changes:", error);
       const errorMessage = error.message || "Failed to save changes";
       toast.error(errorMessage);
     } finally {
@@ -160,7 +161,7 @@ const SceneTable = memo(function SceneTable({ items = [], loading = false }) {
       try {
         await duplicateItem(category, item.id);
       } catch (error) {
-        console.error("Failed to duplicate scene:", error);
+        log.error("Failed to duplicate scene:", error);
       }
     },
     [duplicateItem]
@@ -179,7 +180,7 @@ const SceneTable = memo(function SceneTable({ items = [], loading = false }) {
             await deleteItem(category, item.id);
             setConfirmDialog({ ...confirmDialog, open: false });
           } catch (error) {
-            console.error("Failed to delete scene:", error);
+            log.error("Failed to delete scene:", error);
           }
         },
       });
@@ -221,7 +222,7 @@ const SceneTable = memo(function SceneTable({ items = [], loading = false }) {
           table.resetRowSelection();
         }
       } catch (error) {
-        console.error("Failed to bulk delete scenes:", error);
+        log.error("Failed to bulk delete scenes:", error);
       }
     },
     [deleteItem, table]
@@ -245,7 +246,7 @@ const SceneTable = memo(function SceneTable({ items = [], loading = false }) {
     try {
       await exportItems(category);
     } catch (error) {
-      console.error("Failed to export scene items:", error);
+      log.error("Failed to export scene items:", error);
     }
   }, [exportItems]);
 
@@ -263,7 +264,7 @@ const SceneTable = memo(function SceneTable({ items = [], loading = false }) {
           reloadSceneItemCounts();
         }, 100);
       } catch (error) {
-        console.error("Failed to import scene items:", error);
+        log.error("Failed to import scene items:", error);
       }
     },
     [importItems, reloadSceneItemCounts]

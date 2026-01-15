@@ -1,4 +1,5 @@
 import { findOrCreateDatabaseItemByNetworkItem, getObjectTypeFromValue } from "../utils/config-helpers";
+import log from "electron-log/renderer";
 
 /**
  * Read scene configurations from network unit and create them in database
@@ -12,7 +13,7 @@ export const readSceneConfigurations = async (networkUnit, projectId, unitId) =>
   const sceneAddressMap = new Map(); // Map network scene address to database scene ID
 
   try {
-    console.log("Reading scene configurations...");
+    log.info("Reading scene configurations...");
 
     const result = await window.electronAPI.sceneController.getAllScenesInformation({
       unitIp: networkUnit.ip_address,
@@ -20,7 +21,7 @@ export const readSceneConfigurations = async (networkUnit, projectId, unitId) =>
     });
 
     if (result?.scenes && result.scenes.length > 0) {
-      console.log(`Found ${result.scenes.length} scenes on network unit`);
+      log.info(`Found ${result.scenes.length} scenes on network unit`);
 
       for (const networkScene of result.scenes) {
         try {
@@ -66,29 +67,29 @@ export const readSceneConfigurations = async (networkUnit, projectId, unitId) =>
                     );
                   }
                 } catch (error) {
-                  console.error(`Failed to create scene item:`, error);
+                  log.error(`Failed to create scene item:`, error);
                   // Continue with other items
                 }
               }
             }
 
             createdScenes.push(createdScene);
-            console.log(`Created scene: ${createdScene.name} (ID: ${createdScene.id})`);
+            log.info(`Created scene: ${createdScene.name} (ID: ${createdScene.id})`);
           }
 
           // Add delay between scene reads
           await new Promise((resolve) => setTimeout(resolve, 300));
         } catch (error) {
-          console.error(`Failed to process scene ${networkScene.index}:`, error);
+          log.error(`Failed to process scene ${networkScene.index}:`, error);
           // Continue with other scenes
         }
       }
     }
 
-    console.log(`Successfully created ${createdScenes.length} scenes`);
+    log.info(`Successfully created ${createdScenes.length} scenes`);
     return { createdScenes, sceneAddressMap };
   } catch (error) {
-    console.error("Failed to read scene configurations:", error);
+    log.error("Failed to read scene configurations:", error);
     return { createdScenes, sceneAddressMap };
   }
 };

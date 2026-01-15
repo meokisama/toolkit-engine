@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from "react";
 import { toast } from "sonner";
 import { exportImportService } from "@/services/export-import";
+import log from "electron-log/renderer";
 
 const ProjectContext = createContext();
 
@@ -25,7 +26,7 @@ export function ProjectProvider({ children }) {
       const projectsData = await window.electronAPI.projects.getAll();
       setProjects(projectsData);
     } catch (err) {
-      console.error("Failed to load projects:", err);
+      log.error("Failed to load projects:", err);
       const errorMessage = err.message || "Failed to load projects";
       setError(errorMessage);
       toast.error(errorMessage);
@@ -42,7 +43,7 @@ export function ProjectProvider({ children }) {
       toast.success("Project created successfully");
       return newProject;
     } catch (err) {
-      console.error("Failed to create project:", err);
+      log.error("Failed to create project:", err);
       const errorMessage = err.message || "Failed to create project";
       toast.error(errorMessage);
       throw err;
@@ -57,7 +58,7 @@ export function ProjectProvider({ children }) {
       toast.success("Project updated successfully");
       return updatedProject;
     } catch (err) {
-      console.error("Failed to update project:", err);
+      log.error("Failed to update project:", err);
       const errorMessage = err.message || "Failed to update project";
       toast.error(errorMessage);
       throw err;
@@ -71,7 +72,7 @@ export function ProjectProvider({ children }) {
       setProjects((prev) => prev.filter((project) => project.id !== id));
       toast.success("Project deleted successfully");
     } catch (err) {
-      console.error("Failed to delete project:", err);
+      log.error("Failed to delete project:", err);
       const errorMessage = err.message || "Failed to delete project";
       toast.error(errorMessage);
       throw err;
@@ -91,7 +92,7 @@ export function ProjectProvider({ children }) {
         const projectItems = await window.electronAPI.projects.getAllItems(id);
         return await exportImportService.exportProject(project, projectItems);
       } catch (err) {
-        console.error("Failed to export project:", err);
+        log.error("Failed to export project:", err);
         const errorMessage = err.message || "Failed to export project";
         toast.error(errorMessage);
         return false;
@@ -110,7 +111,7 @@ export function ProjectProvider({ children }) {
       toast.success(`Project imported successfully with ${totalItems} items`);
       return result.project;
     } catch (err) {
-      console.error("Failed to import project:", err);
+      log.error("Failed to import project:", err);
       const errorMessage = err.message || "Failed to import project";
       toast.error(errorMessage);
       throw err;
@@ -144,18 +145,7 @@ export function ProjectProvider({ children }) {
       importProject,
       getProjectById,
     }),
-    [
-      projects,
-      loading,
-      error,
-      loadProjects,
-      createProject,
-      updateProject,
-      deleteProject,
-      exportProject,
-      importProject,
-      getProjectById,
-    ]
+    [projects, loading, error, loadProjects, createProject, updateProject, deleteProject, exportProject, importProject, getProjectById]
   );
 
   return <ProjectContext.Provider value={value}>{children}</ProjectContext.Provider>;

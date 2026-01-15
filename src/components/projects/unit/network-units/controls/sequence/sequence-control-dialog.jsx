@@ -10,6 +10,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { toast } from "sonner";
 import { DeleteSequenceDialog } from "./delete-sequence-popover";
 import { useProjectDetail } from "@/contexts/project-detail-context";
+import log from "electron-log/renderer";
 
 // Initial state for better state management
 const initialState = {
@@ -188,7 +189,7 @@ export function TriggerSequenceDialog({ open, onOpenChange, unit }) {
 
       setLoadingState((prev) => ({ ...prev, loading: true }));
       try {
-        console.log("Triggering sequence:", {
+        log.info("Triggering sequence:", {
           unitIp: unit.ip_address,
           canId: unit.id_can,
           sequenceAddress: addressToTrigger,
@@ -202,7 +203,7 @@ export function TriggerSequenceDialog({ open, onOpenChange, unit }) {
 
         toast.success(`Sequence (address: ${addressToTrigger}) triggered successfully`);
       } catch (error) {
-        console.error("Failed to trigger sequence:", error);
+        log.error("Failed to trigger sequence:", error);
         toast.error(`Failed to trigger sequence: ${error.message}`);
       } finally {
         setLoadingState((prev) => ({ ...prev, loading: false }));
@@ -231,7 +232,7 @@ export function TriggerSequenceDialog({ open, onOpenChange, unit }) {
 
     setLoadingState((prev) => ({ ...prev, loadingInfo: true }));
     try {
-      console.log("Loading sequence information:", {
+      log.info("Loading sequence information:", {
         unitIp: unit.ip_address,
         canId: unit.id_can,
         sequenceIndex: protocolIndex,
@@ -269,7 +270,7 @@ export function TriggerSequenceDialog({ open, onOpenChange, unit }) {
         toast.info(`No sequence found at index ${state.sequenceIndex}`);
       }
     } catch (error) {
-      console.error("Failed to load sequence information:", error);
+      log.error("Failed to load sequence information:", error);
       toast.error(`Failed to load sequence information: ${error.message}`);
       setState((prev) => ({
         ...prev,
@@ -290,7 +291,7 @@ export function TriggerSequenceDialog({ open, onOpenChange, unit }) {
 
     setLoadingState((prev) => ({ ...prev, loadingAllSequences: true }));
     try {
-      console.log("Loading all sequences information:", {
+      log.info("Loading all sequences information:", {
         unitIp: unit.ip_address,
         canId: unit.id_can,
       });
@@ -332,7 +333,7 @@ export function TriggerSequenceDialog({ open, onOpenChange, unit }) {
         toast.info("No sequences found");
       }
     } catch (error) {
-      console.error("Failed to load all sequences:", error);
+      log.error("Failed to load all sequences:", error);
       toast.error(`Failed to load sequences: ${error.message}`);
       setState((prev) => ({
         ...prev,

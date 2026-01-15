@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useProjectDetail } from "@/contexts/project-detail-context";
+import log from "electron-log/renderer";
 
 export function DmxDialog({ open, onOpenChange, item = null, mode = "create" }) {
   const { createItem, updateItem, projectItems, selectedProject, loadTabData, loadedTabs } = useProjectDetail();
@@ -30,9 +31,7 @@ export function DmxDialog({ open, onOpenChange, item = null, mode = "create" }) 
     }
 
     // Get all existing addresses
-    const existingAddresses = projectItems.dmx
-      .map((item) => item.address)
-      .filter((addr) => addr && addr.trim() !== "");
+    const existingAddresses = projectItems.dmx.map((item) => item.address).filter((addr) => addr && addr.trim() !== "");
 
     if (existingAddresses.length === 0) {
       return "1";
@@ -150,7 +149,7 @@ export function DmxDialog({ open, onOpenChange, item = null, mode = "create" }) 
         onOpenChange(false);
       }
     } catch (error) {
-      console.error("Failed to save DMX item:", error);
+      log.error("Failed to save DMX item:", error);
       setErrors({
         general: "Failed to save DMX item. Please try again.",
       });
@@ -164,9 +163,7 @@ export function DmxDialog({ open, onOpenChange, item = null, mode = "create" }) 
       <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
           <DialogTitle>{mode === "edit" ? "Edit DMX Item" : "Create New DMX Item"}</DialogTitle>
-          <DialogDescription>
-            {mode === "edit" ? "Update the DMX item details below." : "Add a new DMX item to your project."}
-          </DialogDescription>
+          <DialogDescription>{mode === "edit" ? "Update the DMX item details below." : "Add a new DMX item to your project."}</DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="w-full">
           <div className="grid gap-6 py-4 w-full">
@@ -185,13 +182,10 @@ export function DmxDialog({ open, onOpenChange, item = null, mode = "create" }) 
               <>
                 <div className="flex flex-col gap-2">
                   <Label htmlFor="name">Name Prefix</Label>
-                  <Input
-                    id="name"
-                    value={formData.name}
-                    onChange={(e) => handleInputChange("name", e.target.value)}
-                    placeholder="e.g., DMX Device"
-                  />
-                  <p className="text-xs text-muted-foreground">Items will be named: "{formData.name || "DMX"} 1", "{formData.name || "DMX"} 2", etc.</p>
+                  <Input id="name" value={formData.name} onChange={(e) => handleInputChange("name", e.target.value)} placeholder="e.g., DMX Device" />
+                  <p className="text-xs text-muted-foreground">
+                    Items will be named: "{formData.name || "DMX"} 1", "{formData.name || "DMX"} 2", etc.
+                  </p>
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
