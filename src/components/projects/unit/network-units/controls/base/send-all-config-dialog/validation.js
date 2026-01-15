@@ -45,29 +45,12 @@ export const validateWriteConfiguration = (selectedDatabaseUnitId, selectedUnitI
   // Get all network units for duplicate checking
   const allNetworkUnits = networkUnitSelectorRef.current?.getAllUnits() || [];
 
-  // Check for duplicate IP address
-  const duplicateIpUnits = allNetworkUnits.filter((unit) => unit.ip_address === databaseUnit.ip_address && unit.id !== networkUnit.id);
-  if (duplicateIpUnits.length > 0) {
-    errors.push(`IP address ${databaseUnit.ip_address} already exists on another network unit`);
-  }
-
-  // Check for duplicate CAN ID (excluding Stand Alone units)
-  if (databaseUnit.mode !== "Stand-Alone") {
-    const duplicateCanUnits = allNetworkUnits.filter(
-      (unit) => unit.id_can === databaseUnit.id_can && unit.id !== networkUnit.id && unit.mode !== "Stand-Alone"
-    );
-    if (duplicateCanUnits.length > 0) {
-      errors.push(`CAN ID ${databaseUnit.id_can} already exists on another network unit (excluding Stand-Alone units)`);
-    }
-  }
-
-  // Check for multiple Masters on same CAN network
-  if (databaseUnit.mode === "Master") {
-    const canPrefix = databaseUnit.id_can.split(".").slice(0, 3).join(".");
-    const masterUnits = allNetworkUnits.filter((unit) => unit.mode === "Master" && unit.id_can.startsWith(canPrefix) && unit.id !== networkUnit.id);
-    if (masterUnits.length > 0) {
-      errors.push(`Another Master unit already exists on CAN network ${canPrefix}.x`);
-    }
+  // Check for duplicate IP + CAN ID combination (units are identified by both IP and CAN ID)
+  const duplicateUnits = allNetworkUnits.filter(
+    (unit) => unit.ip_address === databaseUnit.ip_address && unit.id_can === databaseUnit.id_can && unit.id !== networkUnit.id
+  );
+  if (duplicateUnits.length > 0) {
+    errors.push(`IP address ${databaseUnit.ip_address} with CAN ID ${databaseUnit.id_can} already exists on another network unit`);
   }
 
   return errors;

@@ -287,19 +287,19 @@ export const writeDatabaseConfigToUnit = async (databaseUnit, networkUnit, setCu
     }
 
     // 5. Write IP and CAN ID changes last (to avoid communication issues)
-    if (databaseUnit.ip_address !== networkUnit.ip_address) {
-      setCurrentOperation("Updating IP address...");
-      await changeIpAddress(networkUnit.ip_address, databaseUnit.ip_address, currentCanId);
-      currentIp = databaseUnit.ip_address; // Update current IP for next operation
-      setProgress((prev) => prev + 15);
-    }
+    // if (databaseUnit.ip_address !== networkUnit.ip_address) {
+    //   setCurrentOperation("Updating IP address...");
+    //   await changeIpAddress(networkUnit.ip_address, databaseUnit.ip_address, currentCanId);
+    //   currentIp = databaseUnit.ip_address; // Update current IP for next operation
+    //   setProgress((prev) => prev + 15);
+    // }
 
-    if (databaseUnit.id_can !== networkUnit.id_can) {
-      setCurrentOperation("Updating CAN ID...");
-      const newLastPart = parseInt(databaseUnit.id_can.split(".")[3]);
-      await changeCanId(currentIp, newLastPart, currentCanId);
-      setProgress((prev) => prev + 15);
-    }
+    // if (databaseUnit.id_can !== networkUnit.id_can) {
+    //   setCurrentOperation("Updating CAN ID...");
+    //   const newLastPart = parseInt(databaseUnit.id_can.split(".")[3]);
+    //   await changeCanId(currentIp, newLastPart, currentCanId);
+    //   setProgress((prev) => prev + 15);
+    // }
 
     return { success: true };
   } catch (error) {
