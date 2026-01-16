@@ -527,16 +527,8 @@ const NetworkIOConfigDialog = ({ open, onOpenChange, item = null }) => {
         functionValue={currentInputDetailInput?.functionValue || null}
         unitType={item?.type || null}
         inputIndex={currentInputDetailInput?.index || 0}
-        initialGroups={currentInputDetailInput?.config?.multiGroupConfig || []}
-        initialRlcOptions={{
-          ramp: currentInputDetailInput?.config?.ramp ?? 0,
-          preset: currentInputDetailInput?.config?.preset ?? 255,
-          ledDisplay: currentInputDetailInput?.config?.ledDisplay ?? 0,
-          nightlight: currentInputDetailInput?.config?.nightlight ?? false,
-          backlight: currentInputDetailInput?.config?.backlight ?? false,
-          autoMode: currentInputDetailInput?.config?.autoMode ?? false,
-          delayOff: currentInputDetailInput?.config?.delayOff ?? 0,
-        }}
+        initialGroups={currentInputDetailInput?.groups || []}
+        initialRlcOptions={currentInputDetailInput?.rlcOptions || {}}
         isLoading={currentInputDetailInput?.isLoading || false}
         onSave={handleSaveInputDetailConfig}
       />

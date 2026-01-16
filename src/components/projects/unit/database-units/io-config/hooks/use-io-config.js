@@ -160,29 +160,22 @@ export const useIOConfig = (item, open) => {
   }, [item?.id, ioSpec]);
 
   // Save configuration
+  // rlcConfigs: { [index]: { ramp, preset, ... } }
+  // multiGroupConfigs: { [index]: [{ groupId, presetBrightness }] }
   const saveConfig = useCallback(
-    async (updateItem, multiGroupConfigs = {}, rlcConfigs = {}, outputConfigurations = {}) => {
+    async (updateItem, rlcConfigs = {}, multiGroupConfigs = {}, outputConfigurations = {}) => {
       if (!item) return false;
 
       setLoading(true);
       try {
         const newInputConfigs = {
-          inputs: inputConfigs.map((cfg) => {
-            const mgCfg = multiGroupConfigs[cfg.index] || {};
-            const rlcCfg = rlcConfigs[cfg.index] || {};
-
-            // Extract RLC fields only, excluding multiGroupConfig
-            const { multiGroupConfig: mgGroups, ...mgRlcFields } = mgCfg;
-            const { multiGroupConfig: rlcGroups, ...rlcFields } = rlcCfg;
-
-            return {
-              index: cfg.index,
-              function_value: cfg.functionValue ?? 0,
-              lighting_id: cfg.lightingId ?? null,
-              multi_group_config: mgGroups || rlcGroups || [],
-              rlc_config: mergeRlcConfig({ ...rlcFields, ...mgRlcFields }),
-            };
-          }),
+          inputs: inputConfigs.map((cfg) => ({
+            index: cfg.index,
+            function_value: cfg.functionValue ?? 0,
+            lighting_id: cfg.lightingId ?? null,
+            multi_group_config: multiGroupConfigs[cfg.index] || [],
+            rlc_config: { ...DEFAULT_RLC_CONFIG, ...rlcConfigs[cfg.index] },
+          })),
         };
 
         const newOutputConfigs = {

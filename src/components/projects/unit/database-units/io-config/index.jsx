@@ -92,11 +92,12 @@ const IOConfigDialogComponent = ({ open, onOpenChange, item = null }) => {
   }, [onOpenChange]);
 
   const handleSave = useCallback(async () => {
-    const success = await saveConfig(updateItem, multiGroupConfigs, rlcConfigs, outputConfigurations);
+    // saveConfig(updateItem, rlcConfigs, multiGroupConfigs, outputConfigurations)
+    const success = await saveConfig(updateItem, rlcConfigs, multiGroupConfigs, outputConfigurations);
     if (success) {
       handleClose();
     }
-  }, [saveConfig, updateItem, handleClose, multiGroupConfigs, rlcConfigs, outputConfigurations]);
+  }, [saveConfig, updateItem, handleClose, rlcConfigs, multiGroupConfigs, outputConfigurations]);
 
   // Handle create/edit device
   const handleCreateEditDevice = useCallback(
@@ -283,20 +284,12 @@ const IOConfigDialogComponent = ({ open, onOpenChange, item = null }) => {
                             const originalConfig = originalInputConfigs.find((orig) => orig.index === config.index);
 
                             // Create enhanced config with current multi-group and RLC data
-                            const mgCfg = multiGroupConfigs[config.index] || {};
-                            const rlcCfg = rlcConfigs[config.index] || {};
+                            // multiGroupConfigs[index] = array of groups
+                            // rlcConfigs[index] = { ramp, preset, ledDisplay, ... }
                             const currentConfigWithExtras = {
                               ...config,
-                              multiGroupConfig: mgCfg.multiGroupConfig || [],
-                              rlcConfig: {
-                                ramp: mgCfg.ramp ?? rlcCfg.ramp ?? 0,
-                                preset: mgCfg.preset ?? rlcCfg.preset ?? 255,
-                                ledDisplay: mgCfg.ledDisplay ?? rlcCfg.ledDisplay ?? 0,
-                                nightlight: mgCfg.nightlight ?? rlcCfg.nightlight ?? false,
-                                backlight: mgCfg.backlight ?? rlcCfg.backlight ?? false,
-                                autoMode: mgCfg.autoMode ?? rlcCfg.autoMode ?? false,
-                                delayOff: mgCfg.delayOff ?? rlcCfg.delayOff ?? 0,
-                              },
+                              multiGroupConfig: multiGroupConfigs[config.index] || [],
+                              rlcConfig: rlcConfigs[config.index] || {},
                             };
 
                             return (
@@ -392,20 +385,8 @@ const IOConfigDialogComponent = ({ open, onOpenChange, item = null }) => {
         functionValue={currentInputDetailInput?.functionValue || null}
         unitType={item?.type || null}
         inputIndex={currentInputDetailInput?.index || 0}
-        initialGroups={currentInputDetailInput?.config?.multiGroupConfig || null}
-        initialRlcOptions={
-          currentInputDetailInput?.config
-            ? {
-                ramp: currentInputDetailInput.config.ramp ?? 0,
-                preset: currentInputDetailInput.config.preset ?? 255,
-                ledDisplay: currentInputDetailInput.config.ledDisplay ?? 0,
-                nightlight: currentInputDetailInput.config.nightlight ?? false,
-                backlight: currentInputDetailInput.config.backlight ?? false,
-                autoMode: currentInputDetailInput.config.autoMode ?? false,
-                delayOff: currentInputDetailInput.config.delayOff ?? 0,
-              }
-            : {}
-        }
+        initialGroups={currentInputDetailInput?.groups || []}
+        initialRlcOptions={currentInputDetailInput?.rlcOptions || {}}
         isLoading={loadingInputConfig || currentInputDetailInput?.isLoading || false}
         onSave={handleSaveInputDetailConfigWithState}
       />

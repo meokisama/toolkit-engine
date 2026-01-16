@@ -3,8 +3,8 @@ import { getInputFunctionByValue, getInputDisplayName } from "@/constants";
 import { toast } from "sonner";
 import log from "electron-log/renderer";
 
-// Constants
-const DEFAULT_RLC_CONFIG = {
+// Default RLC config (without multiGroupConfig)
+const DEFAULT_RLC = {
   ramp: 0,
   preset: 255,
   ledDisplay: 0,
@@ -12,17 +12,20 @@ const DEFAULT_RLC_CONFIG = {
   backlight: false,
   autoMode: false,
   delayOff: 0,
-  multiGroupConfig: [],
 };
 
 // Helpers
 const isNetworkUnit = (unit) => !unit?.id;
-const mergeRlcConfig = (config) => ({ ...DEFAULT_RLC_CONFIG, ...config });
 const updateConfigAtIndex = (prev, index, updates) => prev.map((cfg) => (cfg.index === index ? { ...cfg, ...updates } : cfg));
 
 export const useInputConfig = (item, setInputConfigs = null, open = true) => {
-  const [multiGroupConfigs, setInputDetailConfigs] = useState({});
+  // State 1: RLC options only (ramp, preset, ledDisplay, etc.)
   const [rlcConfigs, setRlcConfigs] = useState({});
+
+  // State 2: Multi-group configs only (array of { groupId, presetBrightness })
+  const [multiGroupConfigs, setMultiGroupConfigs] = useState({});
+
+  // Dialog state
   const [multiGroupDialogOpen, setInputDetailDialogOpen] = useState(false);
   const [currentInputDetailInput, setCurrentInputDetailInput] = useState(null);
   const [loadingInputConfig, setLoadingInputConfig] = useState(false);
@@ -30,8 +33,8 @@ export const useInputConfig = (item, setInputConfigs = null, open = true) => {
   // Reset state when dialog closes
   useEffect(() => {
     if (!open) {
-      setInputDetailConfigs({});
       setRlcConfigs({});
+      setMultiGroupConfigs({});
       setInputDetailDialogOpen(false);
       setCurrentInputDetailInput(null);
       setLoadingInputConfig(false);
@@ -63,20 +66,24 @@ export const useInputConfig = (item, setInputConfigs = null, open = true) => {
       const unit = await window.electronAPI.unit.getById(item.id);
       if (!unit?.input_configs?.inputs) return;
 
-      const newDetailConfigs = {};
       const newRlcConfigs = {};
+      const newMultiGroupConfigs = {};
 
       unit.input_configs.inputs.forEach((cfg) => {
+        // Always load if there's any config data
         if (cfg.rlc_config || cfg.multi_group_config?.length > 0) {
-          newDetailConfigs[cfg.index] = mergeRlcConfig({ ...cfg.rlc_config, multiGroupConfig: cfg.multi_group_config || [] });
-          newRlcConfigs[cfg.index] = cfg.rlc_config || {};
+          // RLC config - merge with defaults
+          newRlcConfigs[cfg.index] = { ...DEFAULT_RLC, ...cfg.rlc_config };
+
+          // Multi-group config - just the array
+          newMultiGroupConfigs[cfg.index] = cfg.multi_group_config || [];
         }
       });
 
-      setInputDetailConfigs(newDetailConfigs);
       setRlcConfigs(newRlcConfigs);
+      setMultiGroupConfigs(newMultiGroupConfigs);
     } catch (error) {
-      log.error("Failed to load all Multiple Group & RLC configs:", error);
+      log.error("Failed to load all configs:", error);
     }
   }, [item?.id]);
 
@@ -110,9 +117,8 @@ export const useInputConfig = (item, setInputConfigs = null, open = true) => {
         setInputConfigs?.((prev) => updateConfigAtIndex(prev, inputIndex, { functionValue: parseInt(functionValue) || 0 }));
 
         // Clear configs for this input
-        const emptyConfig = { ...DEFAULT_RLC_CONFIG };
-        setInputDetailConfigs((prev) => ({ ...prev, [inputIndex]: emptyConfig }));
-        setRlcConfigs((prev) => ({ ...prev, [inputIndex]: emptyConfig }));
+        setRlcConfigs((prev) => ({ ...prev, [inputIndex]: { ...DEFAULT_RLC } }));
+        setMultiGroupConfigs((prev) => ({ ...prev, [inputIndex]: [] }));
       } catch (error) {
         log.error("Failed to update input function:", error);
         toast.error("Failed to update input function: " + error.message);
@@ -127,7 +133,9 @@ export const useInputConfig = (item, setInputConfigs = null, open = true) => {
       const inputFunction = getInputFunctionByValue(functionValue);
       if (!inputFunction) return;
 
-      const defaultConfig = multiGroupConfigs[inputIndex] || DEFAULT_RLC_CONFIG;
+      // Get cached configs or defaults
+      const cachedRlc = rlcConfigs[inputIndex] || DEFAULT_RLC;
+      const cachedGroups = multiGroupConfigs[inputIndex] || [];
 
       setCurrentInputDetailInput({
         index: inputIndex,
@@ -135,28 +143,39 @@ export const useInputConfig = (item, setInputConfigs = null, open = true) => {
         functionName: inputFunction.label,
         functionValue,
         isLoading: true,
-        config: defaultConfig,
+        rlcOptions: cachedRlc,
+        groups: cachedGroups,
       });
       setInputDetailDialogOpen(true);
 
       try {
-        let config = multiGroupConfigs[inputIndex];
+        let rlc = rlcConfigs[inputIndex];
+        let groups = multiGroupConfigs[inputIndex];
 
-        if (!config) {
+        // Load from database if not cached
+        if (!rlc && !groups) {
           const result = await window.electronAPI.unit.getInputConfig(item.id, inputIndex);
           if (result) {
-            config = mergeRlcConfig({ ...result.rlc_config, multiGroupConfig: result.multi_group_config || [] });
-            setInputDetailConfigs((prev) => ({ ...prev, [inputIndex]: config }));
+            rlc = { ...DEFAULT_RLC, ...result.rlc_config };
+            groups = result.multi_group_config || [];
+
+            setRlcConfigs((prev) => ({ ...prev, [inputIndex]: rlc }));
+            setMultiGroupConfigs((prev) => ({ ...prev, [inputIndex]: groups }));
           }
         }
 
-        setCurrentInputDetailInput((prev) => ({ ...prev, isLoading: false, config: config || defaultConfig }));
+        setCurrentInputDetailInput((prev) => ({
+          ...prev,
+          isLoading: false,
+          rlcOptions: rlc || DEFAULT_RLC,
+          groups: groups || [],
+        }));
       } catch (error) {
         log.error("Failed to load input config:", error);
         setCurrentInputDetailInput((prev) => ({ ...prev, isLoading: false }));
       }
     },
-    [multiGroupConfigs, item?.id, item?.type]
+    [rlcConfigs, multiGroupConfigs, item?.id, item?.type]
   );
 
   // Save input detail config
@@ -166,17 +185,17 @@ export const useInputConfig = (item, setInputConfigs = null, open = true) => {
 
       try {
         const { groups = [], rlcOptions = {}, inputType } = data;
-        const formattedGroups = groups.map((g) => ({ groupId: parseInt(g.groupId) || 0, presetBrightness: parseInt(g.presetBrightness) ?? 255 }));
+        const inputIndex = currentInputDetailInput.index;
 
-        // Keep RLC options and multiGroupConfig together for local state
-        const updatedConfig = {
-          ...mergeRlcConfig(rlcOptions),
-          multiGroupConfig: formattedGroups,
-        };
+        // Format groups
+        const formattedGroups = groups.map((g) => ({
+          groupId: parseInt(g.groupId) || 0,
+          presetBrightness: parseInt(g.presetBrightness) ?? 255,
+        }));
 
-        // Also update rlcConfigs for save operation (without multiGroupConfig)
-        setRlcConfigs((prev) => ({ ...prev, [currentInputDetailInput.index]: mergeRlcConfig(rlcOptions) }));
-        setInputDetailConfigs((prev) => ({ ...prev, [currentInputDetailInput.index]: updatedConfig }));
+        // Update separate states
+        setRlcConfigs((prev) => ({ ...prev, [inputIndex]: { ...DEFAULT_RLC, ...rlcOptions } }));
+        setMultiGroupConfigs((prev) => ({ ...prev, [inputIndex]: formattedGroups }));
 
         if (isNetworkUnit(item)) {
           toast.info("Network unit - use network-specific configuration dialog");
@@ -185,7 +204,7 @@ export const useInputConfig = (item, setInputConfigs = null, open = true) => {
 
         // Update function type if changed
         if (inputType !== undefined && setInputConfigs) {
-          setInputConfigs((prev) => updateConfigAtIndex(prev, currentInputDetailInput.index, { functionValue: parseInt(inputType) || 0 }));
+          setInputConfigs((prev) => updateConfigAtIndex(prev, inputIndex, { functionValue: parseInt(inputType) || 0 }));
         }
 
         toast.success(`${currentInputDetailInput.name} configuration updated`);
@@ -200,8 +219,8 @@ export const useInputConfig = (item, setInputConfigs = null, open = true) => {
   );
 
   return {
-    multiGroupConfigs,
     rlcConfigs,
+    multiGroupConfigs,
     multiGroupDialogOpen,
     setInputDetailDialogOpen,
     currentInputDetailInput,

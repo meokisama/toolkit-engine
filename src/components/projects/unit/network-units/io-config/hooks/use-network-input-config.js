@@ -3,8 +3,8 @@ import { toast } from "sonner";
 import { getInputFunctionByValue, getInputDisplayName } from "@/constants";
 import log from "electron-log/renderer";
 
-// Constants
-const DEFAULT_RLC_CONFIG = {
+// Default RLC config (without multiGroupConfig)
+const DEFAULT_RLC = {
   ramp: 0,
   preset: 255,
   ledDisplay: 0,
@@ -12,24 +12,31 @@ const DEFAULT_RLC_CONFIG = {
   backlight: false,
   autoMode: false,
   delayOff: 0,
-  multiGroupConfig: [],
 };
 
 // Helpers
-const mergeRlcConfig = (config) => ({ ...DEFAULT_RLC_CONFIG, ...config });
 const updateConfigAtIndex = (prev, index, updates) => prev.map((cfg) => (cfg.index === index ? { ...cfg, ...updates } : cfg));
 const formatGroups = (groups) => groups.map((g) => ({ groupId: parseInt(g.groupId) || 0, presetBrightness: parseInt(g.presetBrightness) ?? 255 }));
 
 export const useNetworkInputConfig = (item, projectItems, refreshInputConfigs = null, setInputConfigs = null) => {
-  const [multiGroupConfigs, setInputDetailConfigs] = useState({});
+  // State 1: RLC options only (ramp, preset, ledDisplay, etc.)
+  const [rlcConfigs, setRlcConfigs] = useState({});
+
+  // State 2: Multi-group configs only (array of { groupId, presetBrightness })
+  const [multiGroupConfigs, setMultiGroupConfigs] = useState({});
+
+  // Dialog state
   const [multiGroupDialogOpen, setInputDetailDialogOpen] = useState(false);
   const [currentInputDetailInput, setCurrentInputDetailInput] = useState(null);
+
+  // Configs read from unit
   const [inputConfigsFromUnit, setInputConfigsFromUnit] = useState({});
   const [loadingInputConfigs, setLoadingInputConfigs] = useState(false);
 
   // Reset cache when unit changes
   useEffect(() => {
-    setInputDetailConfigs({});
+    setRlcConfigs({});
+    setMultiGroupConfigs({});
     setInputConfigsFromUnit({});
     setCurrentInputDetailInput(null);
     setInputDetailDialogOpen(false);
@@ -68,17 +75,17 @@ export const useNetworkInputConfig = (item, projectItems, refreshInputConfigs = 
   const handleInputFunctionChange = useCallback(
     async (inputIndex, functionValue) => {
       try {
-        const emptyConfig = { ...DEFAULT_RLC_CONFIG };
-
         setInputConfigs?.((prev) =>
           updateConfigAtIndex(prev, inputIndex, {
             functionValue: parseInt(functionValue) || 0,
             multiGroupConfig: [],
-            rlcConfig: emptyConfig,
+            rlcConfig: { ...DEFAULT_RLC },
           })
         );
 
-        setInputDetailConfigs((prev) => ({ ...prev, [inputIndex]: emptyConfig }));
+        // Clear configs for this input
+        setRlcConfigs((prev) => ({ ...prev, [inputIndex]: { ...DEFAULT_RLC } }));
+        setMultiGroupConfigs((prev) => ({ ...prev, [inputIndex]: [] }));
       } catch (error) {
         log.error(`Failed to update input ${inputIndex} function:`, error);
         toast.error(`Failed to update input function: ${error.message}`);
@@ -91,20 +98,29 @@ export const useNetworkInputConfig = (item, projectItems, refreshInputConfigs = 
   const handleOpenInputDetailConfig = useCallback(
     async (inputIndex, functionValue, currentInputConfig) => {
       const functionInfo = getInputFunctionByValue(parseInt(functionValue));
-      const localConfig = currentInputConfig || multiGroupConfigs[inputIndex] || DEFAULT_RLC_CONFIG;
 
-      // Extract RLC config from nested or flat structure
-      const rlc = localConfig.rlcConfig || localConfig;
-      const convertedConfig = mergeRlcConfig({
-        ramp: rlc.ramp,
-        preset: rlc.preset,
-        ledDisplay: rlc.ledDisplay,
-        nightlight: rlc.nightlight,
-        backlight: rlc.backlight,
-        autoMode: rlc.autoMode,
-        delayOff: rlc.delayOff,
-        multiGroupConfig: localConfig.multiGroupConfig || [],
-      });
+      // Get cached configs or extract from currentInputConfig
+      let rlc = rlcConfigs[inputIndex];
+      let groups = multiGroupConfigs[inputIndex];
+
+      // If not cached, try to extract from currentInputConfig
+      if (!rlc && currentInputConfig) {
+        const configRlc = currentInputConfig.rlcConfig || currentInputConfig;
+        rlc = {
+          ramp: configRlc.ramp ?? DEFAULT_RLC.ramp,
+          preset: configRlc.preset ?? DEFAULT_RLC.preset,
+          ledDisplay: configRlc.ledDisplay ?? DEFAULT_RLC.ledDisplay,
+          nightlight: configRlc.nightlight ?? DEFAULT_RLC.nightlight,
+          backlight: configRlc.backlight ?? DEFAULT_RLC.backlight,
+          autoMode: configRlc.autoMode ?? DEFAULT_RLC.autoMode,
+          delayOff: configRlc.delayOff ?? DEFAULT_RLC.delayOff,
+        };
+        groups = currentInputConfig.multiGroupConfig || [];
+
+        // Cache for future use
+        setRlcConfigs((prev) => ({ ...prev, [inputIndex]: rlc }));
+        setMultiGroupConfigs((prev) => ({ ...prev, [inputIndex]: groups }));
+      }
 
       setCurrentInputDetailInput({
         index: inputIndex,
@@ -112,13 +128,13 @@ export const useNetworkInputConfig = (item, projectItems, refreshInputConfigs = 
         functionName: functionInfo?.name || "UNKNOWN",
         functionValue,
         isLoading: false,
-        config: convertedConfig,
+        rlcOptions: rlc || DEFAULT_RLC,
+        groups: groups || [],
       });
 
       setInputDetailDialogOpen(true);
-      setInputDetailConfigs((prev) => ({ ...prev, [inputIndex]: convertedConfig }));
     },
-    [multiGroupConfigs, item?.type]
+    [rlcConfigs, multiGroupConfigs, item?.type]
   );
 
   // Handle saving input detail config - LOCAL STATE ONLY
@@ -128,27 +144,26 @@ export const useNetworkInputConfig = (item, projectItems, refreshInputConfigs = 
 
       try {
         const { groups = [], rlcOptions = {}, inputType } = data;
+        const inputIndex = currentInputDetailInput.index;
         const delayOffSeconds = typeof rlcOptions.delayOff === "number" ? rlcOptions.delayOff : 0;
         const currentInputType = inputType ?? currentInputDetailInput.functionValue ?? 0;
         const formattedGroups = formatGroups(groups);
 
-        // RLC config without multiGroupConfig for rlcConfig field
-        const rlcConfigOnly = mergeRlcConfig({ ...rlcOptions, delayOff: delayOffSeconds });
-        // Remove multiGroupConfig from rlcConfigOnly if it exists
-        delete rlcConfigOnly.multiGroupConfig;
+        // RLC config (without multiGroupConfig)
+        const rlcConfig = { ...DEFAULT_RLC, ...rlcOptions, delayOff: delayOffSeconds };
 
-        // Full config with multiGroupConfig for local state
-        const fullConfig = { ...rlcConfigOnly, multiGroupConfig: formattedGroups };
+        // Update separate states
+        setRlcConfigs((prev) => ({ ...prev, [inputIndex]: rlcConfig }));
+        setMultiGroupConfigs((prev) => ({ ...prev, [inputIndex]: formattedGroups }));
 
+        // Update parent inputConfigs state
         setInputConfigs?.((prev) =>
-          updateConfigAtIndex(prev, currentInputDetailInput.index, {
+          updateConfigAtIndex(prev, inputIndex, {
             functionValue: currentInputType,
             multiGroupConfig: formattedGroups,
-            rlcConfig: rlcConfigOnly,
+            rlcConfig: rlcConfig,
           })
         );
-
-        setInputDetailConfigs((prev) => ({ ...prev, [currentInputDetailInput.index]: fullConfig }));
 
         return true;
       } catch (error) {
@@ -171,12 +186,18 @@ export const useNetworkInputConfig = (item, projectItems, refreshInputConfigs = 
       try {
         const currentConfig = inputConfigsFromUnit[inputIndex] || {};
 
-        const inputConfigData = mergeRlcConfig({
+        const inputConfigData = {
           inputNumber: inputIndex,
           inputType: currentConfig.inputType || 0,
-          ...currentConfig,
+          ramp: currentConfig.ramp ?? DEFAULT_RLC.ramp,
+          preset: currentConfig.preset ?? DEFAULT_RLC.preset,
+          ledDisplay: currentConfig.ledDisplay ?? DEFAULT_RLC.ledDisplay,
+          nightlight: currentConfig.nightlight ?? DEFAULT_RLC.nightlight,
+          backlight: currentConfig.backlight ?? DEFAULT_RLC.backlight,
+          autoMode: currentConfig.autoMode ?? DEFAULT_RLC.autoMode,
+          delayOff: currentConfig.delayOff ?? DEFAULT_RLC.delayOff,
           groups: lightingId ? [{ groupId: lightingId, presetBrightness: 255 }] : [],
-        });
+        };
 
         toast.info(`Updating input ${inputIndex + 1} lighting association...`);
 
@@ -224,6 +245,7 @@ export const useNetworkInputConfig = (item, projectItems, refreshInputConfigs = 
   );
 
   return {
+    rlcConfigs,
     multiGroupConfigs,
     multiGroupDialogOpen,
     setInputDetailDialogOpen,
