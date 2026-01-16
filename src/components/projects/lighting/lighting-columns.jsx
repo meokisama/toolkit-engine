@@ -53,7 +53,7 @@ export const createProjectItemsColumns = (onEdit, onDuplicate, onDelete, onCellE
     enableSorting: true,
     enableHiding: true,
     meta: {
-      className: "w-[25%]",
+      className: "w-[25%] min-w-40",
     },
   },
   {
@@ -108,7 +108,7 @@ export const createProjectItemsColumns = (onEdit, onDuplicate, onDelete, onCellE
     enableSorting: false,
     enableHiding: true,
     meta: {
-      className: "w-[45%]",
+      className: "w-[45%] min-w-40",
     },
   },
 

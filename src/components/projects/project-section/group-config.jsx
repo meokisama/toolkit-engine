@@ -118,8 +118,8 @@ export function GroupConfig() {
             const Icon = config.icon;
             const itemCount = itemCounts[key];
             return (
-              <TabsTrigger key={key} value={key} className="flex items-center justify-center gap-3 cursor-pointer shrink-0 min-w-40">
-                <Icon className="h-4 w-4" />
+              <TabsTrigger key={key} value={key} className="flex items-center justify-center lg:gap-3 cursor-pointer shrink-0 min-w-fit">
+                <Icon className="h-4 w-4 hidden xl:block" />
                 <span>{config.label}</span>
                 {itemCount > 0 && <span className="bg-amber-200 border border-amber-300 rounded-full px-1.5">{itemCount}</span>}
               </TabsTrigger>

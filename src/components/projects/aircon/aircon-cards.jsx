@@ -118,7 +118,7 @@ function AirconCardsComponent({ cards, loading }) {
 
   return (
     <div className="space-y-4">
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
         {cards.map((card) => (
           <Card key={card.address} className="relative">
             <CardHeader className="pb-3">
@@ -152,7 +152,7 @@ function AirconCardsComponent({ cards, loading }) {
             </CardHeader>
             <CardContent>
               <div className="space-y-2">
-                <div className="text-xs text-muted-foreground p-2 bg-blue-50 rounded">
+                <div className="text-xs text-muted-foreground p-2">
                   {card.description && <p className="text-sm text-muted-foreground mt-1">{card.description}</p>}
                 </div>
               </div>

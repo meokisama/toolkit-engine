@@ -40,15 +40,15 @@ export const writeDatabaseConfigToUnit = async (databaseUnit, networkUnit, setCu
       const detailedIOConfig = {
         inputs: (inputConfigs.inputs || []).map((input) => ({
           index: input.index,
-          functionValue: input.function_value || 0,
+          functionValue: input.function_value ?? 0,
           lightingId: input.lighting_id,
-          ramp: input.rlc_config?.ramp || 0,
-          preset: input.rlc_config?.preset || 255,
-          ledDisplay: input.rlc_config?.ledDisplay || 0,
-          nightlight: input.rlc_config?.nightlight || false,
-          backlight: input.rlc_config?.backlight || false,
-          autoMode: input.rlc_config?.autoMode || false,
-          delayOff: input.rlc_config?.delayOff || 0,
+          ramp: input.rlc_config?.ramp ?? 0,
+          preset: input.rlc_config?.preset ?? 255,
+          ledDisplay: input.rlc_config?.ledDisplay ?? 0,
+          nightlight: input.rlc_config?.nightlight ?? false,
+          backlight: input.rlc_config?.backlight ?? false,
+          autoMode: input.rlc_config?.autoMode ?? false,
+          delayOff: input.rlc_config?.delayOff ?? 0,
           groups: input.multi_group_config || [],
         })),
         outputs: (outputConfigs.outputs || []).map((output) => ({
