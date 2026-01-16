@@ -171,12 +171,16 @@ export const useIOConfig = (item, open) => {
             const mgCfg = multiGroupConfigs[cfg.index] || {};
             const rlcCfg = rlcConfigs[cfg.index] || {};
 
+            // Extract RLC fields only, excluding multiGroupConfig
+            const { multiGroupConfig: mgGroups, ...mgRlcFields } = mgCfg;
+            const { multiGroupConfig: rlcGroups, ...rlcFields } = rlcCfg;
+
             return {
               index: cfg.index,
-              function_value: cfg.functionValue || 0,
-              lighting_id: cfg.lightingId || null,
-              multi_group_config: mgCfg.multiGroupConfig || [],
-              rlc_config: mergeRlcConfig({ ...rlcCfg, ...mgCfg }),
+              function_value: cfg.functionValue ?? 0,
+              lighting_id: cfg.lightingId ?? null,
+              multi_group_config: mgGroups || rlcGroups || [],
+              rlc_config: mergeRlcConfig({ ...rlcFields, ...mgRlcFields }),
             };
           }),
         };

@@ -283,17 +283,19 @@ const IOConfigDialogComponent = ({ open, onOpenChange, item = null }) => {
                             const originalConfig = originalInputConfigs.find((orig) => orig.index === config.index);
 
                             // Create enhanced config with current multi-group and RLC data
+                            const mgCfg = multiGroupConfigs[config.index] || {};
+                            const rlcCfg = rlcConfigs[config.index] || {};
                             const currentConfigWithExtras = {
                               ...config,
-                              multiGroupConfig: multiGroupConfigs[config.index]?.multiGroupConfig || [],
+                              multiGroupConfig: mgCfg.multiGroupConfig || [],
                               rlcConfig: {
-                                ramp: multiGroupConfigs[config.index]?.ramp || rlcConfigs[config.index]?.ramp || 0,
-                                preset: multiGroupConfigs[config.index]?.preset || rlcConfigs[config.index]?.preset || 255,
-                                ledDisplay: multiGroupConfigs[config.index]?.ledDisplay || rlcConfigs[config.index]?.ledDisplay || 0,
-                                nightlight: multiGroupConfigs[config.index]?.nightlight || rlcConfigs[config.index]?.nightlight || false,
-                                backlight: multiGroupConfigs[config.index]?.backlight || rlcConfigs[config.index]?.backlight || false,
-                                autoMode: multiGroupConfigs[config.index]?.autoMode || rlcConfigs[config.index]?.autoMode || false,
-                                delayOff: multiGroupConfigs[config.index]?.delayOff || rlcConfigs[config.index]?.delayOff || 0,
+                                ramp: mgCfg.ramp ?? rlcCfg.ramp ?? 0,
+                                preset: mgCfg.preset ?? rlcCfg.preset ?? 255,
+                                ledDisplay: mgCfg.ledDisplay ?? rlcCfg.ledDisplay ?? 0,
+                                nightlight: mgCfg.nightlight ?? rlcCfg.nightlight ?? false,
+                                backlight: mgCfg.backlight ?? rlcCfg.backlight ?? false,
+                                autoMode: mgCfg.autoMode ?? rlcCfg.autoMode ?? false,
+                                delayOff: mgCfg.delayOff ?? rlcCfg.delayOff ?? 0,
                               },
                             };
 
@@ -394,13 +396,13 @@ const IOConfigDialogComponent = ({ open, onOpenChange, item = null }) => {
         initialRlcOptions={
           currentInputDetailInput?.config
             ? {
-                ramp: currentInputDetailInput.config.ramp || 0,
-                preset: currentInputDetailInput.config.preset || 255,
-                ledDisplay: currentInputDetailInput.config.ledDisplay || 0,
-                nightlight: currentInputDetailInput.config.nightlight || false,
-                backlight: currentInputDetailInput.config.backlight || false,
-                autoMode: currentInputDetailInput.config.autoMode || false,
-                delayOff: currentInputDetailInput.config.delayOff || 0,
+                ramp: currentInputDetailInput.config.ramp ?? 0,
+                preset: currentInputDetailInput.config.preset ?? 255,
+                ledDisplay: currentInputDetailInput.config.ledDisplay ?? 0,
+                nightlight: currentInputDetailInput.config.nightlight ?? false,
+                backlight: currentInputDetailInput.config.backlight ?? false,
+                autoMode: currentInputDetailInput.config.autoMode ?? false,
+                delayOff: currentInputDetailInput.config.delayOff ?? 0,
               }
             : {}
         }

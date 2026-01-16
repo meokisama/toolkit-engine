@@ -166,12 +166,16 @@ export const useInputConfig = (item, setInputConfigs = null, open = true) => {
 
       try {
         const { groups = [], rlcOptions = {}, inputType } = data;
+        const formattedGroups = groups.map((g) => ({ groupId: parseInt(g.groupId) || 0, presetBrightness: parseInt(g.presetBrightness) ?? 255 }));
 
-        const updatedConfig = mergeRlcConfig({
-          ...rlcOptions,
-          multiGroupConfig: groups.map((g) => ({ groupId: parseInt(g.groupId) || 0, presetBrightness: parseInt(g.presetBrightness) ?? 255 })),
-        });
+        // Keep RLC options and multiGroupConfig together for local state
+        const updatedConfig = {
+          ...mergeRlcConfig(rlcOptions),
+          multiGroupConfig: formattedGroups,
+        };
 
+        // Also update rlcConfigs for save operation (without multiGroupConfig)
+        setRlcConfigs((prev) => ({ ...prev, [currentInputDetailInput.index]: mergeRlcConfig(rlcOptions) }));
         setInputDetailConfigs((prev) => ({ ...prev, [currentInputDetailInput.index]: updatedConfig }));
 
         if (isNetworkUnit(item)) {

@@ -130,22 +130,25 @@ export const useNetworkInputConfig = (item, projectItems, refreshInputConfigs = 
         const { groups = [], rlcOptions = {}, inputType } = data;
         const delayOffSeconds = typeof rlcOptions.delayOff === "number" ? rlcOptions.delayOff : 0;
         const currentInputType = inputType ?? currentInputDetailInput.functionValue ?? 0;
+        const formattedGroups = formatGroups(groups);
 
-        const updatedConfig = mergeRlcConfig({
-          ...rlcOptions,
-          delayOff: delayOffSeconds,
-          multiGroupConfig: formatGroups(groups),
-        });
+        // RLC config without multiGroupConfig for rlcConfig field
+        const rlcConfigOnly = mergeRlcConfig({ ...rlcOptions, delayOff: delayOffSeconds });
+        // Remove multiGroupConfig from rlcConfigOnly if it exists
+        delete rlcConfigOnly.multiGroupConfig;
+
+        // Full config with multiGroupConfig for local state
+        const fullConfig = { ...rlcConfigOnly, multiGroupConfig: formattedGroups };
 
         setInputConfigs?.((prev) =>
           updateConfigAtIndex(prev, currentInputDetailInput.index, {
             functionValue: currentInputType,
-            multiGroupConfig: formatGroups(groups),
-            rlcConfig: updatedConfig,
+            multiGroupConfig: formattedGroups,
+            rlcConfig: rlcConfigOnly,
           })
         );
 
-        setInputDetailConfigs((prev) => ({ ...prev, [currentInputDetailInput.index]: updatedConfig }));
+        setInputDetailConfigs((prev) => ({ ...prev, [currentInputDetailInput.index]: fullConfig }));
 
         return true;
       } catch (error) {
