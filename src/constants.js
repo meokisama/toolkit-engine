@@ -533,7 +533,6 @@ export const CONSTANTS = {
         inputFunctions: {
           default: "ALL", // All inputs: Full function list
         },
-        groupedInputs: true,
       },
       {
         name: "GNT-ETH2KDL",
