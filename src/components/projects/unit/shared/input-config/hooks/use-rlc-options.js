@@ -1,6 +1,14 @@
 import { useState, useCallback, useRef, useEffect } from "react";
-import { calculateDelaySeconds, parseDelaySeconds } from "@/constants";
 import { timeToDate, dateToTimeComponents, validateDelayOffTime } from "../utils/time-helpers";
+
+// Helper functions for delay calculations
+const calculateDelaySeconds = (hours, minutes, seconds) => hours * 3600 + minutes * 60 + seconds;
+
+const parseDelaySeconds = (totalSeconds) => ({
+  hours: Math.floor(totalSeconds / 3600),
+  minutes: Math.floor((totalSeconds % 3600) / 60),
+  seconds: totalSeconds % 60,
+});
 
 // Constants
 const DEFAULT_DELAY = { hours: 0, minutes: 0, seconds: 0 };

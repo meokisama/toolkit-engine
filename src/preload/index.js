@@ -1,3 +1,4 @@
+import { ipcRenderer } from "electron";
 import { projects } from "./projects.js";
 import { lighting } from "./lighting.js";
 import { aircon, airconController } from "./aircon.js";
@@ -19,6 +20,7 @@ import { deviceController } from "./device-config.js";
 import { updater } from "./updater.js";
 
 export const electronAPI = {
+  openExternal: (url) => ipcRenderer.invoke("shell:openExternal", url),
   projects,
   lighting,
   aircon,

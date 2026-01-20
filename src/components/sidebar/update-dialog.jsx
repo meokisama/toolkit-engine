@@ -21,16 +21,10 @@ export function UpdateDialog({ open, onOpenChange }) {
   const [updateInfo, setUpdateInfo] = useState(null);
   const [error, setError] = useState(null);
 
-  // Cleanup listeners when dialog closes
+  // Cleanup listeners and reset state when dialog closes
   useEffect(() => {
     if (!open) {
       window.electronAPI.updater.removeAllListeners();
-    }
-  }, [open]);
-
-  // Reset state when dialog opens
-  useEffect(() => {
-    if (open) {
       setStatus(STATUS.IDLE);
       setUpdateInfo(null);
       setError(null);
@@ -55,6 +49,13 @@ export function UpdateDialog({ open, onOpenChange }) {
       setStatus(STATUS.ERROR);
     }
   }, []);
+
+  // Auto check for update when dialog opens
+  useEffect(() => {
+    if (open && status === STATUS.IDLE) {
+      checkForUpdate();
+    }
+  }, [open, status, checkForUpdate]);
 
   const downloadUpdate = useCallback(async () => {
     setStatus(STATUS.DOWNLOADING);

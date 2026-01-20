@@ -752,57 +752,6 @@ export const CONSTANTS = {
   ],
 };
 
-// Export individual parts for easier access
-export const OBJECT_TYPES = CONSTANTS.OBJECT_TYPES;
-export const UNIT_TYPES = CONSTANTS.UNIT.TYPES;
-export const UNIT_MODES = CONSTANTS.UNIT.MODES;
-export const CURTAIN_TYPES = CONSTANTS.CURTAIN.TYPES;
-export const CURTAIN_VALUES = CONSTANTS.CURTAIN.VALUES;
-
-// Helper functions for unit I/O specifications
-export const getUnitIOSpec = (unitName) => {
-  const unit = CONSTANTS.UNIT.TYPES.find((u) => u.name === unitName);
-  return unit
-    ? {
-        inputs: unit.inputs,
-        outputs: unit.outputs,
-        totalOutputs: unit.outputs.relay + unit.outputs.dimmer + unit.outputs.ao + unit.outputs.ac,
-      }
-    : null;
-};
-
-export const getUnitByBarcode = (barcode) => {
-  return CONSTANTS.UNIT.TYPES.find((u) => u.barcode === barcode);
-};
-
-export const hasInputs = (unitName) => {
-  const spec = getUnitIOSpec(unitName);
-  return spec ? spec.inputs > 0 : false;
-};
-
-export const hasOutputs = (unitName) => {
-  const spec = getUnitIOSpec(unitName);
-  return spec ? spec.totalOutputs > 0 : false;
-};
-
-export const hasAirconOutputs = (unitName) => {
-  const spec = getUnitIOSpec(unitName);
-  return spec ? spec.outputs.ac > 0 : false;
-};
-
-export const getOutputTypes = (unitName) => {
-  const spec = getUnitIOSpec(unitName);
-  if (!spec) return [];
-
-  const types = [];
-  if (spec.outputs.relay > 0) types.push({ type: "relay", count: spec.outputs.relay });
-  if (spec.outputs.dimmer > 0) types.push({ type: "dimmer", count: spec.outputs.dimmer });
-  if (spec.outputs.ao > 0) types.push({ type: "ao", count: spec.outputs.ao });
-  if (spec.outputs.ac > 0) types.push({ type: "ac", count: spec.outputs.ac });
-
-  return types;
-};
-
 // Input function types organized by categories for unit configuration
 export const INPUT_TYPES = {
   ROOM: [
@@ -975,6 +924,69 @@ const INPUT_FUNCTION_LISTS = {
   ],
 };
 
+// RLC Options Constants (simplified versions)
+export const RAMP_OPTIONS = [
+  { value: 0, label: "Instant" },
+  { value: 1, label: "1 secs" },
+  { value: 4, label: "4 secs" },
+  { value: 8, label: "8 secs" },
+  { value: 12, label: "12 secs" },
+  { value: 20, label: "20 secs" },
+  { value: 30, label: "30 secs" },
+  { value: 40, label: "40 secs" },
+  { value: 60, label: "60 secs" },
+  { value: 90, label: "90 secs" },
+  { value: 120, label: "120 secs" },
+  { value: 150, label: "150 secs" },
+  { value: 180, label: "180 secs" },
+  { value: 210, label: "210 secs" },
+  { value: 240, label: "240 secs" },
+  { value: 255, label: "255 secs" },
+];
+
+export const LED_DISPLAY_MODES = [
+  { value: 0, label: "OFF", description: "LED always off" },
+  { value: 1, label: "ON", description: "LED always on" },
+  { value: 2, label: "ON/OFF", description: "LED shows on/off status" },
+  { value: 3, label: "2 Colors", description: "LED shows 2-color status" },
+];
+
+// Export individual parts for easier access
+export const OBJECT_TYPES = CONSTANTS.OBJECT_TYPES;
+export const UNIT_TYPES = CONSTANTS.UNIT.TYPES;
+export const UNIT_MODES = CONSTANTS.UNIT.MODES;
+export const CURTAIN_TYPES = CONSTANTS.CURTAIN.TYPES;
+export const CURTAIN_VALUES = CONSTANTS.CURTAIN.VALUES;
+
+// Helper functions for unit I/O specifications
+export const getUnitIOSpec = (unitName) => {
+  const unit = CONSTANTS.UNIT.TYPES.find((u) => u.name === unitName);
+  return unit
+    ? {
+        inputs: unit.inputs,
+        outputs: unit.outputs,
+        totalOutputs: unit.outputs.relay + unit.outputs.dimmer + unit.outputs.ao + unit.outputs.ac,
+      }
+    : null;
+};
+
+export const getUnitByBarcode = (barcode) => {
+  return CONSTANTS.UNIT.TYPES.find((u) => u.barcode === barcode);
+};
+
+export const getOutputTypes = (unitName) => {
+  const spec = getUnitIOSpec(unitName);
+  if (!spec) return [];
+
+  const types = [];
+  if (spec.outputs.relay > 0) types.push({ type: "relay", count: spec.outputs.relay });
+  if (spec.outputs.dimmer > 0) types.push({ type: "dimmer", count: spec.outputs.dimmer });
+  if (spec.outputs.ao > 0) types.push({ type: "ao", count: spec.outputs.ao });
+  if (spec.outputs.ac > 0) types.push({ type: "ac", count: spec.outputs.ac });
+
+  return types;
+};
+
 // Helper functions for input functions (proper mapping)
 export const getInputFunctions = (unitName, inputIndex) => {
   const unit = CONSTANTS.UNIT.TYPES.find((u) => u.name === unitName);
@@ -1003,45 +1015,6 @@ export const getInputFunctionByValue = (value) => {
   }
   return null;
 };
-
-// RLC Options Constants (simplified versions)
-export const RAMP_OPTIONS = [
-  { value: 0, label: "Instant" },
-  { value: 1, label: "1 secs" },
-  { value: 4, label: "4 secs" },
-  { value: 8, label: "8 secs" },
-  { value: 12, label: "12 secs" },
-  { value: 20, label: "20 secs" },
-  { value: 30, label: "30 secs" },
-  { value: 40, label: "40 secs" },
-  { value: 60, label: "60 secs" },
-  { value: 90, label: "90 secs" },
-  { value: 120, label: "120 secs" },
-  { value: 150, label: "150 secs" },
-  { value: 180, label: "180 secs" },
-  { value: 210, label: "210 secs" },
-  { value: 240, label: "240 secs" },
-  { value: 255, label: "255 secs" },
-];
-
-export const LED_DISPLAY_MODES = [
-  { value: 0, label: "OFF", description: "LED always off" },
-  { value: 1, label: "ON", description: "LED always on" },
-  { value: 2, label: "ON/OFF", description: "LED shows on/off status" },
-  { value: 3, label: "2 Colors", description: "LED shows 2-color status" },
-];
-
-// Helper functions for delay and LED calculations
-export function calculateDelaySeconds(hours, minutes, seconds) {
-  return hours * 3600 + minutes * 60 + seconds;
-}
-
-export function parseDelaySeconds(totalSeconds) {
-  const hours = Math.floor(totalSeconds / 3600);
-  const minutes = Math.floor((totalSeconds % 3600) / 60);
-  const seconds = totalSeconds % 60;
-  return { hours, minutes, seconds };
-}
 
 export const getRlcOptionsConfig = (functionName, unitType = null) => {
   // Simplified RLC options configuration
@@ -1075,16 +1048,6 @@ export const getRlcOptionsConfig = (functionName, unitType = null) => {
 };
 
 /**
- * Check if a unit has grouped inputs (displays inputs in groups of 3)
- * @param {string} unitType - The type of unit
- * @returns {boolean} True if unit has grouped inputs
- */
-export const hasGroupedInputs = (unitType) => {
-  const unit = CONSTANTS.UNIT.TYPES.find((u) => u.name === unitType);
-  return unit ? unit.groupedInputs === true : false;
-};
-
-/**
  * Get input display name, with grouped naming if applicable
  * @param {string} unitType - The type of unit
  * @param {number} inputIndex - The input index (0-based)
@@ -1101,13 +1064,11 @@ export const hasGroupedInputs = (unitType) => {
  * - etc.
  */
 export const getInputDisplayName = (unitType, inputIndex) => {
-  if (hasGroupedInputs(unitType)) {
-    // Group inputs in sets of 3
-    const groupNumber = Math.floor(inputIndex / 3) + 1;
-    const subNumber = (inputIndex % 3) + 1;
-    return `Input ${groupNumber}.${subNumber}`;
-  } else {
-    // Standard sequential numbering
-    return `Input ${inputIndex + 1}`;
+  const unit = CONSTANTS.UNIT.TYPES.find((u) => u.name === unitType);
+  const isGrouped = unit?.groupedInputs === true;
+
+  if (isGrouped) {
+    return `Input ${Math.floor(inputIndex / 3) + 1}.${(inputIndex % 3) + 1}`;
   }
+  return `Input ${inputIndex + 1}`;
 };

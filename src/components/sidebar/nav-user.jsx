@@ -2,9 +2,11 @@ import { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { UpdateDialog } from "./update-dialog";
+import { OldReleaseDialog } from "./old-release-dialog";
 
 export function SidebarOptInForm() {
   const [updateDialogOpen, setUpdateDialogOpen] = useState(false);
+  const [oldReleaseDialogOpen, setOldReleaseDialogOpen] = useState(false);
   const version = __APP_VERSION__ || "Unknown";
   const buildDate = __BUILD_DATE__ || new Date().toISOString().slice(0, 10);
   const electron = __ELECTRON_VERSION__ || new Date().toISOString().slice(0, 10);
@@ -22,7 +24,13 @@ export function SidebarOptInForm() {
           <div className="flex items-center justify-between">
             <span className="text-sm text-muted-foreground">Built on</span>
             <span className="text-xs text-foreground">
-              <Badge variant="outline">{buildDate.replace(/-/g, ".")}</Badge>
+              <Badge
+                variant="outline"
+                className="cursor-pointer"
+                onClick={() => setOldReleaseDialogOpen(true)}
+              >
+                {buildDate.replace(/-/g, ".")}
+              </Badge>
             </span>
           </div>
           <div className="flex items-center justify-between">
@@ -35,6 +43,7 @@ export function SidebarOptInForm() {
       </Card>
 
       <UpdateDialog open={updateDialogOpen} onOpenChange={setUpdateDialogOpen} />
+      <OldReleaseDialog open={oldReleaseDialogOpen} onOpenChange={setOldReleaseDialogOpen} />
     </>
   );
 }

@@ -17,6 +17,7 @@ import { registerFirmwareHandlers } from "./firmware.js";
 import { registerIOConfigHandlers } from "./io-config.js";
 import { registerDeviceConfigHandlers } from "./device-config.js";
 import { registerUpdaterHandlers } from "./updater.js";
+import { registerShellHandlers } from "./shell.js";
 
 /**
  * Đăng ký tất cả IPC handlers
@@ -45,4 +46,5 @@ export function registerAllHandlers(ipcMain, dbService, rcu, networkInterfaceSer
   registerIOConfigHandlers(ipcMain, rcu);
   registerDeviceConfigHandlers(ipcMain, rcu);
   registerUpdaterHandlers(ipcMain);
+  registerShellHandlers(ipcMain);
 }
