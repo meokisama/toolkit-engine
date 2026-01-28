@@ -465,6 +465,11 @@ export const crudOperations = {
         return this.createKnxItemInline(projectId, itemData);
       }
 
+      // Special handling for schedule (uses createScheduleItem)
+      if (tableName === "schedule") {
+        return this.createScheduleItem(projectId, itemData);
+      }
+
       // Use table config if available
       if (config) {
         // Run validation

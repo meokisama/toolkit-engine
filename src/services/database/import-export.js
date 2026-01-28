@@ -1,4 +1,40 @@
 export const importExportOperations = {
+  /**
+   * Bulk import items from network unit to database
+   * @param {number} projectId - Project ID
+   * @param {Array} items - Array of items to import
+   * @param {string} category - Category/table name (e.g., "unit", "lighting", "aircon")
+   * @returns {Array} - Array of imported items
+   */
+  bulkImportItems(projectId, items, category) {
+    try {
+      const transaction = this.db.transaction(() => {
+        const results = [];
+
+        items.forEach((item) => {
+          // Prepare item for import
+          const itemData = { ...item };
+          delete itemData.id; // Let database auto-increment
+          delete itemData.project_id; // Will be set by create method
+          delete itemData.created_at;
+          delete itemData.updated_at;
+
+          // Create item using existing createProjectItem method
+          const newItem = this.createProjectItem(projectId, itemData, category);
+          results.push(newItem);
+        });
+
+        console.log(`Bulk imported ${results.length} ${category} items`);
+        return results;
+      });
+
+      return transaction();
+    } catch (error) {
+      console.error(`Failed to bulk import ${category} items:`, error);
+      throw error;
+    }
+  },
+
   importProject(projectData, itemsData) {
     try {
       const transaction = this.db.transaction(() => {
@@ -26,22 +62,24 @@ export const importExportOperations = {
         // Phase 1: Import items without dependencies
         console.log("Phase 1: Importing items without dependencies...");
 
-        // Unit items (no dependencies)
+        // Unit items (no dependencies - must be first for source_unit references)
         importedCounts.unit = this.importCategory(project.id, itemsData.unit || [], "unit", idMappings);
 
-        // Device items (no dependencies)
+        // Device items without unit dependencies
         importedCounts.lighting = this.importCategory(project.id, itemsData.lighting || [], "lighting", idMappings);
         importedCounts.aircon = this.importCategory(project.id, itemsData.aircon || [], "aircon", idMappings);
-        importedCounts.dmx = this.importCategory(project.id, itemsData.dmx || [], "dmx", idMappings);
 
         // Phase 2: Import items with unit dependencies
         console.log("Phase 2: Importing items with unit dependencies...");
 
-        // Curtain (may reference lighting groups, but we'll fix that later)
-        importedCounts.curtain = this.importCategoryWithUnitRef(project.id, itemsData.curtain || [], "curtain", idMappings);
+        // DMX (has source_unit reference)
+        importedCounts.dmx = this.importCategoryWithUnitRef(project.id, itemsData.dmx || [], "dmx", idMappings);
 
-        // KNX (may reference RCU groups, but we'll fix that later)
-        importedCounts.knx = this.importCategoryWithUnitRef(project.id, itemsData.knx || [], "knx", idMappings);
+        // Curtain (has lighting group references - clear them first, fix later)
+        importedCounts.curtain = this.importCurtainItems(project.id, itemsData.curtain || [], idMappings);
+
+        // KNX (has RCU group references - clear them first, fix later)
+        importedCounts.knx = this.importKnxItems(project.id, itemsData.knx || [], idMappings);
 
         // Phase 3: Import control items
         console.log("Phase 3: Importing control items...");
@@ -62,7 +100,7 @@ export const importExportOperations = {
 
         // Phase 6: Import configuration tables
         console.log("Phase 6: Importing configurations...");
-        this.importConfigurations(project.id, itemsData);
+        this.importConfigurations(project.id, itemsData, idMappings);
 
         console.log("Import completed successfully!");
         return { project, importedCounts };
@@ -142,6 +180,93 @@ export const importExportOperations = {
     });
 
     console.log(`  Imported ${count} ${category} items`);
+    return count;
+  },
+
+  /**
+   * Import curtain items (clear lighting group refs to avoid FK errors, fix later)
+   */
+  importCurtainItems(projectId, items, idMappings) {
+    let count = 0;
+
+    items.forEach((item) => {
+      const oldId = item.id;
+      const oldSourceUnit = item.source_unit;
+
+      // Prepare item for import
+      const itemData = { ...item };
+      delete itemData.id;
+      delete itemData.project_id;
+      delete itemData.created_at;
+      delete itemData.updated_at;
+
+      // Clear lighting group references (will be fixed in Phase 5)
+      // These must be null during insert to avoid FK constraint errors
+      itemData.open_group_id = null;
+      itemData.close_group_id = null;
+      itemData.stop_group_id = null;
+
+      // Map source_unit if exists
+      if (oldSourceUnit && idMappings.unit[oldSourceUnit]) {
+        itemData.source_unit = idMappings.unit[oldSourceUnit];
+      } else {
+        itemData.source_unit = null;
+      }
+
+      // Create item
+      const newItem = this.createProjectItem(projectId, itemData, "curtain");
+
+      // Store ID mapping
+      if (oldId) {
+        idMappings.curtain[oldId] = newItem.id;
+      }
+
+      count++;
+    });
+
+    console.log(`  Imported ${count} curtain items`);
+    return count;
+  },
+
+  /**
+   * Import KNX items (clear RCU group refs to avoid potential issues, fix later)
+   */
+  importKnxItems(projectId, items, idMappings) {
+    let count = 0;
+
+    items.forEach((item) => {
+      const oldId = item.id;
+      const oldSourceUnit = item.source_unit;
+
+      // Prepare item for import
+      const itemData = { ...item };
+      delete itemData.id;
+      delete itemData.project_id;
+      delete itemData.created_at;
+      delete itemData.updated_at;
+
+      // Clear RCU group reference (will be fixed in Phase 5)
+      itemData.rcu_group_id = null;
+
+      // Map source_unit if exists
+      if (oldSourceUnit && idMappings.unit[oldSourceUnit]) {
+        itemData.source_unit = idMappings.unit[oldSourceUnit];
+      } else {
+        itemData.source_unit = null;
+      }
+
+      // Create item
+      const newItem = this.createProjectItem(projectId, itemData, "knx");
+
+      // Store ID mapping
+      if (oldId) {
+        idMappings.knx[oldId] = newItem.id;
+      }
+
+      count++;
+    });
+
+    console.log(`  Imported ${count} knx items`);
     return count;
   },
 
@@ -345,19 +470,29 @@ export const importExportOperations = {
   /**
    * Import configuration tables
    */
-  importConfigurations(projectId, itemsData) {
+  importConfigurations(projectId, itemsData, idMappings) {
+    let generalConfigId = null;
+
     // Import room general config
     if (itemsData.room_general_config) {
       const config = itemsData.room_general_config;
+
+      // Map source_unit if exists
+      let newSourceUnit = null;
+      if (config.source_unit && idMappings.unit[config.source_unit]) {
+        newSourceUnit = idMappings.unit[config.source_unit];
+      }
+
       const stmt = this.db.prepare(`
         INSERT INTO room_general_config (
-          project_id, room_mode, room_amount, tcp_mode, port, slave_amount, slave_ips,
+          project_id, source_unit, room_mode, room_amount, tcp_mode, port, slave_amount, slave_ips,
           client_mode, client_ip, client_port, knx_address
         )
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       `);
-      stmt.run(
+      const result = stmt.run(
         projectId,
+        newSourceUnit,
         config.room_mode,
         config.room_amount,
         config.tcp_mode,
@@ -369,15 +504,21 @@ export const importExportOperations = {
         config.client_port,
         config.knx_address || "0/0/0"
       );
+      generalConfigId = result.lastInsertRowid;
       console.log("  Imported room_general_config");
     }
 
-    // Import room detail config
+    // Import room detail config (requires general_config_id from room_general_config)
     const roomConfigs = itemsData.room_detail_config || [];
+    if (roomConfigs.length > 0 && !generalConfigId) {
+      console.log("  Skipping room_detail_config: no general_config_id available");
+    }
     roomConfigs.forEach((config) => {
+      if (!generalConfigId) return;
+
       const stmt = this.db.prepare(`
         INSERT INTO room_detail_config (
-          project_id, room_address, occupancy_type, occupancy_scene_type, enable_welcome_night,
+          general_config_id, room_address, occupancy_type, occupancy_scene_type, enable_welcome_night,
           period, pir_init_time, pir_verify_time, unrent_period, standby_time,
           unrent_aircon_active, unrent_aircon_mode, unrent_aircon_fan_speed, unrent_aircon_cool_setpoint, unrent_aircon_heat_setpoint,
           unrent_scene_amount, unrent_scenes,
@@ -397,7 +538,7 @@ export const importExportOperations = {
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       `);
       stmt.run(
-        projectId,
+        generalConfigId,
         config.room_address,
         config.occupancy_type,
         config.occupancy_scene_type,
