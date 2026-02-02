@@ -19,6 +19,7 @@ import {
   Wrench,
   Palette,
   Building2,
+  Sparkles,
 } from "lucide-react";
 
 import { TableCell, TableRow } from "@/components/ui/table";
@@ -42,6 +43,7 @@ export function DataTableRow({
   onGroupControl,
   onAirconControl,
   onRgbControl,
+  onLedSpiControl,
   onSceneControl,
   onScheduleControl,
   onClockControl,
@@ -140,7 +142,7 @@ export function DataTableRow({
           </>
         )}
         {/* Utilities Submenu */}
-        {(onGroupControl || onAirconControl || onRgbControl) && (
+        {(onGroupControl || onAirconControl || onRgbControl || onLedSpiControl) && (
           <ContextMenuSub>
             <ContextMenuSubTrigger>
               <Wrench className="text-muted-foreground" />
@@ -163,6 +165,12 @@ export function DataTableRow({
                 <ContextMenuItem onClick={() => onRgbControl(item)}>
                   <Palette className="text-muted-foreground" />
                   <span>RGB Control</span>
+                </ContextMenuItem>
+              )}
+              {onLedSpiControl && (
+                <ContextMenuItem onClick={() => onLedSpiControl.onLedSpiControl(item)}>
+                  <Sparkles className="text-muted-foreground" />
+                  <span>LED SPI Control</span>
                 </ContextMenuItem>
               )}
             </ContextMenuSubContent>

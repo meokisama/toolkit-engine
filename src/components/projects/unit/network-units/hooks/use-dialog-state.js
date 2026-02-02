@@ -19,6 +19,7 @@ export const DIALOG_TYPES = {
   SEND_ALL_CONFIG: "sendAllConfig",
   IO_CONFIG: "ioConfig",
   EDIT: "edit",
+  LED_SPI_CONTROL: "ledSpiControl",
 };
 
 // Action types

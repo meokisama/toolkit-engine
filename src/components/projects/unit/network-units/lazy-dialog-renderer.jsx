@@ -96,6 +96,12 @@ const NetworkUnitEditDialog = lazy(() =>
   }))
 );
 
+const LedSpiControlDialog = lazy(() =>
+  import("./controls/led-spi").then((m) => ({
+    default: m.LedSpiControlDialog,
+  }))
+);
+
 /**
  * Lazy dialog renderer - only mounts the currently active dialog
  * This significantly reduces initial render cost and memory usage
@@ -196,6 +202,14 @@ export function LazyDialogRenderer({ activeDialog, dialogData, dialogState, hand
           onOpenChange={dialogState.createDialogHandler(DIALOG_TYPES.EDIT)}
           unit={dialogData}
           onUnitUpdated={onUnitUpdated}
+        />
+      )}
+
+      {activeDialog === DIALOG_TYPES.LED_SPI_CONTROL && (
+        <LedSpiControlDialog
+          open={true}
+          onOpenChange={dialogState.createDialogHandler(DIALOG_TYPES.LED_SPI_CONTROL)}
+          unit={dialogData}
         />
       )}
     </Suspense>

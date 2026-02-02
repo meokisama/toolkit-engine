@@ -230,6 +230,7 @@ export function useNetworkUnitHandlers({ state, onTransferToDatabase, existingUn
   const handleRoomConfigControl = createDialogHandler(DIALOG_TYPES.ROOM_CONFIG_CONTROL);
   const handleTriggerMultiScene = createDialogHandler(DIALOG_TYPES.TRIGGER_MULTI_SCENE);
   const handleTriggerSequence = createDialogHandler(DIALOG_TYPES.TRIGGER_SEQUENCE);
+  const handleLedSpiControl = createDialogHandler(DIALOG_TYPES.LED_SPI_CONTROL);
 
   // Handlers without unit parameter
   const handleBulkClockSync = useCallback(() => {
@@ -346,5 +347,6 @@ export function useNetworkUnitHandlers({ state, onTransferToDatabase, existingUn
     handleNetworkRowSelectionChange,
     handleIOConfig,
     handleEditUnit,
+    handleLedSpiControl,
   };
 }

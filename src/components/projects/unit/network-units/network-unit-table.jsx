@@ -151,6 +151,9 @@ function NetworkUnitTableComponent({ onTransferToDatabase, existingUnits = [], o
                 onDmxControl={{
                   onDmxControl: handlers.handleDmxControl,
                 }}
+                onLedSpiControl={{
+                  onLedSpiControl: handlers.handleLedSpiControl,
+                }}
                 onRoomConfigControl={{
                   onRoomConfigControl: handlers.handleRoomConfigControl,
                 }}

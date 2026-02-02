@@ -132,3 +132,6 @@ export {
 
 // Export Room configuration functions
 export { setRoomConfiguration, getRoomConfiguration, getRoomStatus, setRoomStatus } from "./rcu-controller/room.js";
+
+// Export LED SPI functions
+export { setLedSpiHardwareConfig, setLedSpiEffectControl, getLedSpiConfig, triggerLedSpi } from "./rcu-controller/led-spi.js";

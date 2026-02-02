@@ -139,6 +139,15 @@ const PROTOCOL = {
       SET_DMX_COLOR: 2,
     },
   },
+  LED_SPI: {
+    CMD1: 90,
+    CMD2: {
+      SET_HARDWARE_CONFIG: 0,
+      SET_EFFECT_CONTROL: 1,
+      GET_LED_CONFIG: 2, // Return hardware config + effect control
+      TRIGGER_LED: 3, //
+    },
+  },
 };
 
 // Error codes mapping based on RCU protocol

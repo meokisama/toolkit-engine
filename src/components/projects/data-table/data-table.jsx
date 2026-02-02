@@ -17,6 +17,7 @@ export function DataTable({
   onGroupControl,
   onAirconControl,
   onRgbControl,
+  onLedSpiControl,
   onSceneControl,
   onScheduleControl,
   onClockControl,
@@ -183,6 +184,7 @@ export function DataTable({
                   onGroupControl={onGroupControl}
                   onAirconControl={onAirconControl}
                   onRgbControl={onRgbControl}
+                  onLedSpiControl={onLedSpiControl}
                   onSceneControl={onSceneControl}
                   onScheduleControl={onScheduleControl}
                   onClockControl={onClockControl}

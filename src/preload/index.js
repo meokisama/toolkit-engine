@@ -18,6 +18,7 @@ import { zigbee, zigbeeController } from "./zigbee.js";
 import { room, roomController } from "./room.js";
 import { deviceController } from "./device-config.js";
 import { updater } from "./updater.js";
+import { ledSpiController } from "./led-spi.js";
 
 export const electronAPI = {
   openExternal: (url) => ipcRenderer.invoke("shell:openExternal", url),
@@ -52,4 +53,5 @@ export const electronAPI = {
   roomController,
   deviceController,
   updater,
+  ledSpiController,
 };
