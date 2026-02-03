@@ -159,6 +159,22 @@ export function LedSpiControlDialog({ open, onOpenChange, unit }) {
       const channelNumber = channelIndex + 1;
 
       try {
+        // Send effect config before turning ON
+        if (enabled) {
+          const effect = effectStates[channelIndex];
+          await window.electronAPI.ledSpiController.setEffectControl(unit.ip_address, unit.id_can, channelNumber, {
+            effect: effect.effect,
+            speed: effect.speed,
+            brightness: effect.brightness,
+            color: {
+              r: effect.color.r,
+              g: effect.color.g,
+              b: effect.color.b,
+              w: effect.color.w,
+            },
+          });
+        }
+
         await window.electronAPI.ledSpiController.triggerLed(unit.ip_address, unit.id_can, channelNumber, enabled);
         updateLedEnabled(channelIndex, enabled);
         toast.success(`Channel ${channelNumber} LED ${enabled ? "ON" : "OFF"}`);
@@ -167,7 +183,7 @@ export function LedSpiControlDialog({ open, onOpenChange, unit }) {
         toast.error(`Failed to trigger LED: ${error.message}`);
       }
     },
-    [unit, updateLedEnabled],
+    [unit, effectStates, updateLedEnabled],
   );
 
   const handleDialogOpenChange = useCallback(
