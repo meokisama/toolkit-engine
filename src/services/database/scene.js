@@ -79,7 +79,7 @@ export const sceneMethods = {
         // Duplicate scene items
         for (const sceneItem of originalSceneItems) {
           // For SPI items, pass item_address directly
-          const itemAddress = sceneItem.item_type === "spi" ? sceneItem.item_address : null;
+          const itemAddress = sceneItem.item_type === "spi" ? String(sceneItem.item_address) : null;
           this.addItemToScene(
             duplicatedScene.id,
             sceneItem.item_type,
@@ -300,7 +300,7 @@ export const sceneMethods = {
         for (const itemData of sceneData.items) {
           // For SPI items, add directly without finding/creating since they don't have a database table
           if (itemData.itemType === "spi") {
-            this.addItemToScene(scene.id, itemData.itemType, null, itemData.value, itemData.command, itemData.objectType, itemData.address);
+            this.addItemToScene(scene.id, itemData.itemType, null, itemData.value, itemData.command, itemData.objectType, String(itemData.address));
             continue;
           }
 

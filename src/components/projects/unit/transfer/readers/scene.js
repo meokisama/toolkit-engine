@@ -70,7 +70,7 @@ export const readSceneConfigurations = async (networkUnit, projectId, unitId) =>
                         itemValue.toString(),
                         effectIndex.toString(), // Store effect index in command
                         objectType,
-                        item.itemAddress // Pass address directly for SPI
+                        String(item.itemAddress) // Pass address directly for SPI
                       );
                     } else if (itemId) {
                       await window.electronAPI.scene.addItem(

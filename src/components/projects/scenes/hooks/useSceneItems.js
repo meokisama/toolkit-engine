@@ -188,7 +188,7 @@ export function useSceneItems({ projectItems, getCommandForAirconItem, mode }) {
 
     for (const item of itemsToAdd) {
       // For SPI items, pass item_address directly since they don't have database entries
-      const itemAddress = item.item_type === "spi" ? item.item_address : null;
+      const itemAddress = item.item_type === "spi" ? String(item.item_address) : null;
       await window.electronAPI.scene.addItem(sceneId, item.item_type, item.item_id, item.item_value, item.command, item.object_type, itemAddress);
     }
 

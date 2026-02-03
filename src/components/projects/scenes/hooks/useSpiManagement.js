@@ -5,8 +5,8 @@ import { LED_EFFECTS } from "@/components/projects/unit/network-units/controls/l
 
 // Fixed SPI channels - no database table needed
 const SPI_CHANNELS = [
-  { address: 1, name: "SPI Channel 1" },
-  { address: 2, name: "SPI Channel 2" },
+  { address: "1", name: "SPI Channel 1" },
+  { address: "2", name: "SPI Channel 2" },
 ];
 
 // Map effect index to object type
@@ -19,7 +19,7 @@ export function useSpiManagement({ sceneItems, setSceneItems, mode }) {
   // Get available SPI channels that are not yet in the scene
   const filteredSpiChannels = useMemo(() => {
     return SPI_CHANNELS.filter((channel) => {
-      return !sceneItems.some((item) => item.item_type === "spi" && item.item_address === channel.address);
+      return !sceneItems.some((item) => item.item_type === "spi" && String(item.item_address) === channel.address);
     });
   }, [sceneItems]);
 

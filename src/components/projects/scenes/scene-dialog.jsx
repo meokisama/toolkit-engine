@@ -340,7 +340,7 @@ export function SceneDialog({ open, onOpenChange, scene = null, mode = "create" 
 
         for (const sceneItem of sceneItemsHooks.sceneItems) {
           // For SPI items, pass item_address directly since they don't have database entries
-          const itemAddress = sceneItem.item_type === "spi" ? sceneItem.item_address : null;
+          const itemAddress = sceneItem.item_type === "spi" ? String(sceneItem.item_address) : null;
           await window.electronAPI.scene.addItem(
             newScene.id,
             sceneItem.item_type,
