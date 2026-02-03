@@ -78,13 +78,16 @@ export const sceneMethods = {
 
         // Duplicate scene items
         for (const sceneItem of originalSceneItems) {
+          // For SPI items, pass item_address directly
+          const itemAddress = sceneItem.item_type === "spi" ? sceneItem.item_address : null;
           this.addItemToScene(
             duplicatedScene.id,
             sceneItem.item_type,
             sceneItem.item_id,
             sceneItem.item_value,
             sceneItem.command,
-            sceneItem.object_type
+            sceneItem.object_type,
+            itemAddress,
           );
         }
 
@@ -125,6 +128,7 @@ export const sceneMethods = {
             WHEN si.item_type = 'aircon' THEN ai.name
             WHEN si.item_type = 'curtain' THEN c.name
             WHEN si.item_type = 'dmx' THEN d.name
+            WHEN si.item_type = 'spi' THEN 'SPI Channel ' || si.item_address
           END as item_name,
           si.item_address,
           CASE
@@ -132,6 +136,7 @@ export const sceneMethods = {
             WHEN si.item_type = 'aircon' THEN ai.description
             WHEN si.item_type = 'curtain' THEN c.description
             WHEN si.item_type = 'dmx' THEN d.description
+            WHEN si.item_type = 'spi' THEN NULL
           END as item_description,
           CASE
             WHEN si.item_type = 'lighting' THEN l.object_type
@@ -143,6 +148,7 @@ export const sceneMethods = {
             WHEN si.item_type = 'aircon' THEN ai.label
             WHEN si.item_type = 'dmx' THEN
               'Color ' || CAST(REPLACE(REPLACE(si.object_type, 'OBJ_DMX_COLOR', ''), 'DMX_COLOR', '') AS INTEGER)
+            WHEN si.item_type = 'spi' THEN si.command
             ELSE NULL
           END as label
         FROM scene_items si
@@ -161,7 +167,7 @@ export const sceneMethods = {
     }
   },
 
-  addItemToScene(sceneId, itemType, itemId, itemValue = null, command = null, objectType = null) {
+  addItemToScene(sceneId, itemType, itemId, itemValue = null, command = null, objectType = null, itemAddress = null) {
     try {
       // Check scene items limit (60 items maximum)
       const currentItemCount = this.db.prepare("SELECT COUNT(*) as count FROM scene_items WHERE scene_id = ?").get(sceneId);
@@ -169,30 +175,35 @@ export const sceneMethods = {
         throw new Error("Maximum 60 items allowed per scene");
       }
 
-      // Get item address from the corresponding table
-      let itemAddress = null;
-      if (itemType === "lighting") {
-        const item = this.db.prepare("SELECT address FROM lighting WHERE id = ?").get(itemId);
-        itemAddress = item?.address;
-      } else if (itemType === "aircon") {
-        const item = this.db.prepare("SELECT address FROM aircon WHERE id = ?").get(itemId);
-        itemAddress = item?.address;
-      } else if (itemType === "curtain") {
-        const item = this.db.prepare("SELECT address FROM curtain WHERE id = ?").get(itemId);
-        itemAddress = item?.address;
-      } else if (itemType === "dmx") {
-        const item = this.db.prepare("SELECT address FROM dmx WHERE id = ?").get(itemId);
-        itemAddress = item?.address;
+      // Get item address from the corresponding table (unless already provided for SPI)
+      let address = itemAddress;
+      if (!address) {
+        if (itemType === "lighting") {
+          const item = this.db.prepare("SELECT address FROM lighting WHERE id = ?").get(itemId);
+          address = item?.address;
+        } else if (itemType === "aircon") {
+          const item = this.db.prepare("SELECT address FROM aircon WHERE id = ?").get(itemId);
+          address = item?.address;
+        } else if (itemType === "curtain") {
+          const item = this.db.prepare("SELECT address FROM curtain WHERE id = ?").get(itemId);
+          address = item?.address;
+        } else if (itemType === "dmx") {
+          const item = this.db.prepare("SELECT address FROM dmx WHERE id = ?").get(itemId);
+          address = item?.address;
+        }
+        // For SPI type, address is passed directly as itemAddress parameter
       }
 
       // Add to scene_items
+      // For SPI, item_id is 0 since it doesn't have a database table
+      const actualItemId = itemType === "spi" ? 0 : itemId;
       const object_value = this.getObjectValue(objectType);
       const stmt = this.db.prepare(`
         INSERT INTO scene_items (scene_id, item_type, item_id, item_address, item_value, command, object_type, object_value)
         VALUES (?, ?, ?, ?, ?, ?, ?, ?)
       `);
 
-      const result = stmt.run(sceneId, itemType, itemId, itemAddress, itemValue, command, objectType, object_value);
+      const result = stmt.run(sceneId, itemType, actualItemId, address, itemValue, command, objectType, object_value);
 
       // Return the created scene item with details
       const getStmt = this.db.prepare("SELECT * FROM scene_items WHERE id = ?");
@@ -281,12 +292,18 @@ export const sceneMethods = {
           address: availableAddress.toString(),
           description: sceneData.description,
         },
-        "scene"
+        "scene",
       );
 
       // Process each scene item
       if (sceneData.items && sceneData.items.length > 0) {
         for (const itemData of sceneData.items) {
+          // For SPI items, add directly without finding/creating since they don't have a database table
+          if (itemData.itemType === "spi") {
+            this.addItemToScene(scene.id, itemData.itemType, null, itemData.value, itemData.command, itemData.objectType, itemData.address);
+            continue;
+          }
+
           // Find or create the item based on type and address
           const item = this.findOrCreateItemForScene(projectId, itemData);
 

@@ -51,20 +51,37 @@ export const readSceneConfigurations = async (networkUnit, projectId, unitId) =>
               for (const item of detailedScene.items) {
                 try {
                   // Map object_value to item_type and find or create corresponding database item
-                  const { itemType, itemId } = await findOrCreateDatabaseItemByNetworkItem(item, projectId);
+                  const result = await findOrCreateDatabaseItemByNetworkItem(item, projectId);
+                  const { itemType, itemId, itemAddress } = result;
 
-                  if (itemType && itemId) {
+                  if (itemType) {
                     // Database stores item values in same format as network (0-255 for lighting)
                     const itemValue = item.itemValue;
+                    const objectType = getObjectTypeFromValue(item.objectValue);
 
-                    await window.electronAPI.scene.addItem(
-                      createdScene.id,
-                      itemType,
-                      itemId,
-                      itemValue.toString(),
-                      null, // command
-                      getObjectTypeFromValue(item.objectValue)
-                    );
+                    if (itemType === "spi") {
+                      // SPI items don't have database entries, pass address directly
+                      // For SPI, store effect index in command field (objectValue - 25 = effect index)
+                      const effectIndex = item.objectValue - 25;
+                      await window.electronAPI.scene.addItem(
+                        createdScene.id,
+                        itemType,
+                        null, // itemId is null for SPI
+                        itemValue.toString(),
+                        effectIndex.toString(), // Store effect index in command
+                        objectType,
+                        item.itemAddress // Pass address directly for SPI
+                      );
+                    } else if (itemId) {
+                      await window.electronAPI.scene.addItem(
+                        createdScene.id,
+                        itemType,
+                        itemId,
+                        itemValue.toString(),
+                        null, // command
+                        objectType
+                      );
+                    }
                   }
                 } catch (error) {
                   log.error(`Failed to create scene item:`, error);

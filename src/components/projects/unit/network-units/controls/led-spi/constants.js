@@ -38,6 +38,11 @@ export const LED_EFFECTS = [
   { value: 8, name: "EFFECT_STACK_FALLING", label: "Mưa Rơi Tích Lũy", group: EFFECT_GROUPS.COLOR_CONFIG },
   { value: 9, name: "EFFECT_SPARKLE", label: "Tinh Tú Lấp Lánh", group: EFFECT_GROUPS.FIXED_COLOR },
   { value: 10, name: "EFFECT_BREATHING_COLOR", label: "Nhịp Thở Sắc Màu", group: EFFECT_GROUPS.FIXED_COLOR },
+  { value: 11, name: "EFFECT_TEMPLATE_12", label: "Hiệu Ứng 12", group: EFFECT_GROUPS.COLOR_CONFIG },
+  { value: 12, name: "EFFECT_TEMPLATE_13", label: "Hiệu Ứng 13", group: EFFECT_GROUPS.COLOR_CONFIG },
+  { value: 13, name: "EFFECT_TEMPLATE_14", label: "Hiệu Ứng 14", group: EFFECT_GROUPS.COLOR_CONFIG },
+  { value: 14, name: "EFFECT_TEMPLATE_15", label: "Hiệu Ứng 15", group: EFFECT_GROUPS.COLOR_CONFIG },
+  { value: 15, name: "EFFECT_TEMPLATE_16", label: "Hiệu Ứng 16", group: EFFECT_GROUPS.COLOR_CONFIG },
 ];
 
 // Group labels for display

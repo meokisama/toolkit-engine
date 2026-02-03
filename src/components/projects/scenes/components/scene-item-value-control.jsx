@@ -7,8 +7,8 @@ import { OBJECT_TYPES } from "@/constants";
 export function SceneItemValueControl({ sceneItem, updateSceneItemValue, getValueOptions }) {
   const options = getValueOptions(sceneItem.object_type, sceneItem.item_type);
 
-  // For lighting and DMX items, always use number input for brightness (stored as 0-255)
-  if (sceneItem.item_type === "lighting" || sceneItem.item_type === "dmx") {
+  // For lighting, DMX, and SPI items, always use number input for brightness (stored as 0-255)
+  if (sceneItem.item_type === "lighting" || sceneItem.item_type === "dmx" || sceneItem.item_type === "spi") {
     // Value is stored as 0-255, convert to percent for display
     const current255Value = parseInt(sceneItem.item_value || "255");
     const currentPercentValue = Math.round((current255Value * 100) / 255);
@@ -37,7 +37,7 @@ export function SceneItemValueControl({ sceneItem, updateSceneItemValue, getValu
     };
 
     return (
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-1">
         <div className="relative">
           <Percent className="h-4 w-4 absolute left-2 top-1/2 -translate-y-1/2 text-muted-foreground" />
           <Input type="number" min="0" max="100" value={currentPercentValue} onChange={handlePercentChange} className="w-23 pl-8 font-semibold" />

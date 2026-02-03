@@ -22,6 +22,11 @@ export const findOrCreateDatabaseItemByNetworkItem = async (networkItem, project
         itemType = "aircon";
         break;
       default:
+        // Check if it's an SPI effect (object_value 25-40)
+        if (objectValue >= 25 && objectValue <= 40) {
+          // SPI items don't have database entries, return special marker
+          return { itemType: "spi", itemId: null, itemAddress };
+        }
         return { itemType: null, itemId: null };
     }
 
@@ -153,6 +158,11 @@ export const getObjectTypeFromValue = (objectValue) => {
     case 7:
       return "OBJ_AC_SWING";
     default:
+      // Check if it's an SPI effect (object_value 25-40)
+      if (objectValue >= 25 && objectValue <= 40) {
+        const effectIndex = objectValue - 24; // 25 -> 1, 26 -> 2, etc.
+        return `OBJ_LED_SPI_EFFECT${effectIndex}`;
+      }
       return null;
   }
 };

@@ -119,9 +119,9 @@ export function registerSceneHandlers(ipcMain, dbService, rcu) {
     }
   });
 
-  ipcMain.handle("scene:addItem", async (event, sceneId, itemType, itemId, itemValue, command, objectType) => {
+  ipcMain.handle("scene:addItem", async (event, sceneId, itemType, itemId, itemValue, command, objectType, itemAddress) => {
     try {
-      return await dbService.addItemToScene(sceneId, itemType, itemId, itemValue, command, objectType);
+      return await dbService.addItemToScene(sceneId, itemType, itemId, itemValue, command, objectType, itemAddress);
     } catch (error) {
       console.error("Error adding item to scene:", error);
       throw error;

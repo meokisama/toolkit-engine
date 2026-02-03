@@ -2,7 +2,8 @@ import React from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Lightbulb, Wind, Blinds, Palette, Edit, Trash2 } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Lightbulb, Wind, Blinds, Palette, Sparkles, Edit, Trash2 } from "lucide-react";
 import { CONSTANTS } from "@/constants";
 import { SceneItemValueControl } from "./scene-item-value-control";
 import { CustomBrightnessPopover } from "./custom-brightness-popover";
@@ -21,6 +22,8 @@ export function CurrentSceneItems({
   onRemoveItem,
   updateSceneItemValue,
   getValueOptions,
+  ledEffects,
+  onUpdateSpiEffect,
 }) {
   const hasLightingItems = sceneItems.some((item) => item.item_type === "lighting");
 
@@ -107,6 +110,44 @@ export function CurrentSceneItems({
                 );
               }
 
+              // Render SPI items with effect selection
+              if (item.item_type === "spi") {
+                const currentEffectIndex = parseInt(item.command || "0");
+                return (
+                  <div key={item.id} className="flex items-center justify-between p-2 border rounded-lg">
+                    <div className="flex items-center gap-2 min-w-0 flex-1">
+                      <Sparkles className="h-4 w-4 text-cyan-500 shrink-0" />
+                      <div className="min-w-0 flex-1">
+                        <div className="font-medium text-sm truncate">{item.item_name}</div>
+                        <div className="text-xs text-muted-foreground truncate">Address: {item.item_address}</div>
+                      </div>
+                    </div>
+                    <div className="shrink-0 space-y-1">
+                      <div className="flex items-center gap-1">
+                        <SceneItemValueControl sceneItem={item} updateSceneItemValue={updateSceneItemValue} getValueOptions={getValueOptions} />
+                        <Button type="button" variant="outline" size="icon" onClick={() => onRemoveItem(item.id)}>
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                      {ledEffects && ledEffects.length > 0 && (
+                        <Select value={currentEffectIndex.toString()} onValueChange={(value) => onUpdateSpiEffect(item.id, parseInt(value))}>
+                          <SelectTrigger className="w-full">
+                            <SelectValue placeholder="Select effect" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {ledEffects.map((effect) => (
+                              <SelectItem key={effect.value} value={effect.value.toString()}>
+                                {effect.label}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      )}
+                    </div>
+                  </div>
+                );
+              }
+
               // Render regular items (lighting, curtain, dmx)
               return (
                 <div key={item.id} className="flex items-center justify-between p-2 border rounded-lg">
@@ -125,7 +166,7 @@ export function CurrentSceneItems({
                       </div>
                     </div>
                   </div>
-                  <div className="flex items-center gap-2 shrink-0">
+                  <div className="flex items-center gap-1 shrink-0">
                     {item.item_type === "dmx" && (
                       <Button type="button" variant="outline" size="icon" onClick={() => onEditDmxItem(item)}>
                         <Edit className="h-4 w-4" />

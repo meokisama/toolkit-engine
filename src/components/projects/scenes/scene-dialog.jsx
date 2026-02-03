@@ -16,6 +16,7 @@ import { useDmxManagement } from "./hooks/useDmxManagement";
 import { useAirconManagement } from "./hooks/useAirconManagement";
 import { useLightingManagement } from "./hooks/useLightingManagement";
 import { useCurtainManagement } from "./hooks/useCurtainManagement";
+import { useSpiManagement } from "./hooks/useSpiManagement";
 import log from "electron-log/renderer";
 
 // Create label mappings directly from CONSTANTS.AIRCON
@@ -87,6 +88,12 @@ export function SceneDialog({ open, onOpenChange, scene = null, mode = "create" 
   const curtainHooks = useCurtainManagement({
     projectItems,
     sceneItems: sceneItemsHooks.sceneItems,
+  });
+
+  const spiHooks = useSpiManagement({
+    sceneItems: sceneItemsHooks.sceneItems,
+    setSceneItems: sceneItemsHooks.setSceneItems,
+    mode,
   });
 
   // Validate address field - memoized
@@ -332,13 +339,16 @@ export function SceneDialog({ open, onOpenChange, scene = null, mode = "create" 
         const newScene = await createItem("scene", formData);
 
         for (const sceneItem of sceneItemsHooks.sceneItems) {
+          // For SPI items, pass item_address directly since they don't have database entries
+          const itemAddress = sceneItem.item_type === "spi" ? sceneItem.item_address : null;
           await window.electronAPI.scene.addItem(
             newScene.id,
             sceneItem.item_type,
             sceneItem.item_id,
             sceneItem.item_value,
             sceneItem.command,
-            sceneItem.object_type
+            sceneItem.object_type,
+            itemAddress
           );
         }
 
@@ -487,6 +497,8 @@ export function SceneDialog({ open, onOpenChange, scene = null, mode = "create" 
                   onRemoveItem={sceneItemsHooks.removeItemFromScene}
                   updateSceneItemValue={sceneItemsHooks.updateSceneItemValue}
                   getValueOptions={getValueOptions}
+                  ledEffects={spiHooks.ledEffects}
+                  onUpdateSpiEffect={spiHooks.updateSpiEffect}
                 />
 
                 {/* Add Items to Scene - Right Side */}
@@ -497,6 +509,7 @@ export function SceneDialog({ open, onOpenChange, scene = null, mode = "create" 
                   filteredAirconCards={airconManagement.filteredAirconCards}
                   filteredCurtainItems={curtainHooks.filteredCurtainItems}
                   filteredDmxCards={dmxHooks.filteredDmxCards}
+                  filteredSpiChannels={spiHooks.filteredSpiChannels}
                   onAddNewItem={handleAddNewItem}
                   onEditLightingItem={lightingHooks.handleEditLightingItem}
                   onEditAirconItem={airconManagement.handleEditAirconItem}
@@ -506,6 +519,7 @@ export function SceneDialog({ open, onOpenChange, scene = null, mode = "create" 
                   onAddAirconCard={airconManagement.handleAddAirconCard}
                   onAddCurtainItem={(itemId) => sceneItemsHooks.addItemToScene("curtain", itemId, "1")}
                   onAddDmxCard={dmxHooks.handleAddDmxCard}
+                  onAddSpiChannel={spiHooks.handleAddSpiChannel}
                 />
               </div>
             </div>

@@ -25,6 +25,23 @@ export const CONSTANTS = {
     DMX_COLOR14: { obj_name: "OBJ_DMX_COLOR14", obj_value: 22 },
     DMX_COLOR15: { obj_name: "OBJ_DMX_COLOR15", obj_value: 23 },
     DMX_COLOR16: { obj_name: "OBJ_DMX_COLOR16", obj_value: 24 },
+    // LED SPI Effects (for scene control)
+    LED_SPI_EFFECT1: { obj_name: "OBJ_LED_SPI_EFFECT1", obj_value: 25 },
+    LED_SPI_EFFECT2: { obj_name: "OBJ_LED_SPI_EFFECT2", obj_value: 26 },
+    LED_SPI_EFFECT3: { obj_name: "OBJ_LED_SPI_EFFECT3", obj_value: 27 },
+    LED_SPI_EFFECT4: { obj_name: "OBJ_LED_SPI_EFFECT4", obj_value: 28 },
+    LED_SPI_EFFECT5: { obj_name: "OBJ_LED_SPI_EFFECT5", obj_value: 29 },
+    LED_SPI_EFFECT6: { obj_name: "OBJ_LED_SPI_EFFECT6", obj_value: 30 },
+    LED_SPI_EFFECT7: { obj_name: "OBJ_LED_SPI_EFFECT7", obj_value: 31 },
+    LED_SPI_EFFECT8: { obj_name: "OBJ_LED_SPI_EFFECT8", obj_value: 32 },
+    LED_SPI_EFFECT9: { obj_name: "OBJ_LED_SPI_EFFECT9", obj_value: 33 },
+    LED_SPI_EFFECT10: { obj_name: "OBJ_LED_SPI_EFFECT10", obj_value: 34 },
+    LED_SPI_EFFECT11: { obj_name: "OBJ_LED_SPI_EFFECT11", obj_value: 35 },
+    LED_SPI_EFFECT12: { obj_name: "OBJ_LED_SPI_EFFECT12", obj_value: 36 },
+    LED_SPI_EFFECT13: { obj_name: "OBJ_LED_SPI_EFFECT13", obj_value: 37 },
+    LED_SPI_EFFECT14: { obj_name: "OBJ_LED_SPI_EFFECT14", obj_value: 38 },
+    LED_SPI_EFFECT15: { obj_name: "OBJ_LED_SPI_EFFECT15", obj_value: 39 },
+    LED_SPI_EFFECT16: { obj_name: "OBJ_LED_SPI_EFFECT16", obj_value: 40 },
   },
 
   UNIT: {
