@@ -57,7 +57,7 @@ function BreadcrumbNav() {
 
 export default function App() {
   return (
-    <ThemeProvider attribute="class" defaultTheme="light" enableSystem>
+    <ThemeProvider attribute="class" defaultTheme="light" enableSystem disableTransitionOnChange>
       <ProjectProvider>
         <ProjectDetailProvider>
           <DaliProvider>
@@ -74,7 +74,7 @@ export default function App() {
                 </header>
                 <ProjectDetail />
               </SidebarInset>
-              <Toaster richColors />
+              <Toaster richColors position="bottom-center" />
             </SidebarProvider>
           </DaliProvider>
         </ProjectDetailProvider>
