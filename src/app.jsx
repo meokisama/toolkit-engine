@@ -1,3 +1,4 @@
+import { ThemeProvider } from "next-themes";
 import { AppSidebar } from "@/components/sidebar/app-sidebar";
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from "@/components/ui/breadcrumb";
 import { Separator } from "@/components/ui/separator";
@@ -56,26 +57,28 @@ function BreadcrumbNav() {
 
 export default function App() {
   return (
-    <ProjectProvider>
-      <ProjectDetailProvider>
-        <DaliProvider>
-          <SidebarProvider>
-            <AppSidebar />
-            <div className="h-8 w-full draggable-region absolute top-0"></div>
-            <SidebarInset className="mt-8!">
-              <header className="flex h-16 shrink-0 items-center gap-2">
-                <div className="flex items-center gap-2 px-4">
-                  <SidebarTrigger className="-ml-1" />
-                  <Separator orientation="vertical" className="mr-2 h-4" />
-                  <BreadcrumbNav />
-                </div>
-              </header>
-              <ProjectDetail />
-            </SidebarInset>
-            <Toaster richColors />
-          </SidebarProvider>
-        </DaliProvider>
-      </ProjectDetailProvider>
-    </ProjectProvider>
+    <ThemeProvider attribute="class" defaultTheme="light" enableSystem>
+      <ProjectProvider>
+        <ProjectDetailProvider>
+          <DaliProvider>
+            <SidebarProvider>
+              <AppSidebar />
+              <div className="h-8 w-full draggable-region absolute top-0"></div>
+              <SidebarInset className="mt-8!">
+                <header className="flex h-16 shrink-0 items-center gap-2">
+                  <div className="flex items-center gap-2 px-4">
+                    <SidebarTrigger className="-ml-1" />
+                    <Separator orientation="vertical" className="mr-2 h-4" />
+                    <BreadcrumbNav />
+                  </div>
+                </header>
+                <ProjectDetail />
+              </SidebarInset>
+              <Toaster richColors />
+            </SidebarProvider>
+          </DaliProvider>
+        </ProjectDetailProvider>
+      </ProjectProvider>
+    </ThemeProvider>
   );
 }

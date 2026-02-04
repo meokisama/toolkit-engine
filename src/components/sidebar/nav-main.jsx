@@ -21,7 +21,7 @@ export function NavMain({ items }) {
           <Collapsible key={item.title} asChild defaultOpen={item.isActive}>
             <SidebarMenuItem>
               <SidebarMenuButton asChild tooltip={item.title}>
-                <a href={item.url} className="text-gray-700">
+                <a href={item.url} className="text-muted-foreground">
                   <item.icon />
                   <span>{item.title}</span>
                 </a>
@@ -40,7 +40,7 @@ export function NavMain({ items }) {
                         <SidebarMenuSubItem key={subItem.title}>
                           <SidebarMenuSubButton asChild>
                             <a href={subItem.url}>
-                              <span className="text-gray-700">{subItem.title}</span>
+                              <span className="text-muted-foreground">{subItem.title}</span>
                             </a>
                           </SidebarMenuSubButton>
                         </SidebarMenuSubItem>

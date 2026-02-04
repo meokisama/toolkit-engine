@@ -44,7 +44,7 @@ export function DataTableToolbar({
         handleSearch();
       }
     },
-    [handleSearch]
+    [handleSearch],
   );
 
   const handleClearSearch = useCallback(() => {
@@ -137,7 +137,7 @@ export function DataTableToolbar({
         {(onExport || onImport) && (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="outline" className="text-gray-700">
+              <Button variant="outline">
                 <FileText className="h-4 w-4" />
                 <span className="hidden lg:inline">Import/Export</span>
               </Button>
@@ -162,7 +162,7 @@ export function DataTableToolbar({
           (onGenerateFromLighting || onGenerateFromCurtain || onGenerateFromScene || onGenerateFromMultiScene || onGenerateFromSequence) && (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="outline" className="text-gray-700">
+                <Button variant="outline">
                   <Zap className="h-4 w-4" />
                   <span className="hidden lg:inline">Generate KNX</span>
                 </Button>

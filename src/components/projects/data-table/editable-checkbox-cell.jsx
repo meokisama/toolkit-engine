@@ -41,7 +41,7 @@ export function EditableCheckboxCell({
   return (
     <div className="flex items-center justify-center">
       <Checkbox checked={editValue} onCheckedChange={handleCheckedChange} className={cn("h-4 w-4", className)} />
-      {label && <span className="ml-2 text-sm text-gray-700">{label}</span>}
+      {label && <span className="ml-2 text-sm text-muted-foreground">{label}</span>}
     </div>
   );
 }

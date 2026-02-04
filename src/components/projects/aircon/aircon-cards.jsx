@@ -59,7 +59,7 @@ function AirconCardsComponent({ cards, loading }) {
         log.error("Failed to duplicate aircon card:", error);
       }
     },
-    [selectedProject, duplicateAirconCard]
+    [selectedProject, duplicateAirconCard],
   );
 
   const handleExport = useCallback(async () => {
@@ -83,7 +83,7 @@ function AirconCardsComponent({ cards, loading }) {
         log.error("Failed to import aircon cards:", error);
       }
     },
-    [importItems]
+    [importItems],
   );
 
   if (loading) {
@@ -169,7 +169,7 @@ function AirconCardsComponent({ cards, loading }) {
             </Button>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="outline" className="text-gray-700 w-[60%] cursor-pointer">
+                <Button variant="outline" className="text-muted-foreground w-[60%] cursor-pointer">
                   <FileText className="h-4 w-4" />
                   Import/Export
                 </Button>

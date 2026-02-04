@@ -38,7 +38,7 @@ const NetworkInputConfigItem = memo(({ config, unitType, originalConfig, onInput
         onInputFunctionChange(config.index, numValue);
       }
     },
-    [config.index, onInputFunctionChange]
+    [config.index, onInputFunctionChange],
   );
 
   const handleInputDetailClick = useCallback(() => {
@@ -54,7 +54,7 @@ const NetworkInputConfigItem = memo(({ config, unitType, originalConfig, onInput
   return (
     <div
       className={`p-4 border rounded-lg flex gap-4 items-center justify-between shadow ${
-        hasChanged ? "border-orange-500 border-2" : "border-gray-200"
+        hasChanged ? "border-orange-500 border-2" : "border-gray-200 dark:border-gray-700"
       }`}
     >
       <div className="flex items-center gap-3">

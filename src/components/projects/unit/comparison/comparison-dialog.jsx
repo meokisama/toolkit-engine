@@ -52,7 +52,7 @@ export function ComparisonDifferencesDialog({ open, onOpenChange, comparisonSumm
                           {unitDiff.differences.map((diff, diffIndex) => (
                             <div key={diffIndex} className="flex items-start gap-2">
                               <div className="w-2 h-2 bg-red-500 rounded-full mt-2 shrink-0" />
-                              <div className="text-sm text-gray-700 font-mono bg-gray-50 p-2 rounded flex-1">{diff}</div>
+                              <div className="text-sm text-muted-foreground font-mono bg-gray-50 p-2 rounded flex-1">{diff}</div>
                             </div>
                           ))}
                         </div>

@@ -1,6 +1,7 @@
 import * as React from "react";
 import { Command } from "lucide-react";
 import { NavProjects } from "@/components/sidebar/nav-projects";
+import { NavSecondary } from "@/components/sidebar/nav-secondary";
 import { SidebarOptInForm } from "@/components/sidebar/nav-user";
 import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem } from "@/components/ui/sidebar";
 
@@ -26,6 +27,7 @@ export function AppSidebar({ ...props }) {
       </SidebarHeader>
       <SidebarContent>
         <NavProjects />
+        <NavSecondary className="mt-auto" />
       </SidebarContent>
       <SidebarFooter>
         <SidebarOptInForm />

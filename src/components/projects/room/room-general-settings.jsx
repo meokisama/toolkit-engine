@@ -28,7 +28,7 @@ export function RoomGeneralSettings({ config, updateConfig }) {
     <div className="space-y-4">
       <Card className="">
         <CardHeader>
-          <CardTitle className="text-gray-800 font-extrabold">Room General Settings</CardTitle>
+          <CardTitle className="font-extrabold">Room General Settings</CardTitle>
           <CardDescription>Overview configuration of the room and the room's slaves.</CardDescription>
         </CardHeader>
         <CardContent className="space-y-5">
@@ -172,7 +172,7 @@ export function RoomGeneralSettings({ config, updateConfig }) {
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-gray-800 font-extrabold">Client Settings</CardTitle>
+          <CardTitle className="font-extrabold">Client Settings</CardTitle>
           <CardDescription>Configuration of third-party client.</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">

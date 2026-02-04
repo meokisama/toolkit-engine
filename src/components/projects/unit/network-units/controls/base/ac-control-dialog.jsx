@@ -155,7 +155,7 @@ export const AirconControlDialog = memo(function AirconControlDialog({ room, ope
         setLoadingStates((prev) => ({ ...prev, power: false }));
       }
     },
-    [room, acGroup]
+    [room, acGroup],
   );
 
   // Send AC mode command immediately
@@ -185,7 +185,7 @@ export const AirconControlDialog = memo(function AirconControlDialog({ room, ope
         setLoadingStates((prev) => ({ ...prev, acMode: false }));
       }
     },
-    [room, acGroup]
+    [room, acGroup],
   );
 
   // Send fan mode command immediately
@@ -212,7 +212,7 @@ export const AirconControlDialog = memo(function AirconControlDialog({ room, ope
         setLoadingStates((prev) => ({ ...prev, fanMode: false }));
       }
     },
-    [room, acGroup]
+    [room, acGroup],
   );
 
   // Send temperature command with debounce
@@ -236,7 +236,7 @@ export const AirconControlDialog = memo(function AirconControlDialog({ room, ope
         setLoadingStates((prev) => ({ ...prev, temperature: false }));
       }
     },
-    [room, acGroup]
+    [room, acGroup],
   );
 
   // Update control settings with immediate command sending
@@ -285,7 +285,7 @@ export const AirconControlDialog = memo(function AirconControlDialog({ room, ope
         return newSettings;
       });
     },
-    [sendPowerMode, sendACMode, sendFanMode, sendTemperature]
+    [sendPowerMode, sendACMode, sendFanMode, sendTemperature],
   );
 
   const getTemperatureColor = useCallback((temp) => {
@@ -383,7 +383,7 @@ export const AirconControlDialog = memo(function AirconControlDialog({ room, ope
                   const tempValue = typeof value === "string" ? parseFloat(value) : value;
                   updateControlSettings({ setpoint: tempValue });
                 },
-                [updateControlSettings]
+                [updateControlSettings],
               )}
               appendToValue="°"
               renderLabelValue={
@@ -418,7 +418,7 @@ export const AirconControlDialog = memo(function AirconControlDialog({ room, ope
           <div className="w-full flex items-center justify-between bg-gray-50 dark:bg-card px-6 py-4 rounded-lg shadow-inner">
             <div className="flex items-center gap-2">
               <Power className="h-5 w-5 text-gray-600" />
-              <span className="font-medium text-gray-700 dark:text-gray-300">Power</span>
+              <span className="font-medium text-muted-foreground dark:text-gray-300">Power</span>
               {loadingStates.power && <RefreshCw className="h-4 w-4 animate-spin text-blue-500" />}
             </div>
             <Switch
@@ -445,7 +445,7 @@ export const AirconControlDialog = memo(function AirconControlDialog({ room, ope
             <div
               className={cn(
                 "grid grid-cols-4 gap-0.5 border border-blue-200 dark:border-gray-700 bg-card rounded-lg overflow-hidden shadow-sm",
-                !controlSettings.power || loadingStates.acMode ? "opacity-50 pointer-events-none" : ""
+                !controlSettings.power || loadingStates.acMode ? "opacity-50 pointer-events-none" : "",
               )}
             >
               {ACModes.map((mode) => (
@@ -457,7 +457,7 @@ export const AirconControlDialog = memo(function AirconControlDialog({ room, ope
                     "flex flex-col items-center justify-center h-16 rounded-none border-0 transition-all duration-200",
                     controlSettings.acMode === mode.value
                       ? "bg-linear-to-b from-blue-400 to-blue-500 text-white shadow-inner"
-                      : "bg-card text-blue-600 hover:bg-blue-50"
+                      : "bg-card text-blue-600 hover:bg-blue-50",
                   )}
                   onClick={() => updateControlSettings({ acMode: mode.value })}
                 >
@@ -477,7 +477,7 @@ export const AirconControlDialog = memo(function AirconControlDialog({ room, ope
             <div
               className={cn(
                 "grid grid-cols-5 border border-blue-200 dark:border-gray-700 bg-card rounded-lg overflow-hidden shadow-sm",
-                !controlSettings.power || loadingStates.fanMode ? "opacity-50 pointer-events-none" : ""
+                !controlSettings.power || loadingStates.fanMode ? "opacity-50 pointer-events-none" : "",
               )}
             >
               {FanModes.map((mode) => (
@@ -489,7 +489,7 @@ export const AirconControlDialog = memo(function AirconControlDialog({ room, ope
                     "h-12 rounded-none border-0 transition-all duration-200",
                     controlSettings.fanMode === mode.value
                       ? "bg-linear-to-r from-blue-400 to-blue-500 text-white shadow-inner"
-                      : "bg-card text-blue-600 hover:bg-blue-50"
+                      : "bg-card text-blue-600 hover:bg-blue-50",
                   )}
                   onClick={() => updateControlSettings({ fanMode: mode.value })}
                 >

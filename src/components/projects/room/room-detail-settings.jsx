@@ -54,7 +54,7 @@ export function RoomSettings() {
         standbyTime: 15,
         period: 0,
         states: {},
-      }))
+      })),
   );
 
   const updateConfig = (field, value) => {
@@ -160,7 +160,7 @@ export function RoomSettings() {
                   standbyTime: 15,
                   period: 0,
                   states: {},
-                }))
+                })),
             );
           }
         } else {
@@ -192,7 +192,7 @@ export function RoomSettings() {
                 standbyTime: 15,
                 period: 0,
                 states: {},
-              }))
+              })),
           );
         }
       } catch (error) {
@@ -227,7 +227,7 @@ export function RoomSettings() {
           clientPort: roomConfig.clientPort,
           knxAddress: roomConfig.knxAddress,
         },
-        selectedSourceUnit
+        selectedSourceUnit,
       );
 
       // Save room configs based on effective room amount
@@ -370,7 +370,7 @@ export function RoomSettings() {
       {/* Room specific configurations */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-gray-800 font-extrabold">Room Configurations</CardTitle>
+          <CardTitle className="font-extrabold">Room Configurations</CardTitle>
           <CardDescription>Room's detail settings and aircons & scenes configuration.</CardDescription>
         </CardHeader>
         <CardContent>

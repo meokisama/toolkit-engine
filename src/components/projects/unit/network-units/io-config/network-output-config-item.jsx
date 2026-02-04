@@ -24,7 +24,7 @@ const NetworkOutputConfigItem = memo(
 
     // Check if this output has changed from original configuration
     const hasChanged = useMemo(() => {
-      return hasOutputConfigChanged(config, originalConfig, 'network');
+      return hasOutputConfigChanged(config, originalConfig, "network");
     }, [originalConfig, config]);
 
     // Check if output has address but no matching database entry
@@ -110,7 +110,7 @@ const NetworkOutputConfigItem = memo(
       (value) => {
         onOutputDeviceChange(config.index, value ? parseInt(value) : null);
       },
-      [config.index, onOutputDeviceChange]
+      [config.index, onOutputDeviceChange],
     );
 
     const handleConfigClick = useCallback(() => {
@@ -139,7 +139,7 @@ const NetworkOutputConfigItem = memo(
     return (
       <div
         className={`p-4 border rounded-lg flex gap-4 justify-between items-center w-full shadow ${
-          hasChanged ? "border-orange-500 border-2" : "border-gray-200"
+          hasChanged ? "border-orange-500 border-2" : "border-gray-200 dark:border-gray-700"
         }`}
       >
         <div className="flex items-center gap-3">
@@ -203,7 +203,7 @@ const NetworkOutputConfigItem = memo(
         </div>
       </div>
     );
-  }
+  },
 );
 
 NetworkOutputConfigItem.displayName = "NetworkOutputConfigItem";

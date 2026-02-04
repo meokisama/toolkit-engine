@@ -41,7 +41,7 @@ function DataTableViewOptionsComponent({ table, columnVisibility }) {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="outline" className="text-gray-700">
+        <Button variant="outline">
           <Settings2 className="h-4 w-4" />
           <span className="hidden lg:inline">Columns</span>
         </Button>

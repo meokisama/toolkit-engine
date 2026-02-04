@@ -62,7 +62,7 @@ export function NavProjects() {
         log.error("Failed to export project:", error);
       }
     },
-    [exportProject]
+    [exportProject],
   );
 
   const handleImportProject = useCallback(() => {
@@ -79,7 +79,7 @@ export function NavProjects() {
         log.error("Failed to import project:", error);
       }
     },
-    [importProject, selectProjectSection]
+    [importProject, selectProjectSection],
   );
 
   // Toggle project expansion
@@ -102,7 +102,7 @@ export function NavProjects() {
       // Expand the project if it's not already expanded
       setExpandedProjects((prev) => new Set([...prev, project.id]));
     },
-    [selectProjectSection]
+    [selectProjectSection],
   );
 
   const confirmDeleteProject = useCallback(async () => {
@@ -157,23 +157,26 @@ export function NavProjects() {
                       <SidebarMenuItem>
                         <ContextMenu>
                           <ContextMenuTrigger asChild>
-                            <SidebarMenuButton className="text-gray-700 cursor-pointer" onClick={() => toggleProject(project.id)}>
+                            <SidebarMenuButton
+                              className="text-gray-700 dark:text-muted-foreground cursor-pointer"
+                              onClick={() => toggleProject(project.id)}
+                            >
                               <Folder />
                               <span>{project.name}</span>
                             </SidebarMenuButton>
                           </ContextMenuTrigger>
-                          <ContextMenuContent className="w-48 text-gray-700">
+                          <ContextMenuContent className="w-48 text-gray-700 dark:text-muted-foreground">
                             <ContextMenuItem onClick={() => handleEditProject(project)} className="cursor-pointer">
-                              <SquarePen className="text-muted-foreground" />
+                              <SquarePen className="text-gray-700 dark:text-muted-foreground" />
                               <span>Edit Project</span>
                             </ContextMenuItem>
                             <ContextMenuSeparator />
                             <ContextMenuItem onClick={() => handleExportProject(project)} className="cursor-pointer">
-                              <Download className="text-muted-foreground" />
+                              <Download className="text-gray-700 dark:text-muted-foreground" />
                               <span>Export Project</span>
                             </ContextMenuItem>
                             <ContextMenuItem onClick={handleImportProject} className="cursor-pointer">
-                              <Upload className="text-muted-foreground" />
+                              <Upload className="text-gray-700 dark:text-muted-foreground" />
                               <span>Import Project</span>
                             </ContextMenuItem>
                             <ContextMenuSeparator />
@@ -193,7 +196,7 @@ export function NavProjects() {
                           <SidebarMenuSub>
                             <SidebarMenuSubItem>
                               <SidebarMenuSubButton
-                                className={`text-gray-700 cursor-pointer ${isSelected && activeSection === "group-config" ? "bg-accent" : ""}`}
+                                className={`text-gray-700 dark:text-muted-foreground cursor-pointer ${isSelected && activeSection === "group-config" ? "bg-accent" : ""}`}
                                 onClick={() => handleSectionSelect(project, "group-config")}
                               >
                                 <Library className="h-4 w-4" />
@@ -202,7 +205,7 @@ export function NavProjects() {
                             </SidebarMenuSubItem>
                             <SidebarMenuSubItem>
                               <SidebarMenuSubButton
-                                className={`text-gray-700 cursor-pointer ${isSelected && activeSection === "scenes-schedules" ? "bg-accent" : ""}`}
+                                className={`text-gray-700 dark:text-muted-foreground cursor-pointer ${isSelected && activeSection === "scenes-schedules" ? "bg-accent" : ""}`}
                                 onClick={() => handleSectionSelect(project, "scenes-schedules")}
                               >
                                 <Workflow className="h-4 w-4" />
@@ -211,7 +214,7 @@ export function NavProjects() {
                             </SidebarMenuSubItem>
                             <SidebarMenuSubItem>
                               <SidebarMenuSubButton
-                                className={`text-gray-700 cursor-pointer ${isSelected && activeSection === "dali-core" ? "bg-accent" : ""}`}
+                                className={`text-gray-700 dark:text-muted-foreground cursor-pointer ${isSelected && activeSection === "dali-core" ? "bg-accent" : ""}`}
                                 onClick={() => handleSectionSelect(project, "dali-core")}
                               >
                                 <Eclipse className="h-4 w-4" />
@@ -220,7 +223,7 @@ export function NavProjects() {
                             </SidebarMenuSubItem>
                             <SidebarMenuSubItem>
                               <SidebarMenuSubButton
-                                className={`text-gray-700 cursor-pointer ${isSelected && activeSection === "smarthome" ? "bg-accent" : ""}`}
+                                className={`text-gray-700 dark:text-muted-foreground cursor-pointer ${isSelected && activeSection === "smarthome" ? "bg-accent" : ""}`}
                                 onClick={() => handleSectionSelect(project, "smarthome")}
                               >
                                 <Home className="h-4 w-4" />
@@ -237,14 +240,14 @@ export function NavProjects() {
             </SidebarMenu>
           </SidebarGroup>
         </ContextMenuTrigger>
-        <ContextMenuContent className="w-48 text-gray-700">
+        <ContextMenuContent className="w-48 text-gray-700 dark:text-muted-foreground">
           <ContextMenuItem onClick={handleCreateProject} className="cursor-pointer">
-            <Plus className="text-muted-foreground" />
+            <Plus className="text-gray-700 dark:text-muted-foreground" />
             <span>Add Project</span>
           </ContextMenuItem>
           <ContextMenuSeparator />
           <ContextMenuItem onClick={handleImportProject} className="cursor-pointer">
-            <Upload className="text-muted-foreground" />
+            <Upload className="text-gray-700 dark:text-muted-foreground" />
             <span>Import Project</span>
           </ContextMenuItem>
         </ContextMenuContent>
