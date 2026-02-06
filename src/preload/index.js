@@ -20,8 +20,17 @@ import { deviceController } from "./device-config.js";
 import { updater } from "./updater.js";
 import { ledSpiController } from "./led-spi.js";
 
+// Window control API
+const windowControl = {
+  minimize: () => ipcRenderer.send("window:minimize"),
+  maximize: () => ipcRenderer.send("window:maximize"),
+  close: () => ipcRenderer.send("window:close"),
+  isMaximized: () => ipcRenderer.invoke("window:isMaximized"),
+};
+
 export const electronAPI = {
   openExternal: (url) => ipcRenderer.invoke("shell:openExternal", url),
+  windowControl,
   projects,
   lighting,
   aircon,

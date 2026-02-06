@@ -4,6 +4,7 @@ import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbP
 import { Separator } from "@/components/ui/separator";
 import { SidebarInset, SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { Toaster } from "@/components/ui/sonner";
+import { TitleBar } from "@/components/custom/title-bar";
 import { ProjectProvider } from "@/contexts/project-context";
 import { ProjectDetailProvider, useProjectDetail } from "@/contexts/project-detail-context";
 import { DaliProvider } from "@/contexts/dali-context";
@@ -63,7 +64,8 @@ export default function App() {
           <DaliProvider>
             <SidebarProvider>
               <AppSidebar />
-              <div className="h-8 w-full draggable-region absolute top-0"></div>
+              <TitleBar />
+              <div className="h-8 left-0 right-36 draggable-region absolute top-0"></div>
               <SidebarInset className="mt-8!">
                 <header className="flex h-16 shrink-0 items-center gap-2">
                   <div className="flex items-center gap-2 px-4">

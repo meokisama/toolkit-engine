@@ -36,13 +36,32 @@ const createWindow = () => {
     height: 900,
     autoHideMenuBar: true,
     titleBarStyle: "hidden",
-    titleBarOverlay: {
-      color: "#fafafa",
-    },
+    titleBarOverlay: false,
     icon: path.join(__dirname, "/app.ico"),
     webPreferences: {
       preload: path.join(__dirname, "preload.js"),
     },
+  });
+
+  // Window control IPC handlers
+  ipcMain.on("window:minimize", () => {
+    mainWindow?.minimize();
+  });
+
+  ipcMain.on("window:maximize", () => {
+    if (mainWindow?.isMaximized()) {
+      mainWindow.unmaximize();
+    } else {
+      mainWindow?.maximize();
+    }
+  });
+
+  ipcMain.on("window:close", () => {
+    mainWindow?.close();
+  });
+
+  ipcMain.handle("window:isMaximized", () => {
+    return mainWindow?.isMaximized();
   });
 
   // and load the index.html of the app.
