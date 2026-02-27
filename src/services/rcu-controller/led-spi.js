@@ -6,8 +6,9 @@ import { sendCommand } from "./command-sender.js";
  * LED SPI Commands:
  * - SET_HARDWARE_CONFIG (0): 15 bytes per channel
  * - SET_EFFECT_CONTROL (1): 9 bytes per channel
- * - GET_LED_CONFIG (2): Request 4 bytes, Response 23 bytes per channel
+ * - GET_LED_CONFIG (2): Request 4 bytes, Response 25 bytes per channel
  * - TRIGGER_LED (3): 4 bytes per channel
+ * - CHANGE_LED_MODE (4): 2 bytes - channel, mode
  */
 
 /**
@@ -134,13 +135,13 @@ async function setLedSpiEffectControl(unitIp, canId, channel, effect) {
 }
 
 /**
- * Parse LED config response data (23 bytes per channel)
+ * Parse LED config response data (25 bytes per channel)
  * @param {Buffer} data - Response data
  * @returns {object} Parsed config with hardware and effect settings
  */
 function parseLedConfigResponse(data) {
-  if (data.length < 23) {
-    throw new Error(`Invalid LED config response length: ${data.length}, expected 23 bytes`);
+  if (data.length < 25) {
+    throw new Error(`Invalid LED config response length: ${data.length}, expected 25 bytes`);
   }
 
   return {
@@ -167,7 +168,9 @@ function parseLedConfigResponse(data) {
         w: data[21],
       },
     },
-    // Byte 22: Reserved
+    isEnable: data[22] === 1, // Byte 22: isEnable (channel being triggered)
+    mode: data[23],           // Byte 23: mode (0 = Default, 1 = Artnet)
+    // Byte 24: Reserved
   };
 }
 
@@ -262,4 +265,47 @@ async function triggerLedSpi(unitIp, canId, channel, enabled) {
   return true;
 }
 
-export { setLedSpiHardwareConfig, setLedSpiEffectControl, getLedSpiConfig, triggerLedSpi };
+/**
+ * Change LED mode for a channel
+ * Data: 2 bytes
+ * - Byte 0: Channel (1 or 2)
+ * - Byte 1: Mode (0 = Default, 1 = Artnet)
+ *
+ * @param {string} unitIp - IP address of the unit
+ * @param {string} canId - CAN ID of the unit
+ * @param {number} channel - Channel number (1 or 2)
+ * @param {number} mode - Mode (0 = Default, 1 = Artnet)
+ * @returns {Promise<boolean>} Success status
+ */
+async function changeLedSpiMode(unitIp, canId, channel, mode) {
+  const idAddress = convertCanIdToInt(canId);
+
+  const data = [
+    channel & 0xff, // Channel (1 or 2)
+    mode & 0xff,    // Mode (0 = Default, 1 = Artnet)
+  ];
+
+  console.log("Changing LED SPI mode:", {
+    unitIp,
+    canId,
+    channel,
+    mode,
+  });
+
+  const response = await sendCommand(
+    unitIp,
+    UDP_PORT,
+    idAddress,
+    PROTOCOL.LED_SPI.CMD1,
+    PROTOCOL.LED_SPI.CMD2.CHANGE_LED_MODE,
+    data
+  );
+
+  if (!parseResponse.success(response)) {
+    throw new Error(`Failed to change LED mode for channel ${channel}`);
+  }
+
+  return true;
+}
+
+export { setLedSpiHardwareConfig, setLedSpiEffectControl, getLedSpiConfig, triggerLedSpi, changeLedSpiMode };

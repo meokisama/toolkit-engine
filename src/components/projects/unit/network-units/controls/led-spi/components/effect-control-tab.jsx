@@ -5,10 +5,20 @@ import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { LED_EFFECTS, EFFECT_GROUPS, VALIDATION, effectShowsColorPicker } from "../constants";
+import { LED_EFFECTS, EFFECT_GROUPS, LED_MODES, VALIDATION, effectShowsColorPicker } from "../constants";
 import { EffectColorPicker } from "./effect-color-picker";
 
-function ChannelEffectConfig({ channelIndex, effectState, selected, ledEnabled, onUpdateEffect, onUpdateColor, onSelectedChange, onUpdateLedEnabled, disabled }) {
+function ChannelEffectConfig({
+  channelIndex,
+  effectState,
+  selected,
+  ledEnabled,
+  onUpdateEffect,
+  onUpdateColor,
+  onSelectedChange,
+  onUpdateLedEnabled,
+  disabled,
+}) {
   // Group effects for the select dropdown
   const groupedEffects = useMemo(() => {
     const groups = {
@@ -26,6 +36,10 @@ function ChannelEffectConfig({ channelIndex, effectState, selected, ledEnabled, 
 
   const handleEffectChange = (value) => {
     onUpdateEffect({ effect: parseInt(value) });
+  };
+
+  const handleModeChange = (value) => {
+    onUpdateEffect({ mode: parseInt(value) });
   };
 
   const handleNumberChange = (field, value) => {
@@ -51,7 +65,22 @@ function ChannelEffectConfig({ channelIndex, effectState, selected, ledEnabled, 
         </div>
       </CardHeader>
       <CardContent className="space-y-4">
-        <div className="grid grid-cols-3 gap-2">
+        <div className="grid grid-cols-4 gap-2">
+          <div className="space-y-2">
+            <Label htmlFor={`effect-mode-${channelIndex}`}>Mode</Label>
+            <Select value={String(effectState.mode ?? 0)} onValueChange={handleModeChange} disabled={disabled}>
+              <SelectTrigger id={`effect-mode-${channelIndex}`} className="w-full">
+                <SelectValue placeholder="Select Mode" />
+              </SelectTrigger>
+              <SelectContent>
+                {LED_MODES.map((m) => (
+                  <SelectItem key={m.value} value={String(m.value)}>
+                    {m.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
           <div className="space-y-2">
             <Label htmlFor={`effect-select-${channelIndex}`}>Effect</Label>
             <Select value={String(effectState.effect)} onValueChange={handleEffectChange} disabled={disabled}>
@@ -105,7 +134,16 @@ function ChannelEffectConfig({ channelIndex, effectState, selected, ledEnabled, 
   );
 }
 
-export function EffectControlTab({ effectStates, selectedChannels, ledEnabled, onUpdateEffect, onUpdateColor, onSelectedChange, onUpdateLedEnabled, disabled }) {
+export function EffectControlTab({
+  effectStates,
+  selectedChannels,
+  ledEnabled,
+  onUpdateEffect,
+  onUpdateColor,
+  onSelectedChange,
+  onUpdateLedEnabled,
+  disabled,
+}) {
   return (
     <div className="space-y-4 p-4">
       {effectStates.map((effectState, index) => (

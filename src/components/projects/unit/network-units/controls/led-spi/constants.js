@@ -1,3 +1,9 @@
+// LED Modes
+export const LED_MODES = [
+  { value: 0, label: "Default" },
+  { value: 1, label: "Artnet" },
+];
+
 // IC Types
 export const IC_TYPES = {
   UCS2904: { value: 0, label: "UCS2904" },
@@ -81,6 +87,7 @@ export const DEFAULT_EFFECT_STATE = {
   speed: 128,
   brightness: 255,
   color: { r: 255, g: 0, b: 0, w: 0 },
+  mode: 0,
 };
 
 // Helper to check if effect needs color config

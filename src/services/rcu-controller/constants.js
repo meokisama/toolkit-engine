@@ -145,7 +145,8 @@ const PROTOCOL = {
       SET_HARDWARE_CONFIG: 0,
       SET_EFFECT_CONTROL: 1,
       GET_LED_CONFIG: 2, // Return hardware config + effect control
-      TRIGGER_LED: 3, //
+      TRIGGER_LED: 3,
+      CHANGE_LED_MODE: 4,
     },
   },
 };

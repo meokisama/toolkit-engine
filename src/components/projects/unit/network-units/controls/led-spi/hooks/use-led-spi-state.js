@@ -125,10 +125,21 @@ export function useLedSpiState() {
               b: config.effect.color?.b ?? DEFAULT_EFFECT_STATE.color.b,
               w: config.effect.color?.w ?? DEFAULT_EFFECT_STATE.color.w,
             },
+            mode: config.mode ?? DEFAULT_EFFECT_STATE.mode,
           };
         }
       });
       return newEffects;
+    });
+
+    setLedEnabled((prev) => {
+      const newEnabled = [...prev];
+      results.forEach(({ channelIndex, config }) => {
+        if (channelIndex >= 0 && channelIndex < newEnabled.length && config.isEnable !== undefined) {
+          newEnabled[channelIndex] = config.isEnable;
+        }
+      });
+      return newEnabled;
     });
   }, []);
 

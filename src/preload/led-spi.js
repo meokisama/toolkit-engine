@@ -17,4 +17,8 @@ export const ledSpiController = {
   // Trigger LED on/off
   triggerLed: (unitIp, canId, channel, enabled) =>
     ipcRenderer.invoke("rcu:triggerLedSpi", unitIp, canId, channel, enabled),
+
+  // Change LED mode (0 = Default, 1 = Artnet)
+  changeLedMode: (unitIp, canId, channel, mode) =>
+    ipcRenderer.invoke("rcu:changeLedSpiMode", unitIp, canId, channel, mode),
 };
