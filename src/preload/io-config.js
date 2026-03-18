@@ -23,4 +23,7 @@ export const ioController = {
   setupBatchLightingOutputs: (params) => ipcRenderer.invoke("rcu:setupBatchLightingOutputs", params),
   getLocalACConfig: (unitIp, canId) => ipcRenderer.invoke("rcu:getLocalACConfig", unitIp, canId),
   setLocalACConfig: (unitIp, canId, acConfigs) => ipcRenderer.invoke("rcu:setLocalACConfig", unitIp, canId, acConfigs),
+  // COM switch
+  setComSwitch: (params) => ipcRenderer.invoke("rcu:setComSwitch", params),
+  getComSwitch: (params) => ipcRenderer.invoke("rcu:getComSwitch", params),
 };

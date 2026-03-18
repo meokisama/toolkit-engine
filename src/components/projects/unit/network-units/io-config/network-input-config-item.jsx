@@ -42,8 +42,8 @@ const NetworkInputConfigItem = memo(({ config, unitType, originalConfig, onInput
   );
 
   const handleInputDetailClick = useCallback(() => {
-    onOpenInputDetailConfig(config.index, config.functionValue || 0);
-  }, [config.index, config.functionValue, onOpenInputDetailConfig]);
+    onOpenInputDetailConfig(config.index, config.functionValue || 0, config.isSwitchInput ? config.name : undefined);
+  }, [config.index, config.functionValue, config.isSwitchInput, config.name, onOpenInputDetailConfig]);
 
   const handleToggleClick = useCallback(() => {
     if (onToggleInputState) {

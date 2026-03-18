@@ -15,6 +15,9 @@ export { getAllInputConfigs } from "./rcu-controller/input-config.js";
 // Export input setup functions
 export { setupInputConfig, setupBatchInputConfigs } from "./rcu-controller/input-setup.js";
 
+// Export COM switch functions
+export { setComSwitch, getComSwitch } from "./rcu-controller/com-switch.js";
+
 // Export output configuration functions
 export {
   getOutputAssign,

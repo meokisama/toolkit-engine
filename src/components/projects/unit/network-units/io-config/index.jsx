@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { Separator } from "@/components/ui/separator";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Settings, Download } from "lucide-react";
+import { Settings } from "lucide-react";
 import { toast } from "sonner";
 import { NetworkInputConfigItem } from "./network-input-config-item";
 import { NetworkOutputConfigItem } from "./network-output-config-item";
@@ -17,6 +17,7 @@ import { ACOutputConfigDialog } from "../../shared/output-configs/ac-output-conf
 import { ProjectItemDialog } from "@/components/projects/lighting/lighting-dialog";
 import { AirconCardDialog } from "@/components/projects/aircon/aircon-card-dialog";
 import { useNetworkIOConfig } from "./hooks/use-network-io-config";
+import { ComSwitchPopover } from "../../shared/com-switch";
 import { useNetworkInputConfig } from "./hooks/use-network-input-config";
 import { useNetworkOutputConfig } from "./hooks/use-network-output-config";
 import { useProjectDetail } from "@/contexts/project-detail-context";
@@ -34,6 +35,10 @@ const NetworkIOConfigDialog = ({ open, onOpenChange, item = null }) => {
     originalOutputConfigs,
     setInputConfigs,
     setOutputConfigs,
+    switchConfigs,
+    handleAddSwitch,
+    handleRemoveSwitch,
+    handleUpdateSwitch,
     ioSpec,
     loading,
     isInitialLoading,
@@ -54,7 +59,6 @@ const NetworkIOConfigDialog = ({ open, onOpenChange, item = null }) => {
     multiGroupDialogOpen,
     setInputDetailDialogOpen,
     currentInputDetailInput,
-    loadingInputConfigs,
     handleInputFunctionChange,
     handleOpenInputDetailConfig,
     handleSaveInputDetailConfig,
@@ -214,15 +218,6 @@ const NetworkIOConfigDialog = ({ open, onOpenChange, item = null }) => {
     },
     [handleToggleOutputState, readStatesInitial, setOutputConfigs, outputConfigs]
   );
-
-  // Handle reading all input configurations from unit
-  const handleReadInputConfigs = useCallback(async () => {
-    try {
-      await readInputConfigsFromUnit();
-    } catch (error) {
-      log.error("Failed to read input configurations:", error);
-    }
-  }, [readInputConfigsFromUnit]);
 
   // Handle saving ALL configurations (both input and output)
   const handleSaveAllConfigs = useCallback(async () => {
@@ -396,23 +391,15 @@ const NetworkIOConfigDialog = ({ open, onOpenChange, item = null }) => {
                       <Settings className="h-5 w-5" />
                       Input Configuration
                       <Badge variant="secondary" className="ml-2">
-                        {ioSpec.inputs} Inputs
+                        {inputConfigs.length} Inputs
                       </Badge>
                     </CardTitle>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={handleReadInputConfigs}
-                      disabled={loadingInputConfigs}
-                      className="flex items-center gap-2"
-                    >
-                      {loadingInputConfigs ? (
-                        <div className="h-4 w-4 animate-spin rounded-full border-2 border-gray-300 border-t-gray-600" />
-                      ) : (
-                        <Download className="h-4 w-4" />
-                      )}
-                      Read Configs
-                    </Button>
+                    <ComSwitchPopover
+                      switchConfigs={switchConfigs}
+                      onAddSwitch={handleAddSwitch}
+                      onRemoveSwitch={handleRemoveSwitch}
+                      onUpdateSwitch={handleUpdateSwitch}
+                    />
                   </div>
                 </CardHeader>
                 <CardContent className="flex-1 overflow-hidden">

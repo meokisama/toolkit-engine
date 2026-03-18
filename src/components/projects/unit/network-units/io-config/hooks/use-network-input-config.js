@@ -124,7 +124,7 @@ export const useNetworkInputConfig = (item, projectItems, refreshInputConfigs = 
 
       setCurrentInputDetailInput({
         index: inputIndex,
-        name: getInputDisplayName(item?.type, inputIndex),
+        name: currentInputConfig?.isSwitchInput ? currentInputConfig.name : getInputDisplayName(item?.type, inputIndex),
         functionName: functionInfo?.name || "UNKNOWN",
         functionValue,
         isLoading: false,

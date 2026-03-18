@@ -40,8 +40,8 @@ const InputConfigItem = memo(({ config, unitType, onInputFunctionChange, onOpenI
   );
 
   const handleInputDetailClick = useCallback(() => {
-    onOpenInputDetailConfig(config.index, config.functionValue);
-  }, [config.index, config.functionValue, onOpenInputDetailConfig]);
+    onOpenInputDetailConfig(config.index, config.functionValue, config.isSwitchInput ? config.name : undefined);
+  }, [config.index, config.functionValue, config.isSwitchInput, config.name, onOpenInputDetailConfig]);
 
   return (
     <div

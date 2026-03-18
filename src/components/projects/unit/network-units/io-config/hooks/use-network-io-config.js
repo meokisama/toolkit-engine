@@ -2,11 +2,13 @@ import { useState, useEffect, useMemo, useCallback, useRef, startTransition } fr
 import { getUnitIOSpec, getOutputTypes, createDefaultInputConfigs, createDefaultOutputConfigs } from "@/utils/io-config-utils";
 import { getInputDisplayName } from "@/constants";
 import { useAutoRefresh } from "./use-auto-refresh";
+import { generateSwitchInputConfigs, SWITCH_INPUT_COUNTS } from "../../../shared/com-switch";
 import log from "electron-log/renderer";
 
 export const useNetworkIOConfig = (item, open, childDialogOpen = false) => {
   const [inputConfigs, setInputConfigs] = useState([]);
   const [outputConfigs, setOutputConfigs] = useState([]);
+  const [switchConfigs, setSwitchConfigs] = useState([]);
   const [originalInputConfigs, setOriginalInputConfigs] = useState([]); // Store original configs for change detection
   const [originalOutputConfigs, setOriginalOutputConfigs] = useState([]); // Store original output configs
   const [originalInputConfigsSet, setOriginalInputConfigsSet] = useState(false); // Flag to track if original input configs have been set
@@ -226,6 +228,46 @@ export const useNetworkIOConfig = (item, open, childDialogOpen = false) => {
     }
 
     try {
+      // Step 1: GET_COM_SWITCH - check if unit supports switch config and read it
+      const comSwitchResult = await window.electronAPI.ioController.getComSwitch({
+        unitIp: item.ip_address,
+        canId: item.id_can,
+      });
+
+      if (comSwitchResult?.supported && comSwitchResult.switches.length > 0) {
+        // Reconstruct app-level switch configs (with localId and auto-generated names)
+        const newSwitchConfigs = [];
+        comSwitchResult.switches.forEach((sw) => {
+          const sameTypeCount = newSwitchConfigs.filter((s) => s.type === sw.type).length;
+          const name = sameTypeCount === 0 ? sw.type : `${sw.type} ${sameTypeCount + 1}`;
+          newSwitchConfigs.push({
+            localId: crypto.randomUUID(),
+            channel: sw.channel,
+            type: sw.type,
+            name,
+            switchId: sw.switchId,
+            keyId: sw.keyId,
+          });
+        });
+
+        setSwitchConfigs(newSwitchConfigs);
+
+        // Rebuild input list: fixed inputs + switch inputs
+        // setInputConfigsAndSync syncs the ref immediately so the GET_INPUT_CONFIG step below sees the full list
+        setInputConfigsAndSync((prevInputs) => {
+          const fixedInputs = prevInputs.filter((c) => !c.isSwitchInput);
+          const switchInputs = generateSwitchInputConfigs(newSwitchConfigs, fixedInputs.length).map((si) => ({
+            ...si,
+            brightness: 0,
+            isActive: false,
+            multiGroupConfig: [],
+            rlcConfig: { ramp: 0, preset: 255, ledDisplay: 0, nightlight: false, backlight: false, autoMode: false, delayOff: 0 },
+          }));
+          return [...fixedInputs, ...switchInputs];
+        });
+      }
+
+      // Step 2: GET_INPUT_CONFIG - read all input detail configs (incl. switch input indices)
       const response = await window.electronAPI.ioController.getAllInputConfigs({
         unitIp: item.ip_address,
         canId: item.id_can,
@@ -398,7 +440,7 @@ export const useNetworkIOConfig = (item, open, childDialogOpen = false) => {
       const defaultOutputConfigs = createDefaultOutputConfigs(item.type);
 
       // Initialize inputs with state tracking
-      const inputs = (defaultInputConfigs.inputs || []).map((input, index) => ({
+      const fixedInputs = (defaultInputConfigs.inputs || []).map((input, index) => ({
         index: input.index,
         function: input.function_value || 0,
         lightingId: input.lighting_id,
@@ -418,6 +460,18 @@ export const useNetworkIOConfig = (item, open, childDialogOpen = false) => {
           delayOff: input.rlc_config?.delayOff ?? 0,
         },
       }));
+
+      // Load saved switch configs and generate their inputs
+      const savedSwitches = item.switch_configs || [];
+      setSwitchConfigs(savedSwitches);
+      const switchInputs = generateSwitchInputConfigs(savedSwitches, fixedInputs.length).map((si) => ({
+        ...si,
+        brightness: 0,
+        isActive: false,
+        multiGroupConfig: [],
+        rlcConfig: { ramp: 0, preset: 255, ledDisplay: 0, nightlight: false, backlight: false, autoMode: false, delayOff: 0 },
+      }));
+      const inputs = [...fixedInputs, ...switchInputs];
 
       // Initialize outputs with state tracking
       const outputs = (defaultOutputConfigs.outputs || []).map((output) => ({
@@ -711,7 +765,7 @@ export const useNetworkIOConfig = (item, open, childDialogOpen = false) => {
           } else {
             // Count partial successes
             const successfulOps = [result.assignments?.success, result.delayOff?.success, result.delayOn?.success, result.configs?.success].filter(
-              Boolean
+              Boolean,
             ).length;
 
             if (successfulOps > 0) {
@@ -778,6 +832,22 @@ export const useNetworkIOConfig = (item, open, childDialogOpen = false) => {
     try {
       setLoading(true);
 
+      // Step 1: SET_COM_SWITCH - send switch configuration before input configs
+      if (switchConfigs.length > 0) {
+        try {
+          await window.electronAPI.ioController.setComSwitch({
+            unitIp: item.ip_address,
+            canId: item.id_can,
+            switchConfigs,
+          });
+          log.info(`SET_COM_SWITCH sent successfully (${switchConfigs.length} switches)`);
+        } catch (err) {
+          // Log but don't abort - unit might not support this command
+          log.warn("SET_COM_SWITCH failed (unit may not support it):", err?.message || err);
+        }
+      }
+
+      // Step 2: Send all input configurations (incl. switch input indices)
       // Prepare all input configurations - send individual LED fields, backend will calculate byte
       const inputConfigsData = inputConfigs.map((config) => ({
         inputNumber: config.index,
@@ -834,7 +904,87 @@ export const useNetworkIOConfig = (item, open, childDialogOpen = false) => {
         error: error instanceof Error ? error.message : String(error),
       };
     }
-  }, [item?.ip_address, item?.id_can, inputConfigs]);
+  }, [item?.ip_address, item?.id_can, inputConfigs, switchConfigs]);
+
+  // Add a new switch and append its generated inputs
+  const handleAddSwitch = useCallback(
+    (newSwitch) => {
+      setSwitchConfigs((prev) => [...prev, newSwitch]);
+      setInputConfigsAndSync((prevInputs) => {
+        const startIndex = prevInputs.length;
+        const count = SWITCH_INPUT_COUNTS[newSwitch.type] || 1;
+        let idx = startIndex;
+        const newInputs = Array.from({ length: count }, (_, i) => ({
+          index: idx++,
+          name: `${newSwitch.name} (${i + 1})`,
+          functionValue: 0,
+          lightingId: null,
+          brightness: 0,
+          isActive: false,
+          multiGroupConfig: [],
+          rlcConfig: { ramp: 0, preset: 255, ledDisplay: 0, nightlight: false, backlight: false, autoMode: false, delayOff: 0 },
+          isSwitchInput: true,
+          switchLocalId: newSwitch.localId,
+        }));
+        return [...prevInputs, ...newInputs];
+      });
+    },
+    [setInputConfigsAndSync],
+  );
+
+  // Remove a switch and its generated inputs, re-index remaining switch inputs
+  const handleRemoveSwitch = useCallback(
+    (localId) => {
+      setSwitchConfigs((prev) => prev.filter((sw) => sw.localId !== localId));
+      setInputConfigsAndSync((prevInputs) => {
+        const fixedInputs = prevInputs.filter((c) => !c.isSwitchInput);
+        const remainingSwitchInputs = prevInputs.filter((c) => c.isSwitchInput && c.switchLocalId !== localId);
+        let nextIndex = fixedInputs.length;
+        return [...fixedInputs, ...remainingSwitchInputs.map((c) => ({ ...c, index: nextIndex++ }))];
+      });
+    },
+    [setInputConfigsAndSync],
+  );
+
+  // Update a switch's metadata and rebuild its inputs (handles type/name changes)
+  const handleUpdateSwitch = useCallback(
+    (updatedSwitch) => {
+      setSwitchConfigs((prevSwitches) => {
+        const newSwitches = prevSwitches.map((sw) => (sw.localId === updatedSwitch.localId ? updatedSwitch : sw));
+        setInputConfigsAndSync((prevInputs) => {
+          const fixedInputs = prevInputs.filter((c) => !c.isSwitchInput);
+          let nextIndex = fixedInputs.length;
+          const switchInputs = newSwitches.flatMap((sw) => {
+            const count = SWITCH_INPUT_COUNTS[sw.type] || 1;
+            const oldForThis = prevInputs.filter((c) => c.isSwitchInput && c.switchLocalId === sw.localId);
+            return Array.from({ length: count }, (_, i) => ({
+              index: nextIndex++,
+              name: `${sw.name} (${i + 1})`,
+              functionValue: oldForThis[i]?.functionValue || 0,
+              lightingId: oldForThis[i]?.lightingId || null,
+              brightness: oldForThis[i]?.brightness || 0,
+              isActive: oldForThis[i]?.isActive || false,
+              multiGroupConfig: oldForThis[i]?.multiGroupConfig || [],
+              rlcConfig: oldForThis[i]?.rlcConfig || {
+                ramp: 0,
+                preset: 255,
+                ledDisplay: 0,
+                nightlight: false,
+                backlight: false,
+                autoMode: false,
+                delayOff: 0,
+              },
+              isSwitchInput: true,
+              switchLocalId: sw.localId,
+            }));
+          });
+          return [...fixedInputs, ...switchInputs];
+        });
+        return newSwitches;
+      });
+    },
+    [setInputConfigsAndSync],
+  );
 
   return {
     inputConfigs,
@@ -843,6 +993,10 @@ export const useNetworkIOConfig = (item, open, childDialogOpen = false) => {
     originalOutputConfigs,
     setInputConfigs: setInputConfigsAndSync, // Use wrapper to auto-sync ref
     setOutputConfigs: setOutputConfigsAndSync, // Use wrapper to auto-sync ref
+    switchConfigs,
+    handleAddSwitch,
+    handleRemoveSwitch,
+    handleUpdateSwitch,
     ioSpec,
     outputTypes,
     loading,

@@ -7,6 +7,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Settings } from "lucide-react";
 import { useProjectDetail } from "@/contexts/project-detail-context";
 import { InputDetailConfigDialog } from "../../shared/input-config";
+import { ComSwitchPopover } from "../../shared/com-switch";
 import { LightingOutputConfigDialog } from "../../shared/output-configs/lighting-output-config-dialog";
 import { ACOutputConfigDialog } from "../../shared/output-configs/ac-output-config-dialog";
 import { ProjectItemDialog } from "@/components/projects/lighting/lighting-dialog";
@@ -35,6 +36,10 @@ const IOConfigDialogComponent = ({ open, onOpenChange, item = null }) => {
     setOutputConfigs,
     originalInputConfigs,
     originalOutputConfigs,
+    switchConfigs,
+    handleAddSwitch,
+    handleRemoveSwitch,
+    handleUpdateSwitch,
     ioSpec,
     loading,
     isInitialLoading,
@@ -267,13 +272,21 @@ const IOConfigDialogComponent = ({ open, onOpenChange, item = null }) => {
                 {/* Input Configuration - Left Side */}
                 <Card className="h-[600px] flex flex-col">
                   <CardHeader className="shrink-0">
-                    <CardTitle className="flex items-center gap-2">
-                      <Settings className="h-5 w-5" />
-                      Input Configuration
-                      <Badge variant="secondary" className="ml-auto">
-                        {ioSpec.inputs} Inputs
-                      </Badge>
-                    </CardTitle>
+                    <div className="flex items-center justify-between">
+                      <CardTitle className="flex items-center gap-2">
+                        <Settings className="h-5 w-5" />
+                        Input Configuration
+                        <Badge variant="secondary" className="ml-2">
+                          {inputConfigs.length} Inputs
+                        </Badge>
+                      </CardTitle>
+                      <ComSwitchPopover
+                        switchConfigs={switchConfigs}
+                        onAddSwitch={handleAddSwitch}
+                        onRemoveSwitch={handleRemoveSwitch}
+                        onUpdateSwitch={handleUpdateSwitch}
+                      />
+                    </div>
                   </CardHeader>
                   <CardContent className="flex-1 overflow-hidden">
                     <ScrollArea className="h-full">

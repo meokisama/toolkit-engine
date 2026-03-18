@@ -59,6 +59,8 @@ const PROTOCOL = {
       GET_GROUP_STATE: 65,
       SET_INPUT_STATE: 60,
       GET_INPUT_STATE: 63,
+      SET_COM_SWITCH: 69,
+      GET_COM_SWITCH: 70,
     },
   },
   AC: {

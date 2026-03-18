@@ -692,6 +692,7 @@ export const CONSTANTS = {
       { value: 52, label: "RS485_AOK_CURTAIN" },
       { value: 53, label: "RS485_MASTER_7KT0308" },
       { value: 54, label: "RS485_WAVESHARE_AI" },
+      { value: 55, label: "RS485_SWITCH_RISHUN" },
       { value: 255, label: "RS485_OTHER" },
     ],
 

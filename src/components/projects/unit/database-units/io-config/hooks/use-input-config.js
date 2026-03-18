@@ -129,7 +129,7 @@ export const useInputConfig = (item, setInputConfigs = null, open = true) => {
 
   // Open input detail config dialog
   const handleOpenInputDetailConfig = useCallback(
-    async (inputIndex, functionValue) => {
+    async (inputIndex, functionValue, overrideName) => {
       const inputFunction = getInputFunctionByValue(functionValue);
       if (!inputFunction) return;
 
@@ -139,7 +139,7 @@ export const useInputConfig = (item, setInputConfigs = null, open = true) => {
 
       setCurrentInputDetailInput({
         index: inputIndex,
-        name: getInputDisplayName(item?.type, inputIndex),
+        name: overrideName || getInputDisplayName(item?.type, inputIndex),
         functionName: inputFunction.label,
         functionValue,
         isLoading: true,

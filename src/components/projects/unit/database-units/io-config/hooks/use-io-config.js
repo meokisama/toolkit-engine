@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo, useCallback } from "react";
 import { getUnitIOSpec, getOutputTypes, getInputDisplayName } from "@/constants";
 import { cloneIOConfig } from "@/utils/io-config-utils";
+import { generateSwitchInputConfigs, SWITCH_INPUT_COUNTS } from "../../../shared/com-switch";
 import log from "electron-log/renderer";
 
 // Constants
@@ -25,6 +26,7 @@ export const useIOConfig = (item, open) => {
   const [originalIOConfig, setOriginalIOConfig] = useState(null);
   const [originalInputConfigs, setOriginalInputConfigs] = useState([]);
   const [originalOutputConfigs, setOriginalOutputConfigs] = useState([]);
+  const [switchConfigs, setSwitchConfigs] = useState([]);
   const [loading, setLoading] = useState(false);
   const [isInitialLoading, setIsInitialLoading] = useState(false);
 
@@ -53,7 +55,7 @@ export const useIOConfig = (item, open) => {
         name: `${getOutputLabel(type)} ${i + 1}`,
         type,
         deviceId: null,
-      }))
+      })),
     );
   }, [ioSpec, outputTypes, getOutputLabel]);
 
@@ -63,6 +65,7 @@ export const useIOConfig = (item, open) => {
       setOriginalInputConfigs([]);
       setOriginalOutputConfigs([]);
       setOriginalIOConfig(null);
+      setSwitchConfigs([]);
     }
   }, [open]);
 
@@ -79,6 +82,7 @@ export const useIOConfig = (item, open) => {
       try {
         const savedInputs = item.input_configs?.inputs || [];
         const savedOutputs = item.output_configs?.outputs || [];
+        const savedSwitches = item.switch_configs || [];
 
         // Create lookup maps for faster access
         const inputMap = new Map(savedInputs.map((i) => [i.index, i]));
@@ -88,20 +92,36 @@ export const useIOConfig = (item, open) => {
         setOriginalIOConfig(
           cloneIOConfig({
             inputs: savedInputs.map((i) => ({ index: i.index, function: i.function_value || 0, lightingId: i.lighting_id || null })),
-            outputs: savedOutputs.map((o) => ({ index: o.index, name: o.name, type: o.type, deviceId: o.device_id || null, deviceType: o.device_type })),
-          })
+            outputs: savedOutputs.map((o) => ({
+              index: o.index,
+              name: o.name,
+              type: o.type,
+              deviceId: o.device_id || null,
+              deviceType: o.device_type,
+            })),
+          }),
         );
 
-        // Merge input configs
-        const mergedInputs = initialInputConfigs.map((def) => {
+        // Merge fixed input configs
+        const mergedFixedInputs = initialInputConfigs.map((def) => {
           const saved = inputMap.get(def.index);
           return saved ? { ...def, functionValue: saved.function_value || 0, lightingId: saved.lighting_id || null } : def;
         });
-        setInputConfigs(mergedInputs);
+
+        // Restore saved switch configs and generate their inputs
+        setSwitchConfigs(savedSwitches);
+        const baseCount = initialInputConfigs.length;
+        const switchInputs = generateSwitchInputConfigs(savedSwitches, baseCount).map((si) => {
+          const saved = inputMap.get(si.index);
+          return saved ? { ...si, functionValue: saved.function_value || 0, lightingId: saved.lighting_id || null } : si;
+        });
+
+        const allInputs = [...mergedFixedInputs, ...switchInputs];
+        setInputConfigs(allInputs);
 
         // Original input configs for change detection
         setOriginalInputConfigs(
-          mergedInputs.map((cfg) => {
+          allInputs.map((cfg) => {
             const saved = inputMap.get(cfg.index);
             return {
               index: cfg.index,
@@ -110,7 +130,7 @@ export const useIOConfig = (item, open) => {
               multiGroupConfig: saved?.multi_group_config || [],
               rlcConfig: mergeRlcConfig(saved?.rlc_config),
             };
-          })
+          }),
         );
 
         // Merge output configs
@@ -125,7 +145,7 @@ export const useIOConfig = (item, open) => {
           mergedOutputs.map((cfg) => {
             const saved = outputMap.get(cfg.index);
             return { index: cfg.index, name: cfg.name, type: cfg.type, deviceId: cfg.deviceId, ...(saved?.config || {}) };
-          })
+          }),
         );
       } catch (error) {
         log.error("Failed to initialize I/O config:", error);
@@ -136,6 +156,61 @@ export const useIOConfig = (item, open) => {
 
     setTimeout(initializeAsync, 50);
   }, [open, item, initialInputConfigs, initialOutputConfigs]);
+
+  // Add a new switch and append its generated inputs
+  const handleAddSwitch = useCallback((newSwitch) => {
+    setSwitchConfigs((prev) => [...prev, newSwitch]);
+    setInputConfigs((prevInputs) => {
+      const startIndex = prevInputs.length; // indices are 0-based sequential
+      const count = SWITCH_INPUT_COUNTS[newSwitch.type] || 1;
+      let idx = startIndex;
+      const newInputs = Array.from({ length: count }, (_, i) => ({
+        index: idx++,
+        name: `${newSwitch.name} (${i + 1})`,
+        functionValue: 0,
+        lightingId: null,
+        isSwitchInput: true,
+        switchLocalId: newSwitch.localId,
+      }));
+      return [...prevInputs, ...newInputs];
+    });
+  }, []);
+
+  // Remove a switch and its generated inputs, re-index remaining switch inputs
+  const handleRemoveSwitch = useCallback((localId) => {
+    setSwitchConfigs((prev) => prev.filter((sw) => sw.localId !== localId));
+    setInputConfigs((prevInputs) => {
+      const fixedInputs = prevInputs.filter((c) => !c.isSwitchInput);
+      const remainingSwitchInputs = prevInputs.filter((c) => c.isSwitchInput && c.switchLocalId !== localId);
+      let nextIndex = fixedInputs.length;
+      return [...fixedInputs, ...remainingSwitchInputs.map((c) => ({ ...c, index: nextIndex++ }))];
+    });
+  }, []);
+
+  // Update a switch's metadata and rebuild its inputs (handles type/name changes)
+  const handleUpdateSwitch = useCallback((updatedSwitch) => {
+    setSwitchConfigs((prevSwitches) => {
+      const newSwitches = prevSwitches.map((sw) => (sw.localId === updatedSwitch.localId ? updatedSwitch : sw));
+      setInputConfigs((prevInputs) => {
+        const fixedInputs = prevInputs.filter((c) => !c.isSwitchInput);
+        let nextIndex = fixedInputs.length;
+        const switchInputs = newSwitches.flatMap((sw) => {
+          const count = SWITCH_INPUT_COUNTS[sw.type] || 1;
+          const oldForThis = prevInputs.filter((c) => c.isSwitchInput && c.switchLocalId === sw.localId);
+          return Array.from({ length: count }, (_, i) => ({
+            index: nextIndex++,
+            name: `${sw.name} (${i + 1})`,
+            functionValue: oldForThis[i]?.functionValue || 0,
+            lightingId: oldForThis[i]?.lightingId || null,
+            isSwitchInput: true,
+            switchLocalId: sw.localId,
+          }));
+        });
+        return [...fixedInputs, ...switchInputs];
+      });
+      return newSwitches;
+    });
+  }, []);
 
   // Reload input configs from database
   const reloadAllInputConfigs = useCallback(async () => {
@@ -152,7 +227,7 @@ export const useIOConfig = (item, open) => {
         prev.map((cfg) => {
           const saved = inputMap.get(cfg.index);
           return saved ? { ...cfg, functionValue: saved.function_value || 0, lightingId: saved.lighting_id || null } : cfg;
-        })
+        }),
       );
     } catch (error) {
       log.error("Failed to reload input configs:", error);
@@ -189,7 +264,12 @@ export const useIOConfig = (item, open) => {
           })),
         };
 
-        await updateItem("unit", item.id, { ...item, input_configs: newInputConfigs, output_configs: newOutputConfigs });
+        await updateItem("unit", item.id, {
+          ...item,
+          switch_configs: switchConfigs,
+          input_configs: newInputConfigs,
+          output_configs: newOutputConfigs,
+        });
         return true;
       } catch (error) {
         log.error("Failed to save I/O configuration:", error);
@@ -198,7 +278,7 @@ export const useIOConfig = (item, open) => {
         setLoading(false);
       }
     },
-    [item, inputConfigs, outputConfigs]
+    [item, inputConfigs, outputConfigs, switchConfigs],
   );
 
   return {
@@ -208,6 +288,10 @@ export const useIOConfig = (item, open) => {
     setOutputConfigs,
     originalInputConfigs,
     originalOutputConfigs,
+    switchConfigs,
+    handleAddSwitch,
+    handleRemoveSwitch,
+    handleUpdateSwitch,
     ioSpec,
     outputTypes,
     loading,

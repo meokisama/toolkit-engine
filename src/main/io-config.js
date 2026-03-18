@@ -103,6 +103,29 @@ export function registerIOConfigHandlers(ipcMain, rcu) {
     }
   });
 
+  // ==================== COM Switch ====================
+
+  // Send switch configuration to unit
+  ipcMain.handle("rcu:setComSwitch", async (event, { unitIp, canId, switchConfigs }) => {
+    try {
+      return await rcu.setComSwitch(unitIp, canId, switchConfigs);
+    } catch (error) {
+      console.error("Error setting COM switch:", error);
+      throw error;
+    }
+  });
+
+  // Read switch configuration from unit
+  ipcMain.handle("rcu:getComSwitch", async (event, { unitIp, canId }) => {
+    try {
+      return await rcu.getComSwitch(unitIp, canId);
+    } catch (error) {
+      console.error("Error getting COM switch:", error);
+      // Return not-supported rather than throwing, so frontend can handle gracefully
+      return { supported: false, switches: [] };
+    }
+  });
+
   // ==================== RCU Output Configuration ====================
 
   // Get output assignments from RCU device
