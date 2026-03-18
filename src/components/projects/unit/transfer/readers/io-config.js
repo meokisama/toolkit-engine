@@ -5,6 +5,7 @@ import log from "electron-log/renderer";
  */
 
 import { getUnitIOSpec } from "@/utils/io-config-utils";
+import { generateSwitchInputConfigs } from "@/components/projects/unit/shared/com-switch";
 import { getOutputTypeForIndex, getOutputTypeName, getOutputTypeIndex } from "@/components/projects/unit/network-units/utils/output-type-utils";
 import { findOrCreateDeviceByAddress } from "@/components/projects/unit/network-units/utils/device-management-utils";
 
@@ -25,6 +26,29 @@ export async function readIOConfigurations(networkUnit, selectedProject, project
 
   const inputConfigs = { inputs: [] };
   const outputConfigs = { outputs: [] };
+
+  // Read COM switch configurations
+  let switchConfigs = [];
+  try {
+    const comSwitchResult = await window.electronAPI.ioController.getComSwitch({
+      unitIp: networkUnit.ip_address,
+      canId: networkUnit.id_can,
+    });
+    if (comSwitchResult?.supported && Array.isArray(comSwitchResult.switches)) {
+      const accumulated = [];
+      switchConfigs = comSwitchResult.switches.map((sw) => {
+        // Count same-type switches seen so far for auto-naming
+        const sameTypeBefore = accumulated.filter((s) => s.type === sw.type).length;
+        const name = sameTypeBefore === 0 ? sw.type : `${sw.type} ${sameTypeBefore + 1}`;
+        const entry = { ...sw, localId: crypto.randomUUID(), name };
+        accumulated.push(entry);
+        return entry;
+      });
+      log.info(`Read ${switchConfigs.length} COM switch(es) from ${networkUnit.ip_address}`);
+    }
+  } catch (error) {
+    log.warn("Failed to read COM switch configurations (unit may not support it):", error);
+  }
 
   // Read input configurations
   try {
@@ -70,6 +94,29 @@ export async function readIOConfigurations(networkUnit, selectedProject, project
             },
           });
         }
+      }
+    }
+
+    // Append switch inputs after fixed inputs, merging actual firmware config if available
+    if (switchConfigs.length > 0) {
+      const switchInputs = generateSwitchInputConfigs(switchConfigs, ioSpec.inputs);
+      for (const si of switchInputs) {
+        const unitConfig = inputResponse?.configs?.find((c) => c.inputNumber === si.index);
+        inputConfigs.inputs.push({
+          index: si.index,
+          function_value: unitConfig?.inputType ?? 0,
+          lighting_id: null,
+          multi_group_config: unitConfig?.groups || [],
+          rlc_config: {
+            ramp: unitConfig?.ramp ?? 0,
+            preset: unitConfig?.preset ?? 255,
+            ledDisplay: unitConfig?.ledDisplay ?? 0,
+            nightlight: unitConfig?.nightlight ?? false,
+            backlight: unitConfig?.backlight ?? false,
+            autoMode: unitConfig?.autoMode ?? false,
+            delayOff: unitConfig?.delayOff ?? 0,
+          },
+        });
       }
     }
 
@@ -327,6 +374,7 @@ export async function readIOConfigurations(networkUnit, selectedProject, project
   const result = {
     input_configs: inputConfigs.inputs.length > 0 ? inputConfigs : null,
     output_configs: outputConfigs.outputs.length > 0 ? outputConfigs : null,
+    switch_configs: switchConfigs,
   };
 
   log.info("Final I/O configs result:", {

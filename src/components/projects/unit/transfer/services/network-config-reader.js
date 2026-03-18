@@ -44,6 +44,7 @@ export async function readNetworkUnitBasicConfigurations(networkUnit, options = 
         const ioConfigs = await readIOConfigurations(networkUnit, selectedProject, projectItems, createItem, createdItemsCache);
         unitWithConfigs.input_configs = ioConfigs.input_configs;
         unitWithConfigs.output_configs = ioConfigs.output_configs;
+        unitWithConfigs.switch_configs = ioConfigs.switch_configs || [];
 
         // Debug logging for output configs
         log.info("Output configs read from network unit:", {
