@@ -19,6 +19,7 @@ export const unitTableSchemas = {
       rs485_config TEXT, -- JSON string for RS485 configuration
       input_configs TEXT, -- JSON string for ALL input configurations
       output_configs TEXT, -- JSON string for ALL output configurations
+      switch_configs TEXT, -- JSON string for COM switch configurations
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
       updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
       FOREIGN KEY (project_id) REFERENCES projects (id) ON DELETE CASCADE
@@ -52,15 +53,16 @@ export const unitMethods = {
         rs485_config,
         input_configs,
         output_configs,
+        switch_configs,
       } = itemData;
 
       const stmt = this.db.prepare(`
         INSERT INTO unit (
           project_id, type, serial_no, ip_address,
           id_can, mode, firmware_version, hardware_version,
-          manufacture_date, can_load, recovery_mode, description, discovered_at, rs485_config, input_configs, output_configs
+          manufacture_date, can_load, recovery_mode, description, discovered_at, rs485_config, input_configs, output_configs, switch_configs
         )
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       `);
 
       const result = stmt.run(
@@ -79,7 +81,8 @@ export const unitMethods = {
         discovered_at,
         rs485_config ? JSON.stringify(rs485_config) : null,
         input_configs ? JSON.stringify(input_configs) : null,
-        output_configs ? JSON.stringify(output_configs) : null
+        output_configs ? JSON.stringify(output_configs) : null,
+        switch_configs ? JSON.stringify(switch_configs) : null
       );
 
       return this.getProjectItemById(result.lastInsertRowid, "unit");
@@ -108,6 +111,7 @@ export const unitMethods = {
         rs485_config,
         input_configs,
         output_configs,
+        switch_configs,
       } = itemData;
 
       const stmt = this.db.prepare(`
@@ -115,7 +119,7 @@ export const unitMethods = {
         SET type = ?, serial_no = ?, ip_address = ?,
             id_can = ?, mode = ?, firmware_version = ?, hardware_version = ?,
             manufacture_date = ?, can_load = ?, recovery_mode = ?, description = ?,
-            discovered_at = ?, rs485_config = ?, input_configs = ?, output_configs = ?, updated_at = CURRENT_TIMESTAMP
+            discovered_at = ?, rs485_config = ?, input_configs = ?, output_configs = ?, switch_configs = ?, updated_at = CURRENT_TIMESTAMP
         WHERE id = ?
       `);
 
@@ -135,6 +139,7 @@ export const unitMethods = {
         rs485_config ? JSON.stringify(rs485_config) : null,
         input_configs ? JSON.stringify(input_configs) : null,
         output_configs ? JSON.stringify(output_configs) : null,
+        switch_configs ? JSON.stringify(switch_configs) : null,
         id
       );
 
