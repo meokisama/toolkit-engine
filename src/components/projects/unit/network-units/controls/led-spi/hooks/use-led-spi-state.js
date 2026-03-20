@@ -126,6 +126,7 @@ export function useLedSpiState() {
               w: config.effect.color?.w ?? DEFAULT_EFFECT_STATE.color.w,
             },
             mode: config.mode ?? DEFAULT_EFFECT_STATE.mode,
+            startUniverse: config.startUniverse ?? DEFAULT_EFFECT_STATE.startUniverse,
           };
         }
       });

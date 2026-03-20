@@ -42,9 +42,9 @@ export function registerLedSpiHandlers(ipcMain, rcu) {
   });
 
   // Change LED SPI Mode
-  ipcMain.handle("rcu:changeLedSpiMode", async (event, unitIp, canId, channel, mode) => {
+  ipcMain.handle("rcu:changeLedSpiMode", async (event, unitIp, canId, channel, mode, startUniverse) => {
     try {
-      return await rcu.changeLedSpiMode(unitIp, canId, channel, mode);
+      return await rcu.changeLedSpiMode(unitIp, canId, channel, mode, startUniverse);
     } catch (error) {
       console.error("Error changing LED SPI mode:", error);
       throw error;

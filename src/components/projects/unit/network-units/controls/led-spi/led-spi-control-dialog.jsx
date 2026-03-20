@@ -124,7 +124,7 @@ export function LedSpiControlDialog({ open, onOpenChange, unit }) {
                 w: effect.color.w,
               },
             });
-            await window.electronAPI.ledSpiController.changeLedMode(unit.ip_address, unit.id_can, channelNumber, effect.mode ?? 0);
+            await window.electronAPI.ledSpiController.changeLedMode(unit.ip_address, unit.id_can, channelNumber, effect.mode ?? 0, effect.startUniverse ?? 0);
           }
           successChannels.push(channelNumber);
         } catch (error) {

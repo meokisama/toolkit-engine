@@ -170,7 +170,7 @@ function parseLedConfigResponse(data) {
     },
     isEnable: data[22] === 1, // Byte 22: isEnable (channel being triggered)
     mode: data[23],           // Byte 23: mode (0 = Default, 1 = Artnet)
-    // Byte 24: Reserved
+    startUniverse: data[24],  // Byte 24: Start Universe (0-255)
   };
 }
 
@@ -267,22 +267,25 @@ async function triggerLedSpi(unitIp, canId, channel, enabled) {
 
 /**
  * Change LED mode for a channel
- * Data: 2 bytes
+ * Data: 3 bytes
  * - Byte 0: Channel (1 or 2)
  * - Byte 1: Mode (0 = Default, 1 = Artnet)
+ * - Byte 2: Start Universe (0-255)
  *
  * @param {string} unitIp - IP address of the unit
  * @param {string} canId - CAN ID of the unit
  * @param {number} channel - Channel number (1 or 2)
  * @param {number} mode - Mode (0 = Default, 1 = Artnet)
+ * @param {number} startUniverse - Start universe (0-255)
  * @returns {Promise<boolean>} Success status
  */
-async function changeLedSpiMode(unitIp, canId, channel, mode) {
+async function changeLedSpiMode(unitIp, canId, channel, mode, startUniverse) {
   const idAddress = convertCanIdToInt(canId);
 
   const data = [
-    channel & 0xff, // Channel (1 or 2)
-    mode & 0xff,    // Mode (0 = Default, 1 = Artnet)
+    channel & 0xff,       // Channel (1 or 2)
+    mode & 0xff,          // Mode (0 = Default, 1 = Artnet)
+    startUniverse & 0xff, // Start Universe (0-255)
   ];
 
   console.log("Changing LED SPI mode:", {
@@ -290,6 +293,7 @@ async function changeLedSpiMode(unitIp, canId, channel, mode) {
     canId,
     channel,
     mode,
+    startUniverse,
   });
 
   const response = await sendCommand(

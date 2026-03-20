@@ -66,6 +66,7 @@ export const VALIDATION = {
   COLOR: { min: 0, max: 255 },
   BIT_TIME: { min: 0, max: 3180 },
   RESET_CYCLE: { min: 0, max: 65536 },
+  START_UNIVERSE: { min: 0, max: 255 },
 };
 
 // Default channel state
@@ -88,6 +89,7 @@ export const DEFAULT_EFFECT_STATE = {
   brightness: 255,
   color: { r: 255, g: 0, b: 0, w: 0 },
   mode: 0,
+  startUniverse: 0,
 };
 
 // Helper to check if effect needs color config

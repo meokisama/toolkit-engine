@@ -42,8 +42,8 @@ function ChannelEffectConfig({
     onUpdateEffect({ mode: parseInt(value) });
   };
 
-  const handleNumberChange = (field, value) => {
-    const numValue = Math.max(VALIDATION.SPEED.min, Math.min(VALIDATION.SPEED.max, parseInt(value) || 0));
+  const handleNumberChange = (field, min, max, value) => {
+    const numValue = Math.max(min, Math.min(max, parseInt(value) || 0));
     onUpdateEffect({ [field]: numValue });
   };
 
@@ -109,7 +109,7 @@ function ChannelEffectConfig({
               min={VALIDATION.SPEED.min}
               max={VALIDATION.SPEED.max}
               value={effectState.speed}
-              onChange={(e) => handleNumberChange("speed", e.target.value)}
+              onChange={(e) => handleNumberChange("speed", VALIDATION.SPEED.min, VALIDATION.SPEED.max, e.target.value)}
               disabled={disabled}
             />
           </div>
@@ -121,11 +121,27 @@ function ChannelEffectConfig({
               min={VALIDATION.BRIGHTNESS.min}
               max={VALIDATION.BRIGHTNESS.max}
               value={effectState.brightness}
-              onChange={(e) => handleNumberChange("brightness", e.target.value)}
+              onChange={(e) => handleNumberChange("brightness", VALIDATION.BRIGHTNESS.min, VALIDATION.BRIGHTNESS.max, e.target.value)}
               disabled={disabled}
             />
           </div>
         </div>
+
+        {/* Start Universe - only show when mode is Artnet */}
+        {effectState.mode === 1 && (
+          <div className="space-y-2">
+            <Label htmlFor={`effect-start-universe-${channelIndex}`}>Start Universe (0-255)</Label>
+            <Input
+              id={`effect-start-universe-${channelIndex}`}
+              type="number"
+              min={VALIDATION.START_UNIVERSE.min}
+              max={VALIDATION.START_UNIVERSE.max}
+              value={effectState.startUniverse ?? 0}
+              onChange={(e) => handleNumberChange("startUniverse", VALIDATION.START_UNIVERSE.min, VALIDATION.START_UNIVERSE.max, e.target.value)}
+              disabled={disabled}
+            />
+          </div>
+        )}
 
         {/* Color Picker - only show for effects that need color config */}
         {showColorPicker && <EffectColorPicker color={effectState.color} onColorChange={onUpdateColor} disabled={disabled} />}
