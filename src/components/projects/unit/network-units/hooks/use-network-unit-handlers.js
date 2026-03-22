@@ -231,6 +231,7 @@ export function useNetworkUnitHandlers({ state, onTransferToDatabase, existingUn
   const handleTriggerMultiScene = createDialogHandler(DIALOG_TYPES.TRIGGER_MULTI_SCENE);
   const handleTriggerSequence = createDialogHandler(DIALOG_TYPES.TRIGGER_SEQUENCE);
   const handleLedSpiControl = createDialogHandler(DIALOG_TYPES.LED_SPI_CONTROL);
+  const handleOnlineStatus = createDialogHandler(DIALOG_TYPES.ONLINE_STATUS);
 
   // Handlers without unit parameter
   const handleBulkClockSync = useCallback(() => {
@@ -348,5 +349,6 @@ export function useNetworkUnitHandlers({ state, onTransferToDatabase, existingUn
     handleIOConfig,
     handleEditUnit,
     handleLedSpiControl,
+    handleOnlineStatus,
   };
 }

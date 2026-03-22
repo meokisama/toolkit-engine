@@ -16,4 +16,8 @@ export const deviceController = {
   getRS485CH2Config: (params) => ipcRenderer.invoke("rcu:getRS485CH2Config", params),
   setRS485CH1Config: (params) => ipcRenderer.invoke("rcu:setRS485CH1Config", params),
   setRS485CH2Config: (params) => ipcRenderer.invoke("rcu:setRS485CH2Config", params),
+
+  // Online Status functions
+  checkRS485OnlineStatus: (params) => ipcRenderer.invoke("rcu:checkRS485OnlineStatus", params),
+  checkTcpOnlineStatus: (params) => ipcRenderer.invoke("rcu:checkTcpOnlineStatus", params),
 };

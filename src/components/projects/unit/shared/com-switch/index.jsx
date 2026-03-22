@@ -8,7 +8,7 @@ import { Separator } from "@/components/ui/separator";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
 import { Plus, Trash2, ToggleLeft, Pencil } from "lucide-react";
-import { SWITCH_TYPES, SWITCH_INPUT_COUNTS, SWITCH_ENUM_BY_TYPE, SWITCH_TYPE_BY_ENUM } from "@/com-switch-types";
+import { SWITCH_TYPES, SWITCH_INPUT_COUNTS, SWITCH_ENUM_BY_TYPE, SWITCH_TYPE_BY_ENUM } from "@/constants/com-switch-types";
 export { SWITCH_TYPES, SWITCH_INPUT_COUNTS, SWITCH_ENUM_BY_TYPE, SWITCH_TYPE_BY_ENUM };
 
 /**

@@ -108,4 +108,24 @@ export function registerDeviceConfigHandlers(ipcMain, rcu) {
       throw error;
     }
   });
+
+  // ==================== Online Status ====================
+
+  ipcMain.handle("rcu:checkRS485OnlineStatus", async (event, { unitIp, canId }) => {
+    try {
+      return await rcu.checkRS485OnlineStatus(unitIp, canId);
+    } catch (error) {
+      console.error("Error checking RS485 online status:", error);
+      throw error;
+    }
+  });
+
+  ipcMain.handle("rcu:checkTcpOnlineStatus", async (event, { unitIp, canId }) => {
+    try {
+      return await rcu.checkTcpOnlineStatus(unitIp, canId);
+    } catch (error) {
+      console.error("Error checking TCP online status:", error);
+      throw error;
+    }
+  });
 }

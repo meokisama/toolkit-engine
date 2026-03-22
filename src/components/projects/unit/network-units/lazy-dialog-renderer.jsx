@@ -102,6 +102,12 @@ const LedSpiControlDialog = lazy(() =>
   }))
 );
 
+const OnlineStatusDialog = lazy(() =>
+  import("./controls/system/online-status-dialog").then((m) => ({
+    default: m.OnlineStatusDialog,
+  }))
+);
+
 /**
  * Lazy dialog renderer - only mounts the currently active dialog
  * This significantly reduces initial render cost and memory usage
@@ -209,6 +215,14 @@ export function LazyDialogRenderer({ activeDialog, dialogData, dialogState, hand
         <LedSpiControlDialog
           open={true}
           onOpenChange={dialogState.createDialogHandler(DIALOG_TYPES.LED_SPI_CONTROL)}
+          unit={dialogData}
+        />
+      )}
+
+      {activeDialog === DIALOG_TYPES.ONLINE_STATUS && (
+        <OnlineStatusDialog
+          open={true}
+          onOpenChange={dialogState.createDialogHandler(DIALOG_TYPES.ONLINE_STATUS)}
           unit={dialogData}
         />
       )}

@@ -20,6 +20,7 @@ export const DIALOG_TYPES = {
   IO_CONFIG: "ioConfig",
   EDIT: "edit",
   LED_SPI_CONTROL: "ledSpiControl",
+  ONLINE_STATUS: "onlineStatus",
 };
 
 // Action types

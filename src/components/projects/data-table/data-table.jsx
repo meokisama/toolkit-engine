@@ -35,6 +35,7 @@ export function DataTable({
   onSendMultiScene,
   onSendSequence,
   onFirmwareUpdate,
+  onOnlineStatus,
   onTransferToDatabase,
   onDmxSceneConfig,
   initialPagination,
@@ -202,6 +203,7 @@ export function DataTable({
                   onSendMultiScene={onSendMultiScene}
                   onSendSequence={onSendSequence}
                   onFirmwareUpdate={onFirmwareUpdate}
+                  onOnlineStatus={onOnlineStatus}
                   onTransferToDatabase={onTransferToDatabase}
                   onDmxSceneConfig={onDmxSceneConfig}
                   customRowClass={getRowClassName ? getRowClassName(row.original) : undefined}

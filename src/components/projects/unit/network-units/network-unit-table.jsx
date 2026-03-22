@@ -163,6 +163,7 @@ function NetworkUnitTableComponent({ onTransferToDatabase, existingUnits = [], o
                 onSequenceControl={{
                   onTriggerSequence: handlers.handleTriggerSequence,
                 }}
+                onOnlineStatus={handlers.handleOnlineStatus}
                 onFirmwareUpdate={handlers.handleFirmwareUpdateForUnit}
                 onIOConfig={handlers.handleIOConfig}
                 onEdit={handlers.handleEditUnit}

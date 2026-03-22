@@ -40,6 +40,7 @@ const PROTOCOL = {
       SET_ROOM_CONFIG: 35,
       GET_ROOM_STATUS: 36,
       SET_ROOM_STATUS: 37,
+      CHECK_ONLINE_STATUS: 38,
     },
   },
   LIGHTING: {

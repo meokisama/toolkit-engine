@@ -1,7 +1,7 @@
 import { UDP_PORT, PROTOCOL } from "./constants.js";
 import { convertCanIdToInt, calculateCRC } from "./utils.js";
 import { sendCommand } from "./command-sender.js";
-import { SWITCH_ENUM_BY_TYPE, SWITCH_TYPE_BY_ENUM } from "@/com-switch-types.js";
+import { SWITCH_ENUM_BY_TYPE, SWITCH_TYPE_BY_ENUM } from "@/constants/com-switch-types.js";
 
 /**
  * Build the binary data payload for SET_COM_SWITCH.
@@ -24,7 +24,7 @@ function buildComSwitchData(switchConfigs) {
   // Iterate channels in order
   for (const channel of Object.keys(byChannel).map(Number).sort()) {
     const switches = byChannel[channel];
-    data.push(channel & 0xff);         // channel byte
+    data.push(channel & 0xff); // channel byte
     data.push(switches.length & 0xff); // count for this channel
     for (const sw of switches) {
       const switchId = (parseInt(sw.switchId) || 0) & 0xff;
@@ -132,7 +132,7 @@ async function getComSwitch(unitIp, canId) {
         Array.from(msg)
           .map((b) => b.toString(16).padStart(2, "0"))
           .join(" ")
-          .toUpperCase()
+          .toUpperCase(),
       );
 
       try {
@@ -188,13 +188,7 @@ async function getComSwitch(unitIp, canId) {
 
       const data = [0x00, 0x00];
       const len = 2 + 2 + data.length;
-      const packetArray = [
-        len & 0xff,
-        (len >> 8) & 0xff,
-        PROTOCOL.LIGHTING.CMD1,
-        PROTOCOL.LIGHTING.CMD2.GET_COM_SWITCH,
-        ...data,
-      ];
+      const packetArray = [len & 0xff, (len >> 8) & 0xff, PROTOCOL.LIGHTING.CMD1, PROTOCOL.LIGHTING.CMD2.GET_COM_SWITCH, ...data];
 
       const crc = calculateCRC(packetArray);
       packetArray.push(crc & 0xff);

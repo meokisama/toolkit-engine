@@ -3,23 +3,12 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Settings2, LibraryBig, Network } from "lucide-react";
 import { Input } from "@/components/ui/input";
-
-const ROOM_MODE_LABELS = {
-  0: "Standalone",
-  1: "Link",
-  2: "Combine",
-};
+import { ROOM_MODE_LABELS, TCP_MODE_LABELS } from "@/constants/room-config";
 
 const CLIENT_MODE_LABELS = {
   0: "None",
   1: "Madrix Server",
   2: "Salto Server",
-};
-
-const TCP_MODE_LABELS = {
-  0: "None",
-  1: "Slave",
-  2: "Master",
 };
 
 const OCCUPANCY_TYPE_LABELS = {

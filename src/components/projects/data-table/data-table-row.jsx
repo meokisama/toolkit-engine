@@ -20,6 +20,7 @@ import {
   Palette,
   Building2,
   Sparkles,
+  Wifi,
 } from "lucide-react";
 
 import { TableCell, TableRow } from "@/components/ui/table";
@@ -61,6 +62,7 @@ export function DataTableRow({
   onSendMultiScene,
   onSendSequence,
   onFirmwareUpdate,
+  onOnlineStatus,
   onTransferToDatabase,
   onDmxSceneConfig,
   customRowClass,
@@ -247,7 +249,7 @@ export function DataTableRow({
           </ContextMenuSub>
         )}
         {/* System Submenu */}
-        {(onClockControl || onFirmwareUpdate) && (
+        {(onClockControl || onFirmwareUpdate || onOnlineStatus) && (
           <>
             <ContextMenuSub>
               <ContextMenuSubTrigger>
@@ -255,6 +257,12 @@ export function DataTableRow({
                 <span className="pl-2">System</span>
               </ContextMenuSubTrigger>
               <ContextMenuSubContent>
+                {onOnlineStatus && (
+                  <ContextMenuItem onClick={() => onOnlineStatus(item)}>
+                    <Wifi className="text-muted-foreground" />
+                    <span>Online Status</span>
+                  </ContextMenuItem>
+                )}
                 {onClockControl && (
                   <ContextMenuItem onClick={() => onClockControl(item)}>
                     <Clock className="text-muted-foreground" />
