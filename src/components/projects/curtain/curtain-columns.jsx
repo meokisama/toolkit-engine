@@ -5,7 +5,7 @@ import { DataTableFilterColumnHeader } from "../data-table/data-table-filter-col
 import { EditableCell } from "../data-table/editable-cell";
 import { EditableSelectCell } from "../data-table/editable-select-cell";
 import { EditableComboboxCell } from "../data-table/editable-combobox-cell";
-import { CURTAIN_TYPES } from "@/constants";
+import { CURTAIN_TYPES } from "@/constants/curtain";
 
 export const createCurtainColumns = (onCellEdit, getEffectiveValue, lightingItems = [], unitItems = []) => {
   // Create lighting options for group selection

@@ -4,7 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Lightbulb, Wind, Blinds, Palette, Sparkles, Edit, Trash2 } from "lucide-react";
-import { CONSTANTS } from "@/constants";
+import { AIRCON } from "@/constants/aircon";
 import { SceneItemValueControl } from "./scene-item-value-control";
 import { CustomBrightnessPopover } from "./custom-brightness-popover";
 
@@ -91,7 +91,7 @@ export function CurrentSceneItems({
                       {item.items.map((airconItem) => (
                         <div key={airconItem.id} className="flex items-center justify-between text-sm">
                           <span className="text-muted-foreground">
-                            {CONSTANTS.AIRCON.find((item) => item.obj_type === airconItem.object_type)?.label || airconItem.object_type}
+                            {AIRCON.find((item) => item.obj_type === airconItem.object_type)?.label || airconItem.object_type}
                           </span>
                           <div className="flex items-center gap-2">
                             <SceneItemValueControl

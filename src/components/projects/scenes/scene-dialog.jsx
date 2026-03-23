@@ -2,7 +2,9 @@ import React, { useState, useEffect, useMemo, useCallback, useRef } from "react"
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { useProjectDetail } from "@/contexts/project-detail-context";
-import { OBJECT_TYPES, CONSTANTS } from "@/constants";
+import { OBJECT_TYPES } from "@/constants";
+import { AIRCON } from "@/constants/aircon";
+import { CURTAIN } from "@/constants/curtain";
 import { AirconPropertiesDialog } from "./dialogs/aircon-properties-dialog";
 import { DmxPropertiesDialog } from "./dialogs/dmx-properties-dialog";
 import { ProjectItemDialog } from "../lighting/lighting-dialog";
@@ -19,27 +21,27 @@ import { useCurtainManagement } from "./hooks/useCurtainManagement";
 import { useSpiManagement } from "./hooks/useSpiManagement";
 import log from "electron-log/renderer";
 
-// Create label mappings directly from CONSTANTS.AIRCON
+// Create label mappings directly from AIRCON
 const AC_POWER_LABELS =
-  CONSTANTS.AIRCON.find((item) => item.obj_type === "OBJ_AC_POWER")?.values.reduce((acc, item) => {
+  AIRCON.find((item) => item.obj_type === "OBJ_AC_POWER")?.values.reduce((acc, item) => {
     acc[item.value] = item.label;
     return acc;
   }, {}) || {};
 
 const AC_MODE_LABELS =
-  CONSTANTS.AIRCON.find((item) => item.obj_type === "OBJ_AC_MODE")?.values.reduce((acc, item) => {
+  AIRCON.find((item) => item.obj_type === "OBJ_AC_MODE")?.values.reduce((acc, item) => {
     acc[item.value] = item.label;
     return acc;
   }, {}) || {};
 
 const AC_FAN_SPEED_LABELS =
-  CONSTANTS.AIRCON.find((item) => item.obj_type === "OBJ_AC_FAN_SPEED")?.values.reduce((acc, item) => {
+  AIRCON.find((item) => item.obj_type === "OBJ_AC_FAN_SPEED")?.values.reduce((acc, item) => {
     acc[item.value] = item.label;
     return acc;
   }, {}) || {};
 
 const AC_SWING_LABELS =
-  CONSTANTS.AIRCON.find((item) => item.obj_type === "OBJ_AC_SWING")?.values.reduce((acc, item) => {
+  AIRCON.find((item) => item.obj_type === "OBJ_AC_SWING")?.values.reduce((acc, item) => {
     acc[item.value] = item.label;
     return acc;
   }, {}) || {};
@@ -435,11 +437,11 @@ export function SceneDialog({ open, onOpenChange, scene = null, mode = "create" 
         label,
       })),
       [OBJECT_TYPES.AC_TEMPERATURE.obj_name]: [],
-      [OBJECT_TYPES.CURTAIN.obj_name]: CONSTANTS.CURTAIN.VALUES.map((item) => ({
+      [OBJECT_TYPES.CURTAIN.obj_name]: CURTAIN.VALUES.map((item) => ({
         value: item.value.toString(),
         label: item.label,
       })),
-      curtain: CONSTANTS.CURTAIN.VALUES.map((item) => ({
+      curtain: CURTAIN.VALUES.map((item) => ({
         value: item.value.toString(),
         label: item.label,
       })),

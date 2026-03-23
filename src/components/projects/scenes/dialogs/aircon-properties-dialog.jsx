@@ -5,7 +5,8 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { OBJECT_TYPES, CONSTANTS } from "@/constants";
+import { OBJECT_TYPES } from "@/constants";
+import { AIRCON } from "@/constants/aircon";
 import { Thermometer, Power, Wind, Settings, Move } from "lucide-react";
 
 const AIRCON_PROPERTIES = [
@@ -14,7 +15,7 @@ const AIRCON_PROPERTIES = [
     label: "Power",
     icon: Power,
     defaultValue: "1",
-    options: CONSTANTS.AIRCON.find((item) => item.obj_type === "OBJ_AC_POWER").values.map((item) => ({
+    options: AIRCON.find((item) => item.obj_type === "OBJ_AC_POWER").values.map((item) => ({
       value: item.value.toString(),
       label: item.label,
     })),
@@ -24,7 +25,7 @@ const AIRCON_PROPERTIES = [
     label: "Mode",
     icon: Settings,
     defaultValue: "0",
-    options: CONSTANTS.AIRCON.find((item) => item.obj_type === "OBJ_AC_MODE").values.map((item) => ({
+    options: AIRCON.find((item) => item.obj_type === "OBJ_AC_MODE").values.map((item) => ({
       value: item.value.toString(),
       label: item.label,
     })),
@@ -34,7 +35,7 @@ const AIRCON_PROPERTIES = [
     label: "Fan Speed",
     icon: Wind,
     defaultValue: "0",
-    options: CONSTANTS.AIRCON.find((item) => item.obj_type === "OBJ_AC_FAN_SPEED").values.map((item) => ({
+    options: AIRCON.find((item) => item.obj_type === "OBJ_AC_FAN_SPEED").values.map((item) => ({
       value: item.value.toString(),
       label: item.label,
     })),
@@ -51,7 +52,7 @@ const AIRCON_PROPERTIES = [
     label: "Swing",
     icon: Move,
     defaultValue: "0",
-    options: CONSTANTS.AIRCON.find((item) => item.obj_type === "OBJ_AC_SWING").values.map((item) => ({
+    options: AIRCON.find((item) => item.obj_type === "OBJ_AC_SWING").values.map((item) => ({
       value: item.value.toString(),
       label: item.label,
     })),

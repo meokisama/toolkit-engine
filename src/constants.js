@@ -575,23 +575,6 @@ export const CONSTANTS = {
     },
   },
 
-  CURTAIN: {
-    TYPES: [
-      { value: 0, name: "", label: "Select curtain type" },
-      { value: 1, name: "CURTAIN_PULSE_1G_2P", label: "1-Gang 2-Point Pulse" },
-      { value: 2, name: "CURTAIN_PULSE_1G_3P", label: "1-Gang 3-Point Pulse" },
-      { value: 3, name: "CURTAIN_PULSE_2P", label: "2-Point Pulse" },
-      { value: 4, name: "CURTAIN_PULSE_3P", label: "3-Point Pulse" },
-      { value: 5, name: "CURTAIN_HOLD_1G", label: "1-Gang Hold" },
-      { value: 6, name: "CURTAIN_HOLD", label: "Hold" },
-    ],
-    VALUES: [
-      { value: 0, label: "Stop" },
-      { value: 1, label: "Open" },
-      { value: 2, label: "Close" },
-    ],
-  },
-
   KNX: {
     KNX_OUTPUT_TYPES: [
       { value: 0, name: "KNX_OUTPUT_DISABLE", label: "Disable", resource: null },
@@ -643,56 +626,6 @@ export const CONSTANTS = {
       { value: 2, name: "TOGGLE", label: "Toggle" },
     ],
   },
-
-  AIRCON: [
-    {
-      obj_type: "OBJ_AC_POWER",
-      label: "Power",
-      values: [
-        { command: "AC_PWR_OFF", value: 0, label: "Off" },
-        { command: "AC_PWR_ON", value: 1, label: "On" },
-      ],
-    },
-    {
-      obj_type: "OBJ_AC_MODE",
-      label: "Mode",
-      values: [
-        { command: "AC_COOL_MODE", value: 0, label: "Cool" },
-        { command: "AC_HEAT_MODE", value: 1, label: "Heat" },
-        { command: "AC_VENTILATION_MODE", value: 2, label: "Ventilation" },
-        { command: "AC_DRY_MODE", value: 3, label: "Dry" },
-        { command: "AC_AUTO", value: 4, label: "Auto" },
-      ],
-    },
-    {
-      obj_type: "OBJ_AC_FAN_SPEED",
-      label: "Fan Speed",
-      values: [
-        { command: "FCU_FAN_LOW", value: 0, label: "Low" },
-        { command: "FCU_FAN_MED", value: 1, label: "Medium" },
-        { command: "FCU_FAN_HIGH", value: 2, label: "High" },
-        { command: "FCU_FAN_AUTO", value: 3, label: "Auto" },
-        { command: "FCU_FAN_OFF", value: 4, label: "Off" },
-      ],
-    },
-    {
-      obj_type: "OBJ_AC_TEMPERATURE",
-      label: "Temperature",
-      values: [],
-    },
-    {
-      obj_type: "OBJ_AC_SWING",
-      label: "Swing",
-      values: [
-        { command: "AC_SWING_B1", value: 0, label: "B1" },
-        { command: "AC_SWING_B2", value: 1, label: "B2" },
-        { command: "AC_SWING_B3", value: 2, label: "B3" },
-        { command: "AC_SWING_B4", value: 3, label: "B4" },
-        { command: "AC_SWING_B5", value: 4, label: "B5" },
-        { command: "AC_SWING_AUTO", value: 5, label: "Auto" },
-      ],
-    },
-  ],
 };
 
 // Input function types organized by categories for unit configuration
@@ -898,8 +831,7 @@ export const LED_DISPLAY_MODES = [
 export const OBJECT_TYPES = CONSTANTS.OBJECT_TYPES;
 export const UNIT_TYPES = CONSTANTS.UNIT.TYPES;
 export const UNIT_MODES = CONSTANTS.UNIT.MODES;
-export const CURTAIN_TYPES = CONSTANTS.CURTAIN.TYPES;
-export const CURTAIN_VALUES = CONSTANTS.CURTAIN.VALUES;
+export { CURTAIN_TYPES, CURTAIN_VALUES } from "@/constants/curtain";
 
 // Helper functions for unit I/O specifications
 export const getUnitIOSpec = (unitName) => {

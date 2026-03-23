@@ -1,6 +1,7 @@
 import { useState, useMemo, useCallback } from "react";
 import { toast } from "sonner";
-import { OBJECT_TYPES, CONSTANTS } from "@/constants";
+import { OBJECT_TYPES } from "@/constants";
+import { AIRCON } from "@/constants/aircon";
 
 export function useAirconManagement({ projectItems, sceneItems, setSceneItems, mode }) {
   const [airconPropertiesDialog, setAirconPropertiesDialog] = useState({
@@ -23,21 +24,21 @@ export function useAirconManagement({ projectItems, sceneItems, setSceneItems, m
     switch (objectType) {
       case OBJECT_TYPES.AC_POWER.obj_name:
         return (
-          CONSTANTS.AIRCON.find((item) => item.obj_type === "OBJ_AC_POWER").values.find((item) => item.value.toString() === itemValue)?.command ||
+          AIRCON.find((item) => item.obj_type === "OBJ_AC_POWER").values.find((item) => item.value.toString() === itemValue)?.command ||
           null
         );
       case OBJECT_TYPES.AC_FAN_SPEED.obj_name:
         return (
-          CONSTANTS.AIRCON.find((item) => item.obj_type === "OBJ_AC_FAN_SPEED").values.find((item) => item.value.toString() === itemValue)?.command ||
+          AIRCON.find((item) => item.obj_type === "OBJ_AC_FAN_SPEED").values.find((item) => item.value.toString() === itemValue)?.command ||
           null
         );
       case OBJECT_TYPES.AC_MODE.obj_name:
         return (
-          CONSTANTS.AIRCON.find((item) => item.obj_type === "OBJ_AC_MODE").values.find((item) => item.value.toString() === itemValue)?.command || null
+          AIRCON.find((item) => item.obj_type === "OBJ_AC_MODE").values.find((item) => item.value.toString() === itemValue)?.command || null
         );
       case OBJECT_TYPES.AC_SWING.obj_name:
         return (
-          CONSTANTS.AIRCON.find((item) => item.obj_type === "OBJ_AC_SWING").values.find((item) => item.value.toString() === itemValue)?.command ||
+          AIRCON.find((item) => item.obj_type === "OBJ_AC_SWING").values.find((item) => item.value.toString() === itemValue)?.command ||
           null
         );
       case OBJECT_TYPES.AC_TEMPERATURE.obj_name:
@@ -90,7 +91,7 @@ export function useAirconManagement({ projectItems, sceneItems, setSceneItems, m
           item_name: airconItem.name,
           item_address: airconItem.address,
           item_description: airconItem.description,
-          label: CONSTANTS.AIRCON.find((item) => item.obj_type === property.objectType)?.label || property.objectType,
+          label: AIRCON.find((item) => item.obj_type === property.objectType)?.label || property.objectType,
         };
         setSceneItems((prev) => [...prev, newSceneItem]);
       });
@@ -157,7 +158,7 @@ export function useAirconManagement({ projectItems, sceneItems, setSceneItems, m
           item_name: airconItem.name,
           item_address: airconItem.address,
           item_description: airconItem.description,
-          label: CONSTANTS.AIRCON.find((item) => item.obj_type === property.objectType)?.label || property.objectType,
+          label: AIRCON.find((item) => item.obj_type === property.objectType)?.label || property.objectType,
         }));
 
         return [...filteredItems, ...newAirconItems];

@@ -6,7 +6,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { GitCompare, List, Square, ChevronUp, ChevronDown, Trash2 } from "lucide-react";
 import { toast } from "sonner";
-import { CONSTANTS } from "@/constants";
+import { CURTAIN } from "@/constants/curtain";
 import { DeleteCurtainDialog } from "./delete-curtain-popover";
 import { useProjectDetail } from "@/contexts/project-detail-context";
 import log from "electron-log/renderer";
@@ -40,7 +40,7 @@ const CurtainCard = memo(({ curtain, onControl, onDelete, loading, formatCurtain
             </p>
             <p>
               <span className="font-bold">Type:</span>{" "}
-              {CONSTANTS.CURTAIN.TYPES.find((t) => t.value === curtain.curtainType)?.label || `Unknown (${curtain.curtainType})`}
+              {CURTAIN.TYPES.find((t) => t.value === curtain.curtainType)?.label || `Unknown (${curtain.curtainType})`}
               <span className="mx-1"> | </span>
               <span className="font-bold">Address:</span> {curtain.address}
             </p>
@@ -277,7 +277,7 @@ export function CurtainControlDialog({ open, onOpenChange, unit }) {
 
       setLoadingState((prev) => ({ ...prev, loading: true }));
       try {
-        const valueLabel = CONSTANTS.CURTAIN.VALUES.find((v) => v.value === value)?.label || value;
+        const valueLabel = CURTAIN.VALUES.find((v) => v.value === value)?.label || value;
         log.info("Controlling curtain:", {
           unitIp: unit.ip_address,
           canId: unit.id_can,

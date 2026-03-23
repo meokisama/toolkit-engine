@@ -20,36 +20,38 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { OBJECT_TYPES, CONSTANTS } from "@/constants";
+import { OBJECT_TYPES } from "@/constants";
+import { AIRCON } from "@/constants/aircon";
+import { CURTAIN } from "@/constants/curtain";
 import log from "electron-log/renderer";
 
-// Create label mappings directly from CONSTANTS.AIRCON
+// Create label mappings directly from AIRCON
 const AC_POWER_LABELS =
-  CONSTANTS.AIRCON.find((item) => item.obj_type === "OBJ_AC_POWER")?.values.reduce((acc, item) => {
+  AIRCON.find((item) => item.obj_type === "OBJ_AC_POWER")?.values.reduce((acc, item) => {
     acc[item.value] = item.label;
     return acc;
   }, {}) || {};
 
 const AC_MODE_LABELS =
-  CONSTANTS.AIRCON.find((item) => item.obj_type === "OBJ_AC_MODE")?.values.reduce((acc, item) => {
+  AIRCON.find((item) => item.obj_type === "OBJ_AC_MODE")?.values.reduce((acc, item) => {
     acc[item.value] = item.label;
     return acc;
   }, {}) || {};
 
 const AC_FAN_SPEED_LABELS =
-  CONSTANTS.AIRCON.find((item) => item.obj_type === "OBJ_AC_FAN_SPEED")?.values.reduce((acc, item) => {
+  AIRCON.find((item) => item.obj_type === "OBJ_AC_FAN_SPEED")?.values.reduce((acc, item) => {
     acc[item.value] = item.label;
     return acc;
   }, {}) || {};
 
 const AC_SWING_LABELS =
-  CONSTANTS.AIRCON.find((item) => item.obj_type === "OBJ_AC_SWING")?.values.reduce((acc, item) => {
+  AIRCON.find((item) => item.obj_type === "OBJ_AC_SWING")?.values.reduce((acc, item) => {
     acc[item.value] = item.label;
     return acc;
   }, {}) || {};
 
 const CURTAIN_VALUE_LABELS =
-  CONSTANTS.CURTAIN?.VALUES?.reduce((acc, item) => {
+  CURTAIN?.VALUES?.reduce((acc, item) => {
     acc[item.value] = item.label;
     return acc;
   }, {}) || {};
