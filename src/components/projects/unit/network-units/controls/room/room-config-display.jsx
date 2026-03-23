@@ -1,44 +1,17 @@
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Settings2, LibraryBig, Network } from "lucide-react";
+import { LibraryBig } from "lucide-react";
 import { Input } from "@/components/ui/input";
-import { ROOM_MODE_LABELS, TCP_MODE_LABELS } from "@/constants/room-config";
-
-const CLIENT_MODE_LABELS = {
-  0: "None",
-  1: "Madrix Server",
-  2: "Salto Server",
-};
-
-const OCCUPANCY_TYPE_LABELS = {
-  0: "None",
-  1: "Keycard",
-  2: "Keyless",
-};
-
-const OCCUPANCY_SCENE_TYPE_LABELS = {
-  0: "Welcome",
-  1: "Restore",
-};
-
-const AIRCON_MODE_LABELS = {
-  0: "Off",
-  1: "Cool",
-  2: "Heat",
-  3: "Ventilation",
-  4: "Dry",
-  5: "Auto",
-};
-
-const FAN_SPEED_LABELS = {
-  0: "Low",
-  1: "Medium",
-  2: "High",
-  3: "Auto",
-  4: "Off",
-  5: "Powerful",
-};
+import {
+  ROOM_MODE_LABELS,
+  TCP_MODE_LABELS,
+  CLIENT_MODE_LABELS,
+  OCCUPANCY_TYPE_LABELS,
+  OCCUPANCY_SCENE_TYPE_LABELS,
+  AIRCON_MODE_LABELS,
+  FAN_SPEED_LABELS,
+} from "@/constants/room-config";
 
 const ROOM_STATES = ["Unrent", "Unoccupy", "Checkin", "Welcome", "WelcomeNight", "Staff", "OutOfService"];
 
@@ -95,7 +68,7 @@ export function RoomConfigDisplay({ roomConfig }) {
                       <div key={index} className="text-sm">
                         <span className="font-medium">Slave {index + 1}:</span> {ip}
                       </div>
-                    ) : null
+                    ) : null,
                   )}
                 </div>
               </div>

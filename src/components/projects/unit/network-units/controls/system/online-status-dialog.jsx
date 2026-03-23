@@ -4,13 +4,13 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { CONSTANTS } from "@/constants";
+import { RS485 } from "@/constants/rs485";
 import { ROOM_MODE_LABELS, TCP_MODE_LABELS } from "@/constants/room-config";
 import log from "electron-log/renderer";
 
 const POLL_INTERVAL_MS = 3000;
 
-const RS485_TYPE_MAP = Object.fromEntries(CONSTANTS.RS485.TYPES.map((t) => [t.value, t.label]));
+const RS485_TYPE_MAP = Object.fromEntries(RS485.TYPES.map((t) => [t.value, t.label]));
 
 function StatusBadge({ online }) {
   return online ? (
@@ -96,15 +96,13 @@ export function OnlineStatusDialog({ open, onOpenChange, unit }) {
             Online Status
           </DialogTitle>
           <DialogDescription>
-            Kiểm tra trạng thái kết nối các thiết bị trên unit <span className="font-mono">{unit?.ip_address}</span>. Tự động cập nhật mỗi{" "}
-            {POLL_INTERVAL_MS / 1000} giây.
+            Check the connection status of devices on unit <span className="font-mono">{unit?.ip_address}</span>. Automatically updates every{" "}
+            {POLL_INTERVAL_MS / 1000} seconds.
           </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-4 py-2">
-          {error && (
-            <div className="rounded-md border border-destructive/50 bg-destructive/10 px-4 py-2 text-sm text-destructive">{error}</div>
-          )}
+          {error && <div className="rounded-md border border-destructive/50 bg-destructive/10 px-4 py-2 text-sm text-destructive">{error}</div>}
 
           {/* RS485 Channels */}
           <Card>
@@ -149,7 +147,7 @@ export function OnlineStatusDialog({ open, onOpenChange, unit }) {
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
-              {!tcpData && !loading && !error && <p className="text-sm text-muted-foreground">Đang tải...</p>}
+              {!tcpData && !loading && !error && <p className="text-sm text-muted-foreground">Loading...</p>}
               {tcpData && (
                 <>
                   <div className="flex gap-4 text-xs text-muted-foreground">
@@ -161,7 +159,7 @@ export function OnlineStatusDialog({ open, onOpenChange, unit }) {
                     </span>
                   </div>
                   {tcpData.devices.length === 0 ? (
-                    <p className="text-xs text-muted-foreground">Không có unit kết nối.</p>
+                    <p className="text-xs text-muted-foreground">No unit is connected.</p>
                   ) : (
                     <div className="space-y-1">
                       {tcpData.devices.map((dev, idx) => (

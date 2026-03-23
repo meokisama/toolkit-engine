@@ -1,6 +1,4 @@
-import { CONSTANTS } from "@/constants";
-
-const { RS485 } = CONSTANTS;
+import { RS485 } from "@/constants/rs485";
 
 /**
  * Create a default RS485 configuration

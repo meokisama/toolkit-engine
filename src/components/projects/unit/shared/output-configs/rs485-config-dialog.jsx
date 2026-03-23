@@ -9,11 +9,9 @@ import { Combobox } from "@/components/custom/combobox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { ChevronDown } from "lucide-react";
-import { CONSTANTS } from "@/constants";
+import { RS485 } from "@/constants/rs485";
 import { useProjectDetail } from "@/contexts/project-detail-context";
 import { createDefaultRS485Config, isSlaveType, isNoneType } from "@/utils/rs485-utils";
-
-const { RS485 } = CONSTANTS;
 
 export function RS485ConfigDialog({ open, onOpenChange, config, onSave }) {
   const { airconCards, selectedProject, loadedTabs, loadTabData } = useProjectDetail();

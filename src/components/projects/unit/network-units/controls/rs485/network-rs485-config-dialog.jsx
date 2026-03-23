@@ -9,13 +9,11 @@ import { Combobox } from "@/components/custom/combobox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { ChevronDown, Settings, RefreshCw, Plus } from "lucide-react";
-import { CONSTANTS } from "@/constants";
+import { RS485 } from "@/constants/rs485";
 import { useProjectDetail } from "@/contexts/project-detail-context";
 import { isSlaveType, isNoneType } from "@/utils/rs485-utils";
 import { toast } from "sonner";
 import log from "electron-log/renderer";
-
-const { RS485 } = CONSTANTS;
 
 export function NetworkRS485ConfigDialog({ open, onOpenChange, unit }) {
   const { airconCards, selectedProject, loadedTabs, loadTabData } = useProjectDetail();
