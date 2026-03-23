@@ -185,7 +185,7 @@ export const ComSwitchPopover = ({ switchConfigs = [], onAddSwitch, onRemoveSwit
   }, []);
 
   return (
-    <Popover open={open} onOpenChange={setOpen}>
+    <Popover open={open} modal={true} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
         <Button variant="outline" size="sm" className="flex items-center gap-2">
           Com-Switch
@@ -196,20 +196,22 @@ export const ComSwitchPopover = ({ switchConfigs = [], onAddSwitch, onRemoveSwit
           )}
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-[420px]" align="center">
-        <div className="space-y-3">
-          <div className="flex items-center justify-between">
-            <h4 className="text-sm font-medium">Switch Management</h4>
-            <Badge variant="outline" className="text-xs">
-              {switchConfigs.length} switches
-            </Badge>
+      <PopoverContent className="w-[420px] p-0" align="center">
+        <div className="flex flex-col max-h-[70vh]">
+          <div className="p-4 pb-3 space-y-3">
+            <div className="flex items-center justify-between">
+              <h4 className="text-sm font-medium">Switch Management</h4>
+              <Badge variant="outline" className="text-xs">
+                {switchConfigs.length} switches
+              </Badge>
+            </div>
           </div>
 
           {switchConfigs.length > 0 && (
             <>
               <Separator />
-              <ScrollArea className="max-h-56">
-                <div className="space-y-1.5 p-1">
+              <ScrollArea className="flex-1 overflow-auto min-h-0">
+                <div className="space-y-1.5 p-4">
                   {switchConfigs.map((sw) => (
                     <div
                       key={sw.localId}
@@ -261,9 +263,8 @@ export const ComSwitchPopover = ({ switchConfigs = [], onAddSwitch, onRemoveSwit
             </>
           )}
 
-          {mode === "edit" ? (
-            <>
-              <Separator />
+          <div className="p-4 pt-3 border-t">
+            {mode === "edit" ? (
               <SwitchForm
                 title="Edit Switch"
                 form={form}
@@ -274,10 +275,7 @@ export const ComSwitchPopover = ({ switchConfigs = [], onAddSwitch, onRemoveSwit
                 confirmLabel="Save"
                 disableConfirm={!form.type}
               />
-            </>
-          ) : mode === "add" ? (
-            <>
-              <Separator />
+            ) : mode === "add" ? (
               <SwitchForm
                 title="New Switch"
                 form={form}
@@ -288,13 +286,13 @@ export const ComSwitchPopover = ({ switchConfigs = [], onAddSwitch, onRemoveSwit
                 confirmLabel="Create"
                 disableConfirm={!form.type}
               />
-            </>
-          ) : (
-            <Button variant="outline" size="sm" className="w-full" onClick={handleOpenAdd}>
-              <Plus className="mr-2 h-4 w-4" />
-              Add Switch
-            </Button>
-          )}
+            ) : (
+              <Button variant="outline" size="sm" className="w-full" onClick={handleOpenAdd}>
+                <Plus className="mr-2 h-4 w-4" />
+                Add Switch
+              </Button>
+            )}
+          </div>
         </div>
       </PopoverContent>
     </Popover>
