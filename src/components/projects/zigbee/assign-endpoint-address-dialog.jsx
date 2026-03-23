@@ -7,7 +7,7 @@ import { Combobox } from "@/components/custom/combobox";
 import { useProjectDetail } from "@/contexts/project-detail-context";
 import { Power, DoorClosed, Loader2, Book } from "lucide-react";
 import { toast } from "sonner";
-import { CONSTANTS } from "@/constants";
+import { ZIGBEE } from "@/constants/zigbee";
 import lightOn from "@/assets/light-on.png";
 import log from "electron-log/renderer";
 
@@ -186,7 +186,7 @@ export function AssignEndpointAddressDialog({ open, onOpenChange, devices, onSav
   };
 
   const getDeviceTypeInfo = (deviceType) => {
-    return CONSTANTS.ZIGBEE.DEVICE_TYPE.find((type) => type.value === deviceType);
+    return ZIGBEE.DEVICE_TYPE.find((type) => type.value === deviceType);
   };
 
   const isSwitch = (deviceType) => {

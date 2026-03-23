@@ -9,13 +9,13 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { toast } from "sonner";
 import { DeleteMultiSceneDialog } from "./delete-multi-scene-popover";
-import { CONSTANTS } from "@/constants";
+import { MULTI_SCENES } from "@/constants/multi-scenes";
 import { useProjectDetail } from "@/contexts/project-detail-context";
 import log from "electron-log/renderer";
 
 // Helper function to get multi-scene type label
 const getMultiSceneTypeLabel = (type) => {
-  const typeObj = CONSTANTS.MULTI_SCENES.TYPES.find((t) => t.value === type);
+  const typeObj = MULTI_SCENES.TYPES.find((t) => t.value === type);
   return typeObj ? typeObj.label : `Type ${type}`;
 };
 

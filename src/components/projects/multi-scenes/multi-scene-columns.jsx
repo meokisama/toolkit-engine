@@ -1,7 +1,7 @@
 import React from "react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { FileText, Hash } from "lucide-react";
-import { CONSTANTS } from "@/constants";
+import { MULTI_SCENES } from "@/constants/multi-scenes";
 import { EditableCell } from "@/components/projects/data-table/editable-cell";
 import { EditableSelectCell } from "@/components/projects/data-table/editable-select-cell";
 import { DataTableColumnHeader } from "@/components/projects/data-table/data-table-column-header";
@@ -93,7 +93,7 @@ export function createMultiSceneColumns(onCellEdit, getEffectiveValue, unitItems
         return (
           <EditableSelectCell
             value={effectiveValue}
-            options={CONSTANTS.MULTI_SCENES.TYPES}
+            options={MULTI_SCENES.TYPES}
             onSave={(newValue) => onCellEdit(row.original.id, "type", newValue)}
             placeholder="Select type"
             className="w-full"

@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Blinds, Loader2, Pencil, ChevronUp, ChevronDown } from "lucide-react";
 import { toast } from "sonner";
-import { CONSTANTS } from "@/constants";
+import { ZIGBEE } from "@/constants/zigbee";
 import { ZigbeeDeviceCardWrapper } from "./zigbee-device-card-wrapper";
 import log from "electron-log/renderer";
 
@@ -54,7 +54,7 @@ export function ZigbeeCurtainCard({ device, onRemove }) {
   }, [device]);
 
   // Get device type info
-  const deviceTypeInfo = CONSTANTS.ZIGBEE.DEVICE_TYPE.find((type) => type.value === device.device_type);
+  const deviceTypeInfo = ZIGBEE.DEVICE_TYPE.find((type) => type.value === device.device_type);
 
   // Get number of curtains (1 or 2 gang)
   const numCurtains = device.device_type === 4 ? 1 : 2; // 4: 1-Gang, 5: 2-Gang

@@ -15,7 +15,7 @@ import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import * as CheckboxPrimitive from "@radix-ui/react-checkbox";
 import { useProjectDetail } from "@/contexts/project-detail-context";
-import { CONSTANTS } from "@/constants";
+import { MULTI_SCENES } from "@/constants/multi-scenes";
 import { toast } from "sonner";
 import log from "electron-log/renderer";
 
@@ -402,7 +402,7 @@ export function MultiSceneDialog({ open, onOpenChange, multiScene = null, mode =
                   <SelectValue placeholder="Select type" />
                 </SelectTrigger>
                 <SelectContent>
-                  {CONSTANTS.MULTI_SCENES.TYPES.map((type) => (
+                  {MULTI_SCENES.TYPES.map((type) => (
                     <SelectItem key={type.value} value={type.value.toString()}>
                       {type.label}
                     </SelectItem>

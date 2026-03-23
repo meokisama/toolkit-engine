@@ -1,7 +1,7 @@
 import React from "react";
 import { toast } from "sonner";
 import { SendItemsDialog } from "@/components/shared/send-items-dialog";
-import { CONSTANTS } from "@/constants";
+import { KNX } from "@/constants/knx";
 import { useProjectDetail } from "@/contexts/project-detail-context";
 import log from "electron-log/renderer";
 
@@ -47,7 +47,7 @@ export function SendKnxDialog({ open, onOpenChange, items = [] }) {
     let errorCount = 0;
 
     // Get RCU group value from appropriate items based on KNX type
-    const typeConfig = CONSTANTS.KNX.KNX_OUTPUT_TYPES.find((t) => t.value === knxData.type);
+    const typeConfig = KNX.KNX_OUTPUT_TYPES.find((t) => t.value === knxData.type);
     const resource = typeConfig?.resource || "lighting";
 
     // Map resource to API method
@@ -175,7 +175,7 @@ export function SendKnxDialog({ open, onOpenChange, items = [] }) {
       }
 
       // Get RCU group value based on KNX type
-      const typeConfig = CONSTANTS.KNX.KNX_OUTPUT_TYPES.find((t) => t.value === knxData.type);
+      const typeConfig = KNX.KNX_OUTPUT_TYPES.find((t) => t.value === knxData.type);
       const resource = typeConfig?.resource || "lighting";
 
       // Map resource to items

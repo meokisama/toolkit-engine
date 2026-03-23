@@ -9,7 +9,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Check, ChevronsUpDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useProjectDetail } from "@/contexts/project-detail-context";
-import { CONSTANTS } from "@/constants";
+import { KNX } from "@/constants/knx";
 import { KNXAddressInput } from "@/components/custom/knx-input";
 import log from "electron-log/renderer";
 
@@ -65,7 +65,7 @@ export function KnxItemDialog({ open, onOpenChange, mode, item }) {
       if (!selectedProject) return;
 
       const typeValue = parseInt(knxType);
-      const typeConfig = CONSTANTS.KNX.KNX_OUTPUT_TYPES.find((t) => t.value === typeValue);
+      const typeConfig = KNX.KNX_OUTPUT_TYPES.find((t) => t.value === typeValue);
       const tabToLoad = typeConfig?.resource;
 
       // For type 0 (Disable) or unknown types, no need to load data
@@ -267,7 +267,7 @@ export function KnxItemDialog({ open, onOpenChange, mode, item }) {
   // Compute RCU group items based on current type - use useMemo to avoid unnecessary re-computation
   const rcuGroupItems = useMemo(() => {
     const typeValue = parseInt(formData.type);
-    const typeConfig = CONSTANTS.KNX.KNX_OUTPUT_TYPES.find((t) => t.value === typeValue);
+    const typeConfig = KNX.KNX_OUTPUT_TYPES.find((t) => t.value === typeValue);
     return typeConfig?.resource ? projectItems?.[typeConfig.resource] || [] : [];
   }, [formData.type, projectItems]);
 
@@ -404,7 +404,7 @@ export function KnxItemDialog({ open, onOpenChange, mode, item }) {
                   <SelectValue placeholder="Select KNX output type" />
                 </SelectTrigger>
                 <SelectContent>
-                  {CONSTANTS.KNX.KNX_OUTPUT_TYPES.map((type) => (
+                  {KNX.KNX_OUTPUT_TYPES.map((type) => (
                     <SelectItem key={type.value} value={type.value.toString()}>
                       {type.label}
                     </SelectItem>
@@ -434,7 +434,7 @@ export function KnxItemDialog({ open, onOpenChange, mode, item }) {
                   <SelectValue placeholder="Select KNX feedback type" />
                 </SelectTrigger>
                 <SelectContent>
-                  {CONSTANTS.KNX.KNX_FEEDBACK_TYPES.map((feedback) => (
+                  {KNX.KNX_FEEDBACK_TYPES.map((feedback) => (
                     <SelectItem key={feedback.value} value={feedback.value.toString()}>
                       {feedback.label}
                     </SelectItem>

@@ -5,7 +5,7 @@ import { DataTableFilterColumnHeader } from "@/components/projects/data-table/da
 import { EditableCell } from "@/components/projects/data-table/editable-cell";
 import { EditableSelectCell } from "@/components/projects/data-table/editable-select-cell";
 import { EditableComboboxCell } from "@/components/projects/data-table/editable-combobox-cell";
-import { CONSTANTS } from "@/constants";
+import { KNX } from "@/constants/knx";
 
 // KNX Address validation helper - validates format a/b/c
 const validateKnxAddress = (address) => {
@@ -106,7 +106,7 @@ export const createKnxItemsColumns = (onCellEdit, getEffectiveValue, projectItem
         return (
           <EditableSelectCell
             value={effectiveValue?.toString() || ""}
-            options={CONSTANTS.KNX.KNX_OUTPUT_TYPES.map((option) => ({
+            options={KNX.KNX_OUTPUT_TYPES.map((option) => ({
               ...option,
               value: option.value.toString(),
             }))}
@@ -158,7 +158,7 @@ export const createKnxItemsColumns = (onCellEdit, getEffectiveValue, projectItem
         return (
           <EditableSelectCell
             value={effectiveValue?.toString() || ""}
-            options={CONSTANTS.KNX.KNX_FEEDBACK_TYPES.map((option) => ({
+            options={KNX.KNX_FEEDBACK_TYPES.map((option) => ({
               ...option,
               value: option.value.toString(),
             }))}
@@ -183,7 +183,7 @@ export const createKnxItemsColumns = (onCellEdit, getEffectiveValue, projectItem
         // Get appropriate items based on KNX type
         const getRcuGroupItems = (knxType) => {
           const typeValue = parseInt(knxType);
-          const typeConfig = CONSTANTS.KNX.KNX_OUTPUT_TYPES.find((t) => t.value === typeValue);
+          const typeConfig = KNX.KNX_OUTPUT_TYPES.find((t) => t.value === typeValue);
           return typeConfig?.resource ? projectItems?.[typeConfig.resource] || [] : projectItems?.lighting || [];
         };
 
@@ -198,7 +198,7 @@ export const createKnxItemsColumns = (onCellEdit, getEffectiveValue, projectItem
         // Get type label for placeholder and search text
         const getTypeLabel = (knxType) => {
           const typeValue = parseInt(knxType);
-          const typeConfig = CONSTANTS.KNX.KNX_OUTPUT_TYPES.find((t) => t.value === typeValue);
+          const typeConfig = KNX.KNX_OUTPUT_TYPES.find((t) => t.value === typeValue);
           return typeConfig?.resource || "lighting";
         };
 

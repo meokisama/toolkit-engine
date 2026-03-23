@@ -44,57 +44,6 @@ export const CONSTANTS = {
     LED_SPI_EFFECT16: { obj_name: "OBJ_LED_SPI_EFFECT16", obj_value: 40 },
   },
 
-  KNX: {
-    KNX_OUTPUT_TYPES: [
-      { value: 0, name: "KNX_OUTPUT_DISABLE", label: "Disable", resource: null },
-      { value: 1, name: "KNX_OUTPUT_SWITCH", label: "Switch", resource: "lighting" },
-      { value: 2, name: "KNX_OUTPUT_DIMMER", label: "Dimmer", resource: "lighting" },
-      { value: 3, name: "KNX_OUTPUT_CURTAIN", label: "Curtain", resource: "curtain" },
-      { value: 4, name: "KNX_OUTPUT_SCENE", label: "Scene", resource: "scene" },
-      { value: 5, name: "KNX_OUTPUT_MULTI_SCENE", label: "Multi Scene", resource: "multi_scenes" },
-      { value: 6, name: "KNX_OUTPUT_MULTI_SCENE_SEQ", label: "Sequence", resource: "sequences" },
-      { value: 7, name: "KNX_AC_POWER", label: "AC Power", resource: "aircon" },
-      { value: 8, name: "KNX_AC_MODE", label: "AC Mode", resource: "aircon" },
-      { value: 9, name: "KNX_AC_FAN_SPEED", label: "AC Fan Speed", resource: "aircon" },
-      { value: 10, name: "KNX_AC_SWING", label: "AC Swing", resource: "aircon" },
-      { value: 11, name: "KNX_AC_SET_POINT", label: "AC Set Point", resource: "aircon" },
-      { value: 12, name: "KNX_AC_ROOM_TEMP", label: "AC Room Temp", resource: "aircon" },
-    ],
-
-    KNX_FEEDBACK_TYPES: [
-      { value: 0, name: "KNX_FB_DISABLE", label: "Disable" },
-      { value: 1, name: "KNX_FB_PASSIVE", label: "Passive" },
-      { value: 2, name: "KNX_FB_ACTIVE", label: "Active" },
-    ],
-  },
-
-  MULTI_SCENES: {
-    TYPES: [
-      { value: 0, name: "TRIGGER", label: "Trigger" },
-      { value: 1, name: "SEQUENCE", label: "Sequence" },
-    ],
-  },
-
-  ZIGBEE: {
-    DEVICE_TYPE: [
-      { value: 0, name: "SWITCH_1", label: "1-Gang Switch" },
-      { value: 1, name: "SWITCH_2", label: "2-Gang Switch" },
-      { value: 2, name: "SWITCH_3", label: "3-Gang Switch" },
-      { value: 3, name: "SWITCH_4", label: "4-Gang Switch" },
-      { value: 4, name: "CURTAIN_1", label: "1-Gang Curtain" },
-      { value: 5, name: "CURTAIN_2", label: "2-Gang Curtain" },
-      { value: 6, name: "DIMMER", label: "Dimmer" },
-      { value: 7, name: "MOTION_SENSOR", label: "Motion Sensor" },
-      { value: 8, name: "THERMOSTAT", label: "Thermostat" },
-      { value: 9, name: "DOOR_CONTACT", label: "Door Contact" },
-      { value: 10, name: "ANALOG_INPUT", label: "Analog Input" },
-    ],
-    SEND_CMD_TYPE: [
-      { value: 0, name: "OFF", label: "Off" },
-      { value: 1, name: "ON", label: "On" },
-      { value: 2, name: "TOGGLE", label: "Toggle" },
-    ],
-  },
 };
 
 // Export individual parts for easier access

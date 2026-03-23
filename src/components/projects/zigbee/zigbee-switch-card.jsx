@@ -8,7 +8,7 @@ import { Columns2, Loader2, Pencil } from "lucide-react";
 import { toast } from "sonner";
 import lightOn from "@/assets/light-on.png";
 import lightOff from "@/assets/light-off.png";
-import { CONSTANTS } from "@/constants";
+import { ZIGBEE } from "@/constants/zigbee";
 import { ZigbeeDeviceCardWrapper } from "./zigbee-device-card-wrapper";
 import log from "electron-log/renderer";
 
@@ -56,7 +56,7 @@ export function ZigbeeSwitchCard({ device, onRemove }) {
   }, [device]);
 
   // Get device type info
-  const deviceTypeInfo = CONSTANTS.ZIGBEE.DEVICE_TYPE.find((type) => type.value === device.device_type);
+  const deviceTypeInfo = ZIGBEE.DEVICE_TYPE.find((type) => type.value === device.device_type);
 
   // Get number of gangs (endpoints)
   const numGangs = device.num_endpoints;

@@ -7,11 +7,11 @@ import { Loader2, Radio, CheckCircle, AlertCircle } from "lucide-react";
 import { toast } from "sonner";
 import { useProjectDetail } from "@/contexts/project-detail-context";
 import { NetworkUnitSelector, useNetworkUnitSelector } from "@/components/shared/network-unit-selector";
-import { CONSTANTS } from "@/constants";
+import { ZIGBEE } from "@/constants/zigbee";
 import log from "electron-log/renderer";
 
 const EXPLORE_TIMEOUT_MS = 200000; // 200 seconds
-const DEVICE_TYPE_LABELS = CONSTANTS.ZIGBEE.DEVICE_TYPE.reduce((acc, item) => {
+const DEVICE_TYPE_LABELS = ZIGBEE.DEVICE_TYPE.reduce((acc, item) => {
   acc[item.value] = item.label;
   return acc;
 }, {});
