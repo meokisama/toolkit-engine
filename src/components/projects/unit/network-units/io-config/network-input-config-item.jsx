@@ -5,7 +5,7 @@ import { InputFunctionSubmenu } from "../../shared/input-config";
 import { Settings } from "lucide-react";
 import lightOn from "@/assets/light-on.png";
 import lightOff from "@/assets/light-off.png";
-import { getInputFunctions, getInputFunctionByValue } from "@/constants";
+import { getInputFunctions, getInputFunctionByValue } from "@/constants/input";
 import { hasInputConfigChanged } from "@/utils/io-config-utils";
 
 const NetworkInputConfigItem = memo(({ config, unitType, originalConfig, onInputFunctionChange, onOpenInputDetailConfig, onToggleInputState }) => {

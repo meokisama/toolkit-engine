@@ -1,6 +1,6 @@
 import { useState, useCallback, useEffect } from "react";
 import { toast } from "sonner";
-import { getInputFunctionByValue, getInputDisplayName } from "@/constants";
+import { getInputFunctionByValue, getInputDisplayName } from "@/constants/input";
 import log from "electron-log/renderer";
 
 // Default RLC config (without multiGroupConfig)

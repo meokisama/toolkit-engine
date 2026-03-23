@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { TimePicker } from "@/components/custom/time-picker";
-import { RAMP_OPTIONS, LED_DISPLAY_MODES } from "@/constants";
+import { RAMP_OPTIONS, LED_DISPLAY_MODES } from "@/constants/input";
 import { Settings } from "lucide-react";
 
 export const RlcOptionsSection = ({ rlcOptions, rlcOptionsConfig, delayOffTime, onRlcOptionChange, onDelayOffTimeChange }) => {

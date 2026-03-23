@@ -10,7 +10,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { ChevronDown, Home, Lightbulb, Thermometer, ChevronsUpDown, Play, PlayCircle, ListOrdered, Check } from "lucide-react";
-import { INPUT_TYPES, getInputFunctionByValue } from "@/constants";
+import { INPUT_TYPES, getInputFunctionByValue } from "@/constants/input";
 import { cn } from "@/lib/utils";
 
 // Category configuration with icons and labels

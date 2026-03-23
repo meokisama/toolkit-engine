@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { InputFunctionSubmenu } from "../../shared/input-config";
 import { Settings } from "lucide-react";
-import { getInputFunctions, getInputFunctionByValue } from "@/constants";
+import { getInputFunctions, getInputFunctionByValue } from "@/constants/input";
 import { hasInputConfigChanged } from "@/utils/io-config-utils";
 
 const InputConfigItem = memo(({ config, unitType, onInputFunctionChange, onOpenInputDetailConfig, originalConfig = null }) => {

@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect } from "react";
-import { getInputFunctionByValue, getInputDisplayName } from "@/constants";
+import { getInputFunctionByValue, getInputDisplayName } from "@/constants/input";
 import { toast } from "sonner";
 import log from "electron-log/renderer";
 

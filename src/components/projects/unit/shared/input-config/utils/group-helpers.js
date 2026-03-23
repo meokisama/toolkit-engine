@@ -1,4 +1,4 @@
-import { INPUT_TYPES } from "@/constants";
+import { INPUT_TYPES } from "@/constants/input";
 import log from "electron-log/renderer";
 
 /**

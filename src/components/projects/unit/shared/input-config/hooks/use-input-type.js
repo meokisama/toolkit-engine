@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo, useCallback } from "react";
-import { getInputFunctions, INPUT_TYPES } from "@/constants";
+import { getInputFunctions, INPUT_TYPES } from "@/constants/input";
 import { getTabToLoadForFunction } from "../utils/group-helpers";
 import log from "electron-log/renderer";
 
