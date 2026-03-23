@@ -40,32 +40,34 @@ export function OnlineStatusDialog({ open, onOpenChange, unit }) {
     setError(null);
 
     try {
-      const [rs485Result, tcpResult] = await Promise.allSettled([
-        window.electronAPI.deviceController.checkRS485OnlineStatus({
-          unitIp: unit.ip_address,
-          canId: unit.id_can,
-        }),
-        window.electronAPI.deviceController.checkTcpOnlineStatus({
-          unitIp: unit.ip_address,
-          canId: unit.id_can,
-        }),
-      ]);
+      let rs485Failed = false;
+      let tcpFailed = false;
 
-      if (rs485Result.status === "fulfilled") {
-        setRs485Data(rs485Result.value);
-      } else {
-        log.warn("RS485 online status failed:", rs485Result.reason?.message);
+      try {
+        const rs485Value = await window.electronAPI.deviceController.checkRS485OnlineStatus({
+          unitIp: unit.ip_address,
+          canId: unit.id_can,
+        });
+        setRs485Data(rs485Value);
+      } catch (e) {
+        log.warn("RS485 online status failed:", e?.message);
         setRs485Data(null);
+        rs485Failed = true;
       }
 
-      if (tcpResult.status === "fulfilled") {
-        setTcpData(tcpResult.value);
-      } else {
-        log.warn("TCP online status failed:", tcpResult.reason?.message);
+      try {
+        const tcpValue = await window.electronAPI.deviceController.checkTcpOnlineStatus({
+          unitIp: unit.ip_address,
+          canId: unit.id_can,
+        });
+        setTcpData(tcpValue);
+      } catch (e) {
+        log.warn("TCP online status failed:", e?.message);
         setTcpData(null);
+        tcpFailed = true;
       }
 
-      if (rs485Result.status === "rejected" && tcpResult.status === "rejected") {
+      if (rs485Failed && tcpFailed) {
         setError("Failed to retrieve online status from unit");
       }
     } catch (err) {
@@ -113,8 +115,8 @@ export function OnlineStatusDialog({ open, onOpenChange, unit }) {
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
-              {!rs485Data && !loading && !error && <p className="text-sm text-muted-foreground">Đang tải...</p>}
-              {rs485Data && rs485Data.length === 0 && <p className="text-sm text-muted-foreground">Không có kênh RS485 nào.</p>}
+              {!rs485Data && !loading && !error && <p className="text-sm text-muted-foreground">Loading...</p>}
+              {rs485Data && rs485Data.length === 0 && <p className="text-sm text-muted-foreground">No RS485 channels found.</p>}
               {rs485Data &&
                 rs485Data.map((ch) => (
                   <div key={ch.channel} className="space-y-1">
@@ -122,7 +124,7 @@ export function OnlineStatusDialog({ open, onOpenChange, unit }) {
                       CH{ch.channel + 1} — {RS485_TYPE_MAP[ch.rs485Type] ?? `Type ${ch.rs485Type}`}
                     </div>
                     {ch.devices.length === 0 ? (
-                      <p className="text-xs text-muted-foreground pl-2">Không có thiết bị</p>
+                      <p className="text-xs text-muted-foreground pl-2">No devices.</p>
                     ) : (
                       <div className="grid grid-cols-2 gap-1">
                         {ch.devices.map((dev) => (
