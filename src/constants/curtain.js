@@ -7,6 +7,7 @@ export const CURTAIN = {
     { value: 4, name: "CURTAIN_PULSE_3P", label: "3-Point Pulse" },
     { value: 5, name: "CURTAIN_HOLD_1G", label: "1-Gang Hold" },
     { value: 6, name: "CURTAIN_HOLD", label: "Hold" },
+    { value: 7, name: "CURTAIN_RS485", label: "RS485" },
   ],
   VALUES: [
     { value: 0, label: "Stop" },
