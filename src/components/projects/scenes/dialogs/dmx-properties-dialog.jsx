@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { OBJECT_TYPES } from "@/constants";
+import { OBJECT_TYPES } from "@/constants/object-types";
 import log from "electron-log/renderer";
 
 /**

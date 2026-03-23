@@ -5,7 +5,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { OBJECT_TYPES } from "@/constants";
+import { OBJECT_TYPES } from "@/constants/object-types";
 import { AIRCON } from "@/constants/aircon";
 import { Thermometer, Power, Wind, Settings, Move } from "lucide-react";
 

@@ -20,7 +20,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { OBJECT_TYPES } from "@/constants";
+import { OBJECT_TYPES } from "@/constants/object-types";
 import { AIRCON } from "@/constants/aircon";
 import { CURTAIN } from "@/constants/curtain";
 import log from "electron-log/renderer";

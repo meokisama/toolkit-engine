@@ -2,7 +2,7 @@ import React from "react";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Percent, Sun } from "lucide-react";
-import { OBJECT_TYPES } from "@/constants";
+import { OBJECT_TYPES } from "@/constants/object-types";
 
 export function SceneItemValueControl({ sceneItem, updateSceneItemValue, getValueOptions }) {
   const options = getValueOptions(sceneItem.object_type, sceneItem.item_type);

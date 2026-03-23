@@ -1,6 +1,6 @@
 import { useState, useMemo, useCallback } from "react";
 import { toast } from "sonner";
-import { OBJECT_TYPES } from "@/constants";
+import { OBJECT_TYPES } from "@/constants/object-types";
 import { LED_EFFECTS } from "@/components/projects/unit/network-units/controls/led-spi/constants";
 
 // Fixed SPI channels - no database table needed

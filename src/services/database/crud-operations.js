@@ -1,4 +1,4 @@
-import { OBJECT_TYPES } from "@/constants.js";
+import { OBJECT_TYPES } from "@/constants/object-types";
 
 const TABLE_LIMITS = {
   scene: 100,

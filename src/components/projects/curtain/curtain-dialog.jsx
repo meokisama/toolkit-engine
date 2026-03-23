@@ -8,7 +8,7 @@ import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, Command
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Check, ChevronsUpDown } from "lucide-react";
 import { useProjectDetail } from "@/contexts/project-detail-context";
-import { OBJECT_TYPES } from "@/constants";
+import { OBJECT_TYPES } from "@/constants/object-types";
 import { CURTAIN_TYPES } from "@/constants/curtain";
 import { cn } from "@/lib/utils";
 import log from "electron-log/renderer";

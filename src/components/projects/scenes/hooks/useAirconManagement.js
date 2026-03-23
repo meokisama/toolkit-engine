@@ -1,6 +1,6 @@
 import { useState, useMemo, useCallback } from "react";
 import { toast } from "sonner";
-import { OBJECT_TYPES } from "@/constants";
+import { OBJECT_TYPES } from "@/constants/object-types";
 import { AIRCON } from "@/constants/aircon";
 
 export function useAirconManagement({ projectItems, sceneItems, setSceneItems, mode }) {
