@@ -20,4 +20,5 @@ export const deviceController = {
   // Online Status functions
   checkRS485OnlineStatus: (params) => ipcRenderer.invoke("rcu:checkRS485OnlineStatus", params),
   checkTcpOnlineStatus: (params) => ipcRenderer.invoke("rcu:checkTcpOnlineStatus", params),
+  checkSwitchOnlineStatus: (params) => ipcRenderer.invoke("rcu:checkSwitchOnlineStatus", params),
 };

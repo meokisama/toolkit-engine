@@ -128,4 +128,13 @@ export function registerDeviceConfigHandlers(ipcMain, rcu) {
       throw error;
     }
   });
+
+  ipcMain.handle("rcu:checkSwitchOnlineStatus", async (event, { unitIp, canId }) => {
+    try {
+      return await rcu.checkSwitchOnlineStatus(unitIp, canId);
+    } catch (error) {
+      console.error("Error checking Switch online status:", error);
+      throw error;
+    }
+  });
 }

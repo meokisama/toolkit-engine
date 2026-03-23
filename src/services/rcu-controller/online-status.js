@@ -1,6 +1,7 @@
 import { UDP_PORT, PROTOCOL } from "./constants.js";
 import { convertCanIdToInt } from "./utils.js";
 import { sendCommand } from "./command-sender.js";
+import { SWITCH_TYPE_BY_ENUM } from "../../constants/com-switch-types.js";
 
 async function sendOnlineStatusCommand(unitIp, canId, data) {
   const idAddress = convertCanIdToInt(canId);
@@ -88,4 +89,43 @@ async function checkTcpOnlineStatus(unitIp, canId) {
   return parseTcpResponse(data);
 }
 
-export { checkRS485OnlineStatus, checkTcpOnlineStatus };
+/**
+ * Parse Switch online status response.
+ * Response structure (repeated per channel):
+ *   byte 0: channel number
+ *   byte 1: switch count (0 = no switches on this channel)
+ *   then for each switch: [id (1 byte), type (1 byte), keyId (1 byte), status (1 byte, 0=offline 1=online)]
+ */
+function parseSwitchResponse(data) {
+  const channels = [];
+  let offset = 0;
+
+  while (offset < data.length) {
+    const channelNum = data[offset++];
+    if (offset >= data.length) break;
+    const switchCount = data[offset++];
+
+    const switches = [];
+    for (let i = 0; i < switchCount; i++) {
+      if (offset + 3 >= data.length) break;
+      const id = data[offset++];
+      const typeEnum = data[offset++];
+      const keyId = data[offset++];
+      const status = data[offset++];
+      const typeInfo = SWITCH_TYPE_BY_ENUM[typeEnum];
+      switches.push({ id, typeEnum, typeLabel: typeInfo?.label ?? `Type ${typeEnum}`, keyId, online: status === 1 });
+    }
+
+    channels.push({ channel: channelNum, switches });
+  }
+
+  return channels;
+}
+
+async function checkSwitchOnlineStatus(unitIp, canId) {
+  const response = await sendOnlineStatusCommand(unitIp, canId, [0x02, 0x00]);
+  const data = response.msg.slice(8);
+  return parseSwitchResponse(data);
+}
+
+export { checkRS485OnlineStatus, checkTcpOnlineStatus, checkSwitchOnlineStatus };

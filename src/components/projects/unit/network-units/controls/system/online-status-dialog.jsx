@@ -29,6 +29,7 @@ function StatusBadge({ online }) {
 export function OnlineStatusDialog({ open, onOpenChange, unit }) {
   const [rs485Data, setRs485Data] = useState(null);
   const [tcpData, setTcpData] = useState(null);
+  const [switchData, setSwitchData] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const intervalRef = useRef(null);
@@ -40,8 +41,7 @@ export function OnlineStatusDialog({ open, onOpenChange, unit }) {
     setError(null);
 
     try {
-      let rs485Failed = false;
-      let tcpFailed = false;
+      let failCount = 0;
 
       try {
         const rs485Value = await window.electronAPI.deviceController.checkRS485OnlineStatus({
@@ -52,7 +52,7 @@ export function OnlineStatusDialog({ open, onOpenChange, unit }) {
       } catch (e) {
         log.warn("RS485 online status failed:", e?.message);
         setRs485Data(null);
-        rs485Failed = true;
+        failCount++;
       }
 
       try {
@@ -64,10 +64,22 @@ export function OnlineStatusDialog({ open, onOpenChange, unit }) {
       } catch (e) {
         log.warn("TCP online status failed:", e?.message);
         setTcpData(null);
-        tcpFailed = true;
+        failCount++;
       }
 
-      if (rs485Failed && tcpFailed) {
+      try {
+        const switchValue = await window.electronAPI.deviceController.checkSwitchOnlineStatus({
+          unitIp: unit.ip_address,
+          canId: unit.id_can,
+        });
+        setSwitchData(switchValue);
+      } catch (e) {
+        log.warn("Switch online status failed:", e?.message);
+        setSwitchData(null);
+        failCount++;
+      }
+
+      if (failCount === 3) {
         setError("Failed to retrieve online status from unit");
       }
     } catch (err) {
@@ -131,6 +143,41 @@ export function OnlineStatusDialog({ open, onOpenChange, unit }) {
                           <div key={dev.id} className="flex items-center justify-between rounded border px-2 py-1 text-xs">
                             <span className="font-mono">ID {dev.id.toString().padStart(2, "0")}</span>
                             <StatusBadge online={dev.online} />
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                ))}
+            </CardContent>
+          </Card>
+
+          {/* Switch Channels */}
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm flex items-center justify-between">
+                <span>Switch Devices</span>
+                {loading && <RefreshCw className="h-3 w-3 animate-spin text-muted-foreground" />}
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              {!switchData && !loading && !error && <p className="text-sm text-muted-foreground">Loading...</p>}
+              {switchData && switchData.length === 0 && <p className="text-sm text-muted-foreground">No switch channels found.</p>}
+              {switchData &&
+                switchData.map((ch) => (
+                  <div key={ch.channel} className="space-y-1">
+                    <div className="text-xs font-semibold text-muted-foreground uppercase">CH{ch.channel + 1}</div>
+                    {ch.switches.length === 0 ? (
+                      <p className="text-xs text-muted-foreground pl-2">No switches.</p>
+                    ) : (
+                      <div className="grid grid-cols-2 gap-1">
+                        {ch.switches.map((sw) => (
+                          <div key={`${sw.id}-${sw.keyId}`} className="flex items-center justify-between rounded border px-2 py-1 text-xs">
+                            <div className="flex flex-col">
+                              <span className="font-mono">ID {sw.id.toString().padStart(2, "0")} — Key {sw.keyId}</span>
+                              <span className="text-muted-foreground">{sw.typeLabel}</span>
+                            </div>
+                            <StatusBadge online={sw.online} />
                           </div>
                         ))}
                       </div>
