@@ -1,6 +1,6 @@
-import { CONSTANTS } from "@/constants";
+import { UDP_CONFIG } from "@/constants/unit";
 
-const { UDP_PORT } = CONSTANTS.UNIT.UDP_CONFIG;
+const { UDP_PORT } = UDP_CONFIG;
 
 // Configuration flag to control whether to send name in multi-scene packets
 const isSendName = false;

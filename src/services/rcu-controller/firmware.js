@@ -1,7 +1,7 @@
 import { UDP_PORT, PROTOCOL } from "./constants.js";
 import { convertCanIdToInt } from "./utils.js";
 import { sendCommand } from "./command-sender.js";
-import { getUnitByBarcode } from "@/constants.js";
+import { getUnitByBarcode } from "@/constants/unit";
 
 // Firmware Update Functions
 function parseHexLine(line) {

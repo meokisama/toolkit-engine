@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useProjectDetail } from "@/contexts/project-detail-context";
-import { UNIT_TYPES, UNIT_MODES } from "@/constants";
+import { UNIT_TYPES, UNIT_MODES } from "@/constants/unit";
 import { RS485ConfigDialog } from "../shared/output-configs/rs485-config-dialog";
 import { Settings } from "lucide-react";
 import { supportsRS485, getUnitTypeConstraints, getModeConstraints, createDefaultRS485Config } from "@/utils/rs485-utils";

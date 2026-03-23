@@ -8,7 +8,7 @@ import { Slider } from "@/components/ui/slider";
 import { HexAlphaColorPicker } from "react-colorful";
 import { Palette, Loader2, Send, Sun } from "lucide-react";
 import { toast } from "sonner";
-import { CONSTANTS } from "@/constants";
+import { UDP_CONFIG } from "@/constants/unit";
 import log from "electron-log/renderer";
 
 const rgbToHex = (r, g, b, a = 255) => {
@@ -287,7 +287,7 @@ const RGBControlDialog = ({ open, onOpenChange, unit }) => {
             RGBA Control
           </DialogTitle>
           <DialogDescription>
-            Control RGBA lighting for unit {unit?.id_can} at {unit?.ip_address}:{CONSTANTS.UNIT.UDP_CONFIG.UDP_PORT}
+            Control RGBA lighting for unit {unit?.id_can} at {unit?.ip_address}:{UDP_CONFIG.UDP_PORT}
           </DialogDescription>
         </DialogHeader>
 

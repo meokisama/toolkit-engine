@@ -1,8 +1,8 @@
-import { CONSTANTS } from "@/constants";
+import { UDP_CONFIG, UNIT_TYPES } from "@/constants/unit";
 import { sortByIpAddress } from "@/utils/ip-utils";
 import log from "electron-log/renderer";
 
-const { UDP_CONFIG, TYPES } = CONSTANTS.UNIT;
+const TYPES = UNIT_TYPES;
 
 /**
  * UDP Network Scanner Service

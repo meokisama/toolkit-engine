@@ -2,9 +2,9 @@
  * Utility functions for I/O configuration management
  */
 
-import { getUnitIOSpec, getOutputTypes } from "@/constants";
+import { getUnitIOSpec, getOutputTypes } from "@/constants/unit";
 
-// Re-export functions from constants for convenience
+// Re-export functions from unit constants for convenience
 export { getUnitIOSpec, getOutputTypes };
 
 /**

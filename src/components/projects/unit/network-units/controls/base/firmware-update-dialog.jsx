@@ -7,13 +7,13 @@ import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Upload, AlertTriangle, CheckCircle, X, Monitor } from "lucide-react";
 import { toast } from "sonner";
-import { CONSTANTS } from "@/constants";
+import { UNIT_TYPES } from "@/constants/unit";
 import { NetworkUnitSelector, useNetworkUnitSelector } from "@/components/shared/network-unit-selector";
 import log from "electron-log/renderer";
 
 // Helper function to get barcode from unit type
 const getUnitBarcode = (unitType) => {
-  const unitInfo = CONSTANTS.UNIT.TYPES.find((u) => u.name === unitType);
+  const unitInfo = UNIT_TYPES.find((u) => u.name === unitType);
   return unitInfo ? unitInfo.barcode : null;
 };
 

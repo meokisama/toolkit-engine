@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo, useCallback } from "react";
-import { getUnitIOSpec, getOutputTypes } from "@/constants";
+import { getUnitIOSpec, getOutputTypes } from "@/constants/unit";
 import { getInputDisplayName } from "@/constants/input";
 import { cloneIOConfig } from "@/utils/io-config-utils";
 import { generateSwitchInputConfigs, SWITCH_INPUT_COUNTS } from "../../../shared/com-switch";

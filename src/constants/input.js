@@ -1,4 +1,4 @@
-import { CONSTANTS } from "@/constants";
+import { UNIT_TYPES } from "@/constants/unit";
 
 export const INPUT_TYPES = {
   ROOM: [
@@ -157,7 +157,7 @@ export const LED_DISPLAY_MODES = [
 ];
 
 export const getInputFunctions = (unitName, inputIndex) => {
-  const unit = CONSTANTS.UNIT.TYPES.find((u) => u.name === unitName);
+  const unit = UNIT_TYPES.find((u) => u.name === unitName);
   if (!unit || !unit.inputFunctions) return INPUT_FUNCTION_LISTS.ALL;
 
   if (unit.inputFunctions[inputIndex]) {
@@ -227,7 +227,7 @@ export const getRlcOptionsConfig = (functionName, unitType = null) => {
  * - etc.
  */
 export const getInputDisplayName = (unitType, inputIndex) => {
-  const unit = CONSTANTS.UNIT.TYPES.find((u) => u.name === unitType);
+  const unit = UNIT_TYPES.find((u) => u.name === unitType);
   const isGrouped = unit?.groupedInputs === true;
 
   if (isGrouped) {

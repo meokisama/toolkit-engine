@@ -4,7 +4,7 @@ import { EditableCell } from "@/components/projects/data-table/editable-cell";
 import { EditableSelectCell } from "@/components/projects/data-table/editable-select-cell";
 import { EditableComboboxCell } from "@/components/projects/data-table/editable-combobox-cell";
 import { EditableCheckboxCell } from "@/components/projects/data-table/editable-checkbox-cell";
-import { UNIT_TYPES, UNIT_MODES } from "@/constants";
+import { UNIT_TYPES, UNIT_MODES } from "@/constants/unit";
 
 // Memoized options to prevent recreation on every import
 const UNIT_TYPE_OPTIONS = UNIT_TYPES.map((unit) => ({

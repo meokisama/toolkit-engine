@@ -1,7 +1,7 @@
 import { useState, useCallback, useEffect, useRef, memo } from "react";
 import { Settings2, Loader2, Power, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { CONSTANTS } from "@/constants";
+import { UDP_CONFIG } from "@/constants/unit";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -341,7 +341,7 @@ export function GroupControlDialog({ open, onOpenChange, unit }) {
             Group Control
           </DialogTitle>
           <DialogDescription>
-            Control multiple lighting groups for unit {unit?.id_can} at {unit?.ip_address}:{CONSTANTS.UNIT.UDP_CONFIG.UDP_PORT}
+            Control multiple lighting groups for unit {unit?.id_can} at {unit?.ip_address}:{UDP_CONFIG.UDP_PORT}
           </DialogDescription>
         </DialogHeader>
 
