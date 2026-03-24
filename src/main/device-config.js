@@ -137,4 +137,13 @@ export function registerDeviceConfigHandlers(ipcMain, rcu) {
       throw error;
     }
   });
+
+  ipcMain.handle("rcu:checkCanOnlineStatus", async (event, { unitIp, canId }) => {
+    try {
+      return await rcu.checkCanOnlineStatus(unitIp, canId);
+    } catch (error) {
+      console.error("Error checking CAN online status:", error);
+      throw error;
+    }
+  });
 }

@@ -30,6 +30,7 @@ export function OnlineStatusDialog({ open, onOpenChange, unit }) {
   const [rs485Data, setRs485Data] = useState(null);
   const [tcpData, setTcpData] = useState(null);
   const [switchData, setSwitchData] = useState(null);
+  const [canData, setCanData] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const intervalRef = useRef(null);
@@ -79,7 +80,19 @@ export function OnlineStatusDialog({ open, onOpenChange, unit }) {
         failCount++;
       }
 
-      if (failCount === 3) {
+      try {
+        const canValue = await window.electronAPI.deviceController.checkCanOnlineStatus({
+          unitIp: unit.ip_address,
+          canId: unit.id_can,
+        });
+        setCanData(canValue);
+      } catch (e) {
+        log.warn("CAN online status failed:", e?.message);
+        setCanData(null);
+        failCount++;
+      }
+
+      if (failCount === 4) {
         setError("Failed to retrieve online status from unit");
       }
     } catch (err) {
@@ -120,7 +133,7 @@ export function OnlineStatusDialog({ open, onOpenChange, unit }) {
 
           {/* RS485 Channels */}
           <Card>
-            <CardHeader className="pb-2">
+            <CardHeader>
               <CardTitle className="text-sm flex items-center justify-between">
                 <span>RS485 Devices</span>
                 {loading && <RefreshCw className="h-3 w-3 animate-spin text-muted-foreground" />}
@@ -154,7 +167,7 @@ export function OnlineStatusDialog({ open, onOpenChange, unit }) {
 
           {/* Switch Channels */}
           <Card>
-            <CardHeader className="pb-2">
+            <CardHeader>
               <CardTitle className="text-sm flex items-center justify-between">
                 <span>Switch Devices</span>
                 {loading && <RefreshCw className="h-3 w-3 animate-spin text-muted-foreground" />}
@@ -174,7 +187,9 @@ export function OnlineStatusDialog({ open, onOpenChange, unit }) {
                         {ch.switches.map((sw) => (
                           <div key={`${sw.id}-${sw.keyId}`} className="flex items-center justify-between rounded border px-2 py-1 text-xs">
                             <div className="flex flex-col">
-                              <span className="font-mono">ID {sw.id.toString().padStart(2, "0")} — Key {sw.keyId}</span>
+                              <span className="font-mono">
+                                ID {sw.id.toString().padStart(2, "0")} — Key {sw.keyId}
+                              </span>
                               <span className="text-muted-foreground">{sw.typeLabel}</span>
                             </div>
                             <StatusBadge online={sw.online} />
@@ -187,9 +202,33 @@ export function OnlineStatusDialog({ open, onOpenChange, unit }) {
             </CardContent>
           </Card>
 
+          {/* CAN Network */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-sm flex items-center justify-between">
+                <span>CAN Network Devices</span>
+                {loading && <RefreshCw className="h-3 w-3 animate-spin text-muted-foreground" />}
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              {!canData && !loading && !error && <p className="text-sm text-muted-foreground">Loading...</p>}
+              {canData && canData.length === 0 && <p className="text-sm text-muted-foreground">No CAN devices found.</p>}
+              {canData && canData.length > 0 && (
+                <div className="grid grid-cols-2 gap-1">
+                  {canData.map((dev, idx) => (
+                    <div key={idx} className="flex flex-col rounded border px-2 py-1 text-xs gap-0.5">
+                      <span className="font-mono">{dev.canId}</span>
+                      <span className="text-muted-foreground">{dev.unitName}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
           {/* TCP Master/Slave */}
           <Card>
-            <CardHeader className="pb-2">
+            <CardHeader>
               <CardTitle className="text-sm flex items-center justify-between">
                 <span>Master / Slave Units</span>
                 {loading && <RefreshCw className="h-3 w-3 animate-spin text-muted-foreground" />}

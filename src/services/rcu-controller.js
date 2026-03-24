@@ -96,7 +96,7 @@ export { updateFirmware } from "./rcu-controller/firmware.js";
 export { changeIpAddress, changeCanId, setHardwareConfig, changeIpAddressBroadcast } from "./rcu-controller/general.js";
 
 // Export online status functions
-export { checkRS485OnlineStatus, checkTcpOnlineStatus, checkSwitchOnlineStatus } from "./rcu-controller/online-status.js";
+export { checkRS485OnlineStatus, checkTcpOnlineStatus, checkSwitchOnlineStatus, checkCanOnlineStatus } from "./rcu-controller/online-status.js";
 
 // Export RS485 functions
 export {

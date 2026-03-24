@@ -2,6 +2,7 @@ import { UDP_PORT, PROTOCOL } from "./constants.js";
 import { convertCanIdToInt } from "./utils.js";
 import { sendCommand } from "./command-sender.js";
 import { SWITCH_TYPE_BY_ENUM } from "../../constants/com-switch-types.js";
+import { UNIT_TYPES } from "../../constants/unit.js";
 
 async function sendOnlineStatusCommand(unitIp, canId, data) {
   const idAddress = convertCanIdToInt(canId);
@@ -79,14 +80,12 @@ function parseTcpResponse(data) {
 
 async function checkRS485OnlineStatus(unitIp, canId) {
   const response = await sendOnlineStatusCommand(unitIp, canId, [0x00, 0x00]);
-  const data = response.msg.slice(8);
-  return parseRS485Response(data);
+  return parseRS485Response(response.result.data);
 }
 
 async function checkTcpOnlineStatus(unitIp, canId) {
   const response = await sendOnlineStatusCommand(unitIp, canId, [0x01, 0x00]);
-  const data = response.msg.slice(8);
-  return parseTcpResponse(data);
+  return parseTcpResponse(response.result.data);
 }
 
 /**
@@ -124,8 +123,44 @@ function parseSwitchResponse(data) {
 
 async function checkSwitchOnlineStatus(unitIp, canId) {
   const response = await sendOnlineStatusCommand(unitIp, canId, [0x02, 0x00]);
-  const data = response.msg.slice(8);
-  return parseSwitchResponse(data);
+  return parseSwitchResponse(response.result.data);
 }
 
-export { checkRS485OnlineStatus, checkTcpOnlineStatus, checkSwitchOnlineStatus };
+/**
+ * Parse CAN Network online status response.
+ * Response structure:
+ *   byte 0: device count
+ *   then for each device: [canId (4 bytes), barcode (13 bytes)]
+ */
+function parseCanResponse(data) {
+  if (data.length < 1) return [];
+
+  const deviceCount = data[0];
+  const devices = [];
+  let offset = 1;
+
+  for (let i = 0; i < deviceCount; i++) {
+    if (offset + 17 > data.length) break;
+
+    const canId = `${data[offset]}.${data[offset + 1]}.${data[offset + 2]}.${data[offset + 3]}`;
+    offset += 4;
+
+    let barcode = "";
+    for (let j = 0; j < 13; j++) {
+      barcode += (data[offset + j] - 48).toString();
+    }
+    offset += 13;
+
+    const unitType = UNIT_TYPES.find((u) => u.barcode === barcode);
+    devices.push({ canId, barcode, unitName: unitType?.name ?? "Unknown" });
+  }
+
+  return devices;
+}
+
+async function checkCanOnlineStatus(unitIp, canId) {
+  const response = await sendOnlineStatusCommand(unitIp, canId, [0x03, 0x00]);
+  return parseCanResponse(response.result.data);
+}
+
+export { checkRS485OnlineStatus, checkTcpOnlineStatus, checkSwitchOnlineStatus, checkCanOnlineStatus };
