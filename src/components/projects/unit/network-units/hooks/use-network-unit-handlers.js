@@ -77,7 +77,9 @@ export function useNetworkUnitHandlers({ state, onTransferToDatabase, existingUn
 
         // Step 4: Import units to DB and read advanced configs
         // Pass itemCache so database-unit-table can reuse the same cache
-        await onTransferToDatabase(unitsToImport, itemCache);
+        await onTransferToDatabase(unitsToImport, itemCache, (unitIndex, step) =>
+          transferStore.setProgress(unitIndex, step)
+        );
 
         transferStore.complete();
 
@@ -88,7 +90,7 @@ export function useNetworkUnitHandlers({ state, onTransferToDatabase, existingUn
         toast.success(`Successfully transferred ${units.length} unit(s) with configurations to database`);
       } catch (error) {
         log.error("Transfer execution failed:", error);
-        transferStore.reset();
+        transferStore.fail(error.message);
         toast.error("Transfer failed: " + error.message);
       }
     },

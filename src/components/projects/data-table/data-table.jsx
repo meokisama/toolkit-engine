@@ -10,6 +10,7 @@ export function DataTable({
   onRowSelectionChange,
   onColumnVisibilityChange,
   onPaginationChange,
+  // --- handlers (passed via table.options.meta, not drilled through DataTableRow) ---
   onEdit,
   onDuplicate,
   onDelete,
@@ -38,6 +39,7 @@ export function DataTable({
   onOnlineStatus,
   onTransferToDatabase,
   onDmxSceneConfig,
+  // ---------------------------------------------------------------------------------
   initialPagination,
   initialColumnVisibility,
   initialSorting = [],
@@ -128,7 +130,34 @@ export function DataTable({
       autoResetPageIndex: false,
       autoResetRowSelection: false,
       meta: {
+        onEdit,
+        onDuplicate,
+        onDelete,
         onIOConfig,
+        onGroupControl,
+        onAirconControl,
+        onRgbControl,
+        onLedSpiControl,
+        onSceneControl,
+        onScheduleControl,
+        onClockControl,
+        onCurtainControl,
+        onKnxControl,
+        onDmxControl,
+        onRoomConfigControl,
+        onMultiSceneControl,
+        onSequenceControl,
+        onSendSchedule,
+        onSendScene,
+        onSendCurtain,
+        onSendKnx,
+        onSendDmx,
+        onSendMultiScene,
+        onSendSequence,
+        onFirmwareUpdate,
+        onOnlineStatus,
+        onTransferToDatabase,
+        onDmxSceneConfig,
       },
       state: {
         sorting,
@@ -138,7 +167,15 @@ export function DataTable({
         pagination,
       },
     }),
-    [data, columns, sorting, columnFilters, columnVisibility, rowSelection, pagination, enableRowSelection, onIOConfig]
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [
+      data, columns, sorting, columnFilters, columnVisibility, rowSelection, pagination, enableRowSelection,
+      onEdit, onDuplicate, onDelete, onIOConfig, onGroupControl, onAirconControl, onRgbControl,
+      onLedSpiControl, onSceneControl, onScheduleControl, onClockControl, onCurtainControl, onKnxControl,
+      onDmxControl, onRoomConfigControl, onMultiSceneControl, onSequenceControl, onSendSchedule,
+      onSendScene, onSendCurtain, onSendKnx, onSendDmx, onSendMultiScene, onSendSequence,
+      onFirmwareUpdate, onOnlineStatus, onTransferToDatabase, onDmxSceneConfig,
+    ]
   );
 
   const table = useReactTable(tableConfig);
@@ -178,34 +215,6 @@ export function DataTable({
                 <DataTableRow
                   key={row.id}
                   row={row}
-                  onEdit={onEdit}
-                  onDuplicate={onDuplicate}
-                  onDelete={onDelete}
-                  onIOConfig={onIOConfig}
-                  onGroupControl={onGroupControl}
-                  onAirconControl={onAirconControl}
-                  onRgbControl={onRgbControl}
-                  onLedSpiControl={onLedSpiControl}
-                  onSceneControl={onSceneControl}
-                  onScheduleControl={onScheduleControl}
-                  onClockControl={onClockControl}
-                  onCurtainControl={onCurtainControl}
-                  onKnxControl={onKnxControl}
-                  onDmxControl={onDmxControl}
-                  onRoomConfigControl={onRoomConfigControl}
-                  onMultiSceneControl={onMultiSceneControl}
-                  onSequenceControl={onSequenceControl}
-                  onSendSchedule={onSendSchedule}
-                  onSendScene={onSendScene}
-                  onSendCurtain={onSendCurtain}
-                  onSendKnx={onSendKnx}
-                  onSendDmx={onSendDmx}
-                  onSendMultiScene={onSendMultiScene}
-                  onSendSequence={onSendSequence}
-                  onFirmwareUpdate={onFirmwareUpdate}
-                  onOnlineStatus={onOnlineStatus}
-                  onTransferToDatabase={onTransferToDatabase}
-                  onDmxSceneConfig={onDmxSceneConfig}
                   customRowClass={getRowClassName ? getRowClassName(row.original) : undefined}
                 />
               ))

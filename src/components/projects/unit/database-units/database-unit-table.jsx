@@ -18,6 +18,7 @@ import { toast } from "sonner";
 import { createDefaultRS485Config } from "@/utils/rs485-utils";
 import { createDefaultInputConfigs, createDefaultOutputConfigs } from "@/utils/io-config-utils";
 import { readAdvancedConfigurations } from "../transfer";
+import { TRANSFER_STEP } from "@/store/use-transfer-store";
 import log from "electron-log/renderer";
 
 export function UnitTable() {
@@ -170,32 +171,37 @@ export function UnitTable() {
   // itemCache is pre-fetched by the handler and passed here to avoid redundant DB queries.
   // Success toast is intentionally omitted here — the caller (use-network-unit-handlers)
   // fires a single toast after this resolves.
-  const handleTransferToDatabase = async (unitsToTransfer, itemCache = null) => {
-    try {
-      // Import basic unit data (RS485 + I/O)
-      const importedUnits = await importItems(category, unitsToTransfer);
+  const handleTransferToDatabase = useCallback(
+    async (unitsToTransfer, itemCache = null, onProgress = null) => {
+      try {
+        // Import basic unit data (RS485 + I/O)
+        onProgress?.(0, TRANSFER_STEP.IMPORT_UNIT);
+        const importedUnits = await importItems(category, unitsToTransfer);
 
-      // Read advanced configurations (scenes, schedules, curtains, KNX, multi-scenes, sequences)
-      log.info(`Reading advanced configurations for ${importedUnits.length} unit(s)...`);
+        // Read advanced configurations (scenes, schedules, curtains, KNX, multi-scenes, sequences)
+        log.info(`Reading advanced configurations for ${importedUnits.length} unit(s)...`);
 
-      for (let i = 0; i < unitsToTransfer.length; i++) {
-        const networkUnit = unitsToTransfer[i];
-        const importedUnit = importedUnits[i];
+        for (let i = 0; i < unitsToTransfer.length; i++) {
+          const networkUnit = unitsToTransfer[i];
+          const importedUnit = importedUnits[i];
 
-        if (importedUnit) {
-          try {
-            await readAdvancedConfigurations(networkUnit, importedUnit, selectedProject.id, itemCache);
-          } catch (error) {
-            log.error(`Failed to read advanced configurations for unit ${networkUnit.ip_address}:`, error);
-            // Non-fatal: continue with remaining units
+          if (importedUnit) {
+            try {
+              onProgress?.(i, TRANSFER_STEP.READ_CURTAINS);
+              await readAdvancedConfigurations(networkUnit, importedUnit, selectedProject.id, itemCache);
+            } catch (error) {
+              log.error(`Failed to read advanced configurations for unit ${networkUnit.ip_address}:`, error);
+              // Non-fatal: continue with remaining units
+            }
           }
         }
+      } catch (error) {
+        log.error("Failed to transfer units to database:", error);
+        throw error;
       }
-    } catch (error) {
-      log.error("Failed to transfer units to database:", error);
-      throw error;
-    }
-  };
+    },
+    [importItems, category, selectedProject]
+  );
 
   const handleExport = async () => {
     try {
