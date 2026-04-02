@@ -148,7 +148,7 @@ async function getKnxConfig(unitIp, canId, knxAddress = null, useNewProtocol = t
       PROTOCOL.KNX.CMD1,
       PROTOCOL.KNX.CMD2.GET_KNX_OUT_CONFIG,
       data,
-      true // Skip status check for GET commands
+      true, // Skip status check for GET commands
     );
 
     if (response && response.msg && response.msg.length >= 10) {
@@ -157,7 +157,7 @@ async function getKnxConfig(unitIp, canId, knxAddress = null, useNewProtocol = t
         "Single KNX response data:",
         Array.from(responseData)
           .map((b) => "0x" + b.toString(16).padStart(2, "0"))
-          .join(" ")
+          .join(" "),
       );
       const result = parseKnxConfigResponse(responseData, useNewProtocol);
       console.log("Parsed single KNX config:", result);
@@ -174,7 +174,7 @@ async function getKnxConfig(unitIp, canId, knxAddress = null, useNewProtocol = t
       PROTOCOL.KNX.CMD1,
       PROTOCOL.KNX.CMD2.GET_KNX_OUT_CONFIG,
       data,
-      15000 // 15 second timeout
+      15000, // 15 second timeout
     );
 
     console.log("Get all KNX result:", {
@@ -198,7 +198,7 @@ async function getKnxConfig(unitIp, canId, knxAddress = null, useNewProtocol = t
               `KNX response ${i + 1} data:`,
               Array.from(responseData)
                 .map((b) => "0x" + b.toString(16).padStart(2, "0"))
-                .join(" ")
+                .join(" "),
             );
             const knxConfig = parseKnxConfigResponse(responseData, useNewProtocol);
             if (knxConfig) {
