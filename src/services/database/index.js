@@ -14,3 +14,4 @@ export { unitTableSchemas, unitMethods } from "./unit.js";
 export { dmxTableSchemas, dmxMethods } from "./dmx.js";
 export { crudOperations } from "./crud-operations.js";
 export { importExportOperations } from "./import-export.js";
+export { settingsTableSchemas, settingsMethods } from "./settings.js";

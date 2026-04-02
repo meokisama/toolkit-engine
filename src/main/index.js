@@ -19,6 +19,7 @@ import { registerDeviceConfigHandlers } from "./device-config.js";
 import { registerUpdaterHandlers } from "./updater.js";
 import { registerShellHandlers } from "./shell.js";
 import { registerLedSpiHandlers } from "./led-spi.js";
+import { registerSettingsHandlers } from "./settings.js";
 
 /**
  * Đăng ký tất cả IPC handlers
@@ -49,4 +50,5 @@ export function registerAllHandlers(ipcMain, dbService, rcu, networkInterfaceSer
   registerUpdaterHandlers(ipcMain);
   registerShellHandlers(ipcMain);
   registerLedSpiHandlers(ipcMain, rcu);
+  registerSettingsHandlers(ipcMain, dbService);
 }

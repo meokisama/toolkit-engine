@@ -32,6 +32,8 @@ import {
   dmxMethods,
   crudOperations,
   importExportOperations,
+  settingsTableSchemas,
+  settingsMethods,
 } from "./database/index.js";
 import { migrations } from "./database/migration/index.js";
 
@@ -57,6 +59,7 @@ class DatabaseService {
     Object.assign(this, dmxMethods);
     Object.assign(this, crudOperations);
     Object.assign(this, importExportOperations);
+    Object.assign(this, settingsMethods);
   }
 
   init() {
@@ -105,6 +108,7 @@ class DatabaseService {
       this.db.exec(daliTableSchemas.createDaliGroupDevicesTable);
       this.db.exec(daliTableSchemas.createDaliScenesTable);
       this.db.exec(daliTableSchemas.createDaliSceneDevicesTable);
+      this.db.exec(settingsTableSchemas.createAppSettingsTable);
     } catch (error) {
       console.error("Failed to create tables:", error);
       throw error;

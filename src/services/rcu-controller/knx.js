@@ -19,7 +19,7 @@ async function triggerKnx(unitIp, canId, knxAddress) {
 }
 
 // Set KNX Configuration function
-async function setKnxConfig(unitIp, canId, knxConfig) {
+async function setKnxConfig(unitIp, canId, knxConfig, useNewProtocol = true) {
   const { address, type, factor, feedback, rcuGroup, knxSwitchGroup, knxDimmingGroup, knxValueGroup, knxStatusGroup } = knxConfig;
 
   // Validations
@@ -47,36 +47,64 @@ async function setKnxConfig(unitIp, canId, knxConfig) {
   const switchGroupBytes = convertKnxAddressToHex(knxSwitchGroup);
   const dimmingGroupBytes = convertKnxAddressToHex(knxDimmingGroup);
   const valueGroupBytes = convertKnxAddressToHex(knxValueGroup);
-  const statusGroupBytes = convertKnxAddressToHex(knxStatusGroup);
 
-  const data = [
-    address & 0xff, // KNX Address low byte
-    (address >> 8) & 0xff, // KNX Address high byte
-    type & 0xff, // Type (1 byte)
-    factor & 0xff, // Factor (1 byte)
-    feedback & 0xff, // FeedBack (1 byte)
-    0x00, // memValueFlag (1 byte, always 0x00)
-    rcuGroup & 0xff, // rcu_group_value (1 byte)
-    switchGroupBytes[0], // KNX switch group low byte
-    switchGroupBytes[1], // KNX switch group high byte
-    dimmingGroupBytes[0], // KNX dimming group low byte
-    dimmingGroupBytes[1], // KNX dimming group high byte
-    valueGroupBytes[0], // KNX value group low byte
-    valueGroupBytes[1], // KNX value group high byte
-    statusGroupBytes[0], // KNX status group low byte
-    statusGroupBytes[1], // KNX status group high byte
-  ];
-
-  console.log("Sending KNX config:", {
-    unitIp,
-    canId,
-    ...knxConfig,
-    dataLength: data.length,
-    switchGroupHex: `0x${switchGroupBytes[1].toString(16).padStart(2, "0")}${switchGroupBytes[0].toString(16).padStart(2, "0")}`,
-    dimmingGroupHex: `0x${dimmingGroupBytes[1].toString(16).padStart(2, "0")}${dimmingGroupBytes[0].toString(16).padStart(2, "0")}`,
-    valueGroupHex: `0x${valueGroupBytes[1].toString(16).padStart(2, "0")}${valueGroupBytes[0].toString(16).padStart(2, "0")}`,
-    statusGroupHex: `0x${statusGroupBytes[1].toString(16).padStart(2, "0")}${statusGroupBytes[0].toString(16).padStart(2, "0")}`,
-  });
+  let data;
+  if (useNewProtocol) {
+    const statusGroupBytes = convertKnxAddressToHex(knxStatusGroup);
+    data = [
+      address & 0xff, // KNX Address low byte
+      (address >> 8) & 0xff, // KNX Address high byte
+      type & 0xff, // Type (1 byte)
+      factor & 0xff, // Factor (1 byte)
+      feedback & 0xff, // FeedBack (1 byte)
+      0x00, // memValueFlag (1 byte, always 0x00)
+      rcuGroup & 0xff, // rcu_group_value (1 byte)
+      switchGroupBytes[0], // KNX switch group low byte
+      switchGroupBytes[1], // KNX switch group high byte
+      dimmingGroupBytes[0], // KNX dimming group low byte
+      dimmingGroupBytes[1], // KNX dimming group high byte
+      valueGroupBytes[0], // KNX value group low byte
+      valueGroupBytes[1], // KNX value group high byte
+      statusGroupBytes[0], // KNX status group low byte
+      statusGroupBytes[1], // KNX status group high byte
+    ];
+    console.log("Sending KNX config (new protocol):", {
+      unitIp,
+      canId,
+      ...knxConfig,
+      dataLength: data.length,
+      switchGroupHex: `0x${switchGroupBytes[1].toString(16).padStart(2, "0")}${switchGroupBytes[0].toString(16).padStart(2, "0")}`,
+      dimmingGroupHex: `0x${dimmingGroupBytes[1].toString(16).padStart(2, "0")}${dimmingGroupBytes[0].toString(16).padStart(2, "0")}`,
+      valueGroupHex: `0x${valueGroupBytes[1].toString(16).padStart(2, "0")}${valueGroupBytes[0].toString(16).padStart(2, "0")}`,
+      statusGroupHex: `0x${statusGroupBytes[1].toString(16).padStart(2, "0")}${statusGroupBytes[0].toString(16).padStart(2, "0")}`,
+    });
+  } else {
+    data = [
+      address & 0xff, // KNX Address low byte
+      (address >> 8) & 0xff, // KNX Address high byte
+      type & 0xff, // Type (1 byte)
+      factor & 0xff, // Factor (1 byte)
+      feedback & 0xff, // FeedBack (1 byte)
+      0x00, // memValueFlag (1 byte, always 0x00)
+      0x00, // Reserve (1 byte, always 0x00)
+      rcuGroup & 0xff, // rcu_group_value (1 byte)
+      switchGroupBytes[0], // KNX switch group low byte
+      switchGroupBytes[1], // KNX switch group high byte
+      dimmingGroupBytes[0], // KNX dimming group low byte
+      dimmingGroupBytes[1], // KNX dimming group high byte
+      valueGroupBytes[0], // KNX value group low byte
+      valueGroupBytes[1], // KNX value group high byte
+    ];
+    console.log("Sending KNX config (old protocol):", {
+      unitIp,
+      canId,
+      ...knxConfig,
+      dataLength: data.length,
+      switchGroupHex: `0x${switchGroupBytes[1].toString(16).padStart(2, "0")}${switchGroupBytes[0].toString(16).padStart(2, "0")}`,
+      dimmingGroupHex: `0x${dimmingGroupBytes[1].toString(16).padStart(2, "0")}${dimmingGroupBytes[0].toString(16).padStart(2, "0")}`,
+      valueGroupHex: `0x${valueGroupBytes[1].toString(16).padStart(2, "0")}${valueGroupBytes[0].toString(16).padStart(2, "0")}`,
+    });
+  }
 
   try {
     const response = await sendCommand(unitIp, UDP_PORT, idAddress, PROTOCOL.KNX.CMD1, PROTOCOL.KNX.CMD2.SET_KNX_OUT_CONFIG, data);
@@ -93,7 +121,7 @@ async function setKnxConfig(unitIp, canId, knxConfig) {
 }
 
 // Get KNX Configuration function
-async function getKnxConfig(unitIp, canId, knxAddress = null) {
+async function getKnxConfig(unitIp, canId, knxAddress = null, useNewProtocol = true) {
   // Convert CAN ID to address format
   const idAddress = convertCanIdToInt(canId);
 
@@ -131,7 +159,7 @@ async function getKnxConfig(unitIp, canId, knxAddress = null) {
           .map((b) => "0x" + b.toString(16).padStart(2, "0"))
           .join(" ")
       );
-      const result = parseKnxConfigResponse(responseData);
+      const result = parseKnxConfigResponse(responseData, useNewProtocol);
       console.log("Parsed single KNX config:", result);
       return result;
     }
@@ -172,7 +200,7 @@ async function getKnxConfig(unitIp, canId, knxAddress = null) {
                 .map((b) => "0x" + b.toString(16).padStart(2, "0"))
                 .join(" ")
             );
-            const knxConfig = parseKnxConfigResponse(responseData);
+            const knxConfig = parseKnxConfigResponse(responseData, useNewProtocol);
             if (knxConfig) {
               console.log(`Parsed KNX config ${i + 1}:`, knxConfig);
               knxConfigs.push(knxConfig);
@@ -201,11 +229,24 @@ async function getKnxConfig(unitIp, canId, knxAddress = null) {
 }
 
 // Helper function to parse KNX configuration response
-function parseKnxConfigResponse(data) {
-  if (!data || data.length < 16) {
+function parseKnxConfigResponse(data, useNewProtocol = true) {
+  const minLength = useNewProtocol ? 16 : 14;
+  if (!data || data.length < minLength) {
     console.warn("Invalid KNX config response data length:", data?.length);
     return null;
   }
+
+  // Convert 2-byte hex back to a/b/c format
+  const convertHexToKnxAddress = (lowByte, highByte) => {
+    const combined = (highByte << 8) | lowByte;
+    if (combined === 0) return ""; // Empty address
+
+    const area = (combined >> 11) & 0x1f; // 5 bits
+    const line = (combined >> 8) & 0x07; // 3 bits
+    const device = combined & 0xff; // 8 bits
+
+    return `${area}/${line}/${device}`;
+  };
 
   try {
     // Parse KNX address from 2 bytes (little endian)
@@ -217,47 +258,26 @@ function parseKnxConfigResponse(data) {
     const factor = data[3];
     const feedback = data[4];
     const memValueFlag = data[5]; // Should be 0x00
-    const rcuGroup = data[6];
 
-    // Parse KNX group addresses (2 bytes each, little endian)
-    const switchGroupLow = data[7];
-    const switchGroupHigh = data[8];
-    const dimmingGroupLow = data[9];
-    const dimmingGroupHigh = data[10];
-    const valueGroupLow = data[11];
-    const valueGroupHigh = data[12];
-    const statusGroupLow = data[13];
-    const statusGroupHigh = data[14];
+    if (useNewProtocol) {
+      // New protocol: no reserve byte, rcuGroup at index 6, groups at 7-14
+      const rcuGroup = data[6];
+      const knxSwitchGroup = convertHexToKnxAddress(data[7], data[8]);
+      const knxDimmingGroup = convertHexToKnxAddress(data[9], data[10]);
+      const knxValueGroup = convertHexToKnxAddress(data[11], data[12]);
+      const knxStatusGroup = convertHexToKnxAddress(data[13], data[14]);
 
-    // Convert 2-byte hex back to a/b/c format
-    const convertHexToKnxAddress = (lowByte, highByte) => {
-      const combined = (highByte << 8) | lowByte;
-      if (combined === 0) return ""; // Empty address
+      return { address, type, factor, feedback, memValueFlag, rcuGroup, knxSwitchGroup, knxDimmingGroup, knxValueGroup, knxStatusGroup };
+    } else {
+      // Old protocol: reserve byte at index 6, rcuGroup at 7, groups at 8-13, no status
+      const reserve = data[6]; // Should be 0x00
+      const rcuGroup = data[7];
+      const knxSwitchGroup = convertHexToKnxAddress(data[8], data[9]);
+      const knxDimmingGroup = convertHexToKnxAddress(data[10], data[11]);
+      const knxValueGroup = convertHexToKnxAddress(data[12], data[13]);
 
-      const area = (combined >> 11) & 0x1f; // 5 bits
-      const line = (combined >> 8) & 0x07; // 3 bits
-      const device = combined & 0xff; // 8 bits
-
-      return `${area}/${line}/${device}`;
-    };
-
-    const knxSwitchGroup = convertHexToKnxAddress(switchGroupLow, switchGroupHigh);
-    const knxDimmingGroup = convertHexToKnxAddress(dimmingGroupLow, dimmingGroupHigh);
-    const knxValueGroup = convertHexToKnxAddress(valueGroupLow, valueGroupHigh);
-    const knxStatusGroup = convertHexToKnxAddress(statusGroupLow, statusGroupHigh);
-
-    return {
-      address,
-      type,
-      factor,
-      feedback,
-      memValueFlag,
-      rcuGroup,
-      knxSwitchGroup,
-      knxDimmingGroup,
-      knxValueGroup,
-      knxStatusGroup,
-    };
+      return { address, type, factor, feedback, memValueFlag, reserve, rcuGroup, knxSwitchGroup, knxDimmingGroup, knxValueGroup, knxStatusGroup: "" };
+    }
   } catch (error) {
     console.error("Error parsing KNX config response:", error);
     return null;

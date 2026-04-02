@@ -4,7 +4,8 @@ export function registerKnxHandlers(ipcMain, dbService, rcu) {
   // Set KNX Config
   ipcMain.handle("rcu:setKnxConfig", async (event, unitIp, canId, knxConfig) => {
     try {
-      return await rcu.setKnxConfig(unitIp, canId, knxConfig);
+      const useNewProtocol = (dbService.getSetting("knx_protocol_version", "new")) !== "old";
+      return await rcu.setKnxConfig(unitIp, canId, knxConfig, useNewProtocol);
     } catch (error) {
       console.error("Error setting KNX config:", error);
       throw error;
@@ -14,7 +15,8 @@ export function registerKnxHandlers(ipcMain, dbService, rcu) {
   // Get KNX Config
   ipcMain.handle("rcu:getKnxConfig", async (event, { unitIp, canId, knxAddress }) => {
     try {
-      return await rcu.getKnxConfig(unitIp, canId, knxAddress);
+      const useNewProtocol = (dbService.getSetting("knx_protocol_version", "new")) !== "old";
+      return await rcu.getKnxConfig(unitIp, canId, knxAddress, useNewProtocol);
     } catch (error) {
       console.error("Error getting KNX config:", error);
       throw error;

@@ -19,6 +19,7 @@ import { room, roomController } from "./room.js";
 import { deviceController } from "./device-config.js";
 import { updater } from "./updater.js";
 import { ledSpiController } from "./led-spi.js";
+import { settings } from "./settings.js";
 
 // Window control API
 const windowControl = {
@@ -63,4 +64,5 @@ export const electronAPI = {
   deviceController,
   updater,
   ledSpiController,
+  settings,
 };

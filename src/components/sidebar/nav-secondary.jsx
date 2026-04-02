@@ -1,8 +1,9 @@
 import * as React from "react";
-import { Moon, Sun, Monitor } from "lucide-react";
+import { Moon, Sun, Monitor, Settings } from "lucide-react";
 import { useTheme } from "next-themes";
 import { SidebarGroup, SidebarGroupContent, SidebarMenu, SidebarMenuButton, SidebarMenuItem } from "@/components/ui/sidebar";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { SettingsDialog } from "@/components/custom/settings-dialog";
 
 export function NavSecondary({ ...props }) {
   const { theme, setTheme } = useTheme();
@@ -32,6 +33,16 @@ export function NavSecondary({ ...props }) {
     <SidebarGroup {...props}>
       <SidebarGroupContent>
         <SidebarMenu>
+          <SidebarMenuItem>
+            <SettingsDialog
+              trigger={
+                <SidebarMenuButton size="sm">
+                  <Settings className="size-4" />
+                  <span>Settings</span>
+                </SidebarMenuButton>
+              }
+            />
+          </SidebarMenuItem>
           <SidebarMenuItem>
             <DropdownMenu>
               <DropdownMenuTrigger asChild className="cursor-pointer">
