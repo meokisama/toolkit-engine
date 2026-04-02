@@ -1,4 +1,5 @@
 import { findOrCreateLightingByAddress, getCurtainTypeName } from "../utils/config-helpers";
+import { UDP_READ_DELAY_MS } from "../constants";
 import log from "electron-log/renderer";
 
 /**
@@ -8,7 +9,7 @@ import log from "electron-log/renderer";
  * @param {number} unitId - The database unit ID to set as source_unit
  * @returns {Promise<Array>} Created curtains
  */
-export const readCurtainConfigurations = async (networkUnit, projectId, unitId) => {
+export const readCurtainConfigurations = async (networkUnit, projectId, unitId, itemCache = null) => {
   const createdCurtains = [];
 
   try {
@@ -25,11 +26,11 @@ export const readCurtainConfigurations = async (networkUnit, projectId, unitId) 
           if (networkCurtain.curtainType === 0) {
             continue;
           }
-          const openGroup = await findOrCreateLightingByAddress(networkCurtain.openGroup, projectId);
-          const closeGroup = await findOrCreateLightingByAddress(networkCurtain.closeGroup, projectId);
+          const openGroup = await findOrCreateLightingByAddress(networkCurtain.openGroup, projectId, itemCache);
+          const closeGroup = await findOrCreateLightingByAddress(networkCurtain.closeGroup, projectId, itemCache);
           const stopGroup =
             networkCurtain.stopGroup && networkCurtain.stopGroup > 0
-              ? await findOrCreateLightingByAddress(networkCurtain.stopGroup, projectId)
+              ? await findOrCreateLightingByAddress(networkCurtain.stopGroup, projectId, itemCache)
               : null;
 
           // Create curtain in database
@@ -56,7 +57,7 @@ export const readCurtainConfigurations = async (networkUnit, projectId, unitId) 
           createdCurtains.push(createdCurtain);
 
           // Add delay between curtain reads
-          await new Promise((resolve) => setTimeout(resolve, 300));
+          await new Promise((resolve) => setTimeout(resolve, UDP_READ_DELAY_MS));
         } catch (error) {
           // Continue with other curtains
         }

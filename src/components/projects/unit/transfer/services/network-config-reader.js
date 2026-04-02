@@ -19,7 +19,7 @@ import log from "electron-log/renderer";
  * @returns {Promise<Object>} Network unit with rs485_config and input/output configs
  */
 export async function readNetworkUnitBasicConfigurations(networkUnit, options = {}) {
-  const { selectedProject, projectItems, createItem, createdItemsCache, autoCreateItems = true, showToast = true } = options;
+  const { selectedProject, projectItems, createItem, createdItemsCache, autoCreateItems = true, showToast = true, itemCache = null } = options;
 
   try {
     log.info(`Reading basic configurations from network unit: ${networkUnit.ip_address}`);
@@ -41,7 +41,7 @@ export async function readNetworkUnitBasicConfigurations(networkUnit, options = 
     if (selectedProject && projectItems && createItem && createdItemsCache) {
       try {
         log.info("Reading I/O configurations...");
-        const ioConfigs = await readIOConfigurations(networkUnit, selectedProject, projectItems, createItem, createdItemsCache);
+        const ioConfigs = await readIOConfigurations(networkUnit, selectedProject, projectItems, createItem, createdItemsCache, itemCache);
         unitWithConfigs.input_configs = ioConfigs.input_configs;
         unitWithConfigs.output_configs = ioConfigs.output_configs;
         unitWithConfigs.switch_configs = ioConfigs.switch_configs || [];
@@ -55,7 +55,7 @@ export async function readNetworkUnitBasicConfigurations(networkUnit, options = 
 
         // Auto-create missing lighting, aircon, curtain items from outputs and input multi-groups
         if (autoCreateItems) {
-          const createdCount = await autoCreateMissingItems(ioConfigs, selectedProject, projectItems);
+          const createdCount = await autoCreateMissingItems(ioConfigs, selectedProject, projectItems, itemCache);
 
           if (createdCount > 0 && showToast) {
             toast.success(`Auto-created ${createdCount} lighting group(s)`);

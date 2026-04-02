@@ -1,3 +1,4 @@
+import { UDP_READ_DELAY_MS, UDP_PHASE_DELAY_MS } from "../constants";
 import log from "electron-log/renderer";
 /**
  * I/O Configuration Reader
@@ -18,7 +19,7 @@ import { findOrCreateDeviceByAddress } from "@/components/projects/unit/network-
  * @param {Object} createdItemsCache - Cache for created items
  * @returns {Promise<Object>} Object with input_configs and output_configs
  */
-export async function readIOConfigurations(networkUnit, selectedProject, projectItems, createItem, createdItemsCache) {
+export async function readIOConfigurations(networkUnit, selectedProject, projectItems, createItem, createdItemsCache, itemCache = null) {
   const ioSpec = getUnitIOSpec(networkUnit.type);
   if (!ioSpec) {
     return { input_configs: null, output_configs: null };
@@ -121,7 +122,7 @@ export async function readIOConfigurations(networkUnit, selectedProject, project
     }
 
     // Add delay after input config read
-    await new Promise((resolve) => setTimeout(resolve, 500));
+    await new Promise((resolve) => setTimeout(resolve, UDP_PHASE_DELAY_MS));
   } catch (error) {
     log.error("Failed to read input configurations:", error);
   }
@@ -136,14 +137,14 @@ export async function readIOConfigurations(networkUnit, selectedProject, project
     });
 
     // Add delay between output reads
-    await new Promise((resolve) => setTimeout(resolve, 300));
+    await new Promise((resolve) => setTimeout(resolve, UDP_READ_DELAY_MS));
 
     // Read output configurations second
     log.info("Reading output configurations...");
     const configResponse = await window.electronAPI.ioController.getOutputConfig(networkUnit.ip_address, networkUnit.id_can);
 
     // Add delay between output reads
-    await new Promise((resolve) => setTimeout(resolve, 300));
+    await new Promise((resolve) => setTimeout(resolve, UDP_READ_DELAY_MS));
 
     // Read AC configurations third for aircon address mapping
     log.info("Reading AC configurations...");
@@ -186,7 +187,8 @@ export async function readIOConfigurations(networkUnit, selectedProject, project
                 selectedProject,
                 projectItems,
                 createItem,
-                createdItemsCache
+                createdItemsCache,
+                itemCache
               );
             }
           }
@@ -204,7 +206,8 @@ export async function readIOConfigurations(networkUnit, selectedProject, project
               selectedProject,
               projectItems,
               createItem,
-              createdItemsCache
+              createdItemsCache,
+              itemCache
             );
           }
         }

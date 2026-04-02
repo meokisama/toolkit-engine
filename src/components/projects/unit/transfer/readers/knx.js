@@ -1,4 +1,5 @@
 import { findOrCreateLightingByAddress } from "../utils/config-helpers";
+import { UDP_READ_DELAY_MS } from "../constants";
 import log from "electron-log/renderer";
 
 /**
@@ -8,7 +9,7 @@ import log from "electron-log/renderer";
  * @param {number} unitId - The database unit ID to set as source_unit
  * @returns {Promise<Array>} Created KNX configurations
  */
-export const readKnxConfigurations = async (networkUnit, projectId, unitId) => {
+export const readKnxConfigurations = async (networkUnit, projectId, unitId, itemCache = null) => {
   const createdKnxConfigs = [];
 
   try {
@@ -32,7 +33,7 @@ export const readKnxConfigurations = async (networkUnit, projectId, unitId) => {
           }
 
           // Find or create corresponding RCU group (lighting item)
-          const rcuGroup = await findOrCreateLightingByAddress(networkKnx.rcuGroup, projectId);
+          const rcuGroup = await findOrCreateLightingByAddress(networkKnx.rcuGroup, projectId, itemCache);
 
           // Create KNX config in database
           const knxData = {
@@ -56,7 +57,7 @@ export const readKnxConfigurations = async (networkUnit, projectId, unitId) => {
           log.info(`Created KNX config: ${createdKnx.name} (ID: ${createdKnx.id})`);
 
           // Add delay between KNX reads
-          await new Promise((resolve) => setTimeout(resolve, 300));
+          await new Promise((resolve) => setTimeout(resolve, UDP_READ_DELAY_MS));
         } catch (error) {
           log.error(`Failed to process KNX address ${networkKnx.address}:`, error);
           // Continue with other KNX configs

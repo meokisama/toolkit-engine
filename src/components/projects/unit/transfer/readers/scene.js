@@ -1,4 +1,5 @@
 import { findOrCreateDatabaseItemByNetworkItem, getObjectTypeFromValue } from "../utils/config-helpers";
+import { UDP_READ_DELAY_MS } from "../constants";
 import log from "electron-log/renderer";
 
 /**
@@ -8,7 +9,7 @@ import log from "electron-log/renderer";
  * @param {number} unitId - The database unit ID to set as source_unit
  * @returns {Promise<{createdScenes: Array, sceneAddressMap: Map}>} Created scenes and address mapping
  */
-export const readSceneConfigurations = async (networkUnit, projectId, unitId) => {
+export const readSceneConfigurations = async (networkUnit, projectId, unitId, itemCache = null) => {
   const createdScenes = [];
   const sceneAddressMap = new Map(); // Map network scene address to database scene ID
 
@@ -51,7 +52,7 @@ export const readSceneConfigurations = async (networkUnit, projectId, unitId) =>
               for (const item of detailedScene.items) {
                 try {
                   // Map object_value to item_type and find or create corresponding database item
-                  const result = await findOrCreateDatabaseItemByNetworkItem(item, projectId);
+                  const result = await findOrCreateDatabaseItemByNetworkItem(item, projectId, itemCache);
                   const { itemType, itemId, itemAddress } = result;
 
                   if (itemType) {
@@ -95,7 +96,7 @@ export const readSceneConfigurations = async (networkUnit, projectId, unitId) =>
           }
 
           // Add delay between scene reads
-          await new Promise((resolve) => setTimeout(resolve, 300));
+          await new Promise((resolve) => setTimeout(resolve, UDP_READ_DELAY_MS));
         } catch (error) {
           log.error(`Failed to process scene ${networkScene.index}:`, error);
           // Continue with other scenes

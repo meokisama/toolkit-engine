@@ -1,23 +1,155 @@
-import { useCallback } from "react";
+import { useCallback, useEffect, useRef } from "react";
 import { toast } from "sonner";
 import { udpScanner } from "@/services/udp";
 import { sortByIpAddress } from "@/utils/ip-utils";
-import { readNetworkUnitConfigurations } from "../utils/config-reader";
 import { DIALOG_TYPES } from "./use-dialog-state";
+import { useTransferStore, TRANSFER_STATUS, TRANSFER_STEP } from "@/store/use-transfer-store";
+import { TransferItemCache } from "@/services/transfer/item-cache";
+import { readRS485Configurations } from "../../transfer/readers/rs485";
+import { readIOConfigurations } from "../../transfer/readers/io-config";
+import { autoCreateMissingItems } from "../utils/device-management-utils";
 import log from "electron-log/renderer";
+
+// Delay between units to prevent UDP conflicts
+const UDP_INTER_UNIT_DELAY_MS = 1000;
 
 export function useNetworkUnitHandlers({ state, onTransferToDatabase, existingUnits, selectedProject, projectItems, createItem }) {
   const { setNetworkUnits, setSelectedNetworkUnits, setScanLoading, networkTable, dialogState, createdItemsCache } = state;
+  const transferStore = useTransferStore();
+  const isExecutingRef = useRef(false);
 
+  // -------------------------------------------------------------------------
+  // Core transfer execution — runs when store transitions to RUNNING
+  // -------------------------------------------------------------------------
+  const executeTransfer = useCallback(
+    async (units) => {
+      try {
+        // Step 0: Pre-fetch all DB items once (fixes N+1 query problem)
+        transferStore.setProgress(0, TRANSFER_STEP.PREFETCH);
+        const itemCache = new TransferItemCache();
+        await itemCache.initialize(selectedProject.id);
+
+        const unitsToImport = [];
+
+        for (let i = 0; i < units.length; i++) {
+          const unit = units[i];
+
+          // Step 1: Delete existing unit + related items if needed
+          transferStore.setProgress(i, TRANSFER_STEP.DELETE_EXISTING);
+          const existingUnit = existingUnits.find(
+            (e) => e.ip_address === unit.ip_address || e.serial_no === unit.serial_no
+          );
+          if (existingUnit) {
+            await window.electronAPI.unit.deleteWithRelatedItems(existingUnit.id);
+            log.info(`Deleted existing unit ${existingUnit.id} and all related items`);
+          }
+
+          // Step 2: Read RS485
+          transferStore.setProgress(i, TRANSFER_STEP.READ_RS485);
+          const rs485Config = await readRS485Configurations(unit);
+
+          // Step 3: Read I/O
+          transferStore.setProgress(i, TRANSFER_STEP.READ_IO);
+          const ioConfigs = await readIOConfigurations(
+            unit,
+            selectedProject,
+            projectItems,
+            createItem,
+            createdItemsCache,
+            itemCache
+          );
+
+          await autoCreateMissingItems(ioConfigs, selectedProject, projectItems, itemCache);
+
+          unitsToImport.push({
+            ...unit,
+            id: undefined,
+            rs485_config: rs485Config,
+            input_configs: ioConfigs.input_configs,
+            output_configs: ioConfigs.output_configs,
+            switch_configs: ioConfigs.switch_configs || [],
+          });
+
+          if (i < units.length - 1) {
+            await new Promise((resolve) => setTimeout(resolve, UDP_INTER_UNIT_DELAY_MS));
+          }
+        }
+
+        // Step 4: Import units to DB and read advanced configs
+        // Pass itemCache so database-unit-table can reuse the same cache
+        await onTransferToDatabase(unitsToImport, itemCache);
+
+        transferStore.complete();
+
+        // Clear table selection after successful transfer
+        setSelectedNetworkUnits([]);
+        if (networkTable) networkTable.resetRowSelection();
+
+        toast.success(`Successfully transferred ${units.length} unit(s) with configurations to database`);
+      } catch (error) {
+        log.error("Transfer execution failed:", error);
+        transferStore.reset();
+        toast.error("Transfer failed: " + error.message);
+      }
+    },
+    [existingUnits, selectedProject, projectItems, createItem, createdItemsCache, onTransferToDatabase, networkTable, setSelectedNetworkUnits]
+  );
+
+  // Watch store: when status becomes RUNNING, execute the transfer
+  useEffect(() => {
+    if (transferStore.status === TRANSFER_STATUS.RUNNING && !isExecutingRef.current) {
+      isExecutingRef.current = true;
+      executeTransfer(transferStore.pendingUnits).finally(() => {
+        isExecutingRef.current = false;
+      });
+    }
+  }, [transferStore.status, executeTransfer]);
+
+  // -------------------------------------------------------------------------
+  // Unified transfer trigger — replaces 3 near-identical handlers
+  // -------------------------------------------------------------------------
+  const handleTransfer = useCallback(
+    (units) => {
+      if (!units || units.length === 0) {
+        toast.warning("No units to transfer");
+        return;
+      }
+
+      // Identify which units already exist in the database
+      const conflicting = units.filter((unit) =>
+        existingUnits.some((e) => e.ip_address === unit.ip_address || e.serial_no === unit.serial_no)
+      );
+
+      // prepare() sets status to 'confirming' if conflicts exist, or 'running' immediately
+      transferStore.prepare(units, conflicting);
+    },
+    [existingUnits, transferStore]
+  );
+
+  // Public shortcuts for backward compat with toolbar/context-menu call sites
+  const handleTransferSingleToDatabase = useCallback(
+    (unit) => handleTransfer([unit]),
+    [handleTransfer]
+  );
+
+  const handleTransferSelectedToDatabase = useCallback(
+    () => handleTransfer(state.selectedNetworkUnits),
+    [handleTransfer, state.selectedNetworkUnits]
+  );
+
+  const handleTransferAllToDatabase = useCallback(
+    () => handleTransfer(state.networkUnits),
+    [handleTransfer, state.networkUnits]
+  );
+
+  // -------------------------------------------------------------------------
   // Network scanning
+  // -------------------------------------------------------------------------
   const handleScanNetwork = async () => {
     setScanLoading(true);
     try {
       toast.info("Scanning network units...");
-
-      const discoveredUnits = await udpScanner.getNetworkUnits(true); // Always force scan when button is clicked
-
-      // Sort by IP address before setting
+      const discoveredUnits = await udpScanner.getNetworkUnits(true);
       const sortedUnits = sortByIpAddress(discoveredUnits);
       setNetworkUnits(sortedUnits);
       setSelectedNetworkUnits([]);
@@ -35,189 +167,14 @@ export function useNetworkUnitHandlers({ state, onTransferToDatabase, existingUn
     }
   };
 
-  // Transfer handlers
-  const handleTransferSelectedToDatabase = async () => {
-    if (state.selectedNetworkUnits.length === 0) {
-      toast.warning("Please select units to transfer to database");
-      return;
-    }
-
-    const loadingToast = toast.loading(`Reading configurations from ${state.selectedNetworkUnits.length} selected unit(s)...`);
-
-    try {
-      const unitsToTransfer = [];
-
-      // Process units sequentially to avoid UDP conflicts
-      for (let i = 0; i < state.selectedNetworkUnits.length; i++) {
-        const networkUnit = state.selectedNetworkUnits[i];
-
-        // Check if unit already exists in database
-        const existingUnit = existingUnits.find((unit) => unit.ip_address === networkUnit.ip_address || unit.serial_no === networkUnit.serial_no);
-
-        if (existingUnit) {
-          toast.info(`Unit ${networkUnit.type} (${networkUnit.ip_address}) already exists. Deleting old configuration...`);
-          try {
-            // Delete existing unit and all related items (scenes, schedules, curtains, knx, multi-scenes, sequences)
-            await window.electronAPI.unit.deleteWithRelatedItems(existingUnit.id);
-            log.info(`Deleted existing unit ${existingUnit.id} and all related items`);
-          } catch (error) {
-            log.error(`Failed to delete existing unit ${existingUnit.id}:`, error);
-            toast.error(`Failed to delete existing unit ${networkUnit.ip_address}: ${error.message}`);
-            continue;
-          }
-        }
-
-        // Update progress
-        toast.loading(
-          `Reading configurations from unit ${i + 1}/${state.selectedNetworkUnits.length}: ${networkUnit.type} (${networkUnit.ip_address})...`,
-          { id: loadingToast }
-        );
-
-        // Read configurations from network unit and create new unit with configs
-        const newUnit = await readNetworkUnitConfigurations(networkUnit, selectedProject, projectItems, createItem, createdItemsCache);
-        unitsToTransfer.push(newUnit);
-
-        // Add delay between units to prevent UDP conflicts
-        if (i < state.selectedNetworkUnits.length - 1) {
-          await new Promise((resolve) => setTimeout(resolve, 1000));
-        }
-      }
-
-      if (unitsToTransfer.length > 0) {
-        toast.loading("Saving units to database...", { id: loadingToast });
-        await onTransferToDatabase(unitsToTransfer);
-
-        // Clear selection after successful transfer
-        setSelectedNetworkUnits([]);
-        if (networkTable) {
-          networkTable.resetRowSelection();
-        }
-
-        toast.success(`Successfully transferred ${unitsToTransfer.length} unit(s) with configurations to database`, { id: loadingToast });
-      } else {
-        toast.dismiss(loadingToast);
-      }
-    } catch (error) {
-      log.error("Failed to transfer selected network units to database:", error);
-      toast.error("Failed to transfer selected units to database: " + error.message, { id: loadingToast });
-    }
-  };
-
-  const handleTransferAllToDatabase = async () => {
-    if (state.networkUnits.length === 0) {
-      toast.warning("No network units to transfer");
-      return;
-    }
-
-    const loadingToast = toast.loading(`Reading configurations from all ${state.networkUnits.length} unit(s)...`);
-
-    try {
-      const unitsToTransfer = [];
-
-      // Process units sequentially to avoid UDP conflicts
-      for (let i = 0; i < state.networkUnits.length; i++) {
-        const networkUnit = state.networkUnits[i];
-
-        // Check if unit already exists in database
-        const existingUnit = existingUnits.find((unit) => unit.ip_address === networkUnit.ip_address || unit.serial_no === networkUnit.serial_no);
-
-        if (existingUnit) {
-          toast.info(`Unit ${networkUnit.type} (${networkUnit.ip_address}) already exists. Deleting old configuration...`);
-          try {
-            // Delete existing unit and all related items (scenes, schedules, curtains, knx, multi-scenes, sequences)
-            await window.electronAPI.unit.deleteWithRelatedItems(existingUnit.id);
-            log.info(`Deleted existing unit ${existingUnit.id} and all related items`);
-          } catch (error) {
-            log.error(`Failed to delete existing unit ${existingUnit.id}:`, error);
-            toast.error(`Failed to delete existing unit ${networkUnit.ip_address}: ${error.message}`);
-            continue;
-          }
-        }
-
-        // Update progress
-        toast.loading(`Reading configurations from unit ${i + 1}/${state.networkUnits.length}: ${networkUnit.type} (${networkUnit.ip_address})...`, {
-          id: loadingToast,
-        });
-
-        // Read configurations from network unit and create new unit with configs
-        const newUnit = await readNetworkUnitConfigurations(networkUnit, selectedProject, projectItems, createItem, createdItemsCache);
-        unitsToTransfer.push(newUnit);
-
-        // Add delay between units to prevent UDP conflicts
-        if (i < state.networkUnits.length - 1) {
-          await new Promise((resolve) => setTimeout(resolve, 1000));
-        }
-      }
-
-      if (unitsToTransfer.length > 0) {
-        toast.loading("Saving units to database...", { id: loadingToast });
-        await onTransferToDatabase(unitsToTransfer);
-
-        // Clear selection after successful transfer
-        setSelectedNetworkUnits([]);
-        if (networkTable) {
-          networkTable.resetRowSelection();
-        }
-
-        toast.success(`Successfully transferred all ${unitsToTransfer.length} unit(s) with configurations to database`, { id: loadingToast });
-      } else {
-        toast.dismiss(loadingToast);
-      }
-    } catch (error) {
-      log.error("Failed to transfer all network units to database:", error);
-      toast.error("Failed to transfer all units to database: " + error.message, { id: loadingToast });
-    }
-  };
-
-  const handleTransferSingleToDatabase = useCallback(
-    async (unit) => {
-      // Check if unit already exists in database
-      const existingUnit = existingUnits.find(
-        (existingUnit) => existingUnit.ip_address === unit.ip_address || existingUnit.serial_no === unit.serial_no
-      );
-
-      if (existingUnit) {
-        toast.info(`Unit ${unit.type} (${unit.ip_address}) already exists. Deleting old configuration...`);
-        try {
-          // Delete existing unit and all related items (scenes, schedules, curtains, knx, multi-scenes, sequences)
-          await window.electronAPI.unit.deleteWithRelatedItems(existingUnit.id);
-          log.info(`Deleted existing unit ${existingUnit.id} and all related items`);
-        } catch (error) {
-          log.error(`Failed to delete existing unit ${existingUnit.id}:`, error);
-          toast.error(`Failed to delete existing unit ${unit.ip_address}: ${error.message}`);
-          return;
-        }
-      }
-
-      const loadingToast = toast.loading(`Reading configuration from unit ${unit.ip_address}...`);
-
-      try {
-        // Read configurations from network unit and create new unit with configs
-        const unitToTransfer = await readNetworkUnitConfigurations(unit, selectedProject, projectItems, createItem, createdItemsCache);
-
-        if (unitToTransfer) {
-          await onTransferToDatabase([unitToTransfer]);
-          toast.success(`Successfully transferred unit ${unit.ip_address} to database`, { id: loadingToast });
-        } else {
-          toast.dismiss(loadingToast);
-        }
-      } catch (error) {
-        log.error("Failed to transfer unit to database:", error);
-        toast.error(`Failed to transfer unit ${unit.ip_address} to database: ${error.message}`, { id: loadingToast });
-      }
-    },
-    [onTransferToDatabase, existingUnits, selectedProject, projectItems, createItem, createdItemsCache]
-  );
-
-  // Factory function to create dialog handlers - reduces code duplication
+  // -------------------------------------------------------------------------
+  // Dialog factory — reduces per-dialog boilerplate
+  // -------------------------------------------------------------------------
   const createDialogHandler = useCallback(
-    (dialogType) => (unit) => {
-      dialogState.openDialog(dialogType, unit);
-    },
+    (dialogType) => (unit) => dialogState.openDialog(dialogType, unit),
     [dialogState]
   );
 
-  // Control dialog handlers using factory pattern
   const handleGroupControl = createDialogHandler(DIALOG_TYPES.GROUP_CONTROL);
   const handleAirconControl = createDialogHandler(DIALOG_TYPES.AIRCON_CONTROL);
   const handleRgbControl = createDialogHandler(DIALOG_TYPES.RGB_CONTROL);
@@ -233,23 +190,16 @@ export function useNetworkUnitHandlers({ state, onTransferToDatabase, existingUn
   const handleLedSpiControl = createDialogHandler(DIALOG_TYPES.LED_SPI_CONTROL);
   const handleOnlineStatus = createDialogHandler(DIALOG_TYPES.ONLINE_STATUS);
 
-  // Handlers without unit parameter
-  const handleBulkClockSync = useCallback(() => {
-    dialogState.openDialog(DIALOG_TYPES.BULK_CLOCK_SYNC);
-  }, [dialogState]);
-
-  const handleSendAllConfig = useCallback(() => {
-    dialogState.openDialog(DIALOG_TYPES.SEND_ALL_CONFIG);
-  }, [dialogState]);
+  const handleBulkClockSync = useCallback(() => dialogState.openDialog(DIALOG_TYPES.BULK_CLOCK_SYNC), [dialogState]);
+  const handleSendAllConfig = useCallback(() => dialogState.openDialog(DIALOG_TYPES.SEND_ALL_CONFIG), [dialogState]);
 
   const handleGroupControlSubmit = async (params) => {
     try {
-      if (typeof window !== "undefined" && window.electronAPI && window.electronAPI.ioController) {
+      if (typeof window !== "undefined" && window.electronAPI?.ioController) {
         await window.electronAPI.ioController.setGroupState(params);
       } else {
-        // Fallback for development/testing
         log.info("Group control command:", params);
-        await new Promise((resolve) => setTimeout(resolve, 1000)); // Simulate delay
+        await new Promise((resolve) => setTimeout(resolve, 1000));
       }
     } catch (error) {
       log.error("Group control failed:", error);
@@ -257,47 +207,30 @@ export function useNetworkUnitHandlers({ state, onTransferToDatabase, existingUn
     }
   };
 
-  // Firmware update handlers
-  const handleFirmwareUpdate = useCallback(() => {
-    dialogState.openDialog(DIALOG_TYPES.FIRMWARE_UPDATE, null); // No specific unit
-  }, [dialogState]);
-
-  const handleFirmwareUpdateForUnit = useCallback(
-    (unit) => {
-      dialogState.openDialog(DIALOG_TYPES.FIRMWARE_UPDATE, unit);
-    },
-    [dialogState]
-  );
+  const handleFirmwareUpdate = useCallback(() => dialogState.openDialog(DIALOG_TYPES.FIRMWARE_UPDATE, null), [dialogState]);
+  const handleFirmwareUpdateForUnit = useCallback((unit) => dialogState.openDialog(DIALOG_TYPES.FIRMWARE_UPDATE, unit), [dialogState]);
 
   const handleFirmwareUpdateComplete = (results) => {
-    // Optionally refresh network scan after firmware update
     const successCount = results.filter((r) => r.success).length;
     if (successCount > 0) {
       toast.success(`Firmware update completed for ${successCount} unit${successCount !== 1 ? "s" : ""}`);
-      // Refresh network scan after a delay to allow units to restart
-      setTimeout(() => {
-        handleScanNetwork();
-      }, 5000);
+      setTimeout(() => handleScanNetwork(), 5000);
     }
   };
 
-  // Row selection handler
   const handleNetworkRowSelectionChange = useCallback(
     (_, rowSelection) => {
       if (networkTable && rowSelection && typeof rowSelection === "object") {
-        // Get selected rows from the table using rowSelection object
         const selectedRowIds = Object.keys(rowSelection).filter((id) => rowSelection[id]);
         const selectedRows = selectedRowIds
           .map((id) => {
             try {
               return networkTable.getRow(id);
-            } catch (error) {
-              log.warn(`Could not get row with id ${id}:`, error);
+            } catch {
               return null;
             }
           })
-          .filter((row) => row && row.original); // Filter out any undefined rows
-
+          .filter((row) => row?.original);
         setSelectedNetworkUnits(selectedRows.map((row) => row.original));
       } else {
         setSelectedNetworkUnits([]);
@@ -306,27 +239,14 @@ export function useNetworkUnitHandlers({ state, onTransferToDatabase, existingUn
     [networkTable, setSelectedNetworkUnits]
   );
 
-  // I/O Config handler
-  const handleIOConfig = useCallback(
-    (unit) => {
-      dialogState.openDialog(DIALOG_TYPES.IO_CONFIG, unit);
-    },
-    [dialogState]
-  );
-
-  // Edit unit handler
-  const handleEditUnit = useCallback(
-    (unit) => {
-      dialogState.openDialog(DIALOG_TYPES.EDIT, unit);
-    },
-    [dialogState]
-  );
+  const handleIOConfig = useCallback((unit) => dialogState.openDialog(DIALOG_TYPES.IO_CONFIG, unit), [dialogState]);
+  const handleEditUnit = useCallback((unit) => dialogState.openDialog(DIALOG_TYPES.EDIT, unit), [dialogState]);
 
   return {
     handleScanNetwork,
+    handleTransferSingleToDatabase,
     handleTransferSelectedToDatabase,
     handleTransferAllToDatabase,
-    handleTransferSingleToDatabase,
     handleGroupControl,
     handleAirconControl,
     handleRgbControl,

@@ -7,38 +7,45 @@ import { readSequenceConfigurations } from "../readers/sequence";
 import log from "electron-log/renderer";
 
 /**
- * Transfer all advanced configurations from network unit to database
- * This is the main orchestrator function that coordinates all configuration readers
+ * Transfer all advanced configurations from network unit to database.
+ * Orchestrates curtain → scene → schedule → KNX → multi-scene → sequence
+ * in the correct dependency order.
+ *
  * @param {Object} networkUnit - The network unit to read from
- * @param {Object} importedUnit - The imported unit in database
- * @param {string} projectId - The project ID
- * @returns {Promise<Object>} Summary of transferred configurations
+ * @param {Object} importedUnit - The unit record already saved in the database
+ * @param {string} projectId
+ * @param {TransferItemCache|null} itemCache - Optional pre-fetched lookup cache (fixes N+1)
+ * @returns {Promise<{ configSummary: Object, totalConfigs: number }>}
  */
-export const transferAdvancedConfigurations = async (networkUnit, importedUnit, projectId) => {
+export const transferAdvancedConfigurations = async (networkUnit, importedUnit, projectId, itemCache = null) => {
   try {
     log.info(`Reading advanced configurations for unit ${networkUnit.ip_address}...`);
 
     const unitId = importedUnit.id;
 
-    // Read curtain configurations FIRST to avoid conflicts with scene auto-creation
-    const createdCurtains = await readCurtainConfigurations(networkUnit, projectId, unitId);
+    // Curtains FIRST — scenes may auto-create curtain items, so pre-create to avoid duplicates
+    const createdCurtains = await readCurtainConfigurations(networkUnit, projectId, unitId, itemCache);
 
-    // Read scene configurations (after curtains to avoid auto-creating duplicate curtains)
-    const { createdScenes, sceneAddressMap } = await readSceneConfigurations(networkUnit, projectId, unitId);
+    // Scenes (after curtains)
+    const { createdScenes, sceneAddressMap } = await readSceneConfigurations(networkUnit, projectId, unitId, itemCache);
 
-    // Read schedule configurations
+    // Schedules
     const createdSchedules = await readScheduleConfigurations(networkUnit, projectId, sceneAddressMap, unitId);
 
-    // Read KNX configurations
-    const createdKnxConfigs = await readKnxConfigurations(networkUnit, projectId, unitId);
+    // KNX
+    const createdKnxConfigs = await readKnxConfigurations(networkUnit, projectId, unitId, itemCache);
 
-    // Read Multi-Scene configurations
-    const { createdMultiScenes, multiSceneAddressMap } = await readMultiSceneConfigurations(networkUnit, projectId, sceneAddressMap, unitId);
+    // Multi-scenes
+    const { createdMultiScenes, multiSceneAddressMap } = await readMultiSceneConfigurations(
+      networkUnit,
+      projectId,
+      sceneAddressMap,
+      unitId
+    );
 
-    // Read Sequence configurations
+    // Sequences
     const createdSequences = await readSequenceConfigurations(networkUnit, projectId, multiSceneAddressMap, unitId);
 
-    // Log summary of created configurations
     const configSummary = {
       scenes: createdScenes.length,
       schedules: createdSchedules.length,
@@ -48,9 +55,8 @@ export const transferAdvancedConfigurations = async (networkUnit, importedUnit, 
       sequences: createdSequences.length,
     };
 
-    const totalConfigs = Object.values(configSummary).reduce((sum, count) => sum + count, 0);
-    log.info(`Advanced configurations transferred successfully for unit ${networkUnit.ip_address}:`, configSummary);
-    log.info(`Total configurations created: ${totalConfigs}`);
+    const totalConfigs = Object.values(configSummary).reduce((sum, n) => sum + n, 0);
+    log.info(`Advanced configurations transferred for unit ${networkUnit.ip_address}:`, configSummary);
 
     return { configSummary, totalConfigs };
   } catch (error) {
@@ -59,5 +65,5 @@ export const transferAdvancedConfigurations = async (networkUnit, importedUnit, 
   }
 };
 
-// Alias for backward compatibility
+// Alias kept for backward compatibility with existing imports
 export const readAdvancedConfigurations = transferAdvancedConfigurations;

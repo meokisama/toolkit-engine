@@ -1,3 +1,4 @@
+import { UDP_READ_DELAY_MS } from "../constants";
 import log from "electron-log/renderer";
 /**
  * Read Multi-Scene configurations from network unit and create them in database
@@ -70,7 +71,7 @@ export const readMultiSceneConfigurations = async (networkUnit, projectId, scene
           );
 
           // Add delay between multi-scene reads
-          await new Promise((resolve) => setTimeout(resolve, 300));
+          await new Promise((resolve) => setTimeout(resolve, UDP_READ_DELAY_MS));
         } catch (error) {
           log.error(`Failed to process multi-scene ${networkMultiScene.multiSceneIndex}:`, error);
           // Continue with other multi-scenes

@@ -1,3 +1,4 @@
+import { UDP_READ_DELAY_MS, UDP_PHASE_DELAY_MS } from "../constants";
 import log from "electron-log/renderer";
 /**
  * RS485 Configuration Reader
@@ -46,7 +47,7 @@ export async function readRS485Configurations(networkUnit) {
     });
 
     // Add delay between RS485 channel reads
-    await new Promise((resolve) => setTimeout(resolve, 300));
+    await new Promise((resolve) => setTimeout(resolve, UDP_READ_DELAY_MS));
 
     // Read CH2 configuration second
     log.info("Reading RS485 CH2 configuration...");
@@ -59,7 +60,7 @@ export async function readRS485Configurations(networkUnit) {
     const rs485Config = [convertRS485ToDbFormat(ch1Config), convertRS485ToDbFormat(ch2Config)];
 
     // Add delay after RS485 config read
-    await new Promise((resolve) => setTimeout(resolve, 500));
+    await new Promise((resolve) => setTimeout(resolve, UDP_PHASE_DELAY_MS));
     log.info("RS485 configurations read successfully");
 
     return rs485Config;

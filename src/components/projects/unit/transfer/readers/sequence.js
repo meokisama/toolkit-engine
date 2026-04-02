@@ -1,3 +1,4 @@
+import { UDP_READ_DELAY_MS } from "../constants";
 import log from "electron-log/renderer";
 /**
  * Read Sequence configurations from network unit and create them in database
@@ -65,7 +66,7 @@ export const readSequenceConfigurations = async (networkUnit, projectId, multiSc
           );
 
           // Add delay between sequence reads
-          await new Promise((resolve) => setTimeout(resolve, 300));
+          await new Promise((resolve) => setTimeout(resolve, UDP_READ_DELAY_MS));
         } catch (error) {
           log.error(`Failed to process sequence ${networkSequence.index}:`, error);
           // Continue with other sequences

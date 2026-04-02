@@ -166,37 +166,34 @@ export function UnitTable() {
     }
   };
 
-  // Handle transfer from network units to database
-  const handleTransferToDatabase = async (unitsToTransfer) => {
+  // Handle transfer from network units to database.
+  // itemCache is pre-fetched by the handler and passed here to avoid redundant DB queries.
+  // Success toast is intentionally omitted here — the caller (use-network-unit-handlers)
+  // fires a single toast after this resolves.
+  const handleTransferToDatabase = async (unitsToTransfer, itemCache = null) => {
     try {
-      // First, import the basic unit data
+      // Import basic unit data (RS485 + I/O)
       const importedUnits = await importItems(category, unitsToTransfer);
 
-      // Then, read and create advanced configurations for units that have the flag
-      const unitsWithAdvancedConfigs = unitsToTransfer.filter((unit) => unit.readAdvancedConfigs);
+      // Read advanced configurations (scenes, schedules, curtains, KNX, multi-scenes, sequences)
+      log.info(`Reading advanced configurations for ${importedUnits.length} unit(s)...`);
 
-      if (unitsWithAdvancedConfigs.length > 0) {
-        log.info(`Reading advanced configurations for ${unitsWithAdvancedConfigs.length} units...`);
+      for (let i = 0; i < unitsToTransfer.length; i++) {
+        const networkUnit = unitsToTransfer[i];
+        const importedUnit = importedUnits[i];
 
-        for (let i = 0; i < unitsWithAdvancedConfigs.length; i++) {
-          const networkUnit = unitsWithAdvancedConfigs[i];
-          const importedUnit = importedUnits[unitsToTransfer.indexOf(networkUnit)];
-
-          if (importedUnit) {
-            try {
-              await readAdvancedConfigurations(networkUnit, importedUnit, selectedProject.id);
-            } catch (error) {
-              log.error(`Failed to read advanced configurations for unit ${networkUnit.ip_address}:`, error);
-              // Continue with other units
-            }
+        if (importedUnit) {
+          try {
+            await readAdvancedConfigurations(networkUnit, importedUnit, selectedProject.id, itemCache);
+          } catch (error) {
+            log.error(`Failed to read advanced configurations for unit ${networkUnit.ip_address}:`, error);
+            // Non-fatal: continue with remaining units
           }
         }
       }
-
-      toast.success(`Successfully transferred ${unitsToTransfer.length} unit(s) with configurations to database`);
     } catch (error) {
       log.error("Failed to transfer units to database:", error);
-      throw error; // Re-throw to let NetworkUnitTable handle the error display
+      throw error;
     }
   };
 

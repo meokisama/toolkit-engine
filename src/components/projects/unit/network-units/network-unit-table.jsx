@@ -1,8 +1,18 @@
 import { useEffect, memo } from "react";
-import { Network, Search, Layers2, Layers, Upload, Clock, MoreHorizontal, ChevronDown, Send } from "lucide-react";
+import { Network, Search, Layers2, Layers, Upload, Clock, MoreHorizontal, ChevronDown, Send, AlertTriangle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { DataTable } from "@/components/projects/data-table/data-table";
 import { DataTablePagination } from "@/components/projects/data-table/data-table-pagination";
 import { createNetworkUnitColumns } from "./network-unit-columns";
@@ -12,9 +22,11 @@ import { sortByIpAddress } from "@/utils/ip-utils";
 import { useNetworkUnitState } from "./hooks/use-network-unit-state";
 import { useNetworkUnitHandlers } from "./hooks/use-network-unit-handlers";
 import { LazyDialogRenderer } from "./lazy-dialog-renderer";
+import { useTransferStore, TRANSFER_STATUS } from "@/store/use-transfer-store";
 
 function NetworkUnitTableComponent({ onTransferToDatabase, existingUnits = [], onNetworkUnitsChange, getRowClassName }) {
   const { selectedProject, projectItems, createItem } = useProjectDetail();
+  const transferStore = useTransferStore();
 
   // Use custom hooks for state management
   const state = useNetworkUnitState();
@@ -188,6 +200,45 @@ function NetworkUnitTableComponent({ onTransferToDatabase, existingUnits = [], o
           }}
         />
       </Card>
+
+      {/* Overwrite confirmation dialog — shown when transferred units already exist in the database */}
+      <AlertDialog open={transferStore.status === TRANSFER_STATUS.CONFIRMING}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2">
+              <AlertTriangle className="h-5 w-5 text-destructive" />
+              Overwrite existing unit{transferStore.conflictingUnits.length > 1 ? "s" : ""}?
+            </AlertDialogTitle>
+            <AlertDialogDescription asChild>
+              <div className="space-y-2">
+                <p>
+                  The following unit{transferStore.conflictingUnits.length > 1 ? "s" : ""} already exist in the
+                  database. Transferring will permanently delete their current configuration including all scenes,
+                  schedules, curtains, KNX settings, multi-scenes, and sequences.
+                </p>
+                <ul className="text-sm font-medium text-foreground space-y-1 mt-2">
+                  {transferStore.conflictingUnits.map((unit) => (
+                    <li key={unit.ip_address} className="flex items-center gap-2">
+                      <span className="w-2 h-2 rounded-full bg-destructive inline-block" />
+                      {unit.type} — {unit.ip_address}
+                    </li>
+                  ))}
+                </ul>
+                <p className="text-destructive font-medium text-sm">This action cannot be undone.</p>
+              </div>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => transferStore.cancelTransfer()}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              onClick={() => transferStore.confirmOverwrite()}
+            >
+              Overwrite &amp; Transfer
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
