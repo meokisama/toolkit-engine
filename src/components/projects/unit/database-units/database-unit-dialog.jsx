@@ -235,7 +235,7 @@ export function UnitDialog({ open, onOpenChange, item = null, mode = "create" })
     setLoading(true);
     try {
       // Prepare form data for submission
-      const submitData = { ...formData };
+      const submitData = mode === "edit" && item ? { ...item, ...formData } : { ...formData };
 
       // If unit supports RS485 and no RS485 config is set, create default config
       if (unitSupportsRS485() && !submitData.rs485_config) {
