@@ -57,9 +57,6 @@ export async function readNetworkUnitConfigurations(networkUnit, networkConfigCa
         unitWithConfigs.scenes = [];
       }
 
-      // Add delay between reads
-      await new Promise((resolve) => setTimeout(resolve, 500));
-
       // Read schedules
       try {
         const schedulesResult = await window.electronAPI.scheduleController.getAllSchedulesInformation({
@@ -72,9 +69,6 @@ export async function readNetworkUnitConfigurations(networkUnit, networkConfigCa
         log.warn(`Failed to read schedules from ${networkUnit.ip_address}:`, error);
         unitWithConfigs.schedules = [];
       }
-
-      // Add delay between reads
-      await new Promise((resolve) => setTimeout(resolve, 500));
 
       // Read curtains
       try {
@@ -90,9 +84,6 @@ export async function readNetworkUnitConfigurations(networkUnit, networkConfigCa
         unitWithConfigs.curtains = [];
       }
 
-      // Add delay between reads
-      await new Promise((resolve) => setTimeout(resolve, 500));
-
       // Read KNX configurations
       try {
         const knxResult = await window.electronAPI.knxController.getKnxConfig({
@@ -107,9 +98,6 @@ export async function readNetworkUnitConfigurations(networkUnit, networkConfigCa
         unitWithConfigs.knxConfigs = [];
       }
 
-      // Add delay between reads
-      await new Promise((resolve) => setTimeout(resolve, 500));
-
       // Read multi scenes
       try {
         const multiScenesResult = await window.electronAPI.multiScenesController.getAllMultiScenesInformation({
@@ -122,9 +110,6 @@ export async function readNetworkUnitConfigurations(networkUnit, networkConfigCa
         log.warn(`Failed to read multi scenes from ${networkUnit.ip_address}:`, error);
         unitWithConfigs.multiScenes = [];
       }
-
-      // Add delay between reads
-      await new Promise((resolve) => setTimeout(resolve, 500));
 
       // Read sequences
       try {
@@ -223,9 +208,6 @@ async function readIOConfigsForComparison(networkUnit, unitWithConfigs) {
     }
 
     unitWithConfigs.input_configs = inputConfigs;
-
-    // Add delay after input config read
-    await new Promise((resolve) => setTimeout(resolve, 500));
   } catch (error) {
     log.warn(`Failed to read input configs from ${networkUnit.ip_address}:`, error);
     unitWithConfigs.input_configs = null;
@@ -238,11 +220,7 @@ async function readIOConfigsForComparison(networkUnit, unitWithConfigs) {
       canId: networkUnit.id_can,
     });
 
-    await new Promise((resolve) => setTimeout(resolve, 300));
-
     const configResponse = await window.electronAPI.ioController.getOutputConfig(networkUnit.ip_address, networkUnit.id_can);
-
-    await new Promise((resolve) => setTimeout(resolve, 300));
 
     const acConfigResponse = await window.electronAPI.ioController.getLocalACConfig(networkUnit.ip_address, networkUnit.id_can);
 
