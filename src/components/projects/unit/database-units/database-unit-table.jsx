@@ -176,7 +176,7 @@ export function UnitTable() {
       try {
         // Import basic unit data (RS485 + I/O)
         onProgress?.(0, TRANSFER_STEP.IMPORT_UNIT);
-        const importedUnits = await importItems(category, unitsToTransfer);
+        const importedUnits = await importItems(category, unitsToTransfer, true);
 
         // Read advanced configurations (scenes, schedules, curtains, KNX, multi-scenes, sequences)
         log.info(`Reading advanced configurations for ${importedUnits.length} unit(s)...`);

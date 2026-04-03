@@ -176,7 +176,7 @@ export function ProjectDetailProvider({ children }) {
 
   // Generic item operations - memoized
   const createItem = useCallback(
-    async (category, itemData) => {
+    async (category, itemData, silent = false) => {
       if (!selectedProject) return;
 
       try {
@@ -187,7 +187,7 @@ export function ProjectDetailProvider({ children }) {
           ...prev,
           [category]: [...prev[category], newItem],
         }));
-        toast.success(`${capitalizeFirstLetter(category)} item created successfully`);
+        if (!silent) toast.success(`${capitalizeFirstLetter(category)} item created successfully`);
         return newItem;
       } catch (err) {
         log.error(`Failed to create ${category} item:`, err);
@@ -278,7 +278,7 @@ export function ProjectDetailProvider({ children }) {
 
   // Import items from CSV - memoized to prevent recreating on every render
   const importItems = useCallback(
-    async (category, items) => {
+    async (category, items, silent = false) => {
       try {
         if (!selectedProject) {
           toast.error("No project selected");
@@ -308,7 +308,7 @@ export function ProjectDetailProvider({ children }) {
           }));
           setAirconCards((prev) => [...prev, ...cards]);
 
-          toast.success(`${items.length} aircon cards (${importedItems.length} items) imported successfully`);
+          if (!silent) toast.success(`${items.length} aircon cards (${importedItems.length} items) imported successfully`);
         } else {
           // Map category to API name
           const apiName = category === "multi_scenes" ? "multiScenes" : category;
@@ -318,7 +318,7 @@ export function ProjectDetailProvider({ children }) {
             [category]: [...prev[category], ...importedItems],
           }));
 
-          toast.success(`${importedItems.length} ${category} items imported successfully`);
+          if (!silent) toast.success(`${importedItems.length} ${category} items imported successfully`);
         }
 
         return importedItems;

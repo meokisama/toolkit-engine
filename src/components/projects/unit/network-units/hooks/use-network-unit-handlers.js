@@ -23,6 +23,8 @@ export function useNetworkUnitHandlers({ state, onTransferToDatabase, existingUn
   // -------------------------------------------------------------------------
   const executeTransfer = useCallback(
     async (units) => {
+      const silentCreateItem = (category, itemData) => createItem(category, itemData, true);
+      const transferToastId = toast.loading(`Transferring ${units.length} unit(s) to database...`);
       try {
         // Step 0: Pre-fetch all DB items once (fixes N+1 query problem)
         transferStore.setProgress(0, TRANSFER_STEP.PREFETCH);
@@ -54,7 +56,7 @@ export function useNetworkUnitHandlers({ state, onTransferToDatabase, existingUn
             unit,
             selectedProject,
             projectItems,
-            createItem,
+            silentCreateItem,
             createdItemsCache,
             itemCache
           );
@@ -87,10 +89,12 @@ export function useNetworkUnitHandlers({ state, onTransferToDatabase, existingUn
         setSelectedNetworkUnits([]);
         if (networkTable) networkTable.resetRowSelection();
 
+        toast.dismiss(transferToastId);
         toast.success(`Successfully transferred ${units.length} unit(s) with configurations to database`);
       } catch (error) {
         log.error("Transfer execution failed:", error);
         transferStore.fail(error.message);
+        toast.dismiss(transferToastId);
         toast.error("Transfer failed: " + error.message);
       }
     },
