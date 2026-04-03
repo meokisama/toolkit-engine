@@ -1,113 +1,79 @@
-/**
- * Compare input configurations between database and network unit
- * @param {Object} databaseInputs - Input configs from database unit
- * @param {Object} networkInputs - Input configs from network unit
- * @returns {Object} Comparison result with differences
- */
+import { createDiff, nullCheck } from "./helpers";
+
 export function compareInputConfigs(databaseInputs, networkInputs) {
+  const early = nullCheck(databaseInputs, networkInputs, "input");
+  if (early) return early;
+
   const differences = [];
-
-  if (!databaseInputs && !networkInputs) {
-    return { isEqual: true, differences: [] };
-  }
-
-  if (!databaseInputs || !networkInputs) {
-    return {
-      isEqual: false,
-      differences: ["One unit has input configs while the other does not"],
-    };
-  }
-
   const dbInputs = databaseInputs.inputs || [];
   const netInputs = networkInputs.inputs || [];
 
   for (let i = 0; i < Math.max(dbInputs.length, netInputs.length); i++) {
     const dbInput = dbInputs[i];
     const netInput = netInputs[i];
+    const label = `Input ${i + 1}`;
 
     if (!dbInput && !netInput) continue;
 
     if (!dbInput || !netInput) {
-      differences.push(`Input ${i + 1}: Configuration exists in only one unit`);
+      differences.push(createDiff("input", label, dbInput ? "present" : "missing", netInput ? "present" : "missing"));
       continue;
     }
 
-    // Skip detailed comparison if both inputs are unused (function_value = 0)
-    const dbFunctionValue = dbInput.function_value || 0;
-    const netFunctionValue = netInput.function_value || 0;
+    // Skip unused inputs (both function_value = 0)
+    const dbFn = dbInput.function_value || 0;
+    const netFn = netInput.function_value || 0;
+    if (dbFn === 0 && netFn === 0) continue;
 
-    if (dbFunctionValue === 0 && netFunctionValue === 0) {
-      // Both inputs are unused, skip detailed comparison
-      continue;
-    }
-
-    // Compare input properties based on actual structure from transfer function
-    const fieldsToCompare = [
-      { name: "index", label: "Index" },
-      { name: "function_value", label: "Function Value" },
-      { name: "lighting_id", label: "Lighting ID" },
-    ];
-
-    fieldsToCompare.forEach((field) => {
-      if (dbInput[field.name] !== netInput[field.name]) {
-        differences.push(`Input ${i + 1} ${field.label}: DB=${dbInput[field.name]}, Network=${netInput[field.name]}`);
+    // Compare basic fields
+    // Note: lighting_id is an internal DB concept (always null in network data), skip it
+    [
+      { name: "index", lbl: `${label} Index` },
+      { name: "function_value", lbl: `${label} Function` },
+    ].forEach(({ name, lbl }) => {
+      if (dbInput[name] !== netInput[name]) {
+        differences.push(createDiff("input", lbl, dbInput[name], netInput[name]));
       }
     });
 
-    // Compare multi_group_config arrays - both should be arrays of objects with {groupId, presetBrightness}
-    const dbGroups = dbInput.multi_group_config || [];
-    const netGroups = netInput.multi_group_config || [];
-
-    // Filter out invalid/empty groups (groups with groupId > 0)
-    const dbActiveGroups = dbGroups.filter((group) => group && typeof group === "object" && group.groupId > 0);
-    const netActiveGroups = netGroups.filter((group) => group && typeof group === "object" && group.groupId > 0);
+    // Compare multi_group_config
+    const dbActiveGroups = (dbInput.multi_group_config || []).filter((g) => g && typeof g === "object" && g.groupId > 0);
+    const netActiveGroups = (netInput.multi_group_config || []).filter((g) => g && typeof g === "object" && g.groupId > 0);
 
     if (dbActiveGroups.length !== netActiveGroups.length) {
-      differences.push(`Input ${i + 1} Active Multi-Group Count: DB=${dbActiveGroups.length}, Network=${netActiveGroups.length}`);
+      differences.push(createDiff("input", `${label} Multi-Group Count`, dbActiveGroups.length, netActiveGroups.length));
     } else {
-      // Sort both arrays by groupId for consistent comparison
-      const sortedDbGroups = [...dbActiveGroups].sort((a, b) => a.groupId - b.groupId);
-      const sortedNetGroups = [...netActiveGroups].sort((a, b) => a.groupId - b.groupId);
+      const sortedDb = [...dbActiveGroups].sort((a, b) => a.groupId - b.groupId);
+      const sortedNet = [...netActiveGroups].sort((a, b) => a.groupId - b.groupId);
 
-      for (let j = 0; j < sortedDbGroups.length; j++) {
-        const dbGroup = sortedDbGroups[j];
-        const netGroup = sortedNetGroups[j];
-
-        if (dbGroup.groupId !== netGroup.groupId) {
-          differences.push(`Input ${i + 1} Multi-Group[${j}] Group ID: DB=${dbGroup.groupId}, Network=${netGroup.groupId}`);
+      for (let j = 0; j < sortedDb.length; j++) {
+        if (sortedDb[j].groupId !== sortedNet[j].groupId) {
+          differences.push(createDiff("input", `${label} Group[${j}] ID`, sortedDb[j].groupId, sortedNet[j].groupId));
         }
-
-        if (dbGroup.presetBrightness !== netGroup.presetBrightness) {
-          differences.push(
-            `Input ${i + 1} Multi-Group[${j}] Preset Brightness: DB=${dbGroup.presetBrightness}, Network=${netGroup.presetBrightness}`
-          );
+        if (sortedDb[j].presetBrightness !== sortedNet[j].presetBrightness) {
+          differences.push(createDiff("input", `${label} Group[${j}] Preset`, sortedDb[j].presetBrightness, sortedNet[j].presetBrightness));
         }
       }
     }
 
-    // Compare rlc_config object
+    // Compare rlc_config
     const dbRlc = dbInput.rlc_config || {};
     const netRlc = netInput.rlc_config || {};
 
-    const rlcFields = [
-      { name: "ramp", label: "Ramp" },
-      { name: "preset", label: "Preset" },
-      { name: "ledDisplay", label: "LED Display" },
-      { name: "nightlight", label: "Nightlight" },
-      { name: "backlight", label: "Backlight" },
-      { name: "autoMode", label: "Auto Mode" },
-      { name: "delayOff", label: "Delay Off" },
-    ];
-
-    rlcFields.forEach((field) => {
-      if (dbRlc[field.name] !== netRlc[field.name]) {
-        differences.push(`Input ${i + 1} RLC ${field.label}: DB=${dbRlc[field.name]}, Network=${netRlc[field.name]}`);
+    [
+      { name: "ramp", lbl: `${label} RLC Ramp` },
+      { name: "preset", lbl: `${label} RLC Preset` },
+      { name: "ledDisplay", lbl: `${label} RLC LED Display` },
+      { name: "nightlight", lbl: `${label} RLC Nightlight` },
+      { name: "backlight", lbl: `${label} RLC Backlight` },
+      { name: "autoMode", lbl: `${label} RLC Auto Mode` },
+      { name: "delayOff", lbl: `${label} RLC Delay Off` },
+    ].forEach(({ name, lbl }) => {
+      if (dbRlc[name] !== netRlc[name]) {
+        differences.push(createDiff("input", lbl, dbRlc[name], netRlc[name]));
       }
     });
   }
 
-  return {
-    isEqual: differences.length === 0,
-    differences,
-  };
+  return { isEqual: differences.length === 0, differences };
 }

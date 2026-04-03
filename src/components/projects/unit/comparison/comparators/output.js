@@ -1,187 +1,139 @@
+import { createDiff, nullCheck } from "./helpers";
 import log from "electron-log/renderer";
 
-/**
- * Compare output configurations between database and network unit
- * @param {Object} databaseOutputs - Output configs from database unit
- * @param {Object} networkOutputs - Output configs from network unit
- * @param {Object} projectItems - Project items for device_id to address lookup
- * @returns {Object} Comparison result with differences
- */
 export function compareOutputConfigs(databaseOutputs, networkOutputs, projectItems = null) {
+  const early = nullCheck(databaseOutputs, networkOutputs, "output");
+  if (early) return early;
+
   const differences = [];
-
-  if (!databaseOutputs && !networkOutputs) {
-    return { isEqual: true, differences: [] };
-  }
-
-  if (!databaseOutputs || !networkOutputs) {
-    return {
-      isEqual: false,
-      differences: ["One unit has output configs while the other does not"],
-    };
-  }
-
   const dbOutputs = databaseOutputs.outputs || [];
   const netOutputs = networkOutputs.outputs || [];
 
   for (let i = 0; i < Math.max(dbOutputs.length, netOutputs.length); i++) {
     const dbOutput = dbOutputs[i];
     const netOutput = netOutputs[i];
+    const label = `Output ${i + 1}`;
 
     if (!dbOutput && !netOutput) continue;
 
     if (!dbOutput || !netOutput) {
-      differences.push(`Output ${i + 1}: Configuration exists in only one unit`);
+      differences.push(createDiff("output", label, dbOutput ? "present" : "missing", netOutput ? "present" : "missing"));
       continue;
     }
 
-    // Compare output properties (skip device_id and name as they are not meaningful for comparison)
-    const fieldsToCompare = [
-      { name: "index", label: "Index" },
-      { name: "type", label: "Type" },
-      { name: "device_type", label: "Device Type" },
-    ];
-
-    fieldsToCompare.forEach((field) => {
-      if (dbOutput[field.name] !== netOutput[field.name]) {
-        differences.push(`Output ${i + 1} ${field.label}: DB=${dbOutput[field.name]}, Network=${netOutput[field.name]}`);
+    // Compare basic output properties (skip device_id and name — not meaningful for comparison)
+    [
+      { name: "index", lbl: `${label} Index` },
+      { name: "type", lbl: `${label} Type` },
+      { name: "device_type", lbl: `${label} Device Type` },
+    ].forEach(({ name, lbl }) => {
+      if (dbOutput[name] !== netOutput[name]) {
+        differences.push(createDiff("output", lbl, dbOutput[name], netOutput[name]));
       }
     });
 
-    // Compare addresses - convert database device_id to address for comparison
+    // Resolve DB address from device_id via projectItems
     let dbAddress = null;
-    let netAddress = null;
-
-    // Get database address from device_id
     if (dbOutput.device_id && projectItems) {
       const deviceType = dbOutput.device_type === "aircon" ? "aircon" : "lighting";
-      if (projectItems[deviceType]) {
-        const item = projectItems[deviceType].find((item) => item.id === dbOutput.device_id);
-        dbAddress = item ? parseInt(item.address) : null;
+      const item = projectItems[deviceType]?.find((it) => it.id === dbOutput.device_id);
+      dbAddress = item ? parseInt(item.address) : null;
 
-        // Debug logging for AC outputs
-        if (dbOutput.type === "ac") {
-          log.info(`AC Output ${i + 1} device_id lookup:`, {
-            device_id: dbOutput.device_id,
-            deviceType,
-            availableItems: projectItems[deviceType]?.length || 0,
-            foundItem: !!item,
-            itemAddress: item?.address,
-            resolvedAddress: dbAddress,
-          });
-        }
+      if (dbOutput.type === "ac") {
+        log.info(`AC Output ${i + 1} device_id lookup:`, {
+          device_id: dbOutput.device_id,
+          deviceType,
+          found: !!item,
+          address: item?.address,
+        });
       }
     }
 
-    // Get network address based on output type
-    if (dbOutput.type === "ac" || netOutput.type === "ac") {
-      // For AC outputs, address comes from AC config, not from assignment
-      netAddress = netOutput.config?.address || 0;
-    } else {
-      // For lighting outputs, address comes from config
-      netAddress = netOutput.config?.address;
-    }
+    const netAddress = dbOutput.type === "ac" || netOutput.type === "ac"
+      ? netOutput.config?.address || 0
+      : netOutput.config?.address;
 
-    // Convert addresses for comparison
-    // For both AC and lighting: treat 0 and null as equivalent (unassigned)
-    const dbAddressStr = dbAddress && dbAddress > 0 ? dbAddress.toString() : "0";
-    const netAddressStr = netAddress && netAddress > 0 ? netAddress.toString() : "0";
+    const dbAddrStr = dbAddress && dbAddress > 0 ? String(dbAddress) : "0";
+    const netAddrStr = netAddress && netAddress > 0 ? String(netAddress) : "0";
 
-    // Only report address differences if they are meaningful
-    if (dbAddressStr !== netAddressStr) {
-      if (dbOutput.type === "ac" || netOutput.type === "ac") {
-        // For AC outputs, show AC Address comparison
-        const dbDisplayValue = dbAddressStr === "0" ? "unassigned" : dbAddressStr;
-        const netDisplayValue = netAddressStr === "0" ? "unassigned" : netAddressStr;
-        differences.push(`Output ${i + 1} AC Address: DB=${dbDisplayValue}, Network=${netDisplayValue}`);
-      } else {
-        // For lighting outputs, only report if both are not unassigned (0)
-        // Skip reporting if both DB and Network are unassigned (0)
-        if (!(dbAddressStr === "0" && netAddressStr === "0")) {
-          const dbDisplayValue = dbAddressStr === "0" ? "unassigned" : dbAddressStr;
-          const netDisplayValue = netAddressStr === "0" ? "unassigned" : netAddressStr;
-          differences.push(`Output ${i + 1} Address: DB=${dbDisplayValue} (device_id=${dbOutput.device_id}), Network=${netDisplayValue}`);
-        }
+    if (dbAddrStr !== netAddrStr) {
+      const isAc = dbOutput.type === "ac" || netOutput.type === "ac";
+      if (isAc) {
+        differences.push(createDiff("output", `${label} AC Address`, dbAddrStr === "0" ? "unassigned" : dbAddrStr, netAddrStr === "0" ? "unassigned" : netAddrStr));
+      } else if (!(dbAddrStr === "0" && netAddrStr === "0")) {
+        differences.push(createDiff("output", `${label} Address`, dbAddrStr === "0" ? "unassigned" : dbAddrStr, netAddrStr === "0" ? "unassigned" : netAddrStr));
       }
     }
 
-    // Compare config object based on output type
+    // Compare config fields by output type
     const dbConfig = dbOutput.config || {};
     const netConfig = netOutput.config || {};
+    const isAcOutput = dbOutput.type === "ac" || netOutput.type === "ac";
 
-    if (dbOutput.type === "ac" || netOutput.type === "ac") {
-      // Compare aircon-specific config fields (address is handled separately above)
-      const acConfigFields = [
-        { name: "enable", label: "Enable" },
-        { name: "windowMode", label: "Window Mode" },
-        { name: "fanType", label: "Fan Type" },
-        { name: "tempType", label: "Temp Type" },
-        { name: "tempUnit", label: "Temp Unit" },
-        { name: "valveContact", label: "Valve Contact" },
-        { name: "valveType", label: "Valve Type" },
-        { name: "deadband", label: "Deadband" },
-        { name: "lowFCU_Group", label: "Low FCU Group" },
-        { name: "medFCU_Group", label: "Med FCU Group" },
-        { name: "highFCU_Group", label: "High FCU Group" },
-        { name: "fanAnalogGroup", label: "Fan Analog Group" },
-        { name: "analogCoolGroup", label: "Analog Cool Group" },
-        { name: "analogHeatGroup", label: "Analog Heat Group" },
-        { name: "valveCoolOpenGroup", label: "Valve Cool Open Group" },
-        { name: "valveCoolCloseGroup", label: "Valve Cool Close Group" },
-        { name: "valveHeatOpenGroup", label: "Valve Heat Open Group" },
-        { name: "valveHeatCloseGroup", label: "Valve Heat Close Group" },
-        { name: "windowBypass", label: "Window Bypass" },
-        { name: "setPointOffset", label: "Set Point Offset" },
-        { name: "unoccupyPower", label: "Unoccupy Power" },
-        { name: "occupyPower", label: "Occupy Power" },
-        { name: "standbyPower", label: "Standby Power" },
-        { name: "unoccupyMode", label: "Unoccupy Mode" },
-        { name: "occupyMode", label: "Occupy Mode" },
-        { name: "standbyMode", label: "Standby Mode" },
-        { name: "unoccupyFanSpeed", label: "Unoccupy Fan Speed" },
-        { name: "occupyFanSpeed", label: "Occupy Fan Speed" },
-        { name: "standbyFanSpeed", label: "Standby Fan Speed" },
-        { name: "unoccupyCoolSetPoint", label: "Unoccupy Cool Set Point" },
-        { name: "occupyCoolSetPoint", label: "Occupy Cool Set Point" },
-        { name: "standbyCoolSetPoint", label: "Standby Cool Set Point" },
-        { name: "unoccupyHeatSetPoint", label: "Unoccupy Heat Set Point" },
-        { name: "occupyHeatSetPoint", label: "Occupy Heat Set Point" },
-        { name: "standbyHeatSetPoint", label: "Standby Heat Set Point" },
-      ];
-
-      acConfigFields.forEach((field) => {
-        if (dbConfig[field.name] !== netConfig[field.name]) {
-          differences.push(`Output ${i + 1} AC ${field.label}: DB=${dbConfig[field.name]}, Network=${netConfig[field.name]}`);
+    if (isAcOutput) {
+      [
+        { name: "enable", lbl: `${label} Enable` },
+        { name: "windowMode", lbl: `${label} Window Mode` },
+        { name: "fanType", lbl: `${label} Fan Type` },
+        { name: "tempType", lbl: `${label} Temp Type` },
+        { name: "tempUnit", lbl: `${label} Temp Unit` },
+        { name: "valveContact", lbl: `${label} Valve Contact` },
+        { name: "valveType", lbl: `${label} Valve Type` },
+        { name: "deadband", lbl: `${label} Deadband` },
+        { name: "lowFCU_Group", lbl: `${label} Low FCU Group` },
+        { name: "medFCU_Group", lbl: `${label} Med FCU Group` },
+        { name: "highFCU_Group", lbl: `${label} High FCU Group` },
+        { name: "fanAnalogGroup", lbl: `${label} Fan Analog Group` },
+        { name: "analogCoolGroup", lbl: `${label} Analog Cool Group` },
+        { name: "analogHeatGroup", lbl: `${label} Analog Heat Group` },
+        { name: "valveCoolOpenGroup", lbl: `${label} Valve Cool Open` },
+        { name: "valveCoolCloseGroup", lbl: `${label} Valve Cool Close` },
+        { name: "valveHeatOpenGroup", lbl: `${label} Valve Heat Open` },
+        { name: "valveHeatCloseGroup", lbl: `${label} Valve Heat Close` },
+        { name: "windowBypass", lbl: `${label} Window Bypass` },
+        { name: "setPointOffset", lbl: `${label} Setpoint Offset` },
+        { name: "unoccupyPower", lbl: `${label} Unoccupy Power` },
+        { name: "occupyPower", lbl: `${label} Occupy Power` },
+        { name: "standbyPower", lbl: `${label} Standby Power` },
+        { name: "unoccupyMode", lbl: `${label} Unoccupy Mode` },
+        { name: "occupyMode", lbl: `${label} Occupy Mode` },
+        { name: "standbyMode", lbl: `${label} Standby Mode` },
+        { name: "unoccupyFanSpeed", lbl: `${label} Unoccupy Fan Speed` },
+        { name: "occupyFanSpeed", lbl: `${label} Occupy Fan Speed` },
+        { name: "standbyFanSpeed", lbl: `${label} Standby Fan Speed` },
+        { name: "unoccupyCoolSetPoint", lbl: `${label} Unoccupy Cool SP` },
+        { name: "occupyCoolSetPoint", lbl: `${label} Occupy Cool SP` },
+        { name: "standbyCoolSetPoint", lbl: `${label} Standby Cool SP` },
+        { name: "unoccupyHeatSetPoint", lbl: `${label} Unoccupy Heat SP` },
+        { name: "occupyHeatSetPoint", lbl: `${label} Occupy Heat SP` },
+        { name: "standbyHeatSetPoint", lbl: `${label} Standby Heat SP` },
+      ].forEach(({ name, lbl }) => {
+        if (dbConfig[name] !== netConfig[name]) {
+          differences.push(createDiff("output", lbl, dbConfig[name], netConfig[name]));
         }
       });
     } else {
-      // Compare lighting/relay/dimmer config fields
-      const lightingConfigFields = [
-        { name: "autoTrigger", label: "Auto Trigger" },
-        { name: "delayOffHours", label: "Delay Off Hours" },
-        { name: "delayOffMinutes", label: "Delay Off Minutes" },
-        { name: "delayOffSeconds", label: "Delay Off Seconds" },
-        { name: "delayOnHours", label: "Delay On Hours" },
-        { name: "delayOnMinutes", label: "Delay On Minutes" },
-        { name: "delayOnSeconds", label: "Delay On Seconds" },
-        { name: "scheduleOnHour", label: "Schedule On Hour" },
-        { name: "scheduleOnMinute", label: "Schedule On Minute" },
-        { name: "scheduleOffHour", label: "Schedule Off Hour" },
-        { name: "scheduleOffMinute", label: "Schedule Off Minute" },
-        { name: "minDim", label: "Min Dim" },
-        { name: "maxDim", label: "Max Dim" },
-      ];
-
-      lightingConfigFields.forEach((field) => {
-        if (dbConfig[field.name] !== netConfig[field.name]) {
-          differences.push(`Output ${i + 1} Lighting ${field.label}: DB=${dbConfig[field.name]}, Network=${netConfig[field.name]}`);
+      [
+        { name: "autoTrigger", lbl: `${label} Auto Trigger` },
+        { name: "delayOffHours", lbl: `${label} Delay Off Hours` },
+        { name: "delayOffMinutes", lbl: `${label} Delay Off Minutes` },
+        { name: "delayOffSeconds", lbl: `${label} Delay Off Seconds` },
+        { name: "delayOnHours", lbl: `${label} Delay On Hours` },
+        { name: "delayOnMinutes", lbl: `${label} Delay On Minutes` },
+        { name: "delayOnSeconds", lbl: `${label} Delay On Seconds` },
+        { name: "scheduleOnHour", lbl: `${label} Schedule On Hour` },
+        { name: "scheduleOnMinute", lbl: `${label} Schedule On Minute` },
+        { name: "scheduleOffHour", lbl: `${label} Schedule Off Hour` },
+        { name: "scheduleOffMinute", lbl: `${label} Schedule Off Minute` },
+        { name: "minDim", lbl: `${label} Min Dim` },
+        { name: "maxDim", lbl: `${label} Max Dim` },
+      ].forEach(({ name, lbl }) => {
+        if (dbConfig[name] !== netConfig[name]) {
+          differences.push(createDiff("output", lbl, dbConfig[name], netConfig[name]));
         }
       });
     }
   }
 
-  return {
-    isEqual: differences.length === 0,
-    differences,
-  };
+  return { isEqual: differences.length === 0, differences };
 }

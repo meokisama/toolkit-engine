@@ -99,8 +99,10 @@ export function useConfigComparison() {
 
       // Create detailed summary
       const totalMatches = matchingUnits.length;
-      const resultArray = Array.from(results.values());
-      const uniqueResults = resultArray.filter((_, index) => index % 2 === 0); // Remove duplicates
+      // Only take results keyed by "db_" to avoid counting each pair twice
+      const uniqueResults = Array.from(results.entries())
+        .filter(([key]) => key.startsWith("db_"))
+        .map(([, value]) => value);
 
       const identicalUnits = uniqueResults.filter((result) => result.isEqual && !result.error);
       const differentUnits = uniqueResults.filter((result) => !result.isEqual && !result.error);
@@ -114,13 +116,11 @@ export function useConfigComparison() {
         identicalUnits,
         differentUnits,
         errorUnits,
-        allDifferences: differentUnits.reduce((acc, unit) => {
-          acc.push({
-            unitInfo: `${unit.databaseUnit.type} (${unit.databaseUnit.ip_address})`,
-            differences: unit.differences || [],
-          });
-          return acc;
-        }, []),
+        // differences is now Diff[] — structured objects { category, label, dbValue, networkValue }
+        allDifferences: differentUnits.map((unit) => ({
+          unitInfo: `${unit.databaseUnit.type} (${unit.databaseUnit.ip_address})`,
+          differences: unit.differences || [],
+        })),
       };
 
       setComparisonSummary(summary);

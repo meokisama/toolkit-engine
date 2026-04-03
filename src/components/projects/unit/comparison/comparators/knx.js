@@ -1,131 +1,79 @@
-/**
- * Compare KNX configurations between database and network unit
- * @param {Array} databaseKnx - KNX configs from database
- * @param {Array} networkKnx - KNX configs from network unit
- * @returns {Object} Comparison result with differences
- */
+import { createDiff, nullCheck } from "./helpers";
+
 export function compareKnx(databaseKnx, networkKnx) {
+  const early = nullCheck(databaseKnx, networkKnx, "knx");
+  if (early) return early;
+
   const differences = [];
-
-  if (!databaseKnx && !networkKnx) {
-    return { isEqual: true, differences: [] };
-  }
-
-  if (!databaseKnx || !networkKnx) {
-    return {
-      isEqual: false,
-      differences: ["One unit has KNX configs while the other does not"],
-    };
-  }
-
   const dbKnx = Array.isArray(databaseKnx) ? databaseKnx : [];
   const netKnx = Array.isArray(networkKnx) ? networkKnx : [];
 
-  // Filter out disabled KNX configs (type = 0) from both database and network
-  // This matches the behavior in KNX Control dialog
-  const validDbKnx = dbKnx.filter((knx) => knx.type !== 0);
-  const validNetKnx = netKnx.filter((knx) => knx.type !== 0);
+  // Filter disabled KNX configs (type = 0)
+  const validDbKnx = dbKnx.filter((k) => k.type !== 0);
+  const validNetKnx = netKnx.filter((k) => k.type !== 0);
 
-  // Create maps for easier comparison by address
+  if (validDbKnx.length !== validNetKnx.length) {
+    differences.push(createDiff("knx", "Valid KNX Count", validDbKnx.length, validNetKnx.length));
+  }
+
   const dbKnxMap = new Map();
   const netKnxMap = new Map();
 
-  validDbKnx.forEach((knx) => {
-    if (knx.address !== undefined) {
-      dbKnxMap.set(knx.address, knx);
-    }
+  validDbKnx.forEach((k) => {
+    if (k.address !== undefined) dbKnxMap.set(k.address, k);
+  });
+  validNetKnx.forEach((k) => {
+    if (k.address !== undefined) netKnxMap.set(k.address, k);
   });
 
-  validNetKnx.forEach((knx) => {
-    if (knx.address !== undefined) {
-      netKnxMap.set(knx.address, knx);
-    }
-  });
-
-  // Get all unique addresses
   const allAddresses = new Set([...dbKnxMap.keys(), ...netKnxMap.keys()]);
 
-  // Compare valid KNX count
-  if (validDbKnx.length !== validNetKnx.length) {
-    differences.push(`Valid KNX count: DB=${validDbKnx.length}, Network=${validNetKnx.length}`);
-  }
+  const normalizeGroup = (value) => {
+    if (value === null || value === undefined || value === "" || value === "null") return "";
+    return value;
+  };
 
-  // Compare KNX configs by address
   allAddresses.forEach((address) => {
-    const dbKnxConfig = dbKnxMap.get(address);
-    const netKnxConfig = netKnxMap.get(address);
+    const dbConfig = dbKnxMap.get(address);
+    const netConfig = netKnxMap.get(address);
+    const label = `KNX ${address}`;
 
-    if (!dbKnxConfig && !netKnxConfig) return;
-
-    if (!dbKnxConfig) {
-      differences.push(`KNX Address ${address}: Only exists in Network unit`);
+    if (!dbConfig) {
+      differences.push(createDiff("knx", label, "missing", "present"));
+      return;
+    }
+    if (!netConfig) {
+      differences.push(createDiff("knx", label, "present", "missing"));
       return;
     }
 
-    if (!netKnxConfig) {
-      differences.push(`KNX Address ${address}: Only exists in Database unit`);
-      return;
-    }
-
-    // Compare KNX properties (skip name as it's not meaningful for comparison)
-    const knxFields = [
-      { name: "type", label: "Type" },
-      { name: "factor", label: "Factor" },
-      { name: "feedback", label: "Feedback" },
-      { name: "knx_switch_group", label: "KNX Switch Group" },
-      { name: "knx_dimming_group", label: "KNX Dimming Group" },
-      { name: "knx_value_group", label: "KNX Value Group" },
-      { name: "knx_status_group", label: "KNX Status Group" },
-    ];
-
-    knxFields.forEach((field) => {
-      // Handle different field names between database and network
-      let dbValue = dbKnxConfig[field.name];
-      let netValue = netKnxConfig[field.name];
-
-      // Map network field names to database field names
-      if (field.name === "knx_switch_group" && netValue === undefined) {
-        netValue = netKnxConfig.knxSwitchGroup;
-      }
-      if (field.name === "knx_dimming_group" && netValue === undefined) {
-        netValue = netKnxConfig.knxDimmingGroup;
-      }
-      if (field.name === "knx_value_group" && netValue === undefined) {
-        netValue = netKnxConfig.knxValueGroup;
-      }
-      if (field.name === "knx_status_group" && netValue === undefined) {
-        netValue = netKnxConfig.knxStatusGroup;
-      }
-
-      // For KNX group fields, treat null and empty string as equivalent
-      if (field.name.includes("knx_") && field.name.includes("_group")) {
-        // Normalize values: treat null, undefined, and empty string as equivalent
-        const normalizeGroupValue = (value) => {
-          if (value === null || value === undefined || value === "" || value === "null") {
-            return "";
-          }
-          return value;
-        };
-
-        dbValue = normalizeGroupValue(dbValue);
-        netValue = normalizeGroupValue(netValue);
-      }
-
-      if (dbValue !== netValue) {
-        differences.push(`KNX ${address} ${field.label}: DB="${dbValue}", Network="${netValue}"`);
+    // Basic fields
+    [
+      { name: "type", lbl: `${label} Type` },
+      { name: "factor", lbl: `${label} Factor` },
+      { name: "feedback", lbl: `${label} Feedback` },
+    ].forEach(({ name, lbl }) => {
+      if (dbConfig[name] !== netConfig[name]) {
+        differences.push(createDiff("knx", lbl, dbConfig[name], netConfig[name]));
       }
     });
 
-    // Compare RCU group - need to handle the relationship
-    // Database stores rcu_group_id, network stores rcuGroup address
-    if (dbKnxConfig.rcu_group_id && netKnxConfig.rcuGroup) {
-      // This would require looking up the RCU group address from the database
-      // For now, we'll skip this comparison or implement it later
-    }
+    // KNX group fields — handle camelCase vs snake_case between DB and network
+    [
+      { dbField: "knx_switch_group", netField: "knxSwitchGroup", lbl: `${label} Switch Group` },
+      { dbField: "knx_dimming_group", netField: "knxDimmingGroup", lbl: `${label} Dimming Group` },
+      { dbField: "knx_value_group", netField: "knxValueGroup", lbl: `${label} Value Group` },
+      { dbField: "knx_status_group", netField: "knxStatusGroup", lbl: `${label} Status Group` },
+    ].forEach(({ dbField, netField, lbl }) => {
+      const dbValue = normalizeGroup(dbConfig[dbField]);
+      const netValue = normalizeGroup(netConfig[dbField] !== undefined ? netConfig[dbField] : netConfig[netField]);
+      if (dbValue !== netValue) {
+        differences.push(createDiff("knx", lbl, dbValue || "empty", netValue || "empty"));
+      }
+    });
+
+    // RCU group comparison is skipped — requires DB lookup (known TODO)
   });
 
-  return {
-    isEqual: differences.length === 0,
-    differences,
-  };
+  return { isEqual: differences.length === 0, differences };
 }
