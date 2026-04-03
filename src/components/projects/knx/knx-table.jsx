@@ -38,6 +38,8 @@ function KnxTableComponent({ items, loading }) {
     closeImport,
   } = dialogs;
 
+  const category = "knx";
+
   const { columnVisibility, pagination, onColumnVisibilityChange, onPaginationChange } = useTableUI(category, { description: false });
 
   const [table, setTable] = useState(null);
@@ -55,8 +57,6 @@ function KnxTableComponent({ items, loading }) {
   const [generateSceneSheetOpen, setGenerateSceneSheetOpen] = useState(false);
   const [generateMultiSceneSheetOpen, setGenerateMultiSceneSheetOpen] = useState(false);
   const [generateSequenceSheetOpen, setGenerateSequenceSheetOpen] = useState(false);
-
-  const category = "knx";
 
   // Get unit items for source unit filtering
   const unitItems = projectItems.unit || [];
