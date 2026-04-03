@@ -12,6 +12,7 @@ import { createProjectItemsColumns } from "@/components/projects/lighting/lighti
 import { ImportItemsDialog } from "@/components/projects/import-category-dialog";
 import { Lightbulb } from "lucide-react";
 import { useTableDialogs } from "@/hooks/use-table-dialogs";
+import { useTableUI } from "@/hooks/use-table-ui";
 import log from "electron-log/renderer";
 
 // Memoized component to prevent unnecessary rerenders
@@ -32,10 +33,10 @@ function ProjectItemsTableComponent({ category, items, loading }) {
     closeImport,
   } = dialogs;
 
+  const { columnVisibility, pagination, onColumnVisibilityChange, onPaginationChange } = useTableUI(category);
+
   const [table, setTable] = useState(null);
   const [selectedRowsCount, setSelectedRowsCount] = useState(0);
-  const [columnVisibility, setColumnVisibility] = useState({});
-  const [pagination, setPagination] = useState({ pageIndex: 0, pageSize: 10 });
   const [saveLoading, setSaveLoading] = useState(false);
 
   // Use ref instead of state to avoid re-renders when pendingChanges update
@@ -142,19 +143,8 @@ function ProjectItemsTableComponent({ category, items, loading }) {
     }
   };
 
-  // Handle row selection changes from DataTable
   const handleRowSelectionChange = useCallback((selectedCount) => {
     setSelectedRowsCount(selectedCount);
-  }, []);
-
-  // Handle column visibility changes from DataTable
-  const handleColumnVisibilityChange = useCallback((visibility) => {
-    setColumnVisibility(visibility);
-  }, []);
-
-  // Handle pagination changes from DataTable
-  const handlePaginationChange = useCallback((paginationState) => {
-    setPagination(paginationState);
   }, []);
 
   const handleExport = useCallback(async () => {
@@ -232,8 +222,8 @@ function ProjectItemsTableComponent({ category, items, loading }) {
                 initialPagination={pagination}
                 onTableReady={setTable}
                 onRowSelectionChange={handleRowSelectionChange}
-                onColumnVisibilityChange={handleColumnVisibilityChange}
-                onPaginationChange={handlePaginationChange}
+                onColumnVisibilityChange={onColumnVisibilityChange}
+                onPaginationChange={onPaginationChange}
                 onEdit={handleEditItem}
                 onDuplicate={handleDuplicateItem}
                 onDelete={handleDeleteItem}

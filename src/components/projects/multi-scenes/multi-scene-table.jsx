@@ -12,6 +12,7 @@ import { MultiSceneDialog } from "@/components/projects/multi-scenes/multi-scene
 import { SendMultiSceneDialog } from "@/components/projects/multi-scenes/send-multi-scene-dialog";
 import { Layers } from "lucide-react";
 import { useTableDialogs } from "@/hooks/use-table-dialogs";
+import { useTableUI } from "@/hooks/use-table-ui";
 import { toast } from "sonner";
 import log from "electron-log/renderer";
 
@@ -27,8 +28,7 @@ const MultiSceneTable = memo(function MultiSceneTable({ items = [], loading = fa
 
   const [table, setTable] = useState(null);
   const [selectedRowsCount, setSelectedRowsCount] = useState(0);
-  const [columnVisibility, setColumnVisibility] = useState({});
-  const [pagination, setPagination] = useState({ pageIndex: 0, pageSize: 10 });
+  const { columnVisibility, pagination, onColumnVisibilityChange, onPaginationChange } = useTableUI(category);
   const [saveLoading, setSaveLoading] = useState(false);
 
   const pendingChangesRef = useRef(new Map());
@@ -109,8 +109,6 @@ const MultiSceneTable = memo(function MultiSceneTable({ items = [], loading = fa
   }, [items]);
 
   const handleRowSelectionChange = useCallback((selectedCount) => setSelectedRowsCount(selectedCount), []);
-  const handleColumnVisibilityChange = useCallback((visibility) => setColumnVisibility(visibility), []);
-  const handlePaginationChange = useCallback((newPagination) => setPagination(newPagination), []);
 
   const handleBulkDelete = useCallback(
     (selectedItems) => {
@@ -228,8 +226,8 @@ const MultiSceneTable = memo(function MultiSceneTable({ items = [], loading = fa
                 initialPagination={pagination}
                 onTableReady={setTable}
                 onRowSelectionChange={handleRowSelectionChange}
-                onColumnVisibilityChange={handleColumnVisibilityChange}
-                onPaginationChange={handlePaginationChange}
+                onColumnVisibilityChange={onColumnVisibilityChange}
+                onPaginationChange={onPaginationChange}
                 onEdit={handleEditItem}
                 onDuplicate={handleDuplicateItem}
                 onDelete={handleDeleteItem}

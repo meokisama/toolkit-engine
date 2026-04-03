@@ -18,6 +18,7 @@ import { GenerateFromMultiSceneSheet } from "@/components/projects/knx/sheets/ge
 import { GenerateFromSequenceSheet } from "@/components/projects/knx/sheets/generate-sequence";
 import { Network } from "lucide-react";
 import { useTableDialogs } from "@/hooks/use-table-dialogs";
+import { useTableUI } from "@/hooks/use-table-ui";
 import log from "electron-log/renderer";
 
 function KnxTableComponent({ items, loading }) {
@@ -37,10 +38,10 @@ function KnxTableComponent({ items, loading }) {
     closeImport,
   } = dialogs;
 
+  const { columnVisibility, pagination, onColumnVisibilityChange, onPaginationChange } = useTableUI(category, { description: false });
+
   const [table, setTable] = useState(null);
   const [selectedRowsCount, setSelectedRowsCount] = useState(0);
-  const [columnVisibility, setColumnVisibility] = useState({ description: false });
-  const [pagination, setPagination] = useState({ pageIndex: 0, pageSize: 10 });
   const [saveLoading, setSaveLoading] = useState(false);
 
   const pendingChangesRef = useRef(new Map());
@@ -167,8 +168,6 @@ function KnxTableComponent({ items, loading }) {
   }, [dialogs.bulkDelete.items, deleteItem, category, closeBulkDelete, setBulkDeleteLoading, table]);
 
   const handleRowSelectionChange = useCallback((selectedCount) => setSelectedRowsCount(selectedCount), []);
-  const handleColumnVisibilityChange = useCallback((visibility) => setColumnVisibility(visibility), []);
-  const handlePaginationChange = useCallback((newPagination) => setPagination(newPagination), []);
 
   const handleExport = useCallback(async () => {
     try {
@@ -266,8 +265,8 @@ function KnxTableComponent({ items, loading }) {
                 initialColumnVisibility={columnVisibility}
                 onTableReady={setTable}
                 onRowSelectionChange={handleRowSelectionChange}
-                onColumnVisibilityChange={handleColumnVisibilityChange}
-                onPaginationChange={handlePaginationChange}
+                onColumnVisibilityChange={onColumnVisibilityChange}
+                onPaginationChange={onPaginationChange}
                 onEdit={handleEditItem}
                 onDuplicate={handleDuplicateItem}
                 onDelete={handleDeleteItem}

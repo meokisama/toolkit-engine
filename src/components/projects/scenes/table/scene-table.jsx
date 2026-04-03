@@ -13,6 +13,7 @@ import { SlidersHorizontal } from "lucide-react";
 import { SendSceneDialog } from "@/components/projects/scenes/dialogs/send-scene-dialog";
 import { ImportCategoryDialog } from "@/components/projects/import-category-dialog";
 import { useTableDialogs } from "@/hooks/use-table-dialogs";
+import { useTableUI } from "@/hooks/use-table-ui";
 import { toast } from "sonner";
 import log from "electron-log/renderer";
 
@@ -27,8 +28,7 @@ const SceneTable = memo(function SceneTable({ items = [], loading = false }) {
   const [sendSceneDialog, setSendSceneDialog] = useState({ open: false, items: [] });
 
   const [table, setTable] = useState(null);
-  const [columnVisibility, setColumnVisibility] = useState({});
-  const [pagination, setPagination] = useState({ pageIndex: 0, pageSize: 10 });
+  const { columnVisibility, pagination, onColumnVisibilityChange, onPaginationChange } = useTableUI(category);
   const [saveLoading, setSaveLoading] = useState(false);
   const [selectedRowsCount, setSelectedRowsCount] = useState(0);
 
@@ -163,8 +163,6 @@ const SceneTable = memo(function SceneTable({ items = [], loading = false }) {
   );
 
   const handleRowSelectionChange = useCallback((selectedCount) => setSelectedRowsCount(selectedCount), []);
-  const handleColumnVisibilityChange = useCallback((visibility) => setColumnVisibility(visibility), []);
-  const handlePaginationChange = useCallback((newPagination) => setPagination(newPagination), []);
 
   const handleBulkDelete = useCallback(
     async (selectedItems) => {
@@ -261,8 +259,8 @@ const SceneTable = memo(function SceneTable({ items = [], loading = false }) {
                 initialPagination={pagination}
                 onTableReady={setTable}
                 onRowSelectionChange={handleRowSelectionChange}
-                onColumnVisibilityChange={handleColumnVisibilityChange}
-                onPaginationChange={handlePaginationChange}
+                onColumnVisibilityChange={onColumnVisibilityChange}
+                onPaginationChange={onPaginationChange}
                 onEdit={handleEditItem}
                 onDuplicate={handleDuplicateItem}
                 onDelete={handleDeleteItem}

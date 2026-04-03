@@ -12,6 +12,7 @@ import { ImportItemsDialog } from "@/components/projects/import-category-dialog"
 import { useProjectDetail } from "@/contexts/project-detail-context";
 import { TableSkeleton } from "@/components/projects/table-skeleton";
 import { useTableDialogs } from "@/hooks/use-table-dialogs";
+import { useTableUI } from "@/hooks/use-table-ui";
 import log from "electron-log/renderer";
 
 export function CurtainTable({ items = [], loading = false }) {
@@ -20,10 +21,10 @@ export function CurtainTable({ items = [], loading = false }) {
   const dialogs = useTableDialogs();
   const { openCreate, openEdit, closeCrud, openConfirm, closeConfirm, openBulkDelete, closeBulkDelete, setBulkDeleteLoading, openImport, closeImport } = dialogs;
 
+  const { columnVisibility, pagination, onColumnVisibilityChange, onPaginationChange } = useTableUI(category, { description: false });
+
   const [table, setTable] = useState(null);
   const [selectedRowsCount, setSelectedRowsCount] = useState(0);
-  const [columnVisibility, setColumnVisibility] = useState({ description: false });
-  const [pagination, setPagination] = useState({ pageIndex: 0, pageSize: 10 });
   const [saveLoading, setSaveLoading] = useState(false);
 
   const pendingChangesRef = useRef(new Map());
@@ -99,8 +100,6 @@ export function CurtainTable({ items = [], loading = false }) {
   );
 
   const handleRowSelectionChange = useCallback((selectedCount) => setSelectedRowsCount(selectedCount), []);
-  const handleColumnVisibilityChange = useCallback((visibility) => setColumnVisibility(visibility), []);
-  const handlePaginationChange = useCallback((paginationState) => setPagination(paginationState), []);
 
   const handleBulkDelete = useCallback((selectedItems) => {
     openBulkDelete(selectedItems);
@@ -206,8 +205,8 @@ export function CurtainTable({ items = [], loading = false }) {
                 initialColumnVisibility={columnVisibility}
                 onTableReady={setTable}
                 onRowSelectionChange={handleRowSelectionChange}
-                onColumnVisibilityChange={handleColumnVisibilityChange}
-                onPaginationChange={handlePaginationChange}
+                onColumnVisibilityChange={onColumnVisibilityChange}
+                onPaginationChange={onPaginationChange}
                 onEdit={handleEdit}
                 onDuplicate={handleDuplicate}
                 onDelete={handleDelete}
