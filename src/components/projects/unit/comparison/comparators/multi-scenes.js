@@ -20,10 +20,12 @@ export function compareMultiScenes(databaseMultiScenes, networkMultiScenes) {
   const netMap = new Map();
 
   validDbMultiScenes.forEach((ms) => {
-    if (ms.address !== undefined) dbMap.set(ms.address, ms);
+    const addr = ms.address !== undefined ? ms.address : ms.multiSceneAddress;
+    if (addr !== undefined) dbMap.set(parseInt(addr), ms);
   });
   validNetMultiScenes.forEach((ms) => {
-    if (ms.address !== undefined) netMap.set(ms.address, ms);
+    const addr = ms.multiSceneAddress !== undefined ? ms.multiSceneAddress : ms.address;
+    if (addr !== undefined) netMap.set(parseInt(addr), ms);
   });
 
   const allAddresses = new Set([...dbMap.keys(), ...netMap.keys()]);
@@ -42,11 +44,16 @@ export function compareMultiScenes(databaseMultiScenes, networkMultiScenes) {
       return;
     }
 
-    if (dbMs.name !== netMs.name) {
-      differences.push(createDiff("multi_scene", `${label} Name`, dbMs.name, netMs.name));
+    const dbName = dbMs.name;
+    const netName = netMs.multiSceneName ?? netMs.name;
+    const dbType = dbMs.type;
+    const netType = netMs.multiSceneType ?? netMs.type;
+
+    if (dbName !== netName) {
+      differences.push(createDiff("multi_scene", `${label} Name`, dbName, netName));
     }
-    if (dbMs.type !== netMs.type) {
-      differences.push(createDiff("multi_scene", `${label} Type`, dbMs.type, netMs.type));
+    if (dbType !== netType) {
+      differences.push(createDiff("multi_scene", `${label} Type`, dbType, netType));
     }
 
     // Scene order matters

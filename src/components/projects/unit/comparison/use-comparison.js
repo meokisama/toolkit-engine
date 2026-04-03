@@ -1,20 +1,29 @@
-import { useState, useCallback, useRef } from "react";
+import { useCallback, useRef } from "react";
 import { toast } from "sonner";
 import { findMatchingUnits } from "./comparators/unit-matcher";
 import { compareUnitConfigurations } from "./comparators/orchestrator";
 import { readNetworkUnitConfigurations } from "./services/network-config-service";
 import { getDatabaseConfigurations } from "./services/database-config-service";
 import { getNetworkUnitCacheKey } from "./utils/unit-key-utils";
+import { useComparisonStore } from "@/store/use-comparison-store";
 import log from "electron-log/renderer";
 /**
  * Hook for managing configuration comparison between database and network units
  */
 export function useConfigComparison() {
-  const [comparisonResults, setComparisonResults] = useState(new Map());
-  const [isComparing, setIsComparing] = useState(false);
-  const [comparisonProgress, setComparisonProgress] = useState(0);
-  const [hasComparisonResults, setHasComparisonResults] = useState(false);
-  const [comparisonSummary, setComparisonSummary] = useState(null);
+  const {
+    comparisonResults,
+    isComparing,
+    comparisonProgress,
+    hasComparisonResults,
+    comparisonSummary,
+    setComparisonResults,
+    setIsComparing,
+    setComparisonProgress,
+    setHasComparisonResults,
+    setComparisonSummary,
+    reset,
+  } = useComparisonStore();
 
   // Cache for network unit configurations to avoid repeated reads
   const networkConfigCache = useRef(new Map());
@@ -156,11 +165,9 @@ export function useConfigComparison() {
    * Clear all comparison results and cache
    */
   const clearComparisons = useCallback(() => {
-    setComparisonResults(new Map());
-    setHasComparisonResults(false);
-    setComparisonSummary(null);
+    reset();
     networkConfigCache.current.clear();
-  }, []);
+  }, [reset]);
 
   /**
    * Get the background color class for a unit based on comparison result
