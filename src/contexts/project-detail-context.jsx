@@ -1,19 +1,8 @@
-import React, { createContext, useContext, useCallback, useMemo } from "react";
+import { useCallback } from "react";
 import { useProjectNavStore } from "@/store/use-project-nav-store";
 import { useProjectItemsStore } from "@/store/use-project-items-store";
 
-const ProjectDetailContext = createContext();
-
 export function useProjectDetail() {
-  const context = useContext(ProjectDetailContext);
-  if (!context) {
-    throw new Error("useProjectDetail must be used within a ProjectDetailProvider");
-  }
-  return context;
-}
-
-export function ProjectDetailProvider({ children }) {
-  // Subscribe to individual state slices — only re-renders when that slice changes
   const selectedProject = useProjectNavStore((s) => s.selectedProject);
   const activeSection = useProjectNavStore((s) => s.activeSection);
   const activeTab = useProjectNavStore((s) => s.activeTab);
@@ -23,7 +12,6 @@ export function ProjectDetailProvider({ children }) {
   const tabLoading = useProjectItemsStore((s) => s.tabLoading);
   const error = useProjectItemsStore((s) => s.error);
 
-  // All actions read from getState() so they never need to change reference
   const setActiveSection = useCallback((section) => {
     useProjectNavStore.getState().setActiveSection(section);
   }, []);
@@ -92,36 +80,30 @@ export function ProjectDetailProvider({ children }) {
     return useProjectItemsStore.getState().importItems(category, data, project, silent);
   }, []);
 
-  const value = useMemo(
-    () => ({
-      // state
-      selectedProject,
-      activeSection,
-      activeTab,
-      projectItems,
-      airconCards,
-      tabLoading,
-      error,
-      // actions
-      setActiveSection,
-      setActiveTab,
-      selectProject,
-      selectProjectSection,
-      loadTabData,
-      createItem,
-      updateItem,
-      deleteItem,
-      duplicateItem,
-      createAirconCard,
-      updateAirconCard,
-      deleteAirconCard,
-      duplicateAirconCard,
-      exportItems,
-      importItems,
-    }),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [selectedProject, activeSection, activeTab, projectItems, airconCards, tabLoading, error]
-  );
-
-  return <ProjectDetailContext.Provider value={value}>{children}</ProjectDetailContext.Provider>;
+  return {
+    // state
+    selectedProject,
+    activeSection,
+    activeTab,
+    projectItems,
+    airconCards,
+    tabLoading,
+    error,
+    // actions
+    setActiveSection,
+    setActiveTab,
+    selectProject,
+    selectProjectSection,
+    loadTabData,
+    createItem,
+    updateItem,
+    deleteItem,
+    duplicateItem,
+    createAirconCard,
+    updateAirconCard,
+    deleteAirconCard,
+    duplicateAirconCard,
+    exportItems,
+    importItems,
+  };
 }

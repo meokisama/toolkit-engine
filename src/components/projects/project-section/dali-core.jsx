@@ -9,7 +9,7 @@ import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Network, Upload, Trash2, ChevronDown } from "lucide-react";
 import { useProjectDetail } from "@/contexts/project-detail-context";
-import { useDali } from "@/contexts/dali-context";
+import { useDaliStore as useDali } from "@/store/use-dali-store";
 import { AddressMapping } from "@/components/projects/dali/address-mapping";
 import { Group } from "@/components/projects/dali/group";
 import { Scene } from "@/components/projects/dali/scene";

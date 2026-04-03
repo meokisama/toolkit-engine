@@ -6,8 +6,7 @@ import { SidebarInset, SidebarProvider, SidebarTrigger } from "@/components/ui/s
 import { Toaster } from "@/components/ui/sonner";
 import { TitleBar } from "@/components/custom/title-bar";
 import { ProjectProvider } from "@/contexts/project-context";
-import { ProjectDetailProvider, useProjectDetail } from "@/contexts/project-detail-context";
-import { DaliProvider } from "@/contexts/dali-context";
+import { useProjectDetail } from "@/contexts/project-detail-context";
 import { ProjectDetail } from "@/components/projects/project-section/project-detail";
 
 // Breadcrumb component that uses the project context
@@ -60,26 +59,22 @@ export default function App() {
   return (
     <ThemeProvider attribute="class" defaultTheme="light" enableSystem disableTransitionOnChange>
       <ProjectProvider>
-        <ProjectDetailProvider>
-          <DaliProvider>
-            <SidebarProvider>
-              <AppSidebar />
-              <TitleBar />
-              <div className="h-8 left-0 right-36 draggable-region absolute top-0"></div>
-              <SidebarInset className="mt-8!">
-                <header className="flex h-16 shrink-0 items-center gap-2">
-                  <div className="flex items-center gap-2 px-4">
-                    <SidebarTrigger className="-ml-1" />
-                    <Separator orientation="vertical" className="mr-2 h-4" />
-                    <BreadcrumbNav />
-                  </div>
-                </header>
-                <ProjectDetail />
-              </SidebarInset>
-              <Toaster richColors position="bottom-center" />
-            </SidebarProvider>
-          </DaliProvider>
-        </ProjectDetailProvider>
+        <SidebarProvider>
+          <AppSidebar />
+          <TitleBar />
+          <div className="h-8 left-0 right-36 draggable-region absolute top-0"></div>
+          <SidebarInset className="mt-8!">
+            <header className="flex h-16 shrink-0 items-center gap-2">
+              <div className="flex items-center gap-2 px-4">
+                <SidebarTrigger className="-ml-1" />
+                <Separator orientation="vertical" className="mr-2 h-4" />
+                <BreadcrumbNav />
+              </div>
+            </header>
+            <ProjectDetail />
+          </SidebarInset>
+          <Toaster richColors position="bottom-center" />
+        </SidebarProvider>
       </ProjectProvider>
     </ThemeProvider>
   );

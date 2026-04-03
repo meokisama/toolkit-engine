@@ -18,7 +18,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { useProjectDetail } from "@/contexts/project-detail-context";
-import { useDali } from "@/contexts/dali-context";
+import { useDaliStore as useDali } from "@/store/use-dali-store";
 import { toast } from "sonner";
 import { DALI_DEVICE_COUNT } from "./utils/constants";
 import { TriggerDeviceButton } from "./trigger-buttons";

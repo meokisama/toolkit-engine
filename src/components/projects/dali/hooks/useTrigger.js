@@ -1,5 +1,5 @@
 import { useState, useCallback, useRef, useEffect } from "react";
-import { useDali } from "@/contexts/dali-context";
+import { useDaliStore as useDali } from "@/store/use-dali-store";
 import { toast } from "sonner";
 import log from "electron-log/renderer";
 
