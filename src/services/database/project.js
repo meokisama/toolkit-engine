@@ -108,6 +108,7 @@ export const projectMethods = {
           rs485_config: item.rs485_config ? JSON.parse(item.rs485_config) : null,
           input_configs: item.input_configs ? JSON.parse(item.input_configs) : null,
           output_configs: item.output_configs ? JSON.parse(item.output_configs) : null,
+          switch_configs: item.switch_configs ? JSON.parse(item.switch_configs) : null,
         };
 
         // Debug logging for output configs
@@ -176,7 +177,7 @@ export const projectMethods = {
         .all(projectId);
 
       // Get room configuration
-      const room_general_config = this.db.prepare("SELECT * FROM room_general_config WHERE project_id = ?").get(projectId);
+      const room_general_config = this.db.prepare("SELECT * FROM room_general_config WHERE project_id = ?").all(projectId);
 
       const room_detail_config = this.db
         .prepare(

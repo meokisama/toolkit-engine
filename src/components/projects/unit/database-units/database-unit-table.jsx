@@ -14,6 +14,7 @@ import { DataTableSkeleton } from "@/components/projects/table-skeleton";
 import { createUnitColumns } from "./database-unit-columns";
 import { NetworkUnitTable } from "../network-units/network-unit-table";
 import { ComparisonDifferencesDialog, useConfigComparison } from "../comparison";
+import { useTableDialogs } from "@/hooks/use-table-dialogs";
 import { toast } from "sonner";
 import { createDefaultRS485Config } from "@/utils/rs485-utils";
 import { createDefaultInputConfigs, createDefaultOutputConfigs } from "@/utils/io-config-utils";
@@ -23,19 +24,12 @@ import log from "electron-log/renderer";
 
 export function UnitTable() {
   const category = "unit";
-  const { selectedProject, projectItems, deleteItem, duplicateItem, loading, exportItems, importItems, updateItem } =
-    useProjectDetail();
-  const [dialogOpen, setDialogOpen] = useState(false);
-  const [dialogMode, setDialogMode] = useState("create");
-  const [editingItem, setEditingItem] = useState(null);
-  const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
-  const [itemToDelete, setItemToDelete] = useState(null);
-  const [deleteLoading, setDeleteLoading] = useState(false);
+  const { selectedProject, projectItems, deleteItem, duplicateItem, loading, exportItems, importItems, updateItem } = useProjectDetail();
+  const dialogs = useTableDialogs();
   const [databaseTable, setDatabaseTable] = useState(null);
   const [selectedRowsCount, setSelectedRowsCount] = useState(0);
   const [columnVisibility, setColumnVisibility] = useState({ description: false });
   const [pagination, setPagination] = useState({ pageIndex: 0, pageSize: 10 });
-  const [importDialogOpen, setImportDialogOpen] = useState(false);
   const [saveLoading, setSaveLoading] = useState(false);
 
   const pendingChangesRef = useRef(new Map());
@@ -115,15 +109,11 @@ export function UnitTable() {
   }, [units, updateItem]);
 
   const handleCreateItem = () => {
-    setEditingItem(null);
-    setDialogMode("create");
-    setDialogOpen(true);
+    dialogs.openCreate();
   };
 
   const handleEditItem = (item) => {
-    setEditingItem(item);
-    setDialogMode("edit");
-    setDialogOpen(true);
+    dialogs.openEdit(item);
   };
 
   const handleDuplicateItem = async (item) => {
@@ -135,23 +125,21 @@ export function UnitTable() {
   };
 
   const handleDeleteItem = (item) => {
-    setItemToDelete(item);
-    setConfirmDialogOpen(true);
-  };
-
-  const confirmDeleteItem = async () => {
-    if (!itemToDelete) return;
-
-    setDeleteLoading(true);
-    try {
-      await deleteItem(category, itemToDelete.id);
-      setConfirmDialogOpen(false);
-      setItemToDelete(null);
-    } catch (error) {
-      log.error("Failed to delete unit:", error);
-    } finally {
-      setDeleteLoading(false);
-    }
+    dialogs.openConfirm({
+      title: "Delete Unit",
+      description: `Are you sure you want to delete "${item?.name}"? This action cannot be undone.`,
+      onConfirm: async () => {
+        dialogs.setConfirmLoading(true);
+        try {
+          await deleteItem(category, item.id);
+          dialogs.closeConfirm();
+        } catch (error) {
+          log.error("Failed to delete unit:", error);
+        } finally {
+          dialogs.setConfirmLoading(false);
+        }
+      },
+    });
   };
 
   const handleBulkDelete = async (selectedItems) => {
@@ -200,7 +188,7 @@ export function UnitTable() {
         throw error;
       }
     },
-    [importItems, category, selectedProject]
+    [importItems, category, selectedProject],
   );
 
   const handleExport = async () => {
@@ -256,13 +244,13 @@ export function UnitTable() {
   }, [units, networkUnits, compareConfigurations, projectItems, selectedProject]);
 
   const handleImport = () => {
-    setImportDialogOpen(true);
+    dialogs.openImport();
   };
 
   const handleImportConfirm = async (items) => {
     try {
       await importItems(category, items);
-      setImportDialogOpen(false);
+      dialogs.closeImport();
     } catch (error) {
       log.error("Failed to import unit items:", error);
     }
@@ -294,7 +282,7 @@ export function UnitTable() {
     [
       handleCellEdit,
       getEffectiveValue, // This is now stable!
-    ]
+    ],
   );
 
   if (loading) {
@@ -403,23 +391,28 @@ export function UnitTable() {
         </div>
       </div>
 
-      <UnitDialog open={dialogOpen} onOpenChange={setDialogOpen} item={editingItem} mode={dialogMode} />
+      <UnitDialog open={dialogs.crud.open} onOpenChange={dialogs.closeCrud} item={dialogs.crud.item} mode={dialogs.crud.mode} />
 
       <IOConfigDialog open={ioConfigDialogOpen} onOpenChange={setIOConfigDialogOpen} item={ioConfigItem} />
 
       <ConfirmDialog
-        open={confirmDialogOpen}
-        onOpenChange={setConfirmDialogOpen}
-        title="Delete Unit"
-        description={`Are you sure you want to delete "${itemToDelete?.name}"? This action cannot be undone.`}
+        open={dialogs.confirm.open}
+        onOpenChange={(open) => !open && dialogs.closeConfirm()}
+        title={dialogs.confirm.title}
+        description={dialogs.confirm.description}
         confirmText="Delete"
         cancelText="Cancel"
         variant="destructive"
-        onConfirm={confirmDeleteItem}
-        loading={deleteLoading}
+        onConfirm={dialogs.confirm.onConfirm}
+        loading={dialogs.confirm.loading}
       />
 
-      <ImportItemsDialog open={importDialogOpen} onOpenChange={setImportDialogOpen} onImport={handleImportConfirm} category={category} />
+      <ImportItemsDialog
+        open={dialogs.importDialog.open}
+        onOpenChange={(open) => !open && dialogs.closeImport()}
+        onImport={handleImportConfirm}
+        category={category}
+      />
 
       <ComparisonDifferencesDialog open={differencesDialogOpen} onOpenChange={setDifferencesDialogOpen} comparisonSummary={comparisonSummary} />
     </>

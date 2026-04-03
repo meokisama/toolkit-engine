@@ -322,9 +322,10 @@ export const importExportOperations = {
 
     sceneItems.forEach((item) => {
       const newSceneId = idMappings.scene[item.scene_id];
-      const newItemId = idMappings[item.item_type]?.[item.item_id];
+      const isSpi = item.item_type === "spi";
+      const newItemId = isSpi ? 0 : idMappings[item.item_type]?.[item.item_id];
 
-      if (newSceneId && newItemId) {
+      if (newSceneId && (isSpi || newItemId)) {
         const stmt = this.db.prepare(`
           INSERT INTO scene_items (scene_id, item_type, item_id, item_address, item_value, command, object_type, object_value)
           VALUES (?, ?, ?, ?, ?, ?, ?, ?)
@@ -474,8 +475,13 @@ export const importExportOperations = {
     let generalConfigId = null;
 
     // Import room general config
-    if (itemsData.room_general_config) {
-      const config = itemsData.room_general_config;
+    const roomGeneralConfigs = Array.isArray(itemsData.room_general_config)
+      ? itemsData.room_general_config
+      : itemsData.room_general_config
+        ? [itemsData.room_general_config]
+        : [];
+    if (roomGeneralConfigs.length > 0) {
+      const config = roomGeneralConfigs[0];
 
       // Map source_unit if exists
       let newSourceUnit = null;
