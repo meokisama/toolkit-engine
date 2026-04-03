@@ -1,5 +1,4 @@
 import { findOrCreateLightingByAddress } from "../utils/config-helpers";
-import { UDP_READ_DELAY_MS } from "../constants";
 import log from "electron-log/renderer";
 
 /**
@@ -56,8 +55,6 @@ export const readKnxConfigurations = async (networkUnit, projectId, unitId, item
           createdKnxConfigs.push(createdKnx);
           log.info(`Created KNX config: ${createdKnx.name} (ID: ${createdKnx.id})`);
 
-          // Add delay between KNX reads
-          await new Promise((resolve) => setTimeout(resolve, UDP_READ_DELAY_MS));
         } catch (error) {
           log.error(`Failed to process KNX address ${networkKnx.address}:`, error);
           // Continue with other KNX configs

@@ -1,5 +1,4 @@
 import { findOrCreateDatabaseItemByNetworkItem, getObjectTypeFromValue } from "../utils/config-helpers";
-import { UDP_READ_DELAY_MS } from "../constants";
 import log from "electron-log/renderer";
 
 /**
@@ -95,8 +94,6 @@ export const readSceneConfigurations = async (networkUnit, projectId, unitId, it
             log.info(`Created scene: ${createdScene.name} (ID: ${createdScene.id})`);
           }
 
-          // Add delay between scene reads
-          await new Promise((resolve) => setTimeout(resolve, UDP_READ_DELAY_MS));
         } catch (error) {
           log.error(`Failed to process scene ${networkScene.index}:`, error);
           // Continue with other scenes

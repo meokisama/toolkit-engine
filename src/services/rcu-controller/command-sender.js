@@ -194,6 +194,13 @@ async function sendCommandMultipleResponses(
           responseCount++;
         }
       } catch (error) {
+        // NO_SUPPORT means the unit doesn't implement this feature — bail out immediately
+        if (error.message && error.message.includes("NO_SUPPORT")) {
+          clearTimeout(timeout);
+          cleanup();
+          reject(error);
+          return;
+        }
         console.error(`Error processing response ${responseCount + 1}:`, error);
         console.error(
           "Packet data:",

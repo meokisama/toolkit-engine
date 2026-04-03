@@ -1,5 +1,4 @@
 import { findOrCreateLightingByAddress, getCurtainTypeName } from "../utils/config-helpers";
-import { UDP_READ_DELAY_MS } from "../constants";
 import log from "electron-log/renderer";
 
 /**
@@ -55,9 +54,6 @@ export const readCurtainConfigurations = async (networkUnit, projectId, unitId, 
           const createdCurtain = await window.electronAPI.curtain.create(projectId, curtainData);
 
           createdCurtains.push(createdCurtain);
-
-          // Add delay between curtain reads
-          await new Promise((resolve) => setTimeout(resolve, UDP_READ_DELAY_MS));
         } catch (error) {
           // Continue with other curtains
         }

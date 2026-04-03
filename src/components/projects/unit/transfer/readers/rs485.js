@@ -1,4 +1,3 @@
-import { UDP_READ_DELAY_MS, UDP_PHASE_DELAY_MS } from "../constants";
 import log from "electron-log/renderer";
 /**
  * RS485 Configuration Reader
@@ -39,28 +38,32 @@ export async function readRS485Configurations(networkUnit) {
   try {
     log.info("Reading RS485 configurations...");
 
+    let ch1Config = null;
+    let ch2Config = null;
+
     // Read CH1 configuration first
     log.info("Reading RS485 CH1 configuration...");
-    const ch1Config = await window.electronAPI.deviceController.getRS485CH1Config({
-      unitIp: networkUnit.ip_address,
-      canId: networkUnit.id_can,
-    });
-
-    // Add delay between RS485 channel reads
-    await new Promise((resolve) => setTimeout(resolve, UDP_READ_DELAY_MS));
+    try {
+      ch1Config = await window.electronAPI.deviceController.getRS485CH1Config({
+        unitIp: networkUnit.ip_address,
+        canId: networkUnit.id_can,
+      });
+    } catch (error) {
+      log.warn("Failed to read RS485 CH1 configuration:", error);
+    }
 
     // Read CH2 configuration second
     log.info("Reading RS485 CH2 configuration...");
-    const ch2Config = await window.electronAPI.deviceController.getRS485CH2Config({
-      unitIp: networkUnit.ip_address,
-      canId: networkUnit.id_can,
-    });
+    try {
+      ch2Config = await window.electronAPI.deviceController.getRS485CH2Config({
+        unitIp: networkUnit.ip_address,
+        canId: networkUnit.id_can,
+      });
+    } catch (error) {
+      log.warn("Failed to read RS485 CH2 configuration:", error);
+    }
 
-    // Convert to database format
     const rs485Config = [convertRS485ToDbFormat(ch1Config), convertRS485ToDbFormat(ch2Config)];
-
-    // Add delay after RS485 config read
-    await new Promise((resolve) => setTimeout(resolve, UDP_PHASE_DELAY_MS));
     log.info("RS485 configurations read successfully");
 
     return rs485Config;

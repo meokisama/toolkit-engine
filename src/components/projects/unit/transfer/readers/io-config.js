@@ -1,4 +1,3 @@
-import { UDP_READ_DELAY_MS, UDP_PHASE_DELAY_MS } from "../constants";
 import log from "electron-log/renderer";
 /**
  * I/O Configuration Reader
@@ -48,7 +47,7 @@ export async function readIOConfigurations(networkUnit, selectedProject, project
       log.info(`Read ${switchConfigs.length} COM switch(es) from ${networkUnit.ip_address}`);
     }
   } catch (error) {
-    log.warn("Failed to read COM switch configurations (unit may not support it):", error);
+    log.warn("Failed to read COM switch configurations:", error);
   }
 
   // Read input configurations
@@ -120,9 +119,6 @@ export async function readIOConfigurations(networkUnit, selectedProject, project
         });
       }
     }
-
-    // Add delay after input config read
-    await new Promise((resolve) => setTimeout(resolve, UDP_PHASE_DELAY_MS));
   } catch (error) {
     log.error("Failed to read input configurations:", error);
   }
@@ -131,24 +127,33 @@ export async function readIOConfigurations(networkUnit, selectedProject, project
   try {
     // Read output assignments first
     log.info("Reading output assignments...");
-    const assignResponse = await window.electronAPI.ioController.getOutputAssign({
-      unitIp: networkUnit.ip_address,
-      canId: networkUnit.id_can,
-    });
-
-    // Add delay between output reads
-    await new Promise((resolve) => setTimeout(resolve, UDP_READ_DELAY_MS));
+    let assignResponse = null;
+    try {
+      assignResponse = await window.electronAPI.ioController.getOutputAssign({
+        unitIp: networkUnit.ip_address,
+        canId: networkUnit.id_can,
+      });
+    } catch (error) {
+      log.info("Output assign not supported, skipping");
+    }
 
     // Read output configurations second
     log.info("Reading output configurations...");
-    const configResponse = await window.electronAPI.ioController.getOutputConfig(networkUnit.ip_address, networkUnit.id_can);
-
-    // Add delay between output reads
-    await new Promise((resolve) => setTimeout(resolve, UDP_READ_DELAY_MS));
+    let configResponse = null;
+    try {
+      configResponse = await window.electronAPI.ioController.getOutputConfig(networkUnit.ip_address, networkUnit.id_can);
+    } catch (error) {
+      log.info("Output config not supported, skipping");
+    }
 
     // Read AC configurations third for aircon address mapping
     log.info("Reading AC configurations...");
-    const acConfigResponse = await window.electronAPI.ioController.getLocalACConfig(networkUnit.ip_address, networkUnit.id_can);
+    let acConfigResponse = null;
+    try {
+      acConfigResponse = await window.electronAPI.ioController.getLocalACConfig(networkUnit.ip_address, networkUnit.id_can);
+    } catch (error) {
+      log.info("AC config not supported, skipping");
+    }
 
     // Create output configs for all outputs, whether we have network data or not
     for (let i = 0; i < ioSpec.totalOutputs; i++) {
@@ -188,7 +193,7 @@ export async function readIOConfigurations(networkUnit, selectedProject, project
                 projectItems,
                 createItem,
                 createdItemsCache,
-                itemCache
+                itemCache,
               );
             }
           }
@@ -207,7 +212,7 @@ export async function readIOConfigurations(networkUnit, selectedProject, project
               projectItems,
               createItem,
               createdItemsCache,
-              itemCache
+              itemCache,
             );
           }
         }

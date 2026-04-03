@@ -121,16 +121,20 @@ function processResponse(msg, expectedCmd1, expectedCmd2, skipStatusCheck = fals
     const errorCode = msg[dataStart]; // First byte of data contains error code
     const errorMessage = ERROR_CODES[errorCode] || `Unknown error (${errorCode})`;
 
-    console.error("RCU Error Response:", {
-      receivedCmd1: `0x${cmd1.toString(16)}`,
-      receivedCmd2: `0x${cmd2.toString(16)}`,
-      originalCmd1: `0x${originalCmd1.toString(16)}`,
-      originalCmd2: `0x${originalCmd2.toString(16)}`,
-      expectedCmd1: `0x${expectedCmd1.toString(16)}`,
-      expectedCmd2: `0x${expectedCmd2.toString(16)}`,
-      errorCode,
-      errorMessage,
-    });
+    if (errorCode === 2 /* NO_SUPPORT */) {
+      console.log(`RCU NO_SUPPORT from cmd1=0x${originalCmd1.toString(16)} cmd2=0x${originalCmd2.toString(16)}`);
+    } else {
+      console.error("RCU Error Response:", {
+        receivedCmd1: `0x${cmd1.toString(16)}`,
+        receivedCmd2: `0x${cmd2.toString(16)}`,
+        originalCmd1: `0x${originalCmd1.toString(16)}`,
+        originalCmd2: `0x${originalCmd2.toString(16)}`,
+        expectedCmd1: `0x${expectedCmd1.toString(16)}`,
+        expectedCmd2: `0x${expectedCmd2.toString(16)}`,
+        errorCode,
+        errorMessage,
+      });
+    }
 
     throw new Error(`RCU Error: ${errorMessage} (Code: ${errorCode})`);
   }
