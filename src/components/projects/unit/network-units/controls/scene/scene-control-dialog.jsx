@@ -311,14 +311,7 @@ export function TriggerSceneDialog({ open, onOpenChange, unit }) {
   const [loadingState, setLoadingState] = useState(initialLoadingState);
 
   // Access project context to get database scenes
-  const { selectedProject, projectItems, loadTabData, loadedTabs } = useProjectDetail();
-
-  // Load scene data when dialog opens if not already loaded
-  useEffect(() => {
-    if (open && selectedProject && !loadedTabs.has("scene")) {
-      loadTabData(selectedProject.id, "scene");
-    }
-  }, [open, selectedProject, loadedTabs, loadTabData]);
+  const { selectedProject, projectItems } = useProjectDetail();
 
   // Memoized helper functions
   const memoizedGetObjectTypeInfo = useCallback(getObjectTypeInfo, []);

@@ -14,7 +14,7 @@ import { useProjectDetail } from "@/contexts/project-detail-context";
 import { createDefaultRS485Config, isSlaveType, isNoneType } from "@/utils/rs485-utils";
 
 export function RS485ConfigDialog({ open, onOpenChange, config, onSave }) {
-  const { airconCards, selectedProject, loadedTabs, loadTabData } = useProjectDetail();
+  const { airconCards, selectedProject } = useProjectDetail();
   const [rs485Configs, setRS485Configs] = useState([]);
   const [activeRS485Tab, setActiveRS485Tab] = useState("0");
   const [openSlaves, setOpenSlaves] = useState({});
@@ -26,14 +26,6 @@ export function RS485ConfigDialog({ open, onOpenChange, config, onSave }) {
   }));
 
   // Load required data when dialog opens
-  useEffect(() => {
-    if (open && selectedProject) {
-      // Load aircon data if not already loaded
-      if (!loadedTabs.has("aircon")) {
-        loadTabData(selectedProject.id, "aircon");
-      }
-    }
-  }, [open, selectedProject, loadedTabs, loadTabData]);
 
   // Initialize configurations
   useEffect(() => {

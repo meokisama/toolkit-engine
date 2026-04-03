@@ -115,14 +115,7 @@ export function TriggerSequenceDialog({ open, onOpenChange, unit }) {
   const [loadingState, setLoadingState] = useState(initialLoadingState);
 
   // Access project context to get database sequences
-  const { selectedProject, projectItems, loadTabData, loadedTabs } = useProjectDetail();
-
-  // Load sequence data when dialog opens if not already loaded
-  useEffect(() => {
-    if (open && selectedProject && !loadedTabs.has("sequences")) {
-      loadTabData(selectedProject.id, "sequences");
-    }
-  }, [open, selectedProject, loadedTabs, loadTabData]);
+  const { selectedProject, projectItems } = useProjectDetail();
 
   // Helper function to get database sequence name by address
   const getDatabaseSequenceName = useCallback(

@@ -34,7 +34,7 @@ const scenesSchedulesTabConfig = {
 };
 
 export function ScenesSchedules() {
-  const { selectedProject, activeTab, setActiveTab, projectItems, tabLoading, loadedTabs } = useProjectDetail();
+  const { selectedProject, activeTab, setActiveTab, projectItems, tabLoading } = useProjectDetail();
 
   // Memoize tab entries to prevent recreating on every render
   const tabEntries = useMemo(() => Object.entries(scenesSchedulesTabConfig), []);
@@ -79,7 +79,7 @@ export function ScenesSchedules() {
         </TabsList>
         {tabEntries.map(([key]) => {
           // Check if this tab is currently loading
-          const isTabLoading = tabLoading[key] || (!loadedTabs.has(key) && activeTab === key);
+          const isTabLoading = tabLoading[key] ?? false;
 
           return (
             <TabsContent key={key} value={key} className="flex-1 mt-2">

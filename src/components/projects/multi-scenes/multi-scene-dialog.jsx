@@ -53,7 +53,7 @@ function SortableAddressItem({ address, scenes, onRemove }) {
 }
 
 export function MultiSceneDialog({ open, onOpenChange, multiScene = null, mode = "create" }) {
-  const { selectedProject, projectItems, createItem, updateItem, setActiveTab, loadTabData, loadedTabs } = useProjectDetail();
+  const { selectedProject, projectItems, createItem, updateItem, setActiveTab } = useProjectDetail();
 
   const [formData, setFormData] = useState({
     name: "",
@@ -144,17 +144,8 @@ export function MultiSceneDialog({ open, onOpenChange, multiScene = null, mode =
         setAddressOrder([]);
       }
       setErrors({});
-
-      // Load scene data if not already loaded
-      if (selectedProject && !loadedTabs.has("scene")) {
-        loadTabData(selectedProject.id, "scene");
-      }
-      // Load unit data if not already loaded
-      if (selectedProject && !loadedTabs.has("unit")) {
-        loadTabData(selectedProject.id, "unit");
-      }
     }
-  }, [open, mode, multiScene, selectedProject, loadedTabs, loadTabData, loadMultiSceneScenes, findNextAvailableMultiSceneAddress]);
+  }, [open, mode, multiScene, loadMultiSceneScenes, findNextAvailableMultiSceneAddress]);
 
   const handleInputChange = (field, value) => {
     setFormData((prev) => ({ ...prev, [field]: value }));

@@ -8,7 +8,6 @@ export const useInputType = (
   unitType,
   inputIndex,
   selectedProject,
-  loadedTabs,
   loadTabData,
   open = true // Add open parameter to track dialog state
 ) => {
@@ -92,15 +91,12 @@ export const useInputType = (
   const loadRequiredDataForFunction = useCallback(
     async (functionValue) => {
       if (!selectedProject || !functionValue) return;
-
       const tabToLoad = getTabToLoadForFunction(functionValue);
-
-      // Load data if not already loaded
-      if (tabToLoad && !loadedTabs.has(tabToLoad)) {
+      if (tabToLoad) {
         await loadTabData(selectedProject.id, tabToLoad);
       }
     },
-    [selectedProject, loadedTabs, loadTabData]
+    [selectedProject, loadTabData]
   );
 
   // Handle input type change

@@ -26,7 +26,7 @@ import { useOutputConfig } from "./hooks/use-output-config";
 const PERFORMANCE_THRESHOLD = 50; // Show warning for large lists
 
 const IOConfigDialogComponent = ({ open, onOpenChange, item = null }) => {
-  const { projectItems, updateItem, selectedProject, loadTabData, loadedTabs } = useProjectDetail();
+  const { projectItems, updateItem, selectedProject, loadTabData } = useProjectDetail();
 
   // Use custom hooks for better organization
   const {
@@ -142,19 +142,6 @@ const IOConfigDialogComponent = ({ open, onOpenChange, item = null }) => {
     [selectedProject, loadTabData, createEditDialog]
   );
 
-  // Load required data when dialog opens
-  useEffect(() => {
-    if (open && selectedProject) {
-      // Load aircon data if not already loaded
-      if (!loadedTabs.has("aircon")) {
-        loadTabData(selectedProject.id, "aircon");
-      }
-      // Load lighting data if not already loaded
-      if (!loadedTabs.has("lighting")) {
-        loadTabData(selectedProject.id, "lighting");
-      }
-    }
-  }, [open, selectedProject, loadedTabs, loadTabData]);
 
   // Load all Multiple Group & RLC configurations and output configurations when dialog opens
   useEffect(() => {

@@ -47,7 +47,7 @@ const AC_SWING_LABELS =
   }, {}) || {};
 
 export function SceneDialog({ open, onOpenChange, scene = null, mode = "create" }) {
-  const { selectedProject, projectItems, createItem, updateItem, setActiveTab, loadTabData, loadedTabs } = useProjectDetail();
+  const { selectedProject, projectItems, createItem, updateItem, setActiveTab, loadTabData } = useProjectDetail();
   const [formData, setFormData] = useState({
     name: "",
     address: "",
@@ -146,27 +146,8 @@ export function SceneDialog({ open, onOpenChange, scene = null, mode = "create" 
         sceneItemsHooks.setOriginalSceneItems([]);
       }
       setErrors({});
-
-      // Load required data for scene dialog if not already loaded
-      if (selectedProject) {
-        if (!loadedTabs.has("aircon")) {
-          loadTabData(selectedProject.id, "aircon");
-        }
-        if (!loadedTabs.has("curtain")) {
-          loadTabData(selectedProject.id, "curtain");
-        }
-        if (!loadedTabs.has("lighting")) {
-          loadTabData(selectedProject.id, "lighting");
-        }
-        if (!loadedTabs.has("dmx")) {
-          loadTabData(selectedProject.id, "dmx");
-        }
-        if (!loadedTabs.has("unit")) {
-          loadTabData(selectedProject.id, "unit");
-        }
-      }
     }
-  }, [open, mode, scene, selectedProject, loadedTabs, loadTabData, sceneItemsHooks.loadSceneItems]);
+  }, [open, mode, scene, sceneItemsHooks.loadSceneItems]);
 
   // Reload scene items when project data changes
   useEffect(() => {

@@ -14,7 +14,7 @@ import { KNXAddressInput } from "@/components/custom/knx-input";
 import log from "electron-log/renderer";
 
 export function KnxItemDialog({ open, onOpenChange, mode, item }) {
-  const { createItem, updateItem, selectedProject, projectItems, loadedTabs, loadTabData } = useProjectDetail();
+  const { createItem, updateItem, selectedProject, projectItems, loadTabData } = useProjectDetail();
   const [loading, setLoading] = useState(false);
   const [rcuGroupOpen, setRcuGroupOpen] = useState(false);
   const [rcuDataLoading, setRcuDataLoading] = useState(false);
@@ -71,19 +71,16 @@ export function KnxItemDialog({ open, onOpenChange, mode, item }) {
       // For type 0 (Disable) or unknown types, no need to load data
       if (!tabToLoad) return;
 
-      // Load data if not already loaded
-      if (!loadedTabs.has(tabToLoad)) {
-        setRcuDataLoading(true);
-        try {
-          await loadTabData(selectedProject.id, tabToLoad);
-        } catch (error) {
-          log.error(`Failed to load ${tabToLoad} data:`, error);
-        } finally {
-          setRcuDataLoading(false);
-        }
+      setRcuDataLoading(true);
+      try {
+        await loadTabData(selectedProject.id, tabToLoad);
+      } catch (error) {
+        log.error(`Failed to load ${tabToLoad} data:`, error);
+      } finally {
+        setRcuDataLoading(false);
       }
     },
-    [selectedProject, loadedTabs, loadTabData]
+    [selectedProject, loadTabData]
   );
 
   // Reset form when dialog opens/closes or item changes
@@ -133,11 +130,6 @@ export function KnxItemDialog({ open, onOpenChange, mode, item }) {
   }, [open, mode, item]);
 
   // Load unit data if not already loaded
-  useEffect(() => {
-    if (selectedProject && !loadedTabs.has("unit")) {
-      loadTabData(selectedProject.id, "unit");
-    }
-  }, [selectedProject, loadedTabs, loadTabData]);
 
   const validateForm = () => {
     const newErrors = {};

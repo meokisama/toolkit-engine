@@ -9,7 +9,7 @@ import { useProjectDetail } from "@/contexts/project-detail-context";
 import log from "electron-log/renderer";
 
 export function DmxDialog({ open, onOpenChange, item = null, mode = "create" }) {
-  const { createItem, updateItem, projectItems, selectedProject, loadTabData, loadedTabs } = useProjectDetail();
+  const { createItem, updateItem, projectItems, selectedProject } = useProjectDetail();
   const [formData, setFormData] = useState({
     name: "",
     address: "",
@@ -51,11 +51,6 @@ export function DmxDialog({ open, onOpenChange, item = null, mode = "create" }) 
   }, [projectItems.dmx]);
 
   // Load unit data if not already loaded
-  useEffect(() => {
-    if (selectedProject && !loadedTabs.has("unit")) {
-      loadTabData(selectedProject.id, "unit");
-    }
-  }, [selectedProject, loadedTabs, loadTabData]);
 
   // Create unit options
   const unitOptions = (projectItems.unit || []).map((unit) => ({

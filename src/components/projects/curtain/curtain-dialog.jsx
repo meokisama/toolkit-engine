@@ -72,7 +72,7 @@ function LightingCombobox({ value, onValueChange, options, placeholder, classNam
 }
 
 export function CurtainDialog({ open, onOpenChange, item = null, mode = "create" }) {
-  const { createItem, updateItem, projectItems, loadTabData, loadedTabs, selectedProject } = useProjectDetail();
+  const { createItem, updateItem, projectItems, selectedProject } = useProjectDetail();
   const [formData, setFormData] = useState({
     name: "",
     address: "",
@@ -170,11 +170,6 @@ export function CurtainDialog({ open, onOpenChange, item = null, mode = "create"
   }, [open, item, mode, findNextAvailableCurtainAddress]);
 
   // Load unit data if not already loaded
-  useEffect(() => {
-    if (selectedProject && !loadedTabs.has("unit")) {
-      loadTabData(selectedProject.id, "unit");
-    }
-  }, [selectedProject, loadedTabs, loadTabData]);
 
   // Helper function to check if curtain type has 3 groups
   const hasThreeGroups = (curtainType) => {

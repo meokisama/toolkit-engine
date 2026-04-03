@@ -23,7 +23,7 @@ import log from "electron-log/renderer";
 
 export function UnitTable() {
   const category = "unit";
-  const { selectedProject, projectItems, deleteItem, duplicateItem, loading, exportItems, importItems, updateItem, loadTabData, loadedTabs } =
+  const { selectedProject, projectItems, deleteItem, duplicateItem, loading, exportItems, importItems, updateItem } =
     useProjectDetail();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [dialogMode, setDialogMode] = useState("create");
@@ -224,21 +224,6 @@ export function UnitTable() {
     }
 
     try {
-      // Load aircon data if not already loaded (needed for device_id to address mapping)
-      if (selectedProject && !loadedTabs.has("aircon")) {
-        log.info("Loading aircon data for comparison...");
-        toast.info("Loading aircon data...");
-
-        try {
-          await loadTabData(selectedProject.id, "aircon");
-          log.info("Aircon data loaded successfully");
-        } catch (loadError) {
-          log.error("Failed to load aircon data:", loadError);
-          toast.error("Failed to load aircon data for comparison");
-          return;
-        }
-      }
-
       // Get fresh aircon data directly from API to ensure we have the latest data
       let freshProjectItems = projectItems;
       if (selectedProject) {
@@ -268,7 +253,7 @@ export function UnitTable() {
       log.error("Failed to compare configurations:", error);
       toast.error(`Failed to compare configurations: ${error.message}`);
     }
-  }, [units, networkUnits, compareConfigurations, projectItems, selectedProject, loadedTabs, loadTabData]);
+  }, [units, networkUnits, compareConfigurations, projectItems, selectedProject]);
 
   const handleImport = () => {
     setImportDialogOpen(true);

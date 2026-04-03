@@ -29,7 +29,7 @@ const DAYS_OF_WEEK = [
 const ALL_DAYS = DAYS_OF_WEEK.map((day) => day.key);
 
 export function ScheduleDialog({ open, onOpenChange, schedule = null, mode = "create" }) {
-  const { selectedProject, projectItems, createItem, updateItem, setActiveTab, loadTabData, loadedTabs } = useProjectDetail();
+  const { projectItems, createItem, updateItem, setActiveTab } = useProjectDetail();
 
   const [formData, setFormData] = useState({
     name: "",
@@ -107,17 +107,8 @@ export function ScheduleDialog({ open, onOpenChange, schedule = null, mode = "cr
         setOriginalScheduleScenes([]);
       }
       setErrors({});
-
-      // Load scene data if not already loaded
-      if (selectedProject && !loadedTabs.has("scene")) {
-        loadTabData(selectedProject.id, "scene");
-      }
-      // Load unit data if not already loaded
-      if (selectedProject && !loadedTabs.has("unit")) {
-        loadTabData(selectedProject.id, "unit");
-      }
     }
-  }, [open, mode, schedule, selectedProject, loadedTabs, loadTabData]);
+  }, [open, mode, schedule]);
 
   const loadScheduleScenes = async (scheduleId) => {
     try {
@@ -145,7 +136,7 @@ export function ScheduleDialog({ open, onOpenChange, schedule = null, mode = "cr
         }));
       }
     },
-    [errors]
+    [errors],
   );
 
   const handleDayToggle = useCallback((dayKey) => {
@@ -171,7 +162,7 @@ export function ScheduleDialog({ open, onOpenChange, schedule = null, mode = "cr
         }));
       }
     },
-    [errors.time, dateToTimeString]
+    [errors.time, dateToTimeString],
   );
 
   const validateForm = () => {
@@ -290,7 +281,7 @@ export function ScheduleDialog({ open, onOpenChange, schedule = null, mode = "cr
         onOpenChange(false);
       }
     },
-    [onOpenChange, loading]
+    [onOpenChange, loading],
   );
 
   // Get all available scenes

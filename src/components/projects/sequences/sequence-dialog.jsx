@@ -13,7 +13,7 @@ import { toast } from "sonner";
 import log from "electron-log/renderer";
 
 export function SequenceDialog({ open, onOpenChange, sequence = null, mode = "create" }) {
-  const { projectItems, createItem, updateItem, setActiveTab, loadTabData, selectedProject } = useProjectDetail();
+  const { projectItems, createItem, updateItem, setActiveTab } = useProjectDetail();
 
   const [formData, setFormData] = useState({
     name: "",
@@ -23,7 +23,6 @@ export function SequenceDialog({ open, onOpenChange, sequence = null, mode = "cr
   });
   const [selectedMultiSceneIds, setSelectedMultiSceneIds] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [loadingMultiScenes, setLoadingMultiScenes] = useState(false);
   const [errors, setErrors] = useState({});
 
   // Function to find next available sequence address
@@ -88,25 +87,6 @@ export function SequenceDialog({ open, onOpenChange, sequence = null, mode = "cr
     }
   }, [open, mode, sequence, loadSequenceMultiScenes, findNextAvailableSequenceAddress]);
 
-  // Load multi-scenes and unit tab data when dialog opens
-  useEffect(() => {
-    if (open && selectedProject) {
-      const loadData = async () => {
-        setLoadingMultiScenes(true);
-        try {
-          // Always load multi-scenes data when dialog opens to ensure fresh data
-          // This ensures the selection list is populated even if the tab hasn't been visited
-          await loadTabData(selectedProject.id, "multi_scenes");
-          // Load unit data if not already loaded
-          await loadTabData(selectedProject.id, "unit");
-        } finally {
-          setLoadingMultiScenes(false);
-        }
-      };
-
-      loadData();
-    }
-  }, [open, selectedProject, loadTabData]);
 
   const handleInputChange = (field, value) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
@@ -298,11 +278,7 @@ export function SequenceDialog({ open, onOpenChange, sequence = null, mode = "cr
               </CardHeader>
               <CardContent>
                 <ScrollArea className="h-60">
-                  {loadingMultiScenes ? (
-                    <div className="text-center text-muted-foreground py-8">
-                      <p>Loading multi-scenes...</p>
-                    </div>
-                  ) : availableMultiScenes.length === 0 ? (
+                  {availableMultiScenes.length === 0 ? (
                     <div className="text-center text-muted-foreground py-8">
                       <p>No multi-scenes available.</p>
                       <p className="text-sm">Create multi-scenes first to add them to sequences.</p>

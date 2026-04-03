@@ -133,14 +133,7 @@ export function TriggerMultiSceneDialog({ open, onOpenChange, unit }) {
   const [loadingState, setLoadingState] = useState(initialLoadingState);
 
   // Access project context to get database multi-scenes
-  const { selectedProject, projectItems, loadTabData, loadedTabs } = useProjectDetail();
-
-  // Load multi-scene data when dialog opens if not already loaded
-  useEffect(() => {
-    if (open && selectedProject && !loadedTabs.has("multi_scenes")) {
-      loadTabData(selectedProject.id, "multi_scenes");
-    }
-  }, [open, selectedProject, loadedTabs, loadTabData]);
+  const { selectedProject, projectItems } = useProjectDetail();
 
   // Helper function to get database multi-scene name by address
   const getDatabaseMultiSceneName = useCallback(

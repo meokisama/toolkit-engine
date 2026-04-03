@@ -5,59 +5,75 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## Commands
 
 ```bash
-yarn start          # Run app in development mode (Electron + Vite)
-yarn make           # Build distributable packages
-yarn package        # Package the app without creating installers
-yarn publish        # Publish release to GitHub
-yarn release:patch  # Bump patch version, tag, and push
-yarn release:minor  # Bump minor version, tag, and push
-yarn release:major  # Bump major version, tag, and push
+yarn start          # Start Electron dev server (Electron Forge + Vite)
+yarn make           # Build installer packages
+yarn package        # Package the application without installer
 ```
 
-There are no automated tests or linting configured.
+No linting or test suite is configured.
 
-## Architecture
+## Architecture Overview
 
-**GNT Toolkit Engine** is an Electron desktop app for smart building automation. It uses React 19 + Vite for the renderer and Node.js for the main process, with IPC bridging the two.
+**GNT Toolkit Engine** is an Electron desktop application for managing GNT IoT smart building systems (lighting, HVAC, curtains, DALI, KNX, DMX, Zigbee, scenes, schedules).
 
-### Process Model
+### Process Architecture
 
 ```
-Renderer (React)  ──IPC──►  Main Process (Node.js)
-                                ├── IPC Handlers (src/main/index.js registers all)
-                                ├── Services (src/services/)
-                                │   ├── DatabaseService — better-sqlite3, local SQLite DB
-                                │   ├── RCU Controller — physical device communication
-                                │   └── UDP / Network interfaces
-                                └── Protocol Modules (src/main/*.js)
-                                    DALI, KNX, DMX, ZigBee, RS485, Aircon, Curtain...
+Renderer (React/Vite)
+    └─ window.electronAPI.[feature].*   (preload IPC bridge)
+           └─ src/preload/              (contextBridge exposure)
+                  └─ IPC Invoke/Send
+                         └─ src/main/  (IPC handlers per feature)
+                                └─ DatabaseService (SQLite) + RCU Controller (hardware)
 ```
 
-- `main.js` — Electron entry point, window creation
-- `src/preload.js` — exposes `window.electronAPI` to renderer
-- `src/main/index.js` — calls `registerAllHandlers()` which wires all IPC channels
-- Each `src/main/<domain>.js` file registers IPC handlers for one protocol/domain
+- **`src/main.js`** — Electron main process: creates BrowserWindow, initializes DatabaseService, registers all IPC handlers, handles DALI device events
+- **`src/preload/`** — Security bridge: exposes namespaced APIs (`window.electronAPI.projects`, `.lighting`, `.aircon`, etc.) via `contextBridge`
+- **`src/main/`** — IPC handler files per feature (project.js, lighting.js, aircon.js, etc.)
 
-### Renderer Structure
+### State Management
 
-- `src/app.jsx` — root component; wraps everything in theme + context providers
-- `src/contexts/` — React Context for cross-component state:
-  - `project-context.jsx` — project list and active project
-  - `project-detail-context.jsx` — active tab, device data within a project (largest context, 17KB)
-  - `dali-context.jsx` — DALI-specific state
-- `src/components/ui/` — thin wrappers around Radix UI primitives (35 components)
-- `src/components/projects/` — domain UI grouped by protocol: `dali/`, `knx/`, `dmx/`, `zigbee/`, `aircon/`, `curtain/`, `lighting/`, `scenes/`, `schedules/`, `sequences/`, `room/`, `unit/`, `multi-scenes/`
-- `src/constants/` — protocol constants and enums (aircon, curtain, knx, zigbee, rs485, etc.)
-- `src/utils/` — pure utility functions (ip, time-picker, io-config, rs485)
+Three-layer state architecture:
 
-### Database Layer
+1. **`ProjectContext`** (`src/contexts/project-context.jsx`) — manages the project list (create/update/delete/import/export)
+2. **`ProjectDetailContext`** (`src/contexts/project-detail-context.jsx`) — bridges UI to Zustand stores; provides `selectProject()`, `setActiveSection()`, `loadTabData()`
+3. **Zustand stores** (`src/store/`):
+   - `useProjectNavStore` — `selectedProject`, `activeSection`, `activeTab`
+   - `useProjectItemsStore` — composed of slices: `createItemsStateSlice`, `createTabLoaderSlice`, `createCrudSlice`, `createAirconSlice`, `createImportExportSlice`
 
-`src/services/database/` contains one module per domain (project, room, unit, scene, schedule, dali, knx, dmx, zigbee). All use `better-sqlite3` (synchronous). Schema migrations live in `src/services/database/migration/`.
+Components consume state via `useProjectDetail()` hook (from ProjectDetailContext), which aggregates both stores.
 
-### Path Alias
+### Data Flow
 
-`@/` maps to `./src/` — use `import X from '@/components/...'` etc.
+**Loading a project tab**: `selectProjectSection(project, section)` → nav store updates → `loadAllTabs(projectId)` runs `Promise.allSettled()` across all feature fetch calls → items store updated
 
-### Build Variables (injected by Vite)
+**CRUD operations**: Component → `useProjectDetail.createItem()` → `useProjectItemsStore.createItem()` → `window.electronAPI.[feature].create(data)` → IPC handler → DatabaseService → SQLite
 
-`__APP_VERSION__`, `__ELECTRON_VERSION__`, `__BUILD_DATE__`, `__BUILD_TIME__`
+**DALI device events**: Hardware → `rcu.daliEvents.emit(...)` → main process → `mainWindow.webContents.send(...)` → React `useEffect` listener
+
+### Navigation / Sections
+
+The app's main content is routed by `activeSection` in `src/components/projects/project-section/`:
+
+- `"group-config"` — GroupConfig: lighting, aircon, units, rooms, etc. (default)
+- `"scenes-schedules"` — ScenesSchedules: scene/schedule/sequence/multi-scene management
+- `"smarthome"` — Smarthome section
+- `"dali-core"` — DaliCore: DALI gateway selection and device control
+
+### Database
+
+- **`src/services/database.js`** — DatabaseService using `better-sqlite3`; DB file at `~/Documents/Toolkit Engine/projects.db`
+- Methods injected via `Object.assign` mixins from `src/services/database/` modules (project.js, lighting.js, aircon.js, dali.js, etc.)
+- 5 migration files for schema evolution
+
+### Key Path Alias
+
+`@` resolves to `src/` (configured in `vite.renderer.config.mjs`)
+
+### Build-time Defines
+
+`APP_VERSION`, `ELECTRON_VERSION`, `BUILD_DATE`, `BUILD_TIME` are injected at build time via Vite defines.
+
+### Logging
+
+`electron-log` writes to `~/Documents/Toolkit Engine/Logs/DD-MM-YYYY.log`; `console.*` is overridden to route there.

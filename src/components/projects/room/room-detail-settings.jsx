@@ -14,7 +14,7 @@ import { NetworkUnitSelector, useNetworkUnitSelector } from "@/components/shared
 import log from "electron-log/renderer";
 
 export function RoomSettings() {
-  const { selectedProject, projectItems, loadTabData, loadedTabs } = useProjectDetail();
+  const { selectedProject, projectItems } = useProjectDetail();
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [isSendDialogOpen, setIsSendDialogOpen] = useState(false);
@@ -339,19 +339,6 @@ export function RoomSettings() {
   // Determine effective room amount based on room mode
   const effectiveRoomAmount = roomConfig.roomMode === 0 ? roomConfig.roomAmount : 1;
 
-  // Load scenes data if not already loaded
-  useEffect(() => {
-    if (selectedProject && !loadedTabs.has("scene")) {
-      loadTabData(selectedProject.id, "scene");
-    }
-  }, [selectedProject, loadedTabs, loadTabData]);
-
-  // Load unit data if not already loaded
-  useEffect(() => {
-    if (selectedProject && !loadedTabs.has("unit")) {
-      loadTabData(selectedProject.id, "unit");
-    }
-  }, [selectedProject, loadedTabs, loadTabData]);
 
   // Get available scenes
   const availableScenes = projectItems.scene || [];

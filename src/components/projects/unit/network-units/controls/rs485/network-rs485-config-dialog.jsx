@@ -16,7 +16,7 @@ import { toast } from "sonner";
 import log from "electron-log/renderer";
 
 export function NetworkRS485ConfigDialog({ open, onOpenChange, unit }) {
-  const { airconCards, selectedProject, loadedTabs, loadTabData } = useProjectDetail();
+  const { airconCards, selectedProject, loadTabData } = useProjectDetail();
   const [rs485Configs, setRS485Configs] = useState([]);
   const [activeRS485Tab, setActiveRS485Tab] = useState("0");
   const [openSlaves, setOpenSlaves] = useState({});
@@ -137,15 +137,6 @@ export function NetworkRS485ConfigDialog({ open, onOpenChange, unit }) {
     }
   };
 
-  // Load required data when dialog opens
-  useEffect(() => {
-    if (open && selectedProject) {
-      // Load aircon data if not already loaded
-      if (!loadedTabs.has("aircon")) {
-        loadTabData(selectedProject.id, "aircon");
-      }
-    }
-  }, [open, selectedProject, loadedTabs, loadTabData]);
 
   // Initialize configurations when dialog opens
   useEffect(() => {

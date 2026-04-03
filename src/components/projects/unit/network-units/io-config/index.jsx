@@ -25,7 +25,7 @@ import { hasInputConfigChanged, hasOutputConfigChanged } from "@/utils/io-config
 import log from "electron-log/renderer";
 
 const NetworkIOConfigDialog = ({ open, onOpenChange, item = null }) => {
-  const { projectItems, selectedProject, loadTabData, loadedTabs } = useProjectDetail();
+  const { projectItems, selectedProject, loadTabData } = useProjectDetail();
 
   // Use custom hooks for better organization
   const {
@@ -130,19 +130,6 @@ const NetworkIOConfigDialog = ({ open, onOpenChange, item = null }) => {
     }
   }, [lightingOutputDialogOpen, acOutputDialogOpen, open, multiGroupDialogOpen, autoRefreshEnabled, pauseAutoRefresh, resumeAutoRefresh]);
 
-  // Load required data when dialog opens
-  useEffect(() => {
-    if (open && selectedProject) {
-      // Load aircon data if not already loaded
-      if (!loadedTabs.has("aircon")) {
-        loadTabData(selectedProject.id, "aircon");
-      }
-      // Load lighting data if not already loaded
-      if (!loadedTabs.has("lighting")) {
-        loadTabData(selectedProject.id, "lighting");
-      }
-    }
-  }, [open, selectedProject, loadedTabs, loadTabData]);
 
   // Create device options for outputs
   const outputDeviceOptionsMap = useMemo(() => {

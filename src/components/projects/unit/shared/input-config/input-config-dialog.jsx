@@ -38,7 +38,7 @@ export function InputDetailConfigDialog({
   isLoading = false,
   onSave = () => {},
 }) {
-  const { projectItems, selectedProject, loadedTabs, loadTabData, createItem } = useProjectDetail();
+  const { projectItems, selectedProject, loadTabData, createItem } = useProjectDetail();
 
   // Prepare initial groups and RLC options in the correct format (before hooks)
   const initialGroupsFormatted = React.useMemo(() => {
@@ -68,7 +68,7 @@ export function InputDetailConfigDialog({
 
   // Use custom hooks for state management
   const { currentInputType, availableInputFunctions, currentInputFunction, isInputTypeChanging, handleInputTypeChange, resetInputType } =
-    useInputType(functionValue, unitType, inputIndex, selectedProject, loadedTabs, loadTabData, open);
+    useInputType(functionValue, unitType, inputIndex, selectedProject, loadTabData, open);
 
   const { rlcOptions, delayOffTime, handleRlcOptionChange, handleDelayOffTimeChange, resetRlcOptions, getFinalRlcOptions } =
     useRlcOptions(initialRlcOptionsFormatted);
@@ -287,12 +287,12 @@ export function InputDetailConfigDialog({
       // If dialog is closing and we have a project, refresh the data
       if (!open && selectedProject) {
         const { type } = createEditDialog;
-        if (type && loadedTabs.has(type)) {
+        if (type) {
           await loadTabData(selectedProject.id, type);
         }
       }
     },
-    [selectedProject, loadTabData, createEditDialog, loadedTabs]
+    [selectedProject, loadTabData, createEditDialog]
   );
 
   return (

@@ -114,14 +114,7 @@ export function KnxControlDialog({ open, onOpenChange, unit }) {
   const [loadingState, setLoadingState] = useState(initialLoadingState);
 
   // Access project context to get database KNX items
-  const { selectedProject, projectItems, loadTabData, loadedTabs } = useProjectDetail();
-
-  // Load KNX data when dialog opens if not already loaded
-  useEffect(() => {
-    if (open && selectedProject && !loadedTabs.has("knx")) {
-      loadTabData(selectedProject.id, "knx");
-    }
-  }, [open, selectedProject, loadedTabs, loadTabData]);
+  const { selectedProject, projectItems } = useProjectDetail();
 
   // Helper function to get database KNX name by address
   const getDatabaseKnxName = useCallback(

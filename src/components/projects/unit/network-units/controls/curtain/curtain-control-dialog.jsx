@@ -108,14 +108,7 @@ export function CurtainControlDialog({ open, onOpenChange, unit }) {
   const [loadingState, setLoadingState] = useState(initialLoadingState);
 
   // Access project context to get database curtains
-  const { selectedProject, projectItems, loadTabData, loadedTabs } = useProjectDetail();
-
-  // Load curtain data when dialog opens if not already loaded
-  useEffect(() => {
-    if (open && selectedProject && !loadedTabs.has("curtain")) {
-      loadTabData(selectedProject.id, "curtain");
-    }
-  }, [open, selectedProject, loadedTabs, loadTabData]);
+  const { selectedProject, projectItems } = useProjectDetail();
 
   // Helper function to get database curtain name by address
   const getDatabaseCurtainName = useCallback(
