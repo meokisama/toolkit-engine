@@ -11,17 +11,15 @@ import { ConfirmDialog } from "@/components/projects/confirm-dialog";
 import { ImportItemsDialog } from "@/components/projects/import-category-dialog";
 import { useProjectDetail } from "@/contexts/project-detail-context";
 import { TableSkeleton } from "@/components/projects/table-skeleton";
+import { useTableDialogs } from "@/hooks/use-table-dialogs";
 import log from "electron-log/renderer";
 
 export function CurtainTable({ items = [], loading = false }) {
   const category = "curtain";
   const { updateItem, deleteItem, duplicateItem, projectItems, exportItems, importItems } = useProjectDetail();
-  const [dialogOpen, setDialogOpen] = useState(false);
-  const [editingItem, setEditingItem] = useState(null);
-  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [itemToDelete, setItemToDelete] = useState(null);
+  const dialogs = useTableDialogs();
+  const { openCreate, openEdit, closeCrud, openConfirm, closeConfirm, openBulkDelete, closeBulkDelete, setBulkDeleteLoading, openImport, closeImport } = dialogs;
 
-  // Table state management
   const [table, setTable] = useState(null);
   const [selectedRowsCount, setSelectedRowsCount] = useState(0);
   const [columnVisibility, setColumnVisibility] = useState({ description: false });
@@ -31,42 +29,26 @@ export function CurtainTable({ items = [], loading = false }) {
   const pendingChangesRef = useRef(new Map());
   const [pendingChangesCount, setPendingChangesCount] = useState(0);
 
-  // Bulk delete state
-  const [bulkDeleteDialogOpen, setBulkDeleteDialogOpen] = useState(false);
-  const [itemsToDelete, setItemsToDelete] = useState([]);
-  const [bulkDeleteLoading, setBulkDeleteLoading] = useState(false);
-
-  // Import state
-  const [importDialogOpen, setImportDialogOpen] = useState(false);
-
-  // Send config state
+  // Curtain-specific send dialog state
   const [sendConfigDialogOpen, setSendConfigDialogOpen] = useState(false);
-
-  // Send single curtain state
   const [sendSingleCurtainDialogOpen, setSendSingleCurtainDialogOpen] = useState(false);
   const [curtainToSend, setCurtainToSend] = useState(null);
 
-  // Get lighting items for group selection
   const lightingItems = projectItems.lighting || [];
-
-  // Get unit items for source unit filtering
   const unitItems = projectItems.unit || [];
 
   const handleCellEdit = useCallback((itemId, field, newValue) => {
     const itemChanges = pendingChangesRef.current.get(itemId) || {};
     itemChanges[field] = newValue;
     pendingChangesRef.current.set(itemId, itemChanges);
-
-    // Only trigger re-render for toolbar save button
     setPendingChangesCount(pendingChangesRef.current.size);
   }, []);
 
   const getEffectiveValue = useCallback((itemId, field, originalValue) => {
     const itemChanges = pendingChangesRef.current.get(itemId);
     return itemChanges && itemChanges.hasOwnProperty(field) ? itemChanges[field] : originalValue;
-  }, []); // No dependencies = stable function!
+  }, []);
 
-  // Save all pending changes
   const handleSaveChanges = useCallback(async () => {
     if (pendingChangesRef.current.size === 0) return;
 
@@ -88,15 +70,22 @@ export function CurtainTable({ items = [], loading = false }) {
     }
   }, [items, updateItem]);
 
-  const handleEdit = useCallback((item) => {
-    setEditingItem(item);
-    setDialogOpen(true);
-  }, []);
+  const handleEdit = useCallback((item) => openEdit(item), [openEdit]);
 
   const handleDelete = useCallback((item) => {
-    setItemToDelete(item);
-    setDeleteDialogOpen(true);
-  }, []);
+    openConfirm({
+      title: "Delete Curtain Item",
+      description: `Are you sure you want to delete "${item?.name || "this curtain item"}"? This action cannot be undone.`,
+      onConfirm: async () => {
+        try {
+          await deleteItem(category, item.id);
+          closeConfirm();
+        } catch (error) {
+          log.error("Failed to delete curtain item:", error);
+        }
+      },
+    });
+  }, [openConfirm, closeConfirm, deleteItem, category]);
 
   const handleDuplicate = useCallback(
     async (item) => {
@@ -109,63 +98,21 @@ export function CurtainTable({ items = [], loading = false }) {
     [duplicateItem]
   );
 
-  const handleUpdate = async (id, data) => {
-    try {
-      await updateItem(category, id, data);
-    } catch (error) {
-      log.error("Failed to update curtain item:", error);
-    }
-  };
+  const handleRowSelectionChange = useCallback((selectedCount) => setSelectedRowsCount(selectedCount), []);
+  const handleColumnVisibilityChange = useCallback((visibility) => setColumnVisibility(visibility), []);
+  const handlePaginationChange = useCallback((paginationState) => setPagination(paginationState), []);
 
-  const confirmDelete = async () => {
-    if (itemToDelete) {
-      try {
-        await deleteItem(category, itemToDelete.id);
-        setDeleteDialogOpen(false);
-        setItemToDelete(null);
-      } catch (error) {
-        log.error("Failed to delete curtain item:", error);
-      }
-    }
-  };
-
-  const handleDialogClose = () => {
-    setDialogOpen(false);
-    setEditingItem(null);
-  };
-
-  // Table handlers
-  const handleRowSelectionChange = useCallback((selectedCount) => {
-    setSelectedRowsCount(selectedCount);
-  }, []);
-
-  const handleColumnVisibilityChange = useCallback((visibility) => {
-    setColumnVisibility(visibility);
-  }, []);
-
-  const handlePaginationChange = useCallback((paginationState) => {
-    setPagination(paginationState);
-  }, []);
-
-  // Bulk delete handlers
   const handleBulkDelete = useCallback((selectedItems) => {
-    setItemsToDelete(selectedItems);
-    setBulkDeleteDialogOpen(true);
-  }, []);
+    openBulkDelete(selectedItems);
+  }, [openBulkDelete]);
 
   const confirmBulkDelete = useCallback(async () => {
-    if (itemsToDelete.length === 0) return;
+    if (dialogs.bulkDelete.items.length === 0) return;
 
     setBulkDeleteLoading(true);
     try {
-      // Delete all selected items
-      await Promise.all(itemsToDelete.map((item) => deleteItem(category, item.id)));
-
-      // Close dialog and clear state first
-      setBulkDeleteDialogOpen(false);
-      setItemsToDelete([]);
-
-      // Clear selection after a small delay to ensure data has been updated
+      await Promise.all(dialogs.bulkDelete.items.map((item) => deleteItem(category, item.id)));
+      closeBulkDelete();
       setTimeout(() => {
         table?.resetRowSelection();
       }, 100);
@@ -174,9 +121,8 @@ export function CurtainTable({ items = [], loading = false }) {
     } finally {
       setBulkDeleteLoading(false);
     }
-  }, [itemsToDelete, deleteItem, table]);
+  }, [dialogs.bulkDelete.items, deleteItem, category, closeBulkDelete, setBulkDeleteLoading, table]);
 
-  // Export/Import handlers
   const handleExport = useCallback(async () => {
     try {
       await exportItems(category);
@@ -185,39 +131,28 @@ export function CurtainTable({ items = [], loading = false }) {
     }
   }, [exportItems]);
 
-  const handleImport = useCallback(() => {
-    setImportDialogOpen(true);
-  }, []);
+  const handleImport = useCallback(() => openImport(), [openImport]);
 
   const handleImportConfirm = useCallback(
     async (items) => {
       try {
         await importItems(category, items);
-        setImportDialogOpen(false);
+        closeImport();
       } catch (error) {
         log.error("Failed to import curtain items:", error);
       }
     },
-    [importItems]
+    [importItems, closeImport]
   );
 
-  const handleCreateItem = useCallback(() => {
-    setEditingItem(null);
-    setDialogOpen(true);
-  }, []);
+  const handleCreateItem = useCallback(() => openCreate(), [openCreate]);
+  const handleSendConfig = useCallback(() => setSendConfigDialogOpen(true), []);
 
-  // Send config handler
-  const handleSendConfig = useCallback(() => {
-    setSendConfigDialogOpen(true);
-  }, []);
-
-  // Send single curtain handler
   const handleSendCurtain = useCallback((curtain) => {
     setCurtainToSend(curtain);
     setSendSingleCurtainDialogOpen(true);
   }, []);
 
-  // Memoize columns to prevent unnecessary re-renders
   const columns = useMemo(
     () => createCurtainColumns(handleCellEdit, getEffectiveValue, lightingItems, unitItems),
     [handleCellEdit, getEffectiveValue, lightingItems, unitItems]
@@ -285,31 +220,41 @@ export function CurtainTable({ items = [], loading = false }) {
         )}
       </div>
 
-      <CurtainDialog open={dialogOpen} onOpenChange={handleDialogClose} item={editingItem} mode={editingItem ? "edit" : "create"} />
-
-      <ConfirmDialog
-        open={deleteDialogOpen}
-        onOpenChange={setDeleteDialogOpen}
-        onConfirm={confirmDelete}
-        title="Delete Curtain Item"
-        description={`Are you sure you want to delete "${itemToDelete?.name || "this curtain item"}"? This action cannot be undone.`}
+      <CurtainDialog
+        open={dialogs.crud.open}
+        onOpenChange={(open) => !open && closeCrud()}
+        item={dialogs.crud.item}
+        mode={dialogs.crud.mode}
       />
 
       <ConfirmDialog
-        open={bulkDeleteDialogOpen}
-        onOpenChange={setBulkDeleteDialogOpen}
+        open={dialogs.confirm.open}
+        onOpenChange={(open) => !open && closeConfirm()}
+        onConfirm={dialogs.confirm.onConfirm}
+        title={dialogs.confirm.title}
+        description={dialogs.confirm.description}
+      />
+
+      <ConfirmDialog
+        open={dialogs.bulkDelete.open}
+        onOpenChange={(open) => !open && closeBulkDelete()}
         title="Delete Multiple Curtain Items"
-        description={`Are you sure you want to delete ${itemsToDelete.length} selected curtain item${
-          itemsToDelete.length !== 1 ? "s" : ""
+        description={`Are you sure you want to delete ${dialogs.bulkDelete.items.length} selected curtain item${
+          dialogs.bulkDelete.items.length !== 1 ? "s" : ""
         }? This action cannot be undone.`}
-        confirmText={`Delete ${itemsToDelete.length} item${itemsToDelete.length !== 1 ? "s" : ""}`}
+        confirmText={`Delete ${dialogs.bulkDelete.items.length} item${dialogs.bulkDelete.items.length !== 1 ? "s" : ""}`}
         cancelText="Cancel"
         variant="destructive"
         onConfirm={confirmBulkDelete}
-        loading={bulkDeleteLoading}
+        loading={dialogs.bulkDelete.loading}
       />
 
-      <ImportItemsDialog open={importDialogOpen} onOpenChange={setImportDialogOpen} onImport={handleImportConfirm} category={category} />
+      <ImportItemsDialog
+        open={dialogs.importDialog.open}
+        onOpenChange={(open) => !open && closeImport()}
+        onImport={handleImportConfirm}
+        category={category}
+      />
 
       <SendCurtainConfigDialog open={sendConfigDialogOpen} onOpenChange={setSendConfigDialogOpen} items={items} />
 

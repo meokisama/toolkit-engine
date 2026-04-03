@@ -17,30 +17,36 @@ import { GenerateFromSceneSheet } from "@/components/projects/knx/sheets/generat
 import { GenerateFromMultiSceneSheet } from "@/components/projects/knx/sheets/generate-multi-scene";
 import { GenerateFromSequenceSheet } from "@/components/projects/knx/sheets/generate-sequence";
 import { Network } from "lucide-react";
+import { useTableDialogs } from "@/hooks/use-table-dialogs";
 import log from "electron-log/renderer";
 
 function KnxTableComponent({ items, loading }) {
   const { deleteItem, duplicateItem, exportItems, importItems, updateItem, projectItems } = useProjectDetail();
-  const [dialogOpen, setDialogOpen] = useState(false);
-  const [editingItem, setEditingItem] = useState(null);
-  const [dialogMode, setDialogMode] = useState("create");
-  const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
-  const [itemToDelete, setItemToDelete] = useState(null);
-  const [deleteLoading, setDeleteLoading] = useState(false);
+  const dialogs = useTableDialogs();
+  const {
+    openCreate,
+    openEdit,
+    closeCrud,
+    openConfirm,
+    closeConfirm,
+    setConfirmLoading,
+    openBulkDelete,
+    closeBulkDelete,
+    setBulkDeleteLoading,
+    openImport,
+    closeImport,
+  } = dialogs;
+
   const [table, setTable] = useState(null);
-  const [bulkDeleteDialogOpen, setBulkDeleteDialogOpen] = useState(false);
-  const [itemsToDelete, setItemsToDelete] = useState([]);
-  const [bulkDeleteLoading, setBulkDeleteLoading] = useState(false);
-  const [importDialogOpen, setImportDialogOpen] = useState(false);
   const [selectedRowsCount, setSelectedRowsCount] = useState(0);
-  const [columnVisibility, setColumnVisibility] = useState({
-    description: false, // Hide description column by default
-  });
+  const [columnVisibility, setColumnVisibility] = useState({ description: false });
   const [pagination, setPagination] = useState({ pageIndex: 0, pageSize: 10 });
   const [saveLoading, setSaveLoading] = useState(false);
 
   const pendingChangesRef = useRef(new Map());
   const [pendingChangesCount, setPendingChangesCount] = useState(0);
+
+  // KNX-specific send/generate dialog state
   const [sendDialogOpen, setSendDialogOpen] = useState(false);
   const [itemsToSend, setItemsToSend] = useState([]);
   const [generateLightingSheetOpen, setGenerateLightingSheetOpen] = useState(false);
@@ -58,30 +64,23 @@ function KnxTableComponent({ items, loading }) {
     const itemChanges = pendingChangesRef.current.get(itemId) || {};
     itemChanges[field] = newValue;
     pendingChangesRef.current.set(itemId, itemChanges);
-
-    // Only trigger re-render for toolbar save button
     setPendingChangesCount(pendingChangesRef.current.size);
   }, []);
 
   const getEffectiveValue = useCallback((itemId, field, originalValue) => {
     const itemChanges = pendingChangesRef.current.get(itemId);
     return itemChanges && itemChanges.hasOwnProperty(field) ? itemChanges[field] : originalValue;
-  }, []); // No dependencies = stable function!
+  }, []);
 
-  // Save pending changes
   const handleSaveChanges = useCallback(async () => {
     if (pendingChangesRef.current.size === 0) return;
 
     setSaveLoading(true);
     try {
       for (const [itemId, changes] of pendingChangesRef.current) {
-        // Find the original item to merge with changes
         const originalItem = items.find((item) => item.id === itemId);
-        if (!originalItem) {
-          throw new Error(`Original item with id ${itemId} not found`);
-        }
+        if (!originalItem) throw new Error(`Original item with id ${itemId} not found`);
 
-        // Merge changes with original item data to ensure all required fields are present
         const completeItemData = {
           name: originalItem.name || "",
           address: originalItem.address || 0,
@@ -95,7 +94,7 @@ function KnxTableComponent({ items, loading }) {
           knx_status_group: originalItem.knx_status_group || "",
           description: originalItem.description || "",
           source_unit: originalItem.source_unit || null,
-          ...changes, // Apply the pending changes on top
+          ...changes,
         };
 
         await updateItem(category, itemId, completeItemData);
@@ -109,17 +108,9 @@ function KnxTableComponent({ items, loading }) {
     }
   }, [updateItem, category, items]);
 
-  const handleCreateItem = useCallback(() => {
-    setEditingItem(null);
-    setDialogMode("create");
-    setDialogOpen(true);
-  }, []);
+  const handleCreateItem = useCallback(() => openCreate(), [openCreate]);
 
-  const handleEditItem = useCallback((item) => {
-    setEditingItem(item);
-    setDialogMode("edit");
-    setDialogOpen(true);
-  }, []);
+  const handleEditItem = useCallback((item) => openEdit(item), [openEdit]);
 
   const handleDuplicateItem = useCallback(
     async (item) => {
@@ -129,61 +120,55 @@ function KnxTableComponent({ items, loading }) {
         log.error("Failed to duplicate item:", error);
       }
     },
-    [duplicateItem, category]
+    [duplicateItem, category],
   );
 
-  const handleDeleteItem = useCallback((item) => {
-    setItemToDelete(item);
-    setConfirmDialogOpen(true);
-  }, []);
+  const handleDeleteItem = useCallback(
+    (item) => {
+      openConfirm({
+        title: "Delete KNX Device",
+        description: `Are you sure you want to delete "${item?.name || `Device ${item?.address}`}"? This action cannot be undone.`,
+        onConfirm: async () => {
+          setConfirmLoading(true);
+          try {
+            await deleteItem(category, item.id);
+            closeConfirm();
+          } catch (error) {
+            log.error("Failed to delete item:", error);
+          } finally {
+            setConfirmLoading(false);
+          }
+        },
+      });
+    },
+    [openConfirm, closeConfirm, setConfirmLoading, deleteItem, category],
+  );
 
-  const handleConfirmDelete = useCallback(async () => {
-    if (!itemToDelete) return;
+  const handleBulkDelete = useCallback(
+    (selectedItems) => {
+      openBulkDelete(selectedItems);
+    },
+    [openBulkDelete],
+  );
 
-    setDeleteLoading(true);
-    try {
-      await deleteItem(category, itemToDelete.id);
-      setConfirmDialogOpen(false);
-      setItemToDelete(null);
-    } catch (error) {
-      log.error("Failed to delete item:", error);
-    } finally {
-      setDeleteLoading(false);
-    }
-  }, [deleteItem, itemToDelete, category]);
-
-  const handleBulkDelete = useCallback((selectedItems) => {
-    setItemsToDelete(selectedItems);
-    setBulkDeleteDialogOpen(true);
-  }, []);
-
-  const handleConfirmBulkDelete = useCallback(async () => {
+  const confirmBulkDelete = useCallback(async () => {
     setBulkDeleteLoading(true);
     try {
-      for (const item of itemsToDelete) {
+      for (const item of dialogs.bulkDelete.items) {
         await deleteItem(category, item.id);
       }
-      setBulkDeleteDialogOpen(false);
-      setItemsToDelete([]);
+      closeBulkDelete();
       table?.resetRowSelection();
     } catch (error) {
       log.error("Failed to delete items:", error);
     } finally {
       setBulkDeleteLoading(false);
     }
-  }, [deleteItem, itemsToDelete, table, category]);
+  }, [dialogs.bulkDelete.items, deleteItem, category, closeBulkDelete, setBulkDeleteLoading, table]);
 
-  const handleRowSelectionChange = useCallback((selectedCount) => {
-    setSelectedRowsCount(selectedCount);
-  }, []);
-
-  const handleColumnVisibilityChange = useCallback((visibility) => {
-    setColumnVisibility(visibility);
-  }, []);
-
-  const handlePaginationChange = useCallback((newPagination) => {
-    setPagination(newPagination);
-  }, []);
+  const handleRowSelectionChange = useCallback((selectedCount) => setSelectedRowsCount(selectedCount), []);
+  const handleColumnVisibilityChange = useCallback((visibility) => setColumnVisibility(visibility), []);
+  const handlePaginationChange = useCallback((newPagination) => setPagination(newPagination), []);
 
   const handleExport = useCallback(async () => {
     try {
@@ -193,20 +178,18 @@ function KnxTableComponent({ items, loading }) {
     }
   }, [exportItems, category]);
 
-  const handleImport = useCallback(() => {
-    setImportDialogOpen(true);
-  }, []);
+  const handleImport = useCallback(() => openImport(), [openImport]);
 
   const handleImportConfirm = useCallback(
     async (items) => {
       try {
         await importItems(category, items);
-        setImportDialogOpen(false);
+        closeImport();
       } catch (error) {
         log.error("Failed to import items:", error);
       }
     },
-    [importItems, category]
+    [importItems, category, closeImport],
   );
 
   const handleSendAll = useCallback(() => {
@@ -214,45 +197,20 @@ function KnxTableComponent({ items, loading }) {
     setSendDialogOpen(true);
   }, [items]);
 
-  // Send single KNX item handler
   const handleSendKnx = useCallback((knxItem) => {
     setItemsToSend([knxItem]);
     setSendDialogOpen(true);
   }, []);
 
-  // Handle generate KNX from lighting
-  const handleGenerateFromLighting = useCallback(() => {
-    setGenerateLightingSheetOpen(true);
-  }, []);
-
-  // Handle generate KNX from curtain
-  const handleGenerateFromCurtain = useCallback(() => {
-    setGenerateCurtainSheetOpen(true);
-  }, []);
-
-  // Handle generate KNX from scene
-  const handleGenerateFromScene = useCallback(() => {
-    setGenerateSceneSheetOpen(true);
-  }, []);
-
-  // Handle generate KNX from multi scene
-  const handleGenerateFromMultiScene = useCallback(() => {
-    setGenerateMultiSceneSheetOpen(true);
-  }, []);
-
-  // Handle generate KNX from sequence
-  const handleGenerateFromSequence = useCallback(() => {
-    setGenerateSequenceSheetOpen(true);
-  }, []);
+  const handleGenerateFromLighting = useCallback(() => setGenerateLightingSheetOpen(true), []);
+  const handleGenerateFromCurtain = useCallback(() => setGenerateCurtainSheetOpen(true), []);
+  const handleGenerateFromScene = useCallback(() => setGenerateSceneSheetOpen(true), []);
+  const handleGenerateFromMultiScene = useCallback(() => setGenerateMultiSceneSheetOpen(true), []);
+  const handleGenerateFromSequence = useCallback(() => setGenerateSequenceSheetOpen(true), []);
 
   const columns = useMemo(
     () => createKnxItemsColumns(handleCellEdit, getEffectiveValue, projectItems || {}, unitItems),
-    [
-      handleCellEdit,
-      getEffectiveValue, // This is now stable!
-      projectItems,
-      unitItems,
-    ]
+    [handleCellEdit, getEffectiveValue, projectItems, unitItems],
   );
 
   if (loading) {
@@ -322,27 +280,32 @@ function KnxTableComponent({ items, loading }) {
         )}
       </div>
 
-      <KnxItemDialog open={dialogOpen} onOpenChange={setDialogOpen} mode={dialogMode} item={editingItem} />
+      <KnxItemDialog open={dialogs.crud.open} onOpenChange={(open) => !open && closeCrud()} mode={dialogs.crud.mode} item={dialogs.crud.item} />
 
       <ConfirmDialog
-        open={confirmDialogOpen}
-        onOpenChange={setConfirmDialogOpen}
-        title="Delete KNX Device"
-        description={`Are you sure you want to delete "${itemToDelete?.name || `Device ${itemToDelete?.address}`}"? This action cannot be undone.`}
-        onConfirm={handleConfirmDelete}
-        loading={deleteLoading}
+        open={dialogs.confirm.open}
+        onOpenChange={(open) => !open && closeConfirm()}
+        title={dialogs.confirm.title}
+        description={dialogs.confirm.description}
+        onConfirm={dialogs.confirm.onConfirm}
+        loading={dialogs.confirm.loading}
       />
 
       <ConfirmDialog
-        open={bulkDeleteDialogOpen}
-        onOpenChange={setBulkDeleteDialogOpen}
+        open={dialogs.bulkDelete.open}
+        onOpenChange={(open) => !open && closeBulkDelete()}
         title="Delete KNX Devices"
-        description={`Are you sure you want to delete ${itemsToDelete.length} selected devices? This action cannot be undone.`}
-        onConfirm={handleConfirmBulkDelete}
-        loading={bulkDeleteLoading}
+        description={`Are you sure you want to delete ${dialogs.bulkDelete.items.length} selected devices? This action cannot be undone.`}
+        onConfirm={confirmBulkDelete}
+        loading={dialogs.bulkDelete.loading}
       />
 
-      <ImportItemsDialog open={importDialogOpen} onOpenChange={setImportDialogOpen} category={category} onConfirm={handleImportConfirm} />
+      <ImportItemsDialog
+        open={dialogs.importDialog.open}
+        onOpenChange={(open) => !open && closeImport()}
+        category={category}
+        onConfirm={handleImportConfirm}
+      />
       <SendKnxDialog open={sendDialogOpen} onOpenChange={setSendDialogOpen} items={itemsToSend} />
       <GenerateFromLightingSheet open={generateLightingSheetOpen} onOpenChange={setGenerateLightingSheetOpen} />
       <GenerateFromCurtainSheet open={generateCurtainSheetOpen} onOpenChange={setGenerateCurtainSheetOpen} />
@@ -355,6 +318,5 @@ function KnxTableComponent({ items, loading }) {
 
 // Export memoized component with custom comparison function
 export const KnxTable = memo(KnxTableComponent, (prevProps, nextProps) => {
-  // Only rerender if items array reference or loading state changes
   return prevProps.items === nextProps.items && prevProps.loading === nextProps.loading;
 });

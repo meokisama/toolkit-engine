@@ -11,45 +11,31 @@ import { createSequenceColumns } from "@/components/projects/sequences/sequence-
 import { SequenceDialog } from "@/components/projects/sequences/sequence-dialog";
 import { SendSequenceDialog } from "@/components/projects/sequences/send-sequence-dialog";
 import { ListOrdered } from "lucide-react";
+import { useTableDialogs } from "@/hooks/use-table-dialogs";
 import { toast } from "sonner";
 import log from "electron-log/renderer";
 
 const SequenceTable = memo(function SequenceTable({ items = [], loading = false }) {
   const category = "sequences";
   const { deleteItem, duplicateItem, updateItem, projectItems } = useProjectDetail();
+  const dialogs = useTableDialogs();
+  const { openCreate, openEdit, closeCrud, openConfirm, closeConfirm } = dialogs;
 
-  // Get unit items for source unit filtering
   const unitItems = projectItems?.unit || [];
-  const [sequenceCounts, setSequenceCounts] = useState({});
-  const [table, setTable] = useState(null);
-  const [dialogOpen, setDialogOpen] = useState(false);
-  const [dialogMode, setDialogMode] = useState("create");
-  const [editingItem, setEditingItem] = useState(null);
-  const [confirmDialog, setConfirmDialog] = useState({
-    open: false,
-    title: "",
-    description: "",
-    onConfirm: null,
-  });
-  const [sendSequenceDialog, setSendSequenceDialog] = useState({
-    open: false,
-    items: [],
-  });
 
-  // Add states for table functionality
+  // Sequence-specific state
+  const [sequenceCounts, setSequenceCounts] = useState({});
+  const [sendSequenceDialog, setSendSequenceDialog] = useState({ open: false, items: [] });
+
+  const [table, setTable] = useState(null);
   const [selectedRowsCount, setSelectedRowsCount] = useState(0);
   const [columnVisibility, setColumnVisibility] = useState({});
-  const [pagination, setPagination] = useState({
-    pageIndex: 0,
-    pageSize: 10,
-  });
+  const [pagination, setPagination] = useState({ pageIndex: 0, pageSize: 10 });
   const [saveLoading, setSaveLoading] = useState(false);
 
-  // Use ref instead of state to avoid re-renders when pendingChanges update
   const pendingChangesRef = useRef(new Map());
   const [pendingChangesCount, setPendingChangesCount] = useState(0);
 
-  // Load multi-scene counts for each sequence
   const loadSequenceCounts = useCallback(async () => {
     try {
       const counts = {};
@@ -74,42 +60,31 @@ const SequenceTable = memo(function SequenceTable({ items = [], loading = false 
     }
   }, [items, loadSequenceCounts]);
 
-  const handleCreateItem = useCallback(() => {
-    setEditingItem(null);
-    setDialogMode("create");
-    setDialogOpen(true);
-  }, []);
+  const handleCreateItem = useCallback(() => openCreate(), [openCreate]);
 
-  const handleEditItem = useCallback((item) => {
-    setEditingItem(item);
-    setDialogMode("edit");
-    setDialogOpen(true);
-  }, []);
+  const handleEditItem = useCallback((item) => openEdit(item), [openEdit]);
 
   const handleDuplicateItem = useCallback(
     async (id) => {
       try {
         await duplicateItem(category, id);
-        // Reload multi-scene counts after duplication
         setTimeout(loadSequenceCounts, 100);
       } catch (error) {
         log.error("Failed to duplicate sequence:", error);
       }
     },
-    [duplicateItem, loadSequenceCounts]
+    [duplicateItem, loadSequenceCounts],
   );
 
   const handleDeleteItem = useCallback(
     (item) => {
-      setConfirmDialog({
-        open: true,
+      openConfirm({
         title: "Delete Sequence",
         description: `Are you sure you want to delete "${item?.name}"? This action cannot be undone.`,
         onConfirm: async () => {
           try {
             await deleteItem(category, item.id);
-            setConfirmDialog({ ...confirmDialog, open: false });
-            // Reload multi-scene counts after deletion
+            closeConfirm();
             setTimeout(loadSequenceCounts, 100);
           } catch (error) {
             log.error("Failed to delete sequence:", error);
@@ -117,51 +92,29 @@ const SequenceTable = memo(function SequenceTable({ items = [], loading = false 
         },
       });
     },
-    [deleteItem, confirmDialog, loadSequenceCounts]
+    [openConfirm, closeConfirm, deleteItem, loadSequenceCounts],
   );
 
   const handleSendSequence = useCallback(
     (item) => {
-      // Calculate index based on array position instead of database ID
       const sequenceIndex = items.findIndex((sequence) => sequence.id === item.id);
-      setSendSequenceDialog({
-        open: true,
-        items: [{ ...item, calculatedIndex: sequenceIndex }], // Single sequence as array
-      });
+      setSendSequenceDialog({ open: true, items: [{ ...item, calculatedIndex: sequenceIndex }] });
     },
-    [items]
+    [items],
   );
 
   const handleSendAllSequences = useCallback(() => {
-    // Add calculated index to all sequences
-    const sequencesWithIndex = items.map((sequence, index) => ({
-      ...sequence,
-      calculatedIndex: index,
-    }));
-
-    setSendSequenceDialog({
-      open: true,
-      items: sequencesWithIndex, // Pass all sequences as array
-    });
+    const sequencesWithIndex = items.map((sequence, index) => ({ ...sequence, calculatedIndex: index }));
+    setSendSequenceDialog({ open: true, items: sequencesWithIndex });
   }, [items]);
 
-  // Add handlers for table functionality
-  const handleRowSelectionChange = useCallback((selectedCount) => {
-    setSelectedRowsCount(selectedCount);
-  }, []);
-
-  const handleColumnVisibilityChange = useCallback((visibility) => {
-    setColumnVisibility(visibility);
-  }, []);
-
-  const handlePaginationChange = useCallback((newPagination) => {
-    setPagination(newPagination);
-  }, []);
+  const handleRowSelectionChange = useCallback((selectedCount) => setSelectedRowsCount(selectedCount), []);
+  const handleColumnVisibilityChange = useCallback((visibility) => setColumnVisibility(visibility), []);
+  const handlePaginationChange = useCallback((newPagination) => setPagination(newPagination), []);
 
   const handleBulkDelete = useCallback(
-    async (selectedItems) => {
-      setConfirmDialog({
-        open: true,
+    (selectedItems) => {
+      openConfirm({
         title: "Delete Sequences",
         description: `Are you sure you want to delete ${selectedItems.length} sequence(s)? This action cannot be undone.`,
         onConfirm: async () => {
@@ -170,7 +123,7 @@ const SequenceTable = memo(function SequenceTable({ items = [], loading = false 
               await deleteItem(category, item.id);
             }
             toast.success(`Successfully deleted ${selectedItems.length} sequence(s)`);
-            setConfirmDialog({ ...confirmDialog, open: false });
+            closeConfirm();
           } catch (error) {
             log.error("Failed to delete sequences:", error);
             toast.error("Failed to delete sequences");
@@ -178,7 +131,7 @@ const SequenceTable = memo(function SequenceTable({ items = [], loading = false 
         },
       });
     },
-    [deleteItem, confirmDialog]
+    [openConfirm, closeConfirm, deleteItem],
   );
 
   const handleSaveChanges = useCallback(async () => {
@@ -198,8 +151,7 @@ const SequenceTable = memo(function SequenceTable({ items = [], loading = false 
       toast.success("Changes saved successfully");
     } catch (error) {
       log.error("Failed to save changes:", error);
-      const errorMessage = error.message || "Failed to save changes";
-      toast.error(errorMessage);
+      toast.error(error.message || "Failed to save changes");
     } finally {
       setSaveLoading(false);
     }
@@ -207,49 +159,26 @@ const SequenceTable = memo(function SequenceTable({ items = [], loading = false 
 
   const handleDialogClose = useCallback(
     (success) => {
-      setDialogOpen(false);
-      setEditingItem(null);
-      if (success) {
-        // Reload multi-scene counts after successful create/edit
-        setTimeout(loadSequenceCounts, 100);
-      }
+      closeCrud();
+      if (success) setTimeout(loadSequenceCounts, 100);
     },
-    [loadSequenceCounts]
+    [closeCrud, loadSequenceCounts],
   );
 
-  // Stable function that doesn't change reference
   const handleCellEdit = useCallback((itemId, field, value) => {
     const existingChanges = pendingChangesRef.current.get(itemId) || {};
-    pendingChangesRef.current.set(itemId, {
-      ...existingChanges,
-      [field]: value,
-    });
-
-    // Only trigger re-render for toolbar save button
+    pendingChangesRef.current.set(itemId, { ...existingChanges, [field]: value });
     setPendingChangesCount(pendingChangesRef.current.size);
   }, []);
 
-  // Stable function that doesn't depend on state
   const getEffectiveValue = useCallback((item, field) => {
     const pendingChange = pendingChangesRef.current.get(item.id);
     return pendingChange && pendingChange[field] !== undefined ? pendingChange[field] : item[field];
-  }, []); // No dependencies = stable function!
+  }, []);
 
-  // Add multi-scene counts to items data
-  const itemsWithCounts = items.map((item) => ({
-    ...item,
-    multiSceneCount: sequenceCounts[item.id] || 0,
-  }));
+  const itemsWithCounts = items.map((item) => ({ ...item, multiSceneCount: sequenceCounts[item.id] || 0 }));
 
-  // Now columns will be truly stable because all dependencies are stable!
-  const columns = useMemo(
-    () => createSequenceColumns(handleCellEdit, getEffectiveValue, unitItems),
-    [
-      handleCellEdit,
-      getEffectiveValue, // This is now stable!
-      unitItems,
-    ]
-  );
+  const columns = useMemo(() => createSequenceColumns(handleCellEdit, getEffectiveValue, unitItems), [handleCellEdit, getEffectiveValue, unitItems]);
 
   if (loading) {
     return <DataTableSkeleton />;
@@ -310,7 +239,7 @@ const SequenceTable = memo(function SequenceTable({ items = [], loading = false 
         )}
       </div>
 
-      <SequenceDialog open={dialogOpen} onOpenChange={handleDialogClose} sequence={editingItem} mode={dialogMode} />
+      <SequenceDialog open={dialogs.crud.open} onOpenChange={handleDialogClose} sequence={dialogs.crud.item} mode={dialogs.crud.mode} />
 
       <SendSequenceDialog
         open={sendSequenceDialog.open}
@@ -319,11 +248,11 @@ const SequenceTable = memo(function SequenceTable({ items = [], loading = false 
       />
 
       <ConfirmDialog
-        open={confirmDialog.open}
-        onOpenChange={(open) => setConfirmDialog({ ...confirmDialog, open })}
-        title={confirmDialog.title}
-        description={confirmDialog.description}
-        onConfirm={confirmDialog.onConfirm}
+        open={dialogs.confirm.open}
+        onOpenChange={(open) => !open && closeConfirm()}
+        title={dialogs.confirm.title}
+        description={dialogs.confirm.description}
+        onConfirm={dialogs.confirm.onConfirm}
       />
     </div>
   );

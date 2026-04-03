@@ -11,22 +11,28 @@ import { DataTableSkeleton } from "@/components/projects/table-skeleton";
 import { createProjectItemsColumns } from "@/components/projects/lighting/lighting-columns";
 import { ImportItemsDialog } from "@/components/projects/import-category-dialog";
 import { Lightbulb } from "lucide-react";
+import { useTableDialogs } from "@/hooks/use-table-dialogs";
 import log from "electron-log/renderer";
 
 // Memoized component to prevent unnecessary rerenders
 function ProjectItemsTableComponent({ category, items, loading }) {
   const { deleteItem, duplicateItem, exportItems, importItems, updateItem } = useProjectDetail();
-  const [dialogOpen, setDialogOpen] = useState(false);
-  const [editingItem, setEditingItem] = useState(null);
-  const [dialogMode, setDialogMode] = useState("create");
-  const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
-  const [itemToDelete, setItemToDelete] = useState(null);
-  const [deleteLoading, setDeleteLoading] = useState(false);
+  const dialogs = useTableDialogs();
+  const {
+    openCreate,
+    openEdit,
+    closeCrud,
+    openConfirm,
+    closeConfirm,
+    setConfirmLoading,
+    openBulkDelete,
+    closeBulkDelete,
+    setBulkDeleteLoading,
+    openImport,
+    closeImport,
+  } = dialogs;
+
   const [table, setTable] = useState(null);
-  const [bulkDeleteDialogOpen, setBulkDeleteDialogOpen] = useState(false);
-  const [itemsToDelete, setItemsToDelete] = useState([]);
-  const [bulkDeleteLoading, setBulkDeleteLoading] = useState(false);
-  const [importDialogOpen, setImportDialogOpen] = useState(false);
   const [selectedRowsCount, setSelectedRowsCount] = useState(0);
   const [columnVisibility, setColumnVisibility] = useState({});
   const [pagination, setPagination] = useState({ pageIndex: 0, pageSize: 10 });
@@ -74,23 +80,37 @@ function ProjectItemsTableComponent({ category, items, loading }) {
     }
   }, [items, updateItem, category]);
 
-  // Memoize handlers to prevent unnecessary rerenders
   const handleCreateItem = useCallback(() => {
-    setEditingItem(null);
-    setDialogMode("create");
-    setDialogOpen(true);
-  }, []);
+    openCreate();
+  }, [openCreate]);
 
-  const handleEditItem = useCallback((item) => {
-    setEditingItem(item);
-    setDialogMode("edit");
-    setDialogOpen(true);
-  }, []);
+  const handleEditItem = useCallback(
+    (item) => {
+      openEdit(item);
+    },
+    [openEdit],
+  );
 
-  const handleDeleteItem = useCallback((item) => {
-    setItemToDelete(item);
-    setConfirmDialogOpen(true);
-  }, []);
+  const handleDeleteItem = useCallback(
+    (item) => {
+      openConfirm({
+        title: "Delete Item",
+        description: `Are you sure you want to delete "${item?.name}"? This action cannot be undone.`,
+        onConfirm: async () => {
+          setConfirmLoading(true);
+          try {
+            await deleteItem(category, item.id);
+            closeConfirm();
+          } catch (error) {
+            log.error("Failed to delete item:", error);
+          } finally {
+            setConfirmLoading(false);
+          }
+        },
+      });
+    },
+    [openConfirm, closeConfirm, setConfirmLoading, deleteItem, category],
+  );
 
   const handleDuplicateItem = useCallback(
     async (item) => {
@@ -100,39 +120,18 @@ function ProjectItemsTableComponent({ category, items, loading }) {
         log.error("Failed to duplicate item:", error);
       }
     },
-    [duplicateItem, category]
+    [duplicateItem, category],
   );
 
-  const confirmDeleteItem = async () => {
-    if (!itemToDelete) return;
-
-    setDeleteLoading(true);
-    try {
-      await deleteItem(category, itemToDelete.id);
-      setConfirmDialogOpen(false);
-      setItemToDelete(null);
-    } catch (error) {
-      log.error("Failed to delete item:", error);
-    } finally {
-      setDeleteLoading(false);
-    }
-  };
-
   const handleBulkDelete = (selectedItems) => {
-    setItemsToDelete(selectedItems);
-    setBulkDeleteDialogOpen(true);
+    openBulkDelete(selectedItems);
   };
 
   const confirmBulkDelete = async () => {
-    if (itemsToDelete.length === 0) return;
-
     setBulkDeleteLoading(true);
     try {
-      await Promise.all(itemsToDelete.map((item) => deleteItem(category, item.id)));
-
-      setBulkDeleteDialogOpen(false);
-      setItemsToDelete([]);
-
+      await Promise.all(dialogs.bulkDelete.items.map((item) => deleteItem(category, item.id)));
+      closeBulkDelete();
       setTimeout(() => {
         table?.resetRowSelection();
       }, 100);
@@ -167,31 +166,25 @@ function ProjectItemsTableComponent({ category, items, loading }) {
   }, [exportItems, category]);
 
   const handleImport = useCallback(() => {
-    setImportDialogOpen(true);
-  }, []);
+    openImport();
+  }, [openImport]);
 
   const handleImportConfirm = useCallback(
     async (items) => {
       try {
         await importItems(category, items);
-        setImportDialogOpen(false);
+        closeImport();
       } catch (error) {
         log.error("Failed to import items:", error);
       }
     },
-    [importItems, category]
+    [importItems, category, closeImport],
   );
 
   // Now columns will be truly stable because all dependencies are stable!
   const columns = useMemo(
     () => createProjectItemsColumns(handleEditItem, handleDuplicateItem, handleDeleteItem, handleCellEdit, getEffectiveValue),
-    [
-      handleEditItem,
-      handleDuplicateItem,
-      handleDeleteItem,
-      handleCellEdit,
-      getEffectiveValue, // This is now stable!
-    ]
+    [handleEditItem, handleDuplicateItem, handleDeleteItem, handleCellEdit, getEffectiveValue],
   );
 
   if (loading) {
@@ -252,35 +245,46 @@ function ProjectItemsTableComponent({ category, items, loading }) {
         )}
       </div>
 
-      <ProjectItemDialog open={dialogOpen} onOpenChange={setDialogOpen} category={category} item={editingItem} mode={dialogMode} />
+      <ProjectItemDialog
+        open={dialogs.crud.open}
+        onOpenChange={(open) => !open && closeCrud()}
+        category={category}
+        item={dialogs.crud.item}
+        mode={dialogs.crud.mode}
+      />
 
       <ConfirmDialog
-        open={confirmDialogOpen}
-        onOpenChange={setConfirmDialogOpen}
-        title="Delete Item"
-        description={`Are you sure you want to delete "${itemToDelete?.name}"? This action cannot be undone.`}
+        open={dialogs.confirm.open}
+        onOpenChange={(open) => !open && closeConfirm()}
+        title={dialogs.confirm.title}
+        description={dialogs.confirm.description}
         confirmText="Delete"
         cancelText="Cancel"
         variant="destructive"
-        onConfirm={confirmDeleteItem}
-        loading={deleteLoading}
+        onConfirm={dialogs.confirm.onConfirm}
+        loading={dialogs.confirm.loading}
       />
 
       <ConfirmDialog
-        open={bulkDeleteDialogOpen}
-        onOpenChange={setBulkDeleteDialogOpen}
+        open={dialogs.bulkDelete.open}
+        onOpenChange={(open) => !open && closeBulkDelete()}
         title="Delete Multiple Items"
-        description={`Are you sure you want to delete ${itemsToDelete.length} selected item${
-          itemsToDelete.length !== 1 ? "s" : ""
+        description={`Are you sure you want to delete ${dialogs.bulkDelete.items.length} selected item${
+          dialogs.bulkDelete.items.length !== 1 ? "s" : ""
         }? This action cannot be undone.`}
-        confirmText={`Delete ${itemsToDelete.length} item${itemsToDelete.length !== 1 ? "s" : ""}`}
+        confirmText={`Delete ${dialogs.bulkDelete.items.length} item${dialogs.bulkDelete.items.length !== 1 ? "s" : ""}`}
         cancelText="Cancel"
         variant="destructive"
         onConfirm={confirmBulkDelete}
-        loading={bulkDeleteLoading}
+        loading={dialogs.bulkDelete.loading}
       />
 
-      <ImportItemsDialog open={importDialogOpen} onOpenChange={setImportDialogOpen} onImport={handleImportConfirm} category={category} />
+      <ImportItemsDialog
+        open={dialogs.importDialog.open}
+        onOpenChange={(open) => !open && closeImport()}
+        onImport={handleImportConfirm}
+        category={category}
+      />
     </>
   );
 }

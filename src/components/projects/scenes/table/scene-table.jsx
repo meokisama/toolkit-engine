@@ -12,44 +12,31 @@ import { createSceneColumns } from "@/components/projects/scenes/table/scene-col
 import { SlidersHorizontal } from "lucide-react";
 import { SendSceneDialog } from "@/components/projects/scenes/dialogs/send-scene-dialog";
 import { ImportCategoryDialog } from "@/components/projects/import-category-dialog";
+import { useTableDialogs } from "@/hooks/use-table-dialogs";
 import { toast } from "sonner";
 import log from "electron-log/renderer";
 
 const SceneTable = memo(function SceneTable({ items = [], loading = false }) {
   const category = "scene";
   const { deleteItem, duplicateItem, updateItem, exportItems, importItems, selectedProject, projectItems } = useProjectDetail();
+  const dialogs = useTableDialogs();
+  const { openCreate, openEdit, closeCrud, openConfirm, closeConfirm, openImport, closeImport } = dialogs;
+
+  // Scene-specific state
   const [sceneItemCounts, setSceneItemCounts] = useState({});
+  const [sendSceneDialog, setSendSceneDialog] = useState({ open: false, items: [] });
+
   const [table, setTable] = useState(null);
-  const [dialogOpen, setDialogOpen] = useState(false);
-  const [dialogMode, setDialogMode] = useState("create");
-  const [editingItem, setEditingItem] = useState(null);
-  const [confirmDialog, setConfirmDialog] = useState({
-    open: false,
-    title: "",
-    description: "",
-    onConfirm: null,
-  });
-  const [sendSceneDialog, setSendSceneDialog] = useState({
-    open: false,
-    items: [],
-  });
-  const [importDialogOpen, setImportDialogOpen] = useState(false);
   const [columnVisibility, setColumnVisibility] = useState({});
-  const [pagination, setPagination] = useState({
-    pageIndex: 0,
-    pageSize: 10,
-  });
+  const [pagination, setPagination] = useState({ pageIndex: 0, pageSize: 10 });
   const [saveLoading, setSaveLoading] = useState(false);
   const [selectedRowsCount, setSelectedRowsCount] = useState(0);
 
-  // Use ref instead of state to avoid re-renders when pendingChanges update
   const pendingChangesRef = useRef(new Map());
   const [pendingChangesCount, setPendingChangesCount] = useState(0);
 
-  // Get unit items for source unit filtering
   const unitItems = projectItems?.unit || [];
 
-  // Load scene item counts only when tab is active and has items
   useEffect(() => {
     const loadSceneItemCounts = async () => {
       const counts = {};
@@ -65,16 +52,13 @@ const SceneTable = memo(function SceneTable({ items = [], loading = false }) {
       setSceneItemCounts(counts);
     };
 
-    // Only load counts if we have items and not in loading state
     if (items.length > 0 && !loading) {
       loadSceneItemCounts();
     } else {
-      // Clear counts when no items
       setSceneItemCounts({});
     }
   }, [items, loading]);
 
-  // Reload scene item counts
   const reloadSceneItemCounts = useCallback(async () => {
     if (items.length > 0) {
       const counts = {};
@@ -91,23 +75,18 @@ const SceneTable = memo(function SceneTable({ items = [], loading = false }) {
     }
   }, [items]);
 
-  // Stable function that doesn't change reference
   const handleCellEdit = useCallback((itemId, field, newValue) => {
     const itemChanges = pendingChangesRef.current.get(itemId) || {};
     itemChanges[field] = newValue;
     pendingChangesRef.current.set(itemId, itemChanges);
-
-    // Only trigger re-render for toolbar save button
     setPendingChangesCount(pendingChangesRef.current.size);
   }, []);
 
-  // Stable function that doesn't depend on state
   const getEffectiveValue = useCallback((itemId, field, originalValue) => {
     const itemChanges = pendingChangesRef.current.get(itemId);
     return itemChanges && itemChanges.hasOwnProperty(field) ? itemChanges[field] : originalValue;
-  }, []); // No dependencies = stable function!
+  }, []);
 
-  // Save all pending changes
   const handleSaveChanges = useCallback(async () => {
     if (pendingChangesRef.current.size === 0) return;
 
@@ -124,36 +103,24 @@ const SceneTable = memo(function SceneTable({ items = [], loading = false }) {
       setPendingChangesCount(0);
     } catch (error) {
       log.error("Failed to save changes:", error);
-      const errorMessage = error.message || "Failed to save changes";
-      toast.error(errorMessage);
+      toast.error(error.message || "Failed to save changes");
     } finally {
       setSaveLoading(false);
     }
   }, [items, updateItem]);
 
-  const handleCreateItem = useCallback(() => {
-    setEditingItem(null);
-    setDialogMode("create");
-    setDialogOpen(true);
-  }, []);
+  const handleCreateItem = useCallback(() => openCreate(), [openCreate]);
 
-  const handleEditItem = useCallback((item) => {
-    setEditingItem(item);
-    setDialogMode("edit");
-    setDialogOpen(true);
-  }, []);
+  const handleEditItem = useCallback((item) => openEdit(item), [openEdit]);
 
   const handleDialogClose = useCallback(
     (open) => {
-      setDialogOpen(open);
       if (!open) {
-        // Reload scene item counts when dialog closes
-        setTimeout(() => {
-          reloadSceneItemCounts();
-        }, 100);
+        closeCrud();
+        setTimeout(() => reloadSceneItemCounts(), 100);
       }
     },
-    [reloadSceneItemCounts]
+    [closeCrud, reloadSceneItemCounts],
   );
 
   const handleDuplicateItem = useCallback(
@@ -164,13 +131,12 @@ const SceneTable = memo(function SceneTable({ items = [], loading = false }) {
         log.error("Failed to duplicate scene:", error);
       }
     },
-    [duplicateItem]
+    [duplicateItem],
   );
 
   const handleDeleteItem = useCallback(
     (item) => {
-      setConfirmDialog({
-        open: true,
+      openConfirm({
         title: "Delete Scene",
         description: `Are you sure you want to delete "${
           item.name || `Scene ${item.address}`
@@ -178,70 +144,45 @@ const SceneTable = memo(function SceneTable({ items = [], loading = false }) {
         onConfirm: async () => {
           try {
             await deleteItem(category, item.id);
-            setConfirmDialog({ ...confirmDialog, open: false });
+            closeConfirm();
           } catch (error) {
             log.error("Failed to delete scene:", error);
           }
         },
       });
     },
-    [deleteItem, confirmDialog]
+    [openConfirm, closeConfirm, deleteItem],
   );
 
   const handleSendToUnit = useCallback(
     (item) => {
-      // Calculate index based on array position instead of database ID
       const sceneIndex = items.findIndex((scene) => scene.id === item.id);
-      setSendSceneDialog({
-        open: true,
-        items: [{ ...item, calculatedIndex: sceneIndex }], // Single scene as array
-      });
+      setSendSceneDialog({ open: true, items: [{ ...item, calculatedIndex: sceneIndex }] });
     },
-    [items]
+    [items],
   );
 
-  const handleRowSelectionChange = useCallback((selectedCount) => {
-    setSelectedRowsCount(selectedCount);
-  }, []);
-
-  const handleColumnVisibilityChange = useCallback((visibility) => {
-    setColumnVisibility(visibility);
-  }, []);
-
-  const handlePaginationChange = useCallback((newPagination) => {
-    setPagination(newPagination);
-  }, []);
+  const handleRowSelectionChange = useCallback((selectedCount) => setSelectedRowsCount(selectedCount), []);
+  const handleColumnVisibilityChange = useCallback((visibility) => setColumnVisibility(visibility), []);
+  const handlePaginationChange = useCallback((newPagination) => setPagination(newPagination), []);
 
   const handleBulkDelete = useCallback(
     async (selectedItems) => {
       try {
-        const deletePromises = selectedItems.map((item) => deleteItem(category, item.id));
-        await Promise.all(deletePromises);
-
-        if (table) {
-          table.resetRowSelection();
-        }
+        await Promise.all(selectedItems.map((item) => deleteItem(category, item.id)));
+        if (table) table.resetRowSelection();
       } catch (error) {
         log.error("Failed to bulk delete scenes:", error);
       }
     },
-    [deleteItem, table]
+    [deleteItem, table],
   );
 
   const handleSendAllScenes = useCallback(() => {
-    // Add calculated index to all scenes
-    const scenesWithIndex = items.map((scene, index) => ({
-      ...scene,
-      calculatedIndex: index,
-    }));
-
-    setSendSceneDialog({
-      open: true,
-      items: scenesWithIndex, // Pass all scenes as array
-    });
+    const scenesWithIndex = items.map((scene, index) => ({ ...scene, calculatedIndex: index }));
+    setSendSceneDialog({ open: true, items: scenesWithIndex });
   }, [items]);
 
-  // Export/Import handlers
   const handleExport = useCallback(async () => {
     try {
       await exportItems(category);
@@ -250,41 +191,24 @@ const SceneTable = memo(function SceneTable({ items = [], loading = false }) {
     }
   }, [exportItems]);
 
-  const handleImport = useCallback(() => {
-    setImportDialogOpen(true);
-  }, []);
+  const handleImport = useCallback(() => openImport(), [openImport]);
 
   const handleImportConfirm = useCallback(
     async (items) => {
       try {
         await importItems(category, items);
-        setImportDialogOpen(false);
-        // Reload scene item counts after import
-        setTimeout(() => {
-          reloadSceneItemCounts();
-        }, 100);
+        closeImport();
+        setTimeout(() => reloadSceneItemCounts(), 100);
       } catch (error) {
         log.error("Failed to import scene items:", error);
       }
     },
-    [importItems, reloadSceneItemCounts]
+    [importItems, closeImport, reloadSceneItemCounts],
   );
 
-  // Add item counts to items data
-  const itemsWithCounts = items.map((item) => ({
-    ...item,
-    itemCount: sceneItemCounts[item.id] || 0,
-  }));
+  const itemsWithCounts = items.map((item) => ({ ...item, itemCount: sceneItemCounts[item.id] || 0 }));
 
-  // Now columns will be truly stable because all dependencies are stable!
-  const columns = useMemo(
-    () => createSceneColumns(handleCellEdit, getEffectiveValue, unitItems),
-    [
-      handleCellEdit,
-      getEffectiveValue, // This is now stable!
-      unitItems,
-    ]
-  );
+  const columns = useMemo(() => createSceneColumns(handleCellEdit, getEffectiveValue, unitItems), [handleCellEdit, getEffectiveValue, unitItems]);
 
   if (loading) {
     return <DataTableSkeleton />;
@@ -351,23 +275,28 @@ const SceneTable = memo(function SceneTable({ items = [], loading = false }) {
         )}
       </div>
 
-      <SceneDialog open={dialogOpen} onOpenChange={handleDialogClose} scene={editingItem} mode={dialogMode} />
+      <SceneDialog open={dialogs.crud.open} onOpenChange={handleDialogClose} scene={dialogs.crud.item} mode={dialogs.crud.mode} />
 
       <ConfirmDialog
-        open={confirmDialog.open}
-        onOpenChange={(open) => setConfirmDialog({ ...confirmDialog, open })}
-        title={confirmDialog.title}
-        description={confirmDialog.description}
-        onConfirm={confirmDialog.onConfirm}
+        open={dialogs.confirm.open}
+        onOpenChange={(open) => !open && closeConfirm()}
+        title={dialogs.confirm.title}
+        description={dialogs.confirm.description}
+        onConfirm={dialogs.confirm.onConfirm}
       />
 
       <SendSceneDialog
         open={sendSceneDialog.open}
-        onOpenChange={(open) => setSendSceneDialog({ ...sendSceneDialog, open })}
+        onOpenChange={(open) => setSendSceneDialog((prev) => ({ ...prev, open }))}
         items={sendSceneDialog.items}
       />
 
-      <ImportCategoryDialog open={importDialogOpen} onOpenChange={setImportDialogOpen} category={category} onConfirm={handleImportConfirm} />
+      <ImportCategoryDialog
+        open={dialogs.importDialog.open}
+        onOpenChange={(open) => !open && closeImport()}
+        category={category}
+        onConfirm={handleImportConfirm}
+      />
     </div>
   );
 });

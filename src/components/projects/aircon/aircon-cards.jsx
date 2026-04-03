@@ -7,52 +7,51 @@ import { useProjectDetail } from "@/contexts/project-detail-context";
 import { AirconCardDialog } from "@/components/projects/aircon/aircon-card-dialog";
 import { ConfirmDialog } from "@/components/projects/confirm-dialog";
 import { ImportItemsDialog } from "@/components/projects/import-category-dialog";
+import { useTableDialogs } from "@/hooks/use-table-dialogs";
 import log from "electron-log/renderer";
 
 // Memoized component to prevent unnecessary rerenders
 function AirconCardsComponent({ cards, loading }) {
   const { selectedProject, deleteAirconCard, duplicateAirconCard, exportItems, importItems } = useProjectDetail();
-  const [dialogOpen, setDialogOpen] = useState(false);
-  const [editDialogOpen, setEditDialogOpen] = useState(false);
-  const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
-  const [importDialogOpen, setImportDialogOpen] = useState(false);
-  const [cardToDelete, setCardToDelete] = useState(null);
-  const [cardToEdit, setCardToEdit] = useState(null);
-  const [deleteLoading, setDeleteLoading] = useState(false);
+  const dialogs = useTableDialogs();
+  const { openCreate, openEdit, closeCrud, openConfirm, closeConfirm, setConfirmLoading, openImport, closeImport } = dialogs;
 
   const handleCreateCard = useCallback(() => {
-    setDialogOpen(true);
-  }, []);
+    openCreate();
+  }, [openCreate]);
 
-  const handleEditCard = useCallback((card) => {
-    setCardToEdit(card);
-    setEditDialogOpen(true);
-  }, []);
+  const handleEditCard = useCallback(
+    (card) => {
+      openEdit(card);
+    },
+    [openEdit],
+  );
 
-  const handleDeleteCard = useCallback((address) => {
-    setCardToDelete(address);
-    setConfirmDialogOpen(true);
-  }, []);
-
-  const handleConfirmDelete = useCallback(async () => {
-    if (!cardToDelete || !selectedProject) return;
-
-    setDeleteLoading(true);
-    try {
-      await deleteAirconCard(selectedProject.id, cardToDelete);
-      setConfirmDialogOpen(false);
-      setCardToDelete(null);
-    } catch (error) {
-      log.error("Failed to delete aircon card:", error);
-    } finally {
-      setDeleteLoading(false);
-    }
-  }, [cardToDelete, selectedProject, deleteAirconCard]);
+  const handleDeleteCard = useCallback(
+    (address) => {
+      openConfirm({
+        title: "Delete Aircon Card",
+        description: `Are you sure you want to delete aircon card "${address}"? This action cannot be undone.`,
+        onConfirm: async () => {
+          if (!selectedProject) return;
+          setConfirmLoading(true);
+          try {
+            await deleteAirconCard(selectedProject.id, address);
+            closeConfirm();
+          } catch (error) {
+            log.error("Failed to delete aircon card:", error);
+          } finally {
+            setConfirmLoading(false);
+          }
+        },
+      });
+    },
+    [openConfirm, closeConfirm, setConfirmLoading, selectedProject, deleteAirconCard],
+  );
 
   const handleDuplicateCard = useCallback(
     async (address) => {
       if (!selectedProject) return;
-
       try {
         await duplicateAirconCard(selectedProject.id, address);
       } catch (error) {
@@ -70,20 +69,18 @@ function AirconCardsComponent({ cards, loading }) {
     }
   }, [exportItems]);
 
-  const handleImport = useCallback(() => {
-    setImportDialogOpen(true);
-  }, []);
+  const handleImport = useCallback(() => openImport(), [openImport]);
 
   const handleImportConfirm = useCallback(
     async (items) => {
       try {
         await importItems("aircon", items);
-        setImportDialogOpen(false);
+        closeImport();
       } catch (error) {
         log.error("Failed to import aircon cards:", error);
       }
     },
-    [importItems],
+    [importItems, closeImport],
   );
 
   if (loading) {
@@ -104,7 +101,6 @@ function AirconCardsComponent({ cards, loading }) {
               </CardContent>
             </Card>
           ))}
-          {/* Add placeholder card for loading state */}
           <Card className="border-dashed border-2 animate-pulse">
             <CardContent className="flex flex-col items-center justify-center py-8 space-y-3">
               <div className="h-8 bg-gray-200 rounded w-3/4"></div>
@@ -160,7 +156,6 @@ function AirconCardsComponent({ cards, loading }) {
           </Card>
         ))}
 
-        {/* Add placeholder card for creating new aircon */}
         <Card className="min-h-40 border-dashed border-2 border-muted-foreground/25 hover:border-muted-foreground/50 transition-colors">
           <CardContent className="flex flex-col items-center justify-center h-full space-y-3">
             <Button onClick={handleCreateCard} variant="default" className="cursor-pointer w-[60%]">
@@ -188,18 +183,29 @@ function AirconCardsComponent({ cards, loading }) {
           </CardContent>
         </Card>
       </div>
-      <AirconCardDialog open={dialogOpen} onOpenChange={setDialogOpen} />
-      <AirconCardDialog open={editDialogOpen} onOpenChange={setEditDialogOpen} mode="edit" card={cardToEdit} />
+
+      <AirconCardDialog open={dialogs.crud.open && dialogs.crud.mode === "create"} onOpenChange={(open) => !open && closeCrud()} />
+      <AirconCardDialog
+        open={dialogs.crud.open && dialogs.crud.mode === "edit"}
+        onOpenChange={(open) => !open && closeCrud()}
+        mode="edit"
+        card={dialogs.crud.item}
+      />
       <ConfirmDialog
-        open={confirmDialogOpen}
-        onOpenChange={setConfirmDialogOpen}
-        title="Delete Aircon Card"
-        description={`Are you sure you want to delete aircon card "${cardToDelete}"? This action cannot be undone.`}
-        onConfirm={handleConfirmDelete}
-        loading={deleteLoading}
+        open={dialogs.confirm.open}
+        onOpenChange={(open) => !open && closeConfirm()}
+        title={dialogs.confirm.title}
+        description={dialogs.confirm.description}
+        onConfirm={dialogs.confirm.onConfirm}
+        loading={dialogs.confirm.loading}
         variant="destructive"
       />
-      <ImportItemsDialog open={importDialogOpen} onOpenChange={setImportDialogOpen} category="aircon" onImport={handleImportConfirm} />
+      <ImportItemsDialog
+        open={dialogs.importDialog.open}
+        onOpenChange={(open) => !open && closeImport()}
+        category="aircon"
+        onImport={handleImportConfirm}
+      />
     </div>
   );
 }

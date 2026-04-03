@@ -12,23 +12,32 @@ import { ConfirmDialog } from "@/components/projects/confirm-dialog";
 import { ImportItemsDialog } from "@/components/projects/import-category-dialog";
 import { useProjectDetail } from "@/contexts/project-detail-context";
 import { TableSkeleton } from "@/components/projects/table-skeleton";
+import { useTableDialogs } from "@/hooks/use-table-dialogs";
 import log from "electron-log/renderer";
 
 export function DmxTable({ items = [], loading = false }) {
   const category = "dmx";
   const { updateItem, deleteItem, duplicateItem, exportItems, importItems, projectItems } = useProjectDetail();
-  const [dialogOpen, setDialogOpen] = useState(false);
-  const [editingItem, setEditingItem] = useState(null);
-  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [itemToDelete, setItemToDelete] = useState(null);
+  const dialogs = useTableDialogs();
+  const {
+    openCreate,
+    openEdit,
+    closeCrud,
+    openConfirm,
+    closeConfirm,
+    openBulkDelete,
+    closeBulkDelete,
+    setBulkDeleteLoading,
+    openImport,
+    closeImport,
+  } = dialogs;
+
+  // DMX-specific dialog state
   const [sceneDialogOpen, setSceneDialogOpen] = useState(false);
   const [sceneEditingItem, setSceneEditingItem] = useState(null);
-
-  // Send DMX state
   const [sendDialogOpen, setSendDialogOpen] = useState(false);
   const [itemsToSend, setItemsToSend] = useState([]);
 
-  // Table state management
   const [table, setTable] = useState(null);
   const [selectedRowsCount, setSelectedRowsCount] = useState(0);
   const [columnVisibility, setColumnVisibility] = useState({ description: false });
@@ -38,20 +47,10 @@ export function DmxTable({ items = [], loading = false }) {
   const pendingChangesRef = useRef(new Map());
   const [pendingChangesCount, setPendingChangesCount] = useState(0);
 
-  // Bulk delete state
-  const [bulkDeleteDialogOpen, setBulkDeleteDialogOpen] = useState(false);
-  const [itemsToDelete, setItemsToDelete] = useState([]);
-  const [bulkDeleteLoading, setBulkDeleteLoading] = useState(false);
-
-  // Import state
-  const [importDialogOpen, setImportDialogOpen] = useState(false);
-
   const handleCellEdit = useCallback((itemId, field, newValue) => {
     const itemChanges = pendingChangesRef.current.get(itemId) || {};
     itemChanges[field] = newValue;
     pendingChangesRef.current.set(itemId, itemChanges);
-
-    // Only trigger re-render for toolbar save button
     setPendingChangesCount(pendingChangesRef.current.size);
   }, []);
 
@@ -60,7 +59,6 @@ export function DmxTable({ items = [], loading = false }) {
     return itemChanges && itemChanges.hasOwnProperty(field) ? itemChanges[field] : originalValue;
   }, []);
 
-  // Save all pending changes
   const handleSaveChanges = useCallback(async () => {
     if (pendingChangesRef.current.size === 0) return;
 
@@ -82,15 +80,25 @@ export function DmxTable({ items = [], loading = false }) {
     }
   }, [items, updateItem]);
 
-  const handleEdit = useCallback((item) => {
-    setEditingItem(item);
-    setDialogOpen(true);
-  }, []);
+  const handleEdit = useCallback((item) => openEdit(item), [openEdit]);
 
-  const handleDelete = useCallback((item) => {
-    setItemToDelete(item);
-    setDeleteDialogOpen(true);
-  }, []);
+  const handleDelete = useCallback(
+    (item) => {
+      openConfirm({
+        title: "Delete DMX Item",
+        description: `Are you sure you want to delete "${item?.name || "this DMX item"}"? This action cannot be undone.`,
+        onConfirm: async () => {
+          try {
+            await deleteItem(category, item.id);
+            closeConfirm();
+          } catch (error) {
+            log.error("Failed to delete DMX item:", error);
+          }
+        },
+      });
+    },
+    [openConfirm, closeConfirm, deleteItem, category],
+  );
 
   const handleDuplicate = useCallback(
     async (item) => {
@@ -100,58 +108,27 @@ export function DmxTable({ items = [], loading = false }) {
         log.error("Failed to duplicate DMX item:", error);
       }
     },
-    [duplicateItem]
+    [duplicateItem],
   );
 
-  const confirmDelete = async () => {
-    if (itemToDelete) {
-      try {
-        await deleteItem(category, itemToDelete.id);
-        setDeleteDialogOpen(false);
-        setItemToDelete(null);
-      } catch (error) {
-        log.error("Failed to delete DMX item:", error);
-      }
-    }
-  };
+  const handleRowSelectionChange = useCallback((selectedCount) => setSelectedRowsCount(selectedCount), []);
+  const handleColumnVisibilityChange = useCallback((visibility) => setColumnVisibility(visibility), []);
+  const handlePaginationChange = useCallback((paginationState) => setPagination(paginationState), []);
 
-  const handleDialogClose = () => {
-    setDialogOpen(false);
-    setEditingItem(null);
-  };
-
-  // Table handlers
-  const handleRowSelectionChange = useCallback((selectedCount) => {
-    setSelectedRowsCount(selectedCount);
-  }, []);
-
-  const handleColumnVisibilityChange = useCallback((visibility) => {
-    setColumnVisibility(visibility);
-  }, []);
-
-  const handlePaginationChange = useCallback((paginationState) => {
-    setPagination(paginationState);
-  }, []);
-
-  // Bulk delete handlers
-  const handleBulkDelete = useCallback((selectedItems) => {
-    setItemsToDelete(selectedItems);
-    setBulkDeleteDialogOpen(true);
-  }, []);
+  const handleBulkDelete = useCallback(
+    (selectedItems) => {
+      openBulkDelete(selectedItems);
+    },
+    [openBulkDelete],
+  );
 
   const confirmBulkDelete = useCallback(async () => {
-    if (itemsToDelete.length === 0) return;
+    if (dialogs.bulkDelete.items.length === 0) return;
 
     setBulkDeleteLoading(true);
     try {
-      // Delete all selected items
-      await Promise.all(itemsToDelete.map((item) => deleteItem(category, item.id)));
-
-      // Close dialog and clear state first
-      setBulkDeleteDialogOpen(false);
-      setItemsToDelete([]);
-
-      // Clear selection after a small delay to ensure data has been updated
+      await Promise.all(dialogs.bulkDelete.items.map((item) => deleteItem(category, item.id)));
+      closeBulkDelete();
       setTimeout(() => {
         table?.resetRowSelection();
       }, 100);
@@ -160,9 +137,8 @@ export function DmxTable({ items = [], loading = false }) {
     } finally {
       setBulkDeleteLoading(false);
     }
-  }, [itemsToDelete, deleteItem, table]);
+  }, [dialogs.bulkDelete.items, deleteItem, category, closeBulkDelete, setBulkDeleteLoading, table]);
 
-  // Export/Import handlers
   const handleExport = useCallback(async () => {
     try {
       await exportItems(category);
@@ -171,26 +147,21 @@ export function DmxTable({ items = [], loading = false }) {
     }
   }, [exportItems]);
 
-  const handleImport = useCallback(() => {
-    setImportDialogOpen(true);
-  }, []);
+  const handleImport = useCallback(() => openImport(), [openImport]);
 
   const handleImportConfirm = useCallback(
     async (items) => {
       try {
         await importItems(category, items);
-        setImportDialogOpen(false);
+        closeImport();
       } catch (error) {
         log.error("Failed to import DMX items:", error);
       }
     },
-    [importItems]
+    [importItems, closeImport],
   );
 
-  const handleCreateItem = useCallback(() => {
-    setEditingItem(null);
-    setDialogOpen(true);
-  }, []);
+  const handleCreateItem = useCallback(() => openCreate(), [openCreate]);
 
   const handleSceneConfig = useCallback((item) => {
     setSceneEditingItem(item);
@@ -202,7 +173,6 @@ export function DmxTable({ items = [], loading = false }) {
     setSceneEditingItem(null);
   };
 
-  // Send handlers
   const handleSendDmx = useCallback((item) => {
     setItemsToSend([item]);
     setSendDialogOpen(true);
@@ -213,10 +183,9 @@ export function DmxTable({ items = [], loading = false }) {
     setSendDialogOpen(true);
   }, [items]);
 
-  // Memoize columns to prevent unnecessary re-renders
   const columns = useMemo(
     () => createDmxColumns(handleCellEdit, getEffectiveValue, projectItems?.unit || []),
-    [handleCellEdit, getEffectiveValue, projectItems?.unit]
+    [handleCellEdit, getEffectiveValue, projectItems?.unit],
   );
 
   if (loading) {
@@ -282,35 +251,40 @@ export function DmxTable({ items = [], loading = false }) {
         )}
       </div>
 
-      <DmxDialog open={dialogOpen} onOpenChange={handleDialogClose} item={editingItem} mode={editingItem ? "edit" : "create"} />
+      <DmxDialog open={dialogs.crud.open} onOpenChange={(open) => !open && closeCrud()} item={dialogs.crud.item} mode={dialogs.crud.mode} />
 
       <DmxColorDialog open={sceneDialogOpen} onOpenChange={handleSceneDialogClose} item={sceneEditingItem} />
 
       <SendDmxDialog open={sendDialogOpen} onOpenChange={setSendDialogOpen} items={itemsToSend} />
 
       <ConfirmDialog
-        open={deleteDialogOpen}
-        onOpenChange={setDeleteDialogOpen}
-        onConfirm={confirmDelete}
-        title="Delete DMX Item"
-        description={`Are you sure you want to delete "${itemToDelete?.name || "this DMX item"}"? This action cannot be undone.`}
+        open={dialogs.confirm.open}
+        onOpenChange={(open) => !open && closeConfirm()}
+        onConfirm={dialogs.confirm.onConfirm}
+        title={dialogs.confirm.title}
+        description={dialogs.confirm.description}
       />
 
       <ConfirmDialog
-        open={bulkDeleteDialogOpen}
-        onOpenChange={setBulkDeleteDialogOpen}
+        open={dialogs.bulkDelete.open}
+        onOpenChange={(open) => !open && closeBulkDelete()}
         title="Delete Multiple DMX Items"
-        description={`Are you sure you want to delete ${itemsToDelete.length} selected DMX item${
-          itemsToDelete.length !== 1 ? "s" : ""
+        description={`Are you sure you want to delete ${dialogs.bulkDelete.items.length} selected DMX item${
+          dialogs.bulkDelete.items.length !== 1 ? "s" : ""
         }? This action cannot be undone.`}
-        confirmText={`Delete ${itemsToDelete.length} item${itemsToDelete.length !== 1 ? "s" : ""}`}
+        confirmText={`Delete ${dialogs.bulkDelete.items.length} item${dialogs.bulkDelete.items.length !== 1 ? "s" : ""}`}
         cancelText="Cancel"
         variant="destructive"
         onConfirm={confirmBulkDelete}
-        loading={bulkDeleteLoading}
+        loading={dialogs.bulkDelete.loading}
       />
 
-      <ImportItemsDialog open={importDialogOpen} onOpenChange={setImportDialogOpen} onImport={handleImportConfirm} category={category} />
+      <ImportItemsDialog
+        open={dialogs.importDialog.open}
+        onOpenChange={(open) => !open && closeImport()}
+        onImport={handleImportConfirm}
+        category={category}
+      />
     </>
   );
 }

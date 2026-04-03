@@ -11,45 +11,31 @@ import { createMultiSceneColumns } from "@/components/projects/multi-scenes/mult
 import { MultiSceneDialog } from "@/components/projects/multi-scenes/multi-scene-dialog";
 import { SendMultiSceneDialog } from "@/components/projects/multi-scenes/send-multi-scene-dialog";
 import { Layers } from "lucide-react";
+import { useTableDialogs } from "@/hooks/use-table-dialogs";
 import { toast } from "sonner";
 import log from "electron-log/renderer";
 
 const MultiSceneTable = memo(function MultiSceneTable({ items = [], loading = false }) {
   const category = "multi_scenes";
   const { deleteItem, duplicateItem, updateItem, projectItems } = useProjectDetail();
-  const [multiSceneCounts, setMultiSceneCounts] = useState({});
-  const [table, setTable] = useState(null);
-  const [dialogOpen, setDialogOpen] = useState(false);
-  const [dialogMode, setDialogMode] = useState("create");
-  const [editingItem, setEditingItem] = useState(null);
-  const [confirmDialog, setConfirmDialog] = useState({
-    open: false,
-    title: "",
-    description: "",
-    onConfirm: null,
-  });
-  const [sendMultiSceneDialog, setSendMultiSceneDialog] = useState({
-    open: false,
-    items: [],
-  });
+  const dialogs = useTableDialogs();
+  const { openCreate, openEdit, closeCrud, openConfirm, closeConfirm } = dialogs;
 
-  // Add states for table functionality
+  // Multi-scene-specific state
+  const [multiSceneCounts, setMultiSceneCounts] = useState({});
+  const [sendMultiSceneDialog, setSendMultiSceneDialog] = useState({ open: false, items: [] });
+
+  const [table, setTable] = useState(null);
   const [selectedRowsCount, setSelectedRowsCount] = useState(0);
   const [columnVisibility, setColumnVisibility] = useState({});
-  const [pagination, setPagination] = useState({
-    pageIndex: 0,
-    pageSize: 10,
-  });
+  const [pagination, setPagination] = useState({ pageIndex: 0, pageSize: 10 });
   const [saveLoading, setSaveLoading] = useState(false);
 
-  // Use ref instead of state to avoid re-renders when pendingChanges update
   const pendingChangesRef = useRef(new Map());
   const [pendingChangesCount, setPendingChangesCount] = useState(0);
 
-  // Get unit items for source unit filtering
   const unitItems = projectItems?.unit || [];
 
-  // Load scene counts for each multi-scene
   const loadMultiSceneCounts = useCallback(async () => {
     try {
       const counts = {};
@@ -74,42 +60,31 @@ const MultiSceneTable = memo(function MultiSceneTable({ items = [], loading = fa
     }
   }, [items, loadMultiSceneCounts]);
 
-  const handleCreateItem = useCallback(() => {
-    setEditingItem(null);
-    setDialogMode("create");
-    setDialogOpen(true);
-  }, []);
+  const handleCreateItem = useCallback(() => openCreate(), [openCreate]);
 
-  const handleEditItem = useCallback((item) => {
-    setEditingItem(item);
-    setDialogMode("edit");
-    setDialogOpen(true);
-  }, []);
+  const handleEditItem = useCallback((item) => openEdit(item), [openEdit]);
 
   const handleDuplicateItem = useCallback(
     async (id) => {
       try {
         await duplicateItem(category, id);
-        // Reload scene counts after duplication
         setTimeout(loadMultiSceneCounts, 100);
       } catch (error) {
         log.error("Failed to duplicate multi-scene:", error);
       }
     },
-    [duplicateItem, loadMultiSceneCounts]
+    [duplicateItem, loadMultiSceneCounts],
   );
 
   const handleDeleteItem = useCallback(
     (item) => {
-      setConfirmDialog({
-        open: true,
+      openConfirm({
         title: "Delete Multi-Scene",
         description: `Are you sure you want to delete "${item?.name}"? This action cannot be undone.`,
         onConfirm: async () => {
           try {
             await deleteItem(category, item.id);
-            setConfirmDialog({ ...confirmDialog, open: false });
-            // Reload scene counts after deletion
+            closeConfirm();
             setTimeout(loadMultiSceneCounts, 100);
           } catch (error) {
             log.error("Failed to delete multi-scene:", error);
@@ -117,51 +92,29 @@ const MultiSceneTable = memo(function MultiSceneTable({ items = [], loading = fa
         },
       });
     },
-    [deleteItem, confirmDialog, loadMultiSceneCounts]
+    [openConfirm, closeConfirm, deleteItem, loadMultiSceneCounts],
   );
 
   const handleSendMultiScene = useCallback(
     (item) => {
-      // Calculate index based on array position instead of database ID
       const multiSceneIndex = items.findIndex((multiScene) => multiScene.id === item.id);
-      setSendMultiSceneDialog({
-        open: true,
-        items: [{ ...item, calculatedIndex: multiSceneIndex }], // Single multi-scene as array
-      });
+      setSendMultiSceneDialog({ open: true, items: [{ ...item, calculatedIndex: multiSceneIndex }] });
     },
-    [items]
+    [items],
   );
 
   const handleSendAllMultiScenes = useCallback(() => {
-    // Add calculated index to all multi-scenes
-    const multiScenesWithIndex = items.map((multiScene, index) => ({
-      ...multiScene,
-      calculatedIndex: index,
-    }));
-
-    setSendMultiSceneDialog({
-      open: true,
-      items: multiScenesWithIndex, // Pass all multi-scenes as array
-    });
+    const multiScenesWithIndex = items.map((multiScene, index) => ({ ...multiScene, calculatedIndex: index }));
+    setSendMultiSceneDialog({ open: true, items: multiScenesWithIndex });
   }, [items]);
 
-  // Add handlers for table functionality
-  const handleRowSelectionChange = useCallback((selectedCount) => {
-    setSelectedRowsCount(selectedCount);
-  }, []);
-
-  const handleColumnVisibilityChange = useCallback((visibility) => {
-    setColumnVisibility(visibility);
-  }, []);
-
-  const handlePaginationChange = useCallback((newPagination) => {
-    setPagination(newPagination);
-  }, []);
+  const handleRowSelectionChange = useCallback((selectedCount) => setSelectedRowsCount(selectedCount), []);
+  const handleColumnVisibilityChange = useCallback((visibility) => setColumnVisibility(visibility), []);
+  const handlePaginationChange = useCallback((newPagination) => setPagination(newPagination), []);
 
   const handleBulkDelete = useCallback(
-    async (selectedItems) => {
-      setConfirmDialog({
-        open: true,
+    (selectedItems) => {
+      openConfirm({
         title: "Delete Multi-Scenes",
         description: `Are you sure you want to delete ${selectedItems.length} multi-scene(s)? This action cannot be undone.`,
         onConfirm: async () => {
@@ -170,7 +123,7 @@ const MultiSceneTable = memo(function MultiSceneTable({ items = [], loading = fa
               await deleteItem(category, item.id);
             }
             toast.success(`Successfully deleted ${selectedItems.length} multi-scene(s)`);
-            setConfirmDialog({ ...confirmDialog, open: false });
+            closeConfirm();
           } catch (error) {
             log.error("Failed to delete multi-scenes:", error);
             toast.error("Failed to delete multi-scenes");
@@ -178,7 +131,7 @@ const MultiSceneTable = memo(function MultiSceneTable({ items = [], loading = fa
         },
       });
     },
-    [deleteItem, confirmDialog]
+    [openConfirm, closeConfirm, deleteItem],
   );
 
   const handleSaveChanges = useCallback(async () => {
@@ -198,8 +151,7 @@ const MultiSceneTable = memo(function MultiSceneTable({ items = [], loading = fa
       toast.success("Changes saved successfully");
     } catch (error) {
       log.error("Failed to save changes:", error);
-      const errorMessage = error.message || "Failed to save changes";
-      toast.error(errorMessage);
+      toast.error(error.message || "Failed to save changes");
     } finally {
       setSaveLoading(false);
     }
@@ -207,48 +159,28 @@ const MultiSceneTable = memo(function MultiSceneTable({ items = [], loading = fa
 
   const handleDialogClose = useCallback(
     (success) => {
-      setDialogOpen(false);
-      setEditingItem(null);
-      if (success) {
-        // Reload scene counts after successful create/edit
-        setTimeout(loadMultiSceneCounts, 100);
-      }
+      closeCrud();
+      if (success) setTimeout(loadMultiSceneCounts, 100);
     },
-    [loadMultiSceneCounts]
+    [closeCrud, loadMultiSceneCounts],
   );
 
-  // Stable function that doesn't change reference
   const handleCellEdit = useCallback((itemId, field, value) => {
     const existingChanges = pendingChangesRef.current.get(itemId) || {};
-    pendingChangesRef.current.set(itemId, {
-      ...existingChanges,
-      [field]: value,
-    });
-
-    // Only trigger re-render for toolbar save button
+    pendingChangesRef.current.set(itemId, { ...existingChanges, [field]: value });
     setPendingChangesCount(pendingChangesRef.current.size);
   }, []);
 
-  // Stable function that doesn't depend on state
   const getEffectiveValue = useCallback((item, field) => {
     const pendingChange = pendingChangesRef.current.get(item.id);
     return pendingChange && pendingChange[field] !== undefined ? pendingChange[field] : item[field];
-  }, []); // No dependencies = stable function!
+  }, []);
 
-  // Add scene counts to items data
-  const itemsWithCounts = items.map((item) => ({
-    ...item,
-    sceneCount: multiSceneCounts[item.id] || 0,
-  }));
+  const itemsWithCounts = items.map((item) => ({ ...item, sceneCount: multiSceneCounts[item.id] || 0 }));
 
-  // Now columns will be truly stable because all dependencies are stable!
   const columns = useMemo(
     () => createMultiSceneColumns(handleCellEdit, getEffectiveValue, unitItems),
-    [
-      handleCellEdit,
-      getEffectiveValue, // This is now stable!
-      unitItems,
-    ]
+    [handleCellEdit, getEffectiveValue, unitItems],
   );
 
   if (loading) {
@@ -310,7 +242,7 @@ const MultiSceneTable = memo(function MultiSceneTable({ items = [], loading = fa
         )}
       </div>
 
-      <MultiSceneDialog open={dialogOpen} onOpenChange={handleDialogClose} multiScene={editingItem} mode={dialogMode} />
+      <MultiSceneDialog open={dialogs.crud.open} onOpenChange={handleDialogClose} multiScene={dialogs.crud.item} mode={dialogs.crud.mode} />
 
       <SendMultiSceneDialog
         open={sendMultiSceneDialog.open}
@@ -319,11 +251,11 @@ const MultiSceneTable = memo(function MultiSceneTable({ items = [], loading = fa
       />
 
       <ConfirmDialog
-        open={confirmDialog.open}
-        onOpenChange={(open) => setConfirmDialog({ ...confirmDialog, open })}
-        title={confirmDialog.title}
-        description={confirmDialog.description}
-        onConfirm={confirmDialog.onConfirm}
+        open={dialogs.confirm.open}
+        onOpenChange={(open) => !open && closeConfirm()}
+        title={dialogs.confirm.title}
+        description={dialogs.confirm.description}
+        onConfirm={dialogs.confirm.onConfirm}
       />
     </div>
   );
