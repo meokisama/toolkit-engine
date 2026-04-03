@@ -69,16 +69,16 @@ function UnitDiffCard({ unitDiff }) {
       <CardHeader className="pb-3">
         <CardTitle className="text-base flex items-center justify-between">
           <span>{unitDiff.unitInfo}</span>
-          <Badge variant="destructive">{totalCount} difference{totalCount !== 1 ? "s" : ""}</Badge>
+          <Badge variant="destructive">
+            {totalCount} difference{totalCount !== 1 ? "s" : ""}
+          </Badge>
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
         {orderedCategories.map((cat) => (
           <div key={cat}>
             <div className="flex items-center gap-2 mb-1">
-              <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
-                {CATEGORY_LABELS[cat] || cat}
-              </span>
+              <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">{CATEGORY_LABELS[cat] || cat}</span>
               <Badge variant="outline" className="text-xs px-1 py-0 h-4">
                 {groups[cat].length}
               </Badge>
@@ -100,21 +100,14 @@ export function ComparisonDifferencesDialog({ open, onOpenChange, comparisonSumm
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-4xl! max-h-[80vh]">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <AlertTriangle className="h-5 w-5 text-orange-500" />
-            Configuration Comparison Results
-          </DialogTitle>
+          <DialogTitle className="flex items-center gap-2">Comparison Results</DialogTitle>
           <DialogDescription>Detailed comparison results between database units and network units</DialogDescription>
         </DialogHeader>
 
         <div className="space-y-4">
           {allDifferences.length > 0 && (
             <div>
-              <h3 className="text-lg font-semibold mb-3 flex items-center gap-2">
-                <XCircle className="h-5 w-5 text-red-500" />
-                Configuration Differences ({allDifferences.length} unit{allDifferences.length !== 1 ? "s" : ""})
-              </h3>
-              <ScrollArea className="h-[400px] w-full border rounded-md">
+              <ScrollArea className="h-[400px] w-full rounded-md">
                 <div className="p-4 space-y-4">
                   {allDifferences.map((unitDiff, index) => (
                     <UnitDiffCard key={index} unitDiff={unitDiff} />

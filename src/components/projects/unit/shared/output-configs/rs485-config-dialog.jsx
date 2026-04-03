@@ -83,7 +83,10 @@ export function RS485ConfigDialog({ open, onOpenChange, config, onSave }) {
   const handleIndoorGroupChange = (configIndex, slaveIndex, indoorIndex, value) => {
     setRS485Configs((prev) => {
       const newConfigs = [...prev];
-      const newIndoorGroup = [...newConfigs[configIndex].slave_cfg[slaveIndex].indoor_group];
+      const existingGroup = Array.isArray(newConfigs[configIndex].slave_cfg[slaveIndex].indoor_group)
+        ? newConfigs[configIndex].slave_cfg[slaveIndex].indoor_group
+        : Array.from({ length: RS485.SLAVE_MAX_INDOORS }, () => 0);
+      const newIndoorGroup = [...existingGroup];
       newIndoorGroup[indoorIndex] = value;
       newConfigs[configIndex].slave_cfg[slaveIndex] = {
         ...newConfigs[configIndex].slave_cfg[slaveIndex],
