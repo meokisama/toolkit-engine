@@ -9,7 +9,11 @@ export function compareSchedules(databaseSchedules, networkSchedules) {
   const dbSchedules = Array.isArray(databaseSchedules) ? databaseSchedules : [];
   const netSchedules = Array.isArray(networkSchedules) ? networkSchedules : [];
 
-  const validDbSchedules = dbSchedules.filter((s) => {
+  // Assign 0-based index BEFORE filtering, to match how send flows compute
+  // calculatedIndex (see send-all-config-dialog/project-config.js and schedule-table.jsx).
+  const dbSchedulesWithIndex = dbSchedules.map((s, index) => ({ ...s, _index: index }));
+
+  const validDbSchedules = dbSchedulesWithIndex.filter((s) => {
     const sceneCount = s.scenes?.length || 0;
     return !(s.enabled === false && sceneCount === 0);
   });
@@ -26,16 +30,8 @@ export function compareSchedules(databaseSchedules, networkSchedules) {
   const dbScheduleMap = new Map();
   const netScheduleMap = new Map();
 
-  validDbSchedules.forEach((schedule, arrayIndex) => {
-    // Prefer schedule_index field, then extract from name, then use array position
-    let scheduleIndex;
-    if (schedule.schedule_index !== undefined && schedule.schedule_index !== null) {
-      scheduleIndex = schedule.schedule_index;
-    } else {
-      const match = schedule.name?.match(/Schedule (\d+)/);
-      scheduleIndex = match ? parseInt(match[1]) : arrayIndex + 1;
-    }
-    dbScheduleMap.set(scheduleIndex, schedule);
+  validDbSchedules.forEach((schedule) => {
+    dbScheduleMap.set(schedule._index, schedule);
   });
 
   validNetSchedules.forEach((schedule) => {

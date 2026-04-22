@@ -45,6 +45,9 @@ export const readScheduleConfigurations = async (networkUnit, projectId, sceneAd
             days: enabledDays,
             enabled: networkSchedule.enabled,
             source_unit: unitId,
+            mode: networkSchedule.mode ?? 0,
+            interval_time: networkSchedule.intervalTime ?? null,
+            dmx_duration: networkSchedule.dmxDuration ?? null,
           };
 
           const createdSchedule = await window.electronAPI.schedule.create(projectId, scheduleData);

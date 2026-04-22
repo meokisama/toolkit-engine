@@ -141,6 +141,9 @@ export const sendConfigToUnit = async (unit, configType, configData, selectedPro
             hour: scheduleData.hour,
             minute: scheduleData.minute,
             sceneAddresses: scheduleData.sceneAddresses,
+            mode: scheduleData.mode || 0,
+            intervalTime: scheduleData.interval_time || 0,
+            dmxDuration: scheduleData.dmx_duration || 0,
           });
         }
         break;

@@ -19,7 +19,7 @@ const DAYS_OF_WEEK = [
 ];
 
 // Debounced input component for table cells
-const DebouncedInput = ({ value, onChange, placeholder, debounceMs = 500 }) => {
+const DebouncedInput = ({ value, onChange, placeholder, debounceMs = 500, ...rest }) => {
   const [localValue, setLocalValue] = useState(value || "");
   const debounceTimeoutRef = useRef(null);
 
@@ -55,7 +55,7 @@ const DebouncedInput = ({ value, onChange, placeholder, debounceMs = 500 }) => {
     [onChange, debounceMs]
   );
 
-  return <Input value={localValue} onChange={handleChange} placeholder={placeholder} />;
+  return <Input value={localValue} onChange={handleChange} placeholder={placeholder} {...rest} />;
 };
 
 // Compact time picker component for table cells with debounce

@@ -38,7 +38,7 @@ export async function getDatabaseConfigurations(databaseUnit, projectId) {
     const scenesWithItems = await Promise.all(
       scenes.map(async (scene) => {
         try {
-          const items = await window.electronAPI.scenes.getItems(scene.id);
+          const items = await window.electronAPI.scene.getItemsWithDetails(scene.id);
           return { ...scene, items };
         } catch (error) {
           log.warn(`Failed to load items for scene ${scene.id}:`, error);
@@ -51,7 +51,7 @@ export async function getDatabaseConfigurations(databaseUnit, projectId) {
     const schedulesWithScenes = await Promise.all(
       schedules.map(async (schedule) => {
         try {
-          const scenes = await window.electronAPI.schedules.getScenes(schedule.id);
+          const scenes = await window.electronAPI.schedule.getScenesWithDetails(schedule.id);
           return { ...schedule, scenes };
         } catch (error) {
           log.warn(`Failed to load scenes for schedule ${schedule.id}:`, error);

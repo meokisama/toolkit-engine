@@ -103,7 +103,7 @@ export function SendScheduleDialog({ open, onOpenChange, items = [] }) {
         const scheduleScenes = await window.electronAPI.schedule.getForSending(currentScheduleData.id);
 
         schedulePayload = {
-          enabled: currentScheduleData.enabled || false,
+          enabled: Boolean(scheduleScenes.enabled),
           parsedDays: scheduleScenes.parsedDays,
           hour: scheduleScenes.hour,
           minute: scheduleScenes.minute,
@@ -114,14 +114,28 @@ export function SendScheduleDialog({ open, onOpenChange, items = [] }) {
         };
       } catch (error) {
         log.error(`Failed to load data for schedule ${currentScheduleData.id}:`, error);
-        // Skip schedules without data
+        for (const unit of selectedUnits) {
+          operationResults.push({
+            schedule: currentScheduleData.name,
+            unit: `${unit.type || unit.unit_type || "Unknown Unit"} (${unit.ip_address})`,
+            success: false,
+            message: `Failed to load schedule data: ${error.message || "unknown error"}`,
+          });
+        }
         completedOperations += selectedUnits.length;
         onProgress((completedOperations / totalOperations) * 100, "");
         continue;
       }
 
       if (!schedulePayload || schedulePayload.sceneAddresses.length === 0) {
-        // Skip schedules without scenes
+        for (const unit of selectedUnits) {
+          operationResults.push({
+            schedule: currentScheduleData.name,
+            unit: `${unit.type || unit.unit_type || "Unknown Unit"} (${unit.ip_address})`,
+            success: false,
+            message: "Skipped: schedule has no scenes",
+          });
+        }
         completedOperations += selectedUnits.length;
         onProgress((completedOperations / totalOperations) * 100, "");
         continue;
