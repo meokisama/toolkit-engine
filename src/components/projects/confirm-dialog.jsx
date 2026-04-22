@@ -19,7 +19,7 @@ export function ConfirmDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="sm:max-w-106.25">
         <DialogHeader>
           <DialogTitle className="text-left">{title}</DialogTitle>
           <DialogDescription className="text-left mt-1">{description}</DialogDescription>

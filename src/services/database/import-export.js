@@ -411,10 +411,13 @@ export const importExportOperations = {
         if (newRcuGroupId) {
           const newKnxId = idMappings.knx[item.id];
           if (newKnxId) {
+            // rcu_group_type is cleared to null during the initial insert (see
+            // importKnxItems / createKnxItemInline), so restore it here
+            // alongside the remapped id.
             const stmt = this.db.prepare(`
-              UPDATE knx SET rcu_group_id = ? WHERE id = ?
+              UPDATE knx SET rcu_group_id = ?, rcu_group_type = ? WHERE id = ?
             `);
-            stmt.run(newRcuGroupId, newKnxId);
+            stmt.run(newRcuGroupId, item.rcu_group_type, newKnxId);
             fixedCount++;
           }
         }

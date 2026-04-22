@@ -321,9 +321,19 @@ const tableConfigs = {
   dmx: {
     fields: ["name", "address", "description", "source_unit"],
     buildInsertQuery(tableName, itemData) {
+      const colorFields = Array.from({ length: 16 }, (_, i) => `color${i + 1}`);
+      const columns = ["project_id", "name", "address", "description", "source_unit", ...colorFields];
+      const params = [
+        itemData.project_id,
+        itemData.name,
+        itemData.address,
+        itemData.description,
+        itemData.source_unit || null,
+        ...colorFields.map((f) => (itemData[f] !== undefined ? itemData[f] : null)),
+      ];
       return {
-        sql: `INSERT INTO ${tableName} (project_id, name, address, description, source_unit) VALUES (?, ?, ?, ?, ?)`,
-        params: [itemData.project_id, itemData.name, itemData.address, itemData.description, itemData.source_unit || null],
+        sql: `INSERT INTO ${tableName} (${columns.join(", ")}) VALUES (${columns.map(() => "?").join(", ")})`,
+        params,
       };
     },
     buildUpdateQuery(tableName, itemData, id) {
