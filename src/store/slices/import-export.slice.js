@@ -9,8 +9,9 @@ export const createImportExportSlice = (set, get) => ({
         toast.error("No project selected");
         return false;
       }
-      const items = get().projectItems[category] || [];
-      return await exportImportService.exportItemsToCSV(items, category, selectedProject.name);
+      const projectItems = get().projectItems;
+      const items = projectItems[category] || [];
+      return await exportImportService.exportItemsToCSV(items, category, selectedProject.name, { projectItems });
     } catch (err) {
       log.error(`Failed to export ${category} items:`, err);
       toast.error(err.message || `Failed to export ${category} items`);
@@ -52,6 +53,19 @@ export const createImportExportSlice = (set, get) => ({
         set((s) => ({
           projectItems: { ...s.projectItems, [category]: [...s.projectItems[category], ...importedItems] },
         }));
+
+        // Scene import can create lighting/curtain/aircon items on the fly
+        // (findOrCreateItemForScene) — refresh those tabs so the new items
+        // appear without requiring a full app reload.
+        if (category === "scene") {
+          const loadTabData = get().loadTabData;
+          if (loadTabData) {
+            await Promise.all(
+              ["lighting", "curtain", "aircon"].map((t) => loadTabData(selectedProject.id, t))
+            );
+          }
+        }
+
         if (!silent) toast.success(`${importedItems.length} ${category} items imported successfully`);
       }
 

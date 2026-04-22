@@ -147,9 +147,17 @@ export function registerSceneHandlers(ipcMain, dbService, rcu) {
   });
 
   // Bulk import
+  // Each "item" is a scene object shaped like { name, description, items: [...] }
+  // produced by the CSV scene importer (template1/template2). Address is not
+  // supplied — bulkImportSingleScene auto-assigns via findNextAvailableAddress
+  // and wires scene_items in the same transaction.
   ipcMain.handle("scene:bulkImport", async (event, projectId, items) => {
     try {
-      return await dbService.bulkImportItems(projectId, items, "scene");
+      const results = [];
+      for (const scene of items) {
+        results.push(dbService.bulkImportSingleScene(projectId, scene));
+      }
+      return results;
     } catch (error) {
       console.error("Error bulk importing scene items:", error);
       throw error;

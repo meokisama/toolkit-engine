@@ -5,11 +5,14 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Upload, FileText, AlertCircle, CheckCircle, Download, Info } from "lucide-react";
 import { toast } from "sonner";
 import { exportImportService } from "@/services/export-import";
+import { getSchema } from "@/services/export-import/schemas";
+import { useProjectDetail } from "@/contexts/project-detail-context";
 import log from "electron-log/renderer";
 
 export function ImportItemsDialog({ open, onOpenChange, onImport, category, onConfirm }) {
   const [importData, setImportData] = useState(null);
   const [loading, setLoading] = useState(false);
+  const { projectItems } = useProjectDetail();
 
   const handleFileSelect = async () => {
     try {
@@ -23,14 +26,7 @@ export function ImportItemsDialog({ open, onOpenChange, onImport, category, onCo
 
         try {
           const text = await file.text();
-          let items;
-
-          // Use exportImportService for scene parsing, fallback to local parsing for others
-          if (category === "scene") {
-            items = exportImportService.parseCSVToItems(text, category);
-          } else {
-            items = parseCSVToItems(text, category);
-          }
+          const items = exportImportService.parseCSVToItems(text, category, null, { projectItems });
 
           if (!items || items.length === 0) {
             toast.error("No valid items found in CSV file");
@@ -50,79 +46,6 @@ export function ImportItemsDialog({ open, onOpenChange, onImport, category, onCo
       log.error("File selection failed:", error);
       toast.error("Failed to select file");
     }
-  };
-
-  // Detect CSV delimiter from the first line
-  const detectDelimiter = (line) => {
-    const commaCount = (line.match(/,/g) || []).length;
-    const semicolonCount = (line.match(/;/g) || []).length;
-    return semicolonCount > commaCount ? ";" : ",";
-  };
-
-  const parseCSVToItems = (csvContent, category) => {
-    const lines = csvContent.split("\n").filter((line) => line.trim());
-    if (lines.length < 2) return [];
-
-    // Detect delimiter from first line
-    const delimiter = detectDelimiter(lines[0]);
-    const headers = lines[0].split(delimiter).map((h) => h.trim().replace(/"/g, ""));
-    const items = [];
-
-    // Validate headers based on category
-    const expectedHeaders =
-      category === "unit"
-        ? ["name", "type", "serial_no", "ip_address", "id_can", "mode", "firmware_version", "description"]
-        : ["name", "address", "description"];
-
-    const hasValidHeaders = expectedHeaders.every((header) => headers.includes(header));
-    if (!hasValidHeaders) {
-      throw new Error(`Invalid CSV headers for ${category} items. Expected: ${expectedHeaders.join(", ")}`);
-    }
-
-    for (let i = 1; i < lines.length; i++) {
-      const values = parseCSVLine(lines[i], delimiter);
-      if (values.length !== headers.length) continue;
-
-      const item = {};
-      headers.forEach((header, index) => {
-        item[header] = values[index] || "";
-      });
-
-      // Validate required fields
-      if (item.name && item.name.trim()) {
-        items.push(item);
-      }
-    }
-
-    return items;
-  };
-
-  const parseCSVLine = (line, delimiter = ",") => {
-    const result = [];
-    let current = "";
-    let inQuotes = false;
-
-    for (let i = 0; i < line.length; i++) {
-      const char = line[i];
-      const nextChar = line[i + 1];
-
-      if (char === '"') {
-        if (inQuotes && nextChar === '"') {
-          current += '"';
-          i++; // Skip next quote
-        } else {
-          inQuotes = !inQuotes;
-        }
-      } else if (char === delimiter && !inQuotes) {
-        result.push(current.trim());
-        current = "";
-      } else {
-        current += char;
-      }
-    }
-
-    result.push(current.trim());
-    return result;
   };
 
   const handleImport = async () => {
@@ -175,24 +98,16 @@ export function ImportItemsDialog({ open, onOpenChange, onImport, category, onCo
   };
 
   const getExpectedHeaders = () => {
-    if (category === "unit") {
-      return ["type", "serial_no", "ip_address", "id_can", "mode", "firmware_version", "description"];
-    } else if (category === "aircon") {
-      return ["name", "address", "description"];
-    } else if (category === "curtain") {
-      return ["name", "address", "description", "object_type", "curtain_type", "open_group", "close_group", "stop_group"];
-    } else if (category === "scene") {
-      return ["SCENE NAME", "ITEM NAME", "TYPE", "ADDRESS", "VALUE"];
-    } else {
-      return ["name", "address", "description", "object_type"];
-    }
+    if (category === "scene") return ["SCENE NAME", "ITEM NAME", "TYPE", "ADDRESS", "VALUE"];
+    const schema = getSchema(category);
+    return schema ? schema.columns.map((c) => c.csv || c.key) : [];
   };
 
   const categoryDisplayName = category.charAt(0).toUpperCase() + category.slice(1);
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="sm:max-w-[600px]!">
+      <DialogContent className="sm:max-w-150!">
         <DialogHeader>
           <DialogTitle>Import {categoryDisplayName} Items</DialogTitle>
           <DialogDescription>
