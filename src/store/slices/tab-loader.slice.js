@@ -1,8 +1,7 @@
 import { toast } from "sonner";
 import log from "electron-log/renderer";
 
-const ALL_TABS = ["lighting", "aircon", "unit", "curtain", "knx", "dmx", "scene", "schedule", "multi_scenes", "sequences"];
-// "room" is intentionally excluded until backend API is ready
+const ALL_TABS = ["lighting", "aircon", "unit", "curtain", "knx", "dmx", "scene", "schedule", "multi_scenes", "sequences", "room"];
 
 async function fetchTab(projectId, tabName) {
   if (tabName === "aircon") {
@@ -14,6 +13,23 @@ async function fetchTab(projectId, tabName) {
       item,
     }));
     return { tabName, items, cards };
+  }
+  // Room stores a composite shape per source_unit: one general_config row joined
+  // with its room_detail_config children. Other tabs just return a flat array.
+  if (tabName === "room") {
+    const generals = await window.electronAPI.room.getAllGeneralConfigs(projectId);
+    const items = await Promise.all(
+      (generals || []).map(async (gc) => {
+        try {
+          const rooms = await window.electronAPI.room.getAllRoomConfigs(gc.id);
+          return { ...gc, rooms: rooms || [] };
+        } catch (err) {
+          log.error(`Failed to load room details for general config ${gc.id}:`, err);
+          return { ...gc, rooms: [] };
+        }
+      })
+    );
+    return { tabName, items };
   }
   const apiName = tabName === "multi_scenes" ? "multiScenes" : tabName;
   const items = await window.electronAPI[apiName].getAll(projectId);
@@ -58,7 +74,7 @@ export const createTabLoaderSlice = (set) => ({
 
   // Reload a single tab — used for data refresh after mutations in child dialogs
   loadTabData: async (projectId, tabName) => {
-    if (!projectId || !tabName || tabName === "room") return;
+    if (!projectId || !tabName) return;
 
     try {
       set((s) => ({ tabLoading: { ...s.tabLoading, [tabName]: true }, error: null }));

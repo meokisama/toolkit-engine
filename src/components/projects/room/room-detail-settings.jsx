@@ -14,7 +14,7 @@ import { NetworkUnitSelector, useNetworkUnitSelector } from "@/components/shared
 import log from "electron-log/renderer";
 
 export function RoomSettings() {
-  const { selectedProject, projectItems } = useProjectDetail();
+  const { selectedProject, projectItems, loadTabData } = useProjectDetail();
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [isSendDialogOpen, setIsSendDialogOpen] = useState(false);
@@ -75,136 +75,87 @@ export function RoomSettings() {
     });
   };
 
-  // Load room data from database based on selected source unit
+  // Hydrate form state from Zustand store (loaded by loadAllTabs on project select,
+  // refreshed by loadTabData after mutations). Re-fires when the user switches source unit
+  // or when the store data changes (e.g., after save or after a transfer).
   useEffect(() => {
-    const loadRoomData = async () => {
-      if (!selectedProject) return;
+    if (!selectedProject) return;
 
-      setIsLoading(true);
-      try {
-        // Load general config for selected source unit
-        const generalConfig = await window.electronAPI.room.getGeneralConfig(selectedProject.id, selectedSourceUnit);
+    setIsLoading(true);
 
-        if (generalConfig) {
-          // Load existing general config
-          setRoomConfig({
-            roomMode: generalConfig.room_mode,
-            clientMode: generalConfig.client_mode,
-            roomAmount: generalConfig.room_amount,
-            tcpMode: generalConfig.tcp_mode,
-            slaveAmount: generalConfig.slave_amount,
-            port: generalConfig.port,
-            slaveIPs: generalConfig.slaveIPs || ["", "", "", ""],
-            clientIP: generalConfig.client_ip || "",
-            clientPort: generalConfig.client_port,
-            knxAddress: generalConfig.knx_address || null,
-          });
+    const defaultRoomConfigs = Array(5)
+      .fill(null)
+      .map((_, index) => ({
+        roomAddress: index + 1,
+        occupancyType: 0,
+        occupancySceneType: 0,
+        enableWelcomeNight: 0,
+        pirInitTime: 0,
+        pirVerifyTime: 0,
+        unrentPeriod: 0,
+        standbyTime: 15,
+        period: 0,
+        states: {},
+      }));
 
-          // Load room configs for this general config
-          if (generalConfig.id) {
-            const allRoomConfigs = await window.electronAPI.room.getAllRoomConfigs(generalConfig.id);
+    // source_unit: null = project default, number = specific unit
+    const roomRecord = (projectItems.room || []).find((r) =>
+      selectedSourceUnit === null
+        ? r.source_unit === null || r.source_unit === undefined
+        : r.source_unit === selectedSourceUnit
+    );
 
-            // Reset room configurations to default
-            const defaultConfigs = Array(5)
-              .fill(null)
-              .map((_, index) => ({
-                roomAddress: index + 1,
-                occupancyType: 0,
-                occupancySceneType: 0,
-                enableWelcomeNight: 0,
-                pirInitTime: 0,
-                pirVerifyTime: 0,
-                unrentPeriod: 0,
-                standbyTime: 15,
-                period: 0,
-                states: {},
-              }));
+    if (roomRecord) {
+      setRoomConfig({
+        roomMode: roomRecord.room_mode,
+        clientMode: roomRecord.client_mode,
+        roomAmount: roomRecord.room_amount,
+        tcpMode: roomRecord.tcp_mode,
+        slaveAmount: roomRecord.slave_amount,
+        port: roomRecord.port,
+        slaveIPs: roomRecord.slaveIPs || ["", "", "", ""],
+        clientIP: roomRecord.client_ip || "",
+        clientPort: roomRecord.client_port,
+        knxAddress: roomRecord.knx_address || null,
+      });
 
-            // Apply loaded configs
-            if (allRoomConfigs && allRoomConfigs.length > 0) {
-              const updated = [...defaultConfigs];
-              allRoomConfigs.forEach((config) => {
-                const index = config.room_address - 1;
-                if (index >= 0 && index < 5) {
-                  updated[index] = {
-                    roomAddress: config.room_address,
-                    occupancyType: config.occupancy_type,
-                    occupancySceneType: config.occupancy_scene_type,
-                    enableWelcomeNight: config.enable_welcome_night || 0,
-                    pirInitTime: config.pir_init_time,
-                    pirVerifyTime: config.pir_verify_time,
-                    unrentPeriod: config.unrent_period,
-                    standbyTime: config.standby_time,
-                    period: config.period,
-                    states: config.states || {},
-                  };
-                }
-              });
-              setRoomConfigurations(updated);
-            } else {
-              setRoomConfigurations(defaultConfigs);
-            }
-          } else {
-            // No room configs found, use defaults
-            setRoomConfigurations(
-              Array(5)
-                .fill(null)
-                .map((_, index) => ({
-                  roomAddress: index + 1,
-                  occupancyType: 0,
-                  occupancySceneType: 0,
-                  enableWelcomeNight: 0,
-                  pirInitTime: 0,
-                  pirVerifyTime: 0,
-                  unrentPeriod: 0,
-                  standbyTime: 15,
-                  period: 0,
-                  states: {},
-                })),
-            );
-          }
-        } else {
-          // No general config found, use all defaults
-          setRoomConfig({
-            roomMode: 0,
-            clientMode: 0,
-            roomAmount: 1,
-            tcpMode: 0,
-            slaveAmount: 1,
-            port: 5000,
-            slaveIPs: ["", "", "", ""],
-            clientIP: "",
-            clientPort: 8080,
-            knxAddress: null,
-          });
-
-          setRoomConfigurations(
-            Array(5)
-              .fill(null)
-              .map((_, index) => ({
-                roomAddress: index + 1,
-                occupancyType: 0,
-                occupancySceneType: 0,
-                enableWelcomeNight: 0,
-                pirInitTime: 0,
-                pirVerifyTime: 0,
-                unrentPeriod: 0,
-                standbyTime: 15,
-                period: 0,
-                states: {},
-              })),
-          );
+      const updated = [...defaultRoomConfigs];
+      (roomRecord.rooms || []).forEach((config) => {
+        const index = config.room_address - 1;
+        if (index >= 0 && index < 5) {
+          updated[index] = {
+            roomAddress: config.room_address,
+            occupancyType: config.occupancy_type,
+            occupancySceneType: config.occupancy_scene_type,
+            enableWelcomeNight: config.enable_welcome_night || 0,
+            pirInitTime: config.pir_init_time,
+            pirVerifyTime: config.pir_verify_time,
+            unrentPeriod: config.unrent_period,
+            standbyTime: config.standby_time,
+            period: config.period,
+            states: config.states || {},
+          };
         }
-      } catch (error) {
-        log.error("Error loading room data:", error);
-        toast.error("Failed to load room configurations");
-      } finally {
-        setIsLoading(false);
-      }
-    };
+      });
+      setRoomConfigurations(updated);
+    } else {
+      setRoomConfig({
+        roomMode: 0,
+        clientMode: 0,
+        roomAmount: 1,
+        tcpMode: 0,
+        slaveAmount: 1,
+        port: 5000,
+        slaveIPs: ["", "", "", ""],
+        clientIP: "",
+        clientPort: 8080,
+        knxAddress: null,
+      });
+      setRoomConfigurations(defaultRoomConfigs);
+    }
 
-    loadRoomData();
-  }, [selectedProject, selectedSourceUnit]);
+    setIsLoading(false);
+  }, [selectedProject?.id, selectedSourceUnit, projectItems.room]);
 
   // Save room configurations
   const handleSave = async () => {
@@ -248,6 +199,9 @@ export function RoomSettings() {
       }
 
       toast.success(`Room configurations saved successfully${selectedSourceUnit ? " for selected unit" : " (Default)"}`);
+
+      // Refresh store so any other view (or a re-render of this form) sees the latest data
+      await loadTabData("room");
     } catch (error) {
       log.error("Error saving room data:", error);
       toast.error("Failed to save room configurations");

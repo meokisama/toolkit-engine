@@ -15,8 +15,6 @@ const UDP_INTER_UNIT_DELAY_MS = 1000;
 
 // Tabs whose items can be created/modified by a network-unit transfer.
 // Kept in sync with readIOConfigurations + readAdvancedConfigurations outputs.
-// Note: "room" is not a regular tab (excluded from tab-loader); the room settings
-// component reloads on its own when the user navigates to it.
 const TRANSFER_AFFECTED_TABS = [
   "unit",
   "lighting",
@@ -28,6 +26,7 @@ const TRANSFER_AFFECTED_TABS = [
   "multi_scenes",
   "sequences",
   "dmx",
+  "room",
 ];
 
 export function useNetworkUnitHandlers({ state, onTransferToDatabase, existingUnits, selectedProject, projectItems, createItem, loadTabData }) {
