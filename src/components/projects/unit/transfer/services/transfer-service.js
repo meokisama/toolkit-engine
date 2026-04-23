@@ -4,6 +4,8 @@ import { readScheduleConfigurations } from "../readers/schedule";
 import { readKnxConfigurations } from "../readers/knx";
 import { readMultiSceneConfigurations } from "../readers/multi-scene";
 import { readSequenceConfigurations } from "../readers/sequence";
+import { readRoomConfigurations } from "../readers/room";
+import { readDmxConfigurations } from "../readers/dmx";
 import log from "electron-log/renderer";
 
 /**
@@ -46,6 +48,12 @@ export const transferAdvancedConfigurations = async (networkUnit, importedUnit, 
     // Sequences
     const createdSequences = await readSequenceConfigurations(networkUnit, projectId, multiSceneAddressMap, unitId);
 
+    // Room configuration (general + per-room details)
+    const roomResult = await readRoomConfigurations(networkUnit, projectId, unitId);
+
+    // DMX device color configurations
+    const createdDmxItems = await readDmxConfigurations(networkUnit, projectId, unitId);
+
     const configSummary = {
       scenes: createdScenes.length,
       schedules: createdSchedules.length,
@@ -53,6 +61,8 @@ export const transferAdvancedConfigurations = async (networkUnit, importedUnit, 
       knxConfigs: createdKnxConfigs.length,
       multiScenes: createdMultiScenes.length,
       sequences: createdSequences.length,
+      rooms: roomResult.rooms,
+      dmxItems: createdDmxItems.length,
     };
 
     const totalConfigs = Object.values(configSummary).reduce((sum, n) => sum + n, 0);

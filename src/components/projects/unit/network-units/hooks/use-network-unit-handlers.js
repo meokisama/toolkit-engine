@@ -13,7 +13,24 @@ import log from "electron-log/renderer";
 // Delay between units to prevent UDP conflicts
 const UDP_INTER_UNIT_DELAY_MS = 1000;
 
-export function useNetworkUnitHandlers({ state, onTransferToDatabase, existingUnits, selectedProject, projectItems, createItem }) {
+// Tabs whose items can be created/modified by a network-unit transfer.
+// Kept in sync with readIOConfigurations + readAdvancedConfigurations outputs.
+// Note: "room" is not a regular tab (excluded from tab-loader); the room settings
+// component reloads on its own when the user navigates to it.
+const TRANSFER_AFFECTED_TABS = [
+  "unit",
+  "lighting",
+  "aircon",
+  "curtain",
+  "knx",
+  "scene",
+  "schedule",
+  "multi_scenes",
+  "sequences",
+  "dmx",
+];
+
+export function useNetworkUnitHandlers({ state, onTransferToDatabase, existingUnits, selectedProject, projectItems, createItem, loadTabData }) {
   const { setNetworkUnits, setSelectedNetworkUnits, setScanLoading, networkTable, dialogState, createdItemsCache } = state;
   const transferStore = useTransferStore();
   const isExecutingRef = useRef(false);
@@ -89,6 +106,15 @@ export function useNetworkUnitHandlers({ state, onTransferToDatabase, existingUn
         setSelectedNetworkUnits([]);
         if (networkTable) networkTable.resetRowSelection();
 
+        // Refresh all tabs whose items may have been auto-created during transfer
+        // (lighting/aircon/curtain from I/O, scene/schedule/knx/multi_scenes/sequences from advanced config).
+        // Without this, newly created items stay invisible until the app is reloaded.
+        if (loadTabData && selectedProject?.id) {
+          await Promise.all(
+            TRANSFER_AFFECTED_TABS.map((tab) => loadTabData(selectedProject.id, tab))
+          );
+        }
+
         toast.dismiss(transferToastId);
         toast.success(`Successfully transferred ${units.length} unit(s) with configurations to database`);
       } catch (error) {
@@ -98,7 +124,7 @@ export function useNetworkUnitHandlers({ state, onTransferToDatabase, existingUn
         toast.error("Transfer failed: " + error.message);
       }
     },
-    [existingUnits, selectedProject, projectItems, createItem, createdItemsCache, onTransferToDatabase, networkTable, setSelectedNetworkUnits]
+    [existingUnits, selectedProject, projectItems, createItem, createdItemsCache, onTransferToDatabase, networkTable, setSelectedNetworkUnits, loadTabData]
   );
 
   // Watch store: when status becomes RUNNING, execute the transfer

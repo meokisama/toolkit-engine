@@ -161,7 +161,9 @@ export const unitMethods = {
 
   /**
    * Delete all items that have source_unit = unitId, then delete the unit itself
-   * This includes: scenes, schedules, curtains, knx configs, multi-scenes, sequences
+   * This includes: scenes, schedules, curtains, knx configs, multi-scenes, sequences,
+   * dmx items, and room configs (general + details cascade). Without explicit deletion,
+   * ON DELETE SET NULL would leave orphaned rows that cause duplicates on re-transfer.
    * @param {number} unitId - The unit ID to delete along with all related items
    */
   deleteUnitAndRelatedItems(unitId) {
@@ -200,6 +202,17 @@ export const unitMethods = {
         const sequencesResult = deleteSequences.run(unitId);
         console.log(`Deleted ${sequencesResult.changes} sequence(s)`);
 
+        // Delete all DMX items with source_unit = unitId
+        const deleteDmx = this.db.prepare("DELETE FROM dmx WHERE source_unit = ?");
+        const dmxResult = deleteDmx.run(unitId);
+        console.log(`Deleted ${dmxResult.changes} DMX item(s)`);
+
+        // Delete room general configs with source_unit = unitId
+        // (room_detail_config rows cascade from general_config_id)
+        const deleteRoomGeneral = this.db.prepare("DELETE FROM room_general_config WHERE source_unit = ?");
+        const roomGeneralResult = deleteRoomGeneral.run(unitId);
+        console.log(`Deleted ${roomGeneralResult.changes} room general config(s)`);
+
         // Finally, delete the unit itself
         const deleteUnit = this.db.prepare("DELETE FROM unit WHERE id = ?");
         const unitResult = deleteUnit.run(unitId);
@@ -212,6 +225,8 @@ export const unitMethods = {
           deletedKnx: knxResult.changes,
           deletedMultiScenes: multiScenesResult.changes,
           deletedSequences: sequencesResult.changes,
+          deletedDmx: dmxResult.changes,
+          deletedRoomGeneral: roomGeneralResult.changes,
           deletedUnit: unitResult.changes > 0,
         };
       });

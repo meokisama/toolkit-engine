@@ -25,7 +25,7 @@ import { LazyDialogRenderer } from "./lazy-dialog-renderer";
 import { useTransferStore, TRANSFER_STATUS } from "@/store/use-transfer-store";
 
 function NetworkUnitTableComponent({ onTransferToDatabase, existingUnits = [], onNetworkUnitsChange, getRowClassName }) {
-  const { selectedProject, projectItems, createItem } = useProjectDetail();
+  const { selectedProject, projectItems, createItem, loadTabData } = useProjectDetail();
   const transferStore = useTransferStore();
 
   // Use custom hooks for state management
@@ -39,6 +39,7 @@ function NetworkUnitTableComponent({ onTransferToDatabase, existingUnits = [], o
     selectedProject,
     projectItems,
     createItem,
+    loadTabData,
   });
 
   // Auto-load cached network units when component mounts

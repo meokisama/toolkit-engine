@@ -20,6 +20,8 @@ export const TRANSFER_STEP = {
   READ_KNX: "read_knx",
   READ_MULTI_SCENES: "read_multi_scenes",
   READ_SEQUENCES: "read_sequences",
+  READ_ROOM: "read_room",
+  READ_DMX: "read_dmx",
 };
 
 const STEP_LABELS = {
@@ -34,6 +36,8 @@ const STEP_LABELS = {
   [TRANSFER_STEP.READ_KNX]: "Reading KNX configuration...",
   [TRANSFER_STEP.READ_MULTI_SCENES]: "Reading multi-scenes...",
   [TRANSFER_STEP.READ_SEQUENCES]: "Reading sequences...",
+  [TRANSFER_STEP.READ_ROOM]: "Reading room configuration...",
+  [TRANSFER_STEP.READ_DMX]: "Reading DMX configuration...",
 };
 
 const initialState = {
