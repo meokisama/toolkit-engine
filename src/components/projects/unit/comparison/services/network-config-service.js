@@ -143,6 +143,19 @@ export async function readNetworkUnitConfigurations(networkUnit, networkConfigCa
         log.warn(`Failed to read sequences from ${networkUnit.ip_address}:`, error);
         unitWithConfigs.sequences = [];
       }
+
+      // Read room configuration (general + per-room details)
+      try {
+        const roomData = await window.electronAPI.roomController.getRoomConfiguration(
+          networkUnit.ip_address,
+          networkUnit.id_can
+        );
+        unitWithConfigs.roomConfig = roomData || null;
+        log.info(`Room config: ${roomData?.rooms?.length ?? 0} room(s) on network unit`);
+      } catch (error) {
+        log.warn(`Failed to read room config from ${networkUnit.ip_address}:`, error);
+        unitWithConfigs.roomConfig = null;
+      }
     } catch (error) {
       log.warn(`Failed to read advanced configurations from ${networkUnit.ip_address}:`, error);
       // Set default empty arrays for all advanced configs
@@ -152,6 +165,7 @@ export async function readNetworkUnitConfigurations(networkUnit, networkConfigCa
       unitWithConfigs.knxConfigs = [];
       unitWithConfigs.multiScenes = [];
       unitWithConfigs.sequences = [];
+      unitWithConfigs.roomConfig = null;
     }
 
     // Cache the result

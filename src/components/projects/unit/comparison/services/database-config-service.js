@@ -86,6 +86,19 @@ export async function getDatabaseConfigurations(databaseUnit, projectId) {
       })
     );
 
+    // Load room config (general + details) scoped to this unit.
+    // Only materialize when a general config exists — otherwise comparator treats as "no config".
+    let roomConfig = null;
+    try {
+      const generalConfig = await window.electronAPI.room.getGeneralConfig(projectId, databaseUnit.id);
+      if (generalConfig) {
+        const rooms = await window.electronAPI.room.getAllRoomConfigsByUnit(projectId, databaseUnit.id);
+        roomConfig = { generalConfig, rooms: rooms || [] };
+      }
+    } catch (error) {
+      log.warn(`Failed to load room config for unit ${databaseUnit.id}:`, error);
+    }
+
     log.info(`Loaded database configurations for unit ${databaseUnit.id} (filtered by source_unit):`, {
       scenes: scenesWithItems.length,
       schedules: schedulesWithScenes.length,
@@ -93,6 +106,7 @@ export async function getDatabaseConfigurations(databaseUnit, projectId) {
       knx: knx.length,
       multiScenes: multiScenesWithScenes.length,
       sequences: sequencesWithMultiScenes.length,
+      roomConfig: roomConfig ? `${roomConfig.rooms.length} room(s)` : "none",
     });
 
     return {
@@ -102,6 +116,7 @@ export async function getDatabaseConfigurations(databaseUnit, projectId) {
       knx,
       multiScenes: multiScenesWithScenes,
       sequences: sequencesWithMultiScenes,
+      roomConfig,
     };
   } catch (error) {
     log.error(`Failed to load database configurations for project ${projectId}:`, error);
@@ -112,6 +127,7 @@ export async function getDatabaseConfigurations(databaseUnit, projectId) {
       knx: [],
       multiScenes: [],
       sequences: [],
+      roomConfig: null,
     };
   }
 }

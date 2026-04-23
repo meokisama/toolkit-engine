@@ -7,6 +7,7 @@ import { compareSchedules } from "./schedule";
 import { compareCurtains } from "./curtain";
 import { compareKnx } from "./knx";
 import { compareSequences } from "./sequence";
+import { compareRoomConfig } from "./room";
 import { createDiff } from "./helpers";
 
 /**
@@ -47,10 +48,11 @@ export async function compareUnitConfigurations(databaseUnit, networkUnit, proje
   const outputComparison   = compareOutputConfigs(databaseUnit.output_configs, networkUnit.output_configs, projectItems);
   const sceneComparison    = compareScenes(databaseConfigs?.scenes, networkUnit.scenes);
   const scheduleComparison = compareSchedules(databaseConfigs?.schedules, networkUnit.schedules);
-  const curtainComparison  = compareCurtains(databaseConfigs?.curtains, networkUnit.curtains);
+  const curtainComparison  = compareCurtains(databaseConfigs?.curtains, networkUnit.curtains, projectItems);
   const multiSceneComparison = compareMultiScenes(databaseConfigs?.multiScenes, networkUnit.multiScenes);
   const sequenceComparison = compareSequences(databaseConfigs?.sequences, networkUnit.sequences);
   const knxComparison      = compareKnx(databaseConfigs?.knx, networkUnit.knxConfigs);
+  const roomComparison     = compareRoomConfig(databaseConfigs?.roomConfig, networkUnit.roomConfig);
 
   const allDifferences = [
     ...basicDiffs,
@@ -63,6 +65,7 @@ export async function compareUnitConfigurations(databaseUnit, networkUnit, proje
     ...multiSceneComparison.differences,
     ...sequenceComparison.differences,
     ...knxComparison.differences,
+    ...roomComparison.differences,
   ];
 
   return {
@@ -79,6 +82,7 @@ export async function compareUnitConfigurations(databaseUnit, networkUnit, proje
       multiScenes: multiSceneComparison,
       sequences:   sequenceComparison,
       knx:         knxComparison,
+      room:        roomComparison,
     },
   };
 }

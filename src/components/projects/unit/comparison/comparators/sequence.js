@@ -19,11 +19,12 @@ export function compareSequences(databaseSequences, networkSequences) {
   const dbMap = new Map();
   const netMap = new Map();
 
+  // Normalize address to number — DB stores it as TEXT, RCU returns number
   validDbSequences.forEach((s) => {
-    if (s.address !== undefined) dbMap.set(s.address, s);
+    if (s.address !== undefined) dbMap.set(parseInt(s.address), s);
   });
   validNetSequences.forEach((s) => {
-    if (s.address !== undefined) netMap.set(s.address, s);
+    if (s.address !== undefined) netMap.set(parseInt(s.address), s);
   });
 
   const allAddresses = new Set([...dbMap.keys(), ...netMap.keys()]);

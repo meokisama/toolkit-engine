@@ -16,9 +16,10 @@ const CATEGORY_LABELS = {
   multi_scene: "Multi Scenes",
   sequence: "Sequences",
   knx: "KNX",
+  room: "Room",
 };
 
-const CATEGORY_ORDER = ["basic", "rs485", "input", "output", "scene", "schedule", "curtain", "multi_scene", "sequence", "knx"];
+const CATEGORY_ORDER = ["basic", "rs485", "input", "output", "scene", "schedule", "curtain", "multi_scene", "sequence", "knx", "room"];
 
 function groupDiffsByCategory(differences) {
   const groups = {};
