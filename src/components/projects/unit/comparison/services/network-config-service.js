@@ -44,13 +44,33 @@ export async function readNetworkUnitConfigurations(networkUnit, networkConfigCa
     try {
       log.info("Reading advanced configurations...");
 
-      // Read scenes
+      // Read scenes — getAllScenesInformation returns headers only (no items),
+      // so follow up with getSceneInformation per scene to populate the items array
+      // that the scene comparator needs. Sequential to avoid UDP bursts.
       try {
         const scenesResult = await window.electronAPI.sceneController.getAllScenesInformation({
           unitIp: networkUnit.ip_address,
           canId: networkUnit.id_can,
         });
-        unitWithConfigs.scenes = scenesResult?.scenes || [];
+        const sceneHeaders = scenesResult?.scenes || [];
+        const scenesWithItems = [];
+        for (const header of sceneHeaders) {
+          try {
+            const detail = await window.electronAPI.sceneController.getSceneInformation({
+              unitIp: networkUnit.ip_address,
+              canId: networkUnit.id_can,
+              sceneIndex: header.index,
+            });
+            scenesWithItems.push({
+              ...header,
+              items: detail?.items || [],
+            });
+          } catch (err) {
+            log.warn(`Failed to read items for scene index ${header.index}:`, err);
+            scenesWithItems.push({ ...header, items: [] });
+          }
+        }
+        unitWithConfigs.scenes = scenesWithItems;
         log.info(`Found ${unitWithConfigs.scenes.length} scenes on network unit`);
       } catch (error) {
         log.warn(`Failed to read scenes from ${networkUnit.ip_address}:`, error);
