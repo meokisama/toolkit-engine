@@ -5,6 +5,10 @@
 //     category: "knx",
 //     filenameSuffix: "knx",
 //     columns: [Column, ...],
+//     defaults?: { [key]: value },           // seeded onto every parsed item — use for
+//                                            // fields that are constant per category
+//                                            // (e.g. lighting always has OBJ_LIGHTING),
+//                                            // so they don't need a CSV column.
 //     validateRow?: (row, ctx) => boolean,   // applied after parse, before inclusion
 //   }
 //
@@ -95,7 +99,7 @@ export function parseItems(csvContent, schema, ctx = {}) {
       row[h] = values[idx] !== undefined ? values[idx] : "";
     });
 
-    const item = {};
+    const item = { ...(schema.defaults || {}) };
     for (const col of schema.columns) {
       const header = headerOf(col);
       const cell = row[header];

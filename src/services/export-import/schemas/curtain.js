@@ -19,12 +19,11 @@ function fkColumn(key, csvName) {
 export const curtainSchema = {
   category: "curtain",
   filenameSuffix: "curtain",
+  defaults: { object_type: "OBJ_CURTAIN", object_value: 2 },
   columns: [
     { key: "name", type: "string" },
     { key: "address", type: "string", required: true },
     { key: "description", type: "string" },
-    { key: "object_type", type: "string", default: "OBJ_CURTAIN" },
-    { key: "object_value", type: "int", default: 2 },
     { key: "curtain_type", type: "string" },
     { key: "curtain_value", type: "int", default: 0 },
     fkColumn("open_group_id", "open_group_address"),
