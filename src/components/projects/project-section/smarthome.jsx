@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
-import { useProjectDetail } from "@/contexts/project-detail-context";
+import { useProjectDetail } from "@/store/use-project-detail";
 import { Home, Plus, RefreshCw, Radio, Cable, RotateCcw } from "lucide-react";
 import { toast } from "sonner";
 import { AddZigbeeDeviceDialog } from "../zigbee/add-zigbee-device-dialog";

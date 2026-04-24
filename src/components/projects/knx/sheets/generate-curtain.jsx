@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { useProjectDetail } from "@/contexts/project-detail-context";
+import { useProjectDetail } from "@/store/use-project-detail";
 import { KNXAddressInput } from "@/components/custom/knx-input";
 import { Blinds } from "lucide-react";
 import { toast } from "sonner";
@@ -28,7 +28,7 @@ export function GenerateFromCurtainSheet({ open, onOpenChange }) {
       }
 
       const existingAddresses = new Set(
-        projectItems.knx.map((item) => parseInt(item.address)).filter((addr) => !isNaN(addr) && addr >= 0 && addr <= 511)
+        projectItems.knx.map((item) => parseInt(item.address)).filter((addr) => !isNaN(addr) && addr >= 0 && addr <= 511),
       );
 
       const availableAddresses = [];
@@ -49,7 +49,7 @@ export function GenerateFromCurtainSheet({ open, onOpenChange }) {
 
       return availableAddresses;
     },
-    [projectItems.knx]
+    [projectItems.knx],
   );
 
   // Initialize curtain items and KNX data when sheet opens
@@ -98,7 +98,7 @@ export function GenerateFromCurtainSheet({ open, onOpenChange }) {
         setSelectedItems(new Set());
       }
     },
-    [curtainItems]
+    [curtainItems],
   );
 
   // Handle KNX data change
@@ -194,7 +194,7 @@ export function GenerateFromCurtainSheet({ open, onOpenChange }) {
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent side="left" className="sm:max-w-[1100px] w-full max-w-[90vw] p-4 pb-0">
+      <SheetContent side="left" className="sm:max-w-275 w-full max-w-[90vw] p-4 pb-0">
         <SheetHeader>
           <SheetTitle className="flex items-center gap-2">
             <Blinds className="h-5 w-5" />

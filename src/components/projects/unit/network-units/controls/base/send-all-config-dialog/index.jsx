@@ -7,7 +7,7 @@ import { Progress } from "@/components/ui/progress";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Send, CheckCircle, XCircle, Loader2, AlertTriangle, CheckSquare, Square, Info } from "lucide-react";
 import { toast } from "sonner";
-import { useProjectDetail } from "@/contexts/project-detail-context";
+import { useProjectDetail } from "@/store/use-project-detail";
 import { NetworkUnitSelector, useNetworkUnitSelector } from "@/components/shared/network-unit-selector";
 import { DatabaseUnitSelector } from "@/components/shared/database-unit-selector";
 import { deleteAllConfigsFromUnits } from "../delete-all-configs-helper";

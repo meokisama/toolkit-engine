@@ -2,7 +2,7 @@ import React, { useState, useCallback, useRef, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Plus, Database, GitCompare, FileText } from "lucide-react";
-import { useProjectDetail } from "@/contexts/project-detail-context";
+import { useProjectDetail } from "@/store/use-project-detail";
 import { UnitDialog } from "./database-unit-dialog";
 import { IOConfigDialog } from "./io-config";
 import { ConfirmDialog } from "@/components/projects/confirm-dialog";

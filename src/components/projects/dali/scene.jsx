@@ -5,7 +5,7 @@ import { cn } from "@/lib/utils";
 import { Lightbulb } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
-import { useProjectDetail } from "@/contexts/project-detail-context";
+import { useProjectDetail } from "@/store/use-project-detail";
 import { toast } from "sonner";
 import { useDaliDevices } from "./hooks/useDaliDevices";
 import { useEditableName } from "./hooks/useEditableName";

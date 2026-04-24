@@ -14,7 +14,7 @@ import { arrayMove, SortableContext, sortableKeyboardCoordinates, verticalListSo
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import * as CheckboxPrimitive from "@radix-ui/react-checkbox";
-import { useProjectDetail } from "@/contexts/project-detail-context";
+import { useProjectDetail } from "@/store/use-project-detail";
 import { MULTI_SCENES } from "@/constants/multi-scenes";
 import { toast } from "sonner";
 import log from "electron-log/renderer";

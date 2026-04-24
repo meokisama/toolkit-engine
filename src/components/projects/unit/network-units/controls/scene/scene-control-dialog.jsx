@@ -2,7 +2,7 @@ import React, { useState, useCallback, useEffect, memo } from "react";
 import { toast } from "sonner";
 import { Play, GitCompare, List, Trash2, Loader2 } from "lucide-react";
 import { DeleteSceneDialog } from "./delete-scene-popover";
-import { useProjectDetail } from "@/contexts/project-detail-context";
+import { useProjectDetail } from "@/store/use-project-detail";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";

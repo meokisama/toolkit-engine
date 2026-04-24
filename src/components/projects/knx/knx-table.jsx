@@ -1,7 +1,7 @@
 import React, { useState, useCallback, memo, useMemo, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
-import { useProjectDetail } from "@/contexts/project-detail-context";
+import { useProjectDetail } from "@/store/use-project-detail";
 import { KnxItemDialog } from "@/components/projects/knx/knx-dialog";
 import { ConfirmDialog } from "@/components/projects/confirm-dialog";
 import { DataTable } from "@/components/projects/data-table/data-table";

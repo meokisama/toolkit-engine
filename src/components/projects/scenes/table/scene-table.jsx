@@ -1,7 +1,7 @@
 import React, { useState, useCallback, memo, useEffect, useRef, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { Plus, Upload } from "lucide-react";
-import { useProjectDetail } from "@/contexts/project-detail-context";
+import { useProjectDetail } from "@/store/use-project-detail";
 import { SceneDialog } from "@/components/projects/scenes/scene-dialog";
 import { ConfirmDialog } from "@/components/projects/confirm-dialog";
 import { DataTable } from "@/components/projects/data-table/data-table";

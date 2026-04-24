@@ -16,8 +16,8 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar";
 import { Button } from "@/components/ui/button";
-import { useProjects } from "@/contexts/project-context";
-import { useProjectDetail } from "@/contexts/project-detail-context";
+import { useProjectsStore } from "@/store/use-projects-store";
+import { useProjectDetail } from "@/store/use-project-detail";
 import { ProjectDialog } from "@/components/projects/project-dialog";
 import { ConfirmDialog } from "@/components/projects/confirm-dialog";
 import { ImportDialog } from "@/components/projects/import-project-dialog";
@@ -25,7 +25,7 @@ import log from "electron-log/renderer";
 
 export function NavProjects() {
   const { isMobile } = useSidebar();
-  const { projects, loading, deleteProject, exportProject, importProject } = useProjects();
+  const { projects, loading, deleteProject, exportProject, importProject } = useProjectsStore();
   const { selectProjectSection, selectedProject, activeSection } = useProjectDetail();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingProject, setEditingProject] = useState(null);

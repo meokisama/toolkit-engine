@@ -1,7 +1,7 @@
 import React, { useMemo } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent } from "@/components/ui/card";
-import { useProjectDetail } from "@/contexts/project-detail-context";
+import { useProjectDetail } from "@/store/use-project-detail";
 import { ProjectItemsTable } from "@/components/projects/lighting/lighting-table";
 import { UnitTable } from "@/components/projects/unit/database-units/database-unit-table";
 import { AirconCards } from "@/components/projects/aircon/aircon-cards";

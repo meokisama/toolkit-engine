@@ -10,7 +10,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { toast } from "sonner";
 import { DeleteMultiSceneDialog } from "./delete-multi-scene-popover";
 import { MULTI_SCENES } from "@/constants/multi-scenes";
-import { useProjectDetail } from "@/contexts/project-detail-context";
+import { useProjectDetail } from "@/store/use-project-detail";
 import log from "electron-log/renderer";
 
 // Helper function to get multi-scene type label

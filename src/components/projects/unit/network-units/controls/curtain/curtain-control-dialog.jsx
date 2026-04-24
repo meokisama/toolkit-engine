@@ -8,7 +8,7 @@ import { GitCompare, List, Square, ChevronUp, ChevronDown, Trash2 } from "lucide
 import { toast } from "sonner";
 import { CURTAIN } from "@/constants/curtain";
 import { DeleteCurtainDialog } from "./delete-curtain-popover";
-import { useProjectDetail } from "@/contexts/project-detail-context";
+import { useProjectDetail } from "@/store/use-project-detail";
 import log from "electron-log/renderer";
 
 // Initial state for better state management

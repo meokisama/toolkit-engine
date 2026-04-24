@@ -10,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { ChevronDown, Settings, RefreshCw, Plus } from "lucide-react";
 import { RS485 } from "@/constants/rs485";
-import { useProjectDetail } from "@/contexts/project-detail-context";
+import { useProjectDetail } from "@/store/use-project-detail";
 import { isSlaveType, isNoneType } from "@/utils/rs485-utils";
 import { toast } from "sonner";
 import log from "electron-log/renderer";

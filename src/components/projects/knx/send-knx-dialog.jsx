@@ -2,7 +2,7 @@ import React from "react";
 import { toast } from "sonner";
 import { SendItemsDialog } from "@/components/shared/send-items-dialog";
 import { KNX } from "@/constants/knx";
-import { useProjectDetail } from "@/contexts/project-detail-context";
+import { useProjectDetail } from "@/store/use-project-detail";
 import log from "electron-log/renderer";
 
 export function SendKnxDialog({ open, onOpenChange, items = [] }) {

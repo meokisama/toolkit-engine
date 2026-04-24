@@ -33,15 +33,15 @@ Renderer (React/Vite)
 
 ### State Management
 
-Three-layer state architecture:
+Zustand-only; no React Context is used.
 
-1. **`ProjectContext`** (`src/contexts/project-context.jsx`) — manages the project list (create/update/delete/import/export)
-2. **`ProjectDetailContext`** (`src/contexts/project-detail-context.jsx`) — bridges UI to Zustand stores; provides `selectProject()`, `setActiveSection()`, `loadTabData()`
-3. **Zustand stores** (`src/store/`):
-   - `useProjectNavStore` — `selectedProject`, `activeSection`, `activeTab`
-   - `useProjectItemsStore` — composed of slices: `createItemsStateSlice`, `createTabLoaderSlice`, `createCrudSlice`, `createAirconSlice`, `createImportExportSlice`
+- **Stores** (`src/store/`):
+  - `useProjectsStore` — project list (create/update/delete/import/export); `loadProjects()` is triggered once from `src/app.jsx` on mount
+  - `useProjectNavStore` — `selectedProject`, `activeSection`, `activeTab`
+  - `useProjectItemsStore` — composed of slices: `createItemsStateSlice`, `createTabLoaderSlice`, `createCrudSlice`, `createAirconSlice`, `createImportExportSlice`
+- **`useProjectDetail()`** (`src/store/use-project-detail.js`) — aggregator hook over `useProjectNavStore` + `useProjectItemsStore`; pre-wires `projectId` from the nav store into item-store actions so call sites don't have to.
 
-Components consume state via `useProjectDetail()` hook (from ProjectDetailContext), which aggregates both stores.
+Components consume state either via `useProjectDetail()` (for project-detail screens) or by subscribing to the relevant store directly.
 
 ### Data Flow
 

@@ -17,7 +17,7 @@ import { DataTable } from "@/components/projects/data-table/data-table";
 import { DataTablePagination } from "@/components/projects/data-table/data-table-pagination";
 import { createNetworkUnitColumns } from "./network-unit-columns";
 import { udpScanner } from "@/services/udp";
-import { useProjectDetail } from "@/contexts/project-detail-context";
+import { useProjectDetail } from "@/store/use-project-detail";
 import { sortByIpAddress } from "@/utils/ip-utils";
 import { useNetworkUnitState } from "./hooks/use-network-unit-state";
 import { useNetworkUnitHandlers } from "./hooks/use-network-unit-handlers";

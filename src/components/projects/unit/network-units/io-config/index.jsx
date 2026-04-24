@@ -20,7 +20,7 @@ import { useNetworkIOConfig } from "./hooks/use-network-io-config";
 import { ComSwitchPopover } from "../../shared/com-switch";
 import { useNetworkInputConfig } from "./hooks/use-network-input-config";
 import { useNetworkOutputConfig } from "./hooks/use-network-output-config";
-import { useProjectDetail } from "@/contexts/project-detail-context";
+import { useProjectDetail } from "@/store/use-project-detail";
 import { hasInputConfigChanged, hasOutputConfigChanged } from "@/utils/io-config-utils";
 import log from "electron-log/renderer";
 

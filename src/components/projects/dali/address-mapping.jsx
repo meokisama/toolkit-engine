@@ -17,7 +17,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { useProjectDetail } from "@/contexts/project-detail-context";
+import { useProjectDetail } from "@/store/use-project-detail";
 import { useDaliStore as useDali } from "@/store/use-dali-store";
 import { toast } from "sonner";
 import { DALI_DEVICE_COUNT } from "./utils/constants";

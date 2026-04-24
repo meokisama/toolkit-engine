@@ -6,7 +6,7 @@ import { Combobox } from "@/components/custom/combobox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
-import { useProjectDetail } from "@/contexts/project-detail-context";
+import { useProjectDetail } from "@/store/use-project-detail";
 import { UNIT_TYPES, UNIT_MODES } from "@/constants/unit";
 import { RS485ConfigDialog } from "../shared/output-configs/rs485-config-dialog";
 import { Settings } from "lucide-react";

@@ -8,7 +8,7 @@ import { GitCompare, List, Trash2, Network, Play } from "lucide-react";
 import { toast } from "sonner";
 import { KNX } from "@/constants/knx";
 import { DeleteKnxDialog } from "./delete-knx-popover";
-import { useProjectDetail } from "@/contexts/project-detail-context";
+import { useProjectDetail } from "@/store/use-project-detail";
 import log from "electron-log/renderer";
 
 // Initial state for better state management

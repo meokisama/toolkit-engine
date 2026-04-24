@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Combobox } from "@/components/custom/combobox";
-import { useProjectDetail } from "@/contexts/project-detail-context";
+import { useProjectDetail } from "@/store/use-project-detail";
 import { Power, DoorClosed, Loader2, Book } from "lucide-react";
 import { toast } from "sonner";
 import { ZIGBEE } from "@/constants/zigbee";

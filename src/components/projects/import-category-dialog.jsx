@@ -6,7 +6,7 @@ import { Upload, FileText, AlertCircle, CheckCircle, Download, Info } from "luci
 import { toast } from "sonner";
 import { exportImportService } from "@/services/export-import";
 import { getSchema } from "@/services/export-import/schemas";
-import { useProjectDetail } from "@/contexts/project-detail-context";
+import { useProjectDetail } from "@/store/use-project-detail";
 import log from "electron-log/renderer";
 
 export function ImportItemsDialog({ open, onOpenChange, onImport, category, onConfirm }) {

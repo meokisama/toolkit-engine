@@ -9,7 +9,7 @@ import { CurtainDialog } from "@/components/projects/curtain/curtain-dialog";
 import { SendCurtainConfigDialog } from "@/components/projects/curtain/send-curtain-config-dialog";
 import { ConfirmDialog } from "@/components/projects/confirm-dialog";
 import { ImportItemsDialog } from "@/components/projects/import-category-dialog";
-import { useProjectDetail } from "@/contexts/project-detail-context";
+import { useProjectDetail } from "@/store/use-project-detail";
 import { TableSkeleton } from "@/components/projects/table-skeleton";
 import { useTableDialogs } from "@/hooks/use-table-dialogs";
 import { useTableUI } from "@/hooks/use-table-ui";

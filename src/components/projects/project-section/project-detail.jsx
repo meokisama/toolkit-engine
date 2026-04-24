@@ -1,5 +1,5 @@
 import React from "react";
-import { useProjectDetail } from "@/contexts/project-detail-context";
+import { useProjectDetail } from "@/store/use-project-detail";
 import { GroupConfig } from "./group-config";
 import { ScenesSchedules } from "./automation";
 import { Smarthome } from "./smarthome";

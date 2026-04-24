@@ -8,7 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { CircleCheck, Layers } from "lucide-react";
 import * as CheckboxPrimitive from "@radix-ui/react-checkbox";
-import { useProjectDetail } from "@/contexts/project-detail-context";
+import { useProjectDetail } from "@/store/use-project-detail";
 import { toast } from "sonner";
 import log from "electron-log/renderer";
 

@@ -7,7 +7,7 @@ import { GripVertical, X, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { useProjectDetail } from "@/contexts/project-detail-context";
+import { useProjectDetail } from "@/store/use-project-detail";
 import { toast } from "sonner";
 import { useDaliDevices } from "./hooks/useDaliDevices";
 import { useEditableName } from "./hooks/useEditableName";

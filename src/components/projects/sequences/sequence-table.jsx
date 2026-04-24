@@ -5,7 +5,7 @@ import { DataTablePagination } from "@/components/projects/data-table/data-table
 import { DataTableToolbar } from "@/components/projects/data-table/data-table-toolbar";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
-import { useProjectDetail } from "@/contexts/project-detail-context";
+import { useProjectDetail } from "@/store/use-project-detail";
 import { ConfirmDialog } from "@/components/projects/confirm-dialog";
 import { createSequenceColumns } from "@/components/projects/sequences/sequence-columns";
 import { SequenceDialog } from "@/components/projects/sequences/sequence-dialog";

@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Network, Upload, Trash2, ChevronDown } from "lucide-react";
-import { useProjectDetail } from "@/contexts/project-detail-context";
+import { useProjectDetail } from "@/store/use-project-detail";
 import { useDaliStore as useDali } from "@/store/use-dali-store";
 import { AddressMapping } from "@/components/projects/dali/address-mapping";
 import { Group } from "@/components/projects/dali/group";

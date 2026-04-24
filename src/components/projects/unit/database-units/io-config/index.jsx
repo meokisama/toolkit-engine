@@ -5,7 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Settings } from "lucide-react";
-import { useProjectDetail } from "@/contexts/project-detail-context";
+import { useProjectDetail } from "@/store/use-project-detail";
 import { InputDetailConfigDialog } from "../../shared/input-config";
 import { ComSwitchPopover } from "../../shared/com-switch";
 import { LightingOutputConfigDialog } from "../../shared/output-configs/lighting-output-config-dialog";

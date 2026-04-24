@@ -10,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { ChevronDown } from "lucide-react";
 import { RS485 } from "@/constants/rs485";
-import { useProjectDetail } from "@/contexts/project-detail-context";
+import { useProjectDetail } from "@/store/use-project-detail";
 import { createDefaultRS485Config, isSlaveType, isNoneType } from "@/utils/rs485-utils";
 
 export function RS485ConfigDialog({ open, onOpenChange, config, onSave }) {

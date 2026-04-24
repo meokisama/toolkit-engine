@@ -1,7 +1,7 @@
 import React, { useState, useCallback, memo, useEffect, useRef, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { Plus, Calendar } from "lucide-react";
-import { useProjectDetail } from "@/contexts/project-detail-context";
+import { useProjectDetail } from "@/store/use-project-detail";
 import { ScheduleDialog } from "@/components/projects/schedules/schedule-dialog";
 import { SendScheduleDialog } from "@/components/projects/schedules/send-schedule-dialog";
 import { ConfirmDialog } from "@/components/projects/confirm-dialog";

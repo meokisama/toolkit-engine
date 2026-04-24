@@ -3,11 +3,11 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { useProjects } from "@/contexts/project-context";
+import { useProjectsStore } from "@/store/use-projects-store";
 import log from "electron-log/renderer";
 
 export function ProjectDialog({ open, onOpenChange, project = null, mode = "create" }) {
-  const { createProject, updateProject } = useProjects();
+  const { createProject, updateProject } = useProjectsStore();
   const [formData, setFormData] = useState({
     name: "",
     description: "",

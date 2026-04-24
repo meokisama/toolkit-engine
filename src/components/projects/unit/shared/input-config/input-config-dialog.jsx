@@ -22,7 +22,7 @@ import { useInputType } from "./hooks/use-input-type";
 // Import utilities
 import { getGroupTypeLabel, getGroupTypeFromFunction } from "./utils/group-helpers";
 
-import { useProjectDetail } from "@/contexts/project-detail-context";
+import { useProjectDetail } from "@/store/use-project-detail";
 import { getRlcOptionsConfig, getInputFunctionByValue } from "@/constants/input";
 
 export function InputDetailConfigDialog({
