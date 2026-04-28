@@ -33,22 +33,22 @@ export const EFFECT_GROUPS = {
 
 // LED Effects
 export const LED_EFFECTS = [
-  { value: 0, name: "EFFECT_CONFETTI", label: "Pháo Hoa Giấy", group: EFFECT_GROUPS.NO_COLOR_CONFIG },
-  { value: 1, name: "EFFECT_POLICE_STROBE", label: "Còi Báo Cảnh Sát", group: EFFECT_GROUPS.NO_COLOR_CONFIG },
-  { value: 2, name: "EFFECT_RAINBOW_CYCLE", label: "Vòng Quay Cầu Vồng", group: EFFECT_GROUPS.NO_COLOR_CONFIG },
-  { value: 3, name: "EFFECT_THEATER_CHASE", label: "Dòng Chảy Ánh Sáng", group: EFFECT_GROUPS.COLOR_CONFIG },
-  { value: 4, name: "EFFECT_CENTER_OUT", label: "Tỏa Sáng Từ Tâm", group: EFFECT_GROUPS.COLOR_CONFIG },
-  { value: 5, name: "EFFECT_CURTAIN_FILL", label: "Màn Sân Khấu", group: EFFECT_GROUPS.COLOR_CONFIG },
-  { value: 6, name: "EFFECT_CYLON_BOUNCE", label: "Con Lắc Ánh Sáng", group: EFFECT_GROUPS.COLOR_CONFIG },
-  { value: 7, name: "EFFECT_METEOR_CIRCLE", label: "Sao Băng Xoay Vòng", group: EFFECT_GROUPS.COLOR_CONFIG },
-  { value: 8, name: "EFFECT_STACK_FALLING", label: "Mưa Rơi Tích Lũy", group: EFFECT_GROUPS.COLOR_CONFIG },
-  { value: 9, name: "EFFECT_SPARKLE", label: "Tinh Tú Lấp Lánh", group: EFFECT_GROUPS.FIXED_COLOR },
-  { value: 10, name: "EFFECT_BREATHING_COLOR", label: "Nhịp Thở Sắc Màu", group: EFFECT_GROUPS.FIXED_COLOR },
-  { value: 11, name: "EFFECT_TEMPLATE_12", label: "Gợn Sóng Cầu Vồng", group: EFFECT_GROUPS.COLOR_CONFIG },
-  { value: 12, name: "EFFECT_TEMPLATE_13", label: "Sóng Vỗ Đa Tầng", group: EFFECT_GROUPS.COLOR_CONFIG },
-  { value: 13, name: "EFFECT_TEMPLATE_14", label: "Hiệu Ứng Test", group: EFFECT_GROUPS.COLOR_CONFIG },
-  { value: 14, name: "EFFECT_TEMPLATE_15", label: "Ánh Sao Xanh", group: EFFECT_GROUPS.COLOR_CONFIG },
-  { value: 15, name: "EFFECT_TEMPLATE_16", label: "Hiệu Ứng 16", group: EFFECT_GROUPS.COLOR_CONFIG },
+  { value: 0, name: "EFFECT_CONFETTI", label: "Confetti", group: EFFECT_GROUPS.NO_COLOR_CONFIG },
+  { value: 1, name: "EFFECT_POLICE_STROBE", label: "Police Strobe", group: EFFECT_GROUPS.NO_COLOR_CONFIG },
+  { value: 2, name: "EFFECT_RAINBOW_CYCLE", label: "Rainbow Cycle", group: EFFECT_GROUPS.NO_COLOR_CONFIG },
+  { value: 3, name: "EFFECT_THEATER_CHASE", label: "Theater Chase", group: EFFECT_GROUPS.COLOR_CONFIG },
+  { value: 4, name: "EFFECT_CENTER_OUT", label: "Center Out", group: EFFECT_GROUPS.COLOR_CONFIG },
+  { value: 5, name: "EFFECT_CURTAIN_FILL", label: "Curtain Fill", group: EFFECT_GROUPS.COLOR_CONFIG },
+  { value: 6, name: "EFFECT_CYLON_BOUNCE", label: "Cylon Bounce", group: EFFECT_GROUPS.COLOR_CONFIG },
+  { value: 7, name: "EFFECT_METEOR_CIRCLE", label: "Meteor Circle", group: EFFECT_GROUPS.COLOR_CONFIG },
+  { value: 8, name: "EFFECT_STACK_FALLING", label: "Stack Falling", group: EFFECT_GROUPS.COLOR_CONFIG },
+  { value: 9, name: "EFFECT_SPARKLE", label: "Sparkle", group: EFFECT_GROUPS.FIXED_COLOR },
+  { value: 10, name: "EFFECT_BREATHING_COLOR", label: "Breathing Color", group: EFFECT_GROUPS.FIXED_COLOR },
+  { value: 11, name: "EFFECT_TEMPLATE_12", label: "Rainbow Wave", group: EFFECT_GROUPS.COLOR_CONFIG },
+  { value: 12, name: "EFFECT_TEMPLATE_13", label: "Multi-Layer Wave", group: EFFECT_GROUPS.COLOR_CONFIG },
+  { value: 13, name: "EFFECT_TEMPLATE_14", label: "Test Effect", group: EFFECT_GROUPS.COLOR_CONFIG },
+  { value: 14, name: "EFFECT_TEMPLATE_15", label: "Blue Star", group: EFFECT_GROUPS.COLOR_CONFIG },
+  { value: 15, name: "EFFECT_TEMPLATE_16", label: "Effect 16", group: EFFECT_GROUPS.COLOR_CONFIG },
 ];
 
 // Group labels for display
@@ -66,7 +66,7 @@ export const VALIDATION = {
   COLOR: { min: 0, max: 255 },
   BIT_TIME: { min: 0, max: 3180 },
   RESET_CYCLE: { min: 0, max: 65536 },
-  START_UNIVERSE: { min: 0, max: 255 },
+  START_UNIVERSE: { min: 0, max: 127 },
 };
 
 // Default channel state

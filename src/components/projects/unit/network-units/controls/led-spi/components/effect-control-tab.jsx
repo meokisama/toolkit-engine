@@ -130,7 +130,7 @@ function ChannelEffectConfig({
         {/* Start Universe - only show when mode is Artnet */}
         {effectState.mode === 1 && (
           <div className="space-y-2">
-            <Label htmlFor={`effect-start-universe-${channelIndex}`}>Start Universe (0-255)</Label>
+            <Label htmlFor={`effect-start-universe-${channelIndex}`}>Start Universe (0-127)</Label>
             <Input
               id={`effect-start-universe-${channelIndex}`}
               type="number"
