@@ -32,21 +32,21 @@ export function NavSecondary({ ...props }) {
   return (
     <SidebarGroup {...props}>
       <SidebarGroupContent>
-        <SidebarMenu>
-          <SidebarMenuItem>
+        <SidebarMenu className="flex-row gap-1">
+          <SidebarMenuItem className="flex-1">
             <SettingsDialog
               trigger={
-                <SidebarMenuButton size="sm">
+                <SidebarMenuButton size="sm" className="justify-center cursor-pointer">
                   <Settings className="size-4" />
                   <span>Settings</span>
                 </SidebarMenuButton>
               }
             />
           </SidebarMenuItem>
-          <SidebarMenuItem>
+          <SidebarMenuItem className="flex-1">
             <DropdownMenu>
               <DropdownMenuTrigger asChild className="cursor-pointer">
-                <SidebarMenuButton size="sm">
+                <SidebarMenuButton size="sm" className="justify-center">
                   {getThemeIcon()}
                   <span>{getThemeLabel()}</span>
                 </SidebarMenuButton>

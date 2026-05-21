@@ -1,5 +1,6 @@
-import React, { useState, useCallback } from "react";
-import { Folder, SquarePen, Trash2, Plus, Download, Upload, ChevronRight, Library, Workflow, Home, Eclipse } from "lucide-react";
+import React, { useState, useCallback, useMemo } from "react";
+import { Folder, SquarePen, Trash2, Plus, Download, Upload, ChevronRight, Library, Workflow, Home, Eclipse, Search } from "lucide-react";
+import { Input } from "@/components/ui/input";
 import { ContextMenu, ContextMenuContent, ContextMenuItem, ContextMenuSeparator, ContextMenuTrigger } from "@/components/ui/context-menu";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import {
@@ -35,6 +36,13 @@ export function NavProjects() {
   const [deleteLoading, setDeleteLoading] = useState(false);
   const [importDialogOpen, setImportDialogOpen] = useState(false);
   const [expandedProjects, setExpandedProjects] = useState(new Set());
+  const [searchQuery, setSearchQuery] = useState("");
+
+  const filteredProjects = useMemo(() => {
+    const query = searchQuery.trim().toLowerCase();
+    if (!query) return projects;
+    return projects.filter((project) => project.name?.toLowerCase().includes(query));
+  }, [projects, searchQuery]);
 
   // Memoize handlers to prevent unnecessary rerenders
   const handleCreateProject = useCallback(() => {
@@ -134,9 +142,18 @@ export function NavProjects() {
       <ContextMenu>
         <ContextMenuTrigger asChild>
           <SidebarGroup className="group-data-[collapsible=icon]:hidden flex-1">
-            <div className="flex items-center justify-between">
-              <SidebarGroupLabel>Projects</SidebarGroupLabel>
-              <Button variant="ghost" size="sm" onClick={handleCreateProject} className="h-6 w-6 p-0">
+            <div className="pb-2 flex gap-1">
+              <div className="relative">
+                <Search className="pointer-events-none absolute left-2 top-1/2 size-3.5 -translate-y-1/2 text-muted-foreground" />
+                <Input
+                  type="search"
+                  placeholder="Search projects..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="h-8 pl-7 text-xs!"
+                />
+              </div>
+              <Button variant="outline" size="icon" onClick={handleCreateProject} className="size-8 p-0">
                 <Plus className="h-4 w-4" />
                 <span className="sr-only">Add Project</span>
               </Button>
@@ -147,8 +164,10 @@ export function NavProjects() {
                 Array.from({ length: 3 }).map((_, index) => <SidebarMenuSkeleton key={index} showIcon />)
               ) : projects.length === 0 ? (
                 <div className="px-2 py-4 text-xs text-muted-foreground text-center italic">No projects found.</div>
+              ) : filteredProjects.length === 0 ? (
+                <div className="px-2 py-4 text-xs text-muted-foreground text-center italic">No matching projects.</div>
               ) : (
-                projects.map((project) => {
+                filteredProjects.map((project) => {
                   const isExpanded = expandedProjects.has(project.id);
                   const isSelected = selectedProject?.id === project.id;
 
