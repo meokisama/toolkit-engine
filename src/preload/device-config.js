@@ -22,4 +22,5 @@ export const deviceController = {
   checkTcpOnlineStatus: (params) => ipcRenderer.invoke("rcu:checkTcpOnlineStatus", params),
   checkSwitchOnlineStatus: (params) => ipcRenderer.invoke("rcu:checkSwitchOnlineStatus", params),
   checkCanOnlineStatus: (params) => ipcRenderer.invoke("rcu:checkCanOnlineStatus", params),
+  checkAppServiceStatus: (params) => ipcRenderer.invoke("rcu:checkAppServiceStatus", params),
 };

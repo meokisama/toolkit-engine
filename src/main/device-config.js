@@ -146,4 +146,13 @@ export function registerDeviceConfigHandlers(ipcMain, rcu) {
       throw error;
     }
   });
+
+  ipcMain.handle("rcu:checkAppServiceStatus", async (event, { unitIp, canId }) => {
+    try {
+      return await rcu.checkAppServiceStatus(unitIp, canId);
+    } catch (error) {
+      console.error("Error checking App Service online status:", error);
+      throw error;
+    }
+  });
 }

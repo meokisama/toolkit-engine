@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from "react";
-import { Wifi, WifiOff, RefreshCw, Network } from "lucide-react";
+import { Wifi, WifiOff, RefreshCw, Network, AppWindow } from "lucide-react";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -31,6 +31,7 @@ export function OnlineStatusDialog({ open, onOpenChange, unit }) {
   const [tcpData, setTcpData] = useState(null);
   const [switchData, setSwitchData] = useState(null);
   const [canData, setCanData] = useState(null);
+  const [appServiceData, setAppServiceData] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const intervalRef = useRef(null);
@@ -92,7 +93,19 @@ export function OnlineStatusDialog({ open, onOpenChange, unit }) {
         failCount++;
       }
 
-      if (failCount === 4) {
+      try {
+        const appServiceValue = await window.electronAPI.deviceController.checkAppServiceStatus({
+          unitIp: unit.ip_address,
+          canId: unit.id_can,
+        });
+        setAppServiceData(appServiceValue);
+      } catch (e) {
+        log.warn("App Service online status failed:", e?.message);
+        setAppServiceData(null);
+        failCount++;
+      }
+
+      if (failCount === 5) {
         setError("Failed to retrieve online status from unit");
       }
     } catch (err) {
@@ -219,6 +232,43 @@ export function OnlineStatusDialog({ open, onOpenChange, unit }) {
                     <div key={idx} className="flex flex-col rounded border px-2 py-1 text-xs gap-0.5">
                       <span className="font-mono">{dev.canId}</span>
                       <span className="text-muted-foreground">{dev.unitName}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* App Services */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-sm flex items-center justify-between">
+                <span className="flex items-center gap-1.5">
+                  <AppWindow className="h-4 w-4" />
+                  App Services
+                </span>
+                {loading && <RefreshCw className="h-3 w-3 animate-spin text-muted-foreground" />}
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              {!appServiceData && !loading && !error && <p className="text-sm text-muted-foreground">Loading...</p>}
+              {appServiceData && appServiceData.length === 0 && <p className="text-sm text-muted-foreground">No app service configured.</p>}
+              {appServiceData && appServiceData.length > 0 && (
+                <div className="space-y-1">
+                  {appServiceData.map((app, idx) => (
+                    <div key={idx} className="flex items-center justify-between rounded border px-2 py-1 text-xs">
+                      <div className="flex flex-col">
+                        <span className="font-medium">{app.appName}</span>
+                        {app.appEnum !== 0 && (
+                          <span className="font-mono text-muted-foreground">
+                            {app.ip}:{app.port}
+                          </span>
+                        )}
+                        {app.inroomNodeOnline !== null && (
+                          <span className="text-muted-foreground">Inroom node: {app.inroomNodeOnline ? "Online" : "Offline"}</span>
+                        )}
+                      </div>
+                      {app.appEnum !== 0 && <StatusBadge online={app.online} />}
                     </div>
                   ))}
                 </div>

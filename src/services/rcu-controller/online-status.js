@@ -163,4 +163,52 @@ async function checkCanOnlineStatus(unitIp, canId) {
   return parseCanResponse(response.result.data);
 }
 
-export { checkRS485OnlineStatus, checkTcpOnlineStatus, checkSwitchOnlineStatus, checkCanOnlineStatus };
+const APP_SERVICE_NAME_BY_ENUM = {
+  0: "Not connected",
+  1: "Madrix",
+  2: "Salto",
+  3: "GNT Aura Studio",
+};
+
+const APP_SERVICE_SALTO_ENUM = 2;
+
+/**
+ * Parse App Service online status response.
+ * Response structure (repeated per record, 9 bytes each):
+ *   byte 0:     app type (0=not connected, 1=Madrix, 2=Salto, 3=GNT Aura Studio)
+ *   bytes 1-4:  IP address
+ *   bytes 5-6:  port (little-endian)
+ *   byte 7:     status (0=offline, 1=online)
+ *   byte 8:     Salto only — inroom node status (0=offline, 1=online); 0 for others
+ */
+function parseAppServiceResponse(data) {
+  const apps = [];
+  let offset = 0;
+
+  while (offset + 9 <= data.length) {
+    const appEnum = data[offset];
+    const ip = `${data[offset + 1]}.${data[offset + 2]}.${data[offset + 3]}.${data[offset + 4]}`;
+    const port = data[offset + 5] | (data[offset + 6] << 8);
+    const status = data[offset + 7];
+    const inroomNodeStatus = data[offset + 8];
+    offset += 9;
+
+    apps.push({
+      appEnum,
+      appName: APP_SERVICE_NAME_BY_ENUM[appEnum] ?? `Unknown (${appEnum})`,
+      ip,
+      port,
+      online: status === 1,
+      inroomNodeOnline: appEnum === APP_SERVICE_SALTO_ENUM ? inroomNodeStatus === 1 : null,
+    });
+  }
+
+  return apps;
+}
+
+async function checkAppServiceStatus(unitIp, canId) {
+  const response = await sendOnlineStatusCommand(unitIp, canId, [0x04, 0x00]);
+  return parseAppServiceResponse(response.result.data);
+}
+
+export { checkRS485OnlineStatus, checkTcpOnlineStatus, checkSwitchOnlineStatus, checkCanOnlineStatus, checkAppServiceStatus };
