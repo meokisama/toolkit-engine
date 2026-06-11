@@ -248,6 +248,7 @@ export const supportsRS485 = (unitType) => {
     "RCU-16RL-16AO",
     "RCU-24RL-8AO",
     "RCU-11IN-4RL",
+    "RCU-14IN-4RL",
     "RCU-21IN-8RL",
     "RCU-21IN-8RL-4AO",
     "RCU-21IN-8RL-4AI",

@@ -102,6 +102,19 @@ export const UNIT_TYPES = [
     },
   },
   {
+    name: "RCU-14IN-4RL",
+    barcode: "8930000210029",
+    inputs: 14,
+    outputs: { relay: 4, dimmer: 0, ao: 0, ac: 10 },
+    inputFunctions: {
+      0: "KEY_CARD_INPUT",
+      3: "BELL_INPUT",
+      6: "DND_INPUT",
+      7: "MUR_INPUT",
+      default: "ALL",
+    },
+  },
+  {
     name: "RCU-21IN-10RL",
     barcode: "8930000210012",
     inputs: 21,
