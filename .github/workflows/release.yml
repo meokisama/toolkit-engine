@@ -8,6 +8,7 @@ jobs:
   build:
     runs-on: ${{ matrix.os }}
     strategy:
+      fail-fast: false
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
 
@@ -16,7 +17,7 @@ jobs:
 
       - uses: actions/setup-node@v6
         with:
-          node-version: 24
+          node-version: "24.15.0"
 
       - name: Install dependencies
         run: yarn install
@@ -24,8 +25,18 @@ jobs:
       - name: Build Electron App
         run: yarn make
 
+      - name: Verify artifacts exist
+        shell: bash
+        run: |
+          count=$(find out/make -type f \( \
+            -name '*.exe' -o -name '*.nupkg' -o -name 'RELEASES' \
+            -o -name '*.zip' -o -name '*.deb' -o -name '*.rpm' \) | wc -l)
+          echo "Found $count artifact(s) in out/make"
+          find out/make -type f -print || true
+          test "$count" -gt 0
+
       - name: Upload release assets
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
         with:
           files: |
             out/make/**/*.exe
@@ -34,6 +45,7 @@ jobs:
             out/make/**/*.rpm
             out/make/**/*.nupkg
             out/make/**/RELEASES
+          fail_on_unmatched_files: false
           generate_release_notes: true
         env:
           GITHUB_TOKEN: ${{ secrets.GNT_ENGINE }}
