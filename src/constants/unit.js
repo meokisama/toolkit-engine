@@ -15,6 +15,7 @@ export const UNIT_TYPES = [
   },
   {
     name: "Bedside-17T",
+    slaveOnly: true,
     barcode: "8930000000200",
     inputs: 17,
     outputs: { relay: 0, dimmer: 0, ao: 0, ac: 0 },
@@ -22,6 +23,7 @@ export const UNIT_TYPES = [
   },
   {
     name: "Bedside-12T",
+    slaveOnly: true,
     barcode: "8930000100214",
     inputs: 12,
     outputs: { relay: 0, dimmer: 0, ao: 0, ac: 0 },
@@ -29,6 +31,7 @@ export const UNIT_TYPES = [
   },
   {
     name: "BSP_R14_OL",
+    slaveOnly: true,
     barcode: "8930000100221",
     inputs: 14,
     outputs: { relay: 0, dimmer: 0, ao: 0, ac: 0 },
@@ -278,6 +281,7 @@ export const UNIT_TYPES = [
   },
   {
     name: "GNT-EXT-6RL",
+    slaveOnly: true,
     barcode: "8930000200051",
     inputs: 0,
     outputs: { relay: 6, dimmer: 0, ao: 0, ac: 0 },
@@ -285,6 +289,7 @@ export const UNIT_TYPES = [
   },
   {
     name: "GNT-EXT-8RL",
+    slaveOnly: true,
     barcode: "8930000200068",
     inputs: 0,
     outputs: { relay: 8, dimmer: 0, ao: 0, ac: 0 },
@@ -292,6 +297,7 @@ export const UNIT_TYPES = [
   },
   {
     name: "GNT-EXT-10AO",
+    slaveOnly: true,
     barcode: "8930000200075",
     inputs: 0,
     outputs: { relay: 0, dimmer: 0, ao: 10, ac: 0 },
@@ -299,6 +305,7 @@ export const UNIT_TYPES = [
   },
   {
     name: "GNT-EXT-28AO",
+    slaveOnly: true,
     barcode: "8930000200082",
     inputs: 0,
     outputs: { relay: 0, dimmer: 0, ao: 28, ac: 0 },
@@ -306,6 +313,7 @@ export const UNIT_TYPES = [
   },
   {
     name: "GNT-EXT-12RL",
+    slaveOnly: true,
     barcode: "8930000200105",
     inputs: 0,
     outputs: { relay: 12, dimmer: 0, ao: 0, ac: 0 },
@@ -313,6 +321,7 @@ export const UNIT_TYPES = [
   },
   {
     name: "GNT-EXT-20RL",
+    slaveOnly: true,
     barcode: "8930000200112",
     inputs: 0,
     outputs: { relay: 20, dimmer: 0, ao: 0, ac: 0 },
@@ -320,6 +329,7 @@ export const UNIT_TYPES = [
   },
   {
     name: "GNT-EXT-12RL-12AO",
+    slaveOnly: true,
     barcode: "8930000200099",
     inputs: 0,
     outputs: { relay: 12, dimmer: 0, ao: 12, ac: 0 },
@@ -327,6 +337,7 @@ export const UNIT_TYPES = [
   },
   {
     name: "GNT-EXT-24IN",
+    slaveOnly: true,
     barcode: "8930000220011",
     inputs: 24,
     outputs: { relay: 0, dimmer: 0, ao: 0, ac: 0 },
@@ -334,6 +345,7 @@ export const UNIT_TYPES = [
   },
   {
     name: "GNT-EXT-48IN",
+    slaveOnly: true,
     barcode: "8930000220028",
     inputs: 48,
     outputs: { relay: 0, dimmer: 0, ao: 0, ac: 0 },

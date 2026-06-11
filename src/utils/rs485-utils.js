@@ -1,4 +1,5 @@
 import { RS485 } from "@/constants/rs485";
+import { UNIT_TYPES } from "@/constants/unit";
 
 /**
  * Create a default RS485 configuration
@@ -230,51 +231,16 @@ export const deserializeRS485Config = (configStrings) => {
 
 /**
  * Check if a unit type supports RS485
- * Based on C# WinForms original implementation - all unit types support RS485
  */
-export const supportsRS485 = (unitType) => {
-  // In the original C# application, RS485_support is set to true by default for all units
-  // and only disabled when there's no RS485 config in database
-  // All unit types in the system support RS485 configuration
-  const rs485SupportedTypes = [
-    "Room Logic Controller",
-    "RLC-I16",
-    "RLC-I20",
-    "Bedside-17T",
-    "Bedside-12T",
-    "BSP_R14_OL",
-    "RCU-32AO",
-    "RCU-8RL-24AO",
-    "RCU-16RL-16AO",
-    "RCU-24RL-8AO",
-    "RCU-11IN-4RL",
-    "RCU-14IN-4RL",
-    "RCU-21IN-8RL",
-    "RCU-21IN-8RL-4AO",
-    "RCU-21IN-8RL-4AI",
-    "RCU-21IN-8RL-K",
-    "RCU-21IN-10RL",
-    "RCU-21IN-10RL-T",
-    "RCU-30IN-10RL",
-    "RCU-48IN-16RL",
-    "RCU-48IN-16RL-4AO",
-    "RCU-48IN-16RL-4AI",
-    "RCU-48IN-16RL-K",
-    "RCU-48IN-16RL-DL",
-    "GNT-EXT-6RL",
-    "GNT-EXT-8RL",
-    "GNT-EXT-10AO",
-    "GNT-EXT-12RL",
-    "GNT-EXT-20RL",
-    "GNT-EXT-28AO",
-    "GNT-EXT-12RL-12AO",
-    "GNT-EXT-24IN",
-    "GNT-EXT-48IN",
-    "GNT-ETH2KDL",
-  ];
-  return rs485SupportedTypes.includes(unitType);
-};
-
+// Derived from UNIT_TYPES: by default a unit supports RS485 (`rs485: false` to opt out)
+// and is not slave-only (`slaveOnly: true` to opt in).
+const RS485_SUPPORTED = new Set(UNIT_TYPES.filter((u) => u.rs485 !== false).map((u) => u.name));
+export const supportsRS485 = (unitType) => RS485_SUPPORTED.has(unitType);
+/**
+ * Check if a unit type is forced to Slave mode only
+ */
+const SLAVE_ONLY = new Set(UNIT_TYPES.filter((u) => u.slaveOnly).map((u) => u.name));
+export const isSlaveOnlyUnit = (unitType) => SLAVE_ONLY.has(unitType);
 /**
  * Get RS485 type label by value
  */
@@ -300,28 +266,6 @@ export const isSlaveType = (configType) => {
  */
 export const isNoneType = (configType) => {
   return configType === 0;
-};
-
-/**
- * Check if a unit type is forced to Slave mode only
- * Based on C# WinForms cbx_Unit_SelectedIndexChanged logic
- */
-export const isSlaveOnlyUnit = (unitType) => {
-  const slaveOnlyTypes = [
-    "Bedside-17T",
-    "Bedside-12T",
-    "BSP_R14_OL",
-    "GNT-EXT-6RL",
-    "GNT-EXT-8RL",
-    "GNT-EXT-12RL",
-    "GNT-EXT-20RL",
-    "GNT-EXT-10AO",
-    "GNT-EXT-28AO",
-    "GNT-EXT-12RL-12AO",
-    "GNT-EXT-24IN",
-    "GNT-EXT-48IN",
-  ];
-  return slaveOnlyTypes.includes(unitType);
 };
 
 /**
