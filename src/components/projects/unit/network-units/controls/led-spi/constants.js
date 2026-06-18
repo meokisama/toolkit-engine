@@ -16,6 +16,7 @@ export const COLOR_TYPES = {
   RGB: { value: 0, label: "RGB" },
   GRB: { value: 1, label: "GRB" },
   RGBW: { value: 2, label: "RGBW" },
+  WRGB: { value: 3, label: "WRGB" },
 };
 
 // Direction Types
