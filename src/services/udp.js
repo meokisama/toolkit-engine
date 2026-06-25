@@ -250,13 +250,16 @@ class UDPNetworkScanner {
       else if (typeof window !== "undefined" && window.electronAPI && window.electronAPI.scanUDPNetwork) {
         // Get network interface information from main process
         const interfaces = await window.electronAPI.networkInterfaces.getAll(true); // Force refresh
-        const broadcastAddresses = interfaces.map((iface) => iface.broadcast);
+        // Use the local IP of each interface; the main process binds a socket to
+        // each address and sends to the limited broadcast (255.255.255.255) so
+        // every NIC is covered instead of only each subnet-directed .255 address.
+        const interfaceAddresses = interfaces.map((iface) => iface.address);
 
-        log.info(`Scanning on ${broadcastAddresses.length} network interfaces:`, broadcastAddresses);
+        log.info(`Scanning on ${interfaceAddresses.length} network interfaces via ${UDP_CONFIG.BROADCAST_IP}:`, interfaceAddresses);
 
         // Use Electron IPC for UDP operations with multi-interface support
         const results = await window.electronAPI.scanUDPNetwork({
-          broadcastAddresses: broadcastAddresses,
+          interfaceAddresses: interfaceAddresses,
           broadcastIP: UDP_CONFIG.BROADCAST_IP,
           udpPort: UDP_CONFIG.UDP_PORT,
           localPort: UDP_CONFIG.LOCAL_UDP_PORT,

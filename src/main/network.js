@@ -71,7 +71,7 @@ export function registerNetworkHandlers(ipcMain, networkInterfaceService) {
  * UDP Network Scanner Implementation with Multi-Interface Support
  */
 async function scanUDPNetwork(config) {
-  const { broadcastAddresses, broadcastIP, udpPort, localPort, timeout, multiInterface = false, targetCanId = "0.0.0.0" } = config;
+  const { interfaceAddresses, broadcastAddresses, broadcastIP, udpPort, localPort, timeout, multiInterface = false, targetCanId = "0.0.0.0" } = config;
 
   return new Promise((resolve, reject) => {
     const results = [];
@@ -143,20 +143,34 @@ async function scanUDPNetwork(config) {
       }
     }
 
-    // Multi-interface scanning
-    if (multiInterface && broadcastAddresses && broadcastAddresses.length > 0) {
-      console.log(`Multi-interface UDP scan starting on ${broadcastAddresses.length} interfaces:`, broadcastAddresses);
+    // Build the per-interface scan plan.
+    // Preferred: bind a socket to each interface's local IP and send to the
+    // limited broadcast (255.255.255.255) so the request egresses every NIC.
+    // Legacy fallback: send to each subnet-directed broadcast (e.g. x.x.x.255).
+    const targetBroadcast = broadcastIP || "255.255.255.255";
+    const scanTargets =
+      interfaceAddresses && interfaceAddresses.length > 0
+        ? interfaceAddresses.map((address) => ({ bindAddress: address, destAddr: targetBroadcast }))
+        : (broadcastAddresses || []).map((broadcastAddr) => ({ bindAddress: null, destAddr: broadcastAddr }));
 
-      const expectedScans = broadcastAddresses.length;
+    // Multi-interface scanning
+    if (multiInterface && scanTargets.length > 0) {
+      console.log(
+        `Multi-interface UDP scan starting on ${scanTargets.length} interfaces -> ${targetBroadcast}:`,
+        scanTargets.map((t) => t.bindAddress || t.destAddr)
+      );
+
+      const expectedScans = scanTargets.length;
       const requestData = createHardwareInfoRequest(targetCanId);
 
-      // Create a socket for each broadcast address
-      broadcastAddresses.forEach((broadcastAddr, index) => {
+      // Create a socket for each interface
+      scanTargets.forEach(({ bindAddress, destAddr }, index) => {
+        const label = bindAddress ? `${bindAddress} -> ${destAddr}` : destAddr;
         const socket = dgram.createSocket("udp4");
         sockets.push(socket);
 
         socket.on("error", (err) => {
-          console.error(`UDP socket error on interface ${broadcastAddr}:`, err);
+          console.error(`UDP socket error on interface ${label}:`, err);
           completedScans++;
           if (completedScans === expectedScans) {
             cleanup();
@@ -172,15 +186,15 @@ async function scanUDPNetwork(config) {
             socket.setBroadcast(true);
             socket.setRecvBufferSize(0x40000);
           } catch (e) {
-            console.log(`Socket option warning on ${broadcastAddr}:`, e.message);
+            console.log(`Socket option warning on ${label}:`, e.message);
           }
 
           // Send broadcast request to this interface
-          socket.send(requestData, udpPort, broadcastAddr, (err) => {
+          socket.send(requestData, udpPort, destAddr, (err) => {
             if (err) {
-              console.error(`Send error on interface ${broadcastAddr}:`, err);
+              console.error(`Send error on interface ${label}:`, err);
             } else {
-              console.log(`Broadcast sent on interface ${broadcastAddr}`);
+              console.log(`Broadcast sent on interface ${label}`);
             }
 
             completedScans++;
@@ -196,8 +210,13 @@ async function scanUDPNetwork(config) {
           });
         });
 
-        // Bind socket to any available port
-        socket.bind();
+        // Bind socket to the interface IP (random port) so the limited broadcast
+        // is sent out the correct NIC; fall back to any interface when unbound.
+        if (bindAddress) {
+          socket.bind(0, bindAddress);
+        } else {
+          socket.bind();
+        }
       });
 
       // Fallback timeout in case no sockets complete successfully
